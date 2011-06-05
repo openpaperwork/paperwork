@@ -34,13 +34,15 @@ def load_uifile():
     return wTree
 
 def connect_signals(wTree):
-    window = wTree.get_object("MainWindow")
-    assert(window)
-    window.connect("destroy", gtk.main_quit)
-    window.set_visible(True)
+    wTree.get_object("mainWindow").connect("destroy", gtk.main_quit)
+    wTree.get_object("toolbuttonQuit").connect("clicked", gtk.main_quit)
+    wTree.get_object("menuitemQuit").connect("activate", gtk.main_quit)
 
 def main():
     wTree = load_uifile()
     connect_signals(wTree)
+
+    wTree.get_object("mainWindow").set_visible(True)
+
     gtk.main()
 

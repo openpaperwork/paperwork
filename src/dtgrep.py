@@ -2,6 +2,7 @@
 
 import sys
 
+import os
 import pygtk
 import glib
 import gtk
@@ -10,7 +11,7 @@ pygtk.require("2.0")
 
 POSSIBLE_UI_FILES = \
 [
-    "./dtgrep.glade",
+    "dtgrep.glade",
     "src/dtgrep.glade",
     "/usr/local/share/dtgrep/dtgrep.glade",
     "/usr/share/dtgrep/dtgrep.glade",
@@ -43,6 +44,3 @@ def main():
     connect_signals(wTree)
     gtk.main()
 
-
-if __name__ == "__main__":
-    main()

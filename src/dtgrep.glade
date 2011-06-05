@@ -1062,7 +1062,15 @@ Public License instead of this License.  But first, please read
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkLabel" id="label5">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
         </child>
       </object>
     </child>
@@ -1087,7 +1095,7 @@ Public License instead of this License.  But first, please read
   </object>
   <object class="GtkListStore" id="liststoreMatch">
     <columns>
-      <!-- column-name Matching documents -->
+      <!-- column-name Matching -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -1115,7 +1123,7 @@ Public License instead of this License.  But first, please read
   </object>
   <object class="GtkListStore" id="liststoreSuggestions">
     <columns>
-      <!-- column-name Keyword suggestions -->
+      <!-- column-name Keyword -->
       <column type="gchararray"/>
     </columns>
     <data>

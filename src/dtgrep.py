@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import ConfigParser
+import os
 import sys
 
-import os
 import pygtk
 import glib
 import gtk
@@ -16,6 +17,8 @@ POSSIBLE_UI_FILES = \
     "/usr/local/share/dtgrep/dtgrep.glade",
     "/usr/share/dtgrep/dtgrep.glade",
 ]
+
+POSSIBLE_OCR_LANGS = [ "deu", "eng", "fra", "ita", "nld", "port", "spa", "vie" ]
 
 def load_uifile():
     wTree = gtk.Builder()
@@ -39,7 +42,48 @@ def destroy_wTree(wTree):
     wTree.get_object("windowSearch").destroy()
     wTree.get_object("windowSettings").destroy()
 
-class DtGrepWindow:
+class DtGrepConfig(object):
+    def __init__(self):
+        self.read()
+
+    def read(self):
+        self.configparser = ConfigParser.SafeConfigParser()
+        self.configparser.read([ os.path.expanduser("~/.dtgrep") ])
+        if not self.configparser.has_section("Global"):
+            self.configparser.add_section("Global")
+        if not self.configparser.has_section("OCR"):
+            self.configparser.add_section("OCR")
+
+    @property
+    def workDir(self):
+        try:
+            return self.configparser.get("Global", "WorkDirectory")
+        except:
+            return os.path.expanduser("~/papers")
+
+    @workDir.setter
+    def workDir(self, workDir):
+        self.configparser.set("Global", "WorkDirectory", workDir)
+
+    @property
+    def ocrLang(self):
+        try:
+            return self.configparser.get("OCR", "Lang")
+        except:
+            return "eng"
+
+    @ocrLang.setter
+    def ocrLang(self, lang):
+        self.configparser.set("OCR", "Lang", lang)
+
+    def write(self):
+        f = os.path.expanduser("~/.dtgrep")
+        print "Writing %s ... " % f
+        with open(f, 'wb') as fd:
+            self.configparser.write(fd)
+        print "Done"
+
+class DtGrepWindow(object):
     def __init__(self):
         # we have to recreate new dialogs each time, otherwise, when the user
         # destroy the dialog, we won't be able to redisplay it
@@ -65,8 +109,9 @@ class AboutDialog(DtGrepWindow):
         self.aboutDialog.connect("close", lambda x: self.destroy())
 
 class SettingsWindow(DtGrepWindow):
-    def __init__(self):
+    def __init__(self, dtgrepConfig):
         DtGrepWindow.__init__(self)
+        self.dtgrepConfig = dtgrepConfig
         self.settingsWindow = self.wTree.get_object("windowSettings")
         assert(self.settingsWindow)
         self.connect_signals()
@@ -74,7 +119,10 @@ class SettingsWindow(DtGrepWindow):
         self.settingsWindow.set_visible(True)
 
     def apply(self):
-        # TODO
+        assert(self.ocrLangs)
+        self.dtgrepConfig.workDir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+        self.dtgrepConfig.ocrLang = POSSIBLE_OCR_LANGS[self.ocrLangs.get_active()]
+        self.dtgrepConfig.write()
         return True
 
     def connect_signals(self):
@@ -84,18 +132,21 @@ class SettingsWindow(DtGrepWindow):
         self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self.open_file_chooser())
 
     def fill_in_form(self):
+        # work dir
+        self.wTree.get_object("entrySettingsWorkDir").set_text(self.dtgrepConfig.workDir)
+
+        # ocr lang
         wTable = self.wTree.get_object("tableSettings")
         assert(wTable)
         self.ocrLangs = gtk.combo_box_new_text()
-        self.ocrLangs.append_text("deu")
-        self.ocrLangs.append_text("eng")
-        self.ocrLangs.append_text("fra")
-        self.ocrLangs.append_text("ita")
-        self.ocrLangs.append_text("nld")
-        self.ocrLangs.append_text("por")
-        self.ocrLangs.append_text("spa")
-        self.ocrLangs.append_text("vie")
-        self.ocrLangs.set_active(0) # TODO
+        idx = 0
+        activeIdx = 0
+        for opt in POSSIBLE_OCR_LANGS:
+            self.ocrLangs.append_text(opt)
+            if opt == self.dtgrepConfig.ocrLang:
+                activeIdx = idx
+            idx = idx + 1
+        self.ocrLangs.set_active(activeIdx)
         self.ocrLangs.set_visible(True)
         wTable.attach(self.ocrLangs, 1, 2, 1, 2)
 
@@ -103,11 +154,11 @@ class SettingsWindow(DtGrepWindow):
         chooser = gtk.FileChooserDialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-        # TODO chooser.set_current_folder()
+        chooser.set_current_folder(self.wTree.get_object("entrySettingsWorkDir").get_text())
         response = chooser.run()
         if response == gtk.RESPONSE_OK:
             print "Selected: %s" % (chooser.get_filename())
-            # TODO
+            self.wTree.get_object("entrySettingsWorkDir").set_text(chooser.get_filename())
         chooser.destroy()
 
 class SearchWindow(DtGrepWindow):
@@ -128,7 +179,8 @@ class SearchWindow(DtGrepWindow):
         self.wTree.get_object("buttonSearchOk").connect("clicked", lambda x: self.apply() and self.destroy())
 
 class MainWindow:
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.wTree = load_uifile()
         self.mainWindow = self.wTree.get_object("mainWindow")
         assert(self.mainWindow)
@@ -142,7 +194,7 @@ class MainWindow:
 
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
 
-        self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow())
+        self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self.config))
 
         self.wTree.get_object("toolbuttonSearch").connect("clicked", lambda x: SearchWindow())
         self.wTree.get_object("menuitemSearch").connect("activate", lambda x: SearchWindow())
@@ -153,6 +205,7 @@ class MainWindow:
 
 
 def main():
-    MainWindow()
+    config = DtGrepConfig()
+    MainWindow(config)
     gtk.main()
 

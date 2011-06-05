@@ -53,6 +53,7 @@ class AboutDialog:
     def connect_signals(self):
         self.aboutDialog.connect("response", lambda x, y: self.destroy())
         self.aboutDialog.connect("close", lambda x: self.destroy())
+        self.aboutDialog.connect("destroy", lambda x: self.destroy())
 
     def destroy(self):
         destroy_wTree(self.wTree)

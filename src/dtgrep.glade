@@ -953,7 +953,7 @@ Public License instead of this License.  But first, please read
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="toolbuttonOpen">
+              <object class="GtkToolButton" id="toolbuttonSearch">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="tooltip_text" translatable="yes">Look for a document</property>
@@ -1525,7 +1525,7 @@ Public License instead of this License.  But first, please read
             </child>
             <child>
               <object class="GtkButton" id="buttonSettingsOk">
-                <property name="label" translatable="yes">Apply</property>
+                <property name="label" translatable="yes">Ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

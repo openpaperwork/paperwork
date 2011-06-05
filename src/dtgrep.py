@@ -39,24 +39,64 @@ def destroy_wTree(wTree):
     wTree.get_object("windowSearch").destroy()
     wTree.get_object("windowSettings").destroy()
 
-class AboutDialog:
+class DtGrepWindow:
     def __init__(self):
-        # we have to recreate new dialogs each time, otherwise, when user
+        # we have to recreate new dialogs each time, otherwise, when the user
         # destroy the dialog, we won't be able to redisplay it
-        # TODO(Jflesch): memleak
         self.wTree = load_uifile()
+
+    def connect_signals(self, win):
+        win.connect("destroy", lambda x: self.destroy())
+
+    def destroy(self):
+        destroy_wTree(self.wTree)
+
+class AboutDialog(DtGrepWindow):
+    def __init__(self):
+        DtGrepWindow.__init__(self)
         self.aboutDialog = self.wTree.get_object("aboutdialog")
         assert(self.aboutDialog)
         self.connect_signals()
         self.aboutDialog.set_visible(True)
 
     def connect_signals(self):
+        DtGrepWindow.connect_signals(self, self.aboutDialog)
         self.aboutDialog.connect("response", lambda x, y: self.destroy())
-        self.aboutDialog.connect("close", lambda x: self.destroy())
-        self.aboutDialog.connect("destroy", lambda x: self.destroy())
+        dialog.connect("close", lambda x: self.destroy())
 
-    def destroy(self):
-        destroy_wTree(self.wTree)
+class SettingsWindow(DtGrepWindow):
+    def __init__(self):
+        DtGrepWindow.__init__(self)
+        self.settingsWindow = self.wTree.get_object("windowSettings")
+        assert(self.settingsWindow)
+        self.connect_signals()
+        self.settingsWindow.set_visible(True)
+
+    def apply(self):
+        # TODO
+        return True
+
+    def connect_signals(self):
+        DtGrepWindow.connect_signals(self, self.settingsWindow)
+        self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self.destroy())
+        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self.destroy())
+
+class SearchWindow(DtGrepWindow):
+    def __init__(self):
+        DtGrepWindow.__init__(self)
+        self.searchWindow = self.wTree.get_object("windowSearch")
+        assert(self.searchWindow)
+        self.connect_signals()
+        self.searchWindow.set_visible(True)
+
+    def apply(self):
+        # TODO
+        return True
+
+    def connect_signals(self):
+        DtGrepWindow.connect_signals(self, self.searchWindow)
+        self.wTree.get_object("buttonSearchCancel").connect("clicked", lambda x: self.destroy())
+        self.wTree.get_object("buttonSearchOk").connect("clicked", lambda x: self.apply() and self.destroy())
 
 class MainWindow:
     def __init__(self):
@@ -70,7 +110,13 @@ class MainWindow:
         self.mainWindow.connect("destroy", lambda x: self.destroy())
         self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self.destroy())
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self.destroy())
+
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
+
+        self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow())
+
+        self.wTree.get_object("toolbuttonSearch").connect("clicked", lambda x: SearchWindow())
+        self.wTree.get_object("menuitemSearch").connect("activate", lambda x: SearchWindow())
 
     def destroy(self):
         destroy_wTree(self.wTree)

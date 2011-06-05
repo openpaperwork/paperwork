@@ -81,6 +81,7 @@ class SettingsWindow(DtGrepWindow):
         DtGrepWindow.connect_signals(self, self.settingsWindow)
         self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self.destroy())
         self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self.destroy())
+        self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self.open_file_chooser())
 
     def fill_in_form(self):
         wTable = self.wTree.get_object("tableSettings")
@@ -98,6 +99,16 @@ class SettingsWindow(DtGrepWindow):
         self.ocrLangs.set_visible(True)
         wTable.attach(self.ocrLangs, 1, 2, 1, 2)
 
+    def open_file_chooser(self):
+        chooser = gtk.FileChooserDialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                                        buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
+        chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+        # TODO chooser.set_current_folder()
+        response = chooser.run()
+        if response == gtk.RESPONSE_OK:
+            print "Selected: %s" % (chooser.get_filename())
+            # TODO
+        chooser.destroy()
 
 class SearchWindow(DtGrepWindow):
     def __init__(self):

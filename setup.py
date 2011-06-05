@@ -9,7 +9,7 @@ setup(name="DtGrep",
       author_email="jflesch@gmail.com",
       packages=['dtgrep'],
       package_dir={ 'dtgrep': 'src' },
-      data_files=[('glade', ['src/dtgrep.glade'])],
+      data_files=[('share/dtgrep', ['src/dtgrep.glade'])],
       scripts=['scripts/dtgrep'],
      )
 

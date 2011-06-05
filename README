@@ -1,0 +1,11 @@
+DtGrep README
+-------------
+
+I) Dependencies
+
+pygtk v2 (Ubuntu package: python-gtk2-dev)
+tesseract v3 (Ubuntu package: none at the moment)
+python-imaging (Ubuntu package: python-imaging)
+python-imaging-sane (Ubuntu package: python-imaging-sane)
+
+

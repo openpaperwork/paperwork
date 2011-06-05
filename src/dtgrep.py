@@ -62,7 +62,7 @@ class AboutDialog(DtGrepWindow):
     def connect_signals(self):
         DtGrepWindow.connect_signals(self, self.aboutDialog)
         self.aboutDialog.connect("response", lambda x, y: self.destroy())
-        dialog.connect("close", lambda x: self.destroy())
+        self.aboutDialog.connect("close", lambda x: self.destroy())
 
 class SettingsWindow(DtGrepWindow):
     def __init__(self):
@@ -70,6 +70,7 @@ class SettingsWindow(DtGrepWindow):
         self.settingsWindow = self.wTree.get_object("windowSettings")
         assert(self.settingsWindow)
         self.connect_signals()
+        self.fill_in_form()
         self.settingsWindow.set_visible(True)
 
     def apply(self):
@@ -80,6 +81,23 @@ class SettingsWindow(DtGrepWindow):
         DtGrepWindow.connect_signals(self, self.settingsWindow)
         self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self.destroy())
         self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self.destroy())
+
+    def fill_in_form(self):
+        wTable = self.wTree.get_object("tableSettings")
+        assert(wTable)
+        self.ocrLangs = gtk.combo_box_new_text()
+        self.ocrLangs.append_text("deu")
+        self.ocrLangs.append_text("eng")
+        self.ocrLangs.append_text("fra")
+        self.ocrLangs.append_text("ita")
+        self.ocrLangs.append_text("nld")
+        self.ocrLangs.append_text("por")
+        self.ocrLangs.append_text("spa")
+        self.ocrLangs.append_text("vie")
+        self.ocrLangs.set_active(0) # TODO
+        self.ocrLangs.set_visible(True)
+        wTable.attach(self.ocrLangs, 1, 2, 1, 2)
+
 
 class SearchWindow(DtGrepWindow):
     def __init__(self):

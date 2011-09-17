@@ -63,7 +63,13 @@ class SearchWindow(object):
         print "Selected document: " + selection
         previewFile = self.docsearch.get_doc_img_filepath(selection, 1)
         print "Previewed file: " + previewFile
-        self.previewBox.set_from_file(previewFile)
+
+        pixbuf = gtk.gdk.pixbuf_new_from_file(previewFile)
+        w = pixbuf.get_width() / 4
+        h = pixbuf.get_height() / 4
+        scaled_buf = pixbuf.scale_simple(w,h,gtk.gdk.INTERP_BILINEAR)
+        self.previewBox.set_from_pixbuf(scaled_buf)
+        self.previewBox.show()
 
     def _apply(self):
         # TODO

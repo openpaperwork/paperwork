@@ -37,6 +37,13 @@ class MainWindow:
         gtk_refresh()
 
     def _open_search_window(self, objsrc):
+        try:
+            os.stat(self.config.workdir)
+        except Except, e:
+            print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
+            SettingsWindow(self.config)
+            return
+
         self.progressBar.set_text("Loading documents ...");
         self.progressBar.set_fraction(0.0)
         dsearch = DocSearch(self.config.workdir, self._docsearch_callback)

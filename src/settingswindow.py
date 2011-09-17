@@ -1,4 +1,5 @@
 import gtk
+import os
 
 from util import load_uifile
 
@@ -22,13 +23,14 @@ class SettingsWindow(object):
         self.settingswin = self.wTree.get_object("windowSettings")
         assert(self.settingswin)
 
-        self.connect_signals()
-        self.fill_in_form()
+        self._connect_signals()
+        self._fill_in_form()
         self.settingswin.set_visible(True)
 
     def _apply(self):
         assert(self.ocrlangs_widget)
         self.dtgrepConfig.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+        os.makedirs(self.dtgrepConfig)
         self.dtgrepConfig.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
         self.dtgrepConfig.write()
         return True

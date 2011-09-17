@@ -1,3 +1,5 @@
+import gtk
+
 from util import load_uifile
 
 class SearchWindow(object):
@@ -8,7 +10,8 @@ class SearchWindow(object):
         self.searchwin = self.wTree.get_object("windowSearch")
         assert(self.searchwin)
         self.searchField = self.wTree.get_object("entrySearch")
-        self.suggestionList = self.wTree.get_object("liststoreSuggestions")
+        self.suggestionListUI = self.wTree.get_object("treeviewSuggestion")
+        self.suggestionList = self.wTree.get_object("liststoreSuggestion")
         self.matchListUI = self.wTree.get_object("treeviewMatch")
         self.matchList = self.wTree.get_object("liststoreMatch")
         self.previewBox = self.wTree.get_object("imagePreview")
@@ -32,8 +35,30 @@ class SearchWindow(object):
         for document in documents:
             self.matchList.append([document])
 
+    def _update_search_field(self, objsrc = None):
+        selectionPath = self.suggestionListUI.get_selection().get_selected()
+        if selectionPath[1] == None:
+            return
+        selection = selectionPath[0].get_value(selectionPath[1], 0)
+        print "Selected suggestion: " + selection
+
+        search = unicode(self.searchField.get_text())
+        # TODO: i18n/l10n: spaces aren't always the correct word separator
+        words = search.split(" ")
+        search = ""
+        for word in words:
+            if search != "":
+                search += " "
+            if selection.startswith(word):
+                search += selection
+            else:
+                search += word
+        self.searchField.set_text(search)
+
     def _update_preview(self, objsrc = None):
         selectionPath = self.matchListUI.get_selection().get_selected()
+        if selectionPath[1] == None:
+            return
         selection = selectionPath[0].get_value(selectionPath[1], 0)
         print "Selected document: " + selection
         previewFile = self.docsearch.get_doc_img_filepath(selection, 1)
@@ -49,6 +74,7 @@ class SearchWindow(object):
         self.searchField.connect("changed", self._update_results)
         self.wTree.get_object("buttonSearchCancel").connect("clicked", lambda x: self._destroy())
         self.wTree.get_object("buttonSearchOk").connect("clicked", lambda x: self.apply() and self._destroy())
+        self.suggestionListUI.connect("cursor-changed", self._update_search_field)
         self.matchListUI.connect("cursor-changed", self._update_preview)
 
     def _destroy(self):

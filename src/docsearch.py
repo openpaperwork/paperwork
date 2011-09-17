@@ -99,6 +99,9 @@ class DocSearch(object):
         while not idx_min_found:
             if idx_min <= 0 or idx_min > lkeywords-1:
                 idx_min_found = True
+            elif self.keywords[idx_min-1][:lkeyword] < keyword and self.keywords[idx_min][:lkeyword] > keyword:
+                print "No suggestion found for '%s'" % keyword
+                return []
             elif self.keywords[idx_min-1][:lkeyword] != keyword and self.keywords[idx_min][:lkeyword] == keyword:
                 idx_min_found = True
             elif self.keywords[idx_min][:lkeyword] >= keyword:
@@ -108,6 +111,7 @@ class DocSearch(object):
             njump = (njump / 2) or 1
 
         if idx_min > lkeywords-1:
+            print "No suggestion found for '%s'" % keyword
             return []
 
         # last element
@@ -127,7 +131,6 @@ class DocSearch(object):
             njump = (njump / 2) or 1
 
         return self.keywords[idx_min:(idx_max+1)]
-
 
     def get_suggestions(self, keywords):
         suggestions = []

@@ -45,3 +45,7 @@ def load_uifile(filename):
 def strip_accents(s):
    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
+def gtk_refresh():
+    while gtk.events_pending():
+        gtk.main_iteration()
+

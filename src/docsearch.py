@@ -11,15 +11,24 @@ class DocSearch(object):
 
     INDEX_STEP_READING  = 0
     INDEX_STEP_SORTING  = 1
-    INDEX_STEP_LAST     = INDEX_STEP_SORTING
 
-    def __init__(self, rootdir):
+    def __init__(self, rootdir, callback = None):
+        """
+        Index files in rootdir (see constructor)
+
+        Arguments:
+            callback --- called during the indexation (may be called *often*).
+                step : DocSearch.INDEX_STEP_READING or DocSearch.INDEX_STEP_SORTING
+                progression : how many elements done yet
+                total : number of elements to do
+                document (only if step == DocSearch.INDEX_STEP_READING): file being read
+        """
+        if callback == None:
+            callback = lambda step, progression, total, document=None: None
         self.rootdir = rootdir
         self.keywords = []          # array of strings (sorted at the end of indexation)
         self.keywords_to_doc = {}   # keyword (string) -> array of path (string)
-
-    def _dummycallback(self, step, progression, total, document=None):
-        pass
+        self._index(callback)
 
     def _index_file(self, filepath):
         print "Indexing %s" % filepath
@@ -34,20 +43,20 @@ class DocSearch(object):
                     else:
                         self.keywords_to_doc[word] = [ filepath ]
 
-    def _index_dir(self, callback, dirpath):
+    def _index_dir(self, callback, dirpath, progression = 0, total = 0):
         dlist = os.listdir(dirpath)
-        i = 0
-        total = len(dlist)
+        if total == 0:
+            progression = 0
+            total = len(dlist)
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
-                i = i+1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                self._index_dir(callback, os.path.join(dirpath, dpath))
+                callback(self.INDEX_STEP_READING, progression, total, dpath)
+                self._index_dir(callback, os.path.join(dirpath, dpath), progression, total)
+                progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
-                callback(self.INDEX_STEP_READING, i, total, dpath)
                 self._index_file(os.path.join(dirpath, dpath))
-            i = i+1
 
     def _extract_keywords(self, callback):
         callback(self.INDEX_STEP_SORTING, 0, 2)
@@ -55,21 +64,7 @@ class DocSearch(object):
         callback(self.INDEX_STEP_SORTING, 1, 2)
         self.keywords.sort()
 
-    def index(self, callback = None):
-        """
-        Index files in rootdir (see constructor)
-
-        Arguments:
-            callback --- called during the indexation (may be called *often*). The given function
-            should expect the same arguments than '_dummycallback':
-                step : DocSearch.INDEX_STEP_READING or DocSearch.INDEX_STEP_SORTING
-                progression : how many elements done yet
-                total : number of elements to do
-                document (only if step == DocSearch.INDEX_STEP_READING): file being read
-        """
-        self._index(self._dummycallback)
-
-    def _index(self, callback):
+    def _index(self, callback = None):
         self._index_dir(callback, self.rootdir)
         self._extract_keywords(callback)
 

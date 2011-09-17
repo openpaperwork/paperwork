@@ -233,7 +233,7 @@
               <placeholder/>
             </child>
             <child>
-              <object class="GtkVPaned" id="vpaned1">
+              <object class="GtkVPaned" id="vpanedPage">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="orientation">vertical</property>

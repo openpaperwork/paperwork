@@ -22,7 +22,9 @@ class MainWindow:
         self.pageScrollWin = self.wTree.get_object("scrolledwindowPageImg")
         self.pageImg = self.wTree.get_object("imagePageImg")
         self.pageTxt = self.wTree.get_object("textviewPageTxt")
+        self.pageVpaned = self.wTree.get_object("vpanedPage")
 
+        self._reset_vpaned()
         self._connect_signals()
         self.mainWindow.set_visible(True)
 
@@ -64,6 +66,10 @@ class MainWindow:
         txt = self.doc.get_text(page)
         self.pageTxt.get_buffer().set_text(txt)
 
+    def _reset_vpaned(self):
+        wantedSplitPos = (self.pageVpaned.get_allocation().height) * 3 / 4;
+        self.pageVpaned.set_position(wantedSplitPos)
+
     def _get_current_page(self):
         selectionPath = self.pageListUI.get_selection().get_selected()
         if selectionPath[1] == None:
@@ -84,10 +90,12 @@ class MainWindow:
             self._show_page_txt(page)
         except Exception, e:
             print "Unable to show text for doc '%s': %s" % (self.doc, e)
+        self._reset_vpaned()
 
     def refresh_page(self):
-        print "Refreshing page"
+        print "Refreshing main window"
         self._show_page_img(self._get_current_page())
+        self._reset_vpaned()
 
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())

@@ -8,4 +8,11 @@ tesseract v3 (Ubuntu package: none at the moment)
 python-imaging (Ubuntu package: python-imaging)
 python-imaging-sane (Ubuntu package: python-imaging-sane)
 
+II) Installation
+
+$ sudo ./setup.py install
+
+III) How to run Dtgrep
+
+$ dtgrep
 

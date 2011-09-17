@@ -3,7 +3,7 @@ from util import load_uifile
 class SearchWindow(object):
     def __init__(self, docsearch):
         self.docsearch = docsearch
-        self.wTree = load_uifile("dtgrep.glade")
+        self.wTree = load_uifile("searchwindow.glade")
         self.searchwin = self.wTree.get_object("windowSearch")
         assert(self.searchwin)
         self.connect_signals()

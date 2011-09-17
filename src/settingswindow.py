@@ -17,7 +17,7 @@ class SettingsWindow(object):
 
     def __init__(self, dtgrepConfig):
         self.dtgrepConfig = dtgrepConfig
-        self.wTree = load_uifile("dtgrep.glade")
+        self.wTree = load_uifile("settingswindow.glade")
         self.settingswin = self.wTree.get_object("windowSettings")
         assert(self.settingswin)
         self.connect_signals()

@@ -2,7 +2,7 @@ from util import load_uifile
 
 class AboutDialog(object):
     def __init__(self):
-        self.wTree = load_uifile("dtgrep.glade")
+        self.wTree = load_uifile("aboutdialog.glade")
         self.aboutdialog = self.wTree.get_object("aboutdialog")
         assert(self.aboutdialog)
         self.connect_signals()

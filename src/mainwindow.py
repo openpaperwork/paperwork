@@ -11,7 +11,7 @@ from settingswindow import SettingsWindow
 class MainWindow:
     def __init__(self, config):
         self.config = config
-        self.wTree = load_uifile("dtgrep.glade")
+        self.wTree = load_uifile("mainwindow.glade")
         self.mainWindow = self.wTree.get_object("mainWindow")
         assert(self.mainWindow)
         self.connect_signals()

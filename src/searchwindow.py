@@ -1,9 +1,12 @@
 import gtk
+import time
 
+from util import gtk_refresh
 from util import load_uifile
 
 class SearchWindow(object):
-    def __init__(self, docsearch):
+    def __init__(self, mainwindow, docsearch):
+        self.mainwindow = mainwindow
         self.docsearch = docsearch
         self.wTree = load_uifile("searchwindow.glade")
 
@@ -32,7 +35,7 @@ class SearchWindow(object):
         for suggestion in suggestions:
             self.suggestionList.append([ suggestion ])
         self.matchList.clear()
-        for document in documents:
+        for document in reversed(documents):
             self.matchList.append([document])
 
     def _update_search_field(self, objsrc = None):
@@ -61,7 +64,7 @@ class SearchWindow(object):
             return
         selection = selectionPath[0].get_value(selectionPath[1], 0)
         print "Selected document: " + selection
-        previewFile = self.docsearch.get_doc_img_filepath(selection, 1)
+        previewFile = self.docsearch.get_doc(selection).get_img_path(1)
         print "Previewed file: " + previewFile
 
         pixbuf = gtk.gdk.pixbuf_new_from_file(previewFile)
@@ -72,14 +75,33 @@ class SearchWindow(object):
         self.previewBox.show()
 
     def _apply(self):
-        # TODO
+        selectionPath = self.matchListUI.get_selection().get_selected()
+        if selectionPath[1] == None:
+            print "No document selected. Can't open"
+            return False
+        selection = selectionPath[0].get_value(selectionPath[1], 0)
+        doc = self.docsearch.get_doc(selection)
+
+        self._destroy()
+
+        print "Showing doc %s" % selection
+        self.mainwindow.show_doc(doc)
+
+        # XXX(Jflesch): On tilted window managers like Awesome, the main window
+        # will only get its final size once this dialog has been fully destroyed
+        # and once the main window has been redrawned at least once.
+        # And we need the final size of the main window to display the page at the
+        # correct scale. So we have to do the following:
+        gtk_refresh()
+        self.mainwindow.refresh_page()
+
         return True
 
     def _connect_signals(self):
         self.searchwin.connect("destroy", lambda x: self._destroy())
         self.searchField.connect("changed", self._update_results)
         self.wTree.get_object("buttonSearchCancel").connect("clicked", lambda x: self._destroy())
-        self.wTree.get_object("buttonSearchOk").connect("clicked", lambda x: self.apply() and self._destroy())
+        self.wTree.get_object("buttonSearchOk").connect("clicked", lambda x: self._apply())
         self.suggestionListUI.connect("cursor-changed", self._update_search_field)
         self.matchListUI.connect("cursor-changed", self._update_preview)
 

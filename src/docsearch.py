@@ -5,6 +5,7 @@ import os
 import os.path
 
 from util import strip_accents
+from doc import DtGrepDoc
 
 class DocSearch(object):
     MIN_KEYWORD_LEN = 3
@@ -183,28 +184,6 @@ class DocSearch(object):
         short_docs.sort()
         return short_docs
 
-    def _get_doc_filepath(self, docid, page, ext):
-        assert(page > 0)
-
-        # XXX(Jflesch): We try to not make assumptions regarding file names,
-        # except regarding their extensions (.txt/.jpg/etc)
-
-        docpath = self.docpaths[docid]
-        filelist = os.listdir(docpath)
-        filelist.sort()
-        i = 1
-        for f in filelist:
-            if f[-4:].lower() != "."+ext:
-                continue
-            if page == i:
-                return os.path.join(docpath, f)
-            i = i+1
-        raise Exception("Page %d not found in document '%s' !" % (page, docid))
-
-    def get_doc_txt_filepath(self, docid, page):
-        return self._get_doc_filepath(docid, page, "txt")
-            
-
-    def get_doc_img_filepath(self, docid, page):
-        return self._get_doc_filepath(docid, page, "jpg")
+    def get_doc(self, docid):
+        return DtGrepDoc(docid, self.docpaths[docid])
 

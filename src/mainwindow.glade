@@ -4,17 +4,9 @@
   <!-- interface-naming-policy project-wide -->
   <object class="GtkListStore" id="liststorePage">
     <columns>
-      <!-- column-name Page -->
+      <!-- column-name Pages -->
       <column type="gchararray"/>
     </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Page 1</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Page 2</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="title" translatable="yes">DtGrep</property>
@@ -212,7 +204,7 @@
                         <property name="search_column">0</property>
                         <child>
                           <object class="GtkTreeViewColumn" id="treeviewcolumnPage">
-                            <property name="title">Page</property>
+                            <property name="title">Pages</property>
                             <child>
                               <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
                               <attributes>
@@ -248,7 +240,7 @@
                 <property name="position">600</property>
                 <property name="position_set">True</property>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindow1">
+                  <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">automatic</property>
@@ -258,7 +250,7 @@
                         <property name="visible">True</property>
                         <property name="resize_mode">queue</property>
                         <child>
-                          <object class="GtkImage" id="image1">
+                          <object class="GtkImage" id="imagePageImg">
                             <property name="visible">True</property>
                           </object>
                         </child>
@@ -281,7 +273,7 @@
                         <property name="visible">True</property>
                         <property name="resize_mode">queue</property>
                         <child>
-                          <object class="GtkTextView" id="textview1">
+                          <object class="GtkTextView" id="textviewPageTxt">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="editable">False</property>

@@ -119,7 +119,16 @@ class DocSearch(object):
         for keyword in keywords:
             if len(keyword) < self.MIN_KEYWORD_LEN:
                 continue
-            suggestions.extend(self._get_suggestions(keyword))
+            keyword = strip_accents(keyword)
+            new_suggestions = self._get_suggestions(keyword)
+            try:
+                # if the keyword typed by the user match exactly a known keyword,
+                # it will be in the list, however there is no point in returning it
+                new_suggestions.remove(keyword)
+            except Exception, e:
+                pass
+            suggestions.extend(new_suggestions)
+        suggestions.sort()
         return suggestions
 
     def _get_documents(self, keyword):
@@ -133,6 +142,7 @@ class DocSearch(object):
         for keyword in keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
                 return []
+            keyword = strip_accents(keyword)
             docs = self._get_documents(keyword)
             if documents == None:
                 documents = docs
@@ -141,4 +151,18 @@ class DocSearch(object):
 
         if documents == None:
             return []
-        return documents
+
+        # documents contains the whole paths, but we actually identify documents
+        # only by the directory in which they are
+        short_docs = []
+        for doc in documents:
+            try:
+                path = os.path.split(doc)[0]
+                # we are looking for the parent directory name --> we resplit
+                path = os.path.split(path)[1]
+                short_docs.append(path)
+            except Exception, e:
+                print "Warning: Invalid document path: %s (%s)" % (doc, e)
+
+        short_docs.sort()
+        return short_docs

@@ -20,7 +20,6 @@ class MainWindow:
         self.mainWindow.set_visible(True)
 
     def _docsearch_callback(self, step, progression, total, document=None):
-        print("Fraction %f" % (float(progression) / total))
         self.progressBar.set_fraction(float(progression) / total)
         if step == DocSearch.INDEX_STEP_READING:
             self.progressBar.set_text("Reading '" + document + "'")

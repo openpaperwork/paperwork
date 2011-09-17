@@ -30,15 +30,15 @@ class SettingsWindow(object):
     def _apply(self):
         assert(self.ocrlangs_widget)
         self.dtgrepConfig.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
-        os.makedirs(self.dtgrepConfig)
+        os.makedirs(self.dtgrepConfig.workdir)
         self.dtgrepConfig.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
         self.dtgrepConfig.write()
         return True
 
     def _connect_signals(self):
-        self.settingswin.connect("destroy", lambda x: self.destroy())
+        self.settingswin.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self._destroy())
-        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self._destroy())
+        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self._apply() and self._destroy())
         self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self._open_file_chooser())
 
     def _fill_in_form(self):

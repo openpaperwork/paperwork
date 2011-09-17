@@ -1,4 +1,5 @@
 import gtk
+import os
 
 from util import gtk_refresh
 from util import load_uifile
@@ -39,7 +40,7 @@ class MainWindow:
     def _open_search_window(self, objsrc):
         try:
             os.stat(self.config.workdir)
-        except Except, e:
+        except OSError, e:
             print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
             SettingsWindow(self.config)
             return

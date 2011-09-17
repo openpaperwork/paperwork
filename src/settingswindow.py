@@ -18,26 +18,28 @@ class SettingsWindow(object):
     def __init__(self, dtgrepConfig):
         self.dtgrepConfig = dtgrepConfig
         self.wTree = load_uifile("settingswindow.glade")
+
         self.settingswin = self.wTree.get_object("windowSettings")
         assert(self.settingswin)
+
         self.connect_signals()
         self.fill_in_form()
         self.settingswin.set_visible(True)
 
-    def apply(self):
+    def _apply(self):
         assert(self.ocrlangs_widget)
         self.dtgrepConfig.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
         self.dtgrepConfig.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
         self.dtgrepConfig.write()
         return True
 
-    def connect_signals(self):
+    def _connect_signals(self):
         self.settingswin.connect("destroy", lambda x: self.destroy())
-        self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self.destroy())
-        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self.destroy())
-        self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self.open_file_chooser())
+        self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self._destroy())
+        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self.apply() and self._destroy())
+        self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self._open_file_chooser())
 
-    def fill_in_form(self):
+    def _fill_in_form(self):
         # work dir
         self.wTree.get_object("entrySettingsWorkDir").set_text(self.dtgrepConfig.workdir)
 
@@ -56,7 +58,7 @@ class SettingsWindow(object):
         self.ocrlangs_widget.set_visible(True)
         wTable.attach(self.ocrlangs_widget, 1, 2, 1, 2)
 
-    def open_file_chooser(self):
+    def _open_file_chooser(self):
         chooser = gtk.FileChooserdialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
@@ -67,6 +69,6 @@ class SettingsWindow(object):
             self.wTree.get_object("entrySettingsWorkDir").set_text(chooser.get_filename())
         chooser.destroy()
 
-    def destroy(self):
+    def _destroy(self):
         self.wTree.get_object("windowSettings").destroy()
 

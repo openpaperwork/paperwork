@@ -26,22 +26,21 @@ class DocSearch(object):
         if callback == None:
             callback = lambda step, progression, total, document=None: None
         self.rootdir = rootdir
-        self.keywords = []          # array of strings (sorted at the end of indexation)
-        self.keywords_to_doc = {}   # keyword (string) -> array of path (string)
         self._index(callback)
 
-    def _index_file(self, filepath):
+    def _index_file(self, filepath, docpath):
         print "Indexing %s" % filepath
         with codecs.open(filepath, encoding='utf-8') as fd:
             for line in fd.readlines():
+                line = line.strip()
                 for word in line.split(" "): # TODO: i18n/l10n
                     if len(word) < self.MIN_KEYWORD_LEN:
                         continue
                     word = strip_accents(word)
                     if self.keywords_to_doc.has_key(word):
-                        self.keywords_to_doc[word].append(filepath)
+                        self.keywords_to_doc[word].append(docpath)
                     else:
-                        self.keywords_to_doc[word] = [ filepath ]
+                        self.keywords_to_doc[word] = [ docpath ]
 
     def _index_dir(self, callback, dirpath, progression = 0, total = 0):
         dlist = os.listdir(dirpath)
@@ -56,16 +55,32 @@ class DocSearch(object):
                 self._index_dir(callback, os.path.join(dirpath, dpath), progression, total)
                 progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
-                self._index_file(os.path.join(dirpath, dpath))
+                self._index_file(os.path.join(dirpath, dpath), dirpath)
+
+    def _docpath_to_id(self, docpath):
+        return os.path.split(docpath)[1]
+
+    def _index_docpaths(self, callback):
+        callback(self.INDEX_STEP_SORTING, 0, 3)
+        for docs in self.keywords_to_doc.values():
+            for docpath in docs:
+                docid = self._docpath_to_id(docpath)
+                if not self.docpaths.has_key(docid):
+                    self.docpaths[docid] = docpath
 
     def _extract_keywords(self, callback):
-        callback(self.INDEX_STEP_SORTING, 0, 2)
+        callback(self.INDEX_STEP_SORTING, 1, 3)
         self.keywords = self.keywords_to_doc.keys()
-        callback(self.INDEX_STEP_SORTING, 1, 2)
+        callback(self.INDEX_STEP_SORTING, 2, 3)
         self.keywords.sort()
 
     def _index(self, callback = None):
+        self.keywords = []          # array of strings (sorted at the end of indexation)
+        self.docpaths = {}          # doc id (string) -> full path
+        self.keywords_to_doc = {}   # keyword (string) -> array of path
+
         self._index_dir(callback, self.rootdir)
+        self._index_docpaths(callback)
         self._extract_keywords(callback)
 
     def _get_suggestions(self, keyword):
@@ -155,14 +170,38 @@ class DocSearch(object):
         # documents contains the whole paths, but we actually identify documents
         # only by the directory in which they are
         short_docs = []
-        for doc in documents:
+        for docpath in documents:
             try:
-                path = os.path.split(doc)[0]
-                # we are looking for the parent directory name --> we resplit
-                path = os.path.split(path)[1]
-                short_docs.append(path)
+                docid = self._docpath_to_id(docpath)
+                short_docs.append(docid)
             except Exception, e:
-                print "Warning: Invalid document path: %s (%s)" % (doc, e)
+                print "Warning: Invalid document path: %s (%s)" % (docpath, e)
 
         short_docs.sort()
         return short_docs
+
+    def _get_doc_filepath(self, docid, page, ext):
+        assert(page > 0)
+
+        # XXX(Jflesch): We try to not make assumptions regarding file names,
+        # except regarding their extensions (.txt/.jpg/etc)
+
+        docpath = self.docpaths[docid]
+        filelist = os.listdir(docpath)
+        filelist.sort()
+        i = 1
+        for f in filelist:
+            if f[-4:].lower() != "."+ext:
+                continue
+            if page == i:
+                return os.path.join(docpath, f)
+            i = i+1
+        raise Exception("Page %d not found in document '%s' !" % (page, docid))
+
+    def get_doc_txt_filepath(self, docid, page):
+        return self._get_doc_filepath(docid, page, "txt")
+            
+
+    def get_doc_img_filepath(self, docid, page):
+        return self._get_doc_filepath(docid, page, "jpg")
+

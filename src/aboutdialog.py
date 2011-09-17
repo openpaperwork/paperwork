@@ -5,14 +5,14 @@ class AboutDialog(object):
         self.wTree = load_uifile("aboutdialog.glade")
         self.aboutdialog = self.wTree.get_object("aboutdialog")
         assert(self.aboutdialog)
-        self.connect_signals()
+        self._connect_signals()
         self.aboutdialog.set_visible(True)
 
-    def connect_signals(self):
-        self.aboutdialog.connect("destroy", lambda x: self.destroy())
-        self.aboutdialog.connect("response", lambda x, y: self.destroy())
-        self.aboutdialog.connect("close", lambda x: self.destroy())
+    def _connect_signals(self):
+        self.aboutdialog.connect("destroy", lambda x: self._destroy())
+        self.aboutdialog.connect("response", lambda x, y: self._destroy())
+        self.aboutdialog.connect("close", lambda x: self._destroy())
 
-    def destroy(self):
+    def _destroy(self):
         self.wTree.get_object("aboutdialog").destroy()
 

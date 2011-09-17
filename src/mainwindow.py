@@ -16,7 +16,7 @@ class MainWindow:
         self.mainWindow = self.wTree.get_object("mainWindow")
         self.progressBar = self.wTree.get_object("progressbarMainWin")
         assert(self.mainWindow)
-        self.connect_signals()
+        self._connect_signals()
         self.mainWindow.set_visible(True)
 
     def _docsearch_callback(self, step, progression, total, document=None):
@@ -27,7 +27,7 @@ class MainWindow:
             self.progressBar.set_text("Sorting")
         gtk_refresh()
 
-    def open_search_window(self, objsrc):
+    def _open_search_window(self, objsrc):
         self.progressBar.set_text("Loading documents ...");
         self.progressBar.set_fraction(0.0)
         dsearch = DocSearch(self.config.workdir, self._docsearch_callback)
@@ -35,19 +35,19 @@ class MainWindow:
         self.progressBar.set_text("");
         self.progressBar.set_fraction(0.0)
 
-    def connect_signals(self):
+    def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self.destroy())
-        self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self.destroy())
-        self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self.destroy())
+        self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self._destroy())
+        self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
 
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
 
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self.config))
 
-        self.wTree.get_object("toolbuttonSearch").connect("clicked", self.open_search_window)
-        self.wTree.get_object("menuitemSearch").connect("activate", self.open_search_window)
+        self.wTree.get_object("toolbuttonSearch").connect("clicked", self._open_search_window)
+        self.wTree.get_object("menuitemSearch").connect("activate", self._open_search_window)
 
-    def destroy(self):
+    def _destroy(self):
         self.wTree.get_object("mainWindow").destroy()
         gtk.main_quit()
 

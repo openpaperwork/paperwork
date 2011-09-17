@@ -7,28 +7,12 @@
       <!-- column-name Keyword -->
       <column type="gchararray"/>
     </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Suggestion 1</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Suggestion 2</col>
-      </row>
-    </data>
   </object>
   <object class="GtkListStore" id="liststoreMatch">
     <columns>
       <!-- column-name Matching -->
       <column type="gchararray"/>
     </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Document 1</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Document 2</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="windowSearch">
     <property name="title" translatable="yes">Search</property>
@@ -137,7 +121,7 @@
                     <property name="visible">True</property>
                     <property name="resize_mode">queue</property>
                     <child>
-                      <object class="GtkTreeView" id="treeview2">
+                      <object class="GtkTreeView" id="treeviewMatch">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="model">liststoreMatch</property>
@@ -198,10 +182,11 @@
                         <property name="visible">True</property>
                         <property name="resize_mode">queue</property>
                         <child>
-                          <object class="GtkTextView" id="textviewSearchPreview">
+                          <object class="GtkImage" id="imagePreview">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="editable">False</property>
+                            <property name="xalign">0</property>
+                            <property name="yalign">0</property>
+                            <property name="stock">gtk-missing-image</property>
                           </object>
                         </child>
                       </object>

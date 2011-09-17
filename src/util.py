@@ -1,4 +1,5 @@
 import os
+import unicodedata
 
 import glib
 import gtk
@@ -40,4 +41,7 @@ def load_uifile(filename):
     if not has_ui_file:
         raise Exception("Can't find ressource file. Aborting")
     return wTree
+
+def strip_accents(s):
+   return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 

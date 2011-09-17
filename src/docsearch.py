@@ -1,40 +1,75 @@
 #!/usr/bin/env python
 
+import codecs
 import os
 import os.path
 
+from util import strip_accents
+
 class DocSearch(object):
-    MIN_KEYWORD_LEN=3
-    INDEX_STEP_READING = 0
-    INDEX_STEP_SORTING = 1
+    MIN_KEYWORD_LEN = 3
+
+    INDEX_STEP_READING  = 0
+    INDEX_STEP_SORTING  = 1
+    INDEX_STEP_LAST     = INDEX_STEP_SORTING
 
     def __init__(self, rootdir):
         self.rootdir = rootdir
         self.keywords = []          # array of strings (sorted at the end of indexation)
         self.keywords_to_doc = {}   # keyword (string) -> array of path (string)
 
-    def dummycallback(self, step, progression, total, filename=None):
+    def _dummycallback(self, step, progression, total, document=None):
         pass
 
-    def _index_file(self, callback, filepath):
+    def _index_file(self, filepath):
         print "Indexing %s" % filepath
-        # TODO: fill in self.keywords_to_doc
+        with codecs.open(filepath, encoding='utf-8') as fd:
+            for line in fd.readlines():
+                for word in line.split(" "): # TODO: i18n/l10n
+                    if len(word) < self.MIN_KEYWORD_LEN:
+                        continue
+                    word = strip_accents(word)
+                    if self.keywords_to_doc.has_key(word):
+                        self.keywords_to_doc[word].append(filepath)
+                    else:
+                        self.keywords_to_doc[word] = [ filepath ]
 
     def _index_dir(self, callback, dirpath):
-        for dpath in os.listdir(dirpath):
+        dlist = os.listdir(dirpath)
+        i = 0
+        total = len(dlist)
+        for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
+                i = i+1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
                 self._index_dir(callback, os.path.join(dirpath, dpath))
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
-                self._index_file(callback, os.path.join(dirpath, dpath))
+                callback(self.INDEX_STEP_READING, i, total, dpath)
+                self._index_file(os.path.join(dirpath, dpath))
+            i = i+1
 
     def _extract_keywords(self, callback):
-        # TODO: fill in self.keywords with self.keywords_to_doc
-        # TODO: sort self.keywords
-        pass
+        callback(self.INDEX_STEP_SORTING, 0, 2)
+        self.keywords = self.keywords_to_doc.keys()
+        callback(self.INDEX_STEP_SORTING, 1, 2)
+        self.keywords.sort()
 
-    def index(self, callback = dummycallback):
+    def index(self, callback = None):
+        """
+        Index files in rootdir (see constructor)
+
+        Arguments:
+            callback --- called during the indexation (may be called *often*). The given function
+            should expect the same arguments than '_dummycallback':
+                step : DocSearch.INDEX_STEP_READING or DocSearch.INDEX_STEP_SORTING
+                progression : how many elements done yet
+                total : number of elements to do
+                document (only if step == DocSearch.INDEX_STEP_READING): file being read
+        """
+        self._index(self._dummycallback)
+
+    def _index(self, callback):
         self._index_dir(callback, self.rootdir)
         self._extract_keywords(callback)
 
@@ -55,7 +90,7 @@ class DocSearch(object):
             if idx_min <= 0 or idx_min > lkeywords-1:
                 idx_min_found = True
             elif self.keywords[idx_min-1][:lkeyword] != keyword and self.keywords[idx_min][:lkeyword] == keyword:
-                idx_min_found = False
+                idx_min_found = True
             elif self.keywords[idx_min][:lkeyword] >= keyword:
                 idx_min = idx_min - njump
             else:
@@ -74,11 +109,11 @@ class DocSearch(object):
             if idx_max <= 0 or idx_max >= lkeywords-1:
                 idx_max_found = True
             elif self.keywords[idx_max+1][:lkeyword] != keyword and self.keywords[idx_max][:lkeyword] == keyword:
-                idx_max_found = False
+                idx_max_found = True
             elif self.keywords[idx_max][:lkeyword] <= keyword:
-                idx_min = idx_min + njump
+                idx_max = idx_max + njump
             else:
-                idx_min = idx_min - njump
+                idx_max = idx_max - njump
             njump = (njump / 2) or 1
 
         return self.keywords[idx_min:(idx_max+1)]
@@ -93,7 +128,10 @@ class DocSearch(object):
         return suggestions
 
     def _get_documents(self, keyword):
-        return self.keywords_to_doc[keyword]
+        try:
+            return self.keywords_to_doc[keyword]
+        except KeyError:
+            return []
 
     def get_documents(self, keywords):
         documents = None

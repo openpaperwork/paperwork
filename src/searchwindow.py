@@ -13,6 +13,11 @@ class SearchWindow(object):
         txt = self.wTree.get_object("entrySearch").get_text()
         print "Search: " + txt
 
+        suggestions = self.docsearch.get_suggestions(txt.split(" "))
+        print "Got %d suggestions" % len(suggestions)
+        documents = self.docsearch.get_documents(txt.split(" "))
+        print "Got %d documents" % len(documents)
+
     def apply(self):
         # TODO
         return True

@@ -5,6 +5,7 @@ import os.path
 import re
 import time
 
+import gtk
 import sane
 import PIL
 
@@ -96,6 +97,15 @@ class ScannedDoc(object):
         OCR will have to decide which is the best
         """
         devices = sane.get_devices()
+        if len(devices) == 0:
+            # TODO(Jflesch): This warning should be in mainwindow.py
+            warn = gtk.MessageDialog(flags = gtk.DIALOG_MODAL,
+                                    type = gtk.MESSAGE_WARNING,
+                                    buttons = gtk.BUTTONS_OK,
+                                    message_format = "No scanner found") # TODO(Jflesch): i18n/l10n
+            warn.run()
+            warn.destroy()
+            raise Exception("No scanner found")
         print "Will use device '%s'" % (str(devices[0]))
         device = sane.open(devices[0][0])
         callback(self.SCAN_STEP_SCAN, 20, 100)
@@ -200,4 +210,18 @@ class ScannedDoc(object):
             os.unlink(outfile)
 
         print "Scan done"
+
+    def destroy(self):
+        print "Destroying doc: %s" % self.docpath
+        for root, dirs, files in os.walk(self.docpath, topdown = False):
+            for f in files:
+                f = os.path.join(self.docpath, f)
+                print "Deleting file %s" % f
+                os.unlink(f)
+            for d in dirs:
+                d = os.path.join(self.docpath, d)
+                print "Deleting dir %s" % d
+                os.rmdir(d)
+        os.rmdir(self.docpath)
+        print "Done"
 

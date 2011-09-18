@@ -167,6 +167,22 @@ class MainWindow:
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
 
+    def _destroy_doc(self, objsrc = None):
+        confirm = gtk.MessageDialog(parent = self.mainWindow,
+                                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                    type = gtk.MESSAGE_WARNING,
+                                    buttons = gtk.BUTTONS_YES_NO,
+                                    message_format = "Are you sure ?") # TODO(Jflesch): i18n/l10n
+        response = confirm.run()
+        confirm.destroy()
+        if response != gtk.RESPONSE_YES:
+            print "Deletion aborted"
+            return
+        print "Deleting ..."
+        self.doc.destroy()
+        self.new_document()
+        print "Deleted"
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
@@ -174,12 +190,10 @@ class MainWindow:
         self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self._destroy())
         self.wTree.get_object("menuitemScan").connect("activate", self._scan_next_page)
         self.wTree.get_object("toolbuttonScan").connect("clicked", self._scan_next_page)
+        self.wTree.get_object("menuitemDestroy").connect("activate", self._destroy_doc)
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
-
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
-
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
-
         self.wTree.get_object("toolbuttonSearch").connect("clicked", self._open_search_window)
         self.wTree.get_object("menuitemSearch").connect("activate", self._open_search_window)
         self.pageListUI.connect("cursor-changed", self._show_page)

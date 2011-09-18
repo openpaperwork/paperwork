@@ -24,7 +24,6 @@ class MainWindow:
         self.pageTxt = self.wTree.get_object("textviewPageTxt")
         self.pageVpaned = self.wTree.get_object("vpanedPage")
 
-        self._reset_vpaned()
         self._connect_signals()
         self.mainWindow.set_visible(True)
 
@@ -36,6 +35,14 @@ class MainWindow:
             self.progressBar.set_text("Sorting")
         gtk_refresh()
 
+    def _show_busy_cursor(self):
+        watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        self.mainWindow.window.set_cursor(watch)
+        gtk_refresh()
+
+    def _show_normal_cursor(self):
+        self.mainWindow.window.set_cursor(None)
+
     def _open_search_window(self, objsrc):
         try:
             os.stat(self.config.workdir)
@@ -43,13 +50,17 @@ class MainWindow:
             print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
             SettingsWindow(self.config)
             return
-
-        self.progressBar.set_text("Loading documents ...");
-        self.progressBar.set_fraction(0.0)
-        dsearch = DocSearch(self.config.workdir, self._docsearch_callback)
-        SearchWindow(self, dsearch)
-        self.progressBar.set_text("");
-        self.progressBar.set_fraction(0.0)
+    
+        self._show_busy_cursor()
+        try:
+            self.progressBar.set_text("Loading documents ...");
+            self.progressBar.set_fraction(0.0)
+            dsearch = DocSearch(self.config.workdir, self._docsearch_callback)
+            SearchWindow(self, dsearch)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
 
     def _show_page_img(self, page):
         filepath = self.doc.get_img_path(page)

@@ -1,8 +1,15 @@
+import Image
 import codecs
 import os
 import os.path
-import sane
+import re
 import time
+
+import sane
+import PIL
+
+import tesseract
+from util import strip_accents
 
 class ScannedDoc(object):
     EXT_TXT = "txt"
@@ -60,7 +67,7 @@ class ScannedDoc(object):
             i += 1
         if i == page:
             return os.path.join(self.docpath, "paper.%d.%s" % (page, ext)) # new page
-        raise Exception("Page %d not found in document '%s' !" % (page, self.docid))
+        raise Exception("Page %d not found in document '%s' ! (last: %d)" % (page, self.docid, i))
 
     def get_txt_path(self, page):
         return self._get_filepath(page, self.EXT_TXT)
@@ -82,15 +89,16 @@ class ScannedDoc(object):
     def _scan(self, callback, page):
         """
         Scan a page, and generate 4 output files:
-            <docid>/paper.<page>.rotate.0.bmp: original output
-            <docid>/paper.<page>.rotate.1.bmp: original output at 90 degrees
-            <docid>/paper.<page>.rotate.2.bmp: original output at 180 degrees
-            <docid>/paper.<page>.rotate.3.bmp: original output at 270 degrees
+            <docid>/paper.rotate.0.bmp: original output
+            <docid>/paper.rotate.1.bmp: original output at 90 degrees
+            <docid>/paper.rotate.2.bmp: original output at 180 degrees
+            <docid>/paper.rotate.3.bmp: original output at 270 degrees
         OCR will have to decide which is the best
         """
         devices = sane.get_devices()
         print "Will use device '%s'" % (str(devices[0]))
         device = sane.open(devices[0][0])
+        callback(self.SCAN_STEP_SCAN, 20, 100)
         try:
             try:
                 device.resolution = 350
@@ -100,7 +108,7 @@ class ScannedDoc(object):
                 device.mode = 'Color'
             except AttributeError, e:
                 print "WARNING: Can't set scanner mode: " + e
-
+            # TODO(Jflesch): call callback
             pic = device.scan()
         except Exception, e:
             print "ERROR while scanning: %s" % (e)
@@ -108,20 +116,88 @@ class ScannedDoc(object):
         finally:
             device.close()
 
+        outfiles = []
         for r in range(0, 4):
-            imgpath = self._get_filepath(page, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
+            imgpath = os.path.join(self.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
             print "Saving scan (rotated %d degree) in '%s'" % (r * 90, imgpath)
             pic.save(imgpath)
+            outfiles.append(imgpath)
             pic = pic.rotate(90)
+        return outfiles
 
-    def _ocr(self, callback, page):
-        pass
+    def _compute_ocr_score(self, txt):
+        """
+        Try to evaluate how well the OCR worked.
+        Current implementation:
+            The score is the number of words only made of 4 or more letters ([a-zA-Z])
+        """
+        # TODO(Jflesch): i18n / l10n
+        score = 0
+        prog = re.compile(r'^[a-zA-Z]{4,}$')
+        for word in txt.split(" "):
+            if prog.match(word):
+                score += 1
+        print "---"
+        print txt
+        print "---"
+        print "Got score of %d" % (score)
+        return score
 
-    def scan_next_page(self, callback = _dummy_callback):
-        os.makedirs(self.docpath)
+    def _compare_score(self, x, y):
+        if ( x < y ):
+            return -1
+        elif ( x > y ):
+            return 1
+        else:
+            return 0
+
+    def _ocr(self, callback, files, ocrlang):
+        scores = []
+
+        i = 0
+        for imgpath in files:
+            callback(self.SCAN_STEP_OCR, i, len(files))
+            i += 1
+            print "Running OCR on scan '%s'" % (imgpath)
+            txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
+            txt = unicode(txt)
+            score = self._compute_ocr_score(txt)
+            scores.append( (score, imgpath, txt) )
+
+        # Note: we want the higher first
+        scores.sort(cmp = lambda x, y: self._compare_score(y[0], x[0]))
+
+        print "Best: %f -> %s" % (scores[0][0], scores[0][1])
+        return (scores[0][1], scores[0][2])
+
+
+    def scan_next_page(self, ocrlang, callback = _dummy_callback):
+        try:
+            os.makedirs(self.docpath)
+        except OSError:
+            pass
+
         page = self.get_nb_pages() + 1 # remember: we start counting from 1
+
+        imgfile = self.get_img_path(page)
+        txtfile = self.get_txt_path(page)
+
         callback(self.SCAN_STEP_SCAN, 0, 100)
-        self._scan(callback, page)
+        outfiles = self._scan(callback, page)
         callback(self.SCAN_STEP_OCR, 0, 100)
-        self._ocr(callback, page)
+        (bmpfile, txt) = self._ocr(callback, outfiles, ocrlang)
+
+        # Convert the image and save it in its final place
+        im = PIL.Image.open(bmpfile)
+        im.save(imgfile)
+
+        # Save the text
+        with open(txtfile, 'w') as fd:
+            fd.write(txt)
+
+        # delete temporary files
+        for outfile in outfiles:
+            os.unlink(outfile)
+
+        print "Scan done"
 

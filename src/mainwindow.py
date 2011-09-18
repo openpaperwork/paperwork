@@ -149,12 +149,19 @@ class MainWindow:
             self.progressBar.set_text("Reading ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
 
+    def _refresh_page_list(self):
+        self.pageList.clear()
+        for page in range(1, self.doc.get_nb_pages()+1):
+            self.pageList.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
+
     def _scan_next_page(self, objsrc = None):
         self._check_workdir()
     
         self._show_busy_cursor()
         try:
-            self.doc.scan_next_page(self._scan_callback)
+            self.doc.scan_next_page(self.config.ocrlang, self._scan_callback)
+            self._refresh_page_list()
+            self._show_page(page = self.doc.get_nb_pages())
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)
@@ -194,11 +201,7 @@ class MainWindow:
         self.page = 1
 
         self.mainWindow.set_title(str(self.doc) + " - " + self.WIN_TITLE)
-
-        self.pageList.clear()
-        for page in range(1, doc.get_nb_pages()+1):
-            self.pageList.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
-
+        self._refresh_page_list()
         self._show_page(page = 1)
 
     def show_doc(self, doc):

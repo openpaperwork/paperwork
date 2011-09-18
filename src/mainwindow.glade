@@ -250,8 +250,13 @@
                         <property name="visible">True</property>
                         <property name="resize_mode">queue</property>
                         <child>
-                          <object class="GtkImage" id="imagePageImg">
+                          <object class="GtkEventBox" id="eventboxImg">
                             <property name="visible">True</property>
+                            <child>
+                              <object class="GtkImage" id="imagePageImg">
+                                <property name="visible">True</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

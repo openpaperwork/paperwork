@@ -93,8 +93,6 @@ class ScannedDoc(object):
         Scan a page, and generate 4 output files:
             <docid>/paper.rotate.0.bmp: original output
             <docid>/paper.rotate.1.bmp: original output at 90 degrees
-            <docid>/paper.rotate.2.bmp: original output at 180 degrees
-            <docid>/paper.rotate.3.bmp: original output at 270 degrees
         OCR will have to decide which is the best
         """
         callback(self.SCAN_STEP_SCAN, 0, 100)
@@ -106,7 +104,7 @@ class ScannedDoc(object):
             return []
 
         outfiles = []
-        for r in range(0, 4):
+        for r in range(0, 1):
             imgpath = os.path.join(self.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
             print "Saving scan (rotated %d degree) in '%s'" % (r * 90, imgpath)
             pic.save(imgpath)

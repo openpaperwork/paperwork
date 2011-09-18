@@ -88,7 +88,7 @@ class ScannedDoc(object):
     def _dummy_callback(step, progression, total):
         pass
 
-    def _scan(self, callback, page):
+    def _scan(self, device, callback, page):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotate.0.bmp: original output
@@ -97,35 +97,13 @@ class ScannedDoc(object):
             <docid>/paper.rotate.3.bmp: original output at 270 degrees
         OCR will have to decide which is the best
         """
-        devices = sane.get_devices()
-        if len(devices) == 0:
-            # TODO(Jflesch): This warning should be in mainwindow.py
-            warn = gtk.MessageDialog(flags = gtk.DIALOG_MODAL,
-                                    type = gtk.MESSAGE_WARNING,
-                                    buttons = gtk.BUTTONS_OK,
-                                    message_format = "No scanner found") # TODO(Jflesch): i18n/l10n
-            warn.run()
-            warn.destroy()
-            raise Exception("No scanner found")
-        print "Will use device '%s'" % (str(devices[0]))
-        device = sane.open(devices[0][0])
-        callback(self.SCAN_STEP_SCAN, 20, 100)
+        callback(self.SCAN_STEP_SCAN, 0, 100)
         try:
-            try:
-                device.resolution = 350
-            except AttributeError, e:
-                print "WARNING: Can't set scanner resolution: " + e
-            try:
-                device.mode = 'Color'
-            except AttributeError, e:
-                print "WARNING: Can't set scanner mode: " + e
             # TODO(Jflesch): call callback
             pic = device.scan()
         except Exception, e:
             print "ERROR while scanning: %s" % (e)
-            return
-        finally:
-            device.close()
+            return []
 
         outfiles = []
         for r in range(0, 4):
@@ -182,7 +160,7 @@ class ScannedDoc(object):
         return (scores[0][1], scores[0][2])
 
 
-    def scan_next_page(self, ocrlang, callback = _dummy_callback):
+    def scan_next_page(self, device, ocrlang, callback = _dummy_callback):
         try:
             os.makedirs(self.docpath)
         except OSError:
@@ -194,7 +172,7 @@ class ScannedDoc(object):
         txtfile = self.get_txt_path(page)
 
         callback(self.SCAN_STEP_SCAN, 0, 100)
-        outfiles = self._scan(callback, page)
+        outfiles = self._scan(device, callback, page)
         callback(self.SCAN_STEP_OCR, 0, 100)
         (bmpfile, txt) = self._ocr(callback, outfiles, ocrlang)
 

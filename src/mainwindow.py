@@ -13,8 +13,9 @@ from settingswindow import SettingsWindow
 class MainWindow:
     WIN_TITLE = "Paperwork"
 
-    def __init__(self, config):
+    def __init__(self, config, scanner_device):
         self.config = config
+        self.scanner_device = scanner_device
         self.wTree = load_uifile("mainwindow.glade")
 
         self.mainWindow = self.wTree.get_object("mainWindow")
@@ -27,6 +28,10 @@ class MainWindow:
         self.pageEventBox = self.wTree.get_object("eventboxImg")
         self.pageTxt = self.wTree.get_object("textviewPageTxt")
         self.pageVpaned = self.wTree.get_object("vpanedPage")
+
+        if scanner_device == None:
+            self.wTree.get_object("menuitemScan").set_sensitive(False)
+            self.wTree.get_object("toolbuttonScan").set_sensitive(False)
 
         self.page_scaled = True
         self.new_document()
@@ -159,7 +164,7 @@ class MainWindow:
     
         self._show_busy_cursor()
         try:
-            self.doc.scan_next_page(self.config.ocrlang, self._scan_callback)
+            self.doc.scan_next_page(self.scanner_device, self.config.ocrlang, self._scan_callback)
             self._refresh_page_list()
             self._show_page(page = self.doc.get_nb_pages())
         finally:

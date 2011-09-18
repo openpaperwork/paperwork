@@ -29,6 +29,11 @@ class DocSearch(object):
         self.rootdir = rootdir
         self._index(callback)
 
+    def _simplify(self, keyword):
+        keyword = strip_accents(keyword)
+        keyword = keyword.lower()
+        return keyword
+
     def _index_file(self, filepath, docpath):
         print "Indexing %s" % filepath
         with codecs.open(filepath, encoding='utf-8') as fd:
@@ -37,7 +42,7 @@ class DocSearch(object):
                 for word in line.split(" "): # TODO: i18n/l10n
                     if len(word) < self.MIN_KEYWORD_LEN:
                         continue
-                    word = strip_accents(word)
+                    word = self._simplify(word)
                     if self.keywords_to_doc.has_key(word):
                         self.keywords_to_doc[word].append(docpath)
                     else:
@@ -138,7 +143,7 @@ class DocSearch(object):
         for keyword in keywords:
             if len(keyword) < self.MIN_KEYWORD_LEN:
                 continue
-            keyword = strip_accents(keyword)
+            keyword = self._simplify(keyword)
             new_suggestions = self._get_suggestions(keyword)
             try:
                 # if the keyword typed by the user match exactly a known keyword,
@@ -161,7 +166,7 @@ class DocSearch(object):
         for keyword in keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
                 return []
-            keyword = strip_accents(keyword)
+            keyword = self._simplify(keyword)
             docs = self._get_documents(keyword)
             if documents == None:
                 documents = docs

@@ -184,8 +184,6 @@
                         <child>
                           <object class="GtkImage" id="imagePreview">
                             <property name="visible">True</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
                             <property name="stock">gtk-missing-image</property>
                           </object>
                         </child>

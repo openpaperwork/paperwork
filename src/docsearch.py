@@ -190,5 +190,5 @@ class DocSearch(object):
         return short_docs
 
     def get_doc(self, docid):
-        return ScannedDoc(docid, self.docpaths[docid])
+        return ScannedDoc(self.docpaths[docid], docid)
 

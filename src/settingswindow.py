@@ -16,7 +16,8 @@ class SettingsWindow(object):
     }
     OCR_LANGS_REVERSE = dict((v,k) for k, v in OCR_LANGS.iteritems())
 
-    def __init__(self, config):
+    def __init__(self, mainwindow, config):
+        self.mainwindow = mainwindow
         self.config = config
         self.wTree = load_uifile("settingswindow.glade")
 
@@ -29,7 +30,9 @@ class SettingsWindow(object):
 
     def _apply(self):
         assert(self.ocrlangs_widget)
-        self.config.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+        if self.config.workdir != self.wTree.get_object("entrySettingsWorkDir").get_text():
+            self.config.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+            self.mainwindow.new_document()
         try:
             os.makedirs(self.config.workdir)
         except OSError:
@@ -64,7 +67,7 @@ class SettingsWindow(object):
         wTable.attach(self.ocrlangs_widget, 1, 2, 1, 2)
 
     def _open_file_chooser(self):
-        chooser = gtk.FileChooserdialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
+        chooser = gtk.FileChooserDialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                         buttons=(gtk.STOCK_CANCEL,gtk.RESPONSE_CANCEL,gtk.STOCK_OPEN,gtk.RESPONSE_OK))
         chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
         chooser.set_current_folder(self.wTree.get_object("entrySettingsWorkDir").get_text())

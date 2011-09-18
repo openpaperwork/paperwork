@@ -47,7 +47,6 @@
               <object class="GtkEntry" id="entrySettingsWorkDir">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="editable">False</property>
                 <property name="invisible_char">&#x25CF;</property>
                 <property name="primary_icon_sensitive">True</property>
                 <property name="secondary_icon_sensitive">True</property>

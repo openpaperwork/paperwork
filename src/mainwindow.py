@@ -5,6 +5,7 @@ from util import gtk_refresh
 from util import load_uifile
 
 from aboutdialog import AboutDialog
+from doc import ScannedDoc
 from docsearch import DocSearch
 from searchwindow import SearchWindow
 from settingswindow import SettingsWindow
@@ -26,6 +27,7 @@ class MainWindow:
         self.pageVpaned = self.wTree.get_object("vpanedPage")
 
         self.page_scaled = True
+        self.doc = ScannedDoc(config.workdir) # new document
 
         self._connect_signals()
         self.mainWindow.set_visible(True)
@@ -114,11 +116,15 @@ class MainWindow:
         print "Showing page %d" % (page)
 
         self.pageListUI.get_selection().select_path((page-1))
-        self._show_page_img(page)
+        try:
+            self._show_page_img(page)
+        except Exception, e:
+            self.pageImg.set_from_stock(gtk.STOCK_MISSING_IMAGE, gtk.ICON_SIZE_BUTTON)
         try:
             self._show_page_txt(page)
         except Exception, e:
             print "Unable to show text for doc '%s': %s" % (self.doc, e)
+            self.pageTxt.get_buffer().set_text("")
         self._reset_vpaned()
 
     def refresh_page(self):
@@ -138,7 +144,7 @@ class MainWindow:
 
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
 
-        self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self.config))
+        self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
 
         self.wTree.get_object("toolbuttonSearch").connect("clicked", self._open_search_window)
         self.wTree.get_object("menuitemSearch").connect("activate", self._open_search_window)
@@ -163,5 +169,6 @@ class MainWindow:
 
         self._show_page(page = 1)
 
-
+    def new_document(self):
+        self.show_doc(ScannedDoc(self.config.workdir)) # new document
 

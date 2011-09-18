@@ -5,6 +5,7 @@ import os.path
 import re
 import time
 
+import cairo
 import gtk
 import sane
 import PIL
@@ -224,4 +225,45 @@ class ScannedDoc(object):
                 os.rmdir(d)
         os.rmdir(self.docpath)
         print "Done"
+
+    def draw_page(self, print_op, print_context, page):
+        ORIENTATION_PORTRAIT = 0
+        ORIENTATION_LANDSCAPE = 1
+
+        imgpath = self.get_img_path(page+1)
+
+        pixbuf = gtk.gdk.pixbuf_new_from_file(imgpath)
+
+        # take care of rotating the image if required
+        print "Rotating the page ..."
+        if print_context.get_width() <= print_context.get_height():
+            print_orientation = ORIENTATION_PORTRAIT
+        else:
+            print_orientation = ORIENTATION_LANDSCAPE
+        if pixbuf.get_width() <= pixbuf.get_height():
+            pixbuf_orientation = ORIENTATION_PORTRAIT
+        else:
+            pixbuf_orientation = ORIENTATION_LANDSCAPE
+        if print_orientation != pixbuf_orientation:
+            pixbuf = pixbuf.rotate_simple(gtk.gdk.PIXBUF_ROTATE_CLOCKWISE)
+
+        # scale the image down
+        # XXX(Jflesch): beware that we get floats for the page size ...
+        print "Scaling it down to %fx%f..." % (print_context.get_width(), print_context.get_height())
+        pixbuf = pixbuf.scale_simple(int(print_context.get_width()),
+                                     int(print_context.get_height()),
+                                     gtk.gdk.INTERP_HYPER)
+
+        # .. and print !
+        format = cairo.FORMAT_RGB24
+        if pixbuf.get_has_alpha():
+            format = cairo.FORMAT_ARGB32
+        width = pixbuf.get_width()
+        height = pixbuf.get_height()
+        image = cairo.ImageSurface(format, width, height)
+
+        cr = print_context.get_cairo_context()
+        gdkcontext = gtk.gdk.CairoContext(cr)
+        gdkcontext.set_source_pixbuf(pixbuf, 0, 0)
+        gdkcontext.paint()
 

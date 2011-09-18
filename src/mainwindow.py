@@ -183,6 +183,21 @@ class MainWindow:
         self.new_document()
         print "Deleted"
 
+    def _print_doc(self, objsrc = None):
+        print_op = gtk.PrintOperation()
+        if self.config.print_settings != None:
+            print_op.set_print_settings(self.config.print_settings)
+        print_op.set_n_pages(self.doc.get_nb_pages())
+        print_op.set_current_page(self._get_current_page() - 1) # remember: we count pages from 1, they don't
+        print_op.set_use_full_page(True)
+        print_op.set_job_name(str(self.doc))
+        print_op.set_export_filename(str(self.doc) + ".pdf")
+        print_op.set_allow_async(True)
+        print_op.connect("draw-page", self.doc.draw_page)
+        res = print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.mainWindow)
+        if res == gtk.PRINT_OPERATION_RESULT_APPLY:
+            self.config.print_settings = print_op.get_print_settings()
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
@@ -191,6 +206,8 @@ class MainWindow:
         self.wTree.get_object("menuitemScan").connect("activate", self._scan_next_page)
         self.wTree.get_object("toolbuttonScan").connect("clicked", self._scan_next_page)
         self.wTree.get_object("menuitemDestroy").connect("activate", self._destroy_doc)
+        self.wTree.get_object("toolbuttonPrint").connect("clicked", self._print_doc)
+        self.wTree.get_object("menuitemPrint").connect("activate", self._print_doc)
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))

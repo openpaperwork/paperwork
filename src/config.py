@@ -14,6 +14,8 @@ class AppConfig(object):
             self.configparser.add_section("Global")
         if not self.configparser.has_section("OCR"):
             self.configparser.add_section("OCR")
+        # TODO(Jflesch): Load settings from the config file
+        self._print_settings = None
 
     @property
     def workdir(self):
@@ -36,6 +38,15 @@ class AppConfig(object):
     @ocrlang.setter
     def ocrlang(self, lang):
         self.configparser.set("OCR", "Lang", lang)
+
+    @property
+    def print_settings(self):
+        return self._print_settings
+
+    @print_settings.setter
+    def print_settings(self, settings):
+        # TODO(Jflesch): Save settings in the config file
+        self._print_settings = settings
 
     def write(self):
         f = os.path.expanduser(self.CONFIGFILE)

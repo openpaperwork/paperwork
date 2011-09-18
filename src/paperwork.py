@@ -24,7 +24,7 @@ def main():
     try:
         if device != None:
             try:
-                device.resolution = 250
+                device.resolution = 300
             except AttributeError, e:
                 print "WARNING: Can't set scanner resolution: " + e
             try:

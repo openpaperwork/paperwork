@@ -37,9 +37,9 @@ class MainWindow:
     def _docsearch_callback(self, step, progression, total, document=None):
         self.progressBar.set_fraction(float(progression) / total)
         if step == DocSearch.INDEX_STEP_READING:
-            self.progressBar.set_text("Reading '" + document + "'")
+            self.progressBar.set_text("Reading '" + document + "' ... ") # TODO(Jflesch): i18n/l10n
         elif step == DocSearch.INDEX_STEP_SORTING:
-            self.progressBar.set_text("Sorting")
+            self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
 
     def _show_busy_cursor(self):
@@ -50,13 +50,16 @@ class MainWindow:
     def _show_normal_cursor(self):
         self.mainWindow.window.set_cursor(None)
 
-    def _open_search_window(self, objsrc):
+    def _check_workdir(self):
         try:
             os.stat(self.config.workdir)
         except OSError, e:
             print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
             SettingsWindow(self.config)
             return
+
+    def _open_search_window(self, objsrc):
+        self._check_workdir()
     
         self._show_busy_cursor()
         try:
@@ -127,7 +130,6 @@ class MainWindow:
         except Exception, e:
             print "Unable to show text for doc '%s': %s" % (self.doc, e)
             self.pageTxt.get_buffer().set_text("")
-        self._reset_vpaned()
 
     def refresh_page(self):
         print "Refreshing main window"
@@ -139,11 +141,32 @@ class MainWindow:
         self.page_scaled = not self.page_scaled
         self._show_page_img(self._get_current_page())
 
+    def _scan_callback(self, step, progression, total):
+        self.progressBar.set_fraction(float(progression) / total)
+        if step == ScannedDoc.SCAN_STEP_SCAN:
+            self.progressBar.set_text("Scanning ... ") # TODO(Jflesch): i18n/l10n
+        elif step == ScannedDoc.SCAN_STEP_OCR:
+            self.progressBar.set_text("Reading ... ") # TODO(Jflesch): i18n/l10n
+        gtk_refresh()
+
+    def _scan_next_page(self, objsrc = None):
+        self._check_workdir()
+    
+        self._show_busy_cursor()
+        try:
+            self.doc.scan_next_page(self._scan_callback)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
         self.wTree.get_object("toolbuttonNew").connect("clicked", self.new_document)
         self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self._destroy())
+        self.wTree.get_object("menuitemScan").connect("activate", self._scan_next_page)
+        self.wTree.get_object("toolbuttonScan").connect("clicked", self._scan_next_page)
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
 
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
@@ -159,7 +182,7 @@ class MainWindow:
         self.wTree.get_object("mainWindow").destroy()
         gtk.main_quit()
 
-    def show_doc(self, doc = None):
+    def _show_doc(self, doc = None):
         """
         Arguments:
             doc --- doc.ScannedDoc (see docsearch.DocSearch.get_doc())
@@ -178,6 +201,10 @@ class MainWindow:
 
         self._show_page(page = 1)
 
+    def show_doc(self, doc):
+        self._show_doc(doc)
+        self._reset_vpaned()
+
     def new_document(self, objsrc = None):
-        self.show_doc(ScannedDoc(self.config.workdir)) # new document
+        self._show_doc(ScannedDoc(self.config.workdir)) # new document
 

@@ -64,6 +64,14 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkImageMenuItem" id="menuitemDestroy">
+                        <property name="label">gtk-delete</property>
+                        <property name="visible">True</property>
+                        <property name="use_stock">True</property>
+                        <property name="always_show_image">True</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkImageMenuItem" id="menuitemSettings">
                         <property name="label">gtk-preferences</property>
                         <property name="visible">True</property>

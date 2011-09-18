@@ -3,6 +3,7 @@ import time
 
 from util import gtk_refresh
 from util import load_uifile
+from util import strip_accents
 
 class SearchWindow(object):
     def __init__(self, mainwindow, docsearch):
@@ -30,10 +31,12 @@ class SearchWindow(object):
         self.searchField.set_completion(self.searchCompletion)
 
     def _adapt_search(self, search, suggestion):
+        suggestion = strip_accents(suggestion)
         # TODO: i18n/l10n: spaces aren't always the correct word separator
         words = search.split(" ")
         search = ""
         for word in words:
+            word = strip_accents(word)
             if search != "":
                 search += " "
             if suggestion.startswith(word):

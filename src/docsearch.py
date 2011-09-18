@@ -44,7 +44,8 @@ class DocSearch(object):
                         continue
                     word = self._simplify(word)
                     if self.keywords_to_doc.has_key(word):
-                        self.keywords_to_doc[word].append(docpath)
+                        if not docpath in self.keywords_to_doc[word]:
+                            self.keywords_to_doc[word].append(docpath)
                     else:
                         self.keywords_to_doc[word] = [ docpath ]
 

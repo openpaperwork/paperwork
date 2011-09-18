@@ -167,6 +167,7 @@ class MainWindow:
             self.doc.scan_next_page(self.scanner_device, self.config.ocrlang, self._scan_callback)
             self._refresh_page_list()
             self._show_page(page = self.doc.get_nb_pages())
+            self._reset_vpaned()
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)

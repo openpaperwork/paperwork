@@ -152,7 +152,9 @@ class DocSearch(object):
                 new_suggestions.remove(keyword)
             except Exception, e:
                 pass
-            suggestions.extend(new_suggestions)
+            for suggestion in new_suggestions:
+                if not suggestion in suggestions:
+                    suggestions.append(suggestion)
         suggestions.sort()
         return suggestions
 
@@ -177,7 +179,7 @@ class DocSearch(object):
         if documents == None:
             return []
 
-        # documents contains the whole paths, but we actually identify documents
+        # 'documents' contains the whole paths, but we actually identify documents
         # only by the directory in which they are
         short_docs = []
         for docpath in documents:

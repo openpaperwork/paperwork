@@ -141,6 +141,8 @@ class MainWindow:
 
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
+        self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
+        self.wTree.get_object("toolbuttonNew").connect("clicked", self.new_document)
         self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self._destroy())
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
 
@@ -176,6 +178,6 @@ class MainWindow:
 
         self._show_page(page = 1)
 
-    def new_document(self):
+    def new_document(self, objsrc = None):
         self.show_doc(ScannedDoc(self.config.workdir)) # new document
 

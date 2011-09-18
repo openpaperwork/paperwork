@@ -11,6 +11,8 @@ from searchwindow import SearchWindow
 from settingswindow import SettingsWindow
 
 class MainWindow:
+    WIN_TITLE = "Paperwork"
+
     def __init__(self, config):
         self.config = config
         self.wTree = load_uifile("mainwindow.glade")
@@ -27,7 +29,7 @@ class MainWindow:
         self.pageVpaned = self.wTree.get_object("vpanedPage")
 
         self.page_scaled = True
-        self.doc = ScannedDoc(config.workdir) # new document
+        self.new_document()
 
         self._connect_signals()
         self.mainWindow.set_visible(True)
@@ -155,13 +157,18 @@ class MainWindow:
         self.wTree.get_object("mainWindow").destroy()
         gtk.main_quit()
 
-    def show_doc(self, doc):
+    def show_doc(self, doc = None):
         """
         Arguments:
             doc --- doc.ScannedDoc (see docsearch.DocSearch.get_doc())
         """
-        self.doc = doc
+        if doc != None:
+            self.doc = doc
+        else:
+            assert(self.doc)
         self.page = 1
+
+        self.mainWindow.set_title(str(self.doc) + " - " + self.WIN_TITLE)
 
         self.pageList.clear()
         for page in range(1, doc.get_nb_pages()+1):

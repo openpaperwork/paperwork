@@ -31,12 +31,12 @@ class SearchWindow(object):
         self.searchField.set_completion(self.searchCompletion)
 
     def _adapt_search(self, search, suggestion):
-        suggestion = strip_accents(suggestion)
+        suggestion = strip_accents(suggestion).lower()
         # TODO: i18n/l10n: spaces aren't always the correct word separator
+        search = strip_accents(search).lower()
         words = search.split(" ")
         search = ""
         for word in words:
-            word = strip_accents(word)
             if search != "":
                 search += " "
             if suggestion.startswith(word):

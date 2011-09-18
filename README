@@ -1,5 +1,5 @@
-DtGrep README
--------------
+Paperwork README
+----------------
 
 I) Dependencies
 
@@ -12,7 +12,7 @@ II) Installation
 
 $ sudo ./setup.py install
 
-III) How to run Dtgrep
+III) How to run Paperwork
 
-$ dtgrep
+$ paperwork
 

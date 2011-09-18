@@ -5,7 +5,7 @@ import os
 import os.path
 
 from util import strip_accents
-from doc import DtGrepDoc
+from doc import ScannedDoc
 
 class DocSearch(object):
     MIN_KEYWORD_LEN = 3
@@ -190,5 +190,5 @@ class DocSearch(object):
         return short_docs
 
     def get_doc(self, docid):
-        return DtGrepDoc(docid, self.docpaths[docid])
+        return ScannedDoc(docid, self.docpaths[docid])
 

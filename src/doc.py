@@ -1,7 +1,7 @@
 import codecs
 import os
 
-class DtGrepDoc(object):
+class ScannedDoc(object):
     EXT_TXT = "txt"
     EXT_IMG = "jpg"
 

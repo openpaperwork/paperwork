@@ -1,13 +1,15 @@
 import ConfigParser
 import os
 
-class DtGrepConfig(object):
+class AppConfig(object):
+    CONFIGFILE = "~/.paperwork"
+
     def __init__(self):
         self.read()
 
     def read(self):
         self.configparser = ConfigParser.SafeConfigParser()
-        self.configparser.read([ os.path.expanduser("~/.dtgrep") ])
+        self.configparser.read([ os.path.expanduser(self.CONFIGFILE) ])
         if not self.configparser.has_section("Global"):
             self.configparser.add_section("Global")
         if not self.configparser.has_section("OCR"):
@@ -36,7 +38,7 @@ class DtGrepConfig(object):
         self.configparser.set("OCR", "Lang", lang)
 
     def write(self):
-        f = os.path.expanduser("~/.dtgrep")
+        f = os.path.expanduser(self.CONFIGFILE)
         print "Writing %s ... " % f
         with open(f, 'wb') as fd:
             self.configparser.write(fd)

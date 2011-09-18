@@ -4,13 +4,13 @@ import pygtk
 import gtk
 
 from aboutdialog import AboutDialog
-from config import DtGrepConfig
+from config import AppConfig
 from mainwindow import MainWindow
 
 pygtk.require("2.0")
 
 def main():
-    config = DtGrepConfig()
+    config = AppConfig()
     MainWindow(config)
     gtk.main()
 

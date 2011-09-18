@@ -9,7 +9,7 @@
     </columns>
   </object>
   <object class="GtkWindow" id="mainWindow">
-    <property name="title" translatable="yes">DtGrep</property>
+    <property name="title" translatable="yes">Paperwork</property>
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
     <child>

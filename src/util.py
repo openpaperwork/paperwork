@@ -22,8 +22,8 @@ def load_uifile(filename):
     UI_FILES_DIRS = [
         ".",
         "src",
-        "/usr/local/share/dtgrep",
-        "/usr/share/dtgrep",
+        "/usr/local/share/paperwork",
+        "/usr/share/paperwork",
     ]
 
     wTree = gtk.Builder()

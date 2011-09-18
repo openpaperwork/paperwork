@@ -16,8 +16,8 @@ class SettingsWindow(object):
     }
     OCR_LANGS_REVERSE = dict((v,k) for k, v in OCR_LANGS.iteritems())
 
-    def __init__(self, dtgrepConfig):
-        self.dtgrepConfig = dtgrepConfig
+    def __init__(self, config):
+        self.config = config
         self.wTree = load_uifile("settingswindow.glade")
 
         self.settingswin = self.wTree.get_object("windowSettings")
@@ -29,10 +29,13 @@ class SettingsWindow(object):
 
     def _apply(self):
         assert(self.ocrlangs_widget)
-        self.dtgrepConfig.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
-        os.makedirs(self.dtgrepConfig.workdir)
-        self.dtgrepConfig.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
-        self.dtgrepConfig.write()
+        self.config.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+        try:
+            os.makedirs(self.config.workdir)
+        except OSError:
+            pass
+        self.config.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
+        self.config.write()
         return True
 
     def _connect_signals(self):
@@ -43,7 +46,7 @@ class SettingsWindow(object):
 
     def _fill_in_form(self):
         # work dir
-        self.wTree.get_object("entrySettingsWorkDir").set_text(self.dtgrepConfig.workdir)
+        self.wTree.get_object("entrySettingsWorkDir").set_text(self.config.workdir)
 
         # ocr lang
         wTable = self.wTree.get_object("tableSettings")
@@ -53,7 +56,7 @@ class SettingsWindow(object):
         activeIdx = 0
         for (shortname, longname) in self.OCR_LANGS.items():
             self.ocrlangs_widget.append_text(longname)
-            if shortname == self.dtgrepConfig.ocrlang:
+            if shortname == self.config.ocrlang:
                 activeIdx = idx
             idx = idx + 1
         self.ocrlangs_widget.set_active(activeIdx)

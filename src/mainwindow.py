@@ -5,7 +5,6 @@ from util import gtk_refresh
 from util import load_uifile
 
 from aboutdialog import AboutDialog
-from config import DtGrepConfig
 from docsearch import DocSearch
 from searchwindow import SearchWindow
 from settingswindow import SettingsWindow
@@ -125,7 +124,7 @@ class MainWindow:
     def show_doc(self, doc):
         """
         Arguments:
-            doc --- doc.DtGrepDoc (see docsearch.DocSearch.get_doc())
+            doc --- doc.ScannedDoc (see docsearch.DocSearch.get_doc())
         """
         self.doc = doc
         self.page = 1

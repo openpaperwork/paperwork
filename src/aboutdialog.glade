@@ -11,12 +11,12 @@
     <property name="type_hint">dialog</property>
     <property name="transient_for">mainWindow</property>
     <property name="has_separator">False</property>
-    <property name="program_name">DtGrep</property>
+    <property name="program_name">Paperwork</property>
     <property name="version">0.1</property>
     <property name="copyright" translatable="yes">
 </property>
-    <property name="comments" translatable="yes">Dead Tree Grep</property>
-    <property name="website">http://dtgrep.kwain.net/</property>
+    <property name="comments" translatable="yes">Grep for Dead Trees</property>
+    <property name="website">http://paperwork.kwain.net/</property>
     <property name="license" translatable="yes">                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

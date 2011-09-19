@@ -148,7 +148,7 @@ class TesseractBox(object):
 
     def __str__(self):
         return "%s %d %d %d %d %d" % (
-            self.char,
+            self.string,
             self.box_position[0][0],
             self.box_position[0][1],
             self.box_position[1][0],

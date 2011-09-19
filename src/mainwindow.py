@@ -60,7 +60,7 @@ class MainWindow:
             os.stat(self.config.workdir)
         except OSError, e:
             print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
-            SettingsWindow(self.config)
+            SettingsWindow(self, self.config)
             return
 
     def _open_search_window(self, objsrc):

@@ -3,6 +3,7 @@ import ImageDraw
 import gtk
 import os
 import StringIO
+import time
 
 from util import gtk_refresh
 from util import load_uifile
@@ -130,7 +131,8 @@ class MainWindow:
         self.pageTxt.get_buffer().set_text(txt)
 
     def _reset_vpaned(self):
-        wantedSplitPos = (self.pageVpaned.get_allocation().height) * 3 / 4;
+        # keep the vpane as hidden as possible
+        wantedSplitPos = (self.pageVpaned.get_allocation().height)
         self.pageVpaned.set_position(wantedSplitPos)
 
     def _get_current_page(self):

@@ -7,7 +7,6 @@ import time
 
 import cairo
 import gtk
-import sane
 import PIL
 
 import tesseract

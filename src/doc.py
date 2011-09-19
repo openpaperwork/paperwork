@@ -14,6 +14,7 @@ from util import strip_accents
 
 class ScannedDoc(object):
     EXT_TXT = "txt"
+    EXT_BOX = "box"
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
 
@@ -73,6 +74,9 @@ class ScannedDoc(object):
     def get_txt_path(self, page):
         return self._get_filepath(page, self.EXT_TXT)
 
+    def get_box_path(self, page):
+        return self._get_filepath(page, self.EXT_BOX)
+
     def get_img_path(self, page):
         return self._get_filepath(page, self.EXT_IMG)
 
@@ -103,7 +107,7 @@ class ScannedDoc(object):
             return []
 
         outfiles = []
-        for r in range(0, 1):
+        for r in range(0, 2):
             imgpath = os.path.join(self.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
             print "Saving scan (rotated %d degree) in '%s'" % (r * 90, imgpath)
             pic.save(imgpath)
@@ -142,7 +146,7 @@ class ScannedDoc(object):
 
         i = 0
         for imgpath in files:
-            callback(self.SCAN_STEP_OCR, i, len(files))
+            callback(self.SCAN_STEP_OCR, i, len(files)+1)
             i += 1
             print "Running OCR on scan '%s'" % (imgpath)
             txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
@@ -154,7 +158,13 @@ class ScannedDoc(object):
         scores.sort(cmp = lambda x, y: self._compare_score(y[0], x[0]))
 
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
-        return (scores[0][1], scores[0][2])
+
+        print "Extracting boxes ..."
+        callback(self.SCAN_STEP_OCR, i, len(files)+1)
+        boxes = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang, boxes=True)
+        print "Done"
+
+        return (scores[0][1], scores[0][2], boxes)
 
 
     def scan_next_page(self, device, ocrlang, callback = _dummy_callback):
@@ -167,11 +177,12 @@ class ScannedDoc(object):
 
         imgfile = self.get_img_path(page)
         txtfile = self.get_txt_path(page)
+        boxfile = self.get_box_path(page)
 
         callback(self.SCAN_STEP_SCAN, 0, 100)
         outfiles = self._scan(device, callback, page)
         callback(self.SCAN_STEP_OCR, 0, 100)
-        (bmpfile, txt) = self._ocr(callback, outfiles, ocrlang)
+        (bmpfile, txt, boxes) = self._ocr(callback, outfiles, ocrlang)
 
         # Convert the image and save it in its final place
         im = PIL.Image.open(bmpfile)
@@ -180,6 +191,10 @@ class ScannedDoc(object):
         # Save the text
         with open(txtfile, 'w') as fd:
             fd.write(txt)
+
+        # Save the boxes
+        with open(boxfile, 'w') as fd:
+            tesseract.write_box_file(fd, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -201,7 +216,7 @@ class ScannedDoc(object):
         os.rmdir(self.docpath)
         print "Done"
 
-    def draw_page(self, print_op, print_context, page):
+    def print_draw_page(self, print_op, print_context, page):
         ORIENTATION_PORTRAIT = 0
         ORIENTATION_LANDSCAPE = 1
 

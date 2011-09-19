@@ -63,11 +63,11 @@ def run_tesseract(input_filename, output_filename_base, lang=None, boxes=False):
 
     command = [tesseract_cmd, input_filename, output_filename_base]
     
-    if boxes:
-        command += ['batch.nochop', 'makebox']
-    
     if lang is not None:
         command += ['-l', lang]
+
+    if boxes:
+        command += ['batch.nochop', 'makebox']
 
     proc = subprocess.Popen(command,
             stderr=subprocess.PIPE)
@@ -110,29 +110,99 @@ class TesseractError(Exception):
         self.message = message
         self.args = (status, message)
 
+class TesseractBox(object):
+    def __init__(self, char, box_position, page):
+        self.char = char
+        self.box_position = box_position
+        self.page = page
+
+    def get_char(self):
+        return self.char
+
+    def get_top_left_point(self):
+        return self.box_position[0]
+
+    def get_lower_right_point(self):
+        return self.box_position[1]
+
+    def get_width(self):
+        return self.box_position[1][0] - self.box_position[0][0]
+
+    def get_height(self):
+        return self.box_position[1][1] - self.box_position[0][1]
+
+    def get_page(self):
+        return page
+
+    def __str__(self):
+        return "%s %d %d %d %d %d" % (
+            self.char,
+            self.box_position[0][0],
+            self.box_position[0][1],
+            self.box_position[1][0],
+            self.box_position[1][1],
+            self.page
+        )
+
+def read_boxes(file_descriptor):
+    """
+    Extract of set of TesseractBox from the lines of 'file_descriptor'
+    """
+    boxes = []
+    for line in file_descriptor.readlines():
+        line = line.strip()
+        if line == "":
+            continue
+        el = line.split(" ")
+        if len(el) < 6:
+            continue
+        box = TesseractBox(unicode(el[0]),
+                           ((int(el[1]), int(el[2])),
+                            (int(el[3]), int(el[4]))),
+                           int(el[5]))
+        boxes.append(box)
+    return boxes
+
+def write_box_file(file_descriptor, boxes):
+    """
+    Write boxes in a box file. Output is in a the same format than tesseract's one.
+    """
+    for box in boxes:
+        file_descriptor.write(str(box) + "\n")
+
+
 def image_to_string(image, lang=None, boxes=False):
     '''
     Runs tesseract on the specified image. First, the image is written to disk,
-    and then the tesseract command is run on the image. Resseract's result is
+    and then the tesseract command is run on the image. Tesseract's result is
     read, and the temporary files are erased.
+
+    Returns:
+        if boxes == False (default): the text as read from the image
+        if boxes == True: an array of TesseractBox
 
     '''
 
     input_file_name = '%s.bmp' % tempnam()
     output_file_name_base = tempnam()
-    output_file_name = '%s.txt' % output_file_name_base
+    if not boxes:
+        output_file_name = '%s.txt' % output_file_name_base
+    else:
+        output_file_name = '%s.box' % output_file_name_base
     try:
         image.save(input_file_name)
-        status, error_string = run_tesseract(input_file_name,
-                                             output_file_name_base,
-                                             lang=lang,
-                                             boxes=boxes)
+        status = run_tesseract(input_file_name,
+                               output_file_name_base,
+                               lang=lang,
+                               boxes=boxes)
         if status:
-            errors = get_errors(error_string)
-            raise TesseractError(status, errors)
-        f = file(output_file_name)
+            raise TesseractError(status)
+        f = open(output_file_name)
         try:
-            return f.read().strip()
+            if not boxes:
+                return f.read().strip()
+            else:
+                return read_boxes(f)
         finally:
             f.close()
     finally:

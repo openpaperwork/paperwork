@@ -117,10 +117,13 @@ class TesseractError(Exception):
         self.args = (status, message)
 
 class TesseractBox(object):
-    def __init__(self, char, box_position, page):
-        self.char = char
+    def __init__(self, box_position, page):
+        self.string = u""
         self.box_position = box_position
         self.page = page
+
+    def add_char(self, char):
+        self.string += char
 
     def get_char(self):
         return self.char
@@ -157,7 +160,8 @@ def read_boxes(file_descriptor):
     """
     Extract of set of TesseractBox from the lines of 'file_descriptor'
     """
-    boxes = []
+    position_to_box = { } # to figure out which characters go into which box
+    boxes = [] # to keep the order of the boxes
     for line in file_descriptor.readlines():
         line = line.strip()
         if line == "":
@@ -165,11 +169,15 @@ def read_boxes(file_descriptor):
         el = line.split(" ")
         if len(el) < 6:
             continue
-        box = TesseractBox(unicode(el[0]),
-                           ((abs(int(el[1])), abs(int(el[2]))),
-                            (abs(int(el[3])), abs(int(el[4])))),
-                           int(el[5]))
-        boxes.append(box)
+        position = ((abs(int(el[1])), abs(int(el[2]))),
+                    (abs(int(el[3])), abs(int(el[4]))))
+        if position_to_box.has_key(position):
+            box = position_to_box[position]
+        else:
+            box = TesseractBox(position, int(el[5]))
+            position_to_box[position] = box
+            boxes.append(box)
+        box.add_char(unicode(el[0]))
     return boxes
 
 def write_box_file(file_descriptor, boxes):

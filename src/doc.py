@@ -257,3 +257,12 @@ class ScannedDoc(object):
         gdkcontext.set_source_pixbuf(pixbuf, 0, 0)
         gdkcontext.paint()
 
+    def get_boxes(self, page):
+        boxfile = self.get_box_path(page)
+        try:
+            with open(boxfile) as fd:
+                boxes = tesseract.read_boxes(fd)
+            return boxes
+        except Exception, e:
+            print "Unable to get boxes for '%s': %s" % (self.docid, e)
+            return []

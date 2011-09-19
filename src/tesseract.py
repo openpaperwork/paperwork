@@ -71,7 +71,13 @@ def run_tesseract(input_filename, output_filename_base, lang=None, boxes=False):
 
     proc = subprocess.Popen(command,
             stderr=subprocess.PIPE)
-    return (proc.wait(), proc.stderr.read())
+    # XXX(Jflesch): In some cases, tesseract may print more on stderr than
+    # allowed by the buffer of subprocess.Popen.stderr. So we must read stderr
+    # asap or Tesseract will remain stuck when trying to write again on stderr.
+    # In the end, we just have to make sure that proc.stderr.read() is called
+    # before proc.wait()
+    errors = proc.stderr.read()
+    return (proc.wait(), errors)
 
 def cleanup(filename):
     ''' tries to remove the given filename. Ignores non-existent files '''
@@ -119,6 +125,9 @@ class TesseractBox(object):
     def get_char(self):
         return self.char
 
+    def get_xy(self):
+        return self.box_position
+
     def get_top_left_point(self):
         return self.box_position[0]
 
@@ -157,8 +166,8 @@ def read_boxes(file_descriptor):
         if len(el) < 6:
             continue
         box = TesseractBox(unicode(el[0]),
-                           ((int(el[1]), int(el[2])),
-                            (int(el[3]), int(el[4]))),
+                           ((abs(int(el[1])), abs(int(el[2]))),
+                            (abs(int(el[3])), abs(int(el[4])))),
                            int(el[5]))
         boxes.append(box)
     return boxes
@@ -191,12 +200,12 @@ def image_to_string(image, lang=None, boxes=False):
         output_file_name = '%s.box' % output_file_name_base
     try:
         image.save(input_file_name)
-        status = run_tesseract(input_file_name,
-                               output_file_name_base,
-                               lang=lang,
-                               boxes=boxes)
+        (status, errors) = run_tesseract(input_file_name,
+                                         output_file_name_base,
+                                         lang=lang,
+                                         boxes=boxes)
         if status:
-            raise TesseractError(status)
+            raise TesseractError(status, errors)
         f = open(output_file_name)
         try:
             if not boxes:

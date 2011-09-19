@@ -1,5 +1,8 @@
+import Image
+import ImageDraw
 import gtk
 import os
+import StringIO
 
 from util import gtk_refresh
 from util import load_uifile
@@ -77,11 +80,32 @@ class MainWindow:
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
 
+    def _image2pixbuf(self, im):
+        file1 = StringIO.StringIO()
+        im.save(file1, "ppm")
+        contents = file1.getvalue()
+        file1.close()
+        loader = gtk.gdk.PixbufLoader("pnm")
+        loader.write(contents, len(contents))
+        pixbuf = loader.get_pixbuf()
+        loader.close()
+        return pixbuf
+
+    def _draw_boxes(self, im, boxes):
+        draw = ImageDraw.Draw(im)
+
+        for box in boxes:
+            draw.rectangle(box.get_xy(), outline = (0x00, 0x00, 0xFF))
+
     def _show_page_img(self, page):
         filepath = self.doc.get_img_path(page)
+        boxes = self.doc.get_boxes(page)
+
+        im = Image.open(filepath)
+        self._draw_boxes(im, boxes)
+        pixbuf = self._image2pixbuf(im)
 
         if self.page_scaled:
-            pixbuf = gtk.gdk.pixbuf_new_from_file(filepath)
             # we strip 30 pixels from the width of scrolled window, because the vertical scrollbar
             # is not included
             # TODO(Jflesch): Figure out a way to get the exact scrollbar width
@@ -94,11 +118,11 @@ class MainWindow:
                 wantedWidth = pixbuf.get_width()
                 wantedHeight = pixbuf.get_height()
                 self.pageImg.window.set_cursor(None)
-            scaled_pixbuf = pixbuf.scale_simple(wantedWidth, wantedHeight, gtk.gdk.INTERP_BILINEAR)
-            self.pageImg.set_from_pixbuf(scaled_pixbuf)
+            pixbuf = pixbuf.scale_simple(wantedWidth, wantedHeight, gtk.gdk.INTERP_BILINEAR)
         else:
             self.pageImg.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
-            self.pageImg.set_from_file(filepath)
+
+        self.pageImg.set_from_pixbuf(pixbuf)
         self.pageImg.show()
 
     def _show_page_txt(self, page):

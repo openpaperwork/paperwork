@@ -54,19 +54,6 @@ class ScannedDoc(object):
 
     def _get_filepath(self, page, ext):
         assert(page > 0)
-
-        # XXX(Jflesch): We try to not make assumptions regarding file names,
-        # except regarding their extensions (.txt/.jpg/etc)
-
-        filelist = os.listdir(self.docpath)
-        filelist.sort()
-        i = 1
-        for f in filelist:
-            if f[-4:].lower() != "."+ext:
-                continue
-            if page == i:
-                return os.path.join(self.docpath, f)
-            i += 1
         return os.path.join(self.docpath, "paper.%d.%s" % (page, ext)) # new page
 
     def get_txt_path(self, page):

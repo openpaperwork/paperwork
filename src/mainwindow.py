@@ -155,11 +155,12 @@ class MainWindow:
         try:
             self._show_page_img(page)
         except Exception, e:
+            print "Unable to show image for '%s' (p%d): %s" % (self.doc, page, e)
             self.pageImg.set_from_stock(gtk.STOCK_MISSING_IMAGE, gtk.ICON_SIZE_BUTTON)
         try:
             self._show_page_txt(page)
         except Exception, e:
-            print "Unable to show text for doc '%s': %s" % (self.doc, e)
+            print "Unable to show text for doc '%s' (p%d): %s" % (self.doc, page, e)
             self.pageTxt.get_buffer().set_text("")
 
     def refresh_page(self):

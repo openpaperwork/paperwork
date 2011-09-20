@@ -67,9 +67,7 @@ class ScannedDoc(object):
             if page == i:
                 return os.path.join(self.docpath, f)
             i += 1
-        if i == page:
-            return os.path.join(self.docpath, "paper.%d.%s" % (page, ext)) # new page
-        raise Exception("Page %d not found in document '%s' ! (last: %d)" % (page, self.docid, i))
+        return os.path.join(self.docpath, "paper.%d.%s" % (page, ext)) # new page
 
     def get_txt_path(self, page):
         return self._get_filepath(page, self.EXT_TXT)

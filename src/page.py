@@ -57,7 +57,7 @@ class ScannedPage(object):
                 boxes = tesseract.read_boxes(fd)
             return boxes
         except Exception, e:
-            print "Unable to get boxes for '%s': %s" % (self.docid, e)
+            print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
             return []
 
     def get_normal_img(self):

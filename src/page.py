@@ -145,7 +145,7 @@ class ScannedPage(object):
 
         print "Extracting boxes ..."
         callback(self.SCAN_STEP_OCR, i, len(files)+1)
-        boxes = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang, boxes=True)
+        boxes = tesseract.image_to_string(Image.open(scores[0][1]), lang=ocrlang, boxes=True)
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)

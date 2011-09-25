@@ -134,7 +134,7 @@ class TesseractBox(object):
     def get_top_left_point(self):
         return self.box_position[0]
 
-    def get_lower_right_point(self):
+    def get_bottom_right_point(self):
         return self.box_position[1]
 
     def get_width(self):

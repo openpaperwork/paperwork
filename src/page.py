@@ -77,8 +77,8 @@ class ScannedPage(object):
     def _scan(self, device, callback):
         """
         Scan a page, and generate 4 output files:
-            <docid>/paper.rotate.0.bmp: original output
-            <docid>/paper.rotate.1.bmp: original output at 90 degrees
+            <docid>/paper.rotated.0.bmp: original output
+            <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
         """
         callback(self.SCAN_STEP_SCAN, 0, 100)
@@ -91,11 +91,11 @@ class ScannedPage(object):
 
         outfiles = []
         for r in range(0, 2):
-            imgpath = os.path.join(self.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
-            print "Saving scan (rotated %d degree) in '%s'" % (r * 90, imgpath)
+            imgpath = os.path.join(self.doc.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
+            print "Saving scan (rotated %d degree) in '%s'" % (r * -90, imgpath)
             pic.save(imgpath)
             outfiles.append(imgpath)
-            pic = pic.rotate(90)
+            pic = pic.rotate(-90)
         return outfiles
 
     def _compute_ocr_score(self, txt):

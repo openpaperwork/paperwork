@@ -17,6 +17,7 @@ from util import strip_accents
 
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
+from page import ScannedPage
 from docsearch import DocSearch
 from settingswindow import SettingsWindow
 
@@ -66,6 +67,7 @@ class MainWindow:
         self._check_workdir()
 
         self._show_busy_cursor()
+        gtk_refresh()
         try:
             self.progressBar.set_text("Initializing scanner ...");
             self.progressBar.set_fraction(0.0)
@@ -335,11 +337,13 @@ class MainWindow:
             self.pageList.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
 
     def _scan_next_page(self, objsrc = None):
+        assert(self.device)
+
         self._check_workdir()
     
         self._show_busy_cursor()
         try:
-            self.doc.scan_next_page(self.scanner_device, self.config.ocrlang, self._scan_callback)
+            self.doc.scan_next_page(self.device, self.config.ocrlang, self._scan_callback)
             self._refresh_page_list()
             self._show_page(self.doc.get_page(self.doc.get_nb_pages()))
             self._reset_page_vpaned()
@@ -384,8 +388,8 @@ class MainWindow:
         res = print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.mainWindow)
 
     def _clear_search(self, objsrc = None):
-        print "Clearing search field"
         self.searchField.set_text("")
+        self._reset_search_vpaned(False)
 
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
@@ -413,7 +417,8 @@ class MainWindow:
         gtk.main_quit()
 
     def cleanup(self):
-        self.device.close()
+        if self.device != None:
+            self.device.close()
 
     def _show_doc(self, doc = None):
         """

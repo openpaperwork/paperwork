@@ -1,6 +1,5 @@
-import Image
-import ImageDraw
 import gtk
+import Image
 import os
 import StringIO
 import time
@@ -166,17 +165,16 @@ class MainWindow:
             SettingsWindow(self, self.config)
             return
 
-    def _draw_boxes(self, im, boxes):
-        draw = ImageDraw.Draw(im)
-
-        for box in boxes:
-            draw.rectangle(box.get_xy(), outline = (0x00, 0x00, 0xFF))
+    def _get_keywords(self):
+        txt = unicode(self.searchField.get_text())
+        words = txt.split(" ")
+        for i in range(0, len(words)):
+            words[i] = words[i].strip()
+            words[i] = strip_accents(words[i])
+        return words
 
     def _show_page_img(self, page):
-        im = self.doc.get_img(page)
-        boxes = self.doc.get_boxes(page)
-
-        self._draw_boxes(im, boxes)
+        im = page.get_boxed_img(self._get_keywords())
         pixbuf = image2pixbuf(im)
 
         if self.page_scaled:
@@ -200,40 +198,47 @@ class MainWindow:
         self.pageImg.show()
 
     def _show_page_txt(self, page):
-        txt = self.doc.get_text(page)
+        txt = page.get_text()
         self.pageTxt.get_buffer().set_text(txt)
 
     def _reset_page_vpaned(self):
         # keep the vpane as hidden as possible
         self.pageVpaned.set_position(0)
 
-    def _get_current_page(self):
+    def _get_selected_page(self):
         selectionPath = self.pageListUI.get_selection().get_selected()
         if selectionPath[1] == None:
             raise Exception("No page selected yet")
         selection = selectionPath[0].get_value(selectionPath[1], 0)
-        page = int(selection[5:]) # TODO(Jflesch): i18n/l10n
+        page = self.doc.get_page(int(selection[5:])) # TODO(Jflesch): i18n/l10n
         return page
 
-    def _show_page(self, objsrc = None, page = 0):
-        if page == 0:
+    def _get_current_page(self):
+        return self.page
+
+    def _show_page(self, page = None):
+        if page == None:
             page = self._get_current_page()
 
+        self.page = page
         self.page_scaled = True
 
-        print "Showing page %d" % (page)
+        print "Showing page '%s'" % (page)
 
-        self.pageListUI.get_selection().select_path((page-1))
+        self.pageListUI.get_selection().select_path((page.get_page_nb()-1))
         try:
             self._show_page_img(page)
         except Exception, e:
-            print "Unable to show image for '%s' (p%d): %s" % (self.doc, page, e)
+            print "Unable to show image for '%s': %s" % (page, e)
             self.pageImg.set_from_stock(gtk.STOCK_MISSING_IMAGE, gtk.ICON_SIZE_BUTTON)
         try:
             self._show_page_txt(page)
         except Exception, e:
-            print "Unable to show text for doc '%s' (p%d): %s" % (self.doc, page, e)
+            print "Unable to show text for doc '%s': %s" % (page, e)
             self.pageTxt.get_buffer().set_text("")
+
+    def _show_selected_page(self, objsrc = None):
+        self._show_page(self._get_selected_page())
 
     def refresh_page(self):
         print "Refreshing main window"
@@ -247,9 +252,9 @@ class MainWindow:
 
     def _scan_callback(self, step, progression, total):
         self.progressBar.set_fraction(float(progression) / total)
-        if step == ScannedDoc.SCAN_STEP_SCAN:
+        if step == ScannedPage.SCAN_STEP_SCAN:
             self.progressBar.set_text("Scanning ... ") # TODO(Jflesch): i18n/l10n
-        elif step == ScannedDoc.SCAN_STEP_OCR:
+        elif step == ScannedPage.SCAN_STEP_OCR:
             self.progressBar.set_text("Reading ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
 
@@ -265,7 +270,7 @@ class MainWindow:
         try:
             self.doc.scan_next_page(self.scanner_device, self.config.ocrlang, self._scan_callback)
             self._refresh_page_list()
-            self._show_page(page = self.doc.get_nb_pages())
+            self._show_page(self.doc.get_page(self.doc.get_nb_pages()))
             self._reset_page_vpaned()
         finally:
             self.progressBar.set_text("");
@@ -298,15 +303,14 @@ class MainWindow:
         print_op.set_print_settings(print_settings)
 
         print_op.set_n_pages(self.doc.get_nb_pages())
-        print_op.set_current_page(self._get_current_page() - 1) # remember: we count pages from 1, they don't
+        # remember: we count pages from 1, they don't
+        print_op.set_current_page(self._get_current_page().get_page_nb() - 1)
         print_op.set_use_full_page(True)
         print_op.set_job_name(str(self.doc))
         print_op.set_export_filename(str(self.doc) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.doc.print_draw_page)
-        self._show_busy_cursor()
+        print_op.connect("draw-page", self.doc.print_page)
         res = print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.mainWindow)
-        self._show_normal_cursor()
 
     def _clear_search(self, objsrc = None):
         print "Clearing search field"
@@ -326,7 +330,7 @@ class MainWindow:
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
         self.wTree.get_object("buttonSearchClear").connect("clicked", self._clear_search)
-        self.pageListUI.connect("cursor-changed", self._show_page)
+        self.pageListUI.connect("cursor-changed", self._show_selected_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
         self.searchField.connect("changed", self._update_results)
         self.matchListUI.connect("cursor-changed", self._apply_search)
@@ -346,11 +350,11 @@ class MainWindow:
             self.doc = doc
         else:
             assert(self.doc)
-        self.page = 1
 
         self.mainWindow.set_title(str(self.doc) + " - " + self.WIN_TITLE)
         self._refresh_page_list()
-        self._show_page(page = 1)
+        self.page = self.doc.get_page(1)
+        self._show_page(self.page)
 
     def show_doc(self, doc):
         self._show_doc(doc)

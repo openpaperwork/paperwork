@@ -1,8 +1,14 @@
-import gtk
 import Image
 import os
 import StringIO
 import time
+
+import gtk
+try:
+    import sane
+    HAS_SANE = True
+except ImportError, e:
+    HAS_SANE = False
 
 from util import gtk_refresh
 from util import image2pixbuf
@@ -17,9 +23,8 @@ from settingswindow import SettingsWindow
 class MainWindow:
     WIN_TITLE = "Paperwork"
 
-    def __init__(self, config, scanner_device):
+    def __init__(self, config):
         self.config = config
-        self.scanner_device = scanner_device
         self.wTree = load_uifile("mainwindow.glade")
 
         self.mainWindow = self.wTree.get_object("mainWindow")
@@ -47,9 +52,8 @@ class MainWindow:
         self.matchButton = self.wTree.get_object("buttonMatch")
         self.pageButton = self.wTree.get_object("buttonPage")
 
-        if scanner_device == None:
-            self.wTree.get_object("menuitemScan").set_sensitive(False)
-            self.wTree.get_object("toolbuttonScan").set_sensitive(False)
+        self.wTree.get_object("menuitemScan").set_sensitive(False)
+        self.wTree.get_object("toolbuttonScan").set_sensitive(False)
 
         self.page_scaled = True
         self.new_document()
@@ -61,6 +65,21 @@ class MainWindow:
 
         self._check_workdir()
 
+        self._show_busy_cursor()
+        try:
+            self.progressBar.set_text("Initializing scanner ...");
+            self.progressBar.set_fraction(0.0)
+            self._find_scanner()
+            if self.device != None:
+                self._set_scanner_config()
+                self.wTree.get_object("menuitemScan").set_sensitive(True)
+                self.wTree.get_object("toolbuttonScan").set_sensitive(True)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
+
+        self._show_busy_cursor()
         try:
             self.progressBar.set_text("Loading documents ...");
             self.progressBar.set_fraction(0.0)
@@ -68,6 +87,58 @@ class MainWindow:
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
+
+    def _find_scanner(self):
+        self.device = None
+        if not HAS_SANE:
+            # TODO(Jflesch): i18n/l10n
+            msg = "python-imaging-sane not found. Scanning will be disabled."
+            dialog = gtk.MessageDialog(parent = None,
+                                       flags = gtk.DIALOG_MODAL,
+                                       type = gtk.MESSAGE_WARNING,
+                                       buttons = gtk.BUTTONS_OK,
+                                       message_format = msg)
+            dialog.run()
+            dialog.destroy()
+            return
+        self.progressBar.set_text("Initializing sane ...");
+        self.progressBar.set_fraction(0.0)
+        gtk_refresh()
+        sane.init()
+    
+        devices = []
+        while len(devices) == 0:
+            self.progressBar.set_text("Looking for a scanner ...");
+            self.progressBar.set_fraction(0.2)
+            gtk_refresh()
+            devices = sane.get_devices()
+            if len(devices) == 0:
+                msg = "No scanner found (is your scanner turned on ?). Look again ?"
+                dialog = gtk.MessageDialog(parent = None,
+                                           flags = gtk.DIALOG_MODAL,
+                                           type = gtk.MESSAGE_WARNING,
+                                           buttons = gtk.BUTTONS_YES_NO,
+                                           message_format = msg)
+                response = dialog.run()
+                dialog.destroy()
+                if response == gtk.RESPONSE_NO:
+                    return
+
+        print "Will use device '%s'" % (str(devices[0]))
+        self.device = sane.open(devices[0][0])
+
+    def _set_scanner_config(self):
+        assert(HAS_SANE)
+        try:
+            self.device.resolution = 300
+        except AttributeError, e:
+            print "WARNING: Can't set scanner resolution: " + e
+        try:
+            self.device.mode = 'Color'
+        except AttributeError, e:
+            print "WARNING: Can't set scanner mode: " + e
+
 
     def _docsearch_callback(self, step, progression, total, document=None):
         self.progressBar.set_fraction(float(progression) / total)
@@ -340,6 +411,9 @@ class MainWindow:
     def _destroy(self):
         self.wTree.get_object("mainWindow").destroy()
         gtk.main_quit()
+
+    def cleanup(self):
+        self.device.close()
 
     def _show_doc(self, doc = None):
         """

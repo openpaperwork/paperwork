@@ -65,6 +65,9 @@ class ScannedDoc(object):
     def get_img_path(self, page):
         return self._get_filepath(page, self.EXT_IMG)
 
+    def get_img(self, page):
+        return Image.open(self.get_img_path(page))
+
     def get_text(self, page):
         txtfile = self.get_txt_path(page)
         txt = ""
@@ -202,6 +205,12 @@ class ScannedDoc(object):
         print "Done"
 
     def print_draw_page(self, print_op, print_context, page):
+        """
+        Called for printing operation by Gtk
+
+        Arguments:
+            page --- Starts counting from 0 !
+        """
         ORIENTATION_PORTRAIT = 0
         ORIENTATION_LANDSCAPE = 1
 

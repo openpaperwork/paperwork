@@ -1,8 +1,10 @@
 import os
+import StringIO
 import unicodedata
 
 import glib
 import gtk
+import PIL
 import pygtk
 
 def load_uifile(filename):
@@ -48,4 +50,19 @@ def strip_accents(s):
 def gtk_refresh():
     while gtk.events_pending():
         gtk.main_iteration()
+
+def image2pixbuf(im):
+    fd = StringIO.StringIO()
+    try:
+        im.save(fd, "ppm")
+        contents = fd.getvalue()
+    finally:
+        fd.close()
+    loader = gtk.gdk.PixbufLoader("pnm")
+    try:
+        loader.write(contents, len(contents))
+        pixbuf = loader.get_pixbuf()
+    finally:
+        loader.close()
+    return pixbuf
 

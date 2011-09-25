@@ -6,6 +6,7 @@ import StringIO
 import time
 
 from util import gtk_refresh
+from util import image2pixbuf
 from util import load_uifile
 
 from aboutdialog import AboutDialog
@@ -81,17 +82,6 @@ class MainWindow:
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
 
-    def _image2pixbuf(self, im):
-        file1 = StringIO.StringIO()
-        im.save(file1, "ppm")
-        contents = file1.getvalue()
-        file1.close()
-        loader = gtk.gdk.PixbufLoader("pnm")
-        loader.write(contents, len(contents))
-        pixbuf = loader.get_pixbuf()
-        loader.close()
-        return pixbuf
-
     def _draw_boxes(self, im, boxes):
         draw = ImageDraw.Draw(im)
 
@@ -99,12 +89,11 @@ class MainWindow:
             draw.rectangle(box.get_xy(), outline = (0x00, 0x00, 0xFF))
 
     def _show_page_img(self, page):
-        filepath = self.doc.get_img_path(page)
+        im = self.doc.get_img(page)
         boxes = self.doc.get_boxes(page)
 
-        im = Image.open(filepath)
         self._draw_boxes(im, boxes)
-        pixbuf = self._image2pixbuf(im)
+        pixbuf = image2pixbuf(im)
 
         if self.page_scaled:
             # we strip 30 pixels from the width of scrolled window, because the vertical scrollbar

@@ -221,9 +221,9 @@ class MainWindow:
         print_op.set_export_filename(str(self.doc) + ".pdf")
         print_op.set_allow_async(True)
         print_op.connect("draw-page", self.doc.print_draw_page)
+        self._show_busy_cursor()
         res = print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.mainWindow)
-        if res == gtk.PRINT_OPERATION_RESULT_APPLY:
-            self.config.print_settings = print_op.get_print_settings()
+        self._show_normal_cursor()
 
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())

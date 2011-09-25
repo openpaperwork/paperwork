@@ -237,23 +237,30 @@ class ScannedDoc(object):
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
-        new_w = int(print_context.get_width())
-        new_h = int(print_context.get_height())
+        page_setup = print_context.get_page_setup()
+        top_margin = (int(print_context.get_height())
+                      * (page_setup.get_top_margin(gtk.UNIT_POINTS)
+                         / page_setup.get_paper_height(gtk.UNIT_POINTS)))
+        bottom_margin = (int(print_context.get_height())
+                      * (page_setup.get_bottom_margin(gtk.UNIT_POINTS)
+                         / page_setup.get_paper_height(gtk.UNIT_POINTS)))
+        left_margin = (int(print_context.get_width())
+                      * (page_setup.get_left_margin(gtk.UNIT_POINTS)
+                         / page_setup.get_paper_width(gtk.UNIT_POINTS)))
+        right_margin = (int(print_context.get_width())
+                      * (page_setup.get_right_margin(gtk.UNIT_POINTS)
+                         / page_setup.get_paper_width(gtk.UNIT_POINTS)))
+
+        new_w = int(print_context.get_width() - left_margin - right_margin)
+        new_h = int(print_context.get_height() - top_margin - bottom_margin)
         print "DPI: %fx%f" % (print_context.get_dpi_x(), print_context.get_dpi_y())
         print "Scaling it down to %fx%f..." % (new_w, new_h)
         pixbuf = pixbuf.scale_simple(new_w, new_h, gtk.gdk.INTERP_BILINEAR)
 
         # .. and print !
-        format = cairo.FORMAT_RGB24
-        if pixbuf.get_has_alpha():
-            format = cairo.FORMAT_ARGB32
-        width = pixbuf.get_width()
-        height = pixbuf.get_height()
-        image = cairo.ImageSurface(format, width, height)
-
         cr = print_context.get_cairo_context()
         gdkcontext = gtk.gdk.CairoContext(cr)
-        gdkcontext.set_source_pixbuf(pixbuf, 0, 0)
+        gdkcontext.set_source_pixbuf(pixbuf, left_margin, top_margin)
         gdkcontext.paint()
 
     def get_boxes(self, page):

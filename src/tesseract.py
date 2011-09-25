@@ -169,14 +169,10 @@ def read_boxes(file_descriptor):
         el = line.split(" ")
         if len(el) < 6:
             continue
-        position = ((abs(int(el[1])), abs(int(el[2]))),
-                    (abs(int(el[3])), abs(int(el[4]))))
-        if position_to_box.has_key(position):
-            box = position_to_box[position]
-        else:
-            box = TesseractBox(position, int(el[5]))
-            position_to_box[position] = box
-            boxes.append(box)
+        position = ((int(el[1]), int(el[2])),
+                    (int(el[3]), int(el[4])))
+        box = TesseractBox(position, int(el[5]))
+        boxes.append(box)
         box.add_char(unicode(el[0]))
     return boxes
 

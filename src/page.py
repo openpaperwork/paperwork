@@ -71,7 +71,10 @@ class ScannedPage(object):
         draw = ImageDraw.Draw(img)
         for box in boxes:
             # TODO(Jflesch): add highlights
-            draw.rectangle(box.get_xy(), outline = (0x00, 0x00, 0xFF))
+            ((a, b), (c, d)) = box.get_xy()
+            b = img.size[1] - b
+            d = img.size[1] - d
+            draw.rectangle(((a, b), (c, d)), outline = (0x00, 0x00, 0xFF))
 
         return img
 

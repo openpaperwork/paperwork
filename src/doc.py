@@ -214,12 +214,15 @@ class ScannedDoc(object):
         ORIENTATION_PORTRAIT = 0
         ORIENTATION_LANDSCAPE = 1
 
+        # By default, the context is using 72 dpi, which is by far not enough
+        # --> we change it to 300 dpi
+        print_context.set_cairo_context(print_context.get_cairo_context(), 300, 300)
+
         imgpath = self.get_img_path(page+1)
 
         pixbuf = gtk.gdk.pixbuf_new_from_file(imgpath)
 
         # take care of rotating the image if required
-        print "Rotating the page ..."
         if print_context.get_width() <= print_context.get_height():
             print_orientation = ORIENTATION_PORTRAIT
         else:
@@ -229,14 +232,16 @@ class ScannedDoc(object):
         else:
             pixbuf_orientation = ORIENTATION_LANDSCAPE
         if print_orientation != pixbuf_orientation:
+            print "Rotating the page ..."
             pixbuf = pixbuf.rotate_simple(gtk.gdk.PIXBUF_ROTATE_CLOCKWISE)
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
-        print "Scaling it down to %fx%f..." % (print_context.get_width(), print_context.get_height())
-        pixbuf = pixbuf.scale_simple(int(print_context.get_width()),
-                                     int(print_context.get_height()),
-                                     gtk.gdk.INTERP_HYPER)
+        new_w = int(print_context.get_width())
+        new_h = int(print_context.get_height())
+        print "DPI: %fx%f" % (print_context.get_dpi_x(), print_context.get_dpi_y())
+        print "Scaling it down to %fx%f..." % (new_w, new_h)
+        pixbuf = pixbuf.scale_simple(new_w, new_h, gtk.gdk.INTERP_BILINEAR)
 
         # .. and print !
         format = cairo.FORMAT_RGB24

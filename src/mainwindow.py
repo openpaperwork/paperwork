@@ -207,8 +207,13 @@ class MainWindow:
 
     def _print_doc(self, objsrc = None):
         print_op = gtk.PrintOperation()
-        if self.config.print_settings != None:
-            print_op.set_print_settings(self.config.print_settings)
+
+        print_settings = gtk.PrintSettings()
+        # By default, print context are using 72 dpi, but print_draw_page
+        # will change it to 300 dpi --> we have to tell PrintOperation to scale
+        print_settings.set_scale(100.0 * (72.0 / 300.0))
+        print_op.set_print_settings(print_settings)
+
         print_op.set_n_pages(self.doc.get_nb_pages())
         print_op.set_current_page(self._get_current_page() - 1) # remember: we count pages from 1, they don't
         print_op.set_use_full_page(True)

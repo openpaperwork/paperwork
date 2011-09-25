@@ -8,11 +8,11 @@ import time
 from util import gtk_refresh
 from util import image2pixbuf
 from util import load_uifile
+from util import strip_accents
 
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
 from docsearch import DocSearch
-from searchwindow import SearchWindow
 from settingswindow import SettingsWindow
 
 class MainWindow:
@@ -34,6 +34,20 @@ class MainWindow:
         self.pageTxt = self.wTree.get_object("textviewPageTxt")
         self.pageVpaned = self.wTree.get_object("vpanedPage")
 
+        # search
+        self.liststoreSuggestion = self.wTree.get_object("liststoreSuggestion")
+        self.searchField = self.wTree.get_object("entrySearch")
+        self.searchCompletion = gtk.EntryCompletion()
+        self.searchCompletion.set_model(self.liststoreSuggestion)
+        self.searchCompletion.set_text_column(0)
+        self.searchCompletion.set_match_func(lambda x, y, z: True)
+        self.searchField.set_completion(self.searchCompletion)
+        self.matchListUI = self.wTree.get_object("treeviewMatch")
+        self.matchList = self.wTree.get_object("liststoreMatch")
+        self.vpanedSearch = self.wTree.get_object("vpanedSearch")
+        self.matchButton = self.wTree.get_object("buttonMatch")
+        self.pageButton = self.wTree.get_object("buttonPage")
+
         if scanner_device == None:
             self.wTree.get_object("menuitemScan").set_sensitive(False)
             self.wTree.get_object("toolbuttonScan").set_sensitive(False)
@@ -43,6 +57,18 @@ class MainWindow:
 
         self._connect_signals()
         self.mainWindow.set_visible(True)
+        gtk_refresh()
+        self._reset_search_vpaned(False)
+
+        self._check_workdir()
+
+        try:
+            self.progressBar.set_text("Loading documents ...");
+            self.progressBar.set_fraction(0.0)
+            self.docsearch = DocSearch(self.config.workdir, self._docsearch_callback)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
 
     def _docsearch_callback(self, step, progression, total, document=None):
         self.progressBar.set_fraction(float(progression) / total)
@@ -51,6 +77,78 @@ class MainWindow:
         elif step == DocSearch.INDEX_STEP_SORTING:
             self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
+
+    def _reset_search_vpaned(self, show_doclist):
+        vpaned_height = self.vpanedSearch.get_allocation().height
+        if show_doclist:
+            button_height = self.pageButton.get_allocation().height
+            target_position = (vpaned_height - button_height - 5)
+        else:
+            button_height = self.matchButton.get_allocation().height
+            target_position = (button_height - 5)
+        # XXX(Jflesch): the following animation should be time-controlled
+        pos = self.vpanedSearch.get_position()
+        while (abs(pos - target_position) >= 30):
+            if pos > target_position:
+                pos -= 15
+            else:
+                pos += 15
+            self.vpanedSearch.set_position(pos)
+            gtk_refresh()
+        self.vpanedSearch.set_position(target_position)
+
+    def _adapt_search(self, search, suggestion):
+        suggestion = strip_accents(suggestion).lower()
+        # TODO: i18n/l10n: spaces aren't always the correct word separator
+        search = strip_accents(search).lower()
+        words = search.split(" ")
+        search = ""
+        for word in words:
+            if search != "":
+                search += " "
+            if suggestion.startswith(word):
+                search += suggestion
+            else:
+                search += word
+        print "Suggestion: %s -> %s" % (suggestion, search)
+
+        self._reset_search_vpaned(True)
+
+        return search
+
+    def _update_results(self, objsrc = None):
+        txt = unicode(self.searchField.get_text())
+        print "Search: %s" % txt
+
+        suggestions = self.docsearch.get_suggestions(txt.split(" "))
+        print "Got %d suggestions" % len(suggestions)
+        self.liststoreSuggestion.clear()
+        full_suggestions = []
+        for suggestion in suggestions:
+            full_suggestions.append(self._adapt_search(txt, suggestion))
+        full_suggestions.sort()
+        for suggestion in full_suggestions:
+            self.liststoreSuggestion.append([suggestion])
+
+        documents = self.docsearch.get_documents(txt.split(" "))
+        print "Got %d documents" % len(documents)
+        self.matchList.clear()
+        for document in reversed(documents):
+            self.matchList.append([document])
+
+    def _apply_search(self, objsrc = None):
+        selectionPath = self.matchListUI.get_selection().get_selected()
+        if selectionPath[1] == None:
+            print "No document selected. Can't open"
+            return False
+        selection = selectionPath[0].get_value(selectionPath[1], 0)
+        doc = self.docsearch.get_doc(selection)
+
+        print "Showing doc %s" % selection
+        self.show_doc(doc)
+        self.refresh_page()
+
+        return True
 
     def _show_busy_cursor(self):
         watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
@@ -67,20 +165,6 @@ class MainWindow:
             print "Unable to stat dir '%s': %s --> opening dialog settings" % (self.config.workdir, e)
             SettingsWindow(self, self.config)
             return
-
-    def _open_search_window(self, objsrc):
-        self._check_workdir()
-    
-        self._show_busy_cursor()
-        try:
-            self.progressBar.set_text("Loading documents ...");
-            self.progressBar.set_fraction(0.0)
-            dsearch = DocSearch(self.config.workdir, self._docsearch_callback)
-            SearchWindow(self, dsearch)
-        finally:
-            self.progressBar.set_text("");
-            self.progressBar.set_fraction(0.0)
-            self._show_normal_cursor()
 
     def _draw_boxes(self, im, boxes):
         draw = ImageDraw.Draw(im)
@@ -119,10 +203,9 @@ class MainWindow:
         txt = self.doc.get_text(page)
         self.pageTxt.get_buffer().set_text(txt)
 
-    def _reset_vpaned(self):
+    def _reset_page_vpaned(self):
         # keep the vpane as hidden as possible
-        wantedSplitPos = (self.pageVpaned.get_allocation().height)
-        self.pageVpaned.set_position(wantedSplitPos)
+        self.pageVpaned.set_position(0)
 
     def _get_current_page(self):
         selectionPath = self.pageListUI.get_selection().get_selected()
@@ -155,7 +238,7 @@ class MainWindow:
     def refresh_page(self):
         print "Refreshing main window"
         self._show_page_img(self._get_current_page())
-        self._reset_vpaned()
+        self._reset_page_vpaned()
 
     def _change_scale(self, objsrc = None, x = None, y = None):
         print "Changing scaling: %d -> %d" % (self.page_scaled, not self.page_scaled)
@@ -183,7 +266,7 @@ class MainWindow:
             self.doc.scan_next_page(self.scanner_device, self.config.ocrlang, self._scan_callback)
             self._refresh_page_list()
             self._show_page(page = self.doc.get_nb_pages())
-            self._reset_vpaned()
+            self._reset_page_vpaned()
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)
@@ -225,6 +308,10 @@ class MainWindow:
         res = print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.mainWindow)
         self._show_normal_cursor()
 
+    def _clear_search(self, objsrc = None):
+        print "Clearing search field"
+        self.searchField.set_text("")
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
@@ -238,10 +325,13 @@ class MainWindow:
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
-        self.wTree.get_object("toolbuttonSearch").connect("clicked", self._open_search_window)
-        self.wTree.get_object("menuitemSearch").connect("activate", self._open_search_window)
+        self.wTree.get_object("buttonSearchClear").connect("clicked", self._clear_search)
         self.pageListUI.connect("cursor-changed", self._show_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
+        self.searchField.connect("changed", self._update_results)
+        self.matchListUI.connect("cursor-changed", self._apply_search)
+        self.pageButton.connect("clicked", lambda x: self._reset_search_vpaned(False))
+        self.matchButton.connect("clicked", lambda x: self._reset_search_vpaned(True))
 
     def _destroy(self):
         self.wTree.get_object("mainWindow").destroy()
@@ -264,7 +354,8 @@ class MainWindow:
 
     def show_doc(self, doc):
         self._show_doc(doc)
-        self._reset_vpaned()
+        self._reset_page_vpaned()
+        self._reset_search_vpaned(False)
 
     def new_document(self, objsrc = None):
         self._show_doc(ScannedDoc(self.config.workdir)) # new document

@@ -12,7 +12,6 @@ setup(name="Paperwork",
       data_files=[('share/paperwork', [
           'src/aboutdialog.glade',
           'src/mainwindow.glade',
-          'src/searchwindow.glade',
           'src/settingswindow.glade',
       ])],
       scripts=['scripts/paperwork'],

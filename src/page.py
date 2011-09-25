@@ -44,10 +44,11 @@ class ScannedPage(object):
 
     def get_text(self):
         txtfile = self._get_txt_path()
-        txt = ""
+        txt = []
         with codecs.open(txtfile, encoding='utf-8') as fd:
             for line in fd.readlines():
-                txt += line
+                line = line.strip()
+                txt.append(line)
         return txt
 
     def get_boxes(self):
@@ -239,6 +240,21 @@ class ScannedPage(object):
         starts at 1 here !
         """
         return self.page
+
+    def get_keywords(self):
+        filepath = self._get_txt_path()
+        words = []
+        try:
+            for line in self.get_text():
+                for word in line.split(" "): # TODO: i18n/l10n
+                    words.append(word)
+        except Exception, e:
+            print "ERROR while trying to read keywords from page '%s': %s" % (str(self), str(e))
+            return []
+        return words
+
+    def get_doc(self):
+        return self.doc
 
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page)

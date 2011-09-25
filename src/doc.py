@@ -36,10 +36,11 @@ class ScannedDoc(object):
             print "Exception while trying to get the number of pages of '%s': %s" % (self.docid, e)
             return 0
 
-    def _dummy_callback(step, progression, total):
+    def dummy_callback(step, progression, total):
         pass
+    dummy_callback = staticmethod(dummy_callback)
 
-    def scan_next_page(self, device, ocrlang, callback = _dummy_callback):
+    def scan_next_page(self, device, ocrlang, callback = dummy_callback):
         try:
             os.makedirs(self.docpath)
         except OSError:

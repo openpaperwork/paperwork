@@ -30,30 +30,30 @@ class DocSearch(object):
         self._index(callback)
 
     def _simplify(self, keyword):
+        keyword = keyword.strip()
         keyword = strip_accents(keyword)
         keyword = keyword.lower()
         return keyword
 
-    def _index_file(self, filepath, docpath):
-        print "Indexing %s" % filepath
-        with codecs.open(filepath, encoding='utf-8') as fd:
-            for line in fd.readlines():
-                line = line.strip()
-                for word in line.split(" "): # TODO: i18n/l10n
-                    if len(word) < self.MIN_KEYWORD_LEN:
-                        continue
-                    word = self._simplify(word)
-                    if self.keywords_to_doc.has_key(word):
-                        if not docpath in self.keywords_to_doc[word]:
-                            self.keywords_to_doc[word].append(docpath)
-                    else:
-                        self.keywords_to_doc[word] = [ docpath ]
+    def _index_page(self, docpath, page):
+        print "Indexing '%s'" % str(page)
+        for word in page.get_keywords():
+            word = self._simplify(word)
+            if len(word) < self.MIN_KEYWORD_LEN:
+                continue
+            if self.keywords_to_doc.has_key(word):
+                if not docpath in self.keywords_to_doc[word]:
+                    self.keywords_to_doc[word].append(docpath)
+            else:
+                self.keywords_to_doc[word] = [ docpath ]
 
     def _index_dir(self, callback, dirpath, progression = 0, total = 0):
         dlist = os.listdir(dirpath)
+        dlist.sort()
         if total == 0:
             progression = 0
             total = len(dlist)
+        page_nb = 0
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
                 continue
@@ -62,12 +62,13 @@ class DocSearch(object):
                 self._index_dir(callback, os.path.join(dirpath, dpath), progression, total)
                 progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
-                self._index_file(os.path.join(dirpath, dpath), dirpath)
+                page_nb += 1
+                self._index_page(dirpath, ScannedDoc(dirpath, dirpath).get_page(page_nb))
 
     def _docpath_to_id(self, docpath):
         return os.path.split(docpath)[1]
 
-    def _index_docpaths(self, callback):
+    def _extract_docpaths(self, callback):
         callback(self.INDEX_STEP_SORTING, 0, 3)
         for docs in self.keywords_to_doc.values():
             for docpath in docs:
@@ -87,8 +88,15 @@ class DocSearch(object):
         self.keywords_to_doc = {}   # keyword (string) -> array of path
 
         self._index_dir(callback, self.rootdir)
-        self._index_docpaths(callback)
+        self._extract_docpaths(callback)
         self._extract_keywords(callback)
+
+    def index_page(self, page):
+        docpath = page.get_doc().docpath
+        self._index_page(docpath, page)
+        # remake these two:
+        self._extract_docpaths(ScannedDoc.dummy_callback)
+        self._extract_keywords(ScannedDoc.dummy_callback)
 
     def _get_suggestions(self, keyword):
         lkeyword = len(keyword)

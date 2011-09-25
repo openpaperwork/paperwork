@@ -81,15 +81,7 @@ class MainWindow:
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
 
-        self._show_busy_cursor()
-        try:
-            self.progressBar.set_text("Loading documents ...");
-            self.progressBar.set_fraction(0.0)
-            self.docsearch = DocSearch(self.config.workdir, self._docsearch_callback)
-        finally:
-            self.progressBar.set_text("");
-            self.progressBar.set_fraction(0.0)
-            self._show_normal_cursor()
+        self.reindex()
 
     def _find_scanner(self):
         self.device = None
@@ -141,6 +133,16 @@ class MainWindow:
         except AttributeError, e:
             print "WARNING: Can't set scanner mode: " + e
 
+    def reindex(self):
+        self._show_busy_cursor()
+        try:
+            self.progressBar.set_text("Loading documents ...");
+            self.progressBar.set_fraction(0.0)
+            self.docsearch = DocSearch(self.config.workdir, self._docsearch_callback)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
 
     def _docsearch_callback(self, step, progression, total, document=None):
         self.progressBar.set_fraction(float(progression) / total)
@@ -183,8 +185,6 @@ class MainWindow:
             else:
                 search += word
         print "Suggestion: %s -> %s" % (suggestion, search)
-
-        self._reset_search_vpaned(True)
 
         return search
 
@@ -271,7 +271,7 @@ class MainWindow:
         self.pageImg.show()
 
     def _show_page_txt(self, page):
-        txt = page.get_text()
+        txt = "\n".join(page.get_text())
         self.pageTxt.get_buffer().set_text(txt)
 
     def _reset_page_vpaned(self):
@@ -344,8 +344,10 @@ class MainWindow:
         self._show_busy_cursor()
         try:
             self.doc.scan_next_page(self.device, self.config.ocrlang, self._scan_callback)
+            page = self.doc.get_page(self.doc.get_nb_pages())
+            self.docsearch.index_page(page)
             self._refresh_page_list()
-            self._show_page(self.doc.get_page(self.doc.get_nb_pages()))
+            self._show_page(page)
             self._reset_page_vpaned()
         finally:
             self.progressBar.set_text("");
@@ -367,6 +369,7 @@ class MainWindow:
         self.doc.destroy()
         self.new_document()
         print "Deleted"
+        self.reindex()
 
     def _print_doc(self, objsrc = None):
         print_op = gtk.PrintOperation()
@@ -408,6 +411,7 @@ class MainWindow:
         self.pageListUI.connect("cursor-changed", self._show_selected_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
         self.searchField.connect("changed", self._update_results)
+        self.searchField.connect("focus-in-event", lambda x, y = None: self._reset_search_vpaned(True))
         self.matchListUI.connect("cursor-changed", self._apply_search)
         self.pageButton.connect("clicked", lambda x: self._reset_search_vpaned(False))
         self.matchButton.connect("clicked", lambda x: self._reset_search_vpaned(True))

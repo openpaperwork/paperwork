@@ -1,6 +1,7 @@
 import gtk
 import os
 
+from util import gtk_refresh
 from util import load_uifile
 
 class SettingsWindow(object):
@@ -30,21 +31,25 @@ class SettingsWindow(object):
 
     def _apply(self):
         assert(self.ocrlangs_widget)
-        if self.config.workdir != self.wTree.get_object("entrySettingsWorkDir").get_text():
-            self.config.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
-            self.mainwindow.new_document()
         try:
-            os.makedirs(self.config.workdir)
+            os.makedirs(self.wTree.get_object("entrySettingsWorkDir").get_text())
         except OSError:
             pass
         self.config.ocrlang = self.OCR_LANGS_REVERSE[self.ocrlangs_widget.get_active_text()]
+        if self.config.workdir != self.wTree.get_object("entrySettingsWorkDir").get_text():
+            self.config.workdir = self.wTree.get_object("entrySettingsWorkDir").get_text()
+            self._destroy()
+            self.mainwindow.new_document()
+            self.mainwindow.reindex()
+        else:
+            self._destroy()
         self.config.write()
         return True
 
     def _connect_signals(self):
         self.settingswin.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("buttonSettingsCancel").connect("clicked", lambda x: self._destroy())
-        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self._apply() and self._destroy())
+        self.wTree.get_object("buttonSettingsOk").connect("clicked", lambda x: self._apply())
         self.wTree.get_object("buttonSettingsWorkDirSelect").connect("clicked", lambda x: self._open_file_chooser())
 
     def _fill_in_form(self):

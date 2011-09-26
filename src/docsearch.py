@@ -8,7 +8,7 @@ from util import strip_accents
 from doc import ScannedDoc
 
 class DocSearch(object):
-    MIN_KEYWORD_LEN = 3
+    MIN_KEYWORD_LEN = 2
 
     INDEX_STEP_READING  = 0
     INDEX_STEP_SORTING  = 1

@@ -50,8 +50,8 @@ class MainWindow:
         self.matchListUI = self.wTree.get_object("treeviewMatch")
         self.matchList = self.wTree.get_object("liststoreMatch")
         self.vpanedSearch = self.wTree.get_object("vpanedSearch")
-        self.matchButton = self.wTree.get_object("buttonMatch")
-        self.pageButton = self.wTree.get_object("buttonPage")
+        self.selectors = self.wTree.get_object("notebookSelectors")
+        self.selectors.set_current_page(1)
 
         self.wTree.get_object("menuitemScan").set_sensitive(False)
         self.wTree.get_object("toolbuttonScan").set_sensitive(False)
@@ -62,7 +62,6 @@ class MainWindow:
         self._connect_signals()
         self.mainWindow.set_visible(True)
         gtk_refresh()
-        self._reset_search_vpaned(False)
 
         self._check_workdir()
 
@@ -151,25 +150,6 @@ class MainWindow:
         elif step == DocSearch.INDEX_STEP_SORTING:
             self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
-
-    def _reset_search_vpaned(self, show_doclist):
-        vpaned_height = self.vpanedSearch.get_allocation().height
-        if show_doclist:
-            button_height = self.pageButton.get_allocation().height
-            target_position = (vpaned_height - button_height - 5)
-        else:
-            button_height = self.matchButton.get_allocation().height
-            target_position = (button_height - 5)
-        # XXX(Jflesch): the following animation should be time-controlled
-        pos = self.vpanedSearch.get_position()
-        while (abs(pos - target_position) >= 30):
-            if pos > target_position:
-                pos -= 15
-            else:
-                pos += 15
-            self.vpanedSearch.set_position(pos)
-            gtk_refresh()
-        self.vpanedSearch.set_position(target_position)
 
     def _adapt_search(self, search, suggestion):
         suggestion = strip_accents(suggestion).lower()
@@ -309,6 +289,7 @@ class MainWindow:
         except Exception, e:
             print "Unable to show text for doc '%s': %s" % (page, e)
             self.pageTxt.get_buffer().set_text("")
+        self.selectors.set_current_page(1)
 
     def _show_selected_page(self, objsrc = None):
         self._show_page(self._get_selected_page())
@@ -392,7 +373,7 @@ class MainWindow:
 
     def _clear_search(self, objsrc = None):
         self.searchField.set_text("")
-        self._reset_search_vpaned(False)
+        self.selectors.set_current_page(1)
 
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
@@ -408,13 +389,11 @@ class MainWindow:
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
         self.wTree.get_object("buttonSearchClear").connect("clicked", self._clear_search)
+        self.searchField.connect("focus-in-event", lambda x, y: self.selectors.set_current_page(0))
         self.pageListUI.connect("cursor-changed", self._show_selected_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
         self.searchField.connect("changed", self._update_results)
-        self.searchField.connect("focus-in-event", lambda x, y = None: self._reset_search_vpaned(True))
         self.matchListUI.connect("cursor-changed", self._apply_search)
-        self.pageButton.connect("clicked", lambda x: self._reset_search_vpaned(False))
-        self.matchButton.connect("clicked", lambda x: self._reset_search_vpaned(True))
 
     def _destroy(self):
         self.wTree.get_object("mainWindow").destroy()

@@ -259,6 +259,24 @@ class ScannedPage(object):
     def get_doc(self):
         return self.doc
 
+    def _dummy_callback(self, step, progress, total):
+        pass
+
+    def redo_ocr(self, ocrlang):
+        print "Redoing OCR of '%s'" % (str(self))
+
+        imgfile = self._get_img_path()
+        txtfile = self._get_txt_path()
+        boxfile = self._get_box_path()
+
+        (imgfile, txt, boxes) = self._ocr(self._dummy_callback, [ imgfile ], ocrlang)
+        # save the text
+        with open(txtfile, 'w') as fd:
+            fd.write(txt)
+        # save the boxes
+        with open(boxfile, 'w') as fd:
+            tesseract.write_box_file(fd, boxes)
+
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page)
 

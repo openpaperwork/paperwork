@@ -3,6 +3,8 @@
 import codecs
 import os
 import os.path
+import time
+import threading
 
 from util import strip_accents
 from doc import ScannedDoc
@@ -173,6 +175,11 @@ class DocSearch(object):
             return []
 
     def get_documents(self, keywords):
+        if (len(keywords) == 1 and keywords[0] == u"*"):
+            print "Returning all documents"
+            dlist = os.listdir(self.rootdir)
+            dlist.sort()
+            return dlist
         documents = None
         for keyword in keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
@@ -202,4 +209,29 @@ class DocSearch(object):
 
     def get_doc(self, docid):
         return ScannedDoc(self.docpaths[docid], docid)
+
+    def redo_ocr(self, callback, ocrlang):
+        print "Redoing OCR of all documents ..."
+
+        MAX_THREADS = 4
+        SLEEP_TIME = 0.5
+
+        dlist = os.listdir(self.rootdir)
+        threads = []
+        remaining = dlist[:]
+
+        while (len(remaining) > 0 or len(threads) > 0):
+            for thread in threads:
+                if not thread.is_alive():
+                    threads.remove(thread)
+            while (len(threads) < MAX_THREADS and len(remaining) > 0):
+                docid = remaining.pop()
+                docpath = os.path.join(self.rootdir, docid)
+                doc = ScannedDoc(docpath, docid)
+                thread = threading.Thread(target = doc.redo_ocr, args = [ ocrlang ], name = docid)
+                thread.start()
+                threads.append(thread)
+                callback(self.INDEX_STEP_READING, len(dlist) - len(remaining), len(dlist), docid)
+            time.sleep(SLEEP_TIME)
+        print "OCR of all documents done"
 

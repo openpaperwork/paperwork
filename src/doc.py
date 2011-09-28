@@ -77,3 +77,9 @@ class ScannedDoc(object):
         page = ScannedPage(self, page_nb+1)
         page.print_page(print_op, print_context)
 
+    def redo_ocr(self, ocrlang):
+        nb_pages = self.get_nb_pages()
+        for i in range(0, nb_pages):
+            page = ScannedPage(self, i+1)
+            page.redo_ocr(ocrlang)
+

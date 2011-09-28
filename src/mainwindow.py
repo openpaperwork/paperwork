@@ -133,8 +133,8 @@ class MainWindow:
             print "WARNING: Can't set scanner mode: " + e
 
     def reindex(self):
-        self._show_busy_cursor()
         try:
+            self._show_busy_cursor()
             self.progressBar.set_text("Loading documents ...");
             self.progressBar.set_fraction(0.0)
             self.docsearch = DocSearch(self.config.workdir, self._docsearch_callback)
@@ -146,7 +146,7 @@ class MainWindow:
     def _docsearch_callback(self, step, progression, total, document=None):
         self.progressBar.set_fraction(float(progression) / total)
         if step == DocSearch.INDEX_STEP_READING:
-            self.progressBar.set_text("Reading '" + document + "' ... ") # TODO(Jflesch): i18n/l10n
+            self.progressBar.set_text("Reading '%s' ... " % (document)) # TODO(Jflesch): i18n/l10n
         elif step == DocSearch.INDEX_STEP_SORTING:
             self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
@@ -375,6 +375,30 @@ class MainWindow:
         self.searchField.set_text("")
         self.selectors.set_current_page(1)
 
+    def _redo_ocr_on_all(self, src = None):
+        # TODO(Jflesch): i18n/l10n
+        msg = "This may take a very long time\nAre you sure ?"
+        confirm = gtk.MessageDialog(parent = self.mainWindow,
+                                    flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                    type = gtk.MESSAGE_WARNING,
+                                    buttons = gtk.BUTTONS_YES_NO,
+                                    message_format = msg)
+        response = confirm.run()
+        confirm.destroy()
+        if response != gtk.RESPONSE_YES:
+            print "Massive OCR canceled"
+            return
+        try:
+            self._show_busy_cursor()
+            self.progressBar.set_text("Rereading all documents ...");
+            self.progressBar.set_fraction(0.0)
+            self.docsearch.redo_ocr(self._docsearch_callback, self.config.ocrlang)
+        finally:
+            self.progressBar.set_text("");
+            self.progressBar.set_fraction(0.0)
+            self._show_normal_cursor()
+        self.reindex()
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
@@ -389,6 +413,7 @@ class MainWindow:
         self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
         self.wTree.get_object("buttonSearchClear").connect("clicked", self._clear_search)
+        self.wTree.get_object("menuitemReOcrAll").connect("activate", self._redo_ocr_on_all)
         self.searchField.connect("focus-in-event", lambda x, y: self.selectors.set_current_page(0))
         self.pageListUI.connect("cursor-changed", self._show_selected_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
@@ -421,7 +446,6 @@ class MainWindow:
     def show_doc(self, doc):
         self._show_doc(doc)
         self._reset_page_vpaned()
-        self._reset_search_vpaned(False)
 
     def new_document(self, objsrc = None):
         self._show_doc(ScannedDoc(self.config.workdir)) # new document

@@ -341,9 +341,6 @@
                                 <property name="model">liststoreMatch</property>
                                 <property name="headers_visible">False</property>
                                 <property name="search_column">0</property>
-                                <child internal-child="selection">
-                                  <object class="GtkTreeSelection" id="treeview-selection"/>
-                                </child>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumnDocument">
                                     <property name="title">Documents</property>
@@ -397,9 +394,6 @@
                                 <property name="model">liststorePage</property>
                                 <property name="headers_visible">False</property>
                                 <property name="search_column">0</property>
-                                <child internal-child="selection">
-                                  <object class="GtkTreeSelection" id="treeview-selection1"/>
-                                </child>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumnPage">
                                     <property name="title">Pages</property>

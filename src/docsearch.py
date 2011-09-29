@@ -178,6 +178,9 @@ class DocSearch(object):
         if (len(keywords) == 1 and keywords[0] == u"*"):
             print "Returning all documents"
             dlist = os.listdir(self.rootdir)
+            for dirpath in dlist:
+                if not os.path.isdir(os.path.join(self.rootdir, dirpath)):
+                    dlist.remove(dirpath)
             dlist.sort()
             return dlist
         documents = None

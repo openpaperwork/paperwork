@@ -13,7 +13,7 @@ import PIL
 import tesseract
 from util import strip_accents
 
-SPLIT_KEYWORDS_REGEX = re.compile("[^\w/-]", re.UNICODE)
+SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*-]", re.UNICODE)
 
 class ScannedPage(object):
     EXT_TXT = "txt"

@@ -13,6 +13,8 @@ import PIL
 import tesseract
 from util import strip_accents
 
+SPLIT_KEYWORDS_REGEX = re.compile("\W")
+
 class ScannedPage(object):
     EXT_TXT = "txt"
     EXT_BOX = "box"
@@ -21,6 +23,7 @@ class ScannedPage(object):
 
     SCAN_STEP_SCAN = 0
     SCAN_STEP_OCR = 1
+
 
     def __init__(self, doc, page_nb):
         """
@@ -249,7 +252,7 @@ class ScannedPage(object):
         words = []
         try:
             for line in self.get_text():
-                for word in re.split("[\W]", line): # TODO: i18n/l10n
+                for word in SPLIT_KEYWORDS_REGEX.split(line): # TODO: i18n/l10n
                     words.append(word)
         except Exception, e:
             print "ERROR while trying to read keywords from page '%s': %s" % (str(self), str(e))

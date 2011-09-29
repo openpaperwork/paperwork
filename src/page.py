@@ -249,7 +249,7 @@ class ScannedPage(object):
         words = []
         try:
             for line in self.get_text():
-                for word in line.split(" "): # TODO: i18n/l10n
+                for word in re.split("[\W]", line): # TODO: i18n/l10n
                     words.append(word)
         except Exception, e:
             print "ERROR while trying to read keywords from page '%s': %s" % (str(self), str(e))

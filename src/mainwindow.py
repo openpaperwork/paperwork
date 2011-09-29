@@ -18,6 +18,7 @@ from util import strip_accents
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
 from page import ScannedPage
+from page import SPLIT_KEYWORDS_REGEX
 from docsearch import DocSearch
 from settingswindow import SettingsWindow
 
@@ -170,9 +171,10 @@ class MainWindow:
 
     def _update_results(self, objsrc = None):
         txt = unicode(self.searchField.get_text())
-        print "Search: %s" % txt
+        keywords = SPLIT_KEYWORDS_REGEX.split(txt)
+        print "Search: %s" % (str(keywords))
 
-        suggestions = self.docsearch.get_suggestions(txt.split(" "))
+        suggestions = self.docsearch.get_suggestions(keywords)
         print "Got %d suggestions" % len(suggestions)
         self.liststoreSuggestion.clear()
         full_suggestions = []
@@ -182,7 +184,7 @@ class MainWindow:
         for suggestion in full_suggestions:
             self.liststoreSuggestion.append([suggestion])
 
-        documents = self.docsearch.get_documents(txt.split(" "))
+        documents = self.docsearch.get_documents(keywords)
         print "Got %d documents" % len(documents)
         self.matchList.clear()
         for document in reversed(documents):

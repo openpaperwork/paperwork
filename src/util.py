@@ -1,4 +1,5 @@
 import os
+import re
 import StringIO
 import unicodedata
 
@@ -6,6 +7,8 @@ import glib
 import gtk
 import PIL
 import pygtk
+
+SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*-]", re.UNICODE)
 
 def load_uifile(filename):
     """

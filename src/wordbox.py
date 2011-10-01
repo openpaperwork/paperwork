@@ -1,4 +1,4 @@
-import re
+from util import SPLIT_KEYWORDS_REGEX
 
 class WordBox(object):
     """
@@ -82,7 +82,7 @@ def get_word_boxes(text, char_boxes):
     word_boxes = []
 
     for line in text:
-        words = re.split("\s", line)
+        words = SPLIT_KEYWORDS_REGEX.split(line)
 
         for word in words:
             box = _get_char_boxes(word, char_boxes)

@@ -18,7 +18,7 @@ from util import strip_accents
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
 from page import ScannedPage
-from page import SPLIT_KEYWORDS_REGEX
+from util import SPLIT_KEYWORDS_REGEX
 from docsearch import DocSearch
 from settingswindow import SettingsWindow
 

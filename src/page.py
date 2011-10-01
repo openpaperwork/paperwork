@@ -12,9 +12,8 @@ import PIL
 
 import tesseract
 from util import strip_accents
+from util import SPLIT_KEYWORDS_REGEX
 from wordbox import get_word_boxes
-
-SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*-]", re.UNICODE)
 
 class ScannedPage(object):
     EXT_TXT = "txt"
@@ -87,7 +86,7 @@ class ScannedPage(object):
         for box in boxes:
             width = 1
             color = (0x6c, 0x5d, 0xd1)
-            if box.get_word().lower() in keywords:
+            if strip_accents(box.get_word().lower().strip()) in keywords:
                 width = self.KEYWORD_HIGHLIGHT
                 color = (0x00, 0x9f, 0x00)
             self._draw_box(draw, img.size, box, width, color)

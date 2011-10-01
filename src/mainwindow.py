@@ -88,7 +88,7 @@ class MainWindow:
         if not HAS_SANE:
             # TODO(Jflesch): i18n/l10n
             msg = "python-imaging-sane not found. Scanning will be disabled."
-            dialog = gtk.MessageDialog(parent = None,
+            dialog = gtk.MessageDialog(parent = self.mainWindow,
                                        flags = gtk.DIALOG_MODAL,
                                        type = gtk.MESSAGE_WARNING,
                                        buttons = gtk.BUTTONS_OK,
@@ -109,7 +109,7 @@ class MainWindow:
             devices = sane.get_devices()
             if len(devices) == 0:
                 msg = "No scanner found (is your scanner turned on ?). Look again ?"
-                dialog = gtk.MessageDialog(parent = None,
+                dialog = gtk.MessageDialog(parent = self.mainWindow,
                                            flags = gtk.DIALOG_MODAL,
                                            type = gtk.MESSAGE_WARNING,
                                            buttons = gtk.BUTTONS_YES_NO,
@@ -222,6 +222,7 @@ class MainWindow:
 
     def _get_keywords(self):
         txt = unicode(self.searchField.get_text())
+        txt = txt.lower()
         words = txt.split(" ")
         for i in range(0, len(words)):
             words[i] = words[i].strip()

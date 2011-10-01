@@ -117,38 +117,32 @@ class TesseractError(Exception):
         self.args = (status, message)
 
 class TesseractBox(object):
-    def __init__(self, box_position, page):
-        self.string = u""
+    def __init__(self, char, box_position, page):
+        """
+        Instantiate a tesseract box
+
+        Arguments:
+            char --- character found in this box
+            box_position --- the position of the box on the image. Given as a tuple of tuple:
+                ((width_pt_x, height_pt_x), (width_pt_y, height_pt_y))
+            page --- page number, as specified in the box file (usually 0)
+        """
         self.box_position = box_position
         self.page = page
-
-    def add_char(self, char):
-        self.string += char
+        self.char = char
 
     def get_char(self):
         return self.char
 
-    def get_xy(self):
+    def get_position(self):
         return self.box_position
-
-    def get_top_left_point(self):
-        return self.box_position[0]
-
-    def get_bottom_right_point(self):
-        return self.box_position[1]
-
-    def get_width(self):
-        return self.box_position[1][0] - self.box_position[0][0]
-
-    def get_height(self):
-        return self.box_position[1][1] - self.box_position[0][1]
 
     def get_page(self):
         return page
 
     def __str__(self):
         return "%s %d %d %d %d %d" % (
-            self.string,
+            self.char,
             self.box_position[0][0],
             self.box_position[0][1],
             self.box_position[1][0],
@@ -171,9 +165,8 @@ def read_boxes(file_descriptor):
             continue
         position = ((int(el[1]), int(el[2])),
                     (int(el[3]), int(el[4])))
-        box = TesseractBox(position, int(el[5]))
+        box = TesseractBox(unicode(el[0]), position, int(el[5]))
         boxes.append(box)
-        box.add_char(unicode(el[0]))
     return boxes
 
 def write_box_file(file_descriptor, boxes):

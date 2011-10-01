@@ -12,6 +12,7 @@ import PIL
 
 import tesseract
 from util import strip_accents
+from wordbox import get_word_boxes
 
 SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*-]", re.UNICODE)
 
@@ -24,6 +25,7 @@ class ScannedPage(object):
     SCAN_STEP_SCAN = 0
     SCAN_STEP_OCR = 1
 
+    KEYWORD_HIGHLIGHT = 3
 
     def __init__(self, doc, page_nb):
         """
@@ -56,10 +58,13 @@ class ScannedPage(object):
 
     def get_boxes(self):
         boxfile = self._get_box_path()
+        txt = self.get_text()
+
         try:
             with open(boxfile) as fd:
-                boxes = tesseract.read_boxes(fd)
-            return boxes
+                char_boxes = tesseract.read_boxes(fd)
+            word_boxes = get_word_boxes(txt, char_boxes)
+            return word_boxes
         except Exception, e:
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
             return []
@@ -67,17 +72,25 @@ class ScannedPage(object):
     def get_normal_img(self):
         return Image.open(self._get_img_path())
 
+    def _draw_box(self, draw, img_size, box, width, color):
+        for i in range(2, width + 2):
+            ((a, b), (c, d)) = box.get_position()
+            b = img_size[1] - b
+            d = img_size[1] - d
+            draw.rectangle(((a-i, b+i), (c+i, d-i)), outline = color)
+
     def get_boxed_img(self, keywords):
         img = self.get_normal_img()
         boxes = self.get_boxes()
 
         draw = ImageDraw.Draw(img)
         for box in boxes:
-            # TODO(Jflesch): add highlights
-            ((a, b), (c, d)) = box.get_xy()
-            b = img.size[1] - b
-            d = img.size[1] - d
-            draw.rectangle(((a, b), (c, d)), outline = (0x00, 0x00, 0xFF))
+            width = 1
+            color = (0x6c, 0x5d, 0xd1)
+            if box.get_word().lower() in keywords:
+                width = self.KEYWORD_HIGHLIGHT
+                color = (0x00, 0x9f, 0x00)
+            self._draw_box(draw, img.size, box, width, color)
 
         return img
 

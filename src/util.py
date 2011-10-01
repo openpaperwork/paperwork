@@ -8,7 +8,7 @@ import gtk
 import PIL
 import pygtk
 
-SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*-]", re.UNICODE)
+SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*!-]", re.UNICODE)
 
 def load_uifile(filename):
     """

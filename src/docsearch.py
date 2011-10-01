@@ -154,8 +154,14 @@ class DocSearch(object):
         for keyword in keywords:
             if len(keyword) < self.MIN_KEYWORD_LEN:
                 continue
+            neg = (keyword[:1] == "!")
+            if neg:
+                keyword = keyword[1:]
             keyword = self._simplify(keyword)
             new_suggestions = self._get_suggestions(keyword)
+            if neg:
+               pouet = [ ("!"+sug) for sug in new_suggestions ]
+               new_suggestions = pouet
             try:
                 # if the keyword typed by the user match exactly a known keyword,
                 # it will be in the list, however there is no point in returning it
@@ -175,7 +181,16 @@ class DocSearch(object):
             return []
 
     def get_documents(self, keywords):
-        if (len(keywords) == 1 and keywords[0] == u"*"):
+        positive_keywords = []
+        negative_keywords = []
+
+        for keyword in keywords:
+            if keyword[:1] != "!":
+                positive_keywords.append(keyword)
+            else:
+                negative_keywords.append(keyword[1:])
+
+        if (len(positive_keywords) == 1 and positive_keywords[0] == u"*"):
             print "Returning all documents"
             dlist = os.listdir(self.rootdir)
             for dirpath in dlist:
@@ -184,7 +199,7 @@ class DocSearch(object):
             dlist.sort()
             return dlist
         documents = None
-        for keyword in keywords:
+        for keyword in positive_keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
                 return []
             keyword = self._simplify(keyword)
@@ -196,6 +211,20 @@ class DocSearch(object):
 
         if documents == None:
             return []
+
+        print "Found %d documents" % (len(documents))
+
+        for keyword in negative_keywords:
+            if ( len(keyword) < self.MIN_KEYWORD_LEN ):
+                return []
+            keyword = self._simplify(keyword)
+            docs = self._get_documents(keyword)
+            print "Found %d documents to remove" % (len(documents))
+            for doc in docs:
+                try:
+                    documents.remove(doc)
+                except ValueError, e:
+                    pass
 
         # 'documents' contains the whole paths, but we actually identify documents
         # only by the directory in which they are

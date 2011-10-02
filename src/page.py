@@ -69,7 +69,7 @@ class ScannedPage(object):
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
             return []
 
-    def get_normal_img(self):
+    def get_img(self):
         return Image.open(self._get_img_path())
 
     def _draw_box(self, draw, img_size, box, width, color):
@@ -79,19 +79,11 @@ class ScannedPage(object):
             d = img_size[1] - d
             draw.rectangle(((a-i, b+i), (c+i, d-i)), outline = color)
 
-    def get_boxed_img(self, keywords, callback = dummy_progress_callback):
-        img = self.get_normal_img()
-        boxes = self.get_boxes(callback)
-
+    def draw_boxes(self, img, boxes, color, width, keywords = None):
         draw = ImageDraw.Draw(img)
         for box in boxes:
-            width = 1
-            color = (0x6c, 0x5d, 0xd1)
-            if strip_accents(box.get_word().lower().strip()) in keywords:
-                width = self.KEYWORD_HIGHLIGHT
-                color = (0x00, 0x9f, 0x00)
-            self._draw_box(draw, img.size, box, width, color)
-
+            if keywords == None or strip_accents(box.get_word().lower().strip()) in keywords:
+                self._draw_box(draw, img.size, box, width, color)
         return img
 
     def _scan(self, device, callback = dummy_progress_callback):

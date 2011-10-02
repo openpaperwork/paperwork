@@ -43,6 +43,7 @@ class MainWindow:
         self.pageEventBox = self.wTree.get_object("eventboxImg")
         self.pageTxt = self.wTree.get_object("textviewPageTxt")
         self.pageVpaned = self.wTree.get_object("vpanedPage")
+        self.showAllBoxes = self.wTree.get_object("checkmenuitemShowAllBoxes")
 
         # search
         self.liststoreSuggestion = self.wTree.get_object("liststoreSuggestion")
@@ -220,11 +221,15 @@ class MainWindow:
                 progress_callback = self._progress_callback
 
             # Finding word boxes can be pretty slow, so we keep in memory the last image and try to reuse it:
-            if self.page_cache != None and self.page_cache[0] == page:
-                im = self.page_cache[1]
-            else:
-                im = page.get_boxed_img(self._get_keywords(), progress_callback)
-                self.page_cache = (page, im)
+            if self.page_cache == None or self.page_cache[0] != page:
+                self.page_cache = (page, page.get_img(), page.get_boxes(progress_callback))
+            im = self.page_cache[1].copy()
+            boxes = self.page_cache[2]
+
+            if self.showAllBoxes.get_active():
+                page.draw_boxes(im, boxes, color = (0x6c, 0x5d, 0xd1), width = 1)
+            page.draw_boxes(im, boxes, color = (0x00, 0x9f, 0x00), width = 5, keywords = self._get_keywords())
+
             pixbuf = image2pixbuf(im)
 
             if self.page_scaled:
@@ -433,6 +438,7 @@ class MainWindow:
         self.pageEventBox.connect("button-press-event", self._change_scale)
         self.searchField.connect("changed", self._update_results)
         self.matchListUI.connect("cursor-changed", self._apply_search)
+        self.showAllBoxes.connect("activate", lambda x: self.refresh_page())
 
     def _destroy(self):
         self.wTree.get_object("mainWindow").destroy()

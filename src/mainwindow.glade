@@ -133,6 +133,15 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
+                              <object class="GtkCheckMenuItem" id="checkmenuitemShowAllBoxes">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="label" translatable="yes">Highlight all the words</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                            </child>
+                            <child>
                               <object class="GtkMenuItem" id="menuitemReOcrAll">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>

@@ -298,7 +298,9 @@ class MainWindow:
         self.selectors.set_current_page(1)
 
     def _show_selected_page(self, objsrc = None):
-        self._show_page(self._get_selected_page())
+        page = self._get_selected_page()
+        print "Showing selected page: %s" % (page)
+        self._show_page(page)
 
     def refresh_page(self):
         print "Refreshing main window"
@@ -368,7 +370,7 @@ class MainWindow:
         print_settings = gtk.PrintSettings()
         # By default, print context are using 72 dpi, but print_draw_page
         # will change it to 300 dpi --> we have to tell PrintOperation to scale
-        print_settings.set_scale(100.0 * (72.0 / 300.0))
+        print_settings.set_scale(100.0 * (72.0 / ScannedPage.PRINT_RESOLUTION))
         print_op.set_print_settings(print_settings)
 
         print_op.set_n_pages(self.doc.get_nb_pages())
@@ -459,6 +461,7 @@ class MainWindow:
         self.mainWindow.set_title(str(self.doc) + " - " + self.WIN_TITLE)
         self._refresh_page_list()
         self.page = self.doc.get_page(1)
+        print "Showing first page of the doc"
         self._show_page(self.page)
 
     def show_doc(self, doc):

@@ -27,6 +27,8 @@ class ScannedPage(object):
 
     KEYWORD_HIGHLIGHT = 3
 
+    PRINT_RESOLUTION = 150 # dpi
+
     def __init__(self, doc, page_nb):
         """
         Don't create directly. Please use ScannedDoc.get_page()
@@ -197,8 +199,8 @@ class ScannedPage(object):
         ORIENTATION_LANDSCAPE = 1
 
         # By default, the context is using 72 dpi, which is by far not enough
-        # --> we change it to 300 dpi
-        print_context.set_cairo_context(print_context.get_cairo_context(), 300, 300)
+        # --> we change it to PRINT_RESOLUTION dpi
+        print_context.set_cairo_context(print_context.get_cairo_context(), self.PRINT_RESOLUTION, self.PRINT_RESOLUTION)
 
         imgpath = self._get_img_path()
 

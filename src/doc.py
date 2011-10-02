@@ -36,7 +36,7 @@ class ScannedDoc(object):
             print "Exception while trying to get the number of pages of '%s': %s" % (self.docid, e)
             return 0
 
-    def dummy_callback(step, progression, total):
+    def dummy_callback(progression, total, step):
         pass
     dummy_callback = staticmethod(dummy_callback)
 

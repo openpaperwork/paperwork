@@ -138,19 +138,11 @@ class MainWindow:
             self._show_busy_cursor()
             self.progressBar.set_text("Loading documents ...");
             self.progressBar.set_fraction(0.0)
-            self.docsearch = DocSearch(self.config.workdir, self._docsearch_callback)
+            self.docsearch = DocSearch(self.config.workdir, self._progress_callback)
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
-
-    def _docsearch_callback(self, step, progression, total, document=None):
-        self.progressBar.set_fraction(float(progression) / total)
-        if step == DocSearch.INDEX_STEP_READING:
-            self.progressBar.set_text("Reading '%s' ... " % (document)) # TODO(Jflesch): i18n/l10n
-        elif step == DocSearch.INDEX_STEP_SORTING:
-            self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
-        gtk_refresh()
 
     def _update_results(self, objsrc = None):
         txt = unicode(self.searchField.get_text())
@@ -291,12 +283,16 @@ class MainWindow:
         self.page_scaled = not self.page_scaled
         self._show_page_img(self._get_current_page())
 
-    def _scan_callback(self, step, progression, total):
+    def _progress_callback(self, progression, total, step = None, doc = None):
         self.progressBar.set_fraction(float(progression) / total)
         if step == ScannedPage.SCAN_STEP_SCAN:
             self.progressBar.set_text("Scanning ... ") # TODO(Jflesch): i18n/l10n
         elif step == ScannedPage.SCAN_STEP_OCR:
             self.progressBar.set_text("Reading ... ") # TODO(Jflesch): i18n/l10n
+        if step == DocSearch.INDEX_STEP_READING:
+            self.progressBar.set_text("Reading '%s' ... " % (doc)) # TODO(Jflesch): i18n/l10n
+        elif step == DocSearch.INDEX_STEP_SORTING:
+            self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
 
     def _refresh_page_list(self):
@@ -311,7 +307,7 @@ class MainWindow:
     
         self._show_busy_cursor()
         try:
-            self.doc.scan_next_page(self.device, self.config.ocrlang, self._scan_callback)
+            self.doc.scan_next_page(self.device, self.config.ocrlang, self._progress_callback)
             page = self.doc.get_page(self.doc.get_nb_pages())
             self.docsearch.index_page(page)
             self._refresh_page_list()
@@ -379,7 +375,7 @@ class MainWindow:
             self._show_busy_cursor()
             self.progressBar.set_text("Rereading all documents ...");
             self.progressBar.set_fraction(0.0)
-            self.docsearch.redo_ocr(self._docsearch_callback, self.config.ocrlang)
+            self.docsearch.redo_ocr(self._progress_callback, self.config.ocrlang)
         finally:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)

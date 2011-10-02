@@ -100,7 +100,7 @@ class ScannedPage(object):
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
         """
-        callback(self.SCAN_STEP_SCAN, 0, 100)
+        callback(0, 100, self.SCAN_STEP_SCAN)
         try:
             # TODO(Jflesch): call callback
             pic = device.scan()
@@ -148,7 +148,7 @@ class ScannedPage(object):
 
         i = 0
         for imgpath in files:
-            callback(self.SCAN_STEP_OCR, i, len(files)+1)
+            callback(i, len(files)+1, self.SCAN_STEP_OCR)
             i += 1
             print "Running OCR on scan '%s'" % (imgpath)
             txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
@@ -162,7 +162,7 @@ class ScannedPage(object):
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
 
         print "Extracting boxes ..."
-        callback(self.SCAN_STEP_OCR, i, len(files)+1)
+        callback(i, len(files)+1, self.SCAN_STEP_OCR)
         boxes = tesseract.image_to_string(Image.open(scores[0][1]), lang=ocrlang, boxes=True)
         print "Done"
 
@@ -173,9 +173,9 @@ class ScannedPage(object):
         txtfile = self._get_txt_path()
         boxfile = self._get_box_path()
 
-        callback(self.SCAN_STEP_SCAN, 0, 100)
+        callback(0, 100, self.SCAN_STEP_SCAN)
         outfiles = self._scan(device, callback)
-        callback(self.SCAN_STEP_OCR, 0, 100)
+        callback(0, 100, self.SCAN_STEP_OCR)
         (bmpfile, txt, boxes) = self._ocr(callback, outfiles, ocrlang)
 
         # Convert the image and save it in its final place
@@ -274,7 +274,7 @@ class ScannedPage(object):
     def get_doc(self):
         return self.doc
 
-    def _dummy_callback(self, step, progress, total):
+    def _dummy_callback(self, progress, total, step):
         pass
 
     def redo_ocr(self, ocrlang):

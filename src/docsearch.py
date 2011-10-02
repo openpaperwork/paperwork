@@ -27,7 +27,7 @@ class DocSearch(object):
                 document (only if step == DocSearch.INDEX_STEP_READING): file being read
         """
         if callback == None:
-            callback = lambda step, progression, total, document=None: None
+            callback = lambda progression, total, step = None, document=None: None
         self.rootdir = rootdir
         self._index(callback)
 
@@ -60,7 +60,7 @@ class DocSearch(object):
             if dpath[:1] == "." or dpath[-1:] == "~":
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                callback(self.INDEX_STEP_READING, progression, total, dpath)
+                callback(progression, total, self.INDEX_STEP_READING, dpath)
                 self._index_dir(callback, os.path.join(dirpath, dpath), progression, total)
                 progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
@@ -71,7 +71,7 @@ class DocSearch(object):
         return os.path.split(docpath)[1]
 
     def _extract_docpaths(self, callback):
-        callback(self.INDEX_STEP_SORTING, 0, 3)
+        callback(0, 3, self.INDEX_STEP_SORTING)
         for docs in self.keywords_to_doc.values():
             for docpath in docs:
                 docid = self._docpath_to_id(docpath)
@@ -79,9 +79,9 @@ class DocSearch(object):
                     self.docpaths[docid] = docpath
 
     def _extract_keywords(self, callback):
-        callback(self.INDEX_STEP_SORTING, 1, 3)
+        callback(1, 3, self.INDEX_STEP_SORTING)
         self.keywords = self.keywords_to_doc.keys()
-        callback(self.INDEX_STEP_SORTING, 2, 3)
+        callback(2, 3, self.INDEX_STEP_SORTING)
         self.keywords.sort()
 
     def _index(self, callback = None):
@@ -301,7 +301,7 @@ class DocSearch(object):
                 thread = threading.Thread(target = doc.redo_ocr, args = [ ocrlang ], name = docid)
                 thread.start()
                 threads.append(thread)
-                callback(self.INDEX_STEP_READING, len(dlist) - len(remaining), len(dlist), docid)
+                callback(len(dlist) - len(remaining), len(dlist), self.INDEX_STEP_READING, docid)
             time.sleep(SLEEP_TIME)
         print "OCR of all documents done"
 

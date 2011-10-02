@@ -27,6 +27,9 @@ class MainWindow:
 
     def __init__(self, config):
         self.config = config
+
+        self.page_cache = None
+
         self.wTree = load_uifile("mainwindow.glade")
 
         self.mainWindow = self.wTree.get_object("mainWindow")
@@ -206,28 +209,48 @@ class MainWindow:
         return words
 
     def _show_page_img(self, page):
-        im = page.get_boxed_img(self._get_keywords())
-        pixbuf = image2pixbuf(im)
-
-        if self.page_scaled:
-            # we strip 30 pixels from the width of scrolled window, because the vertical scrollbar
-            # is not included
-            # TODO(Jflesch): Figure out a way to get the exact scrollbar width
-            wantedWidth = self.pageScrollWin.get_allocation().width - 30;
-            if pixbuf.get_width() > wantedWidth:
-                ratio = float(wantedWidth) / pixbuf.get_width();
-                wantedHeight = int(ratio * pixbuf.get_height())
-                self.pageImg.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+        self.progressBar.set_fraction(0.0)
+        self.progressBar.set_text("Loading image and text ...") # TODO(Jflesch): i18n/l10n
+        try:
+            if self.page_scaled:
+                progress_callback = lambda progression, total, step = None, doc = None: \
+                        self._progress_callback(progression, total+(total/3), step, doc)
             else:
-                wantedWidth = pixbuf.get_width()
-                wantedHeight = pixbuf.get_height()
-                self.pageImg.window.set_cursor(None)
-            pixbuf = pixbuf.scale_simple(wantedWidth, wantedHeight, gtk.gdk.INTERP_BILINEAR)
-        else:
-            self.pageImg.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+                progress_callback = self._progress_callback
 
-        self.pageImg.set_from_pixbuf(pixbuf)
-        self.pageImg.show()
+            # Finding word boxes can be pretty slow, so we keep in memory the last image and try to reuse it:
+            if self.page_cache != None and self.page_cache[0] == page:
+                im = self.page_cache[1]
+            else:
+                im = page.get_boxed_img(self._get_keywords(), progress_callback)
+                self.page_cache = (page, im)
+            pixbuf = image2pixbuf(im)
+
+            if self.page_scaled:
+                self.progressBar.set_text("Resizing the image ...") # TODO(Jflesch): i18n/l10n
+                gtk_refresh()
+
+                # we strip 30 pixels from the width of scrolled window, because the vertical scrollbar
+                # is not included
+                # TODO(Jflesch): Figure out a way to get the exact scrollbar width
+                wantedWidth = self.pageScrollWin.get_allocation().width - 30;
+                if pixbuf.get_width() > wantedWidth:
+                    ratio = float(wantedWidth) / pixbuf.get_width();
+                    wantedHeight = int(ratio * pixbuf.get_height())
+                    self.pageImg.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+                else:
+                    wantedWidth = pixbuf.get_width()
+                    wantedHeight = pixbuf.get_height()
+                    self.pageImg.window.set_cursor(None)
+                pixbuf = pixbuf.scale_simple(wantedWidth, wantedHeight, gtk.gdk.INTERP_BILINEAR)
+            else:
+                self.pageImg.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+
+            self.pageImg.set_from_pixbuf(pixbuf)
+            self.pageImg.show()
+        finally:
+            self.progressBar.set_fraction(0.0)
+            self.progressBar.set_text("")
 
     def _show_page_txt(self, page):
         txt = "\n".join(page.get_text())
@@ -289,7 +312,7 @@ class MainWindow:
             self.progressBar.set_text("Scanning ... ") # TODO(Jflesch): i18n/l10n
         elif step == ScannedPage.SCAN_STEP_OCR:
             self.progressBar.set_text("Reading ... ") # TODO(Jflesch): i18n/l10n
-        if step == DocSearch.INDEX_STEP_READING:
+        elif step == DocSearch.INDEX_STEP_READING:
             self.progressBar.set_text("Reading '%s' ... " % (doc)) # TODO(Jflesch): i18n/l10n
         elif step == DocSearch.INDEX_STEP_SORTING:
             self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n

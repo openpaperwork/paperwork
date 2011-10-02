@@ -11,6 +11,7 @@ import gtk
 import PIL
 
 import tesseract
+from util import dummy_progress_callback
 from util import strip_accents
 from util import SPLIT_KEYWORDS_REGEX
 from wordbox import get_word_boxes
@@ -21,8 +22,8 @@ class ScannedPage(object):
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
 
-    SCAN_STEP_SCAN = 0
-    SCAN_STEP_OCR = 1
+    SCAN_STEP_SCAN = "scanning"
+    SCAN_STEP_OCR = "ocr"
 
     KEYWORD_HIGHLIGHT = 3
 
@@ -55,14 +56,14 @@ class ScannedPage(object):
                 txt.append(line)
         return txt
 
-    def get_boxes(self):
+    def get_boxes(self, callback = dummy_progress_callback):
         boxfile = self._get_box_path()
         txt = self.get_text()
 
         try:
             with open(boxfile) as fd:
                 char_boxes = tesseract.read_boxes(fd)
-            word_boxes = get_word_boxes(txt, char_boxes)
+            word_boxes = get_word_boxes(txt, char_boxes, callback)
             return word_boxes
         except Exception, e:
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
@@ -78,9 +79,9 @@ class ScannedPage(object):
             d = img_size[1] - d
             draw.rectangle(((a-i, b+i), (c+i, d-i)), outline = color)
 
-    def get_boxed_img(self, keywords):
+    def get_boxed_img(self, keywords, callback = dummy_progress_callback):
         img = self.get_normal_img()
-        boxes = self.get_boxes()
+        boxes = self.get_boxes(callback)
 
         draw = ImageDraw.Draw(img)
         for box in boxes:
@@ -93,7 +94,7 @@ class ScannedPage(object):
 
         return img
 
-    def _scan(self, device, callback):
+    def _scan(self, device, callback = dummy_progress_callback):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
@@ -143,7 +144,7 @@ class ScannedPage(object):
         else:
             return 0
 
-    def _ocr(self, callback, files, ocrlang):
+    def _ocr(self, files, ocrlang, callback = dummy_progress_callback):
         scores = []
 
         i = 0
@@ -168,7 +169,7 @@ class ScannedPage(object):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, callback):
+    def scan_page(self, device, ocrlang, callback = dummy_progress_callback):
         imgfile = self._get_img_path()
         txtfile = self._get_txt_path()
         boxfile = self._get_box_path()
@@ -176,7 +177,7 @@ class ScannedPage(object):
         callback(0, 100, self.SCAN_STEP_SCAN)
         outfiles = self._scan(device, callback)
         callback(0, 100, self.SCAN_STEP_OCR)
-        (bmpfile, txt, boxes) = self._ocr(callback, outfiles, ocrlang)
+        (bmpfile, txt, boxes) = self._ocr(outfiles, ocrlang, callback)
 
         # Convert the image and save it in its final place
         im = PIL.Image.open(bmpfile)
@@ -274,9 +275,6 @@ class ScannedPage(object):
     def get_doc(self):
         return self.doc
 
-    def _dummy_callback(self, progress, total, step):
-        pass
-
     def redo_ocr(self, ocrlang):
         print "Redoing OCR of '%s'" % (str(self))
 
@@ -284,7 +282,7 @@ class ScannedPage(object):
         txtfile = self._get_txt_path()
         boxfile = self._get_box_path()
 
-        (imgfile, txt, boxes) = self._ocr(self._dummy_callback, [ imgfile ], ocrlang)
+        (imgfile, txt, boxes) = self._ocr([ imgfile ], ocrlang, dummy_progress_callback)
         # save the text
         with open(txtfile, 'w') as fd:
             fd.write(txt)

@@ -6,16 +6,17 @@ import os.path
 import time
 import threading
 
-from util import strip_accents
 from doc import ScannedDoc
+from util import dummy_progress_callback
+from util import strip_accents
 
 class DocSearch(object):
     MIN_KEYWORD_LEN = 2
 
-    INDEX_STEP_READING  = 0
-    INDEX_STEP_SORTING  = 1
+    INDEX_STEP_READING  = "reading"
+    INDEX_STEP_SORTING  = "sorting"
 
-    def __init__(self, rootdir, callback = None):
+    def __init__(self, rootdir, callback = dummy_progress_callback):
         """
         Index files in rootdir (see constructor)
 
@@ -26,8 +27,6 @@ class DocSearch(object):
                 total : number of elements to do
                 document (only if step == DocSearch.INDEX_STEP_READING): file being read
         """
-        if callback == None:
-            callback = lambda progression, total, step = None, document=None: None
         self.rootdir = rootdir
         self._index(callback)
 
@@ -49,7 +48,7 @@ class DocSearch(object):
             else:
                 self.keywords_to_doc[word] = [ docpath ]
 
-    def _index_dir(self, callback, dirpath, progression = 0, total = 0):
+    def _index_dir(self, dirpath, progression = 0, total = 0, callback = dummy_progress_callback):
         dlist = os.listdir(dirpath)
         dlist.sort()
         if total == 0:
@@ -61,7 +60,7 @@ class DocSearch(object):
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
                 callback(progression, total, self.INDEX_STEP_READING, dpath)
-                self._index_dir(callback, os.path.join(dirpath, dpath), progression, total)
+                self._index_dir(os.path.join(dirpath, dpath), progression, total, callback)
                 progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
                 page_nb += 1
@@ -70,7 +69,7 @@ class DocSearch(object):
     def _docpath_to_id(self, docpath):
         return os.path.split(docpath)[1]
 
-    def _extract_docpaths(self, callback):
+    def _extract_docpaths(self, callback = dummy_progress_callback):
         callback(0, 3, self.INDEX_STEP_SORTING)
         for docs in self.keywords_to_doc.values():
             for docpath in docs:
@@ -78,18 +77,18 @@ class DocSearch(object):
                 if not self.docpaths.has_key(docid):
                     self.docpaths[docid] = docpath
 
-    def _extract_keywords(self, callback):
+    def _extract_keywords(self, callback = dummy_progress_callback):
         callback(1, 3, self.INDEX_STEP_SORTING)
         self.keywords = self.keywords_to_doc.keys()
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.keywords.sort()
 
-    def _index(self, callback = None):
+    def _index(self, callback = dummy_progress_callback):
         self.keywords = []          # array of strings (sorted at the end of indexation)
         self.docpaths = {}          # doc id (string) -> full path
         self.keywords_to_doc = {}   # keyword (string) -> array of path
 
-        self._index_dir(callback, self.rootdir)
+        self._index_dir(self.rootdir, callback = callback)
         self._extract_docpaths(callback)
         self._extract_keywords(callback)
 
@@ -97,8 +96,8 @@ class DocSearch(object):
         docpath = page.get_doc().docpath
         self._index_page(docpath, page)
         # remake these two:
-        self._extract_docpaths(ScannedDoc.dummy_callback)
-        self._extract_keywords(ScannedDoc.dummy_callback)
+        self._extract_docpaths(dummy_progress_callback)
+        self._extract_keywords(dummy_progress_callback)
 
     def _get_keyword_suggestions(self, keyword):
         neg = (keyword[:1] == "!")
@@ -185,9 +184,7 @@ class DocSearch(object):
                 suggestion.insert(0, first_keyword_suggestion)
                 # immediatly look if it has matching documents
                 if len(suggestion) > 1 and len(self.get_documents(suggestion)) <= 0:
-                    print "Suggestion %s dropped" % (suggestion)
                     continue
-                print "Keeping %s for now" % (suggestion)
                 results.append(suggestion)
 
         return results
@@ -280,7 +277,7 @@ class DocSearch(object):
     def get_doc(self, docid):
         return ScannedDoc(self.docpaths[docid], docid)
 
-    def redo_ocr(self, callback, ocrlang):
+    def redo_ocr(self, dummy_progress_callback, ocrlang):
         print "Redoing OCR of all documents ..."
 
         MAX_THREADS = 4
@@ -301,7 +298,7 @@ class DocSearch(object):
                 thread = threading.Thread(target = doc.redo_ocr, args = [ ocrlang ], name = docid)
                 thread.start()
                 threads.append(thread)
-                callback(len(dlist) - len(remaining), len(dlist), self.INDEX_STEP_READING, docid)
+                dummy_progress_callback(len(dlist) - len(remaining), len(dlist), self.INDEX_STEP_READING, docid)
             time.sleep(SLEEP_TIME)
         print "OCR of all documents done"
 

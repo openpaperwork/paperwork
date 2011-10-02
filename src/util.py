@@ -69,3 +69,7 @@ def image2pixbuf(im):
         loader.close()
     return pixbuf
 
+def dummy_progress_callback(progression, total, step = None, doc = None):
+    print "Dummy called"
+    pass
+

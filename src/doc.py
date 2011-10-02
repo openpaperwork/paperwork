@@ -3,6 +3,7 @@ import os.path
 import time
 
 from page import ScannedPage
+from util import dummy_progress_callback
 
 class ScannedDoc(object):
     def __init__(self, docpath, docid = None):
@@ -36,11 +37,7 @@ class ScannedDoc(object):
             print "Exception while trying to get the number of pages of '%s': %s" % (self.docid, e)
             return 0
 
-    def dummy_callback(progression, total, step):
-        pass
-    dummy_callback = staticmethod(dummy_callback)
-
-    def scan_next_page(self, device, ocrlang, callback = dummy_callback):
+    def scan_next_page(self, device, ocrlang, callback = dummy_progress_callback):
         try:
             os.makedirs(self.docpath)
         except OSError:

@@ -1,3 +1,4 @@
+from util import dummy_progress_callback
 from util import SPLIT_KEYWORDS_REGEX
 
 class WordBox(object):
@@ -77,9 +78,12 @@ def _get_char_boxes(word, char_boxes):
         char_boxes.remove(box)
     return word_box
 
-def get_word_boxes(text, char_boxes):
+def get_word_boxes(text, char_boxes, callback = dummy_progress_callback):
     char_box_idx = 0
     word_boxes = []
+
+    callback(0, len(text))
+    progression = 0
 
     for line in text:
         words = SPLIT_KEYWORDS_REGEX.split(line)
@@ -89,6 +93,9 @@ def get_word_boxes(text, char_boxes):
             if box == None:
                 continue
             word_boxes.append(box)
+        progression += 1
+        callback(progression, len(text))
 
+    callback(len(text), len(text))
     return word_boxes
 

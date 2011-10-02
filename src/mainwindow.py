@@ -181,8 +181,6 @@ class MainWindow:
 
         print "Showing doc %s" % selection
         self.show_doc(doc)
-        self.refresh_page()
-
         return True
 
     def _show_busy_cursor(self):

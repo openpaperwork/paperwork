@@ -49,7 +49,11 @@ class DocSearch(object):
                 self.keywords_to_doc[word] = [ docpath ]
 
     def _index_dir(self, dirpath, progression = 0, total = 0, callback = dummy_progress_callback):
-        dlist = os.listdir(dirpath)
+        try:
+            dlist = os.listdir(dirpath)
+        except OSError, e:
+            print "Unable to read dir '%s': %s" % (dirpath, str(e))
+            return
         dlist.sort()
         if total == 0:
             progression = 0

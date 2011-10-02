@@ -152,23 +152,6 @@ class MainWindow:
             self.progressBar.set_text("Sorting ... ") # TODO(Jflesch): i18n/l10n
         gtk_refresh()
 
-    def _adapt_search(self, search, suggestion):
-        suggestion = strip_accents(suggestion).lower()
-        # TODO: i18n/l10n: spaces aren't always the correct word separator
-        search = strip_accents(search).lower()
-        words = search.split(" ")
-        search = ""
-        for word in words:
-            if search != "":
-                search += " "
-            if suggestion.startswith(word):
-                search += suggestion
-            else:
-                search += word
-        print "Suggestion: %s -> %s" % (suggestion, search)
-
-        return search
-
     def _update_results(self, objsrc = None):
         txt = unicode(self.searchField.get_text())
         keywords = SPLIT_KEYWORDS_REGEX.split(txt)
@@ -177,12 +160,13 @@ class MainWindow:
         suggestions = self.docsearch.get_suggestions(keywords)
         print "Got %d suggestions" % len(suggestions)
         self.liststoreSuggestion.clear()
-        full_suggestions = []
         for suggestion in suggestions:
-            full_suggestions.append(self._adapt_search(txt, suggestion))
-        full_suggestions.sort()
-        for suggestion in full_suggestions:
-            self.liststoreSuggestion.append([suggestion])
+            txt = ""
+            for word in suggestion:
+                if txt != "":
+                    txt += " "
+                txt += word
+            self.liststoreSuggestion.append([txt])
 
         documents = self.docsearch.get_documents(keywords)
         print "Got %d documents" % len(documents)

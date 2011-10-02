@@ -64,7 +64,7 @@ def _get_char_boxes(word, char_boxes):
     except IndexError, e:
         full_match = False
     if not full_match:
-        print "Word %s not found in boxes" % (word)
+        #print "Word %s not found in boxes" % (word)
         return None
 
     boxes = []

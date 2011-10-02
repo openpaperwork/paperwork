@@ -100,9 +100,17 @@ class DocSearch(object):
         self._extract_docpaths(ScannedDoc.dummy_callback)
         self._extract_keywords(ScannedDoc.dummy_callback)
 
-    def _get_suggestions(self, keyword):
+    def _get_keyword_suggestions(self, keyword):
+        neg = (keyword[:1] == "!")
+        if neg:
+            keyword = keyword[1:]
+        keyword = self._simplify(keyword)
+
         lkeyword = len(keyword)
         lkeywords = len(self.keywords)
+
+        if lkeyword < self.MIN_KEYWORD_LEN:
+            return []
 
         # the array is sorted. So we use dichotomy to
         # figure the position of the first element matching the keyword
@@ -147,32 +155,60 @@ class DocSearch(object):
                 idx_max = idx_max - njump
             njump = (njump / 2) or 1
 
-        return self.keywords[idx_min:(idx_max+1)]
+        results = self.keywords[idx_min:(idx_max+1)]
+
+        if neg:
+            results = [ ("!%s" % (result)) for result in results ]
+
+        print "Got %d suggestions for [%s]" % (len(results), keyword)
+
+        return results
+
+    def _get_suggestions(self, keywords):
+        if len(keywords) <= 0:
+            return []
+
+        # search suggestion for the first keywords
+        first_keyword_suggestions = self._get_keyword_suggestions(keywords[0])
+        if (len(keywords) <= 1):
+            return [ [ word ] for word in first_keyword_suggestions ]
+
+        results = []
+
+        # .. and for all the remaining keywords
+        # XXX(Jflesch): recursivity
+        other_keywords_suggestions = self._get_suggestions(keywords[1:])
+
+        for first_keyword_suggestion in first_keyword_suggestions:
+            for suggestion in other_keywords_suggestions:
+                suggestion = suggestion[:]
+                suggestion.insert(0, first_keyword_suggestion)
+                # immediatly look if it has matching documents
+                if len(suggestion) > 1 and len(self.get_documents(suggestion)) <= 0:
+                    print "Suggestion %s dropped" % (suggestion)
+                    continue
+                print "Keeping %s for now" % (suggestion)
+                results.append(suggestion)
+
+        return results
 
     def get_suggestions(self, keywords):
-        suggestions = []
-        for keyword in keywords:
-            if len(keyword) < self.MIN_KEYWORD_LEN:
-                continue
-            neg = (keyword[:1] == "!")
-            if neg:
-                keyword = keyword[1:]
-            keyword = self._simplify(keyword)
-            new_suggestions = self._get_suggestions(keyword)
-            if neg:
-               pouet = [ ("!"+sug) for sug in new_suggestions ]
-               new_suggestions = pouet
-            try:
-                # if the keyword typed by the user match exactly a known keyword,
-                # it will be in the list, however there is no point in returning it
-                new_suggestions.remove(keyword)
-            except Exception, e:
-                pass
-            for suggestion in new_suggestions:
-                if not suggestion in suggestions:
-                    suggestions.append(suggestion)
-        suggestions.sort()
-        return suggestions
+        """
+        Search all possible suggestions. Suggestions returned always have at least
+        one document matching.
+
+        Arguments:
+            keywords --- array of keyword for which we want suggestions
+        Return:
+            An array of sets of keywords. Each set of keywords is a suggestion.
+        """
+        results = self._get_suggestions(keywords)
+        try:
+            results.remove(keywords) # remove strict match if it is here
+        except ValueError, e:
+            pass
+        results.sort()
+        return results
 
     def _get_documents(self, keyword):
         try:
@@ -183,6 +219,8 @@ class DocSearch(object):
     def get_documents(self, keywords):
         positive_keywords = []
         negative_keywords = []
+
+        print "Looking for documents containing %s" % (keywords)
 
         for keyword in keywords:
             if keyword[:1] != "!":

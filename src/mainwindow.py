@@ -29,6 +29,7 @@ class MainWindow:
         self.config = config
 
         self.page_cache = None
+        self.win_size = None
 
         self.wTree = load_uifile("mainwindow.glade")
 
@@ -405,8 +406,15 @@ class MainWindow:
             self._show_normal_cursor()
         self.reindex()
 
+    def _on_resize(self, window = None, allocation = None):
+        if self.win_size != allocation:
+            print "Main window resized"
+            self.win_size = allocation
+            self._reset_page_vpaned()
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
+        self.mainWindow.connect("size-allocate", self._on_resize)
         self.wTree.get_object("menuitemNew").connect("activate", self.new_document)
         self.wTree.get_object("toolbuttonNew").connect("clicked", self.new_document)
         self.wTree.get_object("toolbuttonQuit").connect("clicked", lambda x: self._destroy())

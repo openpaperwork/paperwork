@@ -42,7 +42,7 @@ class Tag(object):
     def get_color_str(self):
         return self.color.to_string()
     def __str__(self):
-        return unicode("<span bgcolor=\"%s\">    </span> %s" % (self.get_html_color(), self.name))
+        return ("<span bgcolor=\"%s\">    </span> %s" % (self.get_html_color(), self.name))
 
 class TagEditor(object):
     def __init__(self, tagToEdit = None):

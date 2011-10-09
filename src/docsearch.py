@@ -94,7 +94,8 @@ class DocSearch(object):
         callback(1, 3, self.INDEX_STEP_SORTING)
         self.keywords = self.keywords_to_doc.keys()
         for tag in self.taglist:
-            self.keywords.append(tag.name)
+            if not tag.name in self.keywords:
+                self.keywords.append(tag.name)
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.keywords.sort()
 

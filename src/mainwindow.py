@@ -177,7 +177,12 @@ class MainWindow:
         print "Got %d documents" % len(documents)
         self.matchList.clear()
         for document in reversed(documents):
-            self.matchList.append([document])
+            doc = self.docsearch.get_doc(document)
+            tag_str = ""
+            for tag in doc.get_tags():
+                tag_str += "\n  "
+                tag_str += str(tag)
+            self.matchList.append([ (document+tag_str) ])
 
     def _apply_search(self, objsrc = None):
         selectionPath = self.matchListUI.get_selection().get_selected()
@@ -185,6 +190,7 @@ class MainWindow:
             print "No document selected. Can't open"
             return False
         selection = selectionPath[0].get_value(selectionPath[1], 0)
+        selection = selection.split("\n")[0]
         doc = self.docsearch.get_doc(selection)
 
         print "Showing doc %s" % selection

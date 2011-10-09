@@ -10,17 +10,18 @@ try:
 except ImportError, e:
     HAS_SANE = False
 
-from util import gtk_refresh
-from util import image2pixbuf
-from util import load_uifile
-from util import strip_accents
-
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
 from page import ScannedPage
-from util import SPLIT_KEYWORDS_REGEX
 from docsearch import DocSearch
 from settingswindow import SettingsWindow
+from tags import TagEditor
+from util import gtk_refresh
+from util import image2pixbuf
+from util import load_uifile
+from util import SPLIT_KEYWORDS_REGEX
+from util import strip_accents
+
 
 class MainWindow:
     WIN_TITLE = "Paperwork"
@@ -28,6 +29,7 @@ class MainWindow:
     def __init__(self, config):
         self.config = config
 
+        self.docsearch = None
         self.page_cache = None
         self.win_size = None
 
@@ -36,8 +38,6 @@ class MainWindow:
         self.mainWindow = self.wTree.get_object("mainWindow")
         assert(self.mainWindow)
         self.progressBar = self.wTree.get_object("progressbarMainWin")
-        self.pageList = self.wTree.get_object("liststorePage")
-        self.pageListUI = self.wTree.get_object("treeviewPage")
         self.pageScrollWin = self.wTree.get_object("scrolledwindowPageImg")
         self.pageImg = self.wTree.get_object("imagePageImg")
         self.pageEventBox = self.wTree.get_object("eventboxImg")
@@ -58,6 +58,13 @@ class MainWindow:
         self.vpanedSearch = self.wTree.get_object("vpanedSearch")
         self.selectors = self.wTree.get_object("notebookSelectors")
         self.selectors.set_current_page(1)
+
+        # page selector
+        self.pageList = self.wTree.get_object("liststorePage")
+        self.pageListUI = self.wTree.get_object("treeviewPage")
+
+        # tag selector
+        self.tagList = self.wTree.get_object("liststoreTag")
 
         self.wTree.get_object("menuitemScan").set_sensitive(False)
         self.wTree.get_object("toolbuttonScan").set_sensitive(False)
@@ -148,6 +155,7 @@ class MainWindow:
             self.progressBar.set_text("");
             self.progressBar.set_fraction(0.0)
             self._show_normal_cursor()
+        self._refresh_tag_list()
 
     def _update_results(self, objsrc = None):
         txt = unicode(self.searchField.get_text())
@@ -329,6 +337,15 @@ class MainWindow:
         for page in range(1, self.doc.get_nb_pages()+1):
             self.pageList.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
 
+    def _refresh_tag_list(self):
+        self.tagNameToObj = { }
+        self.tagList.clear()
+        if self.docsearch != None and self.doc != None:
+            tags = self.doc.get_tags()
+            for tag in self.docsearch.get_taglist():
+                self.tagNameToObj[str(tag)] = tag
+                self.tagList.append([ str(tag), (tag in tags) ])
+
     def _scan_next_page(self, objsrc = None):
         assert(self.device)
 
@@ -417,6 +434,22 @@ class MainWindow:
             self.win_size = allocation
             self._reset_page_vpaned()
 
+    def _add_tag(self, objsrc = None):
+        tageditor = TagEditor()
+        if tageditor.edit(self.mainWindow):
+            print "Adding label %s to doc %s" % (str(tageditor.tag), str(self.doc))
+            self.doc.add_tag(tageditor.tag)
+            self.docsearch.add_tag(tageditor.tag, self.doc)
+        self._refresh_tag_list()
+
+    def _tag_toggled(self, renderer, objpath):
+        tag = self.tagNameToObj[self.tagList[objpath][0]]
+        if tag in self.doc.get_tags():
+            self.doc.remove_tag(tag)
+        else:
+            self.doc.add_tag(tag)
+        self._refresh_tag_list()
+
     def _connect_signals(self):
         self.mainWindow.connect("destroy", lambda x: self._destroy())
         self.mainWindow.connect("size-allocate", self._on_resize)
@@ -429,10 +462,12 @@ class MainWindow:
         self.wTree.get_object("toolbuttonPrint").connect("clicked", self._print_doc)
         self.wTree.get_object("menuitemPrint").connect("activate", self._print_doc)
         self.wTree.get_object("menuitemQuit").connect("activate", lambda x: self._destroy())
-        self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog())
+        self.wTree.get_object("menuitemAbout").connect("activate", lambda x: AboutDialog(self.mainWindow))
         self.wTree.get_object("menuitemSettings").connect("activate", lambda x: SettingsWindow(self, self.config))
         self.wTree.get_object("buttonSearchClear").connect("clicked", self._clear_search)
         self.wTree.get_object("menuitemReOcrAll").connect("activate", self._redo_ocr_on_all)
+        self.wTree.get_object("buttonAddTag").connect("clicked", self._add_tag)
+        self.wTree.get_object("cellrenderertoggle1").connect("toggled", self._tag_toggled)
         self.searchField.connect("focus-in-event", lambda x, y: self.selectors.set_current_page(0))
         self.pageListUI.connect("cursor-changed", self._show_selected_page)
         self.pageEventBox.connect("button-press-event", self._change_scale)
@@ -463,6 +498,7 @@ class MainWindow:
         self.page = self.doc.get_page(1)
         print "Showing first page of the doc"
         self._show_page(self.page)
+        self._refresh_tag_list()
 
     def show_doc(self, doc):
         self._show_doc(doc)

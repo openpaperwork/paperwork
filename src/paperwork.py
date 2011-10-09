@@ -3,21 +3,20 @@
 import pygtk
 import gtk
 
-from aboutdialog import AboutDialog
 from config import AppConfig
 from mainwindow import MainWindow
 
 pygtk.require("2.0")
 
 def main():
-    m = None
+    main_win = None
     try:
         config = AppConfig()
-        m = MainWindow(config)
+        main_win = MainWindow(config)
         gtk.main()
     finally:
-        if m != None:
-            m.cleanup()
+        if main_win != None:
+            main_win.cleanup()
 
 if __name__ == "__main__":
     main()

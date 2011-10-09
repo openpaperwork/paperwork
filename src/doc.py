@@ -3,9 +3,12 @@ import os.path
 import time
 
 from page import ScannedPage
+from tags import Tag
 from util import dummy_progress_callback
 
 class ScannedDoc(object):
+    TAG_FILE = "labels"
+
     def __init__(self, docpath, docid = None):
         """
         Arguments:
@@ -21,6 +24,9 @@ class ScannedDoc(object):
 
     def __str__(self):
         return self.docid
+
+    def get_path(self):
+        return self.docpath
 
     def get_nb_pages(self):
         # XXX(Jflesch): We try to not make assumptions regarding file names,
@@ -79,4 +85,29 @@ class ScannedDoc(object):
         for i in range(0, nb_pages):
             page = ScannedPage(self, i+1)
             page.redo_ocr(ocrlang)
+
+    def add_tag(self, tag):
+        if tag in self.get_tags():
+            return
+        with open(os.path.join(self.docpath, self.TAG_FILE), 'a') as fd:
+            fd.write("%s,%s\n" % (tag.name, tag.get_color_str()))
+
+    def remove_tag(self, to_remove):
+        tags = self.get_tags()
+        tags.remove(to_remove)
+        with open(os.path.join(self.docpath, self.TAG_FILE), 'w') as fd:
+            for tag in tags:
+                fd.write("%s,%s\n" % (tag.name, tag.get_color_str()))
+
+    def get_tags(self):
+        tags = []
+        try:
+            with open(os.path.join(self.docpath, self.TAG_FILE), 'r') as fd:
+                for line in fd.readlines():
+                    line = line.strip()
+                    (tag_name, tag_color) = line.split(",")
+                    tags.append(Tag(name = tag_name, color = tag_color))
+        except IOError, e:
+            print "Error while reading tags from '%s': %s" % (self.docpath, str(e))
+        return tags
 

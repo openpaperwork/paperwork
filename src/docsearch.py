@@ -36,17 +36,20 @@ class DocSearch(object):
         keyword = keyword.lower()
         return keyword
 
+    def _index_keyword(self, keyword, docpath):
+        if self.keywords_to_doc.has_key(keyword):
+            if not docpath in self.keywords_to_doc[keyword]:
+                self.keywords_to_doc[keyword].append(docpath)
+        else:
+            self.keywords_to_doc[keyword] = [ docpath ]
+
     def _index_page(self, docpath, page):
         print "Indexing '%s'" % str(page)
         for word in page.get_keywords():
             word = self._simplify(word)
             if len(word) < self.MIN_KEYWORD_LEN:
                 continue
-            if self.keywords_to_doc.has_key(word):
-                if not docpath in self.keywords_to_doc[word]:
-                    self.keywords_to_doc[word].append(docpath)
-            else:
-                self.keywords_to_doc[word] = [ docpath ]
+            self._index_keyword(word, docpath)
 
     def _index_dir(self, dirpath, progression = 0, total = 0, callback = dummy_progress_callback):
         try:
@@ -59,6 +62,7 @@ class DocSearch(object):
             progression = 0
             total = len(dlist)
         page_nb = 0
+        doc = ScannedDoc(dirpath, dirpath)
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
                 continue
@@ -68,7 +72,12 @@ class DocSearch(object):
                 progression = progression + 1
             elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
                 page_nb += 1
-                self._index_page(dirpath, ScannedDoc(dirpath, dirpath).get_page(page_nb))
+                self._index_page(dirpath, doc.get_page(page_nb))
+        if page_nb > 0:
+            for tag in doc.get_tags():
+                if tag not in self.taglist:
+                    self.add_tag(tag, doc)
+
 
     def _docpath_to_id(self, docpath):
         return os.path.split(docpath)[1]
@@ -84,6 +93,8 @@ class DocSearch(object):
     def _extract_keywords(self, callback = dummy_progress_callback):
         callback(1, 3, self.INDEX_STEP_SORTING)
         self.keywords = self.keywords_to_doc.keys()
+        for tag in self.taglist:
+            self.keywords.append(tag.name)
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.keywords.sort()
 
@@ -91,6 +102,7 @@ class DocSearch(object):
         self.keywords = []          # array of strings (sorted at the end of indexation)
         self.docpaths = {}          # doc id (string) -> full path
         self.keywords_to_doc = {}   # keyword (string) -> array of path
+        self.taglist = []
 
         self._index_dir(self.rootdir, callback = callback)
         self._extract_docpaths(callback)
@@ -280,6 +292,18 @@ class DocSearch(object):
 
     def get_doc(self, docid):
         return ScannedDoc(self.docpaths[docid], docid)
+
+    def add_tag(self, tag, doc):
+        self._index_keyword(tag.name, doc.get_path())
+        if not tag.name in self.keywords:
+            self.keywords.append(tag.name)
+            self.keywords.sort()
+        if not tag in self.taglist:
+            self.taglist.append(tag)
+            self.taglist.sort()
+
+    def get_taglist(self):
+        return self.taglist
 
     def redo_ocr(self, dummy_progress_callback, ocrlang):
         print "Redoing OCR of all documents ..."

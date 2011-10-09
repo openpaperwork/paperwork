@@ -23,6 +23,7 @@ class SettingsWindow(object):
         self.wTree = load_uifile("settingswindow.glade")
 
         self.settingswin = self.wTree.get_object("windowSettings")
+        self.settingswin.set_transient_for(mainwindow.mainWindow)
         assert(self.settingswin)
 
         self._connect_signals()

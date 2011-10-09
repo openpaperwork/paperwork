@@ -1,9 +1,10 @@
 from util import load_uifile
 
 class AboutDialog(object):
-    def __init__(self):
+    def __init__(self, mainWindow):
         self.wTree = load_uifile("aboutdialog.glade")
         self.aboutdialog = self.wTree.get_object("aboutdialog")
+        self.aboutdialog.set_transient_for(mainWindow)
         assert(self.aboutdialog)
         self._connect_signals()
         self.aboutdialog.set_visible(True)

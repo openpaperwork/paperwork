@@ -75,9 +75,7 @@ class DocSearch(object):
                 self._index_page(dirpath, doc.get_page(page_nb))
         if page_nb > 0:
             for tag in doc.get_tags():
-                if tag not in self.taglist:
-                    self.add_tag(tag, doc)
-
+                self.add_tag(tag, doc)
 
     def _docpath_to_id(self, docpath):
         return os.path.split(docpath)[1]

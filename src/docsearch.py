@@ -240,14 +240,9 @@ class DocSearch(object):
             else:
                 negative_keywords.append(keyword[1:])
 
-        if (len(positive_keywords) == 1 and positive_keywords[0] == u"*"):
+        if (len(positive_keywords) == 1 and unicode(positive_keywords[0]) == u"*"):
             print "Returning all documents"
-            dlist = os.listdir(self.rootdir)
-            for dirpath in dlist:
-                if not os.path.isdir(os.path.join(self.rootdir, dirpath)):
-                    dlist.remove(dirpath)
-            dlist.sort()
-            return dlist
+            return self.docpaths.keys()
         documents = None
         for keyword in positive_keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):

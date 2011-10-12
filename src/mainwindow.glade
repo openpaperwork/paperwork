@@ -440,8 +440,9 @@
                                           </attributes>
                                         </child>
                                         <child>
-                                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                                          <object class="GtkCellRendererText" id="cellrenderertextTag"/>
                                           <attributes>
+                                            <attribute name="editable">0</attribute>
                                             <attribute name="markup">0</attribute>
                                             <attribute name="text">0</attribute>
                                           </attributes>

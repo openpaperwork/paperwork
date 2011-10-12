@@ -242,7 +242,9 @@ class DocSearch(object):
 
         if (len(positive_keywords) == 1 and unicode(positive_keywords[0]) == u"*"):
             print "Returning all documents"
-            return self.docpaths.keys()
+            doclist = self.docpaths.keys()
+            doclist.sort()
+            return doclist
         documents = None
         for keyword in positive_keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):

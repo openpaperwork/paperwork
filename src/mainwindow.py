@@ -309,7 +309,7 @@ class MainWindow:
         except Exception, e:
             print "Unable to show text for doc '%s': %s" % (page, e)
             self.pageTxt.get_buffer().set_text("")
-        self.selectors.set_current_page(1)
+        #self.selectors.set_current_page(1)
 
     def _show_selected_page(self, objsrc = None):
         page = self._get_selected_page()

@@ -117,36 +117,27 @@ class TesseractError(Exception):
         self.args = (status, message)
 
 class TesseractBox(object):
-    def __init__(self, char, box_position, page):
+    def __init__(self, char, position, page):
         """
         Instantiate a tesseract box
 
         Arguments:
             char --- character found in this box
-            box_position --- the position of the box on the image. Given as a tuple of tuple:
+            position --- the position of the box on the image. Given as a tuple of tuple:
                 ((width_pt_x, height_pt_x), (width_pt_y, height_pt_y))
             page --- page number, as specified in the box file (usually 0)
         """
-        self.box_position = box_position
-        self.page = page
         self.char = char
-
-    def get_char(self):
-        return self.char
-
-    def get_position(self):
-        return self.box_position
-
-    def get_page(self):
-        return page
+        self.position = position
+        self.page = page
 
     def __str__(self):
         return "%s %d %d %d %d %d" % (
             self.char,
-            self.box_position[0][0],
-            self.box_position[0][1],
-            self.box_position[1][0],
-            self.box_position[1][1],
+            self.position[0][0],
+            self.position[0][1],
+            self.position[1][0],
+            self.position[1][1],
             self.page
         )
 

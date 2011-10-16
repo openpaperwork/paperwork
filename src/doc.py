@@ -1,73 +1,135 @@
+"""
+Code for managing documents (not page individually ! see page.py for that)
+"""
+
 import os
 import os.path
 import time
 
 from page import ScannedPage
-from tags import Tag
+from labels import Label
 from util import dummy_progress_callback
 
+class ScannedPageList(object):
+    """
+    Page list. Page are accessed using [] operator.
+    """
+    def __init__(self, doc):
+        self.doc = doc
+
+    def __getitem__(self, idx):
+        return ScannedPage(self.doc, idx)
+
+    def __len__(self):
+        return self.doc.nb_pages
+
+    def __contains__(self, page):
+        return (page.doc == self.doc and page.page_nb <= self.doc.nb_pages)
+
+    def __eq__(self, other):
+        return (self.doc == other.doc)
+
 class ScannedDoc(object):
-    TAG_FILE = "labels"
+    """
+    Represents a document (aka a set of pages + labels).
+    """
+
+    LABEL_FILE = "labels"
 
     def __init__(self, docpath, docid = None):
         """
         Arguments:
-            docpath --- For an existing document, the path to its folder. For a new one, the rootdir of all documents
+            docpath --- For an existing document, the path to its folder. For
+                a new one, the rootdir of all documents
             docid --- Document Id (ie folder name). Use None for a new document
         """
         if docid == None:
             self.docid = time.strftime("%Y%m%d_%H%M_%S")
-            self.docpath = os.path.join(docpath, self.docid)
+            self.__docpath = os.path.join(docpath, self.docid)
         else:
             self.docid = docid
-            self.docpath = docpath
+            self.__docpath = docpath
 
     def __str__(self):
         return self.docid
 
-    def get_path(self):
-        return self.docpath
+    def __get_path(self):
+        """
+        Get document path. For instance '/home/xxx/papers/2011_10_21'
 
-    def get_nb_pages(self):
+        Returns:
+            Path (-> String)
+        """
+        return self.__docpath
+
+    path = property(__get_path)
+
+    def __get_nb_pages(self):
+        """
+        Compute the number of pages in the document. It basically counts
+        how many JPG files there are in the document.
+        """
         # XXX(Jflesch): We try to not make assumptions regarding file names,
         # except regarding their extensions (.txt/.jpg/etc)
         try:
-            filelist = os.listdir(self.docpath)
-            i = 0
-            for f in filelist:
-                if f[-4:].lower() != "."+ScannedPage.EXT_IMG:
+            filelist = os.listdir(self.__docpath)
+            count = 0
+            for filename in filelist:
+                if filename[-4:].lower() != "."+ScannedPage.EXT_IMG:
                     continue
-                i += 1
-            return i
-        except Exception, e:
-            print "Exception while trying to get the number of pages of '%s': %s" % (self.docid, e)
+                count += 1
+            return count
+        except OSError, exc:
+            print ("Exception while trying to get the number of pages of "
+                   "'%s': %s" % (self.docid, exc))
             return 0
 
-    def scan_next_page(self, device, ocrlang, callback = dummy_progress_callback):
+    nb_pages = property(__get_nb_pages)
+
+    def scan_next_page(self, device, ocrlang,
+                       callback = dummy_progress_callback):
+        """
+        Scan a new page and append it as the last page of the document
+
+        Arguments:
+            device --- Sane device (see sane.open())
+            ocrlang --- Language to specify to the OCR tool
+            callback -- Progression indication callback (see
+                util.dummy_progress_callback for the arguments to expected)
+        """
         try:
-            os.makedirs(self.docpath)
+            os.makedirs(self.__docpath)
         except OSError:
             pass
 
-        page_nb = self.get_nb_pages() + 1 # remember: we start counting from 1
+        page_nb = self.nb_pages
         page = ScannedPage(self, page_nb)
         page.scan_page(device, ocrlang, callback)
 
-    def get_page(self, page):
-        return ScannedPage(self, page)
+    def __get_pages(self):
+        """
+        Return a list of pages.
+        Pages are instanciated on-the-fly.
+        """
+        return ScannedPageList(self)
+
+    pages = property(__get_pages)
 
     def destroy(self):
-        print "Destroying doc: %s" % self.docpath
-        for root, dirs, files in os.walk(self.docpath, topdown = False):
-            for f in files:
-                f = os.path.join(self.docpath, f)
-                print "Deleting file %s" % f
-                os.unlink(f)
-            for d in dirs:
-                d = os.path.join(self.docpath, d)
-                print "Deleting dir %s" % d
-                os.rmdir(d)
-        os.rmdir(self.docpath)
+        """
+        Delete the document. The *whole* document. There will be no survirors.
+        """
+        print "Destroying doc: %s" % self.__docpath
+        for root, dirs, files in os.walk(self.__docpath, topdown = False):
+            for filename in files:
+                filepath = os.path.join(self.__docpath, filename)
+                print "Deleting file %s" % filepath
+                os.unlink(filepath)
+            for dirname in dirs:
+                dirpath = os.path.join(self.__docpath, dirname)
+                print "Deleting dir %s" % dirpath
+                os.rmdir(dirpath)
+        os.rmdir(self.__docpath)
         print "Done"
 
     def print_page(self, print_op, print_context, page_nb):
@@ -81,33 +143,55 @@ class ScannedDoc(object):
         page.print_page(print_op, print_context)
 
     def redo_ocr(self, ocrlang):
-        nb_pages = self.get_nb_pages()
+        """
+        Run the OCR again on all the pages of the document
+
+        Arguments
+        """
+        nb_pages = self.nb_pages
         for i in range(0, nb_pages):
             page = ScannedPage(self, i+1)
             page.redo_ocr(ocrlang)
 
-    def add_tag(self, tag):
-        if tag in self.get_tags():
+    def add_label(self, label):
+        """
+        Add a label on the document.
+        """
+        if label in self.labels:
             return
-        with open(os.path.join(self.docpath, self.TAG_FILE), 'a') as fd:
-            fd.write("%s,%s\n" % (tag.name, tag.get_color_str()))
+        with open(os.path.join(self.__docpath, self.LABEL_FILE), 'a') \
+                as file_desc:
+            file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
 
-    def remove_tag(self, to_remove):
-        tags = self.get_tags()
-        tags.remove(to_remove)
-        with open(os.path.join(self.docpath, self.TAG_FILE), 'w') as fd:
-            for tag in tags:
-                fd.write("%s,%s\n" % (tag.name, tag.get_color_str()))
+    def remove_label(self, to_remove):
+        """
+        Remove a label from the document. (-> rewrite the label file)
+        """
+        labels = self.labels
+        labels.remove(to_remove)
+        with open(os.path.join(self.__docpath, self.LABEL_FILE), 'w') \
+                as file_desc:
+            for label in labels:
+                file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
 
-    def get_tags(self):
-        tags = []
+    def __get_labels(self):
+        """
+        Read the label file of the documents and extract all the labels
+
+        Returns:
+            An array of labels.Label objects
+        """
+        labels = []
         try:
-            with open(os.path.join(self.docpath, self.TAG_FILE), 'r') as fd:
-                for line in fd.readlines():
+            with open(os.path.join(self.__docpath, self.LABEL_FILE), 'r') \
+                    as file_desc:
+                for line in file_desc.readlines():
                     line = line.strip()
-                    (tag_name, tag_color) = line.split(",")
-                    tags.append(Tag(name = tag_name, color = tag_color))
-        except IOError, e:
-            print "Error while reading tags from '%s': %s" % (self.docpath, str(e))
-        return tags
+                    (label_name, label_color) = line.split(",")
+                    labels.append(Label(name = label_name, color = label_color))
+        except IOError, exc:
+            print ("Error while reading labels from '%s': %s"
+                   % (self.__docpath, str(exc)))
+        return labels
 
+    labels = property(__get_labels)

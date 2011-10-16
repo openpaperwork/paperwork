@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+"""
+Contains all the code relative to keyword and document list management list.
+"""
 
-import codecs
 import os
 import os.path
 import time
@@ -10,11 +11,35 @@ from doc import ScannedDoc
 from util import dummy_progress_callback
 from util import strip_accents
 
+class DocList(object):
+    """
+    Doc list. Docs are accessed using [] operator. The key is the document id
+    (for instance, '20110929_1233_0900')
+    """
+    def __init__(self, docsearch):
+        self.docsearch = docsearch
+
+    def __getitem__(self, docid):
+        return ScannedDoc(self.docsearch.get_docpath_by_docid(docid), docid)
+
+    def __eq__(self, other):
+        return self.docsearch.rootdir == other.docsearch.rootdir
+
 class DocSearch(object):
+    """
+    Index a set of documents. Can provide:
+        * documents that match a list of keywords
+        * suggestions for user input.
+        * instances of documents
+    """
+
     MIN_KEYWORD_LEN = 2
 
     INDEX_STEP_READING  = "reading"
     INDEX_STEP_SORTING  = "sorting"
+
+    OCR_MAX_THREADS = 4
+    OCR_SLEEP_TIME = 0.5
 
     def __init__(self, rootdir, callback = dummy_progress_callback):
         """
@@ -22,40 +47,90 @@ class DocSearch(object):
 
         Arguments:
             callback --- called during the indexation (may be called *often*).
-                step : DocSearch.INDEX_STEP_READING or DocSearch.INDEX_STEP_SORTING
+                step : DocSearch.INDEX_STEP_READING or
+                    DocSearch.INDEX_STEP_SORTING
                 progression : how many elements done yet
                 total : number of elements to do
-                document (only if step == DocSearch.INDEX_STEP_READING): file being read
+                document (only if step == DocSearch.INDEX_STEP_READING): file
+                    being read
         """
         self.rootdir = rootdir
-        self._index(callback)
 
-    def _simplify(self, keyword):
+        # we don't use __reset_data() here. Otherwise pylint won't be happy.
+        self.__keywords = [] # array of strings (sorted)
+        self.__docids_to_docspaths = {} # doc id (string) -> full path
+        self.__keywords_to_docpaths = {} # keyword (string) -> array of path
+        self.__label_list = []
+
+        self.__index(callback)
+
+    def __reset_data(self):
+        """
+        Purge the lists of documents and keywords
+        """
+        self.__keywords = []
+        self.__docids_to_docspaths = {}
+        self.__keywords_to_docpaths = {}
+        self.__label_list = []
+
+    @staticmethod
+    def __simplify(keyword):
+        """
+        Simplify the keyword
+        * Strip spaces
+        * Strip accents
+        * And lower case it
+        """
         keyword = keyword.strip()
         keyword = strip_accents(keyword)
         keyword = keyword.lower()
         return keyword
 
-    def _index_keyword(self, keyword, docpath):
-        if self.keywords_to_doc.has_key(keyword):
-            if not docpath in self.keywords_to_doc[keyword]:
-                self.keywords_to_doc[keyword].append(docpath)
+    def __index_keyword(self, keyword, docpath):
+        """
+        Add the given keywords to self.__keywords_to_docpaths
+        """
+        if self.__keywords_to_docpaths.has_key(keyword):
+            if not docpath in self.__keywords_to_docpaths[keyword]:
+                self.__keywords_to_docpaths[keyword].append(docpath)
         else:
-            self.keywords_to_doc[keyword] = [ docpath ]
+            self.__keywords_to_docpaths[keyword] = [ docpath ]
 
-    def _index_page(self, docpath, page):
+    def __index_page(self, docpath, page):
+        """
+        Index a document page
+
+        Arguments:
+            docpath --- document path
+            page --- page to index (page.ScannedPage)
+
+        Note:
+            won't update all the index. see self.index_page() for that.
+        """
         print "Indexing '%s'" % str(page)
         for word in page.get_keywords():
-            word = self._simplify(word)
+            word = self.__simplify(word)
             if len(word) < self.MIN_KEYWORD_LEN:
                 continue
-            self._index_keyword(word, docpath)
+            self.__index_keyword(word, docpath)
 
-    def _index_dir(self, dirpath, progression = 0, total = 0, callback = dummy_progress_callback):
+    def __index_dir(self, dirpath, progression = 0, total = 0,
+                    callback = dummy_progress_callback):
+        """
+        Look in the given directory for documents to index.
+
+        Arguments:
+            dirpath --- directory to explore
+            progression --- progression level passed to the progression
+                indicator callback
+            total --- maximum value for the progression level
+            callback -- progression indicator callback (see
+                util.dummy_progress_callback)
+        """
         try:
             dlist = os.listdir(dirpath)
-        except OSError, e:
-            print "Unable to read dir '%s': %s" % (dirpath, str(e))
+        except OSError, exc:
+            print "Unable to read dir '%s': %s" % (dirpath, str(exc))
             return
         dlist.sort()
         if total == 0:
@@ -68,60 +143,94 @@ class DocSearch(object):
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
                 callback(progression, total, self.INDEX_STEP_READING, dpath)
-                self._index_dir(os.path.join(dirpath, dpath), progression, total, callback)
+                self.__index_dir(os.path.join(dirpath, dpath), progression,
+                                total, callback)
                 progression = progression + 1
-            elif os.path.isfile(os.path.join(dirpath, dpath)) and dpath[-4:].lower() == ".txt":
+            elif (os.path.isfile(os.path.join(dirpath, dpath)) and
+                  dpath[-4:].lower() == ".txt"):
+                self.__index_page(dirpath, doc.pages[page_nb])
                 page_nb += 1
-                self._index_page(dirpath, doc.get_page(page_nb))
         if page_nb > 0:
-            for tag in doc.get_tags():
-                self.add_tag(tag, doc)
+            for label in doc.labels:
+                self.add_label(label, doc)
 
-    def _docpath_to_id(self, docpath):
-        return os.path.split(docpath)[1]
+    @staticmethod
+    def __docpath_to_id(docpath):
+        """
+        Generate a document id baed on a document path.
+        """
+        try:
+            return os.path.split(docpath)[1]
+        except IndexError:
+            print "Warning: Invalid document path: %s" % (docpath)
+            return docpath
 
-    def _extract_docpaths(self, callback = dummy_progress_callback):
+    def __extract_docpaths(self, callback = dummy_progress_callback):
+        """
+        Create an index docid->docpaths (self.__docids_to_docspaths) based on self.__keywords_to_docpaths
+        """
         callback(0, 3, self.INDEX_STEP_SORTING)
-        for docs in self.keywords_to_doc.values():
+        for docs in self.__keywords_to_docpaths.values():
             for docpath in docs:
-                docid = self._docpath_to_id(docpath)
-                if not self.docpaths.has_key(docid):
-                    self.docpaths[docid] = docpath
+                docid = self.__docpath_to_id(docpath)
+                if not self.__docids_to_docspaths.has_key(docid):
+                    self.__docids_to_docspaths[docid] = docpath
 
-    def _extract_keywords(self, callback = dummy_progress_callback):
+    def __extract_keywords(self, callback = dummy_progress_callback):
+        """
+        Extract and index all the keywords from all the documents in
+        self.rootdir.
+        """
         callback(1, 3, self.INDEX_STEP_SORTING)
-        self.keywords = self.keywords_to_doc.keys()
-        for tag in self.taglist:
-            if not tag.name in self.keywords:
-                self.keywords.append(tag.name)
+        self.__keywords = self.__keywords_to_docpaths.keys()
+        for label in self.__label_list:
+            if not label.name in self.__keywords:
+                self.__keywords.append(label.name)
         callback(2, 3, self.INDEX_STEP_SORTING)
-        self.keywords.sort()
+        self.__keywords.sort()
 
-    def _index(self, callback = dummy_progress_callback):
-        self.keywords = []          # array of strings (sorted at the end of indexation)
-        self.docpaths = {}          # doc id (string) -> full path
-        self.keywords_to_doc = {}   # keyword (string) -> array of path
-        self.taglist = []
+    def __index(self, callback = dummy_progress_callback):
+        """
+        Index all the documents in self.rootdir.
 
-        self._index_dir(self.rootdir, callback = callback)
-        self._extract_docpaths(callback)
-        self._extract_keywords(callback)
+        Arguments:
+            callback --- progression indicator callback (see
+                util.dummy_progress_callback)
+        """
+        self.__reset_data()
+        self.__index_dir(self.rootdir, callback = callback)
+        self.__extract_docpaths(callback)
+        self.__extract_keywords(callback)
 
     def index_page(self, page):
-        docpath = page.get_doc().docpath
-        self._index_page(docpath, page)
-        # remake these two:
-        self._extract_docpaths(dummy_progress_callback)
-        self._extract_keywords(dummy_progress_callback)
+        """
+        Extract all the keywords from the given page
 
-    def _get_keyword_suggestions(self, keyword):
+        Arguments:
+            page --- from which keywords must be extracted
+        """
+        self.__index_page(page.doc.docpath, page)
+        # remake these two:
+        self.__extract_docpaths(dummy_progress_callback)
+        self.__extract_keywords(dummy_progress_callback)
+
+    def __get_keyword_suggestions(self, keyword):
+        """
+        Return all the suggestions for a single keyword.
+
+        Arguments:
+            keyword --- keyword (string) for which we are looking for suggestions
+
+        Returns:
+            An array of suggestions (strings)
+        """
         neg = (keyword[:1] == "!")
         if neg:
             keyword = keyword[1:]
-        keyword = self._simplify(keyword)
+        keyword = self.__simplify(keyword)
 
         lkeyword = len(keyword)
-        lkeywords = len(self.keywords)
+        lkeywords = len(self.__keywords)
 
         if lkeyword < self.MIN_KEYWORD_LEN:
             return []
@@ -138,12 +247,14 @@ class DocSearch(object):
         while not idx_min_found:
             if idx_min <= 0 or idx_min > lkeywords-1:
                 idx_min_found = True
-            elif self.keywords[idx_min-1][:lkeyword] < keyword and self.keywords[idx_min][:lkeyword] > keyword:
+            elif (self.__keywords[idx_min-1][:lkeyword] < keyword
+                  and self.__keywords[idx_min][:lkeyword] > keyword):
                 print "No suggestion found for '%s'" % keyword
                 return []
-            elif self.keywords[idx_min-1][:lkeyword] != keyword and self.keywords[idx_min][:lkeyword] == keyword:
+            elif (self.__keywords[idx_min-1][:lkeyword] != keyword
+                  and self.__keywords[idx_min][:lkeyword] == keyword):
                 idx_min_found = True
-            elif self.keywords[idx_min][:lkeyword] >= keyword:
+            elif self.__keywords[idx_min][:lkeyword] >= keyword:
                 idx_min = idx_min - njump
             else:
                 idx_min = idx_min + njump
@@ -161,15 +272,16 @@ class DocSearch(object):
         while not idx_max_found:
             if idx_max <= 0 or idx_max >= lkeywords-1:
                 idx_max_found = True
-            elif self.keywords[idx_max+1][:lkeyword] != keyword and self.keywords[idx_max][:lkeyword] == keyword:
+            elif (self.__keywords[idx_max+1][:lkeyword] != keyword
+                  and self.__keywords[idx_max][:lkeyword] == keyword):
                 idx_max_found = True
-            elif self.keywords[idx_max][:lkeyword] <= keyword:
+            elif self.__keywords[idx_max][:lkeyword] <= keyword:
                 idx_max = idx_max + njump
             else:
                 idx_max = idx_max - njump
             njump = (njump / 2) or 1
 
-        results = self.keywords[idx_min:(idx_max+1)]
+        results = self.__keywords[idx_min:(idx_max+1)]
 
         if neg:
             results = [ ("!%s" % (result)) for result in results ]
@@ -178,12 +290,15 @@ class DocSearch(object):
 
         return results
 
-    def _get_suggestions(self, keywords):
+    def __find_suggestions(self, keywords):
+        """
+        see DocSearch.find_suggestions().
+        """
         if len(keywords) <= 0:
             return []
 
         # search suggestion for the first keywords
-        first_keyword_suggestions = self._get_keyword_suggestions(keywords[0])
+        first_keyword_suggestions = self.__get_keyword_suggestions(keywords[0])
         if (len(keywords) <= 1):
             return [ [ word ] for word in first_keyword_suggestions ]
 
@@ -191,44 +306,63 @@ class DocSearch(object):
 
         # .. and for all the remaining keywords
         # XXX(Jflesch): recursivity
-        other_keywords_suggestions = self._get_suggestions(keywords[1:])
+        other_keywords_suggestions = self.__find_suggestions(keywords[1:])
 
         for first_keyword_suggestion in first_keyword_suggestions:
             for suggestion in other_keywords_suggestions:
                 suggestion = suggestion[:]
                 suggestion.insert(0, first_keyword_suggestion)
                 # immediatly look if it has matching documents
-                if len(suggestion) > 1 and len(self.get_documents(suggestion)) <= 0:
+                if (len(suggestion) > 1
+                    and len(self.find_documents(suggestion)) <= 0):
                     continue
                 results.append(suggestion)
 
         return results
 
-    def get_suggestions(self, keywords):
+    def find_suggestions(self, keywords):
         """
-        Search all possible suggestions. Suggestions returned always have at least
-        one document matching.
+        Search all possible suggestions. Suggestions returned always have at
+        least one document matching.
 
         Arguments:
-            keywords --- array of keyword for which we want suggestions
+            keywords --- array of keyword (strings) for which we want suggestions
         Return:
-            An array of sets of keywords. Each set of keywords is a suggestion.
+            An array of sets of keywords. Each set of keywords (-> one string) is a suggestion.
         """
-        results = self._get_suggestions(keywords)
+        results = self.__find_suggestions(keywords)
         try:
             results.remove(keywords) # remove strict match if it is here
-        except ValueError, e:
+        except ValueError:
             pass
         results.sort()
         return results
 
-    def _get_documents(self, keyword):
+    def __find_documents(self, keyword):
+        """
+        Returns all the documents matching the given keywords
+
+        Arguments:
+            keyword --- one keyword (string)
+
+        Returns:
+            An array of document id (strings)
+        """
         try:
-            return self.keywords_to_doc[keyword]
+            return self.__keywords_to_docpaths[keyword]
         except KeyError:
             return []
 
-    def get_documents(self, keywords):
+    def find_documents(self, keywords):
+        """
+        Returns all the documents matching the given keywords
+
+        Arguments:
+            keywords --- array of keywords (string)
+
+        Returns:
+            An array of document id (strings)
+        """
         positive_keywords = []
         negative_keywords = []
 
@@ -240,21 +374,23 @@ class DocSearch(object):
             else:
                 negative_keywords.append(keyword[1:])
 
-        if (len(positive_keywords) == 1 and unicode(positive_keywords[0]) == u"*"):
+        if (len(positive_keywords) == 1
+            and unicode(positive_keywords[0]) == u"*"):
             print "Returning all documents"
-            doclist = self.docpaths.keys()
+            doclist = self.__docids_to_docspaths.keys()
             doclist.sort()
             return doclist
         documents = None
         for keyword in positive_keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
                 return []
-            keyword = self._simplify(keyword)
-            docs = self._get_documents(keyword)
+            keyword = self.__simplify(keyword)
+            docs = self.__find_documents(keyword)
             if documents == None:
                 documents = docs
             else:
-                documents = [ val for val in documents if val in docs ] # intersection of both arrays
+                # intersection of both arrays
+                documents = [ val for val in documents if val in docs ]
 
         if documents == None:
             return []
@@ -264,48 +400,85 @@ class DocSearch(object):
         for keyword in negative_keywords:
             if ( len(keyword) < self.MIN_KEYWORD_LEN ):
                 return []
-            keyword = self._simplify(keyword)
-            docs = self._get_documents(keyword)
+            keyword = self.__simplify(keyword)
+            docs = self.__find_documents(keyword)
             print "Found %d documents to remove" % (len(documents))
             for doc in docs:
                 try:
                     documents.remove(doc)
-                except ValueError, e:
+                except ValueError:
                     pass
 
-        # 'documents' contains the whole paths, but we actually identify documents
-        # only by the directory in which they are
+        # 'documents' contains the whole paths, but we actually identify
+        # documents only by the directory in which they are
         short_docs = []
         for docpath in documents:
-            try:
-                docid = self._docpath_to_id(docpath)
-                short_docs.append(docid)
-            except Exception, e:
-                print "Warning: Invalid document path: %s (%s)" % (docpath, e)
+            docid = self.__docpath_to_id(docpath)
+            short_docs.append(docid)
 
         short_docs.sort()
         return short_docs
 
-    def get_doc(self, docid):
-        return ScannedDoc(self.docpaths[docid], docid)
+    def get_docpath_by_docid(self, docid):
+        """
+        Returns a documents path for a specific document id.
 
-    def add_tag(self, tag, doc):
-        self._index_keyword(tag.name, doc.get_path())
-        if not tag.name in self.keywords:
-            self.keywords.append(tag.name)
-            self.keywords.sort()
-        if not tag in self.taglist:
-            self.taglist.append(tag)
-            self.taglist.sort()
+        Arguments:
+            docid --- Document id. For instance '20110722_1233_56'
 
-    def get_taglist(self):
-        return self.taglist
+        Returns:
+                Document path. For instance '/home/jflesch/papers/20110722_1233_56'
+        """
+        return self.__docids_to_docspaths[docid]
 
-    def redo_ocr(self, dummy_progress_callback, ocrlang):
+    def __get_docs(self):
+        """
+        Returns an object associating docid to documents (doc.ScannedDoc).
+        Documents are instanciated on-the-fly.
+        """
+        return DocList(self)
+
+    docs = property(__get_docs)
+
+    def add_label(self, label, doc):
+        """
+        Add a new label to the list of known labels.
+
+        Arguments:
+            label --- The new label (see labels.Label)
+            doc --- The first document on which this label has been added
+        """
+        self.__index_keyword(label.name, doc.path)
+        if not label.name in self.__keywords:
+            self.__keywords.append(label.name)
+            self.__keywords.sort()
+        if not label in self.__label_list:
+            self.__label_list.append(label)
+            self.__label_list.sort()
+
+    def __get_label_list(self):
+        """
+        Returns all the labels found in all the documents
+
+        Returns:
+            An array of labels.Label
+        """
+        return self.__label_list
+
+    label_list = property(__get_label_list)
+
+    def redo_ocr(self, progress_callback, ocrlang):
+        """
+        Rerun the OCR on *all* the documents. Can be a *really* long process,
+        which is why progress_callback is a mandatory argument.
+
+        Arguments:
+            progress_callback --- See util.dummy_progress_callback for a
+                prototype. The only step returned is "INDEX_STEP_READING"
+            ocrlang --- Language to specify to the OCR tool (see
+                config.PaperworkConfig.ocrlang)
+        """
         print "Redoing OCR of all documents ..."
-
-        MAX_THREADS = 4
-        SLEEP_TIME = 0.5
 
         dlist = os.listdir(self.rootdir)
         threads = []
@@ -315,14 +488,17 @@ class DocSearch(object):
             for thread in threads:
                 if not thread.is_alive():
                     threads.remove(thread)
-            while (len(threads) < MAX_THREADS and len(remaining) > 0):
+            while (len(threads) < self.OCR_MAX_THREADS and len(remaining) > 0):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
                 doc = ScannedDoc(docpath, docid)
-                thread = threading.Thread(target = doc.redo_ocr, args = [ ocrlang ], name = docid)
+                thread = threading.Thread(target = doc.redo_ocr,
+                                          args = [ ocrlang ], name = docid)
                 thread.start()
                 threads.append(thread)
-                dummy_progress_callback(len(dlist) - len(remaining), len(dlist), self.INDEX_STEP_READING, docid)
-            time.sleep(SLEEP_TIME)
+                progress_callback(len(dlist) - len(remaining),
+                                  len(dlist), self.INDEX_STEP_READING,
+                                  docid)
+            time.sleep(self.OCR_SLEEP_TIME)
         print "OCR of all documents done"
 

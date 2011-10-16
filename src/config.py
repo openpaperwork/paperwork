@@ -1,59 +1,107 @@
+"""
+Paperwork configuration management code
+"""
+
 import ConfigParser
 import os
 
-class AppConfig(object):
-    # possible config files are evaluated in the order they are in the array
-    # last one of the list is the default one
-    CONFIGFILES = [ "./paperwork.conf", "~/.paperwork.conf" ]
+class PaperworkConfig(object):
+    """
+    Paperwork config. See each accessor to know for what purpose each value is
+    used.
+    """
+
+    # Possible config files are evaluated in the order they are in the array.
+    # The last one of the list is the default one.
+    CONFIGFILES = [
+        "./paperwork.conf",
+        os.path.expanduser("~/.paperwork.conf")
+    ]
 
     def __init__(self):
-        self.read()
+        # values are stored directly in self.__configparser
+        self.__configparser = ConfigParser.SafeConfigParser()
 
-    def read(self):
-        self.configparser = ConfigParser.SafeConfigParser()
         configfile_found = False
-        for self.configfile in self.CONFIGFILES:
-            self.configfile = os.path.expanduser(self.configfile)
-            if os.access(self.configfile, os.R_OK):
+        for self.__configfile in self.CONFIGFILES:
+            if os.access(self.__configfile, os.R_OK):
                 configfile_found = True
-                print "Config file found: %s" % self.configfile
+                print "Config file found: %s" % self.__configfile
                 break
         if not configfile_found:
-            print "Config file not found. Will use '%s'" % self.configfile
+            print "Config file not found. Will use '%s'" % self.__configfile
 
-        self.configparser.read([ self.configfile ])
 
-        if not self.configparser.has_section("Global"):
-            self.configparser.add_section("Global")
-        if not self.configparser.has_section("OCR"):
-            self.configparser.add_section("OCR")
+    def read(self):
+        """
+        (Re)read the configuration.
 
-    @property
-    def workdir(self):
+        Beware that the current work directory may affect this operation:
+        If there is a 'paperwork.conf' in the current directory, it will be
+        read instead of '~/.paperwork.conf' ; see Paperwork.CONFIGFILES)
+        """
+        # smash the previous config
+        self.__configparser = ConfigParser.SafeConfigParser()
+        self.__configparser.read([ self.__configfile ])
+
+        # make sure that all the sections exist
+        if not self.__configparser.has_section("Global"):
+            self.__configparser.add_section("Global")
+        if not self.__configparser.has_section("OCR"):
+            self.__configparser.add_section("OCR")
+
+    def __get_workdir(self):
+        """
+        Directory in which Paperwork must look for documents.
+        Reminder: Documents are directories containing files called
+        'paper.<X>.jpg', 'paper.<X>.txt' and possibly 'paper.<X>.box' ('<X>'
+        being the page number).
+
+        Returns:
+            String.
+        """
         try:
-            return self.configparser.get("Global", "WorkDirectory")
-        except:
+            return self.__configparser.get("Global", "WorkDirectory")
+        except ConfigParser.NoOptionError:
             return os.path.expanduser("~/papers")
 
-    @workdir.setter
-    def workdir(self, wd):
-        self.configparser.set("Global", "WorkDirectory", wd)
+    def __set_workdir(self, work_dir_str):
+        """
+        Set the work directory.
+        """
+        self.__configparser.set("Global", "WorkDirectory", work_dir_str)
 
-    @property
-    def ocrlang(self):
+    workdir = property(__get_workdir, __set_workdir)
+
+    def __get_ocrlang(self):
+        """
+        OCR lang. This the lang specified to Tesseract when doing OCR. The
+        string here in the configuration is identical to the one passed to
+        tesseract on the command line.
+
+        String.
+        """
         try:
-            return self.configparser.get("OCR", "Lang")
-        except:
+            return self.__configparser.get("OCR", "Lang")
+        except ConfigParser.NoOptionError:
             return "eng"
 
-    @ocrlang.setter
-    def ocrlang(self, lang):
-        self.configparser.set("OCR", "Lang", lang)
+    def __set_ocrlang(self, lang):
+        """
+        Set the OCR lang
+        """
+        self.__configparser.set("OCR", "Lang", lang)
+
+    ocrlang = property(__get_ocrlang, __set_ocrlang)
 
     def write(self):
-        f = self.configfile
-        print "Writing %s ... " % f
-        with open(f, 'wb') as fd:
-            self.configparser.write(fd)
+        """
+        Rewrite the configuration file. It rewrites the same file than
+        PaperworkConfig.read() read.
+        """
+        file_path = self.__configfile
+        print "Writing %s ... " % file_path
+        with open(file_path, 'wb') as file_descriptor:
+            self.__configparser.write(file_descriptor)
         print "Done"
 

@@ -1,26 +1,37 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkEntryCompletion" id="entrycompletionSearch">
     <property name="model">liststoreSuggestion</property>
   </object>
   <object class="GtkImage" id="imageClear">
     <property name="visible">True</property>
+    <property name="can_focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
   <object class="GtkImage" id="imageNew">
     <property name="visible">True</property>
+    <property name="can_focus">False</property>
     <property name="stock">gtk-new</property>
   </object>
   <object class="GtkImage" id="imageOpen">
     <property name="visible">True</property>
+    <property name="can_focus">False</property>
     <property name="yalign">0.49000000953674316</property>
     <property name="stock">gtk-open</property>
   </object>
   <object class="GtkImage" id="imageScan">
     <property name="visible">True</property>
+    <property name="can_focus">False</property>
     <property name="stock">gtk-index</property>
+  </object>
+  <object class="GtkListStore" id="liststoreLabel">
+    <columns>
+      <!-- column-name tagName -->
+      <column type="gchararray"/>
+      <!-- column-name tagSelected -->
+      <column type="gboolean"/>
+    </columns>
   </object>
   <object class="GtkListStore" id="liststoreMatch">
     <columns>
@@ -32,14 +43,6 @@
     <columns>
       <!-- column-name Pages -->
       <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststoreTag">
-    <columns>
-      <!-- column-name tagName -->
-      <column type="gchararray"/>
-      <!-- column-name tagSelected -->
-      <column type="gboolean"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreSuggestion">
@@ -57,28 +60,35 @@
     </data>
   </object>
   <object class="GtkWindow" id="mainWindow">
+    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Paperwork</property>
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
         <child>
           <object class="GtkMenuBar" id="menubarMainWin">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkMenuItem" id="menuitemFile">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menuFile">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemNew">
                         <property name="label">New document</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
                       </object>
@@ -87,6 +97,8 @@
                       <object class="GtkImageMenuItem" id="menuitemScan">
                         <property name="label">Scan</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="image">imageScan</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
@@ -96,6 +108,8 @@
                       <object class="GtkImageMenuItem" id="menuitemPrint">
                         <property name="label">gtk-print</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -105,6 +119,8 @@
                       <object class="GtkImageMenuItem" id="menuitemDestroy">
                         <property name="label">gtk-delete</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -114,6 +130,8 @@
                       <object class="GtkImageMenuItem" id="menuitemSettings">
                         <property name="label">gtk-preferences</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -122,14 +140,19 @@
                     <child>
                       <object class="GtkMenuItem" id="menuitem1">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="label" translatable="yes">Advanced</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
                           <object class="GtkMenu" id="menu1">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <child>
                               <object class="GtkCheckMenuItem" id="checkmenuitemShowAllBoxes">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Highlight all the words</property>
                                 <property name="use_underline">True</property>
                               </object>
@@ -137,6 +160,8 @@
                             <child>
                               <object class="GtkMenuItem" id="menuitemReOcrAll">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="use_action_appearance">False</property>
                                 <property name="label" translatable="yes">Redo OCR of all documents</property>
                                 <property name="use_underline">True</property>
                               </object>
@@ -149,6 +174,8 @@
                       <object class="GtkImageMenuItem" id="menuitemQuit">
                         <property name="label">gtk-quit</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <property name="always_show_image">True</property>
@@ -161,18 +188,23 @@
             <child>
               <object class="GtkMenuItem" id="menuitemHelp">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu3">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemAbout">
                         <property name="label">gtk-about</property>
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="gtk_widget_show"/>
+                        <signal name="activate" handler="gtk_widget_show" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -182,15 +214,19 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
           <object class="GtkToolbar" id="toolbarMainWin">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkToolButton" id="toolbuttonNew">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">New document</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-new</property>
@@ -203,6 +239,8 @@
             <child>
               <object class="GtkToolButton" id="toolbuttonScan">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Scan</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-index</property>
@@ -215,6 +253,8 @@
             <child>
               <object class="GtkToolButton" id="toolbuttonPrint">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Print</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-print</property>
@@ -227,6 +267,8 @@
             <child>
               <object class="GtkToolButton" id="toolbuttonQuit">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Quit</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-quit</property>
@@ -239,23 +281,28 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
           <object class="GtkHBox" id="hbox1">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkVBox" id="box1">
                 <property name="width_request">200</property>
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
+                <property name="can_focus">False</property>
                 <child>
                   <object class="GtkHBox" id="box2">
                     <property name="visible">True</property>
+                    <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImage" id="image1">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="stock">gtk-find</property>
                       </object>
                       <packing>
@@ -271,6 +318,8 @@
                         <property name="invisible_char">&#x2022;</property>
                       </object>
                       <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -279,6 +328,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="image">imageClear</property>
                       </object>
                       <packing>
@@ -290,6 +340,7 @@
                   </object>
                   <packing>
                     <property name="expand">False</property>
+                    <property name="fill">True</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -308,6 +359,7 @@
                         <child>
                           <object class="GtkViewport" id="viewport4">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <child>
                               <object class="GtkTreeView" id="treeviewMatch">
                                 <property name="visible">True</property>
@@ -315,6 +367,9 @@
                                 <property name="model">liststoreMatch</property>
                                 <property name="headers_visible">False</property>
                                 <property name="search_column">0</property>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection" id="treeview-selection1"/>
+                                </child>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumnDocument">
                                     <property name="title">Documents</property>
@@ -344,6 +399,7 @@
                     <child type="tab">
                       <object class="GtkLabel" id="labelDocs">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Documents</property>
                       </object>
                       <packing>
@@ -359,6 +415,7 @@
                         <child>
                           <object class="GtkViewport" id="viewport1">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <property name="resize_mode">queue</property>
                             <child>
                               <object class="GtkTreeView" id="treeviewPage">
@@ -367,6 +424,9 @@
                                 <property name="model">liststorePage</property>
                                 <property name="headers_visible">False</property>
                                 <property name="search_column">0</property>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection" id="treeview-selection2"/>
+                                </child>
                                 <child>
                                   <object class="GtkTreeViewColumn" id="treeviewcolumnPage">
                                     <property name="title">Pages</property>
@@ -398,6 +458,7 @@
                     <child type="tab">
                       <object class="GtkLabel" id="labelPages">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Pages</property>
                       </object>
                       <packing>
@@ -409,6 +470,7 @@
                       <object class="GtkVBox" id="vbox2">
                         <property name="visible">True</property>
                         <property name="orientation">vertical</property>
+                        <property name="can_focus">False</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow4">
                             <property name="visible">True</property>
@@ -418,14 +480,18 @@
                             <child>
                               <object class="GtkViewport" id="viewport5">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="resize_mode">queue</property>
                                 <child>
                                   <object class="GtkTreeView" id="treeview1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="model">liststoreTag</property>
+                                    <property name="model">liststoreLabel</property>
                                     <property name="headers_clickable">False</property>
                                     <property name="search_column">0</property>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection" id="treeview-selection3"/>
+                                    </child>
                                     <child>
                                       <object class="GtkTreeViewColumn" id="treeviewcolumnTags">
                                         <property name="sizing">autosize</property>
@@ -471,19 +537,23 @@
                             </child>
                           </object>
                           <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
                             <property name="position">0</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="buttonAddTag">
+                          <object class="GtkButton" id="buttonAddLabel">
                             <property name="label">gtk-add</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="use_action_appearance">False</property>
                             <property name="use_stock">True</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
+                            <property name="fill">True</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -493,8 +563,9 @@
                       </packing>
                     </child>
                     <child type="tab">
-                      <object class="GtkLabel" id="labelTags">
+                      <object class="GtkLabel" id="labelLabels">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Labels</property>
                       </object>
                       <packing>
@@ -504,12 +575,15 @@
                     </child>
                   </object>
                   <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="fill">True</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -528,6 +602,7 @@
                     <child>
                       <object class="GtkViewport" id="viewport3">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="resize_mode">queue</property>
                         <child>
                           <object class="GtkTextView" id="textviewPageTxt">
@@ -553,13 +628,16 @@
                     <child>
                       <object class="GtkViewport" id="viewport2">
                         <property name="visible">True</property>
+                        <property name="can_focus">False</property>
                         <property name="resize_mode">queue</property>
                         <child>
                           <object class="GtkEventBox" id="eventboxImg">
                             <property name="visible">True</property>
+                            <property name="can_focus">False</property>
                             <child>
                               <object class="GtkImage" id="imagePageImg">
                                 <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="stock">gtk-missing-image</property>
                               </object>
                             </child>
@@ -575,11 +653,15 @@
                 </child>
               </object>
               <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </object>
           <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
         </child>
@@ -587,9 +669,11 @@
           <object class="GtkProgressBar" id="progressbarMainWin">
             <property name="height_request">25</property>
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="position">3</property>
           </packing>
         </child>

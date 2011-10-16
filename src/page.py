@@ -34,11 +34,11 @@ class ScannedPage(object):
         Don't create directly. Please use ScannedDoc.get_page()
         """
         self.doc = doc
-        self.page = page_nb
-        assert(self.page > 0)
+        self.page_nb = page_nb
+        assert(self.page_nb >= 0)
 
     def _get_filepath(self, ext):
-        return os.path.join(self.doc.docpath, "paper.%d.%s" % (self.page, ext)) # new page
+        return os.path.join(self.doc.path, "paper.%d.%s" % (self.page_nb+1, ext)) # new page
 
     def _get_txt_path(self):
         return self._get_filepath(self.EXT_TXT)
@@ -67,7 +67,7 @@ class ScannedPage(object):
                 char_boxes = tesseract.read_boxes(fd)
             word_boxes = get_word_boxes(txt, char_boxes, callback)
             return word_boxes
-        except Exception, e:
+        except IOError, e:
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
             return []
 
@@ -76,7 +76,7 @@ class ScannedPage(object):
 
     def _draw_box(self, draw, img_size, box, width, color):
         for i in range(2, width + 2):
-            ((a, b), (c, d)) = box.get_position()
+            ((a, b), (c, d)) = box.position
             b = img_size[1] - b
             d = img_size[1] - d
             draw.rectangle(((a-i, b+i), (c+i, d-i)), outline = color)
@@ -105,7 +105,7 @@ class ScannedPage(object):
 
         outfiles = []
         for r in range(0, 2):
-            imgpath = os.path.join(self.doc.docpath, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
+            imgpath = os.path.join(self.doc.path, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
             print "Saving scan (rotated %d degree) in '%s'" % (r * -90, imgpath)
             pic.save(imgpath)
             outfiles.append(imgpath)
@@ -247,12 +247,12 @@ class ScannedPage(object):
         gdkcontext.set_source_pixbuf(pixbuf, left_margin, top_margin)
         gdkcontext.paint()
 
-    def get_page_nb(self):
+    def __get_page_nb(self):
         """
         Indicates which page number this page has. Beware that page numbers
-        starts at 1 here !
+        starts at 0 here even if filenames starts at 1.
         """
-        return self.page
+        return self.page_nb
 
     def get_keywords(self):
         filepath = self._get_txt_path()
@@ -265,9 +265,6 @@ class ScannedPage(object):
             print "ERROR while trying to read keywords from page '%s': %s" % (str(self), str(e))
             return []
         return words
-
-    def get_doc(self):
-        return self.doc
 
     def redo_ocr(self, ocrlang):
         print "Redoing OCR of '%s'" % (str(self))
@@ -285,6 +282,6 @@ class ScannedPage(object):
             tesseract.write_box_file(fd, boxes)
 
     def __str__(self):
-        return "%s p%d" % (str(self.doc), self.page)
+        return "%s p%d" % (str(self.doc), self.page_nb+1)
 
 

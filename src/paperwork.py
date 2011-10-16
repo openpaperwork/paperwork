@@ -3,7 +3,7 @@
 import pygtk
 import gtk
 
-from config import AppConfig
+from config import PaperworkConfig
 from mainwindow import MainWindow
 
 pygtk.require("2.0")
@@ -11,7 +11,8 @@ pygtk.require("2.0")
 def main():
     main_win = None
     try:
-        config = AppConfig()
+        config = PaperworkConfig()
+        config.read()
         main_win = MainWindow(config)
         gtk.main()
     finally:

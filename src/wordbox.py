@@ -14,35 +14,31 @@ class WordBox(object):
         pass
 
     def add_char_box(self, box):
-        box_position = box.get_position()
         if self.position == None:
-            self.position = box_position
+            self.position = box.position
         else:
-            if (self.position[0][0] < box_position[0][0]):
+            if (self.position[0][0] < box.position[0][0]):
                 a_x = self.position[0][0]
             else:
-                a_x = box_position[0][0]
-            if (self.position[0][1] < box_position[0][1]):
+                a_x = box.position[0][0]
+            if (self.position[0][1] < box.position[0][1]):
                 a_y = self.position[0][1]
             else:
-                a_y = box_position[0][1]
-            if (self.position[1][0] > box_position[1][0]):
+                a_y = box.position[0][1]
+            if (self.position[1][0] > box.position[1][0]):
                 b_x = self.position[1][0]
             else:
-                b_x = box_position[1][0]
-            if (self.position[1][1] > box_position[1][1]):
+                b_x = box.position[1][0]
+            if (self.position[1][1] > box.position[1][1]):
                 b_y = self.position[1][1]
             else:
-                b_y = box_position[1][1]
+                b_y = box.position[1][1]
             self.position = ( (a_x, a_y), (b_x, b_y) )
 
     def get_word(self):
         return self.word
 
-    def get_position(self):
-        return self.position
-
-def _get_char_boxes(word, char_boxes):
+def __get_char_boxes(word, char_boxes):
     start_idx = 0
     end_idx = 0
     l_idx = 0
@@ -56,7 +52,7 @@ def _get_char_boxes(word, char_boxes):
         for start_idx in range(0, len(char_boxes)):
             full_match = True
             for l_idx in range(0, len(word)):
-                if char_boxes[start_idx + l_idx].get_char().lower() != word[l_idx].lower():
+                if char_boxes[start_idx + l_idx].char.lower() != word[l_idx].lower():
                     full_match = False
                     break
             if full_match:
@@ -89,7 +85,7 @@ def get_word_boxes(text, char_boxes, callback = dummy_progress_callback):
         words = SPLIT_KEYWORDS_REGEX.split(line)
 
         for word in words:
-            box = _get_char_boxes(word, char_boxes)
+            box = __get_char_boxes(word, char_boxes)
             if box == None:
                 continue
             word_boxes.append(box)

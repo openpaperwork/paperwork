@@ -13,7 +13,7 @@ setup(name="Paperwork",
           'src/aboutdialog.glade',
           'src/mainwindow.glade',
           'src/settingswindow.glade',
-          'src/tagedit.glade',
+          'src/labeledit.glade',
       ])],
       scripts=['scripts/paperwork'],
      )

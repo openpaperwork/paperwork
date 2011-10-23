@@ -32,18 +32,19 @@ class MainWindow:
     WIN_TITLE = "Paperwork"
 
     def __init__(self, config):
-        self.config = config
+        self.__config = config
 
-        self.device = None
-        self.doc = None
-        self.page = None
-        self.docsearch = None
-        self.page_cache = None
-        self.win_size = None
+        self.__device = None
+        self.__doc = None
+        self.__page = None
+        self.__docsearch = None
+        self.__page_cache = None
+        self.__win_size = None # main window size (None = unknown yet)
         self.__label_name_to_obj = { }
 
         self.__widget_tree = load_uifile("mainwindow.glade")
 
+        # the gtk window is a public attribute: dialogs need it
         self.main_window = self.__widget_tree.get_object("mainWindow")
         assert(self.main_window)
         self.__progress_bar = \
@@ -68,8 +69,8 @@ class MainWindow:
         self.__search_field.set_completion(self.__search_completion)
         self.__match_list_ui = self.__widget_tree.get_object("treeviewMatch")
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
-        self.selectors = self.__widget_tree.get_object("notebookSelectors")
-        self.selectors.set_current_page(1) # Page tab
+        self.__selectors = self.__widget_tree.get_object("notebookSelectors")
+        self.__selectors.set_current_page(1) # Page tab
 
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
@@ -81,7 +82,7 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemScan").set_sensitive(False)
         self.__widget_tree.get_object("toolbuttonScan").set_sensitive(False)
 
-        self.page_scaled = True
+        self.__page_scaled = True
         self.new_document()
 
         self.__connect_signals()
@@ -96,7 +97,7 @@ class MainWindow:
             self.__progress_bar.set_text("Initializing scanner ...")
             self.__progress_bar.set_fraction(0.0)
             self.__find_scanner()
-            if self.device != None:
+            if self.__device != None:
                 self.__set_scanner_config()
                 self.__widget_tree.get_object("menuitemScan") \
                         .set_sensitive(True)
@@ -113,7 +114,7 @@ class MainWindow:
         """
         Look for a scanner
         """
-        self.device = None
+        self.__device = None
         if not HAS_SANE:
             # TODO(Jflesch): i18n/l10n
             msg = "python-imaging-sane not found. Scanning will be disabled."
@@ -150,7 +151,7 @@ class MainWindow:
                     return
 
         print "Will use device '%s'" % (str(devices[0]))
-        self.device = sane.open(devices[0][0])
+        self.__device = sane.open(devices[0][0])
 
     def __set_scanner_config(self):
         """
@@ -158,11 +159,11 @@ class MainWindow:
         """
         assert(HAS_SANE)
         try:
-            self.device.resolution = 300
+            self.__device.resolution = 300
         except AttributeError, exc:
             print "WARNING: Can't set scanner resolution: " + exc
         try:
-            self.device.mode = 'Color'
+            self.__device.mode = 'Color'
         except AttributeError, exc:
             print "WARNING: Can't set scanner mode: " + exc
 
@@ -174,7 +175,7 @@ class MainWindow:
             self.__show_busy_cursor()
             self.__progress_bar.set_text("Loading documents ...")
             self.__progress_bar.set_fraction(0.0)
-            self.docsearch = DocSearch(self.config.workdir,
+            self.__docsearch = DocSearch(self.__config.workdir,
                                        self.__cb_progress)
         finally:
             self.__progress_bar.set_text("")
@@ -191,7 +192,7 @@ class MainWindow:
         keywords = SPLIT_KEYWORDS_REGEX.split(txt)
         print "Search: %s" % (str(keywords))
 
-        suggestions = self.docsearch.find_suggestions(keywords)
+        suggestions = self.__docsearch.find_suggestions(keywords)
         print "Got %d suggestions" % len(suggestions)
         self.__liststore_suggestion.clear()
         for suggestion in suggestions:
@@ -202,11 +203,11 @@ class MainWindow:
                 txt += word
             self.__liststore_suggestion.append([txt])
 
-        documents = self.docsearch.find_documents(keywords)
+        documents = self.__docsearch.find_documents(keywords)
         print "Got %d documents" % len(documents)
         self.__match_list.clear()
         for document in reversed(documents):
-            doc = self.docsearch.docs[document]
+            doc = self.__docsearch.docs[document]
             label_str = ""
             for label in doc.labels:
                 label_str += "\n  "
@@ -223,7 +224,7 @@ class MainWindow:
             return False
         selection = selection_path[0].get_value(selection_path[1], 0)
         selection = selection.split("\n")[0]
-        doc = self.docsearch.docs[selection]
+        doc = self.__docsearch.docs[selection]
 
         print "Showing doc %s" % selection
         self.show_doc(doc)
@@ -250,11 +251,11 @@ class MainWindow:
         not, open the settings dialog.
         """
         try:
-            os.stat(self.config.workdir)
+            os.stat(self.__config.workdir)
         except OSError, exc:
             print ("Unable to stat dir '%s': %s --> opening dialog settings"
-                   % (self.config.workdir, exc))
-            SettingsWindow(self, self.config)
+                   % (self.__config.workdir, exc))
+            SettingsWindow(self, self.__config)
             return
 
     def __get_keywords(self):
@@ -277,7 +278,7 @@ class MainWindow:
         # TODO(Jflesch): i18n/l10n
         self.__progress_bar.set_text("Loading image and text ...")
         try:
-            if self.page_scaled:
+            if self.__page_scaled:
                 progress_callback = lambda \
                         progression, total, step = None, doc = None: \
                         self.__cb_progress(progression, total+(total/3),
@@ -287,11 +288,11 @@ class MainWindow:
 
             # Finding word boxes can be pretty slow, so we keep in memory the
             # last image and try to reuse it:
-            if self.page_cache == None or self.page_cache[0] != page:
-                self.page_cache = (page, page.img,
+            if self.__page_cache == None or self.__page_cache[0] != page:
+                self.__page_cache = (page, page.img,
                                    page.get_boxes(progress_callback))
-            img = self.page_cache[1].copy()
-            boxes = self.page_cache[2]
+            img = self.__page_cache[1].copy()
+            boxes = self.__page_cache[2]
 
             if self.__show_all_boxes.get_active():
                 page.draw_boxes(img, boxes, color = (0x6c, 0x5d, 0xd1),
@@ -301,7 +302,7 @@ class MainWindow:
 
             pixbuf = image2pixbuf(img)
 
-            if self.page_scaled:
+            if self.__page_scaled:
                 # TODO(Jflesch): i18n/l10n
                 self.__progress_bar.set_text("Resizing the image ...")
                 gtk_refresh()
@@ -357,14 +358,14 @@ class MainWindow:
             raise Exception("No page selected yet")
         selection = selection_path[0].get_value(selection_path[1], 0)
         # TODO(Jflesch): i18n/l10n
-        page = self.doc.pages[(int(selection[5:]) - 1)]
+        page = self.__doc.pages[(int(selection[5:]) - 1)]
         return page
 
     def __get_current_page(self):
         """
         Returns the page being currently displayed
         """
-        return self.page
+        return self.__page
 
     def __show_page(self, page = None):
         """
@@ -373,8 +374,8 @@ class MainWindow:
         if page == None:
             page = self.__get_current_page()
 
-        self.page = page
-        self.page_scaled = True
+        self.__page = page
+        self.__page_scaled = True
 
         print "Showing page '%s'" % (page)
 
@@ -412,9 +413,9 @@ class MainWindow:
         Switch the scale mode of the page display. Will switch between 1:1
         display and adapted-to-the-window-size display.
         """
-        print "Changing scaling: %d -> %d" % (self.page_scaled,
-                                              not self.page_scaled)
-        self.page_scaled = not self.page_scaled
+        print "Changing scaling: %d -> %d" % (self.__page_scaled,
+                                              not self.__page_scaled)
+        self.__page_scaled = not self.__page_scaled
         self.__refresh_page()
 
     def __cb_progress(self, progression, total, step = None, doc = None):
@@ -441,7 +442,7 @@ class MainWindow:
         Reload and refresh the page list
         """
         self.__page_list.clear()
-        for page in range(1, self.doc.nb_pages+1):
+        for page in range(1, self.__doc.nb_pages+1):
             self.__page_list.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
 
     def __refresh_label_list(self):
@@ -450,9 +451,9 @@ class MainWindow:
         """
         self.__label_name_to_obj = { }
         self.__label_list.clear()
-        if self.docsearch != None and self.doc != None:
-            labels = self.doc.labels
-            for label in self.docsearch.label_list:
+        if self.__docsearch != None and self.__doc != None:
+            labels = self.__doc.labels
+            for label in self.__docsearch.label_list:
                 self.__label_name_to_obj[str(label)] = label
                 self.__label_list.append([ str(label), (label in labels) ])
 
@@ -460,16 +461,16 @@ class MainWindow:
         """
         Scan a new page and append it to the current document
         """
-        assert(self.device)
+        assert(self.__device)
 
         self.__check_workdir()
     
         self.__show_busy_cursor()
         try:
-            self.doc.scan_next_page(self.device, self.config.ocrlang,
+            self.__doc.scan_next_page(self.__device, self.__config.ocrlang,
                                     self.__cb_progress)
-            page = self.doc.pages[self.doc.nb_pages-1]
-            self.docsearch.index_page(page)
+            page = self.__doc.pages[self.__doc.nb_pages-1]
+            self.__docsearch.index_page(page)
             self.__refresh_page_list()
             self.__show_page(page)
             self.__reset_page_vpaned()
@@ -493,7 +494,7 @@ class MainWindow:
             print "Deletion aborted"
             return
         print "Deleting ..."
-        self.doc.destroy()
+        self.__doc.destroy()
         self.new_document()
         print "Deleted"
         self.reindex()
@@ -510,13 +511,13 @@ class MainWindow:
         print_settings.set_scale(100.0 * (72.0 / ScannedPage.PRINT_RESOLUTION))
         print_op.set_print_settings(print_settings)
 
-        print_op.set_n_pages(self.doc.nb_pages)
+        print_op.set_n_pages(self.__doc.nb_pages)
         print_op.set_current_page(self.__get_current_page().page_nb)
         print_op.set_use_full_page(True)
-        print_op.set_job_name(str(self.doc))
-        print_op.set_export_filename(str(self.doc) + ".pdf")
+        print_op.set_job_name(str(self.__doc))
+        print_op.set_export_filename(str(self.__doc) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.doc.print_page_cb)
+        print_op.connect("draw-page", self.__doc.print_page_cb)
         print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
                      self.main_window)
 
@@ -525,7 +526,7 @@ class MainWindow:
         Clear the search field.
         """
         self.__search_field.set_text("")
-        self.selectors.set_current_page(0) # Documents tab
+        self.__selectors.set_current_page(0) # Documents tab
 
     def __redo_ocr_on_all_cb(self, src = None):
         """
@@ -547,8 +548,8 @@ class MainWindow:
             self.__show_busy_cursor()
             self.__progress_bar.set_text("Rereading all documents ...")
             self.__progress_bar.set_fraction(0.0)
-            self.docsearch.redo_ocr(self.__cb_progress,
-                                    self.config.ocrlang)
+            self.__docsearch.redo_ocr(self.__cb_progress,
+                                    self.__config.ocrlang)
         finally:
             self.__progress_bar.set_text("")
             self.__progress_bar.set_fraction(0.0)
@@ -559,9 +560,9 @@ class MainWindow:
         """
         Called each time the main window is resized
         """
-        if self.win_size != allocation:
+        if self.__win_size != allocation:
             print "Main window resized"
-            self.win_size = allocation
+            self.__win_size = allocation
             self.__reset_page_vpaned()
 
     def __add_label_cb(self, objsrc = None):
@@ -571,9 +572,9 @@ class MainWindow:
         labeleditor = LabelEditor()
         if labeleditor.edit(self.main_window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
-                                                 str(self.doc))
-            self.doc.add_label(labeleditor.label)
-            self.docsearch.add_label(labeleditor.label, self.doc)
+                                                 str(self.__doc))
+            self.__doc.add_label(labeleditor.label)
+            self.__docsearch.add_label(labeleditor.label, self.__doc)
         self.__refresh_label_list()
 
     def __label_toggled_cb(self, renderer, objpath):
@@ -581,10 +582,10 @@ class MainWindow:
         Take into account changes made on the checkboxes of labels
         """
         label = self.__label_name_to_obj[self.__label_list[objpath][0]]
-        if label in self.doc.labels:
-            self.doc.remove_label(label)
+        if label in self.__doc.labels:
+            self.__doc.remove_label(label)
         else:
-            self.doc.add_label(label)
+            self.__doc.add_label(label)
         self.__refresh_label_list()
 
     def __show_about_dialog_cb(self, objsrc = None):
@@ -621,7 +622,7 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemAbout").connect("activate",
                 self.__show_about_dialog_cb)
         self.__widget_tree.get_object("menuitemSettings").connect("activate",
-                lambda x: SettingsWindow(self, self.config))
+                lambda x: SettingsWindow(self, self.__config))
         self.__widget_tree.get_object("buttonSearchClear").connect("clicked",
                 self.__clear_search_cb)
         self.__widget_tree.get_object("menuitemReOcrAll").connect("activate",
@@ -631,7 +632,7 @@ class MainWindow:
         self.__widget_tree.get_object("cellrenderertoggle1").connect("toggled",
                 self.__label_toggled_cb)
         self.__search_field.connect("focus-in-event",
-                lambda x, y: self.selectors.set_current_page(0)) # Doc tab
+                lambda x, y: self.__selectors.set_current_page(0)) # Doc tab
         self.__page_list_ui.connect("cursor-changed",
                 self.__show_selected_page_cb)
         self.__page_event_box.connect("button-press-event", 
@@ -653,8 +654,8 @@ class MainWindow:
         """
         Uninit what has been init by the __init__() function
         """
-        if self.device != None:
-            self.device.close()
+        if self.__device != None:
+            self.__device.close()
 
     def __show_doc(self, doc = None):
         """
@@ -662,15 +663,15 @@ class MainWindow:
             doc --- doc.ScannedDoc (see docsearch.DocSearch.docs[])
         """
         if doc != None:
-            self.doc = doc
+            self.__doc = doc
         else:
-            assert(self.doc)
+            assert(self.__doc)
 
-        self.main_window.set_title(str(self.doc) + " - " + self.WIN_TITLE)
+        self.main_window.set_title(str(self.__doc) + " - " + self.WIN_TITLE)
         self.__refresh_page_list()
-        self.page = self.doc.pages[0]
+        self.__page = self.__doc.pages[0]
         print "Showing first page of the doc"
-        self.__show_page(self.page)
+        self.__show_page(self.__page)
         self.__refresh_label_list()
 
     def show_doc(self, doc):
@@ -684,5 +685,5 @@ class MainWindow:
         """
         Start the edition of the new document.
         """
-        self.__show_doc(ScannedDoc(self.config.workdir)) # new document
+        self.__show_doc(ScannedDoc(self.__config.workdir)) # new document
 

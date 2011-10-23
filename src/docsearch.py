@@ -209,7 +209,7 @@ class DocSearch(object):
         Arguments:
             page --- from which keywords must be extracted
         """
-        self.__index_page(page.doc.docpath, page)
+        self.__index_page(page.doc.path, page)
         # remake these two:
         self.__extract_docpaths(dummy_progress_cb)
         self.__extract_keywords(dummy_progress_cb)

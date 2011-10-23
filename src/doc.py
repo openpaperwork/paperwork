@@ -45,24 +45,13 @@ class ScannedDoc(object):
         """
         if docid == None:
             self.docid = time.strftime("%Y%m%d_%H%M_%S")
-            self.__docpath = os.path.join(docpath, self.docid)
+            self.path = os.path.join(docpath, self.docid)
         else:
             self.docid = docid
-            self.__docpath = docpath
+            self.path = docpath
 
     def __str__(self):
         return self.docid
-
-    def __get_path(self):
-        """
-        Get document path. For instance '/home/xxx/papers/2011_10_21'
-
-        Returns:
-            Path (-> String)
-        """
-        return self.__docpath
-
-    path = property(__get_path)
 
     def __get_nb_pages(self):
         """
@@ -72,7 +61,7 @@ class ScannedDoc(object):
         # XXX(Jflesch): We try to not make assumptions regarding file names,
         # except regarding their extensions (.txt/.jpg/etc)
         try:
-            filelist = os.listdir(self.__docpath)
+            filelist = os.listdir(self.path)
             count = 0
             for filename in filelist:
                 if filename[-4:].lower() != "."+ScannedPage.EXT_IMG:
@@ -98,7 +87,7 @@ class ScannedDoc(object):
                 util.dummy_progress_cb for the arguments to expected)
         """
         try:
-            os.makedirs(self.__docpath)
+            os.makedirs(self.path)
         except OSError:
             pass
 
@@ -119,28 +108,25 @@ class ScannedDoc(object):
         """
         Delete the document. The *whole* document. There will be no survirors.
         """
-        print "Destroying doc: %s" % self.__docpath
-        for root, dirs, files in os.walk(self.__docpath, topdown = False):
+        print "Destroying doc: %s" % self.path
+        for root, dirs, files in os.walk(self.path, topdown = False):
             for filename in files:
-                filepath = os.path.join(self.__docpath, filename)
+                filepath = os.path.join(self.path, filename)
                 print "Deleting file %s" % filepath
                 os.unlink(filepath)
             for dirname in dirs:
-                dirpath = os.path.join(self.__docpath, dirname)
+                dirpath = os.path.join(self.path, dirname)
                 print "Deleting dir %s" % dirpath
                 os.rmdir(dirpath)
-        os.rmdir(self.__docpath)
+        os.rmdir(self.path)
         print "Done"
 
-    def print_page(self, print_op, print_context, page_nb):
+    def print_page_cb(self, print_op, print_context, page_nb):
         """
         Called for printing operation by Gtk
-
-        Arguments:
-            page --- Starts counting from 0 !
         """
-        page = ScannedPage(self, page_nb+1)
-        page.print_page(print_op, print_context)
+        page = ScannedPage(self, page_nb)
+        page.print_page_cb(print_op, print_context)
 
     def redo_ocr(self, ocrlang):
         """
@@ -159,7 +145,7 @@ class ScannedDoc(object):
         """
         if label in self.labels:
             return
-        with open(os.path.join(self.__docpath, self.LABEL_FILE), 'a') \
+        with open(os.path.join(self.path, self.LABEL_FILE), 'a') \
                 as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
 
@@ -169,7 +155,7 @@ class ScannedDoc(object):
         """
         labels = self.labels
         labels.remove(to_remove)
-        with open(os.path.join(self.__docpath, self.LABEL_FILE), 'w') \
+        with open(os.path.join(self.path, self.LABEL_FILE), 'w') \
                 as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
@@ -183,7 +169,7 @@ class ScannedDoc(object):
         """
         labels = []
         try:
-            with open(os.path.join(self.__docpath, self.LABEL_FILE), 'r') \
+            with open(os.path.join(self.path, self.LABEL_FILE), 'r') \
                     as file_desc:
                 for line in file_desc.readlines():
                     line = line.strip()
@@ -191,7 +177,7 @@ class ScannedDoc(object):
                     labels.append(Label(name = label_name, color = label_color))
         except IOError, exc:
             print ("Error while reading labels from '%s': %s"
-                   % (self.__docpath, str(exc)))
+                   % (self.path, str(exc)))
         return labels
 
     labels = property(__get_labels)

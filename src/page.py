@@ -281,9 +281,7 @@ class ScannedPage(object):
                                         self.PRINT_RESOLUTION,
                                         self.PRINT_RESOLUTION)
 
-        imgpath = self.__img_path
-
-        pixbuf = gtk.gdk.pixbuf_new_from_file(imgpath)
+        pixbuf = gtk.gdk.pixbuf_new_from_file(self.__img_path)
 
         # take care of rotating the image if required
         if print_context.get_width() <= print_context.get_height():

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+Bootstrapping code
+"""
+
 import pygtk
 import gtk
 
@@ -9,6 +13,9 @@ from mainwindow import MainWindow
 pygtk.require("2.0")
 
 def main():
+    """
+    Where everything start.
+    """
     main_win = None
     try:
         config = PaperworkConfig()

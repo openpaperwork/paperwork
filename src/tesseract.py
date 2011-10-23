@@ -31,7 +31,7 @@ INSTALLATION:
 * Install google tesseract-ocr from http://code.google.com/p/tesseract-ocr/ .
   You must be able to invoke the tesseract command as "tesseract". If this
   isn't the case, for example because tesseract isn't in your PATH, you will
-  have to change the "tesseract_cmd" variable at the top of 'tesseract.py'.
+  have to change the "TESSERACT_CMD" variable at the top of 'tesseract.py'.
 
 
 COPYRIGHT:
@@ -42,7 +42,7 @@ http://wiki.github.com/hoffstaetter/python-tesseract
 '''
 
 # CHANGE THIS IF TESSERACT IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
-tesseract_cmd = 'tesseract'
+TESSERACT_CMD = 'tesseract'
 
 import Image
 import StringIO
@@ -55,13 +55,13 @@ __all__ = ['image_to_string']
 def run_tesseract(input_filename, output_filename_base, lang=None, boxes=False):
     '''
     runs the command:
-        `tesseract_cmd` `input_filename` `output_filename_base`
+        `TESSERACT_CMD` `input_filename` `output_filename_base`
     
     returns the exit status of tesseract, as well as tesseract's stderr output
 
     '''
 
-    command = [tesseract_cmd, input_filename, output_filename_base]
+    command = [TESSERACT_CMD, input_filename, output_filename_base]
     
     if lang is not None:
         command += ['-l', lang]
@@ -111,12 +111,20 @@ def tempnam():
         sys.stderr = stderr
 
 class TesseractError(Exception):
+    """
+    Exception raised when tesseract fails.
+    """
     def __init__(self, status, message):
+        Exception.__init__(message)
         self.status = status
         self.message = message
         self.args = (status, message)
 
 class TesseractBox(object):
+    """
+    Tesseract Box: Tesserax box are rectangles around each individual character
+    recognized in the image.
+    """
     def __init__(self, char, position, page):
         """
         Instantiate a tesseract box
@@ -145,18 +153,17 @@ def read_boxes(file_descriptor):
     """
     Extract of set of TesseractBox from the lines of 'file_descriptor'
     """
-    position_to_box = { } # to figure out which characters go into which box
     boxes = [] # to keep the order of the boxes
     for line in file_descriptor.readlines():
         line = line.strip()
         if line == "":
             continue
-        el = line.split(" ")
-        if len(el) < 6:
+        elements = line.split(" ")
+        if len(elements) < 6:
             continue
-        position = ((int(el[1]), int(el[2])),
-                    (int(el[3]), int(el[4])))
-        box = TesseractBox(unicode(el[0]), position, int(el[5]))
+        position = ((int(elements[1]), int(elements[2])),
+                    (int(elements[3]), int(elements[4])))
+        box = TesseractBox(unicode(elements[0]), position, int(elements[5]))
         boxes.append(box)
     return boxes
 
@@ -194,14 +201,14 @@ def image_to_string(image, lang=None, boxes=False):
                                          boxes=boxes)
         if status:
             raise TesseractError(status, errors)
-        f = open(output_file_name)
+        file_desc = open(output_file_name)
         try:
             if not boxes:
-                return f.read().strip()
+                return file_desc.read().strip()
             else:
-                return read_boxes(f)
+                return read_boxes(file_desc)
         finally:
-            f.close()
+            file_desc.close()
     finally:
         cleanup(input_file_name)
         cleanup(output_file_name)
@@ -225,6 +232,7 @@ if __name__ == '__main__':
             exit(1)
         print image_to_string(image, lang=lang)
     else:
-        sys.stderr.write('Usage: python tesseract.py [-l language] input_file\n')
+        sys.stderr.write(
+            'Usage: python tesseract.py [-l language] input_file\n')
         exit(2)
 

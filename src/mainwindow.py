@@ -44,8 +44,8 @@ class MainWindow:
 
         self.__widget_tree = load_uifile("mainwindow.glade")
 
-        self.__main_window = self.__widget_tree.get_object("mainWindow")
-        assert(self.__main_window)
+        self.main_window = self.__widget_tree.get_object("mainWindow")
+        assert(self.main_window)
         self.__progress_bar = \
                 self.__widget_tree.get_object("progressbarMainWin")
         self.__page_scroll_win = \
@@ -85,7 +85,7 @@ class MainWindow:
         self.new_document()
 
         self.__connect_signals()
-        self.__main_window.set_visible(True)
+        self.main_window.set_visible(True)
         gtk_refresh()
 
         self.__check_workdir()
@@ -117,7 +117,7 @@ class MainWindow:
         if not HAS_SANE:
             # TODO(Jflesch): i18n/l10n
             msg = "python-imaging-sane not found. Scanning will be disabled."
-            dialog = gtk.MessageDialog(parent = self.__main_window,
+            dialog = gtk.MessageDialog(parent = self.main_window,
                                        flags = gtk.DIALOG_MODAL,
                                        type = gtk.MESSAGE_WARNING,
                                        buttons = gtk.BUTTONS_OK,
@@ -139,7 +139,7 @@ class MainWindow:
             if len(devices) == 0:
                 msg = ("No scanner found (is your scanner turned on ?)."
                        + " Look again ?")
-                dialog = gtk.MessageDialog(parent = self.__main_window,
+                dialog = gtk.MessageDialog(parent = self.main_window,
                                            flags = gtk.DIALOG_MODAL,
                                            type = gtk.MESSAGE_WARNING,
                                            buttons = gtk.BUTTONS_YES_NO,
@@ -235,14 +235,14 @@ class MainWindow:
         busy.
         """
         watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
-        self.__main_window.window.set_cursor(watch)
+        self.main_window.window.set_cursor(watch)
         gtk_refresh()
 
     def __show_normal_cursor(self):
         """
         Make sure the mouse cursor if the default one.
         """
-        self.__main_window.window.set_cursor(None)
+        self.main_window.window.set_cursor(None)
 
     def __check_workdir(self):
         """
@@ -288,7 +288,7 @@ class MainWindow:
             # Finding word boxes can be pretty slow, so we keep in memory the
             # last image and try to reuse it:
             if self.page_cache == None or self.page_cache[0] != page:
-                self.page_cache = (page, page.get_img(),
+                self.page_cache = (page, page.img,
                                    page.get_boxes(progress_callback))
             img = self.page_cache[1].copy()
             boxes = self.page_cache[2]
@@ -336,7 +336,7 @@ class MainWindow:
         """
         Update the page text
         """
-        txt = "\n".join(page.get_text())
+        txt = "\n".join(page.text)
         self.__page_txt.get_buffer().set_text(txt)
 
     def __reset_page_vpaned(self):
@@ -482,7 +482,7 @@ class MainWindow:
         """
         Ask for confirmation and then delete the document being viewed.
         """
-        confirm = gtk.MessageDialog(parent = self.__main_window,
+        confirm = gtk.MessageDialog(parent = self.main_window,
                 flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type = gtk.MESSAGE_WARNING,
                 buttons = gtk.BUTTONS_YES_NO,
@@ -516,9 +516,9 @@ class MainWindow:
         print_op.set_job_name(str(self.doc))
         print_op.set_export_filename(str(self.doc) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.doc.print_page)
+        print_op.connect("draw-page", self.doc.print_page_cb)
         print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
-                     self.__main_window)
+                     self.main_window)
 
     def __clear_search_cb(self, objsrc = None):
         """
@@ -533,7 +533,7 @@ class MainWindow:
         """
         # TODO(Jflesch): i18n/l10n
         msg = "This may take a very long time\nAre you sure ?"
-        confirm = gtk.MessageDialog(parent = self.__main_window,
+        confirm = gtk.MessageDialog(parent = self.main_window,
                 flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type = gtk.MESSAGE_WARNING,
                 buttons = gtk.BUTTONS_YES_NO,
@@ -569,7 +569,7 @@ class MainWindow:
         Open the dialog to add a new label, and use it to create the label
         """
         labeleditor = LabelEditor()
-        if labeleditor.edit(self.__main_window):
+        if labeleditor.edit(self.main_window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
                                                  str(self.doc))
             self.doc.add_label(labeleditor.label)
@@ -591,15 +591,15 @@ class MainWindow:
         """
         Create and show the about dialog.
         """
-        about = AboutDialog(self.__main_window)
+        about = AboutDialog(self.main_window)
         about.show()
 
     def __connect_signals(self):
         """
         Connect all the main window signals to their callbacks
         """
-        self.__main_window.connect("destroy", lambda x: self.__destroy())
-        self.__main_window.connect("size-allocate", self.__on_resize_cb)
+        self.main_window.connect("destroy", lambda x: self.__destroy())
+        self.main_window.connect("size-allocate", self.__on_resize_cb)
         self.__widget_tree.get_object("menuitemNew").connect("activate",
                 self.new_document)
         self.__widget_tree.get_object("toolbuttonNew").connect("clicked",
@@ -646,7 +646,7 @@ class MainWindow:
         """
         Destroy the main window and all its associated widgets
         """
-        self.__main_window.destroy()
+        self.main_window.destroy()
         gtk.main_quit()
 
     def cleanup(self):
@@ -666,7 +666,7 @@ class MainWindow:
         else:
             assert(self.doc)
 
-        self.__main_window.set_title(str(self.doc) + " - " + self.WIN_TITLE)
+        self.main_window.set_title(str(self.doc) + " - " + self.WIN_TITLE)
         self.__refresh_page_list()
         self.page = self.doc.pages[0]
         print "Showing first page of the doc"

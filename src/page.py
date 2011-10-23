@@ -1,22 +1,27 @@
+"""
+Code relative to page handling.
+"""
+
 import codecs
 import Image
 import ImageDraw
 import os
 import os.path
 import re
-import time
 
-import cairo
 import gtk
 import PIL
 
 import tesseract
-from util import dummy_progress_callback
+from util import dummy_progress_cb
 from util import strip_accents
 from util import SPLIT_KEYWORDS_REGEX
 from wordbox import get_word_boxes
 
 class ScannedPage(object):
+    """
+    Represents a page. A page is a subelement of ScannedDoc.
+    """
     EXT_TXT = "txt"
     EXT_BOX = "box"
     EXT_IMG_SCAN = "bmp"
@@ -37,58 +42,115 @@ class ScannedPage(object):
         self.page_nb = page_nb
         assert(self.page_nb >= 0)
 
-    def _get_filepath(self, ext):
-        return os.path.join(self.doc.path, "paper.%d.%s" % (self.page_nb+1, ext)) # new page
+    def __get_filepath(self, ext):
+        """
+        Returns a file path relative to this page
+        """
+        return os.path.join(self.doc.path,
+                            "paper.%d.%s" % (self.page_nb+1, ext)) # new page
 
-    def _get_txt_path(self):
-        return self._get_filepath(self.EXT_TXT)
+    def __get_txt_path(self):
+        """
+        Returns the file path of the text corresponding to this page
+        """
+        return self.__get_filepath(self.EXT_TXT)
 
-    def _get_box_path(self):
-        return self._get_filepath(self.EXT_BOX)
+    __txt_path = property(__get_txt_path)
 
-    def _get_img_path(self):
-        return self._get_filepath(self.EXT_IMG)
+    def __get_box_path(self):
+        """
+        Returns the file path of the box list corresponding to this page
+        """
+        return self.__get_filepath(self.EXT_BOX)
 
-    def get_text(self):
-        txtfile = self._get_txt_path()
+    __box_path = property(__get_box_path)
+
+    def __get_img_path(self):
+        """
+        Returns the file path of the image corresponding to this page
+        """
+        return self.__get_filepath(self.EXT_IMG)
+
+    __img_path = property(__get_img_path)
+
+    def __get_text(self):
+        """
+        Get the text corresponding to this page
+        """
+        txtfile = self.__txt_path
         txt = []
-        with codecs.open(txtfile, encoding='utf-8') as fd:
-            for line in fd.readlines():
-                line = line.strip()
-                txt.append(line)
+        try:
+            with codecs.open(txtfile, encoding='utf-8') as file_desc:
+                for line in file_desc.readlines():
+                    line = line.strip()
+                    txt.append(line)
+        except IOError, exc:
+            print "Unable to read [%s]: %s" % (txtfile, str(exc))
         return txt
 
-    def get_boxes(self, callback = dummy_progress_callback):
-        boxfile = self._get_box_path()
-        txt = self.get_text()
+    text = property(__get_text)
+
+    def get_boxes(self, callback = dummy_progress_cb):
+        """
+        Get all the word boxes of this page. Note that this process may take
+        some time (usually 1 to 3 seconds). This is why this is not a property,
+        and this is why this function accept a progression callback argument.
+        """
+        boxfile = self.__box_path
+        txt = self.text
 
         try:
-            with open(boxfile) as fd:
-                char_boxes = tesseract.read_boxes(fd)
+            with open(boxfile) as file_desc:
+                char_boxes = tesseract.read_boxes(file_desc)
             word_boxes = get_word_boxes(txt, char_boxes, callback)
             return word_boxes
-        except IOError, e:
-            print "Unable to get boxes for '%s': %s" % (self.doc.docid, e)
+        except IOError, exc:
+            print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
             return []
 
-    def get_img(self):
-        return Image.open(self._get_img_path())
+    def __get_img(self):
+        """
+        Returns an image object corresponding to the page
+        """
+        return Image.open(self.__img_path)
 
-    def _draw_box(self, draw, img_size, box, width, color):
+    img = property(__get_img)
+
+    @staticmethod
+    def __draw_box(draw, img_size, box, width, color):
+        """
+        Draw a single box. See draw_boxes()
+        """
         for i in range(2, width + 2):
-            ((a, b), (c, d)) = box.position
-            b = img_size[1] - b
-            d = img_size[1] - d
-            draw.rectangle(((a-i, b+i), (c+i, d-i)), outline = color)
+            ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
+            pt_a_y = img_size[1] - pt_a_y
+            pt_b_y = img_size[1] - pt_b_y
+            draw.rectangle(((pt_a_x - i, pt_a_y + i),
+                            (pt_b_x + i, pt_b_y - i)),
+                           outline = color)
 
-    def draw_boxes(self, img, boxes, color, width, keywords = None):
+    @staticmethod
+    def draw_boxes(img, boxes, color, width, keywords = None):
+        """
+        Draw the boxes on the image
+
+        Arguments:
+            img --- the image
+            boxes --- see ScannedPage.boxes
+            color --- a tuple of 3 integers (each of them being 0 < X < 256)
+             indicating the color to use to draw the boxes
+            width --- Width of the line of the boxes
+            keywords --- only draw the boxes for these keywords (None == all
+                the boxes)
+        """
         draw = ImageDraw.Draw(img)
         for box in boxes:
-            if keywords == None or strip_accents(box.get_word().lower().strip()) in keywords:
-                self._draw_box(draw, img.size, box, width, color)
+            if (keywords == None or
+                strip_accents(box.word.lower().strip()) in keywords):
+                ScannedPage.__draw_box(draw, img.size, box, width, color)
         return img
 
-    def _scan(self, device, callback = dummy_progress_callback):
+    def __scan(self, device, callback = dummy_progress_cb):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
@@ -96,23 +158,22 @@ class ScannedPage(object):
         OCR will have to decide which is the best
         """
         callback(0, 100, self.SCAN_STEP_SCAN)
-        try:
-            # TODO(Jflesch): call callback
-            pic = device.scan()
-        except Exception, e:
-            print "ERROR while scanning: %s" % (e)
-            return []
+        # TODO(Jflesch): call callback
+        pic = device.scan()
 
         outfiles = []
-        for r in range(0, 2):
-            imgpath = os.path.join(self.doc.path, ("rotated.%d.%s" % (r, self.EXT_IMG_SCAN)))
-            print "Saving scan (rotated %d degree) in '%s'" % (r * -90, imgpath)
+        for rotation in range(0, 2):
+            imgpath = os.path.join(self.doc.path,
+                    ("rotated.%d.%s" % (rotation, self.EXT_IMG_SCAN)))
+            print ("Saving scan (rotated %d degree) in '%s'"
+                   % (rotation * -90, imgpath))
             pic.save(imgpath)
             outfiles.append(imgpath)
             pic = pic.rotate(-90)
         return outfiles
 
-    def _compute_ocr_score(self, txt):
+    @staticmethod
+    def __compute_ocr_score(txt):
         """
         Try to evaluate how well the OCR worked.
         Current implementation:
@@ -130,15 +191,27 @@ class ScannedPage(object):
         print "Got score of %d" % (score)
         return score
 
-    def _compare_score(self, x, y):
-        if ( x < y ):
+    @staticmethod
+    def __compare_score(score_x, score_y):
+        """
+        Compare scores
+
+        Returns:
+            -1 : if X is lower than Y
+            1 : if X is higher than Y
+            0 : if both are equal
+        """
+        if ( score_x < score_y ):
             return -1
-        elif ( x > y ):
+        elif ( score_x > score_y ):
             return 1
         else:
             return 0
 
-    def _ocr(self, files, ocrlang, callback = dummy_progress_callback):
+    def __ocr(self, files, ocrlang, callback = dummy_progress_cb):
+        """
+        Do the OCR on the page
+        """
         scores = []
 
         i = 0
@@ -148,42 +221,46 @@ class ScannedPage(object):
             print "Running OCR on scan '%s'" % (imgpath)
             txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
             txt = unicode(txt)
-            score = self._compute_ocr_score(txt)
+            score = self.__compute_ocr_score(txt)
             scores.append( (score, imgpath, txt) )
 
         # Note: we want the higher first
-        scores.sort(cmp = lambda x, y: self._compare_score(y[0], x[0]))
+        scores.sort(cmp = lambda x, y: self.__compare_score(y[0], x[0]))
 
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
 
         print "Extracting boxes ..."
         callback(i, len(files)+1, self.SCAN_STEP_OCR)
-        boxes = tesseract.image_to_string(Image.open(scores[0][1]), lang=ocrlang, boxes=True)
+        boxes = tesseract.image_to_string(Image.open(scores[0][1]),
+                                          lang=ocrlang, boxes=True)
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, callback = dummy_progress_callback):
-        imgfile = self._get_img_path()
-        txtfile = self._get_txt_path()
-        boxfile = self._get_box_path()
+    def scan_page(self, device, ocrlang, callback = dummy_progress_cb):
+        """
+        Scan the page & do OCR
+        """
+        imgfile = self.__img_path
+        txtfile = self.__txt_path
+        boxfile = self.__box_path
 
         callback(0, 100, self.SCAN_STEP_SCAN)
-        outfiles = self._scan(device, callback)
+        outfiles = self.__scan(device, callback)
         callback(0, 100, self.SCAN_STEP_OCR)
-        (bmpfile, txt, boxes) = self._ocr(outfiles, ocrlang, callback)
+        (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 
         # Convert the image and save it in its final place
-        im = PIL.Image.open(bmpfile)
-        im.save(imgfile)
+        img = PIL.Image.open(bmpfile)
+        img.save(imgfile)
 
         # Save the text
-        with open(txtfile, 'w') as fd:
-            fd.write(txt)
+        with open(txtfile, 'w') as file_desc:
+            file_desc.write(txt)
 
         # Save the boxes
-        with open(boxfile, 'w') as fd:
-            tesseract.write_box_file(fd, boxes)
+        with open(boxfile, 'w') as file_desc:
+            tesseract.write_box_file(file_desc, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -191,7 +268,7 @@ class ScannedPage(object):
 
         print "Scan done"
 
-    def print_page(self, print_op, print_context,):
+    def print_page_cb(self, print_op, print_context):
         """
         Called for printing operation by Gtk
         """
@@ -200,9 +277,11 @@ class ScannedPage(object):
 
         # By default, the context is using 72 dpi, which is by far not enough
         # --> we change it to PRINT_RESOLUTION dpi
-        print_context.set_cairo_context(print_context.get_cairo_context(), self.PRINT_RESOLUTION, self.PRINT_RESOLUTION)
+        print_context.set_cairo_context(print_context.get_cairo_context(),
+                                        self.PRINT_RESOLUTION,
+                                        self.PRINT_RESOLUTION)
 
-        imgpath = self._get_img_path()
+        imgpath = self.__img_path
 
         pixbuf = gtk.gdk.pixbuf_new_from_file(imgpath)
 
@@ -237,49 +316,53 @@ class ScannedPage(object):
 
         new_w = int(print_context.get_width() - left_margin - right_margin)
         new_h = int(print_context.get_height() - top_margin - bottom_margin)
-        print "DPI: %fx%f" % (print_context.get_dpi_x(), print_context.get_dpi_y())
+        print "DPI: %fx%f" % (print_context.get_dpi_x(),
+                              print_context.get_dpi_y())
         print "Scaling it down to %fx%f..." % (new_w, new_h)
         pixbuf = pixbuf.scale_simple(new_w, new_h, gtk.gdk.INTERP_BILINEAR)
 
         # .. and print !
-        cr = print_context.get_cairo_context()
-        gdkcontext = gtk.gdk.CairoContext(cr)
+        cairo_context = print_context.get_cairo_context()
+        gdkcontext = gtk.gdk.CairoContext(cairo_context)
         gdkcontext.set_source_pixbuf(pixbuf, left_margin, top_margin)
         gdkcontext.paint()
 
-    def __get_page_nb(self):
+    def __get_keywords(self):
         """
-        Indicates which page number this page has. Beware that page numbers
-        starts at 0 here even if filenames starts at 1.
-        """
-        return self.page_nb
+        Get all the keywords related of this page
 
-    def get_keywords(self):
-        filepath = self._get_txt_path()
+        Returns:
+            An array of strings
+        """
         words = []
-        try:
-            for line in self.get_text():
-                for word in SPLIT_KEYWORDS_REGEX.split(line): # TODO: i18n/l10n
-                    words.append(word)
-        except Exception, e:
-            print "ERROR while trying to read keywords from page '%s': %s" % (str(self), str(e))
-            return []
+        for line in self.text:
+            for word in SPLIT_KEYWORDS_REGEX.split(line): # TODO: i18n/l10n
+                words.append(word)
         return words
 
+    keywords = property(__get_keywords)
+
     def redo_ocr(self, ocrlang):
+        """
+        Rerun the OCR on the document
+
+        Arguments:
+            ocrlang --- lang to specify to the OCR tool
+        """
         print "Redoing OCR of '%s'" % (str(self))
 
-        imgfile = self._get_img_path()
-        txtfile = self._get_txt_path()
-        boxfile = self._get_box_path()
+        imgfile = self.__img_path
+        txtfile = self.__txt_path
+        boxfile = self.__box_path
 
-        (imgfile, txt, boxes) = self._ocr([ imgfile ], ocrlang, dummy_progress_callback)
+        (imgfile, txt, boxes) = self.__ocr([ imgfile ], ocrlang,
+                                           dummy_progress_cb)
         # save the text
-        with open(txtfile, 'w') as fd:
-            fd.write(txt)
+        with open(txtfile, 'w') as file_desc:
+            file_desc.write(txt)
         # save the boxes
-        with open(boxfile, 'w') as fd:
-            tesseract.write_box_file(fd, boxes)
+        with open(boxfile, 'w') as file_desc:
+            tesseract.write_box_file(file_desc, boxes)
 
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb+1)

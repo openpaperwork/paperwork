@@ -8,7 +8,7 @@ import time
 
 from page import ScannedPage
 from labels import Label
-from util import dummy_progress_callback
+from util import dummy_progress_cb
 
 class ScannedPageList(object):
     """
@@ -87,7 +87,7 @@ class ScannedDoc(object):
     nb_pages = property(__get_nb_pages)
 
     def scan_next_page(self, device, ocrlang,
-                       callback = dummy_progress_callback):
+                       callback = dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document
 
@@ -95,7 +95,7 @@ class ScannedDoc(object):
             device --- Sane device (see sane.open())
             ocrlang --- Language to specify to the OCR tool
             callback -- Progression indication callback (see
-                util.dummy_progress_callback for the arguments to expected)
+                util.dummy_progress_cb for the arguments to expected)
         """
         try:
             os.makedirs(self.__docpath)

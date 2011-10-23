@@ -1,4 +1,8 @@
-from util import dummy_progress_callback
+"""
+Code to guess word boxes (ie rectangles) from characters boxes + the text.
+"""
+
+from util import dummy_progress_cb
 from util import SPLIT_KEYWORDS_REGEX
 
 class WordBox(object):
@@ -11,9 +15,11 @@ class WordBox(object):
     def __init__(self, word):
         self.word = word
         self.position = None
-        pass
 
     def add_char_box(self, box):
+        """
+        Add a character box to this word box.
+        """
         if self.position == None:
             self.position = box.position
         else:
@@ -35,10 +41,19 @@ class WordBox(object):
                 b_y = box.position[1][1]
             self.position = ( (a_x, a_y), (b_x, b_y) )
 
-    def get_word(self):
-        return self.word
-
 def __get_char_boxes(word, char_boxes):
+    """
+    Look for the box of the word 'word', using the given char_boxes. Note that
+    once the word is found, the used character boxes will be removed from
+    char_boxes.
+
+    Arguments:
+        word --- the word for which we are looking for its box
+        char_boxes --- all the remaining character boxes, up to now
+
+    Returns:
+        The word box. None if not found.
+    """
     start_idx = 0
     end_idx = 0
     l_idx = 0
@@ -52,13 +67,14 @@ def __get_char_boxes(word, char_boxes):
         for start_idx in range(0, len(char_boxes)):
             full_match = True
             for l_idx in range(0, len(word)):
-                if char_boxes[start_idx + l_idx].char.lower() != word[l_idx].lower():
+                if (char_boxes[start_idx + l_idx].char.lower()
+                    != word[l_idx].lower()):
                     full_match = False
                     break
             if full_match:
                 end_idx = start_idx + len(word)
                 break
-    except IndexError, e:
+    except IndexError:
         full_match = False
     if not full_match:
         #print "Word %s not found in boxes" % (word)
@@ -74,8 +90,17 @@ def __get_char_boxes(word, char_boxes):
         char_boxes.remove(box)
     return word_box
 
-def get_word_boxes(text, char_boxes, callback = dummy_progress_callback):
-    char_box_idx = 0
+def get_word_boxes(text, char_boxes, callback = dummy_progress_cb):
+    """
+    Try to deduce the word boxes, based on a text and character boxes (see
+    tesseract.TesseractBox). This process may take time. This is why this
+    function takes a progression callback as argument.
+
+    Arguments:
+        text --- array of lines
+        char_boxes --- tesseract.TesseractBox
+        callback --- progression callback (see dummy_progress_cb)
+    """
     word_boxes = []
 
     callback(0, len(text))

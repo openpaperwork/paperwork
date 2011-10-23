@@ -1,3 +1,7 @@
+"""
+Various tiny functions that didn't fit anywhere else.
+"""
+
 import os
 import re
 import StringIO
@@ -5,10 +9,14 @@ import unicodedata
 
 import glib
 import gtk
-import PIL
-import pygtk
 
 SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*!-]", re.UNICODE)
+UI_FILES_DIRS = [
+    ".",
+    "src",
+    "/usr/local/share/paperwork",
+    "/usr/share/paperwork",
+]
 
 def load_uifile(filename):
     """
@@ -24,43 +32,49 @@ def load_uifile(filename):
     Throws:
         Exception -- If the file cannot be found
     """
-    UI_FILES_DIRS = [
-        ".",
-        "src",
-        "/usr/local/share/paperwork",
-        "/usr/share/paperwork",
-    ]
-
-    wTree = gtk.Builder()
+    widget_tree = gtk.Builder()
     has_ui_file = False
     for ui_dir in UI_FILES_DIRS:
-        ui_file = os.path.join(ui_dir, filename);
+        ui_file = os.path.join(ui_dir, filename)
         try:
-            wTree.add_from_file(ui_file)
-        except glib.GError, e:
-            print "Try to used UI file %s but failed: %s" % (ui_file, str(e))
+            widget_tree.add_from_file(ui_file)
+        except glib.GError, exc:
+            print "Try to used UI file %s but failed: %s" % (ui_file, str(exc))
             continue
         has_ui_file = True
         print "UI file used: " + ui_file
         break
     if not has_ui_file:
         raise Exception("Can't find ressource file. Aborting")
-    return wTree
+    return widget_tree
 
-def strip_accents(s):
-   return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+def strip_accents(string):
+    """
+    Strip all the accents from the string
+    """
+    return ''.join(
+        (character for character in unicodedata.normalize('NFD', string)
+         if unicodedata.category(character) != 'Mn'))
 
 def gtk_refresh():
+    """
+    Force a refresh of all GTK windows.
+
+    Warning: will also tell GTK to handle all events.
+    """
     while gtk.events_pending():
         gtk.main_iteration()
 
-def image2pixbuf(im):
-    fd = StringIO.StringIO()
+def image2pixbuf(img):
+    """
+    Convert an image object to a gdk pixbuf
+    """
+    file_desc = StringIO.StringIO()
     try:
-        im.save(fd, "ppm")
-        contents = fd.getvalue()
+        img.save(file_desc, "ppm")
+        contents = file_desc.getvalue()
     finally:
-        fd.close()
+        file_desc.close()
     loader = gtk.gdk.PixbufLoader("pnm")
     try:
         loader.write(contents, len(contents))
@@ -69,6 +83,9 @@ def image2pixbuf(im):
         loader.close()
     return pixbuf
 
-def dummy_progress_callback(progression, total, step = None, doc = None):
+def dummy_progress_cb(progression, total, step = None, doc = None):
+    """
+    Dummy progression callback. Do nothing.
+    """
     pass
 

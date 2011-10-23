@@ -8,7 +8,7 @@ import time
 import threading
 
 from doc import ScannedDoc
-from util import dummy_progress_callback
+from util import dummy_progress_cb
 from util import strip_accents
 
 class DocList(object):
@@ -41,7 +41,7 @@ class DocSearch(object):
     OCR_MAX_THREADS = 4
     OCR_SLEEP_TIME = 0.5
 
-    def __init__(self, rootdir, callback = dummy_progress_callback):
+    def __init__(self, rootdir, callback = dummy_progress_cb):
         """
         Index files in rootdir (see constructor)
 
@@ -108,14 +108,14 @@ class DocSearch(object):
             won't update all the index. see self.index_page() for that.
         """
         print "Indexing '%s'" % str(page)
-        for word in page.get_keywords():
+        for word in page.keywords:
             word = self.__simplify(word)
             if len(word) < self.MIN_KEYWORD_LEN:
                 continue
             self.__index_keyword(word, docpath)
 
     def __index_dir(self, dirpath, progression = 0, total = 0,
-                    callback = dummy_progress_callback):
+                    callback = dummy_progress_cb):
         """
         Look in the given directory for documents to index.
 
@@ -125,7 +125,7 @@ class DocSearch(object):
                 indicator callback
             total --- maximum value for the progression level
             callback -- progression indicator callback (see
-                util.dummy_progress_callback)
+                util.dummy_progress_cb)
         """
         try:
             dlist = os.listdir(dirpath)
@@ -165,7 +165,7 @@ class DocSearch(object):
             print "Warning: Invalid document path: %s" % (docpath)
             return docpath
 
-    def __extract_docpaths(self, callback = dummy_progress_callback):
+    def __extract_docpaths(self, callback = dummy_progress_cb):
         """
         Create an index docid->docpaths (self.__docids_to_docspaths) based on self.__keywords_to_docpaths
         """
@@ -176,7 +176,7 @@ class DocSearch(object):
                 if not self.__docids_to_docspaths.has_key(docid):
                     self.__docids_to_docspaths[docid] = docpath
 
-    def __extract_keywords(self, callback = dummy_progress_callback):
+    def __extract_keywords(self, callback = dummy_progress_cb):
         """
         Extract and index all the keywords from all the documents in
         self.rootdir.
@@ -189,13 +189,13 @@ class DocSearch(object):
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.__keywords.sort()
 
-    def __index(self, callback = dummy_progress_callback):
+    def __index(self, callback = dummy_progress_cb):
         """
         Index all the documents in self.rootdir.
 
         Arguments:
             callback --- progression indicator callback (see
-                util.dummy_progress_callback)
+                util.dummy_progress_cb)
         """
         self.__reset_data()
         self.__index_dir(self.rootdir, callback = callback)
@@ -211,8 +211,8 @@ class DocSearch(object):
         """
         self.__index_page(page.doc.docpath, page)
         # remake these two:
-        self.__extract_docpaths(dummy_progress_callback)
-        self.__extract_keywords(dummy_progress_callback)
+        self.__extract_docpaths(dummy_progress_cb)
+        self.__extract_keywords(dummy_progress_cb)
 
     def __get_keyword_suggestions(self, keyword):
         """
@@ -473,7 +473,7 @@ class DocSearch(object):
         which is why progress_callback is a mandatory argument.
 
         Arguments:
-            progress_callback --- See util.dummy_progress_callback for a
+            progress_callback --- See util.dummy_progress_cb for a
                 prototype. The only step returned is "INDEX_STEP_READING"
             ocrlang --- Language to specify to the OCR tool (see
                 config.PaperworkConfig.ocrlang)

@@ -5,16 +5,12 @@ Code relative to the main window management.
 import os
 
 import gtk
-try:
-    import sane
-    HAS_SANE = True
-except ImportError:
-    HAS_SANE = False
 
 from aboutdialog import AboutDialog
 from doc import ScannedDoc
 from page import ScannedPage
 from docsearch import DocSearch
+from scanner import PaperworkScanner
 from settingswindow import SettingsWindow
 from labels import LabelEditor
 from util import gtk_refresh
@@ -34,7 +30,7 @@ class MainWindow:
     def __init__(self, config):
         self.__config = config
 
-        self.__device = None
+        self.__device = PaperworkScanner()
         self.__doc = None
         self.__page = None
         self.__docsearch = None
@@ -79,8 +75,11 @@ class MainWindow:
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
 
-        self.__widget_tree.get_object("menuitemScan").set_sensitive(False)
-        self.__widget_tree.get_object("toolbuttonScan").set_sensitive(False)
+        self.__widget_tree.get_object("menuitemScan").set_sensitive(self.__device.state[0])
+        self.__widget_tree.get_object("toolbuttonScan").set_sensitive(self.__device.state[0])
+        tooltip = gtk.Tooltips()
+        tooltip.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
+                        self.__device.state[1])
 
         self.__page_scaled = True
         self.new_document()
@@ -92,80 +91,7 @@ class MainWindow:
         self.__check_workdir()
 
         self.__show_busy_cursor()
-        gtk_refresh()
-        try:
-            self.__progress_bar.set_text("Initializing scanner ...")
-            self.__progress_bar.set_fraction(0.0)
-            self.__find_scanner()
-            if self.__device != None:
-                self.__set_scanner_config()
-                self.__widget_tree.get_object("menuitemScan") \
-                        .set_sensitive(True)
-                self.__widget_tree.get_object("toolbuttonScan") \
-                        .set_sensitive(True)
-        finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
-            self.__show_normal_cursor()
-
         self.reindex()
-
-    def __find_scanner(self):
-        """
-        Look for a scanner
-        """
-        self.__device = None
-        if not HAS_SANE:
-            # TODO(Jflesch): i18n/l10n
-            msg = "python-imaging-sane not found. Scanning will be disabled."
-            dialog = gtk.MessageDialog(parent = self.main_window,
-                                       flags = gtk.DIALOG_MODAL,
-                                       type = gtk.MESSAGE_WARNING,
-                                       buttons = gtk.BUTTONS_OK,
-                                       message_format = msg)
-            dialog.run()
-            dialog.destroy()
-            return
-        self.__progress_bar.set_text("Initializing sane ...")
-        self.__progress_bar.set_fraction(0.0)
-        gtk_refresh()
-        sane.init()
-    
-        devices = []
-        while len(devices) == 0:
-            self.__progress_bar.set_text("Looking for a scanner ...")
-            self.__progress_bar.set_fraction(0.2)
-            gtk_refresh()
-            devices = sane.get_devices()
-            if len(devices) == 0:
-                msg = ("No scanner found (is your scanner turned on ?)."
-                       + " Look again ?")
-                dialog = gtk.MessageDialog(parent = self.main_window,
-                                           flags = gtk.DIALOG_MODAL,
-                                           type = gtk.MESSAGE_WARNING,
-                                           buttons = gtk.BUTTONS_YES_NO,
-                                           message_format = msg)
-                response = dialog.run()
-                dialog.destroy()
-                if response == gtk.RESPONSE_NO:
-                    return
-
-        print "Will use device '%s'" % (str(devices[0]))
-        self.__device = sane.open(devices[0][0])
-
-    def __set_scanner_config(self):
-        """
-        Set the scanner settings
-        """
-        assert(HAS_SANE)
-        try:
-            self.__device.resolution = 300
-        except AttributeError, exc:
-            print "WARNING: Can't set scanner resolution: " + exc
-        try:
-            self.__device.mode = 'Color'
-        except AttributeError, exc:
-            print "WARNING: Can't set scanner mode: " + exc
 
     def reindex(self):
         """
@@ -461,8 +387,6 @@ class MainWindow:
         """
         Scan a new page and append it to the current document
         """
-        assert(self.__device)
-
         self.__check_workdir()
     
         self.__show_busy_cursor()

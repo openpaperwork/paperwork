@@ -5,6 +5,7 @@ Bootstrapping code
 """
 
 import pygtk
+import gobject
 import gtk
 
 from config import PaperworkConfig
@@ -16,6 +17,7 @@ def main():
     """
     Where everything start.
     """
+    gobject.threads_init()
     main_win = None
     try:
         config = PaperworkConfig()

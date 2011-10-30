@@ -19,11 +19,11 @@ class PaperworkScanner(object):
     def __init__(self):
         # state = (X, Y):
         # X = True/False: True = sane is init ; False = cannot scan
-        # Y = reason (string)
+        # Y = Scan action status (string)
         self.__device = None
         self.state = (False, "Sane module not found") # TODO(Jflesch): l10n
         if HAS_SANE:
-            self.state = (True, "Can scan") # TODO(Jflesch): l10n
+            self.state = (True, "Scan new page") # TODO(Jflesch): l10n
 
     @staticmethod
     def __look_for_scanner():

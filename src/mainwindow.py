@@ -388,6 +388,8 @@ class MainWindow:
         Scan a new page and append it to the current document
         """
         self.__check_workdir()
+
+        self.__selectors.set_current_page(1) # Page tab
     
         self.__show_busy_cursor()
         try:
@@ -609,5 +611,6 @@ class MainWindow:
         """
         Start the edition of the new document.
         """
+        self.__selectors.set_current_page(1) # Page tab
         self.__show_doc(ScannedDoc(self.__config.workdir)) # new document
 

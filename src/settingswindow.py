@@ -7,19 +7,20 @@ import os
 
 from util import load_uifile
 
+
 class SettingsWindow(object):
     """
     Settings window.
     """
     OCR_LANGS = {
-        "deu" : "German",
-        "eng" : "English",
-        "fra" : "French",
-        "ita" : "Italian",
-        "nld" : "Dutch",
-        "port" : "Portuguese",
-        "spa" : "Spanish",
-        "vie" : "Vietnamese",
+        "deu": "German",
+        "eng": "English",
+        "fra": "French",
+        "ita": "Italian",
+        "nld": "Dutch",
+        "port": "Portuguese",
+        "spa": "Spanish",
+        "vie": "Vietnamese",
     }
     OCR_LANGS_REVERSE = dict((value, keyword) \
                              for keyword, value in OCR_LANGS.iteritems())
@@ -33,7 +34,7 @@ class SettingsWindow(object):
         self.__settings_win.set_transient_for(mainwindow.main_window)
         assert(self.__settings_win)
 
-        self.__ocrlangs_widget = gtk.combo_box_new_text() # default
+        self.__ocrlangs_widget = gtk.combo_box_new_text()   # default
 
         self.__connect_signals()
         self.__fill_in_form()
@@ -126,4 +127,3 @@ class SettingsWindow(object):
         Hide and destroy the settings window.
         """
         self.__widget_tree.get_object("windowSettings").destroy()
-

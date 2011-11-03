@@ -18,13 +18,15 @@ UI_FILES_DIRS = [
     "/usr/share/paperwork",
 ]
 
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
 
     Arguments:
-        filename -- glade filename to load. Must not contain any directory name, just the filename.
-            This function will (try to) figure out where it must be found.
+        filename -- glade filename to load. Must not contain any directory
+            name, just the filename. This function will (try to) figure out
+            where it must be found.
 
     Returns:
         GTK Widget tree
@@ -48,6 +50,7 @@ def load_uifile(filename):
         raise Exception("Can't find ressource file. Aborting")
     return widget_tree
 
+
 def strip_accents(string):
     """
     Strip all the accents from the string
@@ -55,6 +58,7 @@ def strip_accents(string):
     return ''.join(
         (character for character in unicodedata.normalize('NFD', string)
          if unicodedata.category(character) != 'Mn'))
+
 
 def gtk_refresh():
     """
@@ -64,6 +68,7 @@ def gtk_refresh():
     """
     while gtk.events_pending():
         gtk.main_iteration()
+
 
 def image2pixbuf(img):
     """
@@ -83,9 +88,9 @@ def image2pixbuf(img):
         loader.close()
     return pixbuf
 
-def dummy_progress_cb(progression, total, step = None, doc = None):
+
+def dummy_progress_cb(progression, total, step=None, doc=None):
     """
     Dummy progression callback. Do nothing.
     """
     pass
-

@@ -11,6 +11,7 @@ except ImportError, e:
     print "Sane support disabled, because of: %s" % (e)
     HAS_SANE = False
 
+
 class PaperworkScanner(object):
     """
     Handle a scanner. Please note that the scanner init is done in a
@@ -21,9 +22,9 @@ class PaperworkScanner(object):
         # X = True/False: True = sane is init ; False = cannot scan
         # Y = Scan action status (string)
         self.__device = None
-        self.state = (False, "Sane module not found") # TODO(Jflesch): l10n
+        self.state = (False, "Sane module not found")   # TODO(Jflesch): l10n
         if HAS_SANE:
-            self.state = (True, "Scan new page") # TODO(Jflesch): l10n
+            self.state = (True, "Scan new page")    # TODO(Jflesch): l10n
 
     @staticmethod
     def __look_for_scanner():
@@ -40,10 +41,10 @@ class PaperworkScanner(object):
             if len(devices) == 0:
                 msg = ("No scanner found (is your scanner turned on ?)."
                        + " Look again ?")
-                dialog = gtk.MessageDialog(flags = gtk.DIALOG_MODAL,
-                                           type = gtk.MESSAGE_WARNING,
-                                           buttons = gtk.BUTTONS_YES_NO,
-                                           message_format = msg)
+                dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                           type=gtk.MESSAGE_WARNING,
+                                           buttons=gtk.BUTTONS_YES_NO,
+                                           message_format=msg)
                 response = dialog.run()
                 dialog.destroy()
                 if response == gtk.RESPONSE_NO:
@@ -70,4 +71,3 @@ class PaperworkScanner(object):
         if self.__device == None:
             self.__device = self.__look_for_scanner()
         return self.__device.scan()
-

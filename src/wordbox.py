@@ -5,6 +5,7 @@ Code to guess word boxes (ie rectangles) from characters boxes + the text.
 from util import dummy_progress_cb
 from util import SPLIT_KEYWORDS_REGEX
 
+
 class WordBox(object):
     """
     Indicates where a specific word has been read on a page
@@ -39,7 +40,8 @@ class WordBox(object):
                 b_y = self.position[1][1]
             else:
                 b_y = box.position[1][1]
-            self.position = ( (a_x, a_y), (b_x, b_y) )
+            self.position = ((a_x, a_y), (b_x, b_y))
+
 
 def __get_char_boxes(word, char_boxes):
     """
@@ -90,7 +92,8 @@ def __get_char_boxes(word, char_boxes):
         char_boxes.remove(box)
     return word_box
 
-def get_word_boxes(text, char_boxes, callback = dummy_progress_cb):
+
+def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
     """
     Try to deduce the word boxes, based on a text and character boxes (see
     tesseract.TesseractBox). This process may take time. This is why this
@@ -119,4 +122,3 @@ def get_word_boxes(text, char_boxes, callback = dummy_progress_cb):
 
     callback(len(text), len(text))
     return word_boxes
-

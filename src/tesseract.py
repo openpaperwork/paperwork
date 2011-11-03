@@ -52,17 +52,19 @@ import os
 
 __all__ = ['image_to_string']
 
-def run_tesseract(input_filename, output_filename_base, lang=None, boxes=False):
+
+def run_tesseract(input_filename, output_filename_base, lang=None,
+                  boxes=False):
     '''
     runs the command:
         `TESSERACT_CMD` `input_filename` `output_filename_base`
-    
+
     returns the exit status of tesseract, as well as tesseract's stderr output
 
     '''
 
     command = [TESSERACT_CMD, input_filename, output_filename_base]
-    
+
     if lang is not None:
         command += ['-l', lang]
 
@@ -79,12 +81,14 @@ def run_tesseract(input_filename, output_filename_base, lang=None, boxes=False):
     errors = proc.stderr.read()
     return (proc.wait(), errors)
 
+
 def cleanup(filename):
     ''' tries to remove the given filename. Ignores non-existent files '''
     try:
         os.remove(filename)
     except OSError:
         pass
+
 
 def get_errors(error_string):
     '''
@@ -99,6 +103,7 @@ def get_errors(error_string):
     else:
         return error_string.strip()
 
+
 def tempnam():
     ''' returns a temporary file-name '''
 
@@ -110,6 +115,7 @@ def tempnam():
     finally:
         sys.stderr = stderr
 
+
 class TesseractError(Exception):
     """
     Exception raised when tesseract fails.
@@ -119,6 +125,7 @@ class TesseractError(Exception):
         self.status = status
         self.message = message
         self.args = (status, message)
+
 
 class TesseractBox(object):
     """
@@ -131,7 +138,8 @@ class TesseractBox(object):
 
         Arguments:
             char --- character found in this box
-            position --- the position of the box on the image. Given as a tuple of tuple:
+            position --- the position of the box on the image. Given as a
+                tuple of tuple:
                 ((width_pt_x, height_pt_x), (width_pt_y, height_pt_y))
             page --- page number, as specified in the box file (usually 0)
         """
@@ -149,11 +157,12 @@ class TesseractBox(object):
             self.page
         )
 
+
 def read_boxes(file_descriptor):
     """
     Extract of set of TesseractBox from the lines of 'file_descriptor'
     """
-    boxes = [] # to keep the order of the boxes
+    boxes = []  # to keep the order of the boxes
     for line in file_descriptor.readlines():
         line = line.strip()
         if line == "":
@@ -167,9 +176,11 @@ def read_boxes(file_descriptor):
         boxes.append(box)
     return boxes
 
+
 def write_box_file(file_descriptor, boxes):
     """
-    Write boxes in a box file. Output is in a the same format than tesseract's one.
+    Write boxes in a box file. Output is in a the same format than tesseract's
+    one.
     """
     for box in boxes:
         file_descriptor.write(str(box) + "\n")
@@ -213,6 +224,7 @@ def image_to_string(image, lang=None, boxes=False):
         cleanup(input_file_name)
         cleanup(output_file_name)
 
+
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         filename = sys.argv[1]
@@ -235,4 +247,3 @@ if __name__ == '__main__':
         sys.stderr.write(
             'Usage: python tesseract.py [-l language] input_file\n')
         exit(2)
-

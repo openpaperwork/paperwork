@@ -6,12 +6,13 @@ import gtk
 
 from util import load_uifile
 
+
 class Label(object):
     """
     Represents a Label (color + string).
     """
 
-    def __init__(self, name = "", color = "#000000000000"):
+    def __init__(self, name="", color="#000000000000"):
         """
         Arguments:
             name --- label name
@@ -25,39 +26,49 @@ class Label(object):
         Comparaison function. Can be used to sort labels alphabetically.
         """
         return cmp(self.name, other.name)
+
     def __lt__(self, other):
         return self.__label_cmp(other) < 0
+
     def __gt__(self, other):
         return self.__label_cmp(other) > 0
+
     def __eq__(self, other):
         return self.__label_cmp(other) == 0
+
     def __le__(self, other):
         return self.__label_cmp(other) <= 0
+
     def __ge__(self, other):
         return self.__label_cmp(other) >= 0
+
     def __ne__(self, other):
         return self.__label_cmp(other) != 0
+
     def get_html_color(self):
         """
         get a string representing the color, using HTML notation
         """
         return ("#%02X%02X%02X" % (self.color.red >> 8, self.color.green >> 8,
                                    self.color.blue >> 8))
+
     def get_color_str(self):
         """
         Returns a string representation of the color associated to this label.
         """
         return self.color.to_string()
+
     def __str__(self):
         return ("<span bgcolor=\"%s\">    </span> %s" % (self.get_html_color(),
                                                          self.name))
+
 
 class LabelEditor(object):
     """
     Dialog to create / edit labels
     """
 
-    def __init__(self, label_to_edit = None):
+    def __init__(self, label_to_edit=None):
         if label_to_edit == None:
             label_to_edit = Label()
         self.label = label_to_edit
@@ -79,7 +90,7 @@ class LabelEditor(object):
         dialog.add_button("Cancel", gtk.RESPONSE_CANCEL)
         dialog.add_button("Ok", gtk.RESPONSE_OK)
         response = dialog.run()
-    
+
         if (response == gtk.RESPONSE_OK
             and name_entry.get_text().strip() == ""):
             response = gtk.RESPONSE_CANCEL
@@ -94,4 +105,3 @@ class LabelEditor(object):
 
         print "Label after editing: %s" % (self.label)
         return (response == gtk.RESPONSE_OK)
-

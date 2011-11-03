@@ -35,8 +35,8 @@ class MainWindow:
         self.__page = None
         self.__docsearch = None
         self.__page_cache = None
-        self.__win_size = None # main window size (None = unknown yet)
-        self.__label_name_to_obj = { }
+        self.__win_size = None  # main window size (None = unknown yet)
+        self.__label_name_to_obj = {}
 
         self.__widget_tree = load_uifile("mainwindow.glade")
 
@@ -66,7 +66,7 @@ class MainWindow:
         self.__match_list_ui = self.__widget_tree.get_object("treeviewMatch")
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
         self.__selectors = self.__widget_tree.get_object("notebookSelectors")
-        self.__selectors.set_current_page(1) # Page tab
+        self.__selectors.set_current_page(1)    # Page tab
 
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
@@ -75,8 +75,10 @@ class MainWindow:
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
 
-        self.__widget_tree.get_object("menuitemScan").set_sensitive(self.__device.state[0])
-        self.__widget_tree.get_object("toolbuttonScan").set_sensitive(self.__device.state[0])
+        self.__widget_tree.get_object("menuitemScan") \
+                .set_sensitive(self.__device.state[0])
+        self.__widget_tree.get_object("toolbuttonScan") \
+                .set_sensitive(self.__device.state[0])
         tooltip = gtk.Tooltips()
         tooltip.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
                         self.__device.state[1])
@@ -109,10 +111,10 @@ class MainWindow:
             self.__show_normal_cursor()
         self.__refresh_label_list()
 
-    def __update_results_cb(self, objsrc = None):
+    def __update_results_cb(self, objsrc=None):
         """
-        Update the suggestions list and the matching documents list based on the
-        keywords typed by the user in the search field.
+        Update the suggestions list and the matching documents list based on
+        the keywords typed by the user in the search field.
         """
         txt = unicode(self.__search_field.get_text())
         keywords = SPLIT_KEYWORDS_REGEX.split(txt)
@@ -138,9 +140,9 @@ class MainWindow:
             for label in doc.labels:
                 label_str += "\n  "
                 label_str += str(label)
-            self.__match_list.append([ (document+label_str) ])
+            self.__match_list.append([(document + label_str)])
 
-    def __show_selected_doc_cb(self, objsrc = None):
+    def __show_selected_doc_cb(self, objsrc=None):
         """
         Show the currently selected document
         """
@@ -207,8 +209,8 @@ class MainWindow:
             if self.__page_scaled:
                 progress_callback = lambda \
                         progression, total, step = None, doc = None: \
-                        self.__cb_progress(progression, total+(total/3),
-                                                step, doc)
+                        self.__cb_progress(progression, total + (total / 3),
+                                           step, doc)
             else:
                 progress_callback = self.__cb_progress
 
@@ -221,10 +223,9 @@ class MainWindow:
             boxes = self.__page_cache[2]
 
             if self.__show_all_boxes.get_active():
-                page.draw_boxes(img, boxes, color = (0x6c, 0x5d, 0xd1),
-                                width = 1)
-            page.draw_boxes(img, boxes, color = (0x00, 0x9f, 0x00), width = 5,
-                            keywords = self.__get_keywords())
+                page.draw_boxes(img, boxes, color=(0x6c, 0x5d, 0xd1), width=1)
+            page.draw_boxes(img, boxes, color=(0x00, 0x9f, 0x00), width=5,
+                            keywords=self.__get_keywords())
 
             pixbuf = image2pixbuf(img)
 
@@ -248,10 +249,11 @@ class MainWindow:
                     wanted_width = pixbuf.get_width()
                     wanted_height = pixbuf.get_height()
                     self.__page_img.window.set_cursor(None)
-                pixbuf = pixbuf.scale_simple(wanted_width, wanted_height, 
+                pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                              gtk.gdk.INTERP_BILINEAR)
             else:
-                self.__page_img.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+                self.__page_img.window \
+                        .set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
 
             self.__page_img.set_from_pixbuf(pixbuf)
             self.__page_img.show()
@@ -293,7 +295,7 @@ class MainWindow:
         """
         return self.__page
 
-    def __show_page(self, page = None):
+    def __show_page(self, page=None):
         """
         Display the specified page
         """
@@ -318,7 +320,7 @@ class MainWindow:
             print "Unable to show text for doc '%s': %s" % (page, exc)
             self.__page_txt.get_buffer().set_text("")
 
-    def __show_selected_page_cb(self, objsrc = None):
+    def __show_selected_page_cb(self, objsrc=None):
         """
         Find the currently selected page, and display it accordingly
         """
@@ -334,7 +336,7 @@ class MainWindow:
         self.__show_page_img(self.__get_current_page())
         self.__reset_page_vpaned()
 
-    def __change_scale_cb(self, objsrc = None, mouse_x = None, mouse_y = None):
+    def __change_scale_cb(self, objsrc=None, mouse_x=None, mouse_y=None):
         """
         Switch the scale mode of the page display. Will switch between 1:1
         display and adapted-to-the-window-size display.
@@ -344,7 +346,7 @@ class MainWindow:
         self.__page_scaled = not self.__page_scaled
         self.__refresh_page()
 
-    def __cb_progress(self, progression, total, step = None, doc = None):
+    def __cb_progress(self, progression, total, step=None, doc=None):
         """
         Update the main progress bar
         """
@@ -368,34 +370,34 @@ class MainWindow:
         Reload and refresh the page list
         """
         self.__page_list.clear()
-        for page in range(1, self.__doc.nb_pages+1):
-            self.__page_list.append([ "Page %d" % (page) ]) # TODO: i18n/l10n
+        for page in range(1, self.__doc.nb_pages + 1):
+            self.__page_list.append(["Page %d" % (page)])   # TODO: i18n/l10n
 
     def __refresh_label_list(self):
         """
         Reload and refresh the label list
         """
-        self.__label_name_to_obj = { }
+        self.__label_name_to_obj = {}
         self.__label_list.clear()
         if self.__docsearch != None and self.__doc != None:
             labels = self.__doc.labels
             for label in self.__docsearch.label_list:
                 self.__label_name_to_obj[str(label)] = label
-                self.__label_list.append([ str(label), (label in labels) ])
+                self.__label_list.append([str(label), (label in labels)])
 
-    def __scan_next_page_cb(self, objsrc = None):
+    def __scan_next_page_cb(self, objsrc=None):
         """
         Scan a new page and append it to the current document
         """
         self.__check_workdir()
 
-        self.__selectors.set_current_page(1) # Page tab
-    
+        self.__selectors.set_current_page(1)    # Page tab
+
         self.__show_busy_cursor()
         try:
             self.__doc.scan_next_page(self.__device, self.__config.ocrlang,
                                     self.__cb_progress)
-            page = self.__doc.pages[self.__doc.nb_pages-1]
+            page = self.__doc.pages[self.__doc.nb_pages - 1]
             self.__docsearch.index_page(page)
             self.__refresh_page_list()
             self.__show_page(page)
@@ -405,15 +407,15 @@ class MainWindow:
             self.__progress_bar.set_fraction(0.0)
             self.__show_normal_cursor()
 
-    def __destroy_doc_cb(self, objsrc = None):
+    def __destroy_doc_cb(self, objsrc=None):
         """
         Ask for confirmation and then delete the document being viewed.
         """
-        confirm = gtk.MessageDialog(parent = self.main_window,
-                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                type = gtk.MESSAGE_WARNING,
-                buttons = gtk.BUTTONS_YES_NO,
-                message_format = "Are you sure ?") # TODO(Jflesch): i18n/l10n
+        confirm = gtk.MessageDialog(parent=self.main_window,
+                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                type=gtk.MESSAGE_WARNING,
+                buttons=gtk.BUTTONS_YES_NO,
+                message_format="Are you sure ?")  # TODO(Jflesch): i18n/l10n
         response = confirm.run()
         confirm.destroy()
         if response != gtk.RESPONSE_YES:
@@ -425,7 +427,7 @@ class MainWindow:
         print "Deleted"
         self.reindex()
 
-    def __print_doc_cb(self, objsrc = None):
+    def __print_doc_cb(self, objsrc=None):
         """
         Print the document being viewed. Will display first a printing dialog.
         """
@@ -447,24 +449,24 @@ class MainWindow:
         print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
                      self.main_window)
 
-    def __clear_search_cb(self, objsrc = None):
+    def __clear_search_cb(self, objsrc=None):
         """
         Clear the search field.
         """
         self.__search_field.set_text("")
-        self.__selectors.set_current_page(0) # Documents tab
+        self.__selectors.set_current_page(0)    # Documents tab
 
-    def __redo_ocr_on_all_cb(self, src = None):
+    def __redo_ocr_on_all_cb(self, src=None):
         """
         Redo the OCR all *all* the documents
         """
         # TODO(Jflesch): i18n/l10n
         msg = "This may take a very long time\nAre you sure ?"
-        confirm = gtk.MessageDialog(parent = self.main_window,
-                flags = gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                type = gtk.MESSAGE_WARNING,
-                buttons = gtk.BUTTONS_YES_NO,
-                message_format = msg)
+        confirm = gtk.MessageDialog(parent=self.main_window,
+                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                type=gtk.MESSAGE_WARNING,
+                buttons=gtk.BUTTONS_YES_NO,
+                message_format=msg)
         response = confirm.run()
         confirm.destroy()
         if response != gtk.RESPONSE_YES:
@@ -482,7 +484,7 @@ class MainWindow:
             self.__show_normal_cursor()
         self.reindex()
 
-    def __on_resize_cb(self, window = None, allocation = None):
+    def __on_resize_cb(self, window=None, allocation=None):
         """
         Called each time the main window is resized
         """
@@ -491,7 +493,7 @@ class MainWindow:
             self.__win_size = allocation
             self.__reset_page_vpaned()
 
-    def __add_label_cb(self, objsrc = None):
+    def __add_label_cb(self, objsrc=None):
         """
         Open the dialog to add a new label, and use it to create the label
         """
@@ -514,7 +516,7 @@ class MainWindow:
             self.__doc.add_label(label)
         self.__refresh_label_list()
 
-    def __show_about_dialog_cb(self, objsrc = None):
+    def __show_about_dialog_cb(self, objsrc=None):
         """
         Create and show the about dialog.
         """
@@ -558,11 +560,11 @@ class MainWindow:
         self.__widget_tree.get_object("cellrenderertoggle1").connect("toggled",
                 self.__label_toggled_cb)
         self.__search_field.connect("focus-in-event",
-                lambda x, y: self.__selectors.set_current_page(0)) # Doc tab
+                lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
         self.__page_list_ui.connect("cursor-changed",
                 self.__show_selected_page_cb)
-        self.__page_event_box.connect("button-press-event", 
-                self.__change_scale_cb)
+        self.__page_event_box.connect("button-press-event",
+                                      self.__change_scale_cb)
         self.__search_field.connect("changed", self.__update_results_cb)
         self.__match_list_ui.connect("cursor-changed",
                 self.__show_selected_doc_cb)
@@ -583,7 +585,7 @@ class MainWindow:
         if self.__device != None:
             self.__device.close()
 
-    def __show_doc(self, doc = None):
+    def __show_doc(self, doc=None):
         """
         Arguments:
             doc --- doc.ScannedDoc (see docsearch.DocSearch.docs[])
@@ -607,10 +609,9 @@ class MainWindow:
         self.__show_doc(doc)
         self.__reset_page_vpaned()
 
-    def new_document(self, objsrc = None):
+    def new_document(self, objsrc=None):
         """
         Start the edition of the new document.
         """
-        self.__selectors.set_current_page(1) # Page tab
-        self.__show_doc(ScannedDoc(self.__config.workdir)) # new document
-
+        self.__selectors.set_current_page(1)    # Page tab
+        self.__show_doc(ScannedDoc(self.__config.workdir))  # new document

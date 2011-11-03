@@ -13,6 +13,7 @@ from mainwindow import MainWindow
 
 pygtk.require("2.0")
 
+
 def main():
     """
     Where everything start.
@@ -30,4 +31,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -18,6 +18,7 @@ from util import strip_accents
 from util import SPLIT_KEYWORDS_REGEX
 from wordbox import get_word_boxes
 
+
 class ScannedPage(object):
     """
     Represents a page. A page is a subelement of ScannedDoc.
@@ -32,7 +33,7 @@ class ScannedPage(object):
 
     KEYWORD_HIGHLIGHT = 3
 
-    PRINT_RESOLUTION = 150 # dpi
+    PRINT_RESOLUTION = 150  # dpi
 
     def __init__(self, doc, page_nb):
         """
@@ -47,7 +48,7 @@ class ScannedPage(object):
         Returns a file path relative to this page
         """
         return os.path.join(self.doc.path,
-                            "paper.%d.%s" % (self.page_nb+1, ext)) # new page
+                            "paper.%d.%s" % (self.page_nb + 1, ext))
 
     def __get_txt_path(self):
         """
@@ -90,7 +91,7 @@ class ScannedPage(object):
 
     text = property(__get_text)
 
-    def get_boxes(self, callback = dummy_progress_cb):
+    def get_boxes(self, callback=dummy_progress_cb):
         """
         Get all the word boxes of this page. Note that this process may take
         some time (usually 1 to 3 seconds). This is why this is not a property,
@@ -127,10 +128,10 @@ class ScannedPage(object):
             pt_b_y = img_size[1] - pt_b_y
             draw.rectangle(((pt_a_x - i, pt_a_y + i),
                             (pt_b_x + i, pt_b_y - i)),
-                           outline = color)
+                           outline=color)
 
     @staticmethod
-    def draw_boxes(img, boxes, color, width, keywords = None):
+    def draw_boxes(img, boxes, color, width, keywords=None):
         """
         Draw the boxes on the image
 
@@ -150,7 +151,7 @@ class ScannedPage(object):
                 ScannedPage.__draw_box(draw, img.size, box, width, color)
         return img
 
-    def __scan(self, device, callback = dummy_progress_cb):
+    def __scan(self, device, callback=dummy_progress_cb):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
@@ -177,7 +178,8 @@ class ScannedPage(object):
         """
         Try to evaluate how well the OCR worked.
         Current implementation:
-            The score is the number of words only made of 4 or more letters ([a-zA-Z])
+            The score is the number of words only made of 4 or more letters
+            ([a-zA-Z])
         """
         # TODO(Jflesch): i18n / l10n
         score = 0
@@ -201,14 +203,14 @@ class ScannedPage(object):
             1 : if X is higher than Y
             0 : if both are equal
         """
-        if ( score_x < score_y ):
+        if score_x < score_y:
             return -1
-        elif ( score_x > score_y ):
+        elif score_x > score_y:
             return 1
         else:
             return 0
 
-    def __ocr(self, files, ocrlang, callback = dummy_progress_cb):
+    def __ocr(self, files, ocrlang, callback=dummy_progress_cb):
         """
         Do the OCR on the page
         """
@@ -216,28 +218,28 @@ class ScannedPage(object):
 
         i = 0
         for imgpath in files:
-            callback(i, len(files)+1, self.SCAN_STEP_OCR)
+            callback(i, len(files) + 1, self.SCAN_STEP_OCR)
             i += 1
             print "Running OCR on scan '%s'" % (imgpath)
             txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
             txt = unicode(txt)
             score = self.__compute_ocr_score(txt)
-            scores.append( (score, imgpath, txt) )
+            scores.append((score, imgpath, txt))
 
         # Note: we want the higher first
-        scores.sort(cmp = lambda x, y: self.__compare_score(y[0], x[0]))
+        scores.sort(cmp=lambda x, y: self.__compare_score(y[0], x[0]))
 
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
 
         print "Extracting boxes ..."
-        callback(i, len(files)+1, self.SCAN_STEP_OCR)
+        callback(i, len(files) + 1, self.SCAN_STEP_OCR)
         boxes = tesseract.image_to_string(Image.open(scores[0][1]),
                                           lang=ocrlang, boxes=True)
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, callback = dummy_progress_cb):
+    def scan_page(self, device, ocrlang, callback=dummy_progress_cb):
         """
         Scan the page & do OCR
         """
@@ -334,7 +336,7 @@ class ScannedPage(object):
         """
         words = []
         for line in self.text:
-            for word in SPLIT_KEYWORDS_REGEX.split(line): # TODO: i18n/l10n
+            for word in SPLIT_KEYWORDS_REGEX.split(line):   # TODO: i18n/l10n
                 words.append(word)
         return words
 
@@ -353,7 +355,7 @@ class ScannedPage(object):
         txtfile = self.__txt_path
         boxfile = self.__box_path
 
-        (imgfile, txt, boxes) = self.__ocr([ imgfile ], ocrlang,
+        (imgfile, txt, boxes) = self.__ocr([imgfile], ocrlang,
                                            dummy_progress_cb)
         # save the text
         with open(txtfile, 'w') as file_desc:
@@ -363,6 +365,4 @@ class ScannedPage(object):
             tesseract.write_box_file(file_desc, boxes)
 
     def __str__(self):
-        return "%s p%d" % (str(self.doc), self.page_nb+1)
-
-
+        return "%s p%d" % (str(self.doc), self.page_nb + 1)

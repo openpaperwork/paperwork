@@ -5,6 +5,7 @@ Paperwork configuration management code
 import ConfigParser
 import os
 
+
 class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is
@@ -31,7 +32,6 @@ class PaperworkConfig(object):
         if not configfile_found:
             print "Config file not found. Will use '%s'" % self.__configfile
 
-
     def read(self):
         """
         (Re)read the configuration.
@@ -42,7 +42,7 @@ class PaperworkConfig(object):
         """
         # smash the previous config
         self.__configparser = ConfigParser.SafeConfigParser()
-        self.__configparser.read([ self.__configfile ])
+        self.__configparser.read([self.__configfile])
 
         # make sure that all the sections exist
         if not self.__configparser.has_section("Global"):
@@ -104,4 +104,3 @@ class PaperworkConfig(object):
         with open(file_path, 'wb') as file_descriptor:
             self.__configparser.write(file_descriptor)
         print "Done"
-

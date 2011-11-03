@@ -11,6 +11,7 @@ from doc import ScannedDoc
 from util import dummy_progress_cb
 from util import strip_accents
 
+
 class DocList(object):
     """
     Doc list. Docs are accessed using [] operator. The key is the document id
@@ -25,6 +26,7 @@ class DocList(object):
     def __eq__(self, other):
         return self.docsearch.rootdir == other.docsearch.rootdir
 
+
 class DocSearch(object):
     """
     Index a set of documents. Can provide:
@@ -34,14 +36,12 @@ class DocSearch(object):
     """
 
     MIN_KEYWORD_LEN = 2
-
-    INDEX_STEP_READING  = "reading"
-    INDEX_STEP_SORTING  = "sorting"
-
+    INDEX_STEP_READING = "reading"
+    INDEX_STEP_SORTING = "sorting"
     OCR_MAX_THREADS = 4
     OCR_SLEEP_TIME = 0.5
 
-    def __init__(self, rootdir, callback = dummy_progress_cb):
+    def __init__(self, rootdir, callback=dummy_progress_cb):
         """
         Index files in rootdir (see constructor)
 
@@ -57,9 +57,9 @@ class DocSearch(object):
         self.rootdir = rootdir
 
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
-        self.__keywords = [] # array of strings (sorted)
-        self.__docids_to_docspaths = {} # doc id (string) -> full path
-        self.__keywords_to_docpaths = {} # keyword (string) -> array of path
+        self.__keywords = []                # array of strings (sorted)
+        self.__docids_to_docspaths = {}     # doc id (string) -> full path
+        self.__keywords_to_docpaths = {}    # keyword (string) -> array of path
         self.__label_list = []
 
         self.__index(callback)
@@ -90,11 +90,11 @@ class DocSearch(object):
         """
         Add the given keywords to self.__keywords_to_docpaths
         """
-        if self.__keywords_to_docpaths.has_key(keyword):
+        if keyword in self.__keywords_to_docpaths:
             if not docpath in self.__keywords_to_docpaths[keyword]:
                 self.__keywords_to_docpaths[keyword].append(docpath)
         else:
-            self.__keywords_to_docpaths[keyword] = [ docpath ]
+            self.__keywords_to_docpaths[keyword] = [docpath]
 
     def __index_page(self, docpath, page):
         """
@@ -114,8 +114,8 @@ class DocSearch(object):
                 continue
             self.__index_keyword(word, docpath)
 
-    def __index_dir(self, dirpath, progression = 0, total = 0,
-                    callback = dummy_progress_cb):
+    def __index_dir(self, dirpath, progression=0, total=0,
+                    callback=dummy_progress_cb):
         """
         Look in the given directory for documents to index.
 
@@ -165,18 +165,19 @@ class DocSearch(object):
             print "Warning: Invalid document path: %s" % (docpath)
             return docpath
 
-    def __extract_docpaths(self, callback = dummy_progress_cb):
+    def __extract_docpaths(self, callback=dummy_progress_cb):
         """
-        Create an index docid->docpaths (self.__docids_to_docspaths) based on self.__keywords_to_docpaths
+        Create an index docid->docpaths (self.__docids_to_docspaths) based on
+        self.__keywords_to_docpaths
         """
         callback(0, 3, self.INDEX_STEP_SORTING)
         for docs in self.__keywords_to_docpaths.values():
             for docpath in docs:
                 docid = self.__docpath_to_id(docpath)
-                if not self.__docids_to_docspaths.has_key(docid):
+                if not docid in self.__docids_to_docspaths:
                     self.__docids_to_docspaths[docid] = docpath
 
-    def __extract_keywords(self, callback = dummy_progress_cb):
+    def __extract_keywords(self, callback=dummy_progress_cb):
         """
         Extract and index all the keywords from all the documents in
         self.rootdir.
@@ -189,7 +190,7 @@ class DocSearch(object):
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.__keywords.sort()
 
-    def __index(self, callback = dummy_progress_cb):
+    def __index(self, callback=dummy_progress_cb):
         """
         Index all the documents in self.rootdir.
 
@@ -198,7 +199,7 @@ class DocSearch(object):
                 util.dummy_progress_cb)
         """
         self.__reset_data()
-        self.__index_dir(self.rootdir, callback = callback)
+        self.__index_dir(self.rootdir, callback=callback)
         self.__extract_docpaths(callback)
         self.__extract_keywords(callback)
 
@@ -219,7 +220,8 @@ class DocSearch(object):
         Return all the suggestions for a single keyword.
 
         Arguments:
-            keyword --- keyword (string) for which we are looking for suggestions
+            keyword --- keyword (string) for which we are looking for
+                suggestions
 
         Returns:
             An array of suggestions (strings)
@@ -245,13 +247,13 @@ class DocSearch(object):
         idx_min_found = False
 
         while not idx_min_found:
-            if idx_min <= 0 or idx_min > lkeywords-1:
+            if idx_min <= 0 or idx_min > lkeywords - 1:
                 idx_min_found = True
-            elif (self.__keywords[idx_min-1][:lkeyword] < keyword
+            elif (self.__keywords[idx_min - 1][:lkeyword] < keyword
                   and self.__keywords[idx_min][:lkeyword] > keyword):
                 print "No suggestion found for '%s'" % keyword
                 return []
-            elif (self.__keywords[idx_min-1][:lkeyword] != keyword
+            elif (self.__keywords[idx_min - 1][:lkeyword] != keyword
                   and self.__keywords[idx_min][:lkeyword] == keyword):
                 idx_min_found = True
             elif self.__keywords[idx_min][:lkeyword] >= keyword:
@@ -260,19 +262,19 @@ class DocSearch(object):
                 idx_min = idx_min + njump
             njump = (njump / 2) or 1
 
-        if idx_min > lkeywords-1:
+        if idx_min > lkeywords - 1:
             print "No suggestion found for '%s'" % keyword
             return []
 
         # last element
-        njump = ( (lkeywords - idx_min) / 4) or 1
+        njump = ((lkeywords - idx_min) / 4) or 1
         idx_max = ((lkeywords - idx_min) / 2) + idx_min
         idx_max_found = False
 
         while not idx_max_found:
-            if idx_max <= 0 or idx_max >= lkeywords-1:
+            if idx_max <= 0 or idx_max >= lkeywords - 1:
                 idx_max_found = True
-            elif (self.__keywords[idx_max+1][:lkeyword] != keyword
+            elif (self.__keywords[idx_max + 1][:lkeyword] != keyword
                   and self.__keywords[idx_max][:lkeyword] == keyword):
                 idx_max_found = True
             elif self.__keywords[idx_max][:lkeyword] <= keyword:
@@ -281,10 +283,10 @@ class DocSearch(object):
                 idx_max = idx_max - njump
             njump = (njump / 2) or 1
 
-        results = self.__keywords[idx_min:(idx_max+1)]
+        results = self.__keywords[idx_min:(idx_max + 1)]
 
         if neg:
-            results = [ ("!%s" % (result)) for result in results ]
+            results = [("!%s" % (result)) for result in results]
 
         print "Got %d suggestions for [%s]" % (len(results), keyword)
 
@@ -300,7 +302,7 @@ class DocSearch(object):
         # search suggestion for the first keywords
         first_keyword_suggestions = self.__get_keyword_suggestions(keywords[0])
         if (len(keywords) <= 1):
-            return [ [ word ] for word in first_keyword_suggestions ]
+            return [[word] for word in first_keyword_suggestions]
 
         results = []
 
@@ -326,13 +328,15 @@ class DocSearch(object):
         least one document matching.
 
         Arguments:
-            keywords --- array of keyword (strings) for which we want suggestions
+            keywords --- array of keyword (strings) for which we want
+                suggestions
         Return:
-            An array of sets of keywords. Each set of keywords (-> one string) is a suggestion.
+            An array of sets of keywords. Each set of keywords (-> one string)
+            is a suggestion.
         """
         results = self.__find_suggestions(keywords)
         try:
-            results.remove(keywords) # remove strict match if it is here
+            results.remove(keywords)    # remove strict match if it is here
         except ValueError:
             pass
         results.sort()
@@ -382,7 +386,7 @@ class DocSearch(object):
             return doclist
         documents = None
         for keyword in positive_keywords:
-            if ( len(keyword) < self.MIN_KEYWORD_LEN ):
+            if (len(keyword) < self.MIN_KEYWORD_LEN):
                 return []
             keyword = self.__simplify(keyword)
             docs = self.__find_documents(keyword)
@@ -390,7 +394,7 @@ class DocSearch(object):
                 documents = docs
             else:
                 # intersection of both arrays
-                documents = [ val for val in documents if val in docs ]
+                documents = [val for val in documents if val in docs]
 
         if documents == None:
             return []
@@ -398,7 +402,7 @@ class DocSearch(object):
         print "Found %d documents" % (len(documents))
 
         for keyword in negative_keywords:
-            if ( len(keyword) < self.MIN_KEYWORD_LEN ):
+            if (len(keyword) < self.MIN_KEYWORD_LEN):
                 return []
             keyword = self.__simplify(keyword)
             docs = self.__find_documents(keyword)
@@ -427,7 +431,8 @@ class DocSearch(object):
             docid --- Document id. For instance '20110722_1233_56'
 
         Returns:
-                Document path. For instance '/home/jflesch/papers/20110722_1233_56'
+                Document path. For instance
+                '/home/jflesch/papers/20110722_1233_56'
         """
         return self.__docids_to_docspaths[docid]
 
@@ -492,8 +497,8 @@ class DocSearch(object):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
                 doc = ScannedDoc(docpath, docid)
-                thread = threading.Thread(target = doc.redo_ocr,
-                                          args = [ ocrlang ], name = docid)
+                thread = threading.Thread(target=doc.redo_ocr,
+                                          args=[ocrlang], name=docid)
                 thread.start()
                 threads.append(thread)
                 progress_callback(len(dlist) - len(remaining),
@@ -501,4 +506,3 @@ class DocSearch(object):
                                   docid)
             time.sleep(self.OCR_SLEEP_TIME)
         print "OCR of all documents done"
-

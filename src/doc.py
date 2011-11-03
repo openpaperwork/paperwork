@@ -10,10 +10,12 @@ from page import ScannedPage
 from labels import Label
 from util import dummy_progress_cb
 
+
 class ScannedPageList(object):
     """
     Page list. Page are accessed using [] operator.
     """
+
     def __init__(self, doc):
         self.doc = doc
 
@@ -29,6 +31,7 @@ class ScannedPageList(object):
     def __eq__(self, other):
         return (self.doc == other.doc)
 
+
 class ScannedDoc(object):
     """
     Represents a document (aka a set of pages + labels).
@@ -36,7 +39,7 @@ class ScannedDoc(object):
 
     LABEL_FILE = "labels"
 
-    def __init__(self, docpath, docid = None):
+    def __init__(self, docpath, docid=None):
         """
         Arguments:
             docpath --- For an existing document, the path to its folder. For
@@ -64,7 +67,7 @@ class ScannedDoc(object):
             filelist = os.listdir(self.path)
             count = 0
             for filename in filelist:
-                if filename[-4:].lower() != "."+ScannedPage.EXT_IMG:
+                if filename[-4:].lower() != "." + ScannedPage.EXT_IMG:
                     continue
                 count += 1
             return count
@@ -76,7 +79,7 @@ class ScannedDoc(object):
     nb_pages = property(__get_nb_pages)
 
     def scan_next_page(self, device, ocrlang,
-                       callback = dummy_progress_cb):
+                       callback=dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document
 
@@ -109,7 +112,7 @@ class ScannedDoc(object):
         Delete the document. The *whole* document. There will be no survirors.
         """
         print "Destroying doc: %s" % self.path
-        for root, dirs, files in os.walk(self.path, topdown = False):
+        for root, dirs, files in os.walk(self.path, topdown=False):
             for filename in files:
                 filepath = os.path.join(self.path, filename)
                 print "Deleting file %s" % filepath
@@ -136,7 +139,7 @@ class ScannedDoc(object):
         """
         nb_pages = self.nb_pages
         for i in range(0, nb_pages):
-            page = ScannedPage(self, i+1)
+            page = ScannedPage(self, i + 1)
             page.redo_ocr(ocrlang)
 
     def add_label(self, label):
@@ -158,7 +161,8 @@ class ScannedDoc(object):
         with open(os.path.join(self.path, self.LABEL_FILE), 'w') \
                 as file_desc:
             for label in labels:
-                file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
+                file_desc.write("%s,%s\n" % (label.name,
+                                             label.get_color_str()))
 
     def __get_labels(self):
         """
@@ -174,7 +178,7 @@ class ScannedDoc(object):
                 for line in file_desc.readlines():
                     line = line.strip()
                     (label_name, label_color) = line.split(",")
-                    labels.append(Label(name = label_name, color = label_color))
+                    labels.append(Label(name=label_name, color=label_color))
         except IOError, exc:
             print ("Error while reading labels from '%s': %s"
                    % (self.path, str(exc)))

@@ -5,11 +5,13 @@ on Help->About)
 
 from util import load_uifile
 
+
 class AboutDialog(object):
     """
     Dialog that appears when you click Help->About.
 
-    By default, this dialog won't be visible. You have to call AboutDialog.show().
+    By default, this dialog won't be visible. You have to call
+    AboutDialog.show().
     """
 
     def __init__(self, main_window):
@@ -38,4 +40,3 @@ class AboutDialog(object):
         Close and destroy the about dialog window
         """
         self.widget_tree.get_object("aboutdialog").destroy()
-

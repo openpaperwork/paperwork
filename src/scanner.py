@@ -71,3 +71,7 @@ class PaperworkScanner(object):
         if self.__device == None:
             self.__device = self.__look_for_scanner()
         return self.__device.scan()
+
+    def close(self):
+        if self.__device != None:
+            self.__device.close()

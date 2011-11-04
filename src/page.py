@@ -23,6 +23,7 @@ class ScannedPage(object):
     """
     Represents a page. A page is a subelement of ScannedDoc.
     """
+    FILE_PREFIX = "paper."
     EXT_TXT = "txt"
     EXT_BOX = "box"
     EXT_IMG_SCAN = "bmp"
@@ -48,7 +49,7 @@ class ScannedPage(object):
         Returns a file path relative to this page
         """
         return os.path.join(self.doc.path,
-                            "paper.%d.%s" % (self.page_nb + 1, ext))
+                            "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
 
     def __get_txt_path(self):
         """

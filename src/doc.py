@@ -61,13 +61,13 @@ class ScannedDoc(object):
         Compute the number of pages in the document. It basically counts
         how many JPG files there are in the document.
         """
-        # XXX(Jflesch): We try to not make assumptions regarding file names,
-        # except regarding their extensions (.txt/.jpg/etc)
         try:
             filelist = os.listdir(self.path)
             count = 0
             for filename in filelist:
-                if filename[-4:].lower() != "." + ScannedPage.EXT_IMG:
+                if (filename[-4:].lower() != "." + ScannedPage.EXT_IMG
+                    or (filename[:len(ScannedPage.FILE_PREFIX)].lower() !=
+                        ScannedPage.FILE_PREFIX)):
                     continue
                 count += 1
             return count

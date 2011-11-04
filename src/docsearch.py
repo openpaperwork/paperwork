@@ -11,6 +11,21 @@ from doc import ScannedDoc
 from util import dummy_progress_cb
 from util import strip_accents
 
+class DocIter(object):
+    """
+    Allows to iterate on all the documents easily
+    """
+    def __init__(self, docsearch):
+        self.docsearch = docsearch
+        self.dociter = iter(docsearch.docids)
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        next_docid = self.dociter.next()
+        return ScannedDoc(self.docsearch.get_docpath_by_docid(next_docid),
+                          next_docid)
 
 class DocList(object):
     """
@@ -25,6 +40,9 @@ class DocList(object):
 
     def __eq__(self, other):
         return self.docsearch.rootdir == other.docsearch.rootdir
+
+    def __iter__(self):
+        return DocIter(self.docsearch)
 
 
 class DocSearch(object):
@@ -58,9 +76,9 @@ class DocSearch(object):
 
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
         self.__keywords = []                # array of strings (sorted)
-        self.__docids_to_docspaths = {}     # doc id (string) -> full path
+        self.__docids_to_docpath = {}       # doc id (string) -> full path
         self.__keywords_to_docpaths = {}    # keyword (string) -> array of path
-        self.__label_list = []
+        self.label_list = []
 
         self.__index(callback)
 
@@ -69,9 +87,9 @@ class DocSearch(object):
         Purge the lists of documents and keywords
         """
         self.__keywords = []
-        self.__docids_to_docspaths = {}
+        self.__docids_to_docpath = {}
         self.__keywords_to_docpaths = {}
-        self.__label_list = []
+        self.label_list = []
 
     @staticmethod
     def __simplify(keyword):
@@ -167,15 +185,15 @@ class DocSearch(object):
 
     def __extract_docpaths(self, callback=dummy_progress_cb):
         """
-        Create an index docid->docpaths (self.__docids_to_docspaths) based on
+        Create an index docid->docpaths (self.__docids_to_docpath) based on
         self.__keywords_to_docpaths
         """
         callback(0, 3, self.INDEX_STEP_SORTING)
         for docs in self.__keywords_to_docpaths.values():
             for docpath in docs:
                 docid = self.__docpath_to_id(docpath)
-                if not docid in self.__docids_to_docspaths:
-                    self.__docids_to_docspaths[docid] = docpath
+                if not docid in self.__docids_to_docpath:
+                    self.__docids_to_docpath[docid] = docpath
 
     def __extract_keywords(self, callback=dummy_progress_cb):
         """
@@ -184,7 +202,7 @@ class DocSearch(object):
         """
         callback(1, 3, self.INDEX_STEP_SORTING)
         self.__keywords = self.__keywords_to_docpaths.keys()
-        for label in self.__label_list:
+        for label in self.label_list:
             if not label.name in self.__keywords:
                 self.__keywords.append(label.name)
         callback(2, 3, self.INDEX_STEP_SORTING)
@@ -381,7 +399,7 @@ class DocSearch(object):
         if (len(positive_keywords) == 1
             and unicode(positive_keywords[0]) == u"*"):
             print "Returning all documents"
-            doclist = self.__docids_to_docspaths.keys()
+            doclist = self.__docids_to_docpath.keys()
             doclist.sort()
             return doclist
         documents = None
@@ -434,7 +452,7 @@ class DocSearch(object):
                 Document path. For instance
                 '/home/jflesch/papers/20110722_1233_56'
         """
-        return self.__docids_to_docspaths[docid]
+        return self.__docids_to_docpath[docid]
 
     def __get_docs(self):
         """
@@ -444,6 +462,14 @@ class DocSearch(object):
         return DocList(self)
 
     docs = property(__get_docs)
+
+    def __get_docids(self):
+        """
+        Returns all the known docpaths
+        """
+        return self.__docids_to_docpath.keys()
+
+    docids = property(__get_docids)
 
     def add_label(self, label, doc):
         """
@@ -457,20 +483,9 @@ class DocSearch(object):
         if not label.name in self.__keywords:
             self.__keywords.append(label.name)
             self.__keywords.sort()
-        if not label in self.__label_list:
-            self.__label_list.append(label)
-            self.__label_list.sort()
-
-    def __get_label_list(self):
-        """
-        Returns all the labels found in all the documents
-
-        Returns:
-            An array of labels.Label
-        """
-        return self.__label_list
-
-    label_list = property(__get_label_list)
+        if not label in self.label_list:
+            self.label_list.append(label)
+            self.label_list.sort()
 
     def redo_ocr(self, progress_callback, ocrlang):
         """
@@ -506,3 +521,11 @@ class DocSearch(object):
                                   docid)
             time.sleep(self.OCR_SLEEP_TIME)
         print "OCR of all documents done"
+
+    def update_label(self, old_label, new_label):
+        self.label_list.remove(old_label)
+        if new_label not in self.label_list:
+            self.label_list.append(new_label)
+        self.label_list.sort()
+        for doc in self.docs:
+            doc.update_label(old_label, new_label)

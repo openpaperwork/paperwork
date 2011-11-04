@@ -2,6 +2,7 @@
 Code relative to the main window management.
 """
 
+from copy import copy
 import os
 
 import gtk
@@ -74,6 +75,7 @@ class MainWindow:
 
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
+        self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
 
         self.__widget_tree.get_object("menuitemScan") \
                 .set_sensitive(self.__device.state[0])
@@ -139,7 +141,7 @@ class MainWindow:
             label_str = ""
             for label in doc.labels:
                 label_str += "\n  "
-                label_str += str(label)
+                label_str += label.get_gtk_str()
             self.__match_list.append([(document + label_str)])
 
     def __show_selected_doc_cb(self, objsrc=None):
@@ -382,8 +384,8 @@ class MainWindow:
         if self.__docsearch != None and self.__doc != None:
             labels = self.__doc.labels
             for label in self.__docsearch.label_list:
-                self.__label_name_to_obj[str(label)] = label
-                self.__label_list.append([str(label), (label in labels)])
+                self.__label_name_to_obj[label.get_gtk_str()] = label
+                self.__label_list.append([label.get_gtk_str(), (label in labels)])
 
     def __scan_next_page_cb(self, objsrc=None):
         """
@@ -523,6 +525,22 @@ class MainWindow:
         about = AboutDialog(self.main_window)
         about.show()
 
+    def __edit_label_cb(self, treeview = None, path = None, view_column = None):
+        selection_path = self.__label_list_ui.get_selection().get_selected()
+        if selection_path[1] == None:
+            raise Exception("No label selected. Can't edit !")
+        selection = selection_path[0].get_value(selection_path[1], 0)
+        label = self.__label_name_to_obj[selection]
+        new_label = copy(label)
+        editor = LabelEditor(new_label)
+        if not editor.edit(self.main_window):
+            print "Label edition cancelled"
+            return
+        print "Label edited. Applying changes"
+        self.__docsearch.update_label(label, new_label)
+        print "Label updated"
+        self.__refresh_label_list()
+
     def __connect_signals(self):
         """
         Connect all the main window signals to their callbacks
@@ -570,6 +588,7 @@ class MainWindow:
                 self.__show_selected_doc_cb)
         self.__show_all_boxes.connect("activate",
                 lambda x: self.__refresh_page())
+        self.__label_list_ui.connect("row-activated", self.__edit_label_cb)
 
     def __destroy(self):
         """

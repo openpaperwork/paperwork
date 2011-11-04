@@ -21,11 +21,19 @@ class Label(object):
         self.name = name
         self.color = gtk.gdk.color_parse(color)
 
+    def __copy__(self):
+        return Label(self.name, self.get_color_str())
+
     def __label_cmp(self, other):
         """
         Comparaison function. Can be used to sort labels alphabetically.
         """
-        return cmp(self.name, other.name)
+        if other == None:
+            return -1
+        r = cmp(self.name, other.name)
+        if r != 0:
+            return r
+        return cmp(self.get_color_str(), other.get_color_str())
 
     def __lt__(self, other):
         return self.__label_cmp(other) < 0
@@ -58,9 +66,12 @@ class Label(object):
         """
         return self.color.to_string()
 
-    def __str__(self):
+    def get_gtk_str(self):
         return ("<span bgcolor=\"%s\">    </span> %s" % (self.get_html_color(),
                                                          self.name))
+
+    def __str__(self):
+        return ("%s:%s" % (self.get_html_color(), self.name))
 
 
 class LabelEditor(object):

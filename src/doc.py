@@ -185,3 +185,20 @@ class ScannedDoc(object):
         return labels
 
     labels = property(__get_labels)
+
+    def update_label(self, old_label, new_label):
+        print "%s : Updating label ([%s] -> [%s])" % (str(self), str(old_label),
+                                                      str(new_label))
+        labels = self.labels
+        try:
+            labels.remove(old_label)
+        except ValueError, e:
+            # this document doesn't have this label
+            return;
+        labels.append(new_label)
+        with open(os.path.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
+            for label in labels:
+                file_desc.write("%s,%s\n" % (label.name,
+                                             label.get_color_str()))
+

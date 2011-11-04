@@ -483,7 +483,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="resize_mode">queue</property>
                                 <child>
-                                  <object class="GtkTreeView" id="treeview1">
+                                  <object class="GtkTreeView" id="treeviewLabel">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="model">liststoreLabel</property>

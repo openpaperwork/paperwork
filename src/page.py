@@ -21,7 +21,7 @@ from wordbox import get_word_boxes
 
 class ScannedPage(object):
     """
-    Represents a page. A page is a subelement of ScannedDoc.
+    Represents a page. A page is a sub-element of ScannedDoc.
     """
     FILE_PREFIX = "paper."
     EXT_TXT = "txt"

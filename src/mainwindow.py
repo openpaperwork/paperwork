@@ -486,6 +486,21 @@ class MainWindow:
             self.__show_normal_cursor()
         self.reindex()
 
+    def __redo_ocr_on_current_cb(self, src=None):
+        """
+        Redo the OCR all *all* the documents
+        """
+        try:
+            self.__show_busy_cursor()
+            self.__progress_bar.set_text("Rereading current documents ...")
+            self.__progress_bar.set_fraction(0.0)
+            self.__doc.redo_ocr(self.__config.ocrlang, self.__cb_progress)
+        finally:
+            self.__progress_bar.set_text("")
+            self.__progress_bar.set_fraction(0.0)
+            self.__show_normal_cursor()
+        self.reindex()
+
     def __on_resize_cb(self, window=None, allocation=None):
         """
         Called each time the main window is resized
@@ -573,6 +588,8 @@ class MainWindow:
                 self.__clear_search_cb)
         self.__widget_tree.get_object("menuitemReOcrAll").connect("activate",
                 self.__redo_ocr_on_all_cb)
+        self.__widget_tree.get_object("menuitemReOcr").connect("activate",
+                self.__redo_ocr_on_current_cb)
         self.__widget_tree.get_object("buttonAddLabel").connect("clicked",
                 self.__add_label_cb)
         self.__widget_tree.get_object("cellrenderertoggle1").connect("toggled",

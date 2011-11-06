@@ -131,7 +131,7 @@ class ScannedDoc(object):
         page = ScannedPage(self, page_nb)
         page.print_page_cb(print_op, print_context)
 
-    def redo_ocr(self, ocrlang):
+    def redo_ocr(self, ocrlang, callback = dummy_progress_cb):
         """
         Run the OCR again on all the pages of the document
 
@@ -139,7 +139,8 @@ class ScannedDoc(object):
         """
         nb_pages = self.nb_pages
         for i in range(0, nb_pages):
-            page = ScannedPage(self, i + 1)
+            callback(i, nb_pages, ScannedPage.SCAN_STEP_OCR, str(self))
+            page = ScannedPage(self, i)
             page.redo_ocr(ocrlang)
 
     def add_label(self, label):

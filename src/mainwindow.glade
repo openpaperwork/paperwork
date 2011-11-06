@@ -138,14 +138,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitem1">
+                      <object class="GtkMenuItem" id="menuitemAdvanced">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Advanced</property>
                         <property name="use_underline">True</property>
                         <child type="submenu">
-                          <object class="GtkMenu" id="menu1">
+                          <object class="GtkMenu" id="menuAdvanced">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
@@ -154,6 +154,15 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Highlight all the words</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="menuitemReOcr">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Redo OCR on the document</property>
                                 <property name="use_underline">True</property>
                               </object>
                             </child>

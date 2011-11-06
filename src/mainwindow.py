@@ -72,6 +72,7 @@ class MainWindow:
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
         self.__page_list_ui = self.__widget_tree.get_object("treeviewPage")
+        self.__page_list_menu = self.__widget_tree.get_object("popupmenuPages")
 
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
@@ -291,19 +292,14 @@ class MainWindow:
         page = self.__doc.pages[(int(selection[5:]) - 1)]
         return page
 
-    def __get_current_page(self):
-        """
-        Returns the page being currently displayed
-        """
-        return self.__page
-
     def __show_page(self, page=None):
         """
         Display the specified page
         """
         if page == None:
-            page = self.__get_current_page()
+            page = self.__page
 
+        assert(page != None)
         self.__page = page
         self.__page_scaled = True
 
@@ -327,15 +323,20 @@ class MainWindow:
         Find the currently selected page, and display it accordingly
         """
         page = self.__get_selected_page()
-        print "Showing selected page: %s" % (page)
-        self.__show_page(page)
+        if page != self.__page:
+            print "Showing selected page: %s" % (page)
+            self.__show_page(page)  # will update self.__page
+            assert(self.__page != None)
+            return True
+        print "Same page. No display update to do"
+        return False
 
     def __refresh_page(self):
         """
         Refresh the display of the current page.
         """
         print "Refreshing main window"
-        self.__show_page_img(self.__get_current_page())
+        self.__show_page_img(self.__page)
         self.__reset_page_vpaned()
 
     def __change_scale_cb(self, objsrc=None, mouse_x=None, mouse_y=None):
@@ -442,7 +443,7 @@ class MainWindow:
         print_op.set_print_settings(print_settings)
 
         print_op.set_n_pages(self.__doc.nb_pages)
-        print_op.set_current_page(self.__get_current_page().page_nb)
+        print_op.set_current_page(self.__page.page_nb)
         print_op.set_use_full_page(True)
         print_op.set_job_name(str(self.__doc))
         print_op.set_export_filename(str(self.__doc) + ".pdf")
@@ -556,6 +557,33 @@ class MainWindow:
         print "Label updated"
         self.__refresh_label_list()
 
+    def __page_destroy_clicked_cb(self, widget = None):
+        self.__page.destroy()
+        self.reindex()
+        self.__refresh_page_list()
+        self.__page_cache = None # smash the cache
+        self.__show_page(self.__page)
+
+    def __page_list_clicked_cb(self, treeview, event):
+        # we are only interested in right clicks
+        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
+            return False
+        selection_path = self.__page_list_ui.get_selection().get_selected()
+        if self.__page == None:
+            print "No page selected yet"
+            return False
+        x = int(event.x)
+        y = int(event.y)
+        time = event.time
+        pathinfo = treeview.get_path_at_pos(x, y)
+        if pathinfo is None:
+            return False
+        path, col, cellx, celly = pathinfo
+        treeview.grab_focus()
+        treeview.set_cursor(path, col, 0)
+        self.__page_list_menu.popup(None, None, None, event.button, time)
+        return True
+
     def __connect_signals(self):
         """
         Connect all the main window signals to their callbacks
@@ -596,8 +624,13 @@ class MainWindow:
                 self.__label_toggled_cb)
         self.__widget_tree.get_object("menuitemReindexAll").connect("activate",
                 lambda x: self.reindex())
+        self.__widget_tree.get_object("menuitemDestroyPage").connect("activate",
+                self.__page_destroy_clicked_cb)
         self.__search_field.connect("focus-in-event",
                 lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
+        self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.__page_list_ui.connect("button_press_event",
+                                    self.__page_list_clicked_cb)
         self.__page_list_ui.connect("cursor-changed",
                 self.__show_selected_page_cb)
         self.__page_event_box.connect("button-press-event",
@@ -635,6 +668,7 @@ class MainWindow:
 
         self.main_window.set_title(str(self.__doc) + " - " + self.WIN_TITLE)
         self.__refresh_page_list()
+        assert(self.__doc.pages[0] != None)
         self.__page = self.__doc.pages[0]
         print "Showing first page of the doc"
         self.__show_page(self.__page)

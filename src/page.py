@@ -365,6 +365,49 @@ class ScannedPage(object):
         with open(boxfile, 'w') as file_desc:
             tesseract.write_box_file(file_desc, boxes)
 
+    def ch_number(self, offset):
+        """
+        Move the page number by a given offset. Beware to not let any hole
+        in the page numbers when doing this. Make sure also that the wanted
+        number is available.
+        Will also change the page number of the current object.
+        """
+        src = {}
+        src["txt"] = self.__get_txt_path()
+        src["box"] = self.__get_box_path()
+        src["img"] = self.__get_img_path()
+
+        self.page_nb += offset
+
+        dst = {}
+        dst["txt"] = self.__get_txt_path()
+        dst["box"] = self.__get_box_path()
+        dst["img"] = self.__get_img_path()
+
+        for key in src.keys():
+            if os.access(src[key], os.F_OK):
+                os.rename(src[key], dst[key])
+
+    def destroy(self):
+        """
+        Delete the page. May delete the whole document if it's actually the
+        last page.
+        """
+        print "Destroying page: %s" % self
+        if self.doc.nb_pages <= 1:
+            self.doc.destroy()
+            return
+        current_doc_nb_pages = self.doc.nb_pages
+        if os.access(self.__get_txt_path(), os.F_OK):
+            os.unlink(self.__get_txt_path())
+        if os.access(self.__get_box_path(), os.F_OK):
+            os.unlink(self.__get_box_path())
+        if os.access(self.__get_img_path(), os.F_OK):
+            os.unlink(self.__get_img_path())
+        for p in range(self.page_nb+1, current_doc_nb_pages):
+            page = self.doc.pages[p]
+            page.ch_number(-1)
+
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb + 1)
 

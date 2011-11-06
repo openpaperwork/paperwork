@@ -101,7 +101,7 @@ class ScannedDoc(object):
     def __get_pages(self):
         """
         Return a list of pages.
-        Pages are instanciated on-the-fly.
+        Pages are instantiated on-the-fly.
         """
         return ScannedPageList(self)
 
@@ -109,7 +109,7 @@ class ScannedDoc(object):
 
     def destroy(self):
         """
-        Delete the document. The *whole* document. There will be no survirors.
+        Delete the document. The *whole* document. There will be no survivors.
         """
         print "Destroying doc: %s" % self.path
         for root, dirs, files in os.walk(self.path, topdown=False):

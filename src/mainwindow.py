@@ -105,7 +105,6 @@ class MainWindow:
         """
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_text("Loading documents ...")
             self.__progress_bar.set_fraction(0.0)
             self.__docsearch = DocSearch(self.__config.workdir,
                                        self.__cb_progress)
@@ -222,7 +221,7 @@ class MainWindow:
             # last image and try to reuse it:
             if self.__page_cache == None or self.__page_cache[0] != page:
                 self.__page_cache = (page, page.img,
-                                   page.get_boxes(progress_callback))
+                                     page.get_boxes(progress_callback))
             img = self.__page_cache[1].copy()
             boxes = self.__page_cache[2]
 
@@ -355,18 +354,26 @@ class MainWindow:
         Update the main progress bar
         """
         self.__progress_bar.set_fraction(float(progression) / total)
+        txt = None
         if step == ScannedPage.SCAN_STEP_SCAN:
             # TODO(Jflesch): i18n/l10n
-            self.__progress_bar.set_text("Scanning ... ")
+            txt = "Scanning ..."
         elif step == ScannedPage.SCAN_STEP_OCR:
             # TODO(Jflesch): i18n/l10n
-            self.__progress_bar.set_text("Reading ... ")
+            txt = "Reading ..."
         elif step == DocSearch.INDEX_STEP_READING:
             # TODO(Jflesch): i18n/l10n
-            self.__progress_bar.set_text("Reading '%s' ... " % (doc))
+            txt = "Reading ..."
         elif step == DocSearch.INDEX_STEP_SORTING:
             # TODO(Jflesch): i18n/l10n
-            self.__progress_bar.set_text("Sorting ... ")
+            txt = "Sorting ..."
+        elif step == DocSearch.LABEL_STEP_UPDATING:
+            # TODO(Jflesch): i18n/l10n
+            txt = "Updating label ..."
+        if txt != None and doc != None:
+            txt += (" (%s)" % (str(doc)))
+        if txt != None:
+            self.__progress_bar.set_text(txt)
         gtk_refresh()
 
     def __refresh_page_list(self):
@@ -483,7 +490,6 @@ class MainWindow:
             return
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_text("Rereading all documents ...")
             self.__progress_bar.set_fraction(0.0)
             self.__docsearch.redo_ocr(self.__cb_progress,
                                     self.__config.ocrlang)
@@ -499,7 +505,6 @@ class MainWindow:
         """
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_text("Rereading current documents ...")
             self.__progress_bar.set_fraction(0.0)
             self.__doc.redo_ocr(self.__config.ocrlang, self.__cb_progress)
         finally:
@@ -559,7 +564,14 @@ class MainWindow:
             print "Label edition cancelled"
             return
         print "Label edited. Applying changes"
-        self.__docsearch.update_label(label, new_label)
+        try:
+            self.__show_busy_cursor()
+            self.__progress_bar.set_fraction(0.0)
+            self.__docsearch.update_label(label, new_label, self.__cb_progress)
+        finally:
+            self.__progress_bar.set_text("")
+            self.__progress_bar.set_fraction(0.0)
+            self.__show_normal_cursor()
         print "Label updated"
         self.__refresh_label_list()
 

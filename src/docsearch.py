@@ -44,6 +44,9 @@ class DocList(object):
     def __iter__(self):
         return DocIter(self.docsearch)
 
+    def __len__(self):
+        return len(os.listdir(self.docsearch.rootdir))
+
 
 class DocSearch(object):
     """
@@ -56,6 +59,7 @@ class DocSearch(object):
     MIN_KEYWORD_LEN = 2
     INDEX_STEP_READING = "reading"
     INDEX_STEP_SORTING = "sorting"
+    LABEL_STEP_UPDATING = "label updating"
     OCR_MAX_THREADS = 4
     OCR_SLEEP_TIME = 0.5
 
@@ -522,10 +526,14 @@ class DocSearch(object):
             time.sleep(self.OCR_SLEEP_TIME)
         print "OCR of all documents done"
 
-    def update_label(self, old_label, new_label):
+    def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         self.label_list.remove(old_label)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
         self.label_list.sort()
+        current = 0
+        total = len(self.docs)
         for doc in self.docs:
+            callback(current, total, self.LABEL_STEP_UPDATING, str(doc))
             doc.update_label(old_label, new_label)
+            current += 1

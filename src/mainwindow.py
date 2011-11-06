@@ -68,6 +68,7 @@ class MainWindow:
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
         self.__selectors = self.__widget_tree.get_object("notebookSelectors")
         self.__selectors.set_current_page(1)    # Page tab
+        self.__match_list_menu = self.__widget_tree.get_object("popupmenuMatchs")
 
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
@@ -410,7 +411,7 @@ class MainWindow:
             self.__progress_bar.set_fraction(0.0)
             self.__show_normal_cursor()
 
-    def __destroy_doc_cb(self, objsrc=None):
+    def __destroy_doc(self, doc):
         """
         Ask for confirmation and then delete the document being viewed.
         """
@@ -424,11 +425,16 @@ class MainWindow:
         if response != gtk.RESPONSE_YES:
             print "Deletion aborted"
             return
+        must_start_new_doc = (self.__doc == doc)
         print "Deleting ..."
-        self.__doc.destroy()
-        self.new_document()
+        doc.destroy()
+        if must_start_new_doc:
+            self.new_document()
         print "Deleted"
         self.reindex()
+
+    def __destroy_current_doc_cb(self, objsrc=None):
+        self.__destroy_doc(self.__doc)
 
     def __print_doc_cb(self, objsrc=None):
         """
@@ -582,6 +588,26 @@ class MainWindow:
         treeview.grab_focus()
         treeview.set_cursor(path, col, 0)
         self.__page_list_menu.popup(None, None, None, event.button, time)
+        return False
+
+    def __match_list_clicked_cb(self, treeview, event):
+        # we are only interested in right clicks
+        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
+            return False
+        selection_path = self.__match_list_ui.get_selection().get_selected()
+        if self.__doc == None:
+            print "No doc selected yet"
+            return False
+        x = int(event.x)
+        y = int(event.y)
+        time = event.time
+        pathinfo = treeview.get_path_at_pos(x, y)
+        if pathinfo is None:
+            return False
+        path, col, cellx, celly = pathinfo
+        treeview.grab_focus()
+        treeview.set_cursor(path, col, 0)
+        self.__match_list_menu.popup(None, None, None, event.button, time)
         return True
 
     def __connect_signals(self):
@@ -601,7 +627,7 @@ class MainWindow:
         self.__widget_tree.get_object("toolbuttonScan").connect("clicked",
                 self.__scan_next_page_cb)
         self.__widget_tree.get_object("menuitemDestroy").connect("activate",
-                self.__destroy_doc_cb)
+                self.__destroy_current_doc_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",
                 self.__print_doc_cb)
         self.__widget_tree.get_object("menuitemPrint").connect("activate",
@@ -626,6 +652,8 @@ class MainWindow:
                 lambda x: self.reindex())
         self.__widget_tree.get_object("menuitemDestroyPage").connect("activate",
                 self.__page_destroy_clicked_cb)
+        self.__widget_tree.get_object("menuitemDestroyDoc2").connect("activate",
+                self.__destroy_current_doc_cb)
         self.__search_field.connect("focus-in-event",
                 lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
         self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
@@ -638,6 +666,9 @@ class MainWindow:
         self.__search_field.connect("changed", self.__update_results_cb)
         self.__match_list_ui.connect("cursor-changed",
                 self.__show_selected_doc_cb)
+        self.__match_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.__match_list_ui.connect("button_press_event",
+                                    self.__match_list_clicked_cb)
         self.__show_all_boxes.connect("activate",
                 lambda x: self.__refresh_page())
         self.__label_list_ui.connect("row-activated", self.__edit_label_cb)

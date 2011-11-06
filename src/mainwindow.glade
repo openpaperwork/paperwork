@@ -698,6 +698,19 @@
       </object>
     </child>
   </object>
+  <object class="GtkMenu" id="popupmenuMatchs">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="menuitemDestroyDoc2">
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Delete document</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+  </object>
   <object class="GtkMenu" id="popupmenuPages">
     <property name="visible">True</property>
     <property name="can_focus">False</property>

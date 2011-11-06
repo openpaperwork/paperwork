@@ -203,3 +203,10 @@ class ScannedDoc(object):
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
 
+    def __eq__(self, other):
+        if None == other:
+            return False
+        return self.docid == other.docid
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

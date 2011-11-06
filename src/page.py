@@ -367,3 +367,11 @@ class ScannedPage(object):
 
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb + 1)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        if None == other:
+            return False
+        return self.doc == other.doc and self.page_nb == other.page_nb

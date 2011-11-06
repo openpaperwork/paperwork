@@ -577,6 +577,8 @@ class MainWindow:
                 self.__add_label_cb)
         self.__widget_tree.get_object("cellrenderertoggle1").connect("toggled",
                 self.__label_toggled_cb)
+        self.__widget_tree.get_object("menuitemReindexAll").connect("activate",
+                lambda x: self.reindex())
         self.__search_field.connect("focus-in-event",
                 lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
         self.__page_list_ui.connect("cursor-changed",

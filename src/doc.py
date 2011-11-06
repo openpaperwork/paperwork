@@ -131,7 +131,7 @@ class ScannedDoc(object):
         page = ScannedPage(self, page_nb)
         page.print_page_cb(print_op, print_context)
 
-    def redo_ocr(self, ocrlang, callback = dummy_progress_cb):
+    def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
         """
         Run the OCR again on all the pages of the document
 

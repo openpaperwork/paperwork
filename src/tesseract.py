@@ -9,8 +9,8 @@ stand-alone invocation script to tesseract, as it can read all image types
 supported by the Python Imaging Library, including jpeg, png, gif, bmp, tiff,
 and others, whereas tesseract-ocr by default only supports tiff and bmp.
 Additionally, if used as a script, Python-tesseract will print the recognized
-text in stead of writing it to a file. Support for confidence estimates and
-bounding box data is planned for future releases.
+text in stead of writing it to a file. It also support bounding box data.
+Support for confidence estimates is planned for future releases.
 
 
 USAGE:
@@ -73,7 +73,7 @@ def run_tesseract(input_filename, output_filename_base, lang=None,
 
     proc = subprocess.Popen(command,
             stderr=subprocess.PIPE)
-    # XXX(Jflesch): In some cases, tesseract may print more on stderr than
+    # Beware that in some cases, tesseract may print more on stderr than
     # allowed by the buffer of subprocess.Popen.stderr. So we must read stderr
     # asap or Tesseract will remain stuck when trying to write again on stderr.
     # In the end, we just have to make sure that proc.stderr.read() is called
@@ -129,8 +129,8 @@ class TesseractError(Exception):
 
 class TesseractBox(object):
     """
-    Tesseract Box: Tesserax box are rectangles around each individual character
-    recognized in the image.
+    Tesseract Box: Tesserax boxes are rectangles around each individual
+    character recognized in the image.
     """
     def __init__(self, char, position, page):
         """
@@ -162,7 +162,7 @@ def read_boxes(file_descriptor):
     """
     Extract of set of TesseractBox from the lines of 'file_descriptor'
     """
-    boxes = []  # to keep the order of the boxes
+    boxes = []  # note that the order of the boxes may matter to the caller
     for line in file_descriptor.readlines():
         line = line.strip()
         if line == "":
@@ -225,13 +225,17 @@ def image_to_string(image, lang=None, boxes=False):
         cleanup(output_file_name)
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Main method: allow quick testing of the API
+    """
     if len(sys.argv) == 2:
         filename = sys.argv[1]
         try:
             image = Image.open(filename)
         except IOError:
-            sys.stderr.write('ERROR: Could not open file "%s"\n' % filename)
+            sys.stderr.write('ERROR: Could not open file "%s"\n'
+                             % filename)
             exit(1)
         print image_to_string(image)
     elif len(sys.argv) == 4 and sys.argv[1] == '-l':
@@ -240,10 +244,14 @@ if __name__ == '__main__':
         try:
             image = Image.open(filename)
         except IOError:
-            sys.stderr.write('ERROR: Could not open file "%s"\n' % filename)
+            sys.stderr.write('ERROR: Could not open file "%s"\n'
+                             % filename)
             exit(1)
         print image_to_string(image, lang=lang)
     else:
         sys.stderr.write(
             'Usage: python tesseract.py [-l language] input_file\n')
         exit(2)
+
+if __name__ == '__main__':
+    main()

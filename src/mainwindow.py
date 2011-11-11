@@ -575,7 +575,7 @@ class MainWindow:
         print "Label updated"
         self.__refresh_label_list()
 
-    def __page_destroy_clicked_cb(self, widget = None):
+    def __destroy_current_page_cb(self, widget = None):
         self.__page.destroy()
         self.reindex()
         self.__refresh_page_list()
@@ -638,8 +638,10 @@ class MainWindow:
                 self.__scan_next_page_cb)
         self.__widget_tree.get_object("toolbuttonScan").connect("clicked",
                 self.__scan_next_page_cb)
-        self.__widget_tree.get_object("menuitemDestroy").connect("activate",
+        self.__widget_tree.get_object("menuitemDestroyDoc").connect("activate",
                 self.__destroy_current_doc_cb)
+        self.__widget_tree.get_object("menuitemDestroyPage").connect("activate",
+                self.__destroy_current_page_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",
                 self.__print_doc_cb)
         self.__widget_tree.get_object("menuitemPrint").connect("activate",
@@ -662,8 +664,8 @@ class MainWindow:
                 self.__label_toggled_cb)
         self.__widget_tree.get_object("menuitemReindexAll").connect("activate",
                 lambda x: self.reindex())
-        self.__widget_tree.get_object("menuitemDestroyPage").connect("activate",
-                self.__page_destroy_clicked_cb)
+        self.__widget_tree.get_object("menuitemDestroyPage2").connect("activate",
+                self.__destroy_current_page_cb)
         self.__widget_tree.get_object("menuitemDestroyDoc2").connect("activate",
                 self.__destroy_current_doc_cb)
         self.__search_field.connect("focus-in-event",

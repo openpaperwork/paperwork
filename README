@@ -1,7 +1,13 @@
 Paperwork README
 ----------------
 
-	I) Dependencies
+	I) Licence
+
+GPLv3. See COPYING.
+
+--
+
+	II) Dependencies
 
 pygtk v2 (Ubuntu package: python-gtk2)
 tesseract v3 (Ubuntu package: none at the moment)
@@ -10,19 +16,19 @@ python-imaging-sane (Ubuntu package: python-imaging-sane)
 
 --
 
-	II) Installation
+	III) Installation
 
 $ sudo ./setup.py install
 
 --
 
-	III) How to run Paperwork
+	IV) How to run Paperwork
 
 $ paperwork
 
 --
 
-	IV) Development
+	V) Development
 
 If you want to make changes, here are few things that can help you:
 

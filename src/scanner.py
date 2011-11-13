@@ -24,9 +24,8 @@ class PaperworkScanner(object):
     lazy way: We only look for the scanner when the user request a scan.
     """
 
-    CALIBRATION_RESOLUTION = 150
-    POSSIBLE_RESOLUTIONS = [ 100, 200, 300, 400, 500, 600 ]
     RECOMMENDED_RESOLUTION = 300
+    CALIBRATION_RESOLUTION = 200
 
     def __init__(self):
         self.__available_devices = []   # see sane.get_devices()
@@ -63,7 +62,14 @@ class PaperworkScanner(object):
 
     selected_device = property(__get_selected_device, __set_selected_device)
 
-    def __open_scanner(self):
+    def get_possible_resolutions(self, devid):
+        self.__open_scanner(devid)
+        for opt in self.__active_device[1].get_options():
+            if opt[1] == "resolution":  # opt name
+                return opt[8] # opt possible values
+        return []
+
+    def __open_scanner(self, devid):
         """
         Look for the selected scanner.
 
@@ -71,13 +77,13 @@ class PaperworkScanner(object):
             Returns the corresponding sane device. None if no scanner has been
             found.
         """
-        if not self.__selected_device:
+        if not devid:
             if self.__active_device:
                 self.__active_device[1].close()
             self.__active_device = None
             raise PaperworkScannerException("No scanner selected")
 
-        if self.__active_device and self.__selected_device == self.__active_device[0]:
+        if self.__active_device and devid == self.__active_device[0]:
             # already opened
             return
     
@@ -87,7 +93,7 @@ class PaperworkScanner(object):
 
         while self.__active_device == None:
             for device in self.available_devices:
-                if device[0] == self.__selected_device:
+                if device[0] == devid:
                     print "Will use device '%s'" % (str(device))
                     dev_obj = sane.open(device[0])
                     self.__active_device = (device[0], dev_obj)
@@ -118,7 +124,7 @@ class PaperworkScanner(object):
         """
         Run a scan, and returns the corresponding output image.
         """
-        self.__open_scanner()
+        self.__open_scanner(self.__selected_device)
         self.__set_scanner_settings()
         return self.__active_device[1].scan()
 

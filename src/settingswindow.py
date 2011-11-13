@@ -80,20 +80,22 @@ class SettingsWindow(object):
         Apply new user settings.
         """
         assert(self.__ocrlangs_widget)
-        assert(self.__possible_scanners)
+        assert(self.__possible_scanners != None)
+
+        need_reindex = False
+
         try:
             os.makedirs(self.__widget_tree \
                     .get_object("filechooserbutton").get_current_folder())
         except OSError:
             pass
 
-        self.__mainwindow.update_scanner_settings()
-
         self.__config.ocrlang = \
                 self.OCR_LANGS_REVERSE[
                     self.__ocrlangs_widget.get_active_text()]
 
-        self.__config.scanner_devid = self.__get_selected_device()
+        if self.__get_selected_device() != None:
+            self.__config.scanner_devid = self.__get_selected_device()
         self.__config.scanner_resolution = self.__get_selected_resolution()
 
         if self.__config.workdir != \
@@ -102,11 +104,15 @@ class SettingsWindow(object):
             self.__config.workdir = \
                     self.__widget_tree.get_object("filechooserbutton") \
                         .get_current_folder()
-            self.__destroy()
+            need_reindex = True
+
+        self.__mainwindow.update_scanner_settings()
+        self.__mainwindow.update_buttons_state()
+
+        if need_reindex:
             self.__mainwindow.new_document()
             self.__mainwindow.reindex()
-        else:
-            self.__destroy()
+        self.__destroy()
         self.__config.write()
         return True
 

@@ -25,9 +25,16 @@ class SettingsWindow(object):
     OCR_LANGS_REVERSE = dict((value, keyword) \
                              for keyword, value in OCR_LANGS.iteritems())
 
-    def __init__(self, mainwindow, config):
+    def __init__(self, mainwindow, config, scanner_mgmt):
         self.__mainwindow = mainwindow
         self.__config = config
+
+        self.__possible_scanners = scanner_mgmt.available_devices
+        self.__selected_scanner = self.__config.scanner_devid
+        self.__possible_resolutions = scanner_mgmt.POSSIBLE_RESOLUTIONS
+        self.__selected_resolution = self.__config.scanner_resolution
+        self.__recommended_resolution = scanner_mgmt.RECOMMENDED_RESOLUTION
+
         self.__widget_tree = load_uifile("settingswindow.glade")
 
         self.__settings_win = self.__widget_tree.get_object("windowSettings")
@@ -42,19 +49,53 @@ class SettingsWindow(object):
         self.__fill_in_form()
         self.__settings_win.set_visible(True)
 
+    @staticmethod
+    def __dev_to_dev_name(dev):
+        return ("%s %s (%s)" % (dev[1], dev[2], dev[3]))
+
+    @staticmethod
+    def __resolution_to_resolution_name(resolution, recommended):
+        txt = ("%d dpi" % (resolution))
+        if (resolution == recommended):
+            txt += " (recommended)" # TODO(Jflesch): i18n / l10n
+        return txt
+
+    def __get_selected_device(self):
+        txt = self.__scanner_device_widget.get_active_text()
+        for dev in self.__possible_scanners:
+            if self.__dev_to_dev_name(dev) == txt:
+                return dev[0]
+        return None
+
+    def __get_selected_resolution(self):
+        txt = self.__scanner_resolution_widget.get_active_text()
+        for resolution in self.__possible_resolutions:
+            if (self.__resolution_to_resolution_name(resolution,
+                    self.__recommended_resolution) == txt):
+                return resolution
+        return None
+
     def __apply(self):
         """
         Apply new user settings.
         """
         assert(self.__ocrlangs_widget)
+        assert(self.__possible_scanners)
         try:
             os.makedirs(self.__widget_tree \
                     .get_object("filechooserbutton").get_current_folder())
         except OSError:
             pass
+
+        self.__mainwindow.update_scanner_settings()
+
         self.__config.ocrlang = \
                 self.OCR_LANGS_REVERSE[
                     self.__ocrlangs_widget.get_active_text()]
+
+        self.__config.scanner_devid = self.__get_selected_device()
+        self.__config.scanner_resolution = self.__get_selected_resolution()
+
         if self.__config.workdir != \
                 self.__widget_tree.get_object("filechooserbutton") \
                         .get_current_folder():
@@ -110,9 +151,18 @@ class SettingsWindow(object):
 
         scanner_table = self.__widget_tree.get_object("tableScannerSettings")
         assert(scanner_table)
+
         # scanner devices
         self.__scanner_device_widget = gtk.combo_box_new_text()
-        # TODO
+        idx = 0
+        active_idx = 0
+        for dev in self.__possible_scanners:
+            self.__scanner_device_widget.append_text(
+                    self.__dev_to_dev_name(dev))
+            if dev[0] == self.__selected_scanner:
+                active_idx = idx
+            idx = idx + 1
+        self.__scanner_device_widget.set_active(active_idx)
         self.__scanner_device_widget.set_visible(True)
         scanner_table.attach(self.__scanner_device_widget,
                              1, # left_attach
@@ -120,8 +170,19 @@ class SettingsWindow(object):
                              0, # top_attach
                              1, # bottom_attach
                              xoptions=gtk.EXPAND|gtk.FILL)
+
+        # scanner resolution
         self.__scanner_resolution_widget = gtk.combo_box_new_text()
-        # TODO
+        idx = 0
+        active_idx = 0
+        for resolution in self.__possible_resolutions:
+            self.__scanner_resolution_widget.append_text(
+                    self.__resolution_to_resolution_name(resolution,
+                            self.__recommended_resolution))
+            if resolution == self.__selected_resolution:
+                active_idx = idx
+            idx = idx + 1
+        self.__scanner_resolution_widget.set_active(active_idx)
         self.__scanner_resolution_widget.set_visible(True)
         scanner_table.attach(self.__scanner_resolution_widget,
                              1, # left_attach

@@ -4,7 +4,7 @@ Paperwork configuration management code
 
 import ConfigParser
 import os
-
+from scanner import PaperworkScanner
 
 class PaperworkConfig(object):
     """
@@ -49,6 +49,8 @@ class PaperworkConfig(object):
             self.__configparser.add_section("Global")
         if not self.__configparser.has_section("OCR"):
             self.__configparser.add_section("OCR")
+        if not self.__configparser.has_section("Scanner"):
+            self.__configparser.add_section("Scanner")
 
     def __get_workdir(self):
         """
@@ -93,6 +95,45 @@ class PaperworkConfig(object):
         self.__configparser.set("OCR", "Lang", lang)
 
     ocrlang = property(__get_ocrlang, __set_ocrlang)
+
+    def __get_scanner_devid(self):
+        """
+        This is the id of the device selected by the user.
+
+        String.
+        """
+        try:
+            return self.__configparser.get("Scanner", "Device")
+        except ConfigParser.NoOptionError:
+            return None
+
+    def __set_scanner_devid(self, devid):
+        """
+        Set the device id selected by the user to use for scanning
+        """
+        self.__configparser.set("Scanner", "Device", devid)
+
+    scanner_devid = property(__get_scanner_devid, __set_scanner_devid)
+
+    def __get_scanner_resolution(self):
+        """
+        This is the resolution of the scannner used for normal scans.
+
+        String.
+        """
+        try:
+            return int(self.__configparser.get("Scanner", "Resolution"))
+        except ConfigParser.NoOptionError:
+            return PaperworkScanner.RECOMMENDED_RESOLUTION
+
+    def __set_scanner_resolution(self, resolution):
+        """
+        Set the scanner resolution used for normal scans.
+        """
+        self.__configparser.set("Scanner", "Resolution", str(resolution))
+
+    scanner_resolution = property(__get_scanner_resolution,
+                                  __set_scanner_resolution)
 
     def write(self):
         """

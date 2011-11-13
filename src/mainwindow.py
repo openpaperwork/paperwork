@@ -32,6 +32,8 @@ class MainWindow:
         self.__config = config
 
         self.__device = PaperworkScanner()
+        self.update_scanner_settings()
+
         self.__doc = None
         self.__page = None
         self.__docsearch = None
@@ -103,6 +105,10 @@ class MainWindow:
 
         self.__show_busy_cursor()
         self.reindex()
+
+    def update_scanner_settings(self):
+        self.__device.selected_device = self.__config.scanner_devid
+        self.__device.selected_resolution = self.__config.scanner_resolution
 
     def __set_progress(self, progress, text):
         self.__status_bar.pop(self.__status_context_id)
@@ -195,7 +201,7 @@ class MainWindow:
         except OSError, exc:
             print ("Unable to stat dir '%s': %s --> opening dialog settings"
                    % (self.__config.workdir, exc))
-            SettingsWindow(self, self.__config)
+            SettingsWindow(self, self.__config, self.__device)
             return
 
     def __get_keywords(self):
@@ -653,7 +659,7 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemAbout").connect("activate",
                 self.__show_about_dialog_cb)
         self.__widget_tree.get_object("menuitemSettings").connect("activate",
-                lambda x: SettingsWindow(self, self.__config))
+                lambda x: SettingsWindow(self, self.__config, self.__device))
         self.__widget_tree.get_object("buttonSearchClear").connect("clicked",
                 self.__clear_search_cb)
         self.__widget_tree.get_object("menuitemReOcrAll").connect("activate",

@@ -1,10 +1,10 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="windowSettings">
     <property name="width_request">475</property>
-    <property name="height_request">110</property>
+    <property name="height_request">125</property>
+    <property name="can_focus">False</property>
     <property name="title" translatable="yes">Settings</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -13,17 +13,19 @@
     <child>
       <object class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
-        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
         <child>
           <object class="GtkTable" id="tableSettings">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="n_rows">2</property>
-            <property name="n_columns">3</property>
+            <property name="n_columns">2</property>
             <property name="row_spacing">5</property>
             <child>
               <object class="GtkLabel" id="label1">
                 <property name="width_request">125</property>
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Work directory</property>
               </object>
               <packing>
@@ -34,6 +36,7 @@
             <child>
               <object class="GtkLabel" id="label2">
                 <property name="visible">True</property>
+                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">OCR Language</property>
               </object>
               <packing>
@@ -44,12 +47,10 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="entrySettingsWorkDir">
+              <object class="GtkFileChooserButton" id="filechooserbutton">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">&#x25CF;</property>
-                <property name="primary_icon_sensitive">True</property>
-                <property name="secondary_icon_sensitive">True</property>
+                <property name="can_focus">False</property>
+                <property name="action">select-folder</property>
               </object>
               <packing>
                 <property name="left_attach">1</property>
@@ -57,51 +58,29 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="buttonSettingsWorkDirSelect">
-                <property name="label">gtk-open</property>
-                <property name="width_request">100</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">2</property>
-                <property name="right_attach">3</property>
-                <property name="x_options"></property>
-                <property name="y_options"></property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel" id="label3">
-                <property name="visible">True</property>
-              </object>
-              <packing>
-                <property name="left_attach">2</property>
-                <property name="right_attach">3</property>
-                <property name="top_attach">1</property>
-                <property name="bottom_attach">2</property>
-              </packing>
-            </child>
-            <child>
               <placeholder/>
             </child>
           </object>
           <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">0</property>
           </packing>
         </child>
         <child>
           <object class="GtkHButtonBox" id="hbuttonbox1">
             <property name="visible">True</property>
+            <property name="can_focus">False</property>
             <property name="spacing">10</property>
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="buttonSettingsCancel">
                 <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -112,9 +91,11 @@
             <child>
               <object class="GtkButton" id="buttonSettingsOk">
                 <property name="label" translatable="yes">Ok</property>
+                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -125,8 +106,9 @@
           </object>
           <packing>
             <property name="expand">False</property>
+            <property name="fill">True</property>
             <property name="padding">6</property>
-            <property name="position">1</property>
+            <property name="position">2</property>
           </packing>
         </child>
       </object>

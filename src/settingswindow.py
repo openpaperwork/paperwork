@@ -47,18 +47,18 @@ class SettingsWindow(object):
         assert(self.__ocrlangs_widget)
         try:
             os.makedirs(self.__widget_tree \
-                    .get_object("entrySettingsWorkDir").get_text())
+                    .get_object("filechooserbutton").get_current_folder())
         except OSError:
             pass
         self.__config.ocrlang = \
                 self.OCR_LANGS_REVERSE[
                     self.__ocrlangs_widget.get_active_text()]
         if self.__config.workdir != \
-                self.__widget_tree.get_object("entrySettingsWorkDir") \
-                        .get_text():
+                self.__widget_tree.get_object("filechooserbutton") \
+                        .get_current_folder():
             self.__config.workdir = \
-                    self.__widget_tree.get_object("entrySettingsWorkDir") \
-                        .get_text()
+                    self.__widget_tree.get_object("filechooserbutton") \
+                        .get_current_folder()
             self.__destroy()
             self.__mainwindow.new_document()
             self.__mainwindow.reindex()
@@ -76,8 +76,6 @@ class SettingsWindow(object):
                 "clicked", lambda x: self.__destroy())
         self.__widget_tree.get_object("buttonSettingsOk").connect(
                 "clicked", lambda x: self.__apply())
-        self.__widget_tree.get_object("buttonSettingsWorkDirSelect").connect(
-                "clicked", lambda x: self.__open_file_chooser())
 
     def __fill_in_form(self):
         """
@@ -85,7 +83,7 @@ class SettingsWindow(object):
         window.
         """
         # work dir
-        self.__widget_tree.get_object("entrySettingsWorkDir").set_text(
+        self.__widget_tree.get_object("filechooserbutton").set_current_folder(
             self.__config.workdir)
 
         # ocr lang
@@ -102,25 +100,6 @@ class SettingsWindow(object):
         self.__ocrlangs_widget.set_active(active_idx)
         self.__ocrlangs_widget.set_visible(True)
         table.attach(self.__ocrlangs_widget, 1, 2, 1, 2)
-
-    def __open_file_chooser(self):
-        """
-        Called when the user want to choose the work directory of Paperwork
-        """
-        chooser = gtk.FileChooserDialog(action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                                        buttons=(gtk.STOCK_CANCEL,
-                                                 gtk.RESPONSE_CANCEL,
-                                                 gtk.STOCK_OPEN,
-                                                 gtk.RESPONSE_OK))
-        chooser.set_action(gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-        chooser.set_current_folder(self.__widget_tree. \
-                get_object("entrySettingsWorkDir").get_text())
-        response = chooser.run()
-        if response == gtk.RESPONSE_OK:
-            print "Selected: %s" % (chooser.get_filename())
-            self.__widget_tree.get_object("entrySettingsWorkDir") \
-                    .set_text(chooser.get_filename())
-        chooser.destroy()
 
     def __destroy(self):
         """

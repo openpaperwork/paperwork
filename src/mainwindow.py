@@ -86,14 +86,6 @@ class MainWindow:
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
 
-        self.__widget_tree.get_object("menuitemScan") \
-                .set_sensitive(self.__device.state[0])
-        self.__widget_tree.get_object("toolbuttonScan") \
-                .set_sensitive(self.__device.state[0])
-        tooltip = gtk.Tooltips()
-        tooltip.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
-                        self.__device.state[1])
-
         self.__page_scaled = True
         self.new_document()
 
@@ -103,12 +95,31 @@ class MainWindow:
 
         self.__check_workdir()
 
+        self.update_buttons_state()
+
         self.__show_busy_cursor()
         self.reindex()
 
     def update_scanner_settings(self):
+        """
+        Apply the scanner settings from the configuration to the currently used
+        scanner
+        """
         self.__device.selected_device = self.__config.scanner_devid
         self.__device.selected_resolution = self.__config.scanner_resolution
+
+    def update_buttons_state(self):
+        """
+        Update buttons states (sensitive or not, tooltips, etc)
+        """
+        self.__widget_tree.get_object("menuitemScan") \
+                .set_sensitive(self.__device.state[0])
+        self.__widget_tree.get_object("toolbuttonScan") \
+                .set_sensitive(self.__device.state[0])
+        tooltip = gtk.Tooltips()
+        tooltip.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
+                        self.__device.state[1])
+
 
     def __set_progress(self, progress, text):
         self.__status_bar.pop(self.__status_context_id)

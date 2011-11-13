@@ -32,7 +32,7 @@ class PaperworkScanner(object):
         self.__available_devices = []   # see sane.get_devices()
         # selected_device: one value from self.__available_devices[][0] (scanner
         # id)
-        self.selected_device = None
+        self.__selected_device = None
         self.selected_resolution = self.RECOMMENDED_RESOLUTION
         # active_device: tuple: (value from __available_devices[][0], result from sane.open())
         self.__active_device = None
@@ -71,13 +71,13 @@ class PaperworkScanner(object):
             Returns the corresponding sane device. None if no scanner has been
             found.
         """
-        if not self.selected_device:
+        if not self.__selected_device:
             if self.__active_device:
                 self.__active_device[1].close()
             self.__active_device = None
             raise PaperworkScannerException("No scanner selected")
 
-        if self.__active_device and self.selected_device == self.__active_device[0]:
+        if self.__active_device and self.__selected_device == self.__active_device[0]:
             # already opened
             return
     
@@ -87,7 +87,7 @@ class PaperworkScanner(object):
 
         while self.__active_device == None:
             for device in self.available_devices:
-                if device[0] == self.selected_device:
+                if device[0] == self.__selected_device:
                     print "Will use device '%s'" % (str(device))
                     dev_obj = sane.open(device[0])
                     self.__active_device = (device[0], dev_obj)
@@ -106,7 +106,7 @@ class PaperworkScanner(object):
 
     def __set_scanner_settings(self):
         try:
-            self.__active_device[1].resolution = 300
+            self.__active_device[1].resolution = self.selected_resolution
         except AttributeError, exc:
             print "WARNING: Can't set scanner resolution: " + exc
         try:

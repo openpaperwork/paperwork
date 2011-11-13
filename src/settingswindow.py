@@ -34,7 +34,9 @@ class SettingsWindow(object):
         self.__settings_win.set_transient_for(mainwindow.main_window)
         assert(self.__settings_win)
 
-        self.__ocrlangs_widget = gtk.combo_box_new_text()   # default
+        self.__ocrlangs_widget = None
+        self.__scanner_device_widget = None
+        self.__scanner_resolution_widget = None
 
         self.__connect_signals()
         self.__fill_in_form()
@@ -87,8 +89,8 @@ class SettingsWindow(object):
             self.__config.workdir)
 
         # ocr lang
-        table = self.__widget_tree.get_object("tableSettings")
-        assert(table)
+        general_table = self.__widget_tree.get_object("tableGeneralSettings")
+        assert(general_table)
         self.__ocrlangs_widget = gtk.combo_box_new_text()
         idx = 0
         active_idx = 0
@@ -99,7 +101,34 @@ class SettingsWindow(object):
             idx = idx + 1
         self.__ocrlangs_widget.set_active(active_idx)
         self.__ocrlangs_widget.set_visible(True)
-        table.attach(self.__ocrlangs_widget, 1, 2, 1, 2)
+        general_table.attach(self.__ocrlangs_widget,
+                             1, # left_attach
+                             2, # right_attach
+                             1, # top_attach
+                             2, # bottom_attach
+                             xoptions=gtk.EXPAND|gtk.FILL)
+
+        scanner_table = self.__widget_tree.get_object("tableScannerSettings")
+        assert(scanner_table)
+        # scanner devices
+        self.__scanner_device_widget = gtk.combo_box_new_text()
+        # TODO
+        self.__scanner_device_widget.set_visible(True)
+        scanner_table.attach(self.__scanner_device_widget,
+                             1, # left_attach
+                             2, # right_attach
+                             0, # top_attach
+                             1, # bottom_attach
+                             xoptions=gtk.EXPAND|gtk.FILL)
+        self.__scanner_resolution_widget = gtk.combo_box_new_text()
+        # TODO
+        self.__scanner_resolution_widget.set_visible(True)
+        scanner_table.attach(self.__scanner_resolution_widget,
+                             1, # left_attach
+                             2, # right_attach
+                             1, # top_attach
+                             2, # bottom_attach
+                             xoptions=gtk.EXPAND|gtk.FILL)
 
     def __destroy(self):
         """

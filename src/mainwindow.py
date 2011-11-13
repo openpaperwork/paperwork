@@ -44,8 +44,13 @@ class MainWindow:
         # the gtk window is a public attribute: dialogs need it
         self.main_window = self.__widget_tree.get_object("mainWindow")
         assert(self.main_window)
-        self.__progress_bar = \
-                self.__widget_tree.get_object("progressbarMainWin")
+
+        self.__status_bar = self.__widget_tree.get_object("statusbar")
+        # we use only one context for the status bar
+        self.__status_context_id = \
+                self.__status_bar.get_context_id("mainwindow")
+        self.__progress_bar = self.__widget_tree.get_object("progressbar")
+
         self.__page_scroll_win = \
                 self.__widget_tree.get_object("scrolledwindowPageImg")
         self.__page_img = self.__widget_tree.get_object("imagePageImg")
@@ -99,18 +104,22 @@ class MainWindow:
         self.__show_busy_cursor()
         self.reindex()
 
+    def __set_progress(self, progress, text):
+        self.__status_bar.pop(self.__status_context_id)
+        self.__status_bar.push(self.__status_context_id, text)
+        self.__progress_bar.set_fraction(progress)
+
     def reindex(self):
         """
         Reload and reindex all the documents
         """
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__docsearch = DocSearch(self.__config.workdir,
                                        self.__cb_progress)
         finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__show_normal_cursor()
         self.__refresh_label_list()
 
@@ -205,9 +214,8 @@ class MainWindow:
         """
         Show the page image
         """
-        self.__progress_bar.set_fraction(0.0)
         # TODO(Jflesch): i18n/l10n
-        self.__progress_bar.set_text("Loading image and text ...")
+        self.__set_progress(0.0, "Loading image and text ...")
         try:
             if self.__page_scaled:
                 progress_callback = lambda \
@@ -234,7 +242,7 @@ class MainWindow:
 
             if self.__page_scaled:
                 # TODO(Jflesch): i18n/l10n
-                self.__progress_bar.set_text("Resizing the image ...")
+                self.__set_progress(0.75, "Resizing the image ...")
                 gtk_refresh()
 
                 # we strip 30 pixels from the width of scrolled window, because
@@ -261,8 +269,7 @@ class MainWindow:
             self.__page_img.set_from_pixbuf(pixbuf)
             self.__page_img.show()
         finally:
-            self.__progress_bar.set_fraction(0.0)
-            self.__progress_bar.set_text("")
+            self.__set_progress(0.0, "")
 
     def __show_page_txt(self, page):
         """
@@ -353,7 +360,6 @@ class MainWindow:
         """
         Update the main progress bar
         """
-        self.__progress_bar.set_fraction(float(progression) / total)
         txt = None
         if step == ScannedPage.SCAN_STEP_SCAN:
             # TODO(Jflesch): i18n/l10n
@@ -370,10 +376,10 @@ class MainWindow:
         elif step == DocSearch.LABEL_STEP_UPDATING:
             # TODO(Jflesch): i18n/l10n
             txt = "Updating label ..."
-        if txt != None and doc != None:
+        assert(txt != None)
+        if doc != None:
             txt += (" (%s)" % (str(doc)))
-        if txt != None:
-            self.__progress_bar.set_text(txt)
+        self.__set_progress(float(progression) / total, txt)
         gtk_refresh()
 
     def __refresh_page_list(self):
@@ -414,8 +420,7 @@ class MainWindow:
             self.__show_page(page)
             self.__reset_page_vpaned()
         finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__show_normal_cursor()
 
     def __destroy_doc(self, doc):
@@ -490,12 +495,11 @@ class MainWindow:
             return
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__docsearch.redo_ocr(self.__cb_progress,
                                     self.__config.ocrlang)
         finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__show_normal_cursor()
         self.reindex()
 
@@ -505,11 +509,10 @@ class MainWindow:
         """
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__doc.redo_ocr(self.__config.ocrlang, self.__cb_progress)
         finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__show_normal_cursor()
         self.reindex()
 
@@ -566,11 +569,10 @@ class MainWindow:
         print "Label edited. Applying changes"
         try:
             self.__show_busy_cursor()
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__docsearch.update_label(label, new_label, self.__cb_progress)
         finally:
-            self.__progress_bar.set_text("")
-            self.__progress_bar.set_fraction(0.0)
+            self.__set_progress(0.0, "")
             self.__show_normal_cursor()
         print "Label updated"
         self.__refresh_label_list()

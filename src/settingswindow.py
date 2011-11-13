@@ -130,8 +130,8 @@ class SettingsWindow(object):
             self.__config.workdir)
 
         # ocr lang
-        general_table = self.__widget_tree.get_object("tableGeneralSettings")
-        assert(general_table)
+        ocr_table = self.__widget_tree.get_object("tableOCRSettings")
+        assert(ocr_table)
         self.__ocrlangs_widget = gtk.combo_box_new_text()
         idx = 0
         active_idx = 0
@@ -142,12 +142,12 @@ class SettingsWindow(object):
             idx = idx + 1
         self.__ocrlangs_widget.set_active(active_idx)
         self.__ocrlangs_widget.set_visible(True)
-        general_table.attach(self.__ocrlangs_widget,
-                             1, # left_attach
-                             2, # right_attach
-                             1, # top_attach
-                             2, # bottom_attach
-                             xoptions=gtk.EXPAND|gtk.FILL)
+        ocr_table.attach(self.__ocrlangs_widget,
+                         1, # left_attach
+                         2, # right_attach
+                         0, # top_attach
+                         1, # bottom_attach
+                         xoptions=gtk.EXPAND|gtk.FILL)
 
         scanner_table = self.__widget_tree.get_object("tableScannerSettings")
         assert(scanner_table)

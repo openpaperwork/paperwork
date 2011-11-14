@@ -60,14 +60,6 @@
       <!-- column-name suggestion -->
       <column type="gchararray"/>
     </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">tag1 &lt;span color="0000ff"&gt;test&lt;/span&gt;</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">tag2</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="can_focus">False</property>

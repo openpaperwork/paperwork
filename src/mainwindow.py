@@ -393,7 +393,8 @@ class MainWindow:
         elif step == DocSearch.LABEL_STEP_UPDATING:
             # TODO(Jflesch): i18n/l10n
             txt = "Updating label ..."
-        assert(txt != None)
+        else:
+            txt = ""
         if doc != None:
             txt += (" (%s)" % (str(doc)))
         self.__set_progress(float(progression) / total, txt)

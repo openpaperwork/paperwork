@@ -135,6 +135,47 @@ class PaperworkConfig(object):
     scanner_resolution = property(__get_scanner_resolution,
                                   __set_scanner_resolution)
 
+    def __get_scanner_calibration(self):
+        """
+        This is the resolution of the scannner used for normal scans.
+
+        String.
+        """
+        try:
+            pt_a_x = int(self.__configparser.get(
+                "Scanner", "Calibration_Pt_A_X"))
+            pt_a_y = int(self.__configparser.get(
+                "Scanner", "Calibration_Pt_A_Y"))
+            pt_b_x = int(self.__configparser.get(
+                "Scanner", "Calibration_Pt_B_X"))
+            pt_b_y = int(self.__configparser.get(
+                "Scanner", "Calibration_Pt_B_Y"))
+            if (pt_a_x > pt_b_x):
+                (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
+            if (pt_a_y > pt_b_y):
+                (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
+            return ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y))
+        except ConfigParser.NoOptionError:
+            # no calibration -> no cropping -> we have to keep the whole image
+            # each time
+            return None
+
+    def __set_scanner_calibration(self, calibration):
+        """
+        Set the scanner resolution used for normal scans.
+        """
+        self.__configparser.set("Scanner", "Calibration_Pt_A_X",
+                                str(calibration[0][0]))
+        self.__configparser.set("Scanner", "Calibration_Pt_A_Y",
+                                str(calibration[0][1]))
+        self.__configparser.set("Scanner", "Calibration_Pt_B_X",
+                                str(calibration[1][0]))
+        self.__configparser.set("Scanner", "Calibration_Pt_B_Y",
+                                str(calibration[1][1]))
+
+    scanner_calibration = property(__get_scanner_calibration,
+                                   __set_scanner_calibration)
+
     def write(self):
         """
         Rewrite the configuration file. It rewrites the same file than

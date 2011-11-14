@@ -84,7 +84,15 @@ class SettingsWindow(object):
         self.__calibration_img_ratio = 1.0 # default
         self.__calibration_img = None
         self.__calibration_img_resized = None
-        self.__calibration = None # will be a tuple: (CalibrationGrip, CalibrationGrip)
+
+        calibration = self.__config.scanner_calibration
+        if calibration == None:
+            self.__calibration = None # will be a tuple: (CalibrationGrip, CalibrationGrip)
+        else:
+            self.__calibration = (CalibrationGrip(calibration[0][0],
+                                                  calibration[0][1]),
+                                  CalibrationGrip(calibration[1][0],
+                                                  calibration[1][1]))
 
         self.__connect_signals()
         self.__fill_in_form()
@@ -116,6 +124,14 @@ class SettingsWindow(object):
                 return resolution
         return None
 
+    def __get_calibration(self):
+        if self.__calibration == None:
+            return None
+        return ((int(self.__calibration[0].position[0]),
+                 int(self.__calibration[0].position[1])),
+                (int(self.__calibration[1].position[0]),
+                 int(self.__calibration[1].position[1])))
+
     def __apply(self):
         """
         Apply new user settings.
@@ -139,6 +155,8 @@ class SettingsWindow(object):
             self.__config.scanner_devid = self.__get_selected_device()
         if self.__get_selected_resolution() != None:
             self.__config.scanner_resolution = self.__get_selected_resolution()
+        if self.__calibration != None:
+            self.__config.scanner_calibration = self.__get_calibration()
 
         if self.__config.workdir != \
                 self.__widget_tree.get_object("filechooserbutton") \
@@ -169,10 +187,23 @@ class SettingsWindow(object):
         self.__calibration_img = device_mgmt.scan()
         device_mgmt.close()
 
-        self.__calibration = (
-            CalibrationGrip(0, 0),
-            CalibrationGrip(self.__calibration_img.getbbox()[2],
-                            self.__calibration_img.getbbox()[3]))
+        if self.__calibration == None:
+            self.__calibration = (
+                CalibrationGrip(0, 0),
+                CalibrationGrip(self.__calibration_img.getbbox()[2],
+                                self.__calibration_img.getbbox()[3]))
+        else:
+            for grip in self.__calibration:
+                (x, y) = grip.position
+                if x < 0:
+                    x = 0
+                if y < 0:
+                    y = 0
+                if x > self.__calibration_img.getbbox()[2]:
+                    x = self.__calibration_img.getbbox()[2]
+                if y > self.__calibration_img.getbbox()[3]:
+                    y = self.__calibration_img.getbbox()[3]
+                grip.position = (x, y)
 
         self.__calibration_img_widget.set_alignment(0.0, 0.0)
         self.__refresh_calibration_img()

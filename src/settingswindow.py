@@ -6,6 +6,7 @@ import Image
 import ImageDraw
 import gtk
 import os
+import time
 
 from scanner import PaperworkScanner
 from util import image2pixbuf
@@ -50,6 +51,7 @@ class SettingsWindow(object):
     }
     OCR_LANGS_REVERSE = dict((value, keyword) \
                              for keyword, value in OCR_LANGS.iteritems())
+    GRIP_MOVE_MAX_FPS = 1.0
 
     def __init__(self, mainwindow, config, scanner_mgmt):
         self.__mainwindow = mainwindow
@@ -172,6 +174,7 @@ class SettingsWindow(object):
             CalibrationGrip(self.__calibration_img.getbbox()[2],
                             self.__calibration_img.getbbox()[3]))
 
+        self.__calibration_img_widget.set_alignment(0.0, 0.0)
         self.__refresh_calibration_img()
 
     def __refresh_calibration_img(self, fast=False):
@@ -258,29 +261,38 @@ class SettingsWindow(object):
         else:
             print "No grip selected. Will change scale"
 
-    def __calibration_button_released_cb(self, event):
+    def __move_grip(self, event):
         (x, y) = event.get_coords()
-        print "Released: (%d, %d)" % (x, y)
-
         selected_grip = None
         for grip in self.__calibration:
             if grip.selected:
                 selected_grip = grip
                 break
+        if not selected_grip:
+            return None
+        print "Grip move: (%d, %d)" % (x, y)
+        new_x = x / self.__calibration_img_ratio
+        new_y = y / self.__calibration_img_ratio
+        if new_x < 0:
+            new_x = 0
+        if new_x > self.__calibration_img.getbbox()[2]:
+            new_x = self.__calibration_img.getbbox()[2]
+        if new_y < 0:
+            new_y = 0
+        if new_y > self.__calibration_img.getbbox()[3]:
+            new_y = self.__calibration_img.getbbox()[3]
+        selected_grip.position = (new_x, new_y)
+        now = time.time()
+        self.__refresh_calibration_img(fast=True)
+        return selected_grip
+
+    def __calibration_button_released_cb(self, event):
+        (x, y) = event.get_coords()
+        print "Released: (%d, %d)" % (x, y)
+
+        selected_grip = self.__move_grip(event)
         if selected_grip:
             selected_grip.selected = False
-            new_x = x / self.__calibration_img_ratio
-            new_y = y / self.__calibration_img_ratio
-            if new_x < 0:
-                new_x = 0
-            if new_x > self.__calibration_img.getbbox()[2]:
-                new_x = self.__calibration_img.getbbox()[2]
-            if new_y < 0:
-                new_y = 0
-            if new_y > self.__calibration_img.getbbox()[3]:
-                new_y = self.__calibration_img.getbbox()[3]
-            selected_grip.position = (new_x, new_y)
-            self.__refresh_calibration_img(fast=True)
         else:
             self.__change_calibration_scale()
     

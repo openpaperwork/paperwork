@@ -78,7 +78,7 @@ class ScannedDoc(object):
 
     nb_pages = property(__get_nb_pages)
 
-    def scan_next_page(self, device, ocrlang,
+    def scan_next_page(self, device, ocrlang, scanner_calibration,
                        callback=dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document
@@ -96,7 +96,7 @@ class ScannedDoc(object):
 
         page_nb = self.nb_pages
         page = ScannedPage(self, page_nb)
-        page.scan_page(device, ocrlang, callback)
+        page.scan_page(device, ocrlang, scanner_calibration, callback)
 
     def __get_pages(self):
         """

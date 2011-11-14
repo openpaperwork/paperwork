@@ -430,8 +430,10 @@ class MainWindow:
 
         self.__show_busy_cursor()
         try:
-            self.__doc.scan_next_page(self.__device, self.__config.ocrlang,
-                                    self.__cb_progress)
+            self.__doc.scan_next_page(self.__device, 
+                                      self.__config.ocrlang,
+                                      self.__config.scanner_calibration,
+                                      self.__cb_progress)
             page = self.__doc.pages[self.__doc.nb_pages - 1]
             self.__docsearch.index_page(page)
             self.__refresh_page_list()

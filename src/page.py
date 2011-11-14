@@ -152,16 +152,35 @@ class ScannedPage(object):
                 ScannedPage.__draw_box(draw, img.size, box, width, color)
         return img
 
-    def __scan(self, device, callback=dummy_progress_cb):
+    def __scan(self, device, scanner_calibration, callback=dummy_progress_cb):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
         """
+        if scanner_calibration != None:
+            cropping = (scanner_calibration[0][0]
+                        * device.selected_resolution
+                        / device.CALIBRATION_RESOLUTION,
+                        scanner_calibration[0][1]
+                        * device.selected_resolution
+                        / device.CALIBRATION_RESOLUTION,
+                        scanner_calibration[1][0]
+                        * device.selected_resolution
+                        / device.CALIBRATION_RESOLUTION,
+                        scanner_calibration[1][1]
+                        * device.selected_resolution
+                        / device.CALIBRATION_RESOLUTION)
+        else:
+            cropping = None
+
         callback(0, 100, self.SCAN_STEP_SCAN)
-        # TODO(Jflesch): call callback
+
+        # TODO(Jflesch): call callback during the scan
         pic = device.scan()
+        if cropping:
+            pic = pic.crop(cropping)
 
         outfiles = []
         for rotation in range(0, 2):
@@ -240,7 +259,7 @@ class ScannedPage(object):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, callback=dummy_progress_cb):
+    def scan_page(self, device, ocrlang, scanner_calibration, callback=dummy_progress_cb):
         """
         Scan the page & do OCR
         """
@@ -249,7 +268,7 @@ class ScannedPage(object):
         boxfile = self.__box_path
 
         callback(0, 100, self.SCAN_STEP_SCAN)
-        outfiles = self.__scan(device, callback)
+        outfiles = self.__scan(device, scanner_calibration, callback)
         callback(0, 100, self.SCAN_STEP_OCR)
         (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 

@@ -279,8 +279,8 @@
                             <property name="height_request">450</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
+                            <property name="hscrollbar_policy">always</property>
+                            <property name="vscrollbar_policy">always</property>
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkViewport" id="viewportCalibration">

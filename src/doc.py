@@ -2,6 +2,7 @@
 Code for managing documents (not page individually ! see page.py for that)
 """
 
+import codecs
 import os
 import os.path
 import time
@@ -149,8 +150,8 @@ class ScannedDoc(object):
         """
         if label in self.labels:
             return
-        with open(os.path.join(self.path, self.LABEL_FILE), 'a') \
-                as file_desc:
+        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'a',
+                        encoding='utf-8') as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
 
     def remove_label(self, to_remove):
@@ -159,8 +160,8 @@ class ScannedDoc(object):
         """
         labels = self.labels
         labels.remove(to_remove)
-        with open(os.path.join(self.path, self.LABEL_FILE), 'w') \
-                as file_desc:
+        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
+                        encoding='utf-8') as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -174,8 +175,8 @@ class ScannedDoc(object):
         """
         labels = []
         try:
-            with open(os.path.join(self.path, self.LABEL_FILE), 'r') \
-                    as file_desc:
+            with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'r',
+                             encoding='utf-8') as file_desc:
                 for line in file_desc.readlines():
                     line = line.strip()
                     (label_name, label_color) = line.split(",")
@@ -197,8 +198,8 @@ class ScannedDoc(object):
             # this document doesn't have this label
             return;
         labels.append(new_label)
-        with open(os.path.join(self.path, self.LABEL_FILE), 'w') \
-                as file_desc:
+        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
+                        encoding='utf-8') as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))

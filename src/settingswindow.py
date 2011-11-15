@@ -169,10 +169,10 @@ class SettingsWindow(object):
         self.__mainwindow.update_scanner_settings()
         self.__mainwindow.update_buttons_state()
 
+        self.__destroy()
         if need_reindex:
             self.__mainwindow.new_document()
             self.__mainwindow.reindex()
-        self.__destroy()
         self.__config.write()
         return True
 

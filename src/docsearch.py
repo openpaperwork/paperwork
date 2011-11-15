@@ -99,7 +99,7 @@ class DocSearch(object):
     def __simplify(keyword):
         """
         Simplify the keyword
-        * Strip spaces
+        * Strip white spaces
         * Strip accents
         * And lower case it
         """
@@ -483,9 +483,10 @@ class DocSearch(object):
             label --- The new label (see labels.Label)
             doc --- The first document on which this label has been added
         """
-        self.__index_keyword(label.name, doc.path)
-        if not label.name in self.__keywords:
-            self.__keywords.append(label.name)
+        label_name = self.__simplify(label.name)
+        self.__index_keyword(label_name, doc.path)
+        if not label_name in self.__keywords:
+            self.__keywords.append(label_name)
             self.__keywords.sort()
         if not label in self.label_list:
             self.label_list.append(label)

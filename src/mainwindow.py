@@ -4,6 +4,7 @@ Code relative to the main window management.
 
 from copy import copy
 import os
+import time
 
 import gtk
 
@@ -27,6 +28,7 @@ class MainWindow:
     """
 
     WIN_TITLE = "Paperwork"
+    MAX_PROGRESS_UPD_PER_SEC = 2.0
 
     def __init__(self, config):
         self.__config = config
@@ -52,6 +54,7 @@ class MainWindow:
         self.__status_context_id = \
                 self.__status_bar.get_context_id("mainwindow")
         self.__progress_bar = self.__widget_tree.get_object("progressbar")
+        self.__last_progress_upd = 0.0
 
         self.__page_scroll_win = \
                 self.__widget_tree.get_object("scrolledwindowPageImg")
@@ -377,6 +380,10 @@ class MainWindow:
         """
         Update the main progress bar
         """
+        now = time.time()
+        if (now - self.__last_progress_upd
+            < (1.0 / self.MAX_PROGRESS_UPD_PER_SEC)):
+            return
         txt = None
         if step == ScannedPage.SCAN_STEP_SCAN:
             # TODO(Jflesch): i18n/l10n

@@ -66,13 +66,9 @@ class Label(object):
         """
         return self.color.to_string()
 
-    def get_gtk_str(self):
+    def __str__(self):
         return ("<span bgcolor=\"%s\">    </span> %s" % (self.get_html_color(),
                                                          self.name))
-
-    def __str__(self):
-        return ("%s:%s" % (self.get_html_color(), self.name))
-
 
 class LabelEditor(object):
     """

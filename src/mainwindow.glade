@@ -1,23 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <object class="GtkEntryCompletion" id="entrycompletionSearch">
-    <property name="model">liststoreSuggestion</property>
-  </object>
   <object class="GtkImage" id="imageClear">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-clear</property>
   </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-delete</property>
-  </object>
-  <object class="GtkImage" id="image3">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-delete</property>
+  <object class="GtkEntryCompletion" id="entrycompletionSearch">
+    <property name="model">liststoreSuggestion</property>
   </object>
   <object class="GtkImage" id="imageNew">
     <property name="visible">True</property>
@@ -37,10 +27,12 @@
   </object>
   <object class="GtkListStore" id="liststoreLabel">
     <columns>
-      <!-- column-name tagName -->
+      <!-- column-name labelName -->
       <column type="gchararray"/>
-      <!-- column-name tagSelected -->
+      <!-- column-name labelSelected -->
       <column type="gboolean"/>
+      <!-- column-name labelIdx -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreMatch">
@@ -54,6 +46,16 @@
       <!-- column-name Pages -->
       <column type="gchararray"/>
     </columns>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-delete</property>
+  </object>
+  <object class="GtkImage" id="image3">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-delete</property>
   </object>
   <object class="GtkListStore" id="liststoreSuggestion">
     <columns>
@@ -524,7 +526,7 @@
                                       <object class="GtkTreeSelection" id="treeview-selection3"/>
                                     </child>
                                     <child>
-                                      <object class="GtkTreeViewColumn" id="treeviewcolumnTags">
+                                      <object class="GtkTreeViewColumn" id="treeviewcolumnLabels">
                                         <property name="sizing">autosize</property>
                                         <property name="title">Label</property>
                                         <property name="expand">True</property>
@@ -537,7 +539,7 @@
                                           </attributes>
                                         </child>
                                         <child>
-                                          <object class="GtkCellRendererText" id="cellrenderertextTag"/>
+                                          <object class="GtkCellRendererText" id="cellrenderertextLabel"/>
                                           <attributes>
                                             <attribute name="editable">0</attribute>
                                             <attribute name="markup">0</attribute>
@@ -547,7 +549,7 @@
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkTreeViewColumn" id="treeviewcolumnTagSelected">
+                                      <object class="GtkTreeViewColumn" id="treeviewcolumnLabelSelected">
                                         <property name="sizing">autosize</property>
                                         <property name="fixed_width">50</property>
                                         <child>

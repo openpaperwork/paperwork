@@ -41,7 +41,6 @@ class MainWindow:
         self.__docsearch = None
         self.__page_cache = None
         self.__win_size = None  # main window size (None = unknown yet)
-        self.__label_name_to_obj = {}
 
         self.__widget_tree = load_uifile("mainwindow.glade")
 
@@ -86,7 +85,8 @@ class MainWindow:
         self.__page_list_menu = self.__widget_tree.get_object("popupmenuPages")
 
         # label selector
-        self.__label_list = self.__widget_tree.get_object("liststoreLabel")
+        self.__label_list = []
+        self.__label_list_store = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
 
         self.__page_scaled = True
@@ -171,7 +171,7 @@ class MainWindow:
             label_str = ""
             for label in doc.labels:
                 label_str += "\n  "
-                label_str += label.get_gtk_str()
+                label_str += str(label)
             self.__match_list.append([(document + label_str)])
 
     def __show_selected_doc_cb(self, objsrc=None):
@@ -419,13 +419,15 @@ class MainWindow:
         """
         Reload and refresh the label list
         """
-        self.__label_name_to_obj = {}
-        self.__label_list.clear()
+        self.__label_list = []
+        self.__label_list_store.clear()
         if self.__docsearch != None and self.__doc != None:
             labels = self.__doc.labels
+            i = 0
             for label in self.__docsearch.label_list:
-                self.__label_name_to_obj[label.get_gtk_str()] = label
-                self.__label_list.append([label.get_gtk_str(), (label in labels)])
+                self.__label_list.append(label)
+                self.__label_list_store.append([label, (label in labels), i])
+                i = i + 1
 
     def __scan_next_page_cb(self, objsrc=None):
         """
@@ -568,12 +570,14 @@ class MainWindow:
         """
         Take into account changes made on the checkboxes of labels
         """
-        label = self.__label_name_to_obj[self.__label_list[objpath][0]]
+        label_idx = self.__label_list_store[objpath][2]
+        label = self.__label_list[label_idx]
         if label in self.__doc.labels:
             self.__doc.remove_label(label)
         else:
             self.__doc.add_label(label)
         self.__refresh_label_list()
+        self.__update_results_cb()
 
     def __show_about_dialog_cb(self, objsrc=None):
         """
@@ -582,12 +586,9 @@ class MainWindow:
         about = AboutDialog(self.main_window)
         about.show()
 
-    def __edit_label_cb(self, treeview = None, path = None, view_column = None):
-        selection_path = self.__label_list_ui.get_selection().get_selected()
-        if selection_path[1] == None:
-            raise Exception("No label selected. Can't edit !")
-        selection = selection_path[0].get_value(selection_path[1], 0)
-        label = self.__label_name_to_obj[selection]
+    def __edit_label_cb(self, treeview = None, objpath = None, view_column = None):
+        label_idx = self.__label_list_store[objpath][2]
+        label = self.__label_list[label_idx]
         new_label = copy(label)
         editor = LabelEditor(new_label)
         if not editor.edit(self.main_window):

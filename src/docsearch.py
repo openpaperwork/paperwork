@@ -136,16 +136,13 @@ class DocSearch(object):
                 continue
             self.__index_keyword(word, docpath)
 
-    def __index_dir(self, dirpath, progression=0, total=0,
-                    callback=dummy_progress_cb):
+    def __index_dir(self, dirpath, callback=dummy_progress_cb):
         """
         Look in the given directory for documents to index.
+        May also be called on the directory of a document itself.
 
         Arguments:
             dirpath --- directory to explore
-            progression --- progression level passed to the progression
-                indicator callback
-            total --- maximum value for the progression level
             callback -- progression indicator callback (see
                 util.dummy_progress_cb)
         """
@@ -155,23 +152,26 @@ class DocSearch(object):
             print "Unable to read dir '%s': %s" % (dirpath, str(exc))
             return
         dlist.sort()
-        if total == 0:
-            progression = 0
-            total = len(dlist)
+
+        progression = 0
+        total = len(dlist)
+
         page_nb = 0
         doc = ScannedDoc(dirpath, dirpath)
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
+                progression = progression + 1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
                 callback(progression, total, self.INDEX_STEP_READING, dpath)
-                self.__index_dir(os.path.join(dirpath, dpath), progression,
-                                total, callback)
-                progression = progression + 1
+                self.__index_dir(os.path.join(dirpath, dpath),
+                                 callback=dummy_progress_cb)
             elif (os.path.isfile(os.path.join(dirpath, dpath)) and
                   dpath[-4:].lower() == ".txt"):
                 self.__index_page(dirpath, doc.pages[page_nb])
                 page_nb += 1
+            progression = progression + 1
+
         if page_nb > 0:
             for label in doc.labels:
                 self.add_label(label, doc)

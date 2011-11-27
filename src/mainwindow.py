@@ -205,6 +205,14 @@ class MainWindow:
         """
         self.main_window.window.set_cursor(None)
 
+    def __show_settings(self):
+        self.__show_busy_cursor()
+        gtk_refresh()
+        try:
+            SettingsWindow(self, self.__config, self.__device)
+        finally:
+            self.__show_normal_cursor()
+
     def __check_workdir(self):
         """
         Check that the current work dir (see config.PaperworkConfig) exists. If
@@ -215,7 +223,7 @@ class MainWindow:
         except OSError, exc:
             print ("Unable to stat dir '%s': %s --> opening dialog settings"
                    % (self.__config.workdir, exc))
-            SettingsWindow(self, self.__config, self.__device)
+            self.__show_settings()
             return
 
     def __get_keywords(self):
@@ -681,7 +689,7 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemAbout").connect("activate",
                 self.__show_about_dialog_cb)
         self.__widget_tree.get_object("menuitemSettings").connect("activate",
-                lambda x: SettingsWindow(self, self.__config, self.__device))
+                lambda x: self.__show_settings())
         self.__widget_tree.get_object("buttonSearchClear").connect("clicked",
                 self.__clear_search_cb)
         self.__widget_tree.get_object("menuitemReOcrAll").connect("activate",

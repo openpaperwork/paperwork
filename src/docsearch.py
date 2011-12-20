@@ -484,7 +484,7 @@ class DocSearch(object):
             label --- The new label (see labels.Label)
             doc --- The first document on which this label has been added
         """
-        label_name = self.__simplify(label.name)
+        label_name = self.__simplify(unicode(label.name))
         self.__index_keyword(label_name, doc.path)
         if not label_name in self.__keywords:
             self.__keywords.append(label_name)

@@ -102,7 +102,7 @@ class MainWindow:
 
         self.__check_workdir()
 
-        self.update_buttons_state()
+        self.update_scan_buttons_state()
 
         self.__show_busy_cursor()
         self.reindex()
@@ -115,7 +115,7 @@ class MainWindow:
         self.__device.selected_device = self.__config.scanner_devid
         self.__device.selected_resolution = self.__config.scanner_resolution
 
-    def update_buttons_state(self):
+    def update_scan_buttons_state(self):
         """
         Update buttons states (sensitive or not, tooltips, etc)
         """
@@ -611,12 +611,12 @@ class MainWindow:
         about = AboutDialog(self.main_window)
         about.show()
 
-    def __edit_clicked_label_cb(self, treeview = None, objpath = None, view_column = None):
+    def __edit_clicked_label_cb(self, treeview=None, objpath=None, view_column=None):
         label_idx = self.__label_list_store[objpath][2]
         label = self.__label_list[label_idx]
         self.__edit_label(label)
 
-    def __destroy_current_page_cb(self, widget = None):
+    def __destroy_current_page_cb(self, widget=None):
         if not self.__ask_confirmation():
             return
         self.__page.destroy()
@@ -703,9 +703,9 @@ class MainWindow:
                 self.__scan_next_page_cb)
         self.__widget_tree.get_object("toolbuttonScan").connect("clicked",
                 self.__scan_next_page_cb)
-        self.__widget_tree.get_object("menuitemDestroyDoc").connect("activate",
+        self.__widget_tree.get_object("buttonDestroyDoc").connect("clicked",
                 self.__destroy_current_doc_cb)
-        self.__widget_tree.get_object("menuitemDestroyPage").connect("activate",
+        self.__widget_tree.get_object("buttonDestroyPage").connect("clicked",
                 self.__destroy_current_page_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",
                 self.__print_doc_cb)
@@ -736,6 +736,10 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemEditLabel").connect("activate",
                 self.__apply_to_current_label_cb, self.__edit_label)
         self.__widget_tree.get_object("menuitemDestroyLabel").connect("activate",
+                self.__apply_to_current_label_cb, self.__destroy_label)
+        self.__widget_tree.get_object("buttonEditLabel").connect("clicked",
+                self.__apply_to_current_label_cb, self.__edit_label)
+        self.__widget_tree.get_object("buttonDestroyLabel").connect("clicked",
                 self.__apply_to_current_label_cb, self.__destroy_label)
         self.__search_field.connect("focus-in-event",
                 lambda x, y: self.__selectors.set_current_page(0))  # Doc tab

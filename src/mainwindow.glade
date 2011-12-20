@@ -556,7 +556,7 @@
                                           <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf4"/>
                                         </child>
                                         <child>
-                                          <object class="GtkCellRendererToggle" id="cellrenderertoggle1"/>
+                                          <object class="GtkCellRendererToggle" id="cellrenderertoggleLabel"/>
                                           <attributes>
                                             <attribute name="sensitive">1</attribute>
                                             <attribute name="active">1</attribute>
@@ -734,6 +734,28 @@
             <property name="position">3</property>
           </packing>
         </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkMenu" id="popupmenuLabels">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkMenuItem" id="menuitemEditLabel">
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Edit</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkMenuItem" id="menuitemDestroyLabel">
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="label" translatable="yes">Destroy</property>
+        <property name="use_underline">True</property>
       </object>
     </child>
   </object>

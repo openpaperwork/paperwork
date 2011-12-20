@@ -60,6 +60,7 @@ class DocSearch(object):
     INDEX_STEP_READING = "reading"
     INDEX_STEP_SORTING = "sorting"
     LABEL_STEP_UPDATING = "label updating"
+    LABEL_STEP_DESTROYING = "label deletion"
     OCR_MAX_THREADS = 4
     OCR_SLEEP_TIME = 0.5
 
@@ -537,4 +538,13 @@ class DocSearch(object):
         for doc in self.docs:
             callback(current, total, self.LABEL_STEP_UPDATING, str(doc))
             doc.update_label(old_label, new_label)
+            current += 1
+
+    def destroy_label(self, label, callback=dummy_progress_cb):
+        self.label_list.remove(label)
+        current = 0
+        total = len(self.docs)
+        for doc in self.docs:
+            callback(current, total, self.LABEL_STEP_DESTROYING, str(doc))
+            doc.remove_label(label)
             current += 1

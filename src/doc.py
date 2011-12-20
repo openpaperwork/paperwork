@@ -158,6 +158,8 @@ class ScannedDoc(object):
         """
         Remove a label from the document. (-> rewrite the label file)
         """
+        if not to_remove in self.labels:
+            return
         labels = self.labels
         labels.remove(to_remove)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',

@@ -88,6 +88,7 @@ class MainWindow:
         self.__label_list = []
         self.__label_list_store = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
+        self.__label_list_menu = self.__widget_tree.get_object("popupmenuLabels")
 
         self.__page_scaled = True
 
@@ -608,9 +609,47 @@ class MainWindow:
         about = AboutDialog(self.main_window)
         about.show()
 
-    def __edit_label_cb(self, treeview = None, objpath = None, view_column = None):
+    def __edit_clicked_label_cb(self, treeview = None, objpath = None, view_column = None):
         label_idx = self.__label_list_store[objpath][2]
         label = self.__label_list[label_idx]
+        self.__edit_label(label)
+
+    def __destroy_current_page_cb(self, widget = None):
+        if not self.__ask_confirmation():
+            return
+        self.__page.destroy()
+        self.reindex()
+        self.__refresh_page_list()
+        self.__page_cache = None # smash the cache
+        self.__show_page(self.__page)
+
+    def __apply_to_current_label_cb(self, widget, action):
+        selection_path = self.__label_list_ui.get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No label selected"
+            return False
+
+        label_idx = selection_path[0].get_value(selection_path[1], 2)
+        label = self.__label_list[label_idx]
+        action(label)
+        self.__refresh_label_list()
+        return True
+
+    def __destroy_label(self, label):
+        assert(label != None)
+        if not self.__ask_confirmation():
+            return
+        try:
+            self.__show_busy_cursor()
+            self.__set_progress(0.0, "")
+            self.__docsearch.destroy_label(label, self.__cb_progress)
+        finally:
+            self.__set_progress(0.0, "")
+            self.__show_normal_cursor()
+        print "Label destroyed"
+
+    def __edit_label(self, label):
+        assert(label != None)
         new_label = copy(label)
         editor = LabelEditor(new_label)
         if not editor.edit(self.main_window):
@@ -625,44 +664,14 @@ class MainWindow:
             self.__set_progress(0.0, "")
             self.__show_normal_cursor()
         print "Label updated"
-        self.__refresh_label_list()
 
-    def __destroy_current_page_cb(self, widget = None):
-        if not self.__ask_confirmation():
-            return
-        self.__page.destroy()
-        self.reindex()
-        self.__refresh_page_list()
-        self.__page_cache = None # smash the cache
-        self.__show_page(self.__page)
-
-    def __page_list_clicked_cb(self, treeview, event):
-        # we are only interested in right clicks
-        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
-            return False
-        selection_path = self.__page_list_ui.get_selection().get_selected()
-        if self.__page == None:
-            print "No page selected yet"
-            return False
-        x = int(event.x)
-        y = int(event.y)
-        time = event.time
-        pathinfo = treeview.get_path_at_pos(x, y)
-        if pathinfo is None:
-            return False
-        path, col, cellx, celly = pathinfo
-        treeview.grab_focus()
-        treeview.set_cursor(path, col, 0)
-        self.__page_list_menu.popup(None, None, None, event.button, time)
-        return False
-
-    def __match_list_clicked_cb(self, treeview, event):
+    def __pop_menu_up_cb(self, treeview, event,
+                      ui_component, popup_menu):
         # we are only interested in right clicks
         if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
             return False
         selection_path = self.__match_list_ui.get_selection().get_selected()
-        if self.__doc == None:
-            print "No doc selected yet"
+        if selection_path == None:
             return False
         x = int(event.x)
         y = int(event.y)
@@ -673,7 +682,7 @@ class MainWindow:
         path, col, cellx, celly = pathinfo
         treeview.grab_focus()
         treeview.set_cursor(path, col, 0)
-        self.__match_list_menu.popup(None, None, None, event.button, time)
+        popup_menu.popup(None, None, None, event.button, time)
         return True
 
     def __connect_signals(self):
@@ -714,7 +723,7 @@ class MainWindow:
                 self.__redo_ocr_on_current_cb)
         self.__widget_tree.get_object("buttonAddLabel").connect("clicked",
                 self.__add_label_cb)
-        self.__widget_tree.get_object("cellrenderertoggle1").connect("toggled",
+        self.__widget_tree.get_object("cellrenderertoggleLabel").connect("toggled",
                 self.__label_toggled_cb)
         self.__widget_tree.get_object("menuitemReindexAll").connect("activate",
                 lambda x: self.reindex())
@@ -722,11 +731,17 @@ class MainWindow:
                 self.__destroy_current_page_cb)
         self.__widget_tree.get_object("menuitemDestroyDoc2").connect("activate",
                 self.__destroy_current_doc_cb)
+        self.__widget_tree.get_object("menuitemEditLabel").connect("activate",
+                self.__apply_to_current_label_cb, self.__edit_label)
+        self.__widget_tree.get_object("menuitemDestroyLabel").connect("activate",
+                self.__apply_to_current_label_cb, self.__destroy_label)
         self.__search_field.connect("focus-in-event",
                 lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
         self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.__page_list_ui.connect("button_press_event",
-                                    self.__page_list_clicked_cb)
+                                    self.__pop_menu_up_cb,
+                                    self.__page_list_ui,
+                                    self.__page_list_menu)
         self.__page_list_ui.connect("cursor-changed",
                 self.__show_selected_page_cb)
         self.__page_event_box.connect("button-press-event",
@@ -736,10 +751,17 @@ class MainWindow:
                 self.__show_selected_doc_cb)
         self.__match_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.__match_list_ui.connect("button_press_event",
-                                    self.__match_list_clicked_cb)
+                                    self.__pop_menu_up_cb,
+                                    self.__match_list_ui,
+                                    self.__match_list_menu)
+        self.__label_list_ui.connect("row-activated",
+                                     self.__edit_clicked_label_cb)
+        self.__label_list_ui.connect("button_press_event",
+                                    self.__pop_menu_up_cb,
+                                    self.__label_list_ui,
+                                    self.__label_list_menu)
         self.__show_all_boxes.connect("activate",
                 lambda x: self.__refresh_page())
-        self.__label_list_ui.connect("row-activated", self.__edit_label_cb)
 
     def __destroy(self):
         """

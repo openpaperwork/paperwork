@@ -469,10 +469,7 @@ class MainWindow:
             self.__set_progress(0.0, "")
             self.__show_normal_cursor()
 
-    def __destroy_doc(self, doc):
-        """
-        Ask for confirmation and then delete the document being viewed.
-        """
+    def __ask_confirmation(self):
         confirm = gtk.MessageDialog(parent=self.main_window,
                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type=gtk.MESSAGE_WARNING,
@@ -481,7 +478,15 @@ class MainWindow:
         response = confirm.run()
         confirm.destroy()
         if response != gtk.RESPONSE_YES:
-            print "Deletion aborted"
+            print "User cancelled"
+            return False
+        return True
+
+    def __destroy_doc(self, doc):
+        """
+        Ask for confirmation and then delete the document being viewed.
+        """
+        if not self.__ask_confirmation():
             return
         must_start_new_doc = (self.__doc == doc)
         print "Deleting ..."
@@ -623,6 +628,8 @@ class MainWindow:
         self.__refresh_label_list()
 
     def __destroy_current_page_cb(self, widget = None):
+        if not self.__ask_confirmation():
+            return
         self.__page.destroy()
         self.reindex()
         self.__refresh_page_list()

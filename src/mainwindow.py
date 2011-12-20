@@ -90,11 +90,12 @@ class MainWindow:
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
 
         self.__page_scaled = True
-        self.new_document()
 
         self.__connect_signals()
         self.main_window.set_visible(True)
         gtk_refresh()
+
+        self.new_document()
 
         self.__check_workdir()
 
@@ -243,6 +244,7 @@ class MainWindow:
         Show the page image
         """
         # TODO(Jflesch): i18n/l10n
+        self.__show_busy_cursor()
         self.__set_progress(0.0, "Loading image and text ...")
         try:
             if self.__page_scaled:
@@ -298,6 +300,7 @@ class MainWindow:
             self.__page_img.show()
         finally:
             self.__set_progress(0.0, "")
+            self.__show_normal_cursor()
 
         self.__page_scroll_win.get_vadjustment().set_value(
             self.__page_scroll_win.get_vadjustment().get_lower())

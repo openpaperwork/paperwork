@@ -93,10 +93,12 @@ class MainWindow:
         self.__page_scaled = True
 
         self.__connect_signals()
-        self.main_window.set_visible(True)
         gtk_refresh()
+        self.main_window.set_visible(True)
 
         self.new_document()
+
+        gtk_refresh()
 
         self.__check_workdir()
 

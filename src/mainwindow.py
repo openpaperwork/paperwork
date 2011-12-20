@@ -299,6 +299,12 @@ class MainWindow:
         finally:
             self.__set_progress(0.0, "")
 
+        self.__page_scroll_win.get_vadjustment().set_value(
+            self.__page_scroll_win.get_vadjustment().get_lower())
+        self.__page_scroll_win.get_hadjustment().set_value(
+            self.__page_scroll_win.get_hadjustment().get_lower())
+
+
     def __show_page_txt(self, page):
         """
         Update the page text

@@ -4,9 +4,12 @@
 Bootstrapping code
 """
 
-import pygtk
+import gettext
 import gobject
 import gtk
+import gtk.glade
+import locale
+import pygtk
 
 from config import PaperworkConfig
 from mainwindow import MainWindow
@@ -18,7 +21,13 @@ def main():
     """
     Where everything start.
     """
+    locale.setlocale(locale.LC_ALL, '')
+    for module in (gettext, gtk.glade):
+        module.bindtextdomain('paperwork', 'locale')
+        module.textdomain('paperwork')
+
     gobject.threads_init()
+
     main_win = None
     try:
         config = PaperworkConfig()

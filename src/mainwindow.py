@@ -6,6 +6,7 @@ from copy import copy
 import os
 import time
 
+import gettext
 import gtk
 
 from aboutdialog import AboutDialog
@@ -21,6 +22,7 @@ from util import load_uifile
 from util import SPLIT_KEYWORDS_REGEX
 from util import strip_accents
 
+_ = gettext.gettext
 
 class MainWindow:
     """
@@ -246,9 +248,8 @@ class MainWindow:
         """
         Show the page image
         """
-        # TODO(Jflesch): i18n/l10n
         self.__show_busy_cursor()
-        self.__set_progress(0.0, "Loading image and text ...")
+        self.__set_progress(0.0, _('Loading image and text ...'))
         try:
             if self.__page_scaled:
                 progress_callback = lambda \
@@ -274,8 +275,7 @@ class MainWindow:
             pixbuf = image2pixbuf(img)
 
             if self.__page_scaled:
-                # TODO(Jflesch): i18n/l10n
-                self.__set_progress(0.75, "Resizing the image ...")
+                self.__set_progress(0.75, _('Resizing the image ...'))
                 gtk_refresh()
 
                 # we strip 30 pixels from the width of scrolled window, because
@@ -335,7 +335,6 @@ class MainWindow:
         if selection_path[1] == None:
             raise Exception("No page selected yet")
         selection = selection_path[0].get_value(selection_path[1], 0)
-        # TODO(Jflesch): i18n/l10n
         page = self.__doc.pages[(int(selection[5:]) - 1)]
         return page
 
@@ -406,20 +405,15 @@ class MainWindow:
             return
         txt = None
         if step == ScannedPage.SCAN_STEP_SCAN:
-            # TODO(Jflesch): i18n/l10n
-            txt = "Scanning ..."
+            txt = _('Scanning ...')
         elif step == ScannedPage.SCAN_STEP_OCR:
-            # TODO(Jflesch): i18n/l10n
-            txt = "Reading ..."
+            txt = _('Reading ...')
         elif step == DocSearch.INDEX_STEP_READING:
-            # TODO(Jflesch): i18n/l10n
-            txt = "Reading ..."
+            txt = _('Reading ...')
         elif step == DocSearch.INDEX_STEP_SORTING:
-            # TODO(Jflesch): i18n/l10n
-            txt = "Sorting ..."
+            txt = _('Sorting ...')
         elif step == DocSearch.LABEL_STEP_UPDATING:
-            # TODO(Jflesch): i18n/l10n
-            txt = "Updating label ..."
+            txt = _('Updating label ...')
         else:
             txt = ""
         if doc != None:
@@ -433,7 +427,7 @@ class MainWindow:
         """
         self.__page_list.clear()
         for page in range(1, self.__doc.nb_pages + 1):
-            self.__page_list.append(["Page %d" % (page)])   # TODO: i18n/l10n
+            self.__page_list.append([_('Page %d') % (page)])
 
     def __refresh_label_list(self):
         """
@@ -477,7 +471,7 @@ class MainWindow:
                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type=gtk.MESSAGE_WARNING,
                 buttons=gtk.BUTTONS_YES_NO,
-                message_format="Are you sure ?")  # TODO(Jflesch): i18n/l10n
+                message_format=_('Are you sure ?'))
         response = confirm.run()
         confirm.destroy()
         if response != gtk.RESPONSE_YES:
@@ -535,8 +529,7 @@ class MainWindow:
         """
         Redo the OCR all *all* the documents
         """
-        # TODO(Jflesch): i18n/l10n
-        msg = "This may take a very long time\nAre you sure ?"
+        msg = _('This may take a very long time\nAre you sure ?')
         confirm = gtk.MessageDialog(parent=self.main_window,
                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type=gtk.MESSAGE_WARNING,

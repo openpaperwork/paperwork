@@ -4,6 +4,7 @@ Settings window.
 
 import Image
 import ImageDraw
+import gettext
 import gtk
 import os
 import time
@@ -11,6 +12,8 @@ import time
 from scanner import PaperworkScanner
 from util import image2pixbuf
 from util import load_uifile
+
+_ = gettext.gettext
 
 class CalibrationGrip(object):
     GRIP_SIZE = 20
@@ -106,7 +109,7 @@ class SettingsWindow(object):
     def __resolution_to_resolution_name(resolution, recommended):
         txt = ("%d" % (resolution))
         if (resolution == recommended):
-            txt += " (recommended)" # TODO(Jflesch): i18n / l10n
+            txt += _(' (recommended)')
         return txt
 
     def __get_selected_device(self):

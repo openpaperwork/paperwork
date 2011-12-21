@@ -2,6 +2,7 @@
 Code relative to scanner management.
 """
 
+import gettext
 import gtk
 try:
     import sane
@@ -10,6 +11,8 @@ try:
 except ImportError, e:
     print "Sane support disabled, because of: %s" % (e)
     HAS_SANE = False
+
+_ = gettext.gettext
 
 class PaperworkScannerException(Exception):
     """
@@ -51,13 +54,12 @@ class PaperworkScanner(object):
         return self.__selected_device
 
     def __set_selected_device(self, selected):
-        # TODO(Jflesch): l10n
         if not HAS_SANE:
-            self.state = (False, "Sane module not found")
+            self.state = (False, _('Sane module not found'))
         elif not selected:
-            self.state = (False, "No scanner has been selected")
+            self.state = (False, _('No scanner has been selected'))
         else:
-            self.state = (True, "Scan new page")
+            self.state = (True, _('Scan new page'))
         self.__selected_device = selected
 
     selected_device = property(__get_selected_device, __set_selected_device)

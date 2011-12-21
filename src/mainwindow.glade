@@ -120,28 +120,6 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkImageMenuItem" id="menuitemDestroyDoc">
-                        <property name="label">Delete document</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="image">image2</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkImageMenuItem" id="menuitemDestroyPage">
-                        <property name="label">Delete page</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="image">image3</property>
-                        <property name="use_stock">False</property>
-                        <property name="always_show_image">True</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkImageMenuItem" id="menuitemSettings">
                         <property name="label">gtk-preferences</property>
                         <property name="use_action_appearance">False</property>

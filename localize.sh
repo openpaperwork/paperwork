@@ -33,6 +33,7 @@ then
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot src/*.py src/*.glade.h > /dev/null
+	rm -f src/*.glade.h
 
 	for lang in ${LANGS}
 	do

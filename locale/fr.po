@@ -1,0 +1,217 @@
+# French translations for Paperwork package
+# Traductions françaises du paquet Paperwork.
+# Copyright (C) 2011 PAPERWORK'S COPYRIGHT HOLDER(S)
+# This file is distributed under the same license as Paperwork.
+# Automatically generated, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Paperwork 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-12-22 00:40+0100\n"
+"PO-Revision-Date: 2011-12-22 00:21+0100\n"
+"Last-Translator: jflesch@gmail.com\n"
+"Language-Team: none\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/mainwindow.py:252
+msgid "Loading image and text ..."
+msgstr "Chargement de l'image et de son texte ..."
+
+#: src/mainwindow.py:278
+msgid "Resizing the image ..."
+msgstr "Redimensionnement de l'image"
+
+#: src/mainwindow.py:408
+msgid "Scanning ..."
+msgstr "Scan ..."
+
+#: src/mainwindow.py:410 src/mainwindow.py:412
+msgid "Reading ..."
+msgstr "Lecture ..."
+
+#: src/mainwindow.py:414
+msgid "Sorting ..."
+msgstr "Tri ..."
+
+#: src/mainwindow.py:416
+msgid "Updating label ..."
+msgstr "Mise à jour du label ..."
+
+#: src/mainwindow.py:430
+#, python-format
+msgid "Page %d"
+msgstr "Page %d"
+
+#: src/mainwindow.py:474
+msgid "Are you sure ?"
+msgstr "Êtes-vous sûr ?"
+
+#: src/mainwindow.py:532
+msgid ""
+"This may take a very long time\n"
+"Are you sure ?"
+msgstr ""
+"Cette opération peut prendre beaucoup de temps\n"
+"Êtes-vous sûr ?"
+
+#: src/scanner.py:58
+msgid "Sane module not found"
+msgstr "Module Sane non-trouvé"
+
+#: src/scanner.py:60
+msgid "No scanner has been selected"
+msgstr "Aucun scanner n'a été selectionné"
+
+#: src/scanner.py:62
+msgid "Scan new page"
+msgstr "Scanner une nouvelle page"
+
+#: src/settingswindow.py:112
+msgid " (recommended)"
+msgstr " (recommandé)"
+
+#: src/aboutdialog.glade.h:1
+msgid "\n"
+msgstr "\n"
+
+#: src/aboutdialog.glade.h:3
+msgid "About"
+msgstr "À propos"
+
+#: src/aboutdialog.glade.h:4
+msgid "Grep for Dead Trees"
+msgstr "Grep pour les arbres morts"
+
+#: src/labeledit.glade.h:1
+msgid "Color"
+msgstr "Couleur"
+
+#: src/labeledit.glade.h:2
+msgid "Label"
+msgstr "Label"
+
+#: src/labeledit.glade.h:3
+msgid "Label editor"
+msgstr "Éditeur de label"
+
+#: src/mainwindow.glade.h:1
+msgid "Advanced"
+msgstr "Avancé"
+
+#: src/mainwindow.glade.h:2
+msgid "Delete document"
+msgstr "Effacer le document"
+
+#: src/mainwindow.glade.h:3
+msgid "Delete page"
+msgstr "Effacer la page"
+
+#: src/mainwindow.glade.h:4
+msgid "Destroy"
+msgstr "Détruire"
+
+#: src/mainwindow.glade.h:5
+msgid "Documents"
+msgstr "Documents"
+
+#: src/mainwindow.glade.h:6
+msgid "Edit"
+msgstr "Éditer"
+
+#: src/mainwindow.glade.h:7
+msgid "Highlight all the words"
+msgstr "Mettre en évidence tout les mots"
+
+#: src/mainwindow.glade.h:8
+msgid "Labels"
+msgstr "Labels"
+
+#: src/mainwindow.glade.h:9
+msgid "New document"
+msgstr "Nouveau document"
+
+#: src/mainwindow.glade.h:10
+msgid "Pages"
+msgstr "Pages"
+
+#: src/mainwindow.glade.h:11
+msgid "Print"
+msgstr "Imprimer"
+
+#: src/mainwindow.glade.h:12
+msgid "Quit"
+msgstr "Quitter"
+
+#: src/mainwindow.glade.h:13
+msgid "Redo OCR of all documents"
+msgstr "Refaire l'OCR sur tout les documents"
+
+#: src/mainwindow.glade.h:14
+msgid "Redo OCR on the document"
+msgstr "Refaire l'OCR sur le document"
+
+#: src/mainwindow.glade.h:15
+msgid "Reindex all documents"
+msgstr "Reindexer tout les documents"
+
+#: src/mainwindow.glade.h:16 src/settingswindow.glade.h:10
+# Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
+msgid "Scan"
+msgstr "Scanner une page"
+
+#: src/mainwindow.glade.h:17
+msgid "_File"
+msgstr "_Fichier"
+
+#: src/mainwindow.glade.h:18
+msgid "_Help"
+msgstr "_Aide"
+
+#: src/settingswindow.glade.h:1
+msgid "<b>General</b>"
+msgstr "<b>Général</b>"
+
+#: src/settingswindow.glade.h:2
+msgid "<b>OCR</b>"
+msgstr "<b>OCR</b>"
+
+#: src/settingswindow.glade.h:3
+msgid "<b>Scanner calibration</b>"
+msgstr "<b>Calibration du scanner</b>"
+
+#: src/settingswindow.glade.h:4
+msgid "<b>Scanner</b>"
+msgstr "<b>Scanner</b>"
+
+#: src/settingswindow.glade.h:5
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/settingswindow.glade.h:6
+msgid "Device"
+msgstr "Périphérique"
+
+#: src/settingswindow.glade.h:7
+msgid "Language"
+msgstr "Langue"
+
+#: src/settingswindow.glade.h:8
+msgid "Ok"
+msgstr "Ok"
+
+#: src/settingswindow.glade.h:9
+msgid "Resolution"
+msgstr "Résolution"
+
+#: src/settingswindow.glade.h:11
+msgid "Settings"
+msgstr "Réglages"
+
+#: src/settingswindow.glade.h:12
+msgid "Work directory"
+msgstr "Répertoire\nde travail"

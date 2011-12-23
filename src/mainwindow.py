@@ -789,7 +789,7 @@ class MainWindow:
         else:
             assert(self.__doc)
 
-        self.main_window.set_title(str(self.__doc) + " - " + self.WIN_TITLE)
+        self.main_window.set_title(self.__doc.name + " - " + self.WIN_TITLE)
         self.__refresh_page_list()
         assert(self.__doc.pages[0] != None)
         self.__page = self.__doc.pages[0]

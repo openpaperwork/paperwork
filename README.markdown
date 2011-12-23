@@ -60,16 +60,46 @@ GPLv3. See COPYING.
 Dependencies
 ------------
 
-* pygtk v2 (Debian/Ubuntu package: python-gtk2)
-* tesseract v3 (Debian/Ubuntu package: none at the moment)
-* python-imaging (Debian/Ubuntu package: python-imaging)
-* python-imaging-sane (Debian/Ubuntu package: python-imaging-sane)
+* pygtk v2
+	* Debian/Ubuntu package: python-gtk2
+* python-imaging
+	* Debian/Ubuntu package: python-imaging
+* python-imaging-sane (optional)
+	* Debian/Ubuntu package: python-imaging-sane
+* Tesseract v3
+	* Debian/Ubuntu package: none at the moment
+	* Manual installation:
+		* sudo apt-get install libjpeg-dev libtiff-dev
+		* http://code.google.com/p/tesseract-ocr/downloads/list
+		* tar -xvzf tesseract-\*.tar.gz
+		* cd tesseract-\*
+		* make -j4
+		* sudo make install
+* Tesseract v3 training data:
+	* Debian/Ubuntu package: none at the moment
+	* Manual installation:
+		* http://code.google.com/p/tesseract-ocr/downloads/list
+		* for file in \*.traineddata.gz; do gunzip $file ; done
+		* sudo cp \*.traineddata /usr/local/share/tessdata
+* python-tesseract
+	* Debian/Ubuntu package: none at the moment
+	* Manual installation:
+		* https://github.com/jflesch/python-tesseract/zipball/master
+		* unzip jflesch-python-tesseract-\*.zip
+		* cd jflesch-python-tesseract-\*
+		* sudo python ./setup.py install
 
 Installation
 ------------
 
+	Download https://github.com/jflesch/paperwork/zipball/master
+
+	$ unzip jflesch-paperwork-*.zip
+	$ cd jflesch-paperwork-*
 	$ sudo ./setup.py install
 	$ paperwork
+
+	Enjoy :-)
 
 Development
 -----------

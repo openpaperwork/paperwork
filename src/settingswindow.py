@@ -4,12 +4,13 @@ Settings window.
 
 import Image
 import ImageDraw
-import gettext
 import gtk
 import os
+import time
+
+import gettext
 import pycountry
 import tesseract
-import time
 
 from scanner import PaperworkScanner
 from util import image2pixbuf

@@ -21,6 +21,7 @@ from util import image2pixbuf
 from util import load_uifile
 from util import SPLIT_KEYWORDS_REGEX
 from util import strip_accents
+import wordbox
 
 _ = gettext.gettext
 
@@ -394,7 +395,7 @@ class MainWindow:
         self.__page_scaled = not self.__page_scaled
         self.__refresh_page()
 
-    def __cb_progress(self, progression, total, step=None, doc=None):
+    def __cb_progress(self, progression, total, step, doc=None):
         """
         Update the main progress bar
         """
@@ -413,7 +414,10 @@ class MainWindow:
             txt = _('Sorting ...')
         elif step == DocSearch.LABEL_STEP_UPDATING:
             txt = _('Updating label ...')
+        elif step == wordbox.WORDBOX_GUESSING:
+            txt = _('Loading page ...')
         else:
+            assert(False) # unknow progression type
             txt = ""
         if doc != None:
             txt += (" (%s)" % (str(doc)))

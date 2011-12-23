@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-23 18:32+0100\n"
+"POT-Creation-Date: 2011-12-23 20:47+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -42,16 +42,20 @@ msgstr "Tri ..."
 msgid "Updating label ..."
 msgstr "Mise à jour du label ..."
 
-#: src/mainwindow.py:430
+#: src/mainwindow.py:418
+msgid "Loading page ..."
+msgstr "Chargement de la page ..."
+
+#: src/mainwindow.py:433
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:474
+#: src/mainwindow.py:477
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:532
+#: src/mainwindow.py:535
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -76,7 +80,7 @@ msgstr "Aucun scanner n'a été selectionné"
 msgid "Scan new page"
 msgstr "Scanner une nouvelle page"
 
-#: src/settingswindow.py:112
+#: src/settingswindow.py:133
 msgid " (recommended)"
 msgstr " (recommandé)"
 

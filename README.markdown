@@ -70,21 +70,22 @@ Dependencies
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
 		* sudo apt-get install libjpeg-dev libtiff-dev
-		* http://code.google.com/p/tesseract-ocr/downloads/list
+		* Download [Tesseract](http://code.google.com/p/tesseract-ocr/downloads/list)
 		* tar -xvzf tesseract-\*.tar.gz
 		* cd tesseract-\*
 		* make -j4
 		* sudo make install
-* Tesseract v3 training data:
+* Tesseract v3 trained data:
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
-		* http://code.google.com/p/tesseract-ocr/downloads/list
+		* Download the [trained data](http://code.google.com/p/tesseract-ocr/downloads/list)
+		  for your language(s)
 		* for file in \*.traineddata.gz; do gunzip $file ; done
 		* sudo cp \*.traineddata /usr/local/share/tessdata
 * python-tesseract
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
-		* https://github.com/jflesch/python-tesseract/zipball/master
+		* Download [python-tesseract](https://github.com/jflesch/python-tesseract/zipball/master)
 		* unzip jflesch-python-tesseract-\*.zip
 		* cd jflesch-python-tesseract-\*
 		* sudo python ./setup.py install
@@ -92,7 +93,7 @@ Dependencies
 Installation
 ------------
 
-	Download https://github.com/jflesch/paperwork/zipball/master
+	Download [Paperwork](https://github.com/jflesch/paperwork/zipball/master)
 
 	$ unzip jflesch-paperwork-*.zip
 	$ cd jflesch-paperwork-*

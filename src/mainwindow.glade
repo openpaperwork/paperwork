@@ -44,6 +44,8 @@
     <columns>
       <!-- column-name Matching -->
       <column type="gchararray"/>
+      <!-- column-name docid -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststorePage">

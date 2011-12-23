@@ -3,6 +3,7 @@ Code for managing documents (not page individually ! see page.py for that)
 """
 
 import codecs
+import datetime
 import os
 import os.path
 import time
@@ -39,6 +40,7 @@ class ScannedDoc(object):
     """
 
     LABEL_FILE = "labels"
+    DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
 
     def __init__(self, docpath, docid=None):
         """
@@ -48,7 +50,7 @@ class ScannedDoc(object):
             docid --- Document Id (ie folder name). Use None for a new document
         """
         if docid == None:
-            self.docid = time.strftime("%Y%m%d_%H%M_%S")
+            self.docid = time.strftime(self.DOCNAME_FORMAT)
             self.path = os.path.join(docpath, self.docid)
         else:
             self.docid = docid
@@ -213,3 +215,14 @@ class ScannedDoc(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __get_name(self):
+        try:
+            datetime_obj = datetime.datetime.strptime(self.docid, self.DOCNAME_FORMAT)
+        except ValueError, exc:
+            print ("Unable to parse document id [%s]: %s"
+                   % (self.docid, str(exc)))
+            return self.docid
+        return datetime_obj.strftime("%x %X")
+
+    name = property(__get_name)

@@ -172,13 +172,13 @@ class MainWindow:
         documents = self.__docsearch.find_documents(keywords)
         print "Got %d documents" % len(documents)
         self.__match_list.clear()
-        for document in reversed(documents):
-            doc = self.__docsearch.docs[document]
+        for docid in reversed(documents):
+            doc = self.__docsearch.docs[docid]
             label_str = ""
             for label in doc.labels:
                 label_str += "\n  "
                 label_str += str(label)
-            self.__match_list.append([(document + label_str)])
+            self.__match_list.append([(doc.name + label_str), docid])
 
     def __show_selected_doc_cb(self, objsrc=None):
         """
@@ -188,8 +188,7 @@ class MainWindow:
         if selection_path[1] == None:
             print "No document selected. Can't open"
             return False
-        selection = selection_path[0].get_value(selection_path[1], 0)
-        selection = selection.split("\n")[0]
+        selection = selection_path[0].get_value(selection_path[1], 1)
         doc = self.__docsearch.docs[selection]
 
         print "Showing doc %s" % selection

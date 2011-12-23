@@ -5,6 +5,7 @@ Code to guess word boxes (ie rectangles) from characters boxes + the text.
 from util import dummy_progress_cb
 from util import SPLIT_KEYWORDS_REGEX
 
+WORDBOX_GUESSING = 'Word box guessing'
 
 class WordBox(object):
     """
@@ -106,7 +107,7 @@ def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
     """
     word_boxes = []
 
-    callback(0, len(text))
+    callback(0, len(text), WORDBOX_GUESSING)
     progression = 0
 
     for line in text:
@@ -118,7 +119,7 @@ def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
                 continue
             word_boxes.append(box)
         progression += 1
-        callback(progression, len(text))
+        callback(progression, len(text), WORDBOX_GUESSING)
 
-    callback(len(text), len(text))
+    callback(len(text), len(text), WORDBOX_GUESSING)
     return word_boxes

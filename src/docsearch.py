@@ -119,23 +119,12 @@ class DocSearch(object):
         else:
             self.__keywords_to_docpaths[keyword] = [docpath]
 
-    def __index_page(self, docpath, page):
-        """
-        Index a document page
-
-        Arguments:
-            docpath --- document path
-            page --- page to index (page.ScannedPage)
-
-        Note:
-            won't update all the index. see self.index_page() for that.
-        """
-        print "Indexing '%s'" % str(page)
-        for word in page.keywords:
+    def __index_doc(self, doc):
+        for word in doc.keywords:
             word = self.__simplify(word)
             if len(word) < self.MIN_KEYWORD_LEN:
                 continue
-            self.__index_keyword(word, docpath)
+            self.__index_keyword(word, doc.path)
 
     def __index_dir(self, dirpath, callback=dummy_progress_cb):
         """
@@ -158,24 +147,17 @@ class DocSearch(object):
         total = len(dlist)
 
         page_nb = 0
-        doc = ScannedDoc(dirpath, dirpath)
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
                 progression = progression + 1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                callback(progression, total, self.INDEX_STEP_READING, dpath)
-                self.__index_dir(os.path.join(dirpath, dpath),
-                                 callback=dummy_progress_cb)
-            elif (os.path.isfile(os.path.join(dirpath, dpath)) and
-                  dpath[-4:].lower() == ".txt"):
-                self.__index_page(dirpath, doc.pages[page_nb])
-                page_nb += 1
+                doc = ScannedDoc(os.path.join(dirpath, dpath), dpath)
+                callback(progression, total, self.INDEX_STEP_READING, doc)
+                self.__index_doc(doc)
+                for label in doc.labels:
+                    self.add_label(label, doc)
             progression = progression + 1
-
-        if page_nb > 0:
-            for label in doc.labels:
-                self.add_label(label, doc)
 
     @staticmethod
     def __docpath_to_id(docpath):

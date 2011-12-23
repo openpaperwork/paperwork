@@ -354,11 +354,9 @@ class ScannedPage(object):
         Returns:
             An array of strings
         """
-        words = []
         for line in self.text:
             for word in SPLIT_KEYWORDS_REGEX.split(line):   # TODO: i18n/l10n
-                words.append(word)
-        return words
+                yield(word)
 
     keywords = property(__get_keywords)
 

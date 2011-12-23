@@ -420,7 +420,7 @@ class MainWindow:
             assert(False) # unknow progression type
             txt = ""
         if doc != None:
-            txt += (" (%s)" % (str(doc)))
+            txt += (" (%s)" % (doc.name))
         self.__set_progress(float(progression) / total, txt)
         gtk_refresh()
 

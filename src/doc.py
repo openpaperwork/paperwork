@@ -13,6 +13,25 @@ from labels import Label
 from util import dummy_progress_cb
 
 
+class ScannedPageListIterator(object):
+    """
+    Iterates on a page list
+    """
+
+    def __init__(self, page_list):
+        self.idx = 0
+        self.page_list = page_list
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.idx >= len(self.page_list):
+            raise StopIteration()
+        page = self.page_list[self.idx]
+        self.idx += 1
+        return page
+
 class ScannedPageList(object):
     """
     Page list. Page are accessed using [] operator.
@@ -32,6 +51,9 @@ class ScannedPageList(object):
 
     def __eq__(self, other):
         return (self.doc == other.doc)
+
+    def __iter__(self):
+        return ScannedPageListIterator(self)
 
 
 class ScannedDoc(object):
@@ -226,3 +248,10 @@ class ScannedDoc(object):
         return datetime_obj.strftime("%x %X")
 
     name = property(__get_name)
+
+    def __get_keywords(self):
+        for page in self.pages:
+            for keyword in page.keywords:
+                yield(keyword)
+
+    keywords = property(__get_keywords)

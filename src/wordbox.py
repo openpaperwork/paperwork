@@ -86,14 +86,9 @@ def __get_char_boxes(word, char_boxes):
         #print "Word %s not found in boxes" % (word)
         return None
 
-    boxes = []
-    for box_idx in range(start_idx, end_idx):
-        boxes.append(char_boxes[box_idx])
-
     word_box = WordBox(word)
-    for box in boxes:
-        word_box.add_char_box(box)
-        char_boxes.remove(box)
+    for box_idx in range(start_idx, end_idx):
+        word_box.add_char_box(char_boxes[box_idx])
     return word_box
 
 

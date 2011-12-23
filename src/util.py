@@ -10,7 +10,8 @@ import unicodedata
 import glib
 import gtk
 
-SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
+FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ ()]", re.UNICODE)
+WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 MIN_KEYWORD_LEN = 3
 
 UI_FILES_DIRS = [
@@ -43,11 +44,11 @@ def split_words(sentence):
     sentence = sentence.lower()
     sentence = __strip_accents(sentence)
 
-    words = sentence.split(" ")
+    words = FORCED_SPLIT_KEYWORDS_REGEX.split(sentence)
     for word in __cleanup_word_array(words):
         can_split = True
         can_yield = False
-        subwords = SPLIT_KEYWORDS_REGEX.split(word)
+        subwords = WISHED_SPLIT_KEYWORDS_REGEX.split(word)
         for subword in subwords:
             if subword == "":
                 continue

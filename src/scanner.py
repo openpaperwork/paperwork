@@ -4,6 +4,7 @@ Code relative to scanner management.
 
 import gettext
 import gtk
+import tesseract
 try:
     import sane
     sane.init()
@@ -56,6 +57,9 @@ class PaperworkScanner(object):
     def __set_selected_device(self, selected):
         if not HAS_SANE:
             self.state = (False, _('Sane module not found'))
+        elif not tesseract.is_tesseract_available():
+            self.state = (False,
+                          _('Tesseract is not available. Can\'t do OCR'))
         elif not selected:
             self.state = (False, _('No scanner has been selected'))
         else:

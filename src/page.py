@@ -103,7 +103,7 @@ class ScannedPage(object):
 
         try:
             with open(boxfile) as file_desc:
-                char_boxes = tesseract.read_boxes(file_desc)
+                char_boxes = tesseract.read_box_file(file_desc)
             word_boxes = get_word_boxes(txt, char_boxes, callback)
             return word_boxes
         except IOError, exc:

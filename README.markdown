@@ -62,6 +62,8 @@ Dependencies
 
 * pygtk v2
 	* Debian/Ubuntu package: python-gtk2
+* pycountry
+	* Debian/Ubuntu package: python-pycountry
 * python-imaging
 	* Debian/Ubuntu package: python-imaging
 * python-imaging-sane (optional)

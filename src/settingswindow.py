@@ -7,6 +7,8 @@ import ImageDraw
 import gettext
 import gtk
 import os
+import pycountry
+import tesseract
 import time
 
 from scanner import PaperworkScanner
@@ -42,23 +44,15 @@ class SettingsWindow(object):
     """
     Settings window.
     """
-    OCR_LANGS = {
-        "deu": "German",
-        "eng": "English",
-        "fra": "French",
-        "ita": "Italian",
-        "nld": "Dutch",
-        "port": "Portuguese",
-        "spa": "Spanish",
-        "vie": "Vietnamese",
-    }
-    OCR_LANGS_REVERSE = dict((value, keyword) \
-                             for keyword, value in OCR_LANGS.iteritems())
-    GRIP_MOVE_MAX_FPS = 1.0
 
     def __init__(self, mainwindow, config, scanner_mgmt):
         self.__mainwindow = mainwindow
         self.__config = config
+
+        self.ocr_langs = tesseract.get_available_languages()
+        self.ocr_langs = self.__get_short_to_long_langs(self.ocr_langs)
+        self.ocr_langs_reverse = dict((value, keyword) \
+                             for keyword, value in self.ocr_langs.iteritems())
 
         self.__scanner_mgmt = scanner_mgmt
         self.__possible_scanners = scanner_mgmt.available_devices
@@ -100,6 +94,32 @@ class SettingsWindow(object):
         self.__connect_signals()
         self.__fill_in_form()
         self.__settings_win.set_visible(True)
+
+    @staticmethod
+    def __get_short_to_long_langs(short_langs):
+        """
+        For each short language name, figures out its long name.
+
+        Arguments:
+            short_langs --- Array of strings. Each string is the short name of a
+            language. Should be 3 characters long (more should be fine as well)
+
+        Returns:
+            A dictionnary: Keys are the short languages name, values are the
+            corresponding long languages names.
+        """
+        long_langs = {}
+        for short_lang in short_langs:
+            try:
+                long_lang = pycountry.languages.get(terminology=short_lang[:3]).name
+                long_langs[short_lang] = long_lang
+            except KeyError, exc:
+                print ("Warning: Long name not found for language '%s'."
+                       % (short_lang))
+                print ("  Exception was: %s" % (str(exc)))
+                print ("  Will use short name as long name.")
+                long_langs[short_lang] = short_lang
+        return long_langs
 
     @staticmethod
     def __dev_to_dev_name(dev):
@@ -151,7 +171,7 @@ class SettingsWindow(object):
             pass
 
         self.__config.ocrlang = \
-                self.OCR_LANGS_REVERSE[
+                self.ocr_langs_reverse[
                     self.__ocrlangs_widget.get_active_text()]
 
         if self.__get_selected_device() != None:
@@ -170,7 +190,7 @@ class SettingsWindow(object):
             need_reindex = True
 
         self.__mainwindow.update_scanner_settings()
-        self.__mainwindow.update_buttons_state()
+        self.__mainwindow.update_scan_buttons_state()
 
         self.__destroy()
         if need_reindex:
@@ -391,7 +411,7 @@ class SettingsWindow(object):
         self.__ocrlangs_widget = gtk.combo_box_new_text()
         idx = 0
         active_idx = 0
-        for (shortname, longname) in self.OCR_LANGS.items():
+        for (shortname, longname) in self.ocr_langs.items():
             self.__ocrlangs_widget.append_text(longname)
             if shortname == self.__config.ocrlang:
                 active_idx = idx

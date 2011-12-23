@@ -10,7 +10,9 @@ import unicodedata
 import glib
 import gtk
 
-SPLIT_KEYWORDS_REGEX = re.compile("[^\w/*!-]", re.UNICODE)
+SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
+MIN_KEYWORD_LEN = 3
+
 UI_FILES_DIRS = [
     ".",
     "src",
@@ -18,6 +20,48 @@ UI_FILES_DIRS = [
     "/usr/share/paperwork",
 ]
 
+
+def __strip_accents(string):
+    """
+    Strip all the accents from the string
+    """
+    return ''.join(
+        (character for character in unicodedata.normalize('NFD', string)
+         if unicodedata.category(character) != 'Mn'))
+
+def __cleanup_word_array(keywords):
+    for word in keywords:
+        if len(word) >= MIN_KEYWORD_LEN:
+            yield word
+
+def split_words(sentence):
+    if (sentence == "*"):
+        yield sentence
+        return
+
+    # TODO: i18n
+    sentence = sentence.lower()
+    sentence = __strip_accents(sentence)
+
+    words = sentence.split(" ")
+    for word in __cleanup_word_array(words):
+        can_split = True
+        can_yield = False
+        subwords = SPLIT_KEYWORDS_REGEX.split(word)
+        for subword in subwords:
+            if subword == "":
+                continue
+            can_yield = True
+            if len(subword) < MIN_KEYWORD_LEN:
+                can_split = False
+                break
+        if can_split:
+            for subword in subwords:
+                if subword == "":
+                    continue
+                yield subword
+        elif can_yield:
+            yield word
 
 def load_uifile(filename):
     """
@@ -49,15 +93,6 @@ def load_uifile(filename):
     if not has_ui_file:
         raise Exception("Can't find ressource file. Aborting")
     return widget_tree
-
-
-def strip_accents(string):
-    """
-    Strip all the accents from the string
-    """
-    return ''.join(
-        (character for character in unicodedata.normalize('NFD', string)
-         if unicodedata.category(character) != 'Mn'))
 
 
 def gtk_refresh():

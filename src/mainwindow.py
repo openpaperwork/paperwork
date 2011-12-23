@@ -19,8 +19,6 @@ from labels import LabelEditor
 from util import gtk_refresh
 from util import image2pixbuf
 from util import load_uifile
-from util import SPLIT_KEYWORDS_REGEX
-from util import strip_accents
 import wordbox
 
 _ = gettext.gettext
@@ -155,31 +153,25 @@ class MainWindow:
         Update the suggestions list and the matching documents list based on
         the keywords typed by the user in the search field.
         """
-        txt = unicode(self.__search_field.get_text())
-        keywords = SPLIT_KEYWORDS_REGEX.split(txt)
-        print "Search: %s" % (str(keywords))
+        sentence = self.__get_sentence()
+        print "Search: %s" % (sentence)
 
-        suggestions = self.__docsearch.find_suggestions(keywords)
+        suggestions = self.__docsearch.find_suggestions(sentence)
         print "Got %d suggestions" % len(suggestions)
         self.__liststore_suggestion.clear()
         for suggestion in suggestions:
-            txt = ""
-            for word in suggestion:
-                if txt != "":
-                    txt += " "
-                txt += word
-            self.__liststore_suggestion.append([txt])
+            self.__liststore_suggestion.append([suggestion])
 
-        documents = self.__docsearch.find_documents(keywords)
+        print "Search: %s" % (sentence)
+
+        documents = self.__docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
         self.__match_list.clear()
-        for docid in reversed(documents):
-            doc = self.__docsearch.docs[docid]
-            label_str = ""
-            for label in doc.labels:
-                label_str += "\n  "
-                label_str += str(label)
-            self.__match_list.append([(doc.name + label_str), docid])
+        for doc in reversed(documents):
+            name_el = [doc.name]
+            name_el.extend(doc.labels)
+            final_str = "\n  ".join([str(x) for x in name_el])
+            self.__match_list.append([final_str, doc])
 
     def __show_selected_doc_cb(self, objsrc=None):
         """
@@ -189,10 +181,9 @@ class MainWindow:
         if selection_path[1] == None:
             print "No document selected. Can't open"
             return False
-        selection = selection_path[0].get_value(selection_path[1], 1)
-        doc = self.__docsearch.docs[selection]
+        doc = selection_path[0].get_value(selection_path[1], 1)
 
-        print "Showing doc %s" % selection
+        print "Showing doc %s" % doc
         self.show_doc(doc)
         return True
 
@@ -232,17 +223,11 @@ class MainWindow:
             self.__show_settings()
             return
 
-    def __get_keywords(self):
+    def __get_sentence(self):
         """
-        Get the keywords currently typed in the search field by the user
+        Get the sentence currently typed in the search field by the user
         """
-        txt = unicode(self.__search_field.get_text())
-        txt = txt.lower()
-        words = txt.split(" ")
-        for i in range(0, len(words)):
-            words[i] = words[i].strip()
-            words[i] = strip_accents(words[i])
-        return words
+        return unicode(self.__search_field.get_text())
 
     def __show_page_img(self, page):
         """
@@ -270,7 +255,7 @@ class MainWindow:
             if self.__show_all_boxes.get_active():
                 page.draw_boxes(img, boxes, color=(0x6c, 0x5d, 0xd1), width=1)
             page.draw_boxes(img, boxes, color=(0x00, 0x9f, 0x00), width=5,
-                            keywords=self.__get_keywords())
+                            sentence=self.__get_sentence())
 
             pixbuf = image2pixbuf(img)
 

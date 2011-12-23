@@ -3,7 +3,7 @@ Code to guess word boxes (ie rectangles) from characters boxes + the text.
 """
 
 from util import dummy_progress_cb
-from util import SPLIT_KEYWORDS_REGEX
+from util import split_words
 
 WORDBOX_GUESSING = 'Word box guessing'
 
@@ -16,6 +16,7 @@ class WordBox(object):
 
     def __init__(self, word):
         self.word = word
+        self.__word_hash = hash(word)
         self.position = None
 
     def add_char_box(self, box):
@@ -43,6 +44,8 @@ class WordBox(object):
                 b_y = box.position[1][1]
             self.position = ((a_x, a_y), (b_x, b_y))
 
+    def __hash__(self):
+        return self.__word_hash
 
 def __get_char_boxes(word, char_boxes):
     """
@@ -111,7 +114,7 @@ def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
     progression = 0
 
     for line in text:
-        words = SPLIT_KEYWORDS_REGEX.split(line)
+        words = split_words(line)
 
         for word in words:
             box = __get_char_boxes(word, char_boxes)

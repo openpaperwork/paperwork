@@ -74,9 +74,11 @@ class ScannedDoc(object):
         if docid == None:
             self.docid = time.strftime(self.DOCNAME_FORMAT)
             self.path = os.path.join(docpath, self.docid)
+            self.__docid_hash = hash(self.docid)
         else:
             self.docid = docid
             self.path = docpath
+            self.__docid_hash = hash(self.docid)
 
     def __str__(self):
         return self.docid
@@ -208,8 +210,9 @@ class ScannedDoc(object):
                     (label_name, label_color) = line.split(",")
                     labels.append(Label(name=label_name, color=label_color))
         except IOError, exc:
-            print ("Error while reading labels from '%s': %s"
-                   % (self.path, str(exc)))
+            #print ("Error while reading labels from '%s': %s"
+            #       % (self.path, str(exc)))
+            pass
         return labels
 
     labels = property(__get_labels)
@@ -230,13 +233,34 @@ class ScannedDoc(object):
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
 
+    def __doc_cmp(self, other):
+        """
+        Comparison function. Can be used to sort docs alphabetically.
+        """
+        if other == None:
+            return -1
+        return cmp(self.docid, other.docid)
+
+    def __lt__(self, other):
+        return self.__doc_cmp(other) < 0
+
+    def __gt__(self, other):
+        return self.__doc_cmp(other) > 0
+
     def __eq__(self, other):
-        if None == other:
-            return False
-        return self.docid == other.docid
+        return self.__doc_cmp(other) == 0
+
+    def __le__(self, other):
+        return self.__doc_cmp(other) <= 0
+
+    def __ge__(self, other):
+        return self.__doc_cmp(other) >= 0
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        return self.__doc_cmp(other) != 0
+
+    def __hash__(self):
+        return self.__docid_hash
 
     def __get_name(self):
         try:

@@ -14,8 +14,7 @@ import PIL
 
 import tesseract
 from util import dummy_progress_cb
-from util import strip_accents
-from util import SPLIT_KEYWORDS_REGEX
+from util import split_words
 from wordbox import get_word_boxes
 
 
@@ -132,7 +131,7 @@ class ScannedPage(object):
                            outline=color)
 
     @staticmethod
-    def draw_boxes(img, boxes, color, width, keywords=None):
+    def draw_boxes(img, boxes, color, width, sentence=None):
         """
         Draw the boxes on the image
 
@@ -145,10 +144,17 @@ class ScannedPage(object):
             keywords --- only draw the boxes for these keywords (None == all
                 the boxes)
         """
+        if sentence != None:
+            words = split_words(sentence)
+            # unfold the generator
+            keywords = []
+            for word in words:
+                keywords.append(word)
+        else:
+            keywords = None
         draw = ImageDraw.Draw(img)
         for box in boxes:
-            if (keywords == None or
-                strip_accents(box.word.lower().strip()) in keywords):
+            if (keywords == None or box.word in keywords):
                 ScannedPage.__draw_box(draw, img.size, box, width, color)
         return img
 
@@ -355,7 +361,7 @@ class ScannedPage(object):
             An array of strings
         """
         for line in self.text:
-            for word in SPLIT_KEYWORDS_REGEX.split(line):   # TODO: i18n/l10n
+            for word in split_words(line):
                 yield(word)
 
     keywords = property(__get_keywords)

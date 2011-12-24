@@ -126,5 +126,5 @@ If you want to make changes, here are few things that can help you:
    './paperwork.conf'. Note that the settings dialog will also take care of
    updating './paperwork.conf' instead of '~/.paperwork.conf'.
 3. "pep8" is your friend
-4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintc *.py
+4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc *.py
 

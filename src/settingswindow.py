@@ -6,7 +6,6 @@ import Image
 import ImageDraw
 import gtk
 import os
-import time
 
 import gettext
 import pycountry
@@ -20,6 +19,9 @@ _ = gettext.gettext
 
 
 class CalibrationGrip(object):
+    """
+    Represents one of the grip that user can move to calibrate its scanner.
+    """
     GRIP_SIZE = 20
     COLOR = (0x00, 0x00, 0xFF)
 
@@ -28,13 +30,30 @@ class CalibrationGrip(object):
         self.selected = False
 
     def draw(self, imgdraw, ratio):
-        x = int(ratio * self.position[0])
-        y = int(ratio * self.position[1])
-        imgdraw.rectangle(((x - self.GRIP_SIZE, y - self.GRIP_SIZE),
-                           (x + self.GRIP_SIZE, y + self.GRIP_SIZE)),
+        """
+        Draw the grip on the image
+
+        Arguments:
+            imgdraw --- drawing area
+            ratio --- Scale at which the image is represented
+        """
+        pos_x = int(ratio * self.position[0])
+        pos_y = int(ratio * self.position[1])
+        imgdraw.rectangle(((pos_x - self.GRIP_SIZE, pos_y - self.GRIP_SIZE),
+                           (pos_x + self.GRIP_SIZE, pos_y + self.GRIP_SIZE)),
                           outline=self.COLOR)
 
     def is_on_grip(self, position, ratio):
+        """
+        Indicates if position is on the grip
+
+        Arguments:
+            position --- tuple (int, int)
+            ratio --- Scale at which the image is represented
+        
+        Returns:
+            True or False
+        """
         x_min = int(ratio * self.position[0]) - self.GRIP_SIZE
         y_min = int(ratio * self.position[1]) - self.GRIP_SIZE
         x_max = int(ratio * self.position[0]) + self.GRIP_SIZE
@@ -128,16 +147,32 @@ class SettingsWindow(object):
 
     @staticmethod
     def __dev_to_dev_name(dev):
+        """
+        Return the human representation of Sane device
+
+        Returns:
+            A string
+        """
         return ("%s %s (%s)" % (dev[1], dev[2], dev[3]))
 
     @staticmethod
     def __resolution_to_resolution_name(resolution, recommended):
+        """
+        Return the name corresponding to a resolution
+
+        Arguments:
+            resolution --- the resolution (integer)
+            recommended --- recommended resolution
+        """
         txt = ("%d" % (resolution))
         if (resolution == recommended):
             txt += _(' (recommended)')
         return txt
 
     def __get_selected_device(self):
+        """
+        Return the device id selected by the user
+        """
         txt = self.__scanner_device_widget.get_active_text()
         for dev in self.__possible_scanners:
             if self.__dev_to_dev_name(dev) == txt:
@@ -145,6 +180,9 @@ class SettingsWindow(object):
         return None
 
     def __get_selected_resolution(self):
+        """
+        Return the resolution selected by the user
+        """
         txt = self.__scanner_resolution_widget.get_active_text()
         for resolution in self.__possible_resolutions:
             if (self.__resolution_to_resolution_name(resolution,
@@ -153,6 +191,13 @@ class SettingsWindow(object):
         return None
 
     def __get_calibration(self):
+        """
+        Return the calibration settings specified by the user
+
+        Returns:
+            None if no settings have been set.
+            ((int, int), (int, int)) otherwise
+        """
         if self.__calibration == None:
             return None
         return ((int(self.__calibration[0].position[0]),
@@ -205,6 +250,10 @@ class SettingsWindow(object):
         return True
 
     def __scan_calibration_page(self):
+        """
+        Do a scan at low resolution. This scan will be then displayed to the
+        user so they can calibrate their scanner.
+        """
         # use a specific scanner manager for this job since
         # we want to use specific settings.
         # however, this means we have to close the other one first
@@ -222,21 +271,24 @@ class SettingsWindow(object):
                                 self.__calibration_img.getbbox()[3]))
         else:
             for grip in self.__calibration:
-                (x, y) = grip.position
-                if x < 0:
-                    x = 0
-                if y < 0:
-                    y = 0
-                if x > self.__calibration_img.getbbox()[2]:
-                    x = self.__calibration_img.getbbox()[2]
-                if y > self.__calibration_img.getbbox()[3]:
-                    y = self.__calibration_img.getbbox()[3]
-                grip.position = (x, y)
+                (grip_x, grip_y) = grip.position
+                if grip_x < 0:
+                    grip_x = 0
+                if grip_y < 0:
+                    grip_y = 0
+                if grip_x > self.__calibration_img.getbbox()[2]:
+                    grip_x = self.__calibration_img.getbbox()[2]
+                if grip_y > self.__calibration_img.getbbox()[3]:
+                    grip_y = self.__calibration_img.getbbox()[3]
+                grip.position = (grip_x, grip_y)
 
         self.__calibration_img_widget.set_alignment(0.0, 0.0)
         self.__refresh_calibration_img()
 
     def __refresh_calibration_img(self, fast=False):
+        """
+        Update the content of the calibration frame
+        """
         assert(self.__calibration_img)
 
         if not fast:
@@ -285,6 +337,9 @@ class SettingsWindow(object):
         self.__calibration_img_widget.set_from_pixbuf(pixbuf)
 
     def __draw_calibration(self, imgdraw):
+        """
+        Draw the calibration grip and the calibration rectangle
+        """
         ratio = self.__calibration_img_ratio
         for grip in self.__calibration:
             grip.draw(imgdraw, ratio)
@@ -305,15 +360,22 @@ class SettingsWindow(object):
                           outline=CalibrationGrip.COLOR)
 
     def __change_calibration_scale(self):
+        """
+        Switch the calibration image scale between 1:1 and up to the calibration
+        frame.
+        """
         self.__calibration_img_scaled = not self.__calibration_img_scaled
         self.__refresh_calibration_img()
 
-    def __calibration_button_pressed_cb(self, event):
-        (x, y) = event.get_coords()
-        print "Pressed: (%d, %d)" % (x, y)
+    def __calibration_pressed_cb(self, event):
+        """
+        Handle a mouse button pressed in the calibration frame
+        """
+        (mouse_x, mouse_y) = event.get_coords()
+        print "Pressed: (%d, %d)" % (mouse_x, mouse_y)
         selected_grip = None
         for grip in self.__calibration:
-            if grip.is_on_grip((x, y), self.__calibration_img_ratio):
+            if grip.is_on_grip((mouse_x, mouse_y), self.__calibration_img_ratio):
                 selected_grip = grip
                 break
         if selected_grip:
@@ -323,7 +385,10 @@ class SettingsWindow(object):
             print "No grip selected. Will change scale"
 
     def __move_grip(self, event):
-        (x, y) = event.get_coords()
+        """
+        Handle a mouse move in the calibration frame
+        """
+        (mouse_x, mouse_y) = event.get_coords()
         selected_grip = None
         for grip in self.__calibration:
             if grip.selected:
@@ -331,9 +396,9 @@ class SettingsWindow(object):
                 break
         if not selected_grip:
             return None
-        print "Grip move: (%d, %d)" % (x, y)
-        new_x = x / self.__calibration_img_ratio
-        new_y = y / self.__calibration_img_ratio
+        print "Grip move: (%d, %d)" % (mouse_x, mouse_y)
+        new_x = mouse_x / self.__calibration_img_ratio
+        new_y = mouse_y / self.__calibration_img_ratio
         if new_x < 0:
             new_x = 0
         if new_x > self.__calibration_img.getbbox()[2]:
@@ -343,13 +408,15 @@ class SettingsWindow(object):
         if new_y > self.__calibration_img.getbbox()[3]:
             new_y = self.__calibration_img.getbbox()[3]
         selected_grip.position = (new_x, new_y)
-        now = time.time()
         self.__refresh_calibration_img(fast=True)
         return selected_grip
 
-    def __calibration_button_released_cb(self, event):
-        (x, y) = event.get_coords()
-        print "Released: (%d, %d)" % (x, y)
+    def __calibration_released_cb(self, event):
+        """
+        Handle a mouse button released in the calibration frame
+        """
+        (mouse_x, mouse_y) = event.get_coords()
+        print "Released: (%d, %d)" % (mouse_x, mouse_y)
 
         selected_grip = self.__move_grip(event)
         if selected_grip:
@@ -358,6 +425,9 @@ class SettingsWindow(object):
             self.__change_calibration_scale()
 
     def __update_resolutions(self):
+        """
+        Update the scanner resolution list displayed to the user.
+        """
         device = self.__get_selected_device()
         if device == None:
             self.__possible_resolutions = []
@@ -399,9 +469,9 @@ class SettingsWindow(object):
         self.__widget_tree.get_object("buttonScanCalibration").connect(
                 "clicked", lambda x: self.__scan_calibration_page())
         self.__calibration_img_evbox.connect("button-press-event",
-                lambda x, ev: self.__calibration_button_pressed_cb(ev))
+                lambda x, ev: self.__calibration_pressed_cb(ev))
         self.__calibration_img_evbox.connect("button-release-event",
-                lambda x, ev: self.__calibration_button_released_cb(ev))
+                lambda x, ev: self.__calibration_released_cb(ev))
 
     def __fill_in_form(self):
         """

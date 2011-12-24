@@ -32,12 +32,23 @@ def __strip_accents(string):
 
 
 def __cleanup_word_array(keywords):
+    """
+    Yield all the keywords long enough to be used
+    """
     for word in keywords:
         if len(word) >= MIN_KEYWORD_LEN:
             yield word
 
 
 def split_words(sentence):
+    """
+    Extract and yield the keywords from the sentence:
+    - Drop keywords that are too short
+    - Drop the accents
+    - Make everything lower case
+    - Try to separate the words as much as possible (using 2 list of separators,
+    one being more complete than the others)
+    """
     if (sentence == "*"):
         yield sentence
         return

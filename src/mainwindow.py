@@ -147,11 +147,25 @@ class MainWindow:
                         self.__device.state[1])
 
     def __set_progress(self, progress, text):
+        """
+        Change the progress bar progression and the status bar status
+
+        Arguments:
+            progress --- float
+            text --- (localized) string
+        """
         self.__status_bar.pop(self.__status_context_id)
         self.__status_bar.push(self.__status_context_id, text)
         self.__progress_bar.set_fraction(progress)
 
     def __set_lists_sensitive(self, state):
+        """
+        Use to indicates if document and label list must accept user input.
+        They usually don't when we reloading all the documents.
+
+        Arguments:
+            state --- True if they shoud, False if they shouldn't
+        """
         if state == False:
             self.__match_list.clear()
             self.__label_list.clear()
@@ -236,6 +250,9 @@ class MainWindow:
         self.__page_img.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
 
     def __show_settings(self):
+        """
+        Make the settings dialog appear
+        """
         self.__show_busy_cursor()
         gtk_refresh()
         try:
@@ -478,6 +495,13 @@ class MainWindow:
             self.__show_normal_cursor()
 
     def __ask_confirmation(self):
+        """
+        Ask the user "Are you sure ?"
+
+        Returns:
+            True --- if they are
+            False --- if they aren't
+        """
         confirm = gtk.MessageDialog(parent=self.main_window,
                 flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                 type=gtk.MESSAGE_WARNING,
@@ -505,6 +529,9 @@ class MainWindow:
         self.reindex()
 
     def __destroy_current_doc_cb(self, objsrc=None):
+        """
+        Destroy/delete the currently active document
+        """
         self.__destroy_doc(self.__doc)
 
     def __print_doc_cb(self, objsrc=None):
@@ -616,10 +643,16 @@ class MainWindow:
 
     def __edit_clicked_label_cb(self, treeview=None, objpath=None,
                                 view_column=None):
+        """
+        Called when the user click on 'edit label'
+        """
         label = self.__label_list[objpath][2]
         self.__edit_label(label)
 
     def __destroy_current_page_cb(self, widget=None):
+        """
+        Destroy/delete the currently active page
+        """
         if not self.__ask_confirmation():
             return
         self.__page.destroy()
@@ -629,6 +662,13 @@ class MainWindow:
         self.__show_page(self.__page)
 
     def __apply_to_current_label_cb(self, widget, action):
+        """
+        Apply a given action to the currently selected label.
+
+        Arguments:
+            widget --- ignored (here so it can be used as a GTK callback)
+            action --- function accepting a label as argument
+        """
         selection_path = self.__label_list_ui.get_selection().get_selected()
         if selection_path[1] == None:
             print "No label selected"
@@ -641,6 +681,9 @@ class MainWindow:
         return True
 
     def __destroy_label(self, label):
+        """
+        Delete the given label
+        """
         assert(label != None)
         if not self.__ask_confirmation():
             return
@@ -657,6 +700,10 @@ class MainWindow:
             self.__show_normal_cursor()
 
     def __edit_label(self, label):
+        """
+        Open the edit dialog on the given label, and then apply changes (if
+        the user validates their changes)
+        """
         assert(label != None)
         new_label = copy(label)
         editor = LabelEditor(new_label)
@@ -677,24 +724,27 @@ class MainWindow:
             self.__set_lists_sensitive(True)
             self.__show_normal_cursor()
 
-    def __pop_menu_up_cb(self, treeview, event,
-                      ui_component, popup_menu):
+    def __pop_menu_up_cb(self, treeview, event, ui_component, popup_menu):
+        """
+        Callback used when the user right click on a tree view. Display
+        the given popup_menu.
+        """
         # we are only interested in right clicks
         if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
             return False
         selection_path = self.__match_list_ui.get_selection().get_selected()
         if selection_path == None:
             return False
-        x = int(event.x)
-        y = int(event.y)
-        time = event.time
-        pathinfo = treeview.get_path_at_pos(x, y)
+        ev_x = int(event.x)
+        ev_y = int(event.y)
+        ev_time = event.time
+        pathinfo = treeview.get_path_at_pos(ev_x, ev_y)
         if pathinfo is None:
             return False
         path, col, cellx, celly = pathinfo
         treeview.grab_focus()
         treeview.set_cursor(path, col, 0)
-        popup_menu.popup(None, None, None, event.button, time)
+        popup_menu.popup(None, None, None, event.button, ev_time)
         return True
 
     def __connect_signals(self):
@@ -704,9 +754,9 @@ class MainWindow:
         self.main_window.connect("destroy", lambda x: self.__destroy())
         self.main_window.connect("size-allocate", self.__on_resize_cb)
         self.__widget_tree.get_object("menuitemNew").connect("activate",
-                self.new_document)
+                self.new_document_cb)
         self.__widget_tree.get_object("toolbuttonNew").connect("clicked",
-                self.new_document)
+                self.new_document_cb)
         self.__widget_tree.get_object("toolbuttonQuit").connect("clicked",
                 lambda x: self.__destroy())
         self.__widget_tree.get_object("menuitemScan").connect("activate",
@@ -819,9 +869,15 @@ class MainWindow:
         self.__show_doc(doc)
         self.__reset_page_vpaned()
 
-    def new_document(self, objsrc=None):
+    def new_document(self):
         """
         Start the edition of the new document.
         """
         self.__selectors.set_current_page(1)    # Page tab
         self.__show_doc(ScannedDoc(self.__config.workdir))  # new document
+
+    def new_document_cb(self, objsrc=None):
+        """
+        Alias for new_document()
+        """
+        self.new_document()

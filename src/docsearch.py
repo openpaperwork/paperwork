@@ -60,12 +60,26 @@ class DocSearch(object):
         self.label_list = []
 
     def __index_keyword(self, doc, keyword):
+        """
+        Add the specified keyword to the index.
+
+        Arguments:
+            doc --- the document from which comes the keyword
+            keyword --- the keyword
+        """
         if keyword in self.__keywords_to_docs:
             docs = self.__keywords_to_docs[keyword]
             if not doc in docs:
                 docs.append(doc)
         else:
             self.__keywords_to_docs[keyword] = [doc]
+
+    def __index_page(self, page):
+        """
+        Add the keywords from a new page to self.__keywords_to_docs
+        """
+        for keyword in page.keywords:
+            self.__index_keyword(page.doc, keyword)
 
     def __index_doc(self, doc):
         """
@@ -95,7 +109,6 @@ class DocSearch(object):
         progression = 0
         total = len(dlist)
 
-        page_nb = 0
         for dpath in dlist:
             if dpath[:1] == "." or dpath[-1:] == "~":
                 progression = progression + 1
@@ -152,9 +165,8 @@ class DocSearch(object):
         Arguments:
             page --- from which keywords must be extracted
         """
-        self.__index_page(page.doc.path, page)
+        self.__index_page(page)
         # remake these two:
-        self.__extract_docpaths(dummy_progress_cb)
         self.__extract_keywords(dummy_progress_cb)
 
     def __get_keyword_suggestions(self, keyword):
@@ -263,6 +275,9 @@ class DocSearch(object):
 
     @staticmethod
     def __unfold_generator(generator):
+        """
+        Get an array from the generator
+        """
         out = []
         for element in generator:
             out.append(element)
@@ -415,6 +430,9 @@ class DocSearch(object):
         print "OCR of all documents done"
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
+        """
+        Replace 'old_label' by 'new_label' on all the documents
+        """
         self.label_list.remove(old_label)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
@@ -427,6 +445,9 @@ class DocSearch(object):
             current += 1
 
     def destroy_label(self, label, callback=dummy_progress_cb):
+        """
+        Remove the label 'label' from all the documents
+        """
         self.label_list.remove(label)
         current = 0
         total = len(self.__docs)

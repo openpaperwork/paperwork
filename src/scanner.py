@@ -50,15 +50,24 @@ class PaperworkScanner(object):
         self.state = (False, "No scanner set")
 
     def __get_available_devices(self):
+        """
+        Return the list of available scan devices (array)
+        """
         self.__available_devices = sane.get_devices()
         return self.__available_devices
 
     available_devices = property(__get_available_devices)
 
     def __get_selected_device(self):
+        """
+        Return the device id selected by the user for scanning
+        """
         return self.__selected_device
 
     def __set_selected_device(self, selected):
+        """
+        Set the device id selected by the user
+        """
         if not HAS_SANE:
             self.state = (False, _('Sane module not found'))
         elif not tesseract.is_tesseract_available():
@@ -73,6 +82,12 @@ class PaperworkScanner(object):
     selected_device = property(__get_selected_device, __set_selected_device)
 
     def get_possible_resolutions(self, devid):
+        """
+        Get the list of resolutions supported by the scanner
+
+        Returns:
+            An array of integer
+        """
         self.__open_scanner(devid)
         for opt in self.__active_device[1].get_options():
             if opt[1] == "resolution":  # opt name
@@ -121,6 +136,9 @@ class PaperworkScanner(object):
                 raise PaperworkScannerException("No scanner found")
 
     def __set_scanner_settings(self):
+        """
+        Apply the scanner settings to the currently opened device.
+        """
         try:
             self.__active_device[1].resolution = self.selected_resolution
         except AttributeError, exc:
@@ -139,6 +157,9 @@ class PaperworkScanner(object):
         return self.__active_device[1].scan()
 
     def close(self):
+        """
+        Make sure that any opened device is closed.
+        """
         if self.__active_device != None:
             self.__active_device[1].close()
             self.__active_device = None

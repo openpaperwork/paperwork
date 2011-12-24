@@ -25,9 +25,9 @@ class AboutDialog(object):
         """
         Connect gtk widget signals to methods
         """
-        self.__aboutdialog.connect("destroy", self.destroy)
-        self.__aboutdialog.connect("response", self.destroy)
-        self.__aboutdialog.connect("close", self.destroy)
+        self.__aboutdialog.connect("destroy", self.destroy_cb)
+        self.__aboutdialog.connect("response", self.destroy_cb)
+        self.__aboutdialog.connect("close", self.destroy_cb)
 
     def show(self):
         """
@@ -35,7 +35,7 @@ class AboutDialog(object):
         """
         self.__aboutdialog.set_visible(True)
 
-    def destroy(self, widget=None, response=None):
+    def destroy_cb(self, widget=None, response=None):
         """
         Close and destroy the about dialog window
         """

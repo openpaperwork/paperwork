@@ -26,6 +26,9 @@ class ScannedPageListIterator(object):
         return self
 
     def next(self):
+        """
+        Provide the next element of the list.
+        """
         if self.idx >= len(self.page_list):
             raise StopIteration()
         page = self.page_list[self.idx]
@@ -210,21 +213,24 @@ class ScannedDoc(object):
                     line = line.strip()
                     (label_name, label_color) = line.split(",")
                     labels.append(Label(name=label_name, color=label_color))
-        except IOError, exc:
-            #print ("Error while reading labels from '%s': %s"
-            #       % (self.path, str(exc)))
+        except IOError:
             pass
         return labels
 
     labels = property(__get_labels)
 
     def update_label(self, old_label, new_label):
+        """
+        Update a label
+
+        Will go on each document, and replace 'old_label' by 'new_label'
+        """
         print ("%s : Updating label ([%s] -> [%s])"
                % (str(self), str(old_label), str(new_label)))
         labels = self.labels
         try:
             labels.remove(old_label)
-        except ValueError, e:
+        except ValueError:
             # this document doesn't have this label
             return
         labels.append(new_label)
@@ -264,6 +270,9 @@ class ScannedDoc(object):
         return self.__docid_hash
 
     def __get_name(self):
+        """
+        Returns the localized name of the document (see l10n)
+        """
         try:
             datetime_obj = datetime.datetime.strptime(
                     self.docid, self.DOCNAME_FORMAT)
@@ -276,6 +285,9 @@ class ScannedDoc(object):
     name = property(__get_name)
 
     def __get_keywords(self):
+        """
+        Yield all the keywords contained in the document.
+        """
         for page in self.pages:
             for keyword in page.keywords:
                 yield(keyword)

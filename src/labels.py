@@ -30,9 +30,9 @@ class Label(object):
         """
         if other == None:
             return -1
-        r = cmp(self.name, other.name)
-        if r != 0:
-            return r
+        cmp_r = cmp(self.name, other.name)
+        if cmp_r != 0:
+            return cmp_r
         return cmp(self.get_color_str(), other.get_color_str())
 
     def __lt__(self, other):
@@ -67,10 +67,13 @@ class Label(object):
         return self.color.to_string()
 
     def get_html(self):
+        """
+        Returns a HTML string that represent the label. Can be used with GTK.
+        """
         return ("<span bgcolor=\"%s\">    </span> %s"
                 % (self.get_html_color(), self.name))
 
-    def __str_(self):
+    def __str__(self):
         return ("Color: %s ; Text: %s"
                 % (self.get_html_color(),
                    self.name.encode('ascii', 'replace')))

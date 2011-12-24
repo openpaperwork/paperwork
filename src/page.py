@@ -36,6 +36,9 @@ class ScannedPage(object):
 
     PRINT_RESOLUTION = 150  # dpi
 
+    ORIENTATION_PORTRAIT = 0
+    ORIENTATION_LANDSCAPE = 1
+
     def __init__(self, doc, page_nb):
         """
         Don't create directly. Please use ScannedDoc.get_page()
@@ -310,9 +313,6 @@ class ScannedPage(object):
         """
         Called for printing operation by Gtk
         """
-        ORIENTATION_PORTRAIT = 0
-        ORIENTATION_LANDSCAPE = 1
-
         # By default, the context is using 72 dpi, which is by far not enough
         # --> we change it to PRINT_RESOLUTION dpi
         print_context.set_cairo_context(print_context.get_cairo_context(),
@@ -323,13 +323,13 @@ class ScannedPage(object):
 
         # take care of rotating the image if required
         if print_context.get_width() <= print_context.get_height():
-            print_orientation = ORIENTATION_PORTRAIT
+            print_orientation = self.ORIENTATION_PORTRAIT
         else:
-            print_orientation = ORIENTATION_LANDSCAPE
+            print_orientation = self.ORIENTATION_LANDSCAPE
         if pixbuf.get_width() <= pixbuf.get_height():
-            pixbuf_orientation = ORIENTATION_PORTRAIT
+            pixbuf_orientation = self.ORIENTATION_PORTRAIT
         else:
-            pixbuf_orientation = ORIENTATION_LANDSCAPE
+            pixbuf_orientation = self.ORIENTATION_LANDSCAPE
         if print_orientation != pixbuf_orientation:
             print "Rotating the page ..."
             pixbuf = pixbuf.rotate_simple(gtk.gdk.PIXBUF_ROTATE_CLOCKWISE)
@@ -437,8 +437,8 @@ class ScannedPage(object):
             os.unlink(self.__get_box_path())
         if os.access(self.__get_img_path(), os.F_OK):
             os.unlink(self.__get_img_path())
-        for p in range(self.page_nb + 1, current_doc_nb_pages):
-            page = self.doc.pages[p]
+        for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
+            page = self.doc.pages[page_nb]
             page.ch_number(-1)
 
     def __str__(self):

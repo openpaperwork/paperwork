@@ -95,14 +95,14 @@ Dependencies
 Installation
 ------------
 
-	Download [Paperwork](https://github.com/jflesch/paperwork/zipball/master)
+Download [Paperwork](https://github.com/jflesch/paperwork/zipball/master)
 
 	$ unzip jflesch-paperwork-*.zip
 	$ cd jflesch-paperwork-*
 	$ sudo ./setup.py install
 	$ paperwork
 
-	Enjoy :-)
+Enjoy :-)
 
 Development
 -----------

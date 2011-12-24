@@ -81,7 +81,7 @@ class ScannedPage(object):
         txtfile = self.__txt_path
         txt = []
         try:
-            with codecs.open(txtfile, encoding='utf-8') as file_desc:
+            with codecs.open(txtfile, 'r', encoding='utf-8') as file_desc:
                 for line in file_desc.readlines():
                     line = line.strip()
                     txt.append(line)
@@ -101,7 +101,7 @@ class ScannedPage(object):
         txt = self.text
 
         try:
-            with open(boxfile) as file_desc:
+            with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                 char_boxes = tesseract.read_box_file(file_desc)
             word_boxes = get_word_boxes(txt, char_boxes, callback)
             return word_boxes

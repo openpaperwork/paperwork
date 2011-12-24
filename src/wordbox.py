@@ -47,6 +47,18 @@ class WordBox(object):
     def __hash__(self):
         return self.__word_hash
 
+
+class CharBox(object):
+    """
+    Wrapper for TesseractBox. Used to make a link list of TesseractBox.
+    """
+
+    def __init__(self, tesseract_box):
+        self.tesseract_box = tesseract_box
+        self.next_box = None
+        self.end_of_word = False
+
+
 def __get_char_boxes(word, char_boxes):
     """
     Look for the box of the word 'word', using the given char_boxes. Note that
@@ -55,49 +67,60 @@ def __get_char_boxes(word, char_boxes):
 
     Arguments:
         word --- the word for which we are looking for its box
-        char_boxes --- all the remaining character boxes, up to now
+        char_boxes --- A linked list of all the remaining character boxes
+            (CharBox), up to now
 
     Returns:
         The word box. None if not found.
     """
-    start_idx = 0
-    end_idx = 0
+    prev_start_char = None
+    start_char = char_boxes
+    end_char = None
     l_idx = 0
+    full_match = False
 
     if len(word) <= 0:
-        return None
-    if len(char_boxes) <= 0:
-        return None
+        return (char_boxes, None)
+    if char_boxes == None:
+        return (char_boxes, None)
 
-    try:
-        for start_idx in range(0, len(char_boxes)):
-            full_match = True
-            for l_idx in range(0, len(word)):
-                if (char_boxes[start_idx + l_idx].char.lower()
-                    != word[l_idx].lower()):
-                    full_match = False
-                    break
-            if full_match:
-                end_idx = start_idx + len(word)
+    while start_char != None:
+        full_match = True
+        end_char = start_char
+        l_idx = 0
+        for l_idx in range(0, len(word)):
+            if end_char == None or end_char.tesseract_box.char != word[l_idx]:
+                full_match = False
                 break
-    except IndexError:
-        full_match = False
+            if end_char.end_of_word and l_idx < (len(word) - 1):
+                full_match = False
+                break
+            l_idx += 1
+            end_char = end_char.next_box
+        if full_match:
+            break
+        prev_start_char = start_char
+        start_char = start_char.next_box
     if not full_match:
-        #print "Word %s not found in boxes" % (word)
-        return None
-
-    boxes = []
-    for box_idx in range(start_idx, end_idx):
-        boxes.append(char_boxes[box_idx])
+        return (char_boxes, None)
 
     word_box = WordBox(word)
-    for box in boxes:
-        word_box.add_char_box(box)
-        char_boxes.remove(box)
-    return word_box
+
+    while start_char != end_char:
+        word_box.add_char_box(start_char.tesseract_box)
+        # drop the current char from the list
+        if prev_start_char == None:
+            char_boxes = start_char.next_box
+        else:
+            prev_start_char.next_box = start_char.next_box
+            prev_start_char.end_of_word = True
+        prev_start_char = start_char
+        start_char = start_char.next_box
+
+    return (char_boxes, word_box)
 
 
-def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
+def get_word_boxes(text, tesseract_boxes, callback=dummy_progress_cb):
     """
     Try to deduce the word boxes, based on a text and character boxes (see
     tesseract.TesseractBox). This process may take time. This is why this
@@ -108,16 +131,24 @@ def get_word_boxes(text, char_boxes, callback=dummy_progress_cb):
         char_boxes --- tesseract.TesseractBox
         callback --- progression callback (see dummy_progress_cb)
     """
+    char_boxes = None
+
+    for box in reversed(tesseract_boxes):
+        new_box = CharBox(box)
+        new_box.next_box = char_boxes
+        char_boxes = new_box
+
     word_boxes = []
 
     callback(0, len(text), WORDBOX_GUESSING)
     progression = 0
 
     for line in text:
-        words = split_words(line)
+        # Do not use split_words() here ! It does more than spliting.
+        words = line.split(" ")
 
         for word in words:
-            box = __get_char_boxes(word, char_boxes)
+            (char_boxes, box) = __get_char_boxes(word, char_boxes)
             if box == None:
                 continue
             word_boxes.append(box)

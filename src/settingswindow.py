@@ -18,6 +18,7 @@ from util import load_uifile
 
 _ = gettext.gettext
 
+
 class CalibrationGrip(object):
     GRIP_SIZE = 20
     COLOR = (0x00, 0x00, 0xFF)
@@ -40,6 +41,7 @@ class CalibrationGrip(object):
         y_max = int(ratio * self.position[1]) + self.GRIP_SIZE
         return (x_min <= position[0] and position[0] <= x_max
             and y_min <= position[1] and position[1] <= y_max)
+
 
 class SettingsWindow(object):
     """
@@ -71,7 +73,7 @@ class SettingsWindow(object):
         self.__ocrlangs_widget = None
         self.__scanner_device_widget = None
         self.__scanner_resolution_widget = None
-    
+
         self.__calibration_img_frame = \
                 self.__widget_tree.get_object("viewportCalibration")
         self.__calibration_img_evbox = \
@@ -79,13 +81,13 @@ class SettingsWindow(object):
         self.__calibration_img_widget = \
                 self.__widget_tree.get_object("imageCalibration")
         self.__calibration_img_scaled = True
-        self.__calibration_img_ratio = 1.0 # default
+        self.__calibration_img_ratio = 1.0  # default
         self.__calibration_img = None
         self.__calibration_img_resized = None
 
         calibration = self.__config.scanner_calibration
         if calibration == None:
-            self.__calibration = None # will be a tuple: (CalibrationGrip, CalibrationGrip)
+            self.__calibration = None
         else:
             self.__calibration = (CalibrationGrip(calibration[0][0],
                                                   calibration[0][1]),
@@ -102,8 +104,9 @@ class SettingsWindow(object):
         For each short language name, figures out its long name.
 
         Arguments:
-            short_langs --- Array of strings. Each string is the short name of a
-            language. Should be 3 characters long (more should be fine as well)
+            short_langs --- Array of strings. Each string is the short name of
+            a language. Should be 3 characters long (more should be fine as
+            well)
 
         Returns:
             A dictionnary: Keys are the short languages name, values are the
@@ -112,7 +115,8 @@ class SettingsWindow(object):
         long_langs = {}
         for short_lang in short_langs:
             try:
-                long_lang = pycountry.languages.get(terminology=short_lang[:3]).name
+                country = pycountry.languages.get(terminology=short_lang[:3])
+                long_lang = country.name
                 long_langs[short_lang] = long_lang
             except KeyError, exc:
                 print ("Warning: Long name not found for language '%s'."
@@ -243,16 +247,18 @@ class SettingsWindow(object):
             if not self.__calibration_img_scaled:
                 self.__calibration_img_ratio = 1.0
             else:
-                wanted_width = self.__calibration_img_frame.get_allocation().width
-                if int(self.__calibration_img.getbbox()[2]) > int(wanted_width):
-                    width_ratio = (float(wanted_width) /
-                                   self.__calibration_img.getbbox()[2])
+                wanted_width = \
+                        self.__calibration_img_frame.get_allocation().width
+                calib_img_width = self.__calibration_img.getbbox()[2]
+                if int(calib_img_width) > int(wanted_width):
+                    width_ratio = (float(wanted_width) / calib_img_width)
                 else:
                     width_ratio = 1.0
-                wanted_height = self.__calibration_img_frame.get_allocation().height
-                if int(self.__calibration_img.getbbox()[3]) > int(wanted_height):
-                    height_ratio = (float(wanted_height) /
-                                    self.__calibration_img.getbbox()[3])
+                wanted_height = \
+                        self.__calibration_img_frame.get_allocation().height
+                calib_img_height = self.__calibration_img.getbbox()[3]
+                if int(calib_img_height) > int(wanted_height):
+                    height_ratio = (float(wanted_height) / calib_img_height)
                 else:
                     height_ratio = 1.0
                 if width_ratio < height_ratio:
@@ -350,7 +356,7 @@ class SettingsWindow(object):
             selected_grip.selected = False
         else:
             self.__change_calibration_scale()
-    
+
     def __update_resolutions(self):
         device = self.__get_selected_device()
         if device == None:
@@ -375,11 +381,11 @@ class SettingsWindow(object):
         self.__scanner_resolution_widget.set_active(active_idx)
         self.__scanner_resolution_widget.set_visible(True)
         scanner_table.attach(self.__scanner_resolution_widget,
-                             1, # left_attach
-                             2, # right_attach
-                             1, # top_attach
-                             2, # bottom_attach
-                             xoptions=gtk.EXPAND|gtk.FILL)
+                             1,  # left_attach
+                             2,  # right_attach
+                             1,  # top_attach
+                             2,  # bottom_attach
+                             xoptions=(gtk.EXPAND | gtk.FILL))
 
     def __connect_signals(self):
         """
@@ -420,11 +426,11 @@ class SettingsWindow(object):
         self.__ocrlangs_widget.set_active(active_idx)
         self.__ocrlangs_widget.set_visible(True)
         ocr_table.attach(self.__ocrlangs_widget,
-                         1, # left_attach
-                         2, # right_attach
-                         0, # top_attach
-                         1, # bottom_attach
-                         xoptions=gtk.EXPAND|gtk.FILL)
+                         1,  # left_attach
+                         2,  # right_attach
+                         0,  # top_attach
+                         1,  # bottom_attach
+                         xoptions=(gtk.EXPAND | gtk.FILL))
 
         scanner_table = self.__widget_tree.get_object("tableScannerSettings")
         assert(scanner_table)
@@ -444,11 +450,11 @@ class SettingsWindow(object):
         self.__scanner_device_widget.connect("changed", lambda x:
                                              self.__update_resolutions())
         scanner_table.attach(self.__scanner_device_widget,
-                             1, # left_attach
-                             2, # right_attach
-                             0, # top_attach
-                             1, # bottom_attach
-                             xoptions=gtk.EXPAND|gtk.FILL)
+                             1,  # left_attach
+                             2,  # right_attach
+                             0,  # top_attach
+                             1,  # bottom_attach
+                             xoptions=(gtk.EXPAND | gtk.FILL))
 
         # scanner resolution
         self.__update_resolutions()

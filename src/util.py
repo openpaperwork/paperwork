@@ -30,10 +30,12 @@ def __strip_accents(string):
         (character for character in unicodedata.normalize('NFD', string)
          if unicodedata.category(character) != 'Mn'))
 
+
 def __cleanup_word_array(keywords):
     for word in keywords:
         if len(word) >= MIN_KEYWORD_LEN:
             yield word
+
 
 def split_words(sentence):
     if (sentence == "*"):
@@ -63,6 +65,7 @@ def split_words(sentence):
                 yield subword
         elif can_yield:
             yield word
+
 
 def load_uifile(filename):
     """

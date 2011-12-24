@@ -32,6 +32,7 @@ class ScannedPageListIterator(object):
         self.idx += 1
         return page
 
+
 class ScannedPageList(object):
     """
     Page list. Page are accessed using [] operator.
@@ -218,14 +219,14 @@ class ScannedDoc(object):
     labels = property(__get_labels)
 
     def update_label(self, old_label, new_label):
-        print "%s : Updating label ([%s] -> [%s])" % (str(self), str(old_label),
-                                                      str(new_label))
+        print ("%s : Updating label ([%s] -> [%s])"
+               % (str(self), str(old_label), str(new_label)))
         labels = self.labels
         try:
             labels.remove(old_label)
         except ValueError, e:
             # this document doesn't have this label
-            return;
+            return
         labels.append(new_label)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
                         encoding='utf-8') as file_desc:
@@ -264,7 +265,8 @@ class ScannedDoc(object):
 
     def __get_name(self):
         try:
-            datetime_obj = datetime.datetime.strptime(self.docid, self.DOCNAME_FORMAT)
+            datetime_obj = datetime.datetime.strptime(
+                    self.docid, self.DOCNAME_FORMAT)
         except ValueError, exc:
             print ("Unable to parse document id [%s]: %s"
                    % (self.docid, str(exc)))

@@ -49,7 +49,7 @@ class ScannedPage(object):
         Returns a file path relative to this page
         """
         return os.path.join(self.doc.path,
-                            "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+                "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
 
     def __get_txt_path(self):
         """
@@ -274,7 +274,8 @@ class ScannedPage(object):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, scanner_calibration, callback=dummy_progress_cb):
+    def scan_page(self, device, ocrlang, scanner_calibration,
+                  callback=dummy_progress_cb):
         """
         Scan the page & do OCR
         """
@@ -436,7 +437,7 @@ class ScannedPage(object):
             os.unlink(self.__get_box_path())
         if os.access(self.__get_img_path(), os.F_OK):
             os.unlink(self.__get_img_path())
-        for p in range(self.page_nb+1, current_doc_nb_pages):
+        for p in range(self.page_nb + 1, current_doc_nb_pages):
             page = self.doc.pages[p]
             page.ch_number(-1)
 

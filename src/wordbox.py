@@ -7,6 +7,7 @@ from util import split_words
 
 WORDBOX_GUESSING = 'Word box guessing'
 
+
 class WordBox(object):
     """
     Indicates where a specific word has been read on a page

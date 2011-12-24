@@ -6,6 +6,7 @@ import ConfigParser
 import os
 from scanner import PaperworkScanner
 
+
 class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is

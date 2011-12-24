@@ -15,12 +15,14 @@ except ImportError, e:
 
 _ = gettext.gettext
 
+
 class PaperworkScannerException(Exception):
     """
     Exception raised in case we try to use an invalid scanner configuration
     """
     def __init__(self, message):
         Exception.__init__(self, message)
+
 
 class PaperworkScanner(object):
     """
@@ -33,15 +35,17 @@ class PaperworkScanner(object):
 
     def __init__(self):
         self.__available_devices = []   # see sane.get_devices()
-        # selected_device: one value from self.__available_devices[][0] (scanner
-        # id)
+        # selected_device: one value from self.__available_devices[][0]
+        # (scanner id)
         self.__selected_device = None
         self.selected_resolution = self.RECOMMENDED_RESOLUTION
-        # active_device: tuple: (value from __available_devices[][0], result from sane.open())
+        # active_device: tuple: (value from __available_devices[][0], result
+        # from sane.open())
         self.__active_device = None
 
         # state = (X, Y):
-        # X = True/False: True = sane is init and a scanner is selected ; False = cannot scan
+        # X = True/False: True = sane is init and a scanner is selected
+        #   ; False = cannot scan
         # Y = Scan action status (string)
         self.state = (False, "No scanner set")
 
@@ -72,7 +76,7 @@ class PaperworkScanner(object):
         self.__open_scanner(devid)
         for opt in self.__active_device[1].get_options():
             if opt[1] == "resolution":  # opt name
-                return opt[8] # opt possible values
+                return opt[8]  # opt possible values
         return []
 
     def __open_scanner(self, devid):
@@ -92,7 +96,7 @@ class PaperworkScanner(object):
         if self.__active_device and devid == self.__active_device[0]:
             # already opened
             return
-    
+
         if self.__active_device:
             self.__active_device[1].close()
             self.__active_device = None

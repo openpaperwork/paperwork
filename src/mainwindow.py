@@ -23,6 +23,7 @@ import wordbox
 
 _ = gettext.gettext
 
+
 class MainWindow:
     """
     Paperwork main window
@@ -80,7 +81,8 @@ class MainWindow:
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
         self.__selectors = self.__widget_tree.get_object("notebookSelectors")
         self.__selectors.set_current_page(1)    # Page tab
-        self.__match_list_menu = self.__widget_tree.get_object("popupmenuMatchs")
+        self.__match_list_menu = \
+                self.__widget_tree.get_object("popupmenuMatchs")
 
         tooltips.set_tip(self.__search_field,
                         (_('Search documents\n')
@@ -96,7 +98,8 @@ class MainWindow:
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
-        self.__label_list_menu = self.__widget_tree.get_object("popupmenuLabels")
+        self.__label_list_menu = \
+                self.__widget_tree.get_object("popupmenuLabels")
 
         # various tooltips
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonNew"),
@@ -142,7 +145,6 @@ class MainWindow:
         tooltips = gtk.Tooltips()
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
                         self.__device.state[1])
-
 
     def __set_progress(self, progress, text):
         self.__status_bar.pop(self.__status_context_id)
@@ -319,7 +321,6 @@ class MainWindow:
         self.__page_scroll_win.get_hadjustment().set_value(
             self.__page_scroll_win.get_hadjustment().get_lower())
 
-
     def __show_page_txt(self, page):
         """
         Update the page text
@@ -426,7 +427,7 @@ class MainWindow:
         elif step == wordbox.WORDBOX_GUESSING:
             txt = _('Loading page ...')
         else:
-            assert(False) # unknow progression type
+            assert(False)  # unknow progression type
             txt = ""
         if doc != None:
             txt += (" (%s)" % (doc.name))
@@ -463,7 +464,7 @@ class MainWindow:
 
         self.__show_busy_cursor()
         try:
-            self.__doc.scan_next_page(self.__device, 
+            self.__doc.scan_next_page(self.__device,
                                       self.__config.ocrlang,
                                       self.__config.scanner_calibration,
                                       self.__cb_progress)
@@ -613,7 +614,8 @@ class MainWindow:
         about = AboutDialog(self.main_window)
         about.show()
 
-    def __edit_clicked_label_cb(self, treeview=None, objpath=None, view_column=None):
+    def __edit_clicked_label_cb(self, treeview=None, objpath=None,
+                                view_column=None):
         label = self.__label_list[objpath][2]
         self.__edit_label(label)
 
@@ -623,7 +625,7 @@ class MainWindow:
         self.__page.destroy()
         self.reindex()
         self.__refresh_page_list()
-        self.__page_cache = None # smash the cache
+        self.__page_cache = None  # smash the cache
         self.__show_page(self.__page)
 
     def __apply_to_current_label_cb(self, widget, action):
@@ -733,18 +735,19 @@ class MainWindow:
                 self.__redo_ocr_on_current_cb)
         self.__widget_tree.get_object("buttonAddLabel").connect("clicked",
                 self.__add_label_cb)
-        self.__widget_tree.get_object("cellrenderertoggleLabel").connect("toggled",
-                self.__label_toggled_cb)
+        self.__widget_tree.get_object("cellrenderertoggleLabel").connect(
+                "toggled", self.__label_toggled_cb)
         self.__widget_tree.get_object("menuitemReindexAll").connect("activate",
                 lambda x: self.reindex())
-        self.__widget_tree.get_object("menuitemDestroyPage2").connect("activate",
-                self.__destroy_current_page_cb)
-        self.__widget_tree.get_object("menuitemDestroyDoc2").connect("activate",
-                self.__destroy_current_doc_cb)
+        self.__widget_tree.get_object("menuitemDestroyPage2").connect(
+                "activate", self.__destroy_current_page_cb)
+        self.__widget_tree.get_object("menuitemDestroyDoc2").connect(
+                "activate", self.__destroy_current_doc_cb)
         self.__widget_tree.get_object("menuitemEditLabel").connect("activate",
                 self.__apply_to_current_label_cb, self.__edit_label)
-        self.__widget_tree.get_object("menuitemDestroyLabel").connect("activate",
-                self.__apply_to_current_label_cb, self.__destroy_label)
+        self.__widget_tree.get_object("menuitemDestroyLabel").connect(
+                "activate", self.__apply_to_current_label_cb,
+                self.__destroy_label)
         self.__widget_tree.get_object("buttonEditLabel").connect("clicked",
                 self.__apply_to_current_label_cb, self.__edit_label)
         self.__widget_tree.get_object("buttonDestroyLabel").connect("clicked",

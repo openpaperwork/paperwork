@@ -15,28 +15,28 @@ class AboutDialog(object):
     """
 
     def __init__(self, main_window):
-        self.widget_tree = load_uifile("aboutdialog.glade")
-        self.aboutdialog = self.widget_tree.get_object("aboutdialog")
-        self.aboutdialog.set_transient_for(main_window)
-        assert(self.aboutdialog)
+        self.__widget_tree = load_uifile("aboutdialog.glade")
+        self.__aboutdialog = self.__widget_tree.get_object("aboutdialog")
+        self.__aboutdialog.set_transient_for(main_window)
+        assert(self.__aboutdialog)
         self.__connect_signals()
 
     def __connect_signals(self):
         """
         Connect gtk widget signals to methods
         """
-        self.aboutdialog.connect("destroy", lambda x: self.destroy())
-        self.aboutdialog.connect("response", lambda x, y: self.destroy())
-        self.aboutdialog.connect("close", lambda x: self.destroy())
+        self.__aboutdialog.connect("destroy", self.destroy)
+        self.__aboutdialog.connect("response", self.destroy)
+        self.__aboutdialog.connect("close", self.destroy)
 
     def show(self):
         """
         Make the about dialog appears
         """
-        self.aboutdialog.set_visible(True)
+        self.__aboutdialog.set_visible(True)
 
-    def destroy(self):
+    def destroy(self, widget=None, response=None):
         """
         Close and destroy the about dialog window
         """
-        self.widget_tree.get_object("aboutdialog").destroy()
+        self.__widget_tree.get_object("aboutdialog").destroy()

@@ -298,8 +298,10 @@ class DocSearch(object):
         Returns:
             An array of ScannedDoc
         """
+        if keyword == "*":
+            return self.__docs[:]
         try:
-            return self.__keywords_to_docs[keyword]
+            return self.__keywords_to_docs[keyword][:]
         except KeyError:
             return []
 
@@ -324,16 +326,15 @@ class DocSearch(object):
             else:
                 negative_keywords.append(keyword[1:])
 
-        if (len(positive_keywords) == 1
-            and unicode(positive_keywords[0]) == u"*"):
-            print "Returning all documents"
-            doclist = self.__docs
-            doclist.sort()
-            return doclist
+        if (len(positive_keywords) == 0 and len(negative_keywords) == 0):
+            return []
+
         documents = None
+
+        if len(positive_keywords) <= 0:
+            positive_keywords = ["*"]
+
         for keyword in positive_keywords:
-            if (len(keyword) < MIN_KEYWORD_LEN):
-                return []
             docs = self.__find_documents(keyword)
             if documents == None:
                 documents = docs
@@ -347,8 +348,6 @@ class DocSearch(object):
         print "Found %d documents" % (len(documents))
 
         for keyword in negative_keywords:
-            if (len(keyword) < MIN_KEYWORD_LEN):
-                return []
             docs = self.__find_documents(keyword)
             print "Found %d documents to remove" % (len(documents))
             for doc in docs:

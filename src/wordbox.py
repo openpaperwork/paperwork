@@ -15,7 +15,8 @@ class WordBox(object):
     MAX_PIXEL_DIST = 200
 
     def __init__(self, word):
-        self.word = word
+        words = split_words(word)
+        self.word = " ".join(words)
         self.__word_hash = hash(word)
         self.position = None
 

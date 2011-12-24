@@ -14,6 +14,7 @@ import PIL
 
 import tesseract
 from util import dummy_progress_cb
+from util import MIN_KEYWORD_LEN
 from util import split_words
 from wordbox import get_word_boxes
 
@@ -145,6 +146,8 @@ class ScannedPage(object):
                 the boxes)
         """
         if sentence != None:
+            if len(sentence) < MIN_KEYWORD_LEN:
+                return
             words = split_words(sentence)
             # unfold the generator
             keywords = []
@@ -154,7 +157,13 @@ class ScannedPage(object):
             keywords = None
         draw = ImageDraw.Draw(img)
         for box in boxes:
-            if (keywords == None or box.word in keywords):
+            draw_box = (keywords == None)
+            if not draw_box and keywords != None:
+                for keyword in keywords:
+                    if keyword in box.word:
+                        draw_box = True
+                        break
+            if draw_box:
                 ScannedPage.__draw_box(draw, img.size, box, width, color)
         return img
 

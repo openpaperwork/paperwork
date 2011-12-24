@@ -174,15 +174,13 @@ class MainWindow:
         the keywords typed by the user in the search field.
         """
         sentence = self.__get_sentence()
-        print "Search: %s" % (sentence)
+        print "Search: %s" % (sentence.encode('ascii', 'replace'))
 
         suggestions = self.__docsearch.find_suggestions(sentence)
         print "Got %d suggestions" % len(suggestions)
         self.__liststore_suggestion.clear()
         for suggestion in suggestions:
             self.__liststore_suggestion.append([suggestion])
-
-        print "Search: %s" % (sentence)
 
         documents = self.__docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)

@@ -124,7 +124,13 @@ class MainWindow:
 
         self.update_scan_buttons_state()
 
-        self.reindex()
+        try:
+            self.__widget_tree.get_object("menubarMainWin").set_sensitive(False)
+            self.__widget_tree.get_object("toolbarMainWin").set_sensitive(False)
+            self.reindex()
+        finally:
+            self.__widget_tree.get_object("menubarMainWin").set_sensitive(True)
+            self.__widget_tree.get_object("toolbarMainWin").set_sensitive(True)
 
     def update_scanner_settings(self):
         """

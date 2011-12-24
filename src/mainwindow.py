@@ -506,7 +506,7 @@ class MainWindow:
         print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
                      self.main_window)
 
-    def __clear_search_cb(self, objsrc=None):
+    def __clear_search_cb(self, entry=None, iconpos=None, event=None):
         """
         Clear the search field.
         """
@@ -698,7 +698,7 @@ class MainWindow:
                 self.__show_about_dialog_cb)
         self.__widget_tree.get_object("menuitemSettings").connect("activate",
                 lambda x: self.__show_settings())
-        self.__widget_tree.get_object("buttonSearchClear").connect("clicked",
+        self.__widget_tree.get_object("entrySearch").connect("icon-press",
                 self.__clear_search_cb)
         self.__widget_tree.get_object("menuitemReOcrAll").connect("activate",
                 self.__redo_ocr_on_all_cb)

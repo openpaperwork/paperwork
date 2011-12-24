@@ -1,24 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <object class="GtkEntryCompletion" id="entrycompletionSearch">
-    <property name="model">liststoreSuggestion</property>
-  </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-delete</property>
-  </object>
-  <object class="GtkImage" id="image3">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-delete</property>
-  </object>
-  <object class="GtkImage" id="imageClear">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-clear</property>
-  </object>
   <object class="GtkImage" id="imageOpen">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -59,6 +41,9 @@
       <!-- column-name suggestion -->
       <column type="gchararray"/>
     </columns>
+  </object>
+  <object class="GtkEntryCompletion" id="entrycompletionSearch">
+    <property name="model">liststoreSuggestion</property>
   </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="can_focus">False</property>
@@ -304,47 +289,14 @@
                 <property name="orientation">vertical</property>
                 <property name="can_focus">False</property>
                 <child>
-                  <object class="GtkHBox" id="box2">
+                  <object class="GtkEntry" id="entrySearch">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <object class="GtkImage" id="image1">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="stock">gtk-find</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkEntry" id="entrySearch">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="invisible_char">&#x2022;</property>
-                      </object>
-                      <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="buttonSearchClear">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="use_action_appearance">False</property>
-                        <property name="image">imageClear</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">•</property>
+                    <property name="invisible_char_set">True</property>
+                    <property name="primary_icon_stock">gtk-find</property>
+                    <property name="secondary_icon_stock">gtk-clear</property>
+                    <property name="primary_icon_activatable">False</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

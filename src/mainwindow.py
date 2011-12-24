@@ -495,8 +495,10 @@ class MainWindow:
         doc.destroy()
         if must_start_new_doc:
             self.new_document()
+        self.__match_list.clear()
         print "Deleted"
         self.reindex()
+        self.__update_results_cb()
 
     def __destroy_current_doc_cb(self, objsrc=None):
         self.__destroy_doc(self.__doc)

@@ -158,13 +158,13 @@ class MainWindow:
         self.__status_bar.push(self.__status_context_id, text)
         self.__progress_bar.set_fraction(progress)
 
-    def __set_lists_sensitive(self, state):
+    def __set_result_lists_sensitive(self, state):
         """
-        Use to indicates if document and label list must accept user input.
+        Used to indicates if document and label list must accept user input.
         They usually don't when we reloading all the documents.
 
         Arguments:
-            state --- True if they shoud, False if they shouldn't
+            state --- True if they should, False if they shouldn't
         """
         if state == False:
             self.__match_list.clear()
@@ -175,6 +175,18 @@ class MainWindow:
         self.__match_list_ui.set_sensitive(state)
         self.__label_list_ui.set_sensitive(state)
 
+    def __set_page_changers_sensitive(self, state):
+        """
+        Used to indicate if the user input must be blocked from any
+        element that would change the page being displayed.
+        Usually used when a page is being loaded.
+
+        Arguments:
+            state --- True if they should, False if they shouldn't
+        """
+        self.__match_list_ui.set_sensitive(state)
+        self.__page_list_ui.set_sensitive(state)
+
     def reindex(self):
         """
         Reload and reindex all the documents
@@ -182,13 +194,13 @@ class MainWindow:
         try:
             self.__show_busy_cursor()
 
-            self.__set_lists_sensitive(False)
+            self.__set_result_lists_sensitive(False)
 
             self.__set_progress(0.0, "")
             self.__docsearch = DocSearch(self.__config.workdir,
                                        self.__cb_progress)
         finally:
-            self.__set_lists_sensitive(True)
+            self.__set_result_lists_sensitive(True)
 
             self.__set_progress(0.0, "")
             self.__show_normal_cursor()
@@ -369,27 +381,31 @@ class MainWindow:
         """
         Display the specified page
         """
-        if page == None:
-            page = self.__page
-
-        assert(page != None)
-        self.__page = page
-        self.__page_scaled = True
-
-        print "Showing page '%s'" % (page)
-
-        self.__page_list_ui.get_selection().select_path(page.page_nb)
+        self.__set_page_changers_sensitive(False)
         try:
-            self.__show_page_img(page)
-        except IOError, exc:
-            print "Unable to show image for '%s': %s" % (page, exc)
-            self.__page_img.set_from_stock(gtk.STOCK_MISSING_IMAGE,
-                                        gtk.ICON_SIZE_BUTTON)
-        try:
-            self.__show_page_txt(page)
-        except IOError, exc:
-            print "Unable to show text for doc '%s': %s" % (page, exc)
-            self.__page_txt.get_buffer().set_text("")
+            if page == None:
+                page = self.__page
+
+            assert(page != None)
+            self.__page = page
+            self.__page_scaled = True
+
+            print "Showing page '%s'" % (page)
+
+            self.__page_list_ui.get_selection().select_path(page.page_nb)
+            try:
+                self.__show_page_img(page)
+            except IOError, exc:
+                print "Unable to show image for '%s': %s" % (page, exc)
+                self.__page_img.set_from_stock(gtk.STOCK_MISSING_IMAGE,
+                                            gtk.ICON_SIZE_BUTTON)
+            try:
+                self.__show_page_txt(page)
+            except IOError, exc:
+                print "Unable to show text for doc '%s': %s" % (page, exc)
+                self.__page_txt.get_buffer().set_text("")
+        finally:
+            self.__set_page_changers_sensitive(True)
 
     def __show_selected_page_cb(self, objsrc=None):
         """
@@ -689,14 +705,14 @@ class MainWindow:
             return
         try:
             self.__show_busy_cursor()
-            self.__set_lists_sensitive(False)
+            self.__set_result_lists_sensitive(False)
             self.__set_progress(0.0, "")
             self.__docsearch.destroy_label(label, self.__cb_progress)
             print "Label destroyed"
             self.reindex()
         finally:
             self.__set_progress(0.0, "")
-            self.__set_lists_sensitive(True)
+            self.__set_result_lists_sensitive(True)
             self.__show_normal_cursor()
 
     def __edit_label(self, label):
@@ -714,14 +730,14 @@ class MainWindow:
         self.__label_list.clear()
         try:
             self.__show_busy_cursor()
-            self.__set_lists_sensitive(False)
+            self.__set_result_lists_sensitive(False)
             self.__set_progress(0.0, "")
             self.__docsearch.update_label(label, new_label, self.__cb_progress)
             print "Label updated"
             self.reindex()
         finally:
             self.__set_progress(0.0, "")
-            self.__set_lists_sensitive(True)
+            self.__set_result_lists_sensitive(True)
             self.__show_normal_cursor()
 
     def __pop_menu_up_cb(self, treeview, event, ui_component, popup_menu):

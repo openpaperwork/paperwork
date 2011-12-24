@@ -32,6 +32,8 @@ class MainWindow:
     MAX_PROGRESS_UPD_PER_SEC = 2.0
 
     def __init__(self, config):
+        tooltips = gtk.Tooltips()
+
         self.__config = config
 
         self.__device = PaperworkScanner()
@@ -80,6 +82,12 @@ class MainWindow:
         self.__selectors.set_current_page(1)    # Page tab
         self.__match_list_menu = self.__widget_tree.get_object("popupmenuMatchs")
 
+        tooltips.set_tip(self.__search_field,
+                        (_('Search documents\n')
+                         + _('- \'!\' can be used as a prefix to')
+                         + _(' negate a keyword\n')
+                         + _('- \'*\' will return all the documents')))
+
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
         self.__page_list_ui = self.__widget_tree.get_object("treeviewPage")
@@ -90,6 +98,15 @@ class MainWindow:
         self.__label_list_store = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
         self.__label_list_menu = self.__widget_tree.get_object("popupmenuLabels")
+
+        # various tooltips
+        tooltips.set_tip(self.__widget_tree.get_object("toolbuttonNew"),
+                         _("New document"))
+        tooltips.set_tip(self.__widget_tree.get_object("toolbuttonQuit"),
+                         _("Quit"))
+        # tooltip on toolbuttonScan is set by update_scan_buttons_state()
+        tooltips.set_tip(self.__widget_tree.get_object("toolbuttonPrint"),
+                         _("Print"))
 
         self.__page_scaled = True
 
@@ -124,8 +141,8 @@ class MainWindow:
                 .set_sensitive(self.__device.state[0])
         self.__widget_tree.get_object("toolbuttonScan") \
                 .set_sensitive(self.__device.state[0])
-        tooltip = gtk.Tooltips()
-        tooltip.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
+        tooltips = gtk.Tooltips()
+        tooltips.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
                         self.__device.state[1])
 
 

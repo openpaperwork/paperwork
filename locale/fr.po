@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-23 20:47+0100\n"
+"POT-Creation-Date: 2011-12-24 14:21+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,44 +18,60 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/mainwindow.py:252
+#: src/mainwindow.py:85
+msgid "Search documents\n"
+msgstr "Rechercher des documents\n"
+
+#: src/mainwindow.py:86
+msgid "- '!' can be used as a prefix to"
+msgstr "- '!' peut être utilisé comme préfixe pour"
+
+#: src/mainwindow.py:87
+msgid " negate a keyword\n"
+msgstr " rejeter un mot clef\n"
+
+#: src/mainwindow.py:88
+msgid "- '*' will return all the documents"
+msgstr "- '*' renverra tout les documents"
+
+#: src/mainwindow.py:244
 msgid "Loading image and text ..."
 msgstr "Chargement de l'image et de son texte ..."
 
-#: src/mainwindow.py:278
+#: src/mainwindow.py:270
 msgid "Resizing the image ..."
 msgstr "Redimensionnement de l'image"
 
-#: src/mainwindow.py:408
+#: src/mainwindow.py:400
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/mainwindow.py:410 src/mainwindow.py:412
+#: src/mainwindow.py:402 src/mainwindow.py:404
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/mainwindow.py:414
+#: src/mainwindow.py:406
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/mainwindow.py:416
+#: src/mainwindow.py:408
 msgid "Updating label ..."
 msgstr "Mise à jour du label ..."
 
-#: src/mainwindow.py:418
+#: src/mainwindow.py:410
 msgid "Loading page ..."
 msgstr "Chargement de la page ..."
 
-#: src/mainwindow.py:433
+#: src/mainwindow.py:425
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:477
+#: src/mainwindow.py:469
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:535
+#: src/mainwindow.py:527
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -70,7 +86,9 @@ msgstr "Module Sane non-trouvé"
 #: src/scanner.py:62
 #, fuzzy
 msgid "Tesseract is not available. Can't do OCR"
-msgstr "Tesseract n'est pas disponible. Impossible de faire la reconnaissance de texte"
+msgstr ""
+"Tesseract n'est pas disponible. Impossible de faire la reconnaissance de "
+"texte"
 
 #: src/scanner.py:64
 msgid "No scanner has been selected"

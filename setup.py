@@ -9,12 +9,15 @@ setup(name="Paperwork",
       author_email="jflesch@gmail.com",
       packages=['paperwork'],
       package_dir={ 'paperwork': 'src' },
-      data_files=[('share/paperwork', [
-          'src/aboutdialog.glade',
-          'src/mainwindow.glade',
-          'src/settingswindow.glade',
-          'src/labeledit.glade',
-      ])],
+      data_files=[
+          ('share/paperwork', [
+            'src/aboutdialog.glade',
+            'src/mainwindow.glade',
+            'src/settingswindow.glade',
+            'src/labeledit.glade',
+            ]),
+          ('share/locale/fr/LC_MESSAGES', ['locale/fr/LC_MESSAGES/paperwork.mo'])
+      ],
       scripts=['scripts/paperwork'],
      )
 

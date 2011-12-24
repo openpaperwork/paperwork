@@ -18,8 +18,8 @@
       <column type="gchararray"/>
       <!-- column-name labelSelected -->
       <column type="gboolean"/>
-      <!-- column-name labelIdx -->
-      <column type="gint"/>
+      <!-- column-name label -->
+      <column type="PyObject"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreMatch">

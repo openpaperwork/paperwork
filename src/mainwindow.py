@@ -94,8 +94,7 @@ class MainWindow:
         self.__page_list_menu = self.__widget_tree.get_object("popupmenuPages")
 
         # label selector
-        self.__label_list = []
-        self.__label_list_store = self.__widget_tree.get_object("liststoreLabel")
+        self.__label_list = self.__widget_tree.get_object("liststoreLabel")
         self.__label_list_ui = self.__widget_tree.get_object("treeviewLabel")
         self.__label_list_menu = self.__widget_tree.get_object("popupmenuLabels")
 
@@ -122,11 +121,7 @@ class MainWindow:
 
         self.update_scan_buttons_state()
 
-        self.__show_busy_cursor()
-        try:
-            self.reindex()
-        finally:
-            self.__show_normal_cursor()
+        self.reindex()
 
     def update_scanner_settings(self):
         """
@@ -154,19 +149,33 @@ class MainWindow:
         self.__status_bar.push(self.__status_context_id, text)
         self.__progress_bar.set_fraction(progress)
 
+    def __set_lists_sensitive(self, state):
+        if state == False:
+            self.__match_list.clear()
+            self.__label_list.clear()
+        else:
+            self.__refresh_label_list()
+            self.__update_results_cb()
+        self.__match_list_ui.set_sensitive(state)
+        self.__label_list_ui.set_sensitive(state)
+
     def reindex(self):
         """
         Reload and reindex all the documents
         """
         try:
             self.__show_busy_cursor()
+
+            self.__set_lists_sensitive(False)
+
             self.__set_progress(0.0, "")
             self.__docsearch = DocSearch(self.__config.workdir,
                                        self.__cb_progress)
         finally:
+            self.__set_lists_sensitive(True)
+
             self.__set_progress(0.0, "")
             self.__show_normal_cursor()
-        self.__refresh_label_list()
 
     def __update_results_cb(self, objsrc=None):
         """
@@ -186,9 +195,11 @@ class MainWindow:
         print "Got %d documents" % len(documents)
         self.__match_list.clear()
         for doc in reversed(documents):
-            name_el = [doc.name]
-            name_el.extend(doc.labels)
-            final_str = "\n  ".join([str(x) for x in name_el])
+            labels = doc.labels
+            final_str = doc.name
+            if len(labels) > 0:
+                final_str += ("\n  "
+                        + "\n  ".join([x.get_html() for x in labels]))
             self.__match_list.append([final_str, doc])
 
     def __show_selected_doc_cb(self, objsrc=None):
@@ -434,15 +445,13 @@ class MainWindow:
         """
         Reload and refresh the label list
         """
-        self.__label_list = []
-        self.__label_list_store.clear()
+        self.__label_list.clear()
         if self.__docsearch != None and self.__doc != None:
             labels = self.__doc.labels
-            i = 0
             for label in self.__docsearch.label_list:
-                self.__label_list.append(label)
-                self.__label_list_store.append([label, (label in labels), i])
-                i = i + 1
+                self.__label_list.append([label.get_html(),
+                                                (label in labels),
+                                               label])
 
     def __scan_next_page_cb(self, objsrc=None):
         """
@@ -491,10 +500,8 @@ class MainWindow:
         doc.destroy()
         if must_start_new_doc:
             self.new_document()
-        self.__match_list.clear()
         print "Deleted"
         self.reindex()
-        self.__update_results_cb()
 
     def __destroy_current_doc_cb(self, objsrc=None):
         self.__destroy_doc(self.__doc)
@@ -591,8 +598,7 @@ class MainWindow:
         """
         Take into account changes made on the checkboxes of labels
         """
-        label_idx = self.__label_list_store[objpath][2]
-        label = self.__label_list[label_idx]
+        label = self.__label_list[objpath][2]
         if label in self.__doc.labels:
             self.__doc.remove_label(label)
         else:
@@ -608,8 +614,7 @@ class MainWindow:
         about.show()
 
     def __edit_clicked_label_cb(self, treeview=None, objpath=None, view_column=None):
-        label_idx = self.__label_list_store[objpath][2]
-        label = self.__label_list[label_idx]
+        label = self.__label_list[objpath][2]
         self.__edit_label(label)
 
     def __destroy_current_page_cb(self, widget=None):
@@ -639,12 +644,15 @@ class MainWindow:
             return
         try:
             self.__show_busy_cursor()
+            self.__set_lists_sensitive(False)
             self.__set_progress(0.0, "")
             self.__docsearch.destroy_label(label, self.__cb_progress)
+            print "Label destroyed"
+            self.reindex()
         finally:
             self.__set_progress(0.0, "")
+            self.__set_lists_sensitive(True)
             self.__show_normal_cursor()
-        print "Label destroyed"
 
     def __edit_label(self, label):
         assert(label != None)
@@ -654,14 +662,18 @@ class MainWindow:
             print "Label edition cancelled"
             return
         print "Label edited. Applying changes"
+        self.__label_list.clear()
         try:
             self.__show_busy_cursor()
+            self.__set_lists_sensitive(False)
             self.__set_progress(0.0, "")
             self.__docsearch.update_label(label, new_label, self.__cb_progress)
+            print "Label updated"
+            self.reindex()
         finally:
             self.__set_progress(0.0, "")
+            self.__set_lists_sensitive(True)
             self.__show_normal_cursor()
-        print "Label updated"
 
     def __pop_menu_up_cb(self, treeview, event,
                       ui_component, popup_menu):

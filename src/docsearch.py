@@ -419,17 +419,17 @@ class DocSearch(object):
             self.label_list.append(new_label)
         self.label_list.sort()
         current = 0
-        total = len(self.docs)
-        for doc in self.docs:
-            callback(current, total, self.LABEL_STEP_UPDATING, str(doc))
+        total = len(self.__docs)
+        for doc in self.__docs:
+            callback(current, total, self.LABEL_STEP_UPDATING, doc)
             doc.update_label(old_label, new_label)
             current += 1
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         self.label_list.remove(label)
         current = 0
-        total = len(self.docs)
-        for doc in self.docs:
-            callback(current, total, self.LABEL_STEP_DESTROYING, str(doc))
+        total = len(self.__docs)
+        for doc in self.__docs:
+            callback(current, total, self.LABEL_STEP_DESTROYING, doc)
             doc.remove_label(label)
             current += 1

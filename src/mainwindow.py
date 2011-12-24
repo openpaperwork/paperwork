@@ -123,7 +123,10 @@ class MainWindow:
         self.update_scan_buttons_state()
 
         self.__show_busy_cursor()
-        self.reindex()
+        try:
+            self.reindex()
+        finally:
+            self.__show_normal_cursor()
 
     def update_scanner_settings(self):
         """
@@ -211,6 +214,7 @@ class MainWindow:
         """
         watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
         self.main_window.window.set_cursor(watch)
+        self.__page_img.window.set_cursor(watch)
         gtk_refresh()
 
     def __show_normal_cursor(self):
@@ -218,6 +222,7 @@ class MainWindow:
         Make sure the mouse cursor if the default one.
         """
         self.main_window.window.set_cursor(None)
+        self.__page_img.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
 
     def __show_settings(self):
         self.__show_busy_cursor()
@@ -289,18 +294,11 @@ class MainWindow:
                 if pixbuf.get_width() > wanted_width:
                     ratio = float(wanted_width) / pixbuf.get_width()
                     wanted_height = int(ratio * pixbuf.get_height())
-                    self.__page_img.window.set_cursor(
-                            gtk.gdk.Cursor(gtk.gdk.HAND1))
                 else:
                     wanted_width = pixbuf.get_width()
                     wanted_height = pixbuf.get_height()
-                    self.__page_img.window.set_cursor(None)
                 pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                              gtk.gdk.INTERP_BILINEAR)
-            else:
-                self.__page_img.window \
-                        .set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
-
             self.__page_img.set_from_pixbuf(pixbuf)
             self.__page_img.show()
         finally:

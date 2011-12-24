@@ -692,6 +692,7 @@ Public License instead of this License.  But first, please read
 &lt;http://www.gnu.org/philosophy/why-not-lgpl.html&gt;.</property>
     <property name="authors">Jerome Flesch &lt;jflesch@gmail.com&gt;
 </property>
+    <property name="logo">paperwork.svg</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>

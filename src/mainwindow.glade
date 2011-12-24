@@ -50,6 +50,7 @@
     <property name="title">Paperwork</property>
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
+    <property name="icon">paperwork.svg</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <property name="visible">True</property>

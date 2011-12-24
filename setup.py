@@ -15,6 +15,7 @@ setup(name="Paperwork",
             'src/mainwindow.glade',
             'src/settingswindow.glade',
             'src/labeledit.glade',
+            'src/paperwork.svg',
             ]),
           ('share/locale/fr/LC_MESSAGES', ['locale/fr/LC_MESSAGES/paperwork.mo'])
       ],

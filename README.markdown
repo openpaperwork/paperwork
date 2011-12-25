@@ -75,8 +75,11 @@ Dependencies
 		* Download [Tesseract](http://code.google.com/p/tesseract-ocr/downloads/list)
 		* tar -xvzf tesseract-\*.tar.gz
 		* cd tesseract-\*
+		* ./autogen.sh
+		* ./configure
 		* make -j4
 		* sudo make install
+		* sudo ldconfig
 * Tesseract v3 trained data:
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

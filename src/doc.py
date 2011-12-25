@@ -170,7 +170,7 @@ class ScannedDoc(object):
         """
         nb_pages = self.nb_pages
         for i in range(0, nb_pages):
-            callback(i, nb_pages, ScannedPage.SCAN_STEP_OCR, str(self))
+            callback(i, nb_pages, ScannedPage.SCAN_STEP_OCR, self)
             page = ScannedPage(self, i)
             page.redo_ocr(ocrlang)
 

@@ -259,10 +259,12 @@ class SettingsWindow(object):
         # however, this means we have to close the other one first
         self.__scanner_mgmt.close()
         device_mgmt = PaperworkScanner()
-        device_mgmt.selected_resolution = device_mgmt.CALIBRATION_RESOLUTION
-        device_mgmt.selected_device = self.__get_selected_device()
-        self.__calibration_img = device_mgmt.scan()
-        device_mgmt.close()
+        try:
+            device_mgmt.selected_resolution = device_mgmt.CALIBRATION_RESOLUTION
+            device_mgmt.selected_device = self.__get_selected_device()
+            self.__calibration_img = device_mgmt.scan()
+        finally:
+            device_mgmt.close()
 
         if self.__calibration == None:
             self.__calibration = (

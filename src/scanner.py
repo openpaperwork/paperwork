@@ -89,10 +89,23 @@ class PaperworkScanner(object):
             An array of integer
         """
         self.__open_scanner(devid)
+        possibles_resolutions = None
         for opt in self.__active_device[1].get_options():
             if opt[1] == "resolution":  # opt name
-                return opt[8]  # opt possible values
-        return []
+                possible_resolutions = opt[8]  # opt possible values
+        if possible_resolutions == None:
+            return []
+        if type(possible_resolutions) == tuple:
+            start = possible_resolutions[0] - (possible_resolutions[0] % 100)
+            if start != possible_resolutions[0]:
+                start += 100
+            end = possible_resolutions[1] + 1
+            possible_resolutions = [res for res in range(start, end, 100)]
+
+        if not self.RECOMMENDED_RESOLUTION in possible_resolutions:
+            possible_resolutions.append(self.RECOMMENDED_RESOLUTION)
+        possible_resolutions.sort()
+        return possible_resolutions
 
     def __open_scanner(self, devid):
         """

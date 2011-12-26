@@ -237,7 +237,7 @@
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">Scan</property>
                 <property name="use_underline">True</property>
-                <property name="stock_id">gtk-index</property>
+                <property name="icon_name">scanner</property>
               </object>
               <packing>
                 <property name="expand">False</property>

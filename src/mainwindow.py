@@ -776,9 +776,9 @@ class MainWindow:
         self.main_window.connect("destroy", lambda x: self.__destroy())
         self.main_window.connect("size-allocate", self.__on_resize_cb)
         self.__widget_tree.get_object("menuitemNew").connect("activate",
-                self.new_document_cb)
+                self.__new_document_cb)
         self.__widget_tree.get_object("toolbuttonNew").connect("clicked",
-                self.new_document_cb)
+                self.__new_document_cb)
         self.__widget_tree.get_object("toolbuttonQuit").connect("clicked",
                 lambda x: self.__destroy())
         self.__widget_tree.get_object("menuitemScan").connect("activate",
@@ -820,6 +820,8 @@ class MainWindow:
         self.__widget_tree.get_object("menuitemDestroyLabel").connect(
                 "activate", self.__apply_to_current_label_cb,
                 self.__destroy_label)
+        self.__widget_tree.get_object("menuitemOpenDoc").connect(
+                "activate", self.__open_doc_cb)
         self.__widget_tree.get_object("buttonEditLabel").connect("clicked",
                 self.__apply_to_current_label_cb, self.__edit_label)
         self.__widget_tree.get_object("buttonDestroyLabel").connect("clicked",
@@ -897,8 +899,17 @@ class MainWindow:
         self.__selectors.set_current_page(1)    # Page tab
         self.__show_doc(ScannedDoc(self.__config.workdir))  # new document
 
-    def new_document_cb(self, objsrc=None):
+    def __new_document_cb(self, objsrc=None):
         """
         Alias for new_document()
         """
         self.new_document()
+
+    def __open_doc_cb(self, objsrc=None):
+        """
+        Open the currently selected document in a file manager
+        """
+        if self.__doc == None:
+            return False
+        # TODO(Jflesch): The following is absolutely not crossplatform
+        os.system('xdg-open "%s"' % (self.__doc.path))

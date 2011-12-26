@@ -777,6 +777,17 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
+      <object class="GtkMenuItem" id="menuitemOpenDoc">
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="tooltip_text" translatable="yes">Open the document in a file manager
+</property>
+        <property name="label" translatable="yes">Open directory</property>
+        <property name="use_underline">True</property>
+      </object>
+    </child>
+    <child>
       <object class="GtkMenuItem" id="menuitemDestroyDoc2">
         <property name="use_action_appearance">False</property>
         <property name="visible">True</property>

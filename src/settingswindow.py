@@ -12,6 +12,7 @@ import pycountry
 import tesseract
 
 from scanner import PaperworkScanner
+from util import gtk_refresh
 from util import image2pixbuf
 from util import load_uifile
 
@@ -260,7 +261,15 @@ class SettingsWindow(object):
         device_mgmt = PaperworkScanner()
         device_mgmt.selected_resolution = device_mgmt.CALIBRATION_RESOLUTION
         device_mgmt.selected_device = self.__get_selected_device()
-        self.__calibration_img = device_mgmt.scan()
+        self.__settings_win.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        self.__calibration_img_widget.window.set_cursor(
+                gtk.gdk.Cursor(gtk.gdk.WATCH))
+        try:
+            gtk_refresh()
+            self.__calibration_img = device_mgmt.scan()
+        finally:
+            self.__calibration_img_widget.window.set_cursor(None)
+            self.__settings_win.window.set_cursor(None)
 
         if self.__calibration == None:
             self.__calibration = (

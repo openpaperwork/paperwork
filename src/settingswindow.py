@@ -382,16 +382,40 @@ class SettingsWindow(object):
         else:
             print "No grip selected. Will change scale"
 
-    def __move_grip(self, event):
+    def __calibration_upd_cursor(self, event):
         """
-        Handle a mouse move in the calibration frame
+        Update the mouse cursor in the calibration frame based on its position.
         """
         (mouse_x, mouse_y) = event.get_coords()
+
+        is_on_grip = None
+        for grip in self.__calibration:
+            if (grip.selected
+                or grip.is_on_grip((mouse_x, mouse_y),
+                                   self.__calibration_img_ratio)):
+                is_on_grip = grip
+                break
+
+        # update the mouse cursor
+        if is_on_grip:
+            cursor = gtk.gdk.Cursor(gtk.gdk.TCROSS)
+        else:
+            cursor = gtk.gdk.Cursor(gtk.gdk.HAND1)
+        self.__calibration_img_widget.window.set_cursor(cursor)
+        return False
+
+    def __move_grip(self, event_pos):
+        """
+        Move a grip, based on the position
+        """
+        (mouse_x, mouse_y) = event_pos
+
         selected_grip = None
         for grip in self.__calibration:
             if grip.selected:
                 selected_grip = grip
                 break
+
         if not selected_grip:
             return None
         print "Grip move: (%d, %d)" % (mouse_x, mouse_y)
@@ -416,11 +440,12 @@ class SettingsWindow(object):
         (mouse_x, mouse_y) = event.get_coords()
         print "Released: (%d, %d)" % (mouse_x, mouse_y)
 
-        selected_grip = self.__move_grip(event)
+        selected_grip = self.__move_grip(event.get_coords())
         if selected_grip:
             selected_grip.selected = False
         else:
             self.__change_calibration_scale()
+        return False
 
     def __update_resolutions(self):
         """
@@ -470,6 +495,9 @@ class SettingsWindow(object):
                 lambda x, ev: self.__calibration_pressed_cb(ev))
         self.__calibration_img_evbox.connect("button-release-event",
                 lambda x, ev: self.__calibration_released_cb(ev))
+        self.__calibration_img_evbox.connect("motion-notify-event",
+                lambda x, ev: self.__calibration_upd_cursor(ev))
+        self.__calibration_img_evbox.add_events(gtk.gdk.POINTER_MOTION_MASK)
 
     def __fill_in_form(self):
         """

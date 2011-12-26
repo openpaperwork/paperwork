@@ -257,14 +257,10 @@ class SettingsWindow(object):
         # use a specific scanner manager for this job since
         # we want to use specific settings.
         # however, this means we have to close the other one first
-        self.__scanner_mgmt.close()
         device_mgmt = PaperworkScanner()
-        try:
-            device_mgmt.selected_resolution = device_mgmt.CALIBRATION_RESOLUTION
-            device_mgmt.selected_device = self.__get_selected_device()
-            self.__calibration_img = device_mgmt.scan()
-        finally:
-            device_mgmt.close()
+        device_mgmt.selected_resolution = device_mgmt.CALIBRATION_RESOLUTION
+        device_mgmt.selected_device = self.__get_selected_device()
+        self.__calibration_img = device_mgmt.scan()
 
         if self.__calibration == None:
             self.__calibration = (

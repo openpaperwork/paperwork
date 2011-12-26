@@ -863,8 +863,7 @@ class MainWindow:
         """
         Uninit what has been init by the __init__() function
         """
-        if self.__device != None:
-            self.__device.close()
+        pass
 
     def __show_doc(self, doc=None):
         """

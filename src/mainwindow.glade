@@ -285,7 +285,7 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkVBox" id="box1">
-                <property name="width_request">200</property>
+                <property name="width_request">230</property>
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <property name="can_focus">False</property>
@@ -719,7 +719,7 @@
             <property name="spacing">20</property>
             <child>
               <object class="GtkProgressBar" id="progressbar">
-                <property name="width_request">200</property>
+                <property name="width_request">230</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>

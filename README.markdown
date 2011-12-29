@@ -71,7 +71,7 @@ Dependencies
 * Tesseract v3
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
-		* sudo apt-get install libjpeg-dev libtiff-dev
+		* sudo apt-get install libjpeg-dev libtiff-dev libleptonica-dev
 		* Download [Tesseract](http://code.google.com/p/tesseract-ocr/downloads/list)
 		* tar -xvzf tesseract-\*.tar.gz
 		* cd tesseract-\*

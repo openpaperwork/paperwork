@@ -125,12 +125,12 @@ def __get_char_boxes(word, char_boxes):
 def get_word_boxes(text, tesseract_boxes, callback=dummy_progress_cb):
     """
     Try to deduce the word boxes, based on a text and character boxes (see
-    tesseract.TesseractBox). This process may take time. This is why this
-    function takes a progression callback as argument.
+    tesseract.Box). This process may take time. This is why this function
+    takes a progression callback as argument.
 
     Arguments:
         text --- array of lines
-        char_boxes --- tesseract.TesseractBox
+        char_boxes --- tesseract.Box
         callback --- progression callback (see dummy_progress_cb)
     """
     char_boxes = None

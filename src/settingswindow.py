@@ -135,8 +135,16 @@ class SettingsWindow(object):
         long_langs = {}
         for short_lang in short_langs:
             try:
-                country = pycountry.languages.get(terminology=short_lang[:3])
+                try:
+                    country = pycountry.languages.get(terminology=short_lang[:3])
+                except KeyError:
+                    country = pycountry.languages.get(bibliographic=short_lang[:3])
+                extra = None
+                if "_" in short_lang:
+                    extra = short_lang.split("_")[1]
                 long_lang = country.name
+                if extra != None:
+                    long_lang += " (%s)" % (extra)
                 long_langs[short_lang] = long_lang
             except KeyError, exc:
                 print ("Warning: Long name not found for language '%s'."

@@ -42,12 +42,18 @@ class PaperworkScanner(object):
         # X = True/False: True = sane is init and a scanner is selected
         #   ; False = cannot scan
         # Y = Scan action status (string)
-        self.state = (False, "No scanner set")
+        if not HAS_SANE:
+            self.state = (False, _('Sane module not found'))
+        else:
+            self.state = (False, _("No scanner set"))
 
     def __get_available_devices(self):
         """
         Return the list of available scan devices (array)
         """
+        if not HAS_SANE:
+            return []
+
         sane.init()
         try:
             return sane.get_devices()
@@ -86,6 +92,9 @@ class PaperworkScanner(object):
         Returns:
             An array of integer
         """
+        if not HAS_SANE:
+            return []
+
         possibles_resolutions = []
         sane.init()
         try:
@@ -121,6 +130,9 @@ class PaperworkScanner(object):
             Returns the corresponding sane device. None if no scanner has been
             found.
         """
+        if not HAS_SANE:
+            raise Exception("Sane module not found")
+
         if devid == None:
             devid = self.__selected_device
         if devid == None:
@@ -164,6 +176,8 @@ class PaperworkScanner(object):
         """
         Run a scan, and returns the corresponding output image.
         """
+        if not HAS_SANE:
+            raise Exception("Sane module not found")
         scan = None
         sane.init()
         try:

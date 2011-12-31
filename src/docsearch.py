@@ -425,7 +425,7 @@ class DocSearch(object):
                 threads.append(thread)
                 progress_callback(len(dlist) - len(remaining),
                                   len(dlist), self.INDEX_STEP_READING,
-                                  docid)
+                                  doc)
             time.sleep(self.OCR_SLEEP_TIME)
         print "OCR of all documents done"
 

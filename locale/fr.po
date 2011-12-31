@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-24 14:21+0100\n"
+"POT-Creation-Date: 2011-12-31 23:37+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,60 +18,68 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/mainwindow.py:85
+#: src/mainwindow.py:88
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/mainwindow.py:86
-msgid "- '!' can be used as a prefix to"
-msgstr "- '!' peut être utilisé comme préfixe pour"
+#: src/mainwindow.py:89
+msgid "'!' can be used as a prefix to"
+msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/mainwindow.py:87
-msgid " negate a keyword\n"
-msgstr " rejeter un mot clef\n"
+#: src/mainwindow.py:90
+msgid " negate a keyword"
+msgstr " rejeter un mot clef"
 
-#: src/mainwindow.py:88
-msgid "- '*' will return all the documents"
-msgstr "- '*' renverra tout les documents"
+#: src/mainwindow.py:105 src/mainwindow.glade.h:9
+msgid "New document"
+msgstr "Nouveau document"
 
-#: src/mainwindow.py:244
+#: src/mainwindow.py:107 src/mainwindow.glade.h:15
+msgid "Quit"
+msgstr "Quitter"
+
+#: src/mainwindow.py:110 src/mainwindow.glade.h:14
+msgid "Print"
+msgstr "Imprimer"
+
+#: src/mainwindow.py:310
 msgid "Loading image and text ..."
 msgstr "Chargement de l'image et de son texte ..."
 
-#: src/mainwindow.py:270
+#: src/mainwindow.py:335
 msgid "Resizing the image ..."
 msgstr "Redimensionnement de l'image"
 
-#: src/mainwindow.py:400
+#: src/mainwindow.py:461
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/mainwindow.py:402 src/mainwindow.py:404
+#: src/mainwindow.py:463 src/mainwindow.py:465
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/mainwindow.py:406
+#: src/mainwindow.py:467
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/mainwindow.py:408
+#: src/mainwindow.py:469
 msgid "Updating label ..."
 msgstr "Mise à jour du label ..."
 
-#: src/mainwindow.py:410
+#: src/mainwindow.py:471
 msgid "Loading page ..."
 msgstr "Chargement de la page ..."
 
-#: src/mainwindow.py:425
+#: src/mainwindow.py:486
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:469
+#: src/mainwindow.py:535
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:527
+#: src/mainwindow.py:596
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -79,26 +87,29 @@ msgstr ""
 "Cette opération peut prendre beaucoup de temps\n"
 "Êtes-vous sûr ?"
 
-#: src/scanner.py:59
+#: src/scanner.py:46 src/scanner.py:76
 msgid "Sane module not found"
 msgstr "Module Sane non-trouvé"
 
-#: src/scanner.py:62
-#, fuzzy
+#: src/scanner.py:48
+msgid "No scanner set"
+msgstr "Aucun scanner n'a été selectionné"
+
+#: src/scanner.py:79
 msgid "Tesseract is not available. Can't do OCR"
 msgstr ""
 "Tesseract n'est pas disponible. Impossible de faire la reconnaissance de "
 "texte"
 
-#: src/scanner.py:64
+#: src/scanner.py:81
 msgid "No scanner has been selected"
 msgstr "Aucun scanner n'a été selectionné"
 
-#: src/scanner.py:66
+#: src/scanner.py:83
 msgid "Scan new page"
 msgstr "Scanner une nouvelle page"
 
-#: src/settingswindow.py:133
+#: src/settingswindow.py:178
 msgid " (recommended)"
 msgstr " (recommandé)"
 
@@ -158,44 +169,40 @@ msgstr "Mettre en évidence tout les mots"
 msgid "Labels"
 msgstr "Labels"
 
-#: src/mainwindow.glade.h:9
-msgid "New document"
-msgstr "Nouveau document"
-
 #: src/mainwindow.glade.h:10
+msgid "Open directory"
+msgstr "Ouvrir un répertoire"
+
+#: src/mainwindow.glade.h:11
+msgid "Open the document in a file manager\n"
+msgstr ""
+
+#: src/mainwindow.glade.h:13
 msgid "Pages"
 msgstr "Pages"
 
-#: src/mainwindow.glade.h:11
-msgid "Print"
-msgstr "Imprimer"
-
-#: src/mainwindow.glade.h:12
-msgid "Quit"
-msgstr "Quitter"
-
-#: src/mainwindow.glade.h:13
+#: src/mainwindow.glade.h:16
 msgid "Redo OCR of all documents"
 msgstr "Refaire l'OCR sur tout les documents"
 
-#: src/mainwindow.glade.h:14
+#: src/mainwindow.glade.h:17
 msgid "Redo OCR on the document"
 msgstr "Refaire l'OCR sur le document"
 
-#: src/mainwindow.glade.h:15
+#: src/mainwindow.glade.h:18
 msgid "Reindex all documents"
 msgstr "Reindexer tout les documents"
 
 # Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/mainwindow.glade.h:16 src/settingswindow.glade.h:10
+#: src/mainwindow.glade.h:19 src/settingswindow.glade.h:10
 msgid "Scan"
 msgstr "Scanner une page"
 
-#: src/mainwindow.glade.h:17
+#: src/mainwindow.glade.h:20
 msgid "_File"
 msgstr "_Fichier"
 
-#: src/mainwindow.glade.h:18
+#: src/mainwindow.glade.h:21
 msgid "_Help"
 msgstr "_Aide"
 
@@ -244,3 +251,6 @@ msgid "Work directory"
 msgstr ""
 "Répertoire\n"
 "de travail"
+
+#~ msgid "- '*' will return all the documents"
+#~ msgstr "- '*' renverra tout les documents"

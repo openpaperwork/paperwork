@@ -44,7 +44,7 @@ class DocSearch(object):
 
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
         self.__keywords = []            # array of strings (sorted)
-        self.__docs = []                # array of doc.ScannedDoc (sorted)
+        self.docs = []                # array of doc.ScannedDoc (sorted)
         self.__keywords_to_docs = {}    # keyword (string) -> doc paths
         self.label_list = []
 
@@ -55,7 +55,7 @@ class DocSearch(object):
         Purge the lists of documents and keywords
         """
         self.__keywords = []
-        self.__docs = []
+        self.docs = []
         self.__keywords_to_docs = {}
         self.label_list = []
 
@@ -85,7 +85,7 @@ class DocSearch(object):
         """
         Add the keywords from the document to self.__keywords_to_docs
         """
-        self.__docs.append(doc)
+        self.docs.append(doc)
         for keyword in doc.keywords:
             self.__index_keyword(doc, keyword)
 
@@ -144,7 +144,7 @@ class DocSearch(object):
                 self.__keywords.append(label.name)
         callback(2, 3, self.INDEX_STEP_SORTING)
         self.__keywords.sort()
-        self.__docs.sort()
+        self.docs.sort()
 
     def __index(self, callback=dummy_progress_cb):
         """
@@ -314,8 +314,6 @@ class DocSearch(object):
         Returns:
             An array of ScannedDoc
         """
-        if keyword == "*":
-            return self.__docs[:]
         try:
             return self.__keywords_to_docs[keyword][:]
         except KeyError:
@@ -331,6 +329,10 @@ class DocSearch(object):
         Returns:
             An array of document id (strings)
         """
+
+        if sentence.strip() == "":
+            return self.docs[:]
+
         positive_keywords = []
         negative_keywords = []
 
@@ -438,8 +440,8 @@ class DocSearch(object):
             self.label_list.append(new_label)
         self.label_list.sort()
         current = 0
-        total = len(self.__docs)
-        for doc in self.__docs:
+        total = len(self.docs)
+        for doc in self.docs:
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
             doc.update_label(old_label, new_label)
             current += 1
@@ -450,8 +452,8 @@ class DocSearch(object):
         """
         self.label_list.remove(label)
         current = 0
-        total = len(self.__docs)
-        for doc in self.__docs:
+        total = len(self.docs)
+        for doc in self.docs:
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
             doc.remove_label(label)
             current += 1

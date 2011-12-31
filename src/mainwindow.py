@@ -86,9 +86,8 @@ class MainWindow:
 
         tooltips.set_tip(self.__search_field,
                         (_('Search documents\n')
-                         + _('- \'!\' can be used as a prefix to')
-                         + _(' negate a keyword\n')
-                         + _('- \'*\' will return all the documents')))
+                         + _('\'!\' can be used as a prefix to')
+                         + _(' negate a keyword')))
 
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
@@ -128,6 +127,7 @@ class MainWindow:
             self.__widget_tree.get_object("menubarMainWin").set_sensitive(False)
             self.__widget_tree.get_object("toolbarMainWin").set_sensitive(False)
             self.reindex()
+            self.__show_doc_list(reversed(self.__docsearch.docs))
         finally:
             self.__widget_tree.get_object("menubarMainWin").set_sensitive(True)
             self.__widget_tree.get_object("toolbarMainWin").set_sensitive(True)
@@ -211,6 +211,16 @@ class MainWindow:
             self.__set_progress(0.0, "")
             self.__show_normal_cursor()
 
+    def __show_doc_list(self, docs):
+        self.__match_list.clear()
+        for doc in docs:
+            labels = doc.labels
+            final_str = doc.name
+            if len(labels) > 0:
+                final_str += ("\n  "
+                        + "\n  ".join([x.get_html() for x in labels]))
+            self.__match_list.append([final_str, doc])
+
     def __update_results_cb(self, objsrc=None):
         """
         Update the suggestions list and the matching documents list based on
@@ -229,14 +239,7 @@ class MainWindow:
 
         documents = self.__docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
-        self.__match_list.clear()
-        for doc in reversed(documents):
-            labels = doc.labels
-            final_str = doc.name
-            if len(labels) > 0:
-                final_str += ("\n  "
-                        + "\n  ".join([x.get_html() for x in labels]))
-            self.__match_list.append([final_str, doc])
+        self.__show_doc_list(reversed(documents))
 
     def __show_selected_doc_cb(self, objsrc=None):
         """

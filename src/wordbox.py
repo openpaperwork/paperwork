@@ -91,7 +91,7 @@ def __get_char_boxes(word, char_boxes):
         end_char = start_char
         l_idx = 0
         for l_idx in range(0, len(word)):
-            if end_char == None or end_char.tesseract_box.char != word[l_idx]:
+            if end_char == None or end_char.tesseract_box.content != word[l_idx]:
                 full_match = False
                 break
             if end_char.end_of_word and l_idx < (len(word) - 1):

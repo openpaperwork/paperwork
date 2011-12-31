@@ -94,7 +94,7 @@ class ScannedPage(object):
 
     text = property(__get_text)
 
-    def get_boxes(self, callback=dummy_progress_cb):
+    def __get_boxes(self):
         """
         Get all the word boxes of this page. Note that this process may take
         some time (usually 1 to 3 seconds). This is why this is not a property,
@@ -112,6 +112,8 @@ class ScannedPage(object):
         except IOError, exc:
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
             return []
+
+    boxes = property(__get_boxes)
 
     def __get_img(self):
         """
@@ -158,7 +160,7 @@ class ScannedPage(object):
             keywords = None
 
         for box in boxes:
-            words = split_words(unicode(box.content))
+            words = split_words(box.content)
             box.content = " ".join(words)
 
         draw = ImageDraw.Draw(img)

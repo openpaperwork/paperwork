@@ -216,6 +216,8 @@ class MainWindow:
         Update the suggestions list and the matching documents list based on
         the keywords typed by the user in the search field.
         """
+        if self.__docsearch == None:
+            return
         sentence = self.__get_sentence()
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
 
@@ -315,8 +317,7 @@ class MainWindow:
             # Finding word boxes can be pretty slow, so we keep in memory the
             # last image and try to reuse it:
             if self.__page_cache == None or self.__page_cache[0] != page:
-                self.__page_cache = (page, page.img,
-                                     page.get_boxes(progress_callback))
+                self.__page_cache = (page, page.img, page.boxes)
             img = self.__page_cache[1].copy()
             boxes = self.__page_cache[2]
 

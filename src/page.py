@@ -128,8 +128,8 @@ class ScannedPage(object):
         """
         for i in range(2, width + 2):
             ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
-            draw.rectangle(((pt_a_x - i, pt_a_y + i),
-                            (pt_b_x + i, pt_b_y - i)),
+            draw.rectangle(((pt_a_x - i, pt_a_y - i),
+                            (pt_b_x + i, pt_b_y + i)),
                            outline=color)
 
     @staticmethod

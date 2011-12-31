@@ -161,7 +161,7 @@ class ScannedPage(object):
 
         for box in boxes:
             words = split_words(box.content)
-            box.content = " ".join(words)
+            box.content = u" ".join(words)
 
         draw = ImageDraw.Draw(img)
         for box in boxes:

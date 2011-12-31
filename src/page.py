@@ -16,7 +16,6 @@ import tesseract
 from util import dummy_progress_cb
 from util import MIN_KEYWORD_LEN
 from util import split_words
-from wordbox import get_word_boxes
 
 
 class ScannedPage(object):
@@ -25,7 +24,7 @@ class ScannedPage(object):
     """
     FILE_PREFIX = "paper."
     EXT_TXT = "txt"
-    EXT_BOX = "box"
+    EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
 
@@ -104,13 +103,12 @@ class ScannedPage(object):
         boxfile = self.__box_path
         txt = self.text
 
-        box_builder = tesseract.CharBoxBuilder()
+        box_builder = tesseract.WordBoxBuilder()
 
         try:
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
-                char_boxes = box_builder.read_file(file_desc)
-            word_boxes = get_word_boxes(txt, char_boxes, callback)
-            return word_boxes
+                boxes = box_builder.read_file(file_desc)
+            return boxes
         except IOError, exc:
             print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
             return []
@@ -130,8 +128,6 @@ class ScannedPage(object):
         """
         for i in range(2, width + 2):
             ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
-            pt_a_y = img_size[1] - pt_a_y
-            pt_b_y = img_size[1] - pt_b_y
             draw.rectangle(((pt_a_x - i, pt_a_y + i),
                             (pt_b_x + i, pt_b_y - i)),
                            outline=color)
@@ -160,12 +156,17 @@ class ScannedPage(object):
                 keywords.append(word)
         else:
             keywords = None
+
+        for box in boxes:
+            words = split_words(unicode(box.content))
+            box.content = " ".join(words)
+
         draw = ImageDraw.Draw(img)
         for box in boxes:
             draw_box = (keywords == None)
             if not draw_box and keywords != None:
                 for keyword in keywords:
-                    if keyword in box.word:
+                    if keyword in box.content:
                         draw_box = True
                         break
             if draw_box:
@@ -275,7 +276,7 @@ class ScannedPage(object):
         callback(i, len(files) + 1, self.SCAN_STEP_OCR)
         boxes = tesseract.image_to_string(Image.open(scores[0][1]),
                                           lang=ocrlang,
-                                          builder=tesseract.CharBoxBuilder())
+                                          builder=tesseract.WordBoxBuilder())
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)
@@ -304,7 +305,7 @@ class ScannedPage(object):
 
         # Save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.CharBoxBuilder().write_file(file_desc, boxes)
+            tesseract.WordBoxBuilder().write_file(file_desc, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -399,7 +400,7 @@ class ScannedPage(object):
             file_desc.write(txt)
         # save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.CharBoxBuilder.write_file(file_desc, boxes)
+            tesseract.WordBoxBuilder.write_file(file_desc, boxes)
 
     def ch_number(self, offset):
         """

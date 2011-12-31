@@ -104,7 +104,7 @@ class ScannedPage(object):
         boxfile = self.__box_path
         txt = self.text
 
-        box_builder = tesseract.BoxBuilder()
+        box_builder = tesseract.CharBoxBuilder()
 
         try:
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
@@ -275,7 +275,7 @@ class ScannedPage(object):
         callback(i, len(files) + 1, self.SCAN_STEP_OCR)
         boxes = tesseract.image_to_string(Image.open(scores[0][1]),
                                           lang=ocrlang,
-                                          builder=tesseract.BoxBuilder())
+                                          builder=tesseract.CharBoxBuilder())
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)
@@ -304,7 +304,7 @@ class ScannedPage(object):
 
         # Save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.BoxBuilder().write_file(file_desc, boxes)
+            tesseract.CharBoxBuilder().write_file(file_desc, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -399,7 +399,7 @@ class ScannedPage(object):
             file_desc.write(txt)
         # save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.BoxBuilder.write_file(file_desc, boxes)
+            tesseract.CharBoxBuilder.write_file(file_desc, boxes)
 
     def ch_number(self, offset):
         """

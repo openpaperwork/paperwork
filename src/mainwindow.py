@@ -293,11 +293,19 @@ class MainWindow:
         """
         try:
             os.stat(self.__config.workdir)
-        except OSError, exc:
-            print ("Unable to stat dir '%s': %s --> opening dialog settings"
-                   % (self.__config.workdir, exc))
-            self.__show_settings()
             return
+        except OSError, exc:
+            print ("Unable to stat dir '%s': %s --> mkdir"
+                   % (self.__config.workdir, exc))
+
+        try:
+            os.mkdir(self.__config.workdir, 0755)
+            return
+        except OSError, exc:
+            print ("Unable to mkdir '%s': %s --> opening settings window"
+                  % (self.__config.workdir, exc))
+        self.__show_settings()
+        return
 
     def __get_sentence(self):
         """

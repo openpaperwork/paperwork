@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-12-31 23:37+0100\n"
+"POT-Creation-Date: 2012-01-01 18:58+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,68 +18,68 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/mainwindow.py:88
+#: src/mainwindow.py:62
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/mainwindow.py:89
+#: src/mainwindow.py:63
 msgid "'!' can be used as a prefix to"
 msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/mainwindow.py:90
+#: src/mainwindow.py:64
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/mainwindow.py:105 src/mainwindow.glade.h:9
-msgid "New document"
-msgstr "Nouveau document"
-
-#: src/mainwindow.py:107 src/mainwindow.glade.h:15
-msgid "Quit"
-msgstr "Quitter"
-
-#: src/mainwindow.py:110 src/mainwindow.glade.h:14
-msgid "Print"
-msgstr "Imprimer"
-
-#: src/mainwindow.py:310
-msgid "Loading image and text ..."
-msgstr "Chargement de l'image et de son texte ..."
-
-#: src/mainwindow.py:335
-msgid "Resizing the image ..."
-msgstr "Redimensionnement de l'image"
-
-#: src/mainwindow.py:461
-msgid "Scanning ..."
-msgstr "Scan ..."
-
-#: src/mainwindow.py:463 src/mainwindow.py:465
-msgid "Reading ..."
-msgstr "Lecture ..."
-
-#: src/mainwindow.py:467
-msgid "Sorting ..."
-msgstr "Tri ..."
-
-#: src/mainwindow.py:469
-msgid "Updating label ..."
-msgstr "Mise à jour du label ..."
-
-#: src/mainwindow.py:471
-msgid "Loading page ..."
-msgstr "Chargement de la page ..."
-
-#: src/mainwindow.py:486
+#: src/mainwindow.py:214
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:535
+#: src/mainwindow.py:436
+msgid "Loading image and text ..."
+msgstr "Chargement de l'image et de son texte ..."
+
+#: src/mainwindow.py:458
+msgid "Resizing the image ..."
+msgstr "Redimensionnement de l'image"
+
+#: src/mainwindow.py:557 src/mainwindow.glade.h:9
+msgid "New document"
+msgstr "Nouveau document"
+
+#: src/mainwindow.py:559 src/mainwindow.glade.h:15
+msgid "Quit"
+msgstr "Quitter"
+
+#: src/mainwindow.py:562 src/mainwindow.glade.h:14
+msgid "Print"
+msgstr "Imprimer"
+
+#: src/mainwindow.py:742
+msgid "Scanning ..."
+msgstr "Scan ..."
+
+#: src/mainwindow.py:744 src/mainwindow.py:746
+msgid "Reading ..."
+msgstr "Lecture ..."
+
+#: src/mainwindow.py:748
+msgid "Sorting ..."
+msgstr "Tri ..."
+
+#: src/mainwindow.py:750
+msgid "Updating label ..."
+msgstr "Mise à jour du label ..."
+
+#: src/mainwindow.py:752
+msgid "Removing label ..."
+msgstr "Suppression du label ..."
+
+#: src/mainwindow.py:796
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:596
+#: src/mainwindow.py:890
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -251,6 +251,9 @@ msgid "Work directory"
 msgstr ""
 "Répertoire\n"
 "de travail"
+
+#~ msgid "Loading page ..."
+#~ msgstr "Chargement de la page ..."
 
 #~ msgid "- '*' will return all the documents"
 #~ msgstr "- '*' renverra tout les documents"

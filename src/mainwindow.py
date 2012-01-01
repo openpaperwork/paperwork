@@ -764,7 +764,7 @@ class MainWindow(object):
         """
         self.__check_workdir()
 
-        self.tabs.show_tabs(self.tabs.TAB_PAGES)
+        self.tabs.show_tab(self.tabs.TAB_PAGES)
 
         self.show_busy_cursor()
         try:

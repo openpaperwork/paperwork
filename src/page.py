@@ -4,7 +4,6 @@ Code relative to page handling.
 
 import codecs
 import Image
-import ImageDraw
 import os
 import os.path
 import re
@@ -14,7 +13,6 @@ import PIL
 
 import tesseract
 from util import dummy_progress_cb
-from util import MIN_KEYWORD_LEN
 from util import split_words
 
 
@@ -122,58 +120,6 @@ class ScannedPage(object):
         return Image.open(self.__img_path)
 
     img = property(__get_img)
-
-    @staticmethod
-    def __draw_box(draw, img_size, box, width, color):
-        """
-        Draw a single box. See draw_boxes()
-        """
-        for i in range(2, width + 2):
-            ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
-            draw.rectangle(((pt_a_x - i, pt_a_y - i),
-                            (pt_b_x + i, pt_b_y + i)),
-                           outline=color)
-
-    @staticmethod
-    def draw_boxes(img, boxes, color, width, sentence=None):
-        """
-        Draw the boxes on the image
-
-        Arguments:
-            img --- the image
-            boxes --- see ScannedPage.boxes
-            color --- a tuple of 3 integers (each of them being 0 < X < 256)
-             indicating the color to use to draw the boxes
-            width --- Width of the line of the boxes
-            keywords --- only draw the boxes for these keywords (None == all
-                the boxes)
-        """
-        if sentence != None:
-            if len(sentence) < MIN_KEYWORD_LEN:
-                return
-            words = split_words(sentence)
-            # unfold the generator
-            keywords = []
-            for word in words:
-                keywords.append(word)
-        else:
-            keywords = None
-
-        for box in boxes:
-            words = split_words(box.content)
-            box.content = u" ".join(words)
-
-        draw = ImageDraw.Draw(img)
-        for box in boxes:
-            draw_box = (keywords == None)
-            if not draw_box and keywords != None:
-                for keyword in keywords:
-                    if keyword in box.content:
-                        draw_box = True
-                        break
-            if draw_box:
-                ScannedPage.__draw_box(draw, img.size, box, width, color)
-        return img
 
     def __scan(self, device, scanner_calibration, callback=dummy_progress_cb):
         """

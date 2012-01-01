@@ -3,6 +3,7 @@ Code relative to the main window management.
 """
 
 from copy import copy
+import ImageDraw
 import os
 import time
 
@@ -19,6 +20,8 @@ from labels import LabelEditor
 from util import gtk_refresh
 from util import image2pixbuf
 from util import load_uifile
+from util import MIN_KEYWORD_LEN
+from util import split_words
 import wordbox
 
 _ = gettext.gettext
@@ -302,6 +305,58 @@ class MainWindow:
         """
         return unicode(self.__search_field.get_text())
 
+    @staticmethod
+    def __draw_box(draw, img_size, box, width, color):
+        """
+        Draw a single box. See draw_boxes()
+        """
+        for i in range(2, width + 2):
+            ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
+            draw.rectangle(((pt_a_x - i, pt_a_y - i),
+                            (pt_b_x + i, pt_b_y + i)),
+                           outline=color)
+
+    @staticmethod
+    def draw_boxes(img, boxes, color, width, sentence=None):
+        """
+        Draw the boxes on the image
+
+        Arguments:
+            img --- the image
+            boxes --- see ScannedPage.boxes
+            color --- a tuple of 3 integers (each of them being 0 < X < 256)
+             indicating the color to use to draw the boxes
+            width --- Width of the line of the boxes
+            keywords --- only draw the boxes for these keywords (None == all
+                the boxes)
+        """
+        if sentence != None:
+            if len(sentence) < MIN_KEYWORD_LEN:
+                return
+            words = split_words(sentence)
+            # unfold the generator
+            keywords = []
+            for word in words:
+                keywords.append(word)
+        else:
+            keywords = None
+
+        for box in boxes:
+            words = split_words(box.content)
+            box.content = u" ".join(words)
+
+        draw = ImageDraw.Draw(img)
+        for box in boxes:
+            draw_box = (keywords == None)
+            if not draw_box and keywords != None:
+                for keyword in keywords:
+                    if keyword in box.content:
+                        draw_box = True
+                        break
+            if draw_box:
+                MainWindow.__draw_box(draw, img.size, box, width, color)
+        return img
+
     def __show_page_img(self, page):
         """
         Show the page image
@@ -325,8 +380,8 @@ class MainWindow:
             boxes = self.__page_cache[2]
 
             if self.__show_all_boxes.get_active():
-                page.draw_boxes(img, boxes, color=(0x6c, 0x5d, 0xd1), width=1)
-            page.draw_boxes(img, boxes, color=(0x00, 0x9f, 0x00), width=5,
+                self.draw_boxes(img, boxes, color=(0x6c, 0x5d, 0xd1), width=1)
+            self.draw_boxes(img, boxes, color=(0x00, 0x9f, 0x00), width=5,
                             sentence=self.__get_sentence())
 
             pixbuf = image2pixbuf(img)

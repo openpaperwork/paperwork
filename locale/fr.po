@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-01 18:58+0100\n"
+"POT-Creation-Date: 2012-01-02 21:13+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -35,51 +35,51 @@ msgstr " rejeter un mot clef"
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:436
+#: src/mainwindow.py:446
 msgid "Loading image and text ..."
 msgstr "Chargement de l'image et de son texte ..."
 
-#: src/mainwindow.py:458
+#: src/mainwindow.py:468
 msgid "Resizing the image ..."
 msgstr "Redimensionnement de l'image"
 
-#: src/mainwindow.py:557 src/mainwindow.glade.h:9
+#: src/mainwindow.py:567 src/mainwindow.glade.h:9
 msgid "New document"
 msgstr "Nouveau document"
 
-#: src/mainwindow.py:559 src/mainwindow.glade.h:15
+#: src/mainwindow.py:569 src/mainwindow.glade.h:15
 msgid "Quit"
 msgstr "Quitter"
 
-#: src/mainwindow.py:562 src/mainwindow.glade.h:14
+#: src/mainwindow.py:572 src/mainwindow.glade.h:14
 msgid "Print"
 msgstr "Imprimer"
 
-#: src/mainwindow.py:742
+#: src/mainwindow.py:752
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/mainwindow.py:744 src/mainwindow.py:746
+#: src/mainwindow.py:754 src/mainwindow.py:756
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/mainwindow.py:748
+#: src/mainwindow.py:758
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/mainwindow.py:750
+#: src/mainwindow.py:760
 msgid "Updating label ..."
 msgstr "Mise à jour du label ..."
 
-#: src/mainwindow.py:752
+#: src/mainwindow.py:762
 msgid "Removing label ..."
 msgstr "Suppression du label ..."
 
-#: src/mainwindow.py:796
+#: src/mainwindow.py:809
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:890
+#: src/mainwindow.py:903
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -105,7 +105,7 @@ msgstr ""
 msgid "No scanner has been selected"
 msgstr "Aucun scanner n'a été selectionné"
 
-#: src/scanner.py:83
+#: src/scanner.py:83 src/mainwindow.glade.h:20
 msgid "Scan new page"
 msgstr "Scanner une nouvelle page"
 
@@ -198,11 +198,11 @@ msgstr "Reindexer tout les documents"
 msgid "Scan"
 msgstr "Scanner une page"
 
-#: src/mainwindow.glade.h:20
+#: src/mainwindow.glade.h:21
 msgid "_File"
 msgstr "_Fichier"
 
-#: src/mainwindow.glade.h:21
+#: src/mainwindow.glade.h:22
 msgid "_Help"
 msgstr "_Aide"
 

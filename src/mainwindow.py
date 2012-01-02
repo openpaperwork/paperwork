@@ -301,12 +301,22 @@ class Tabs(object):
     def show_tab(self, tab):
         self.__selectors.set_current_page(tab)
 
+    def __new_document_cb(self, widget=None):
+        self.__main_win.new_document()
+
+    def __scan_page_cb(self, widget=None):
+        self.__main_win.scan_next_page()
+
     def __connect_signals(self):
         """
         Connect all the signals in the tabs area
         """
+        self.__widget_tree.get_object("buttonNewDoc").connect("clicked",
+                self.__new_document_cb)
         self.__widget_tree.get_object("buttonDestroyDoc").connect("clicked",
                 self.__destroy_current_doc_cb)
+        self.__widget_tree.get_object("buttonScanPage").connect("clicked",
+                self.__scan_page_cb)
         self.__widget_tree.get_object("buttonDestroyPage").connect("clicked",
                 self.__destroy_current_page_cb)
         self.__widget_tree.get_object("entrySearch").connect("icon-press",
@@ -758,7 +768,7 @@ class MainWindow(object):
         self.set_progress(float(progression) / total, txt)
         gtk_refresh()
 
-    def __scan_next_page_cb(self, objsrc=None):
+    def scan_next_page(self):
         """
         Scan a new page and append it to the current document
         """
@@ -780,6 +790,9 @@ class MainWindow(object):
         finally:
             self.set_progress(0.0, "")
             self.show_normal_cursor()
+
+    def __scan_next_page_cb(self, objsrc=None):
+        self.scan_next_page()
 
     def __ask_confirmation(self):
         """

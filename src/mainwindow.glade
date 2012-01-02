@@ -82,11 +82,10 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemScan">
-                        <property name="label">Scan</property>
+                        <property name="label" translatable="yes">Scan new page</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="image">imageScan</property>
                         <property name="use_stock">False</property>
                         <property name="always_show_image">True</property>
                       </object>

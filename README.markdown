@@ -90,18 +90,15 @@ Dependencies
 * python-tesseract
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
-		* Download [python-tesseract](https://github.com/jflesch/python-tesseract/zipball/master)
-		* unzip jflesch-python-tesseract-\*.zip
-		* cd jflesch-python-tesseract-\*
+		* git clone git://github.com/jflesch/python-tesseract.git
+		* cd python-tesseract
 		* sudo python ./setup.py install
 
 Installation
 ------------
 
-Download [Paperwork](https://github.com/jflesch/paperwork/zipball/master)
-
-	$ unzip jflesch-paperwork-*.zip
-	$ cd jflesch-paperwork-*
+	$ git clone git://github.com/jflesch/paperwork.git
+	$ cd paperwork
 	$ sudo ./setup.py install
 	$ paperwork
 

@@ -171,7 +171,7 @@ msgstr "Labels"
 
 #: src/mainwindow.glade.h:10
 msgid "Open directory"
-msgstr "Ouvrir un répertoire"
+msgstr "Ouvrir le répertoire"
 
 #: src/mainwindow.glade.h:11
 msgid "Open the document in a file manager\n"

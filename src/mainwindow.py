@@ -612,8 +612,12 @@ class MainWindow(object):
                 .set_sensitive(self.__device.state[0])
         self.__widget_tree.get_object("toolbuttonScan") \
                 .set_sensitive(self.__device.state[0])
+        self.__widget_tree.get_object("buttonScanPage") \
+                .set_sensitive(self.__device.state[0])
         tooltips = gtk.Tooltips()
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
+                         self.__device.state[1])
+        tooltips.set_tip(self.__widget_tree.get_object("buttonScanPage"),
                          self.__device.state[1])
 
     def set_progress(self, progress, text):

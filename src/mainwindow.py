@@ -157,23 +157,9 @@ class Tabs(object):
 
     def __update_results_cb(self, objsrc=None):
         """
-        Update the suggestions list and the matching documents list based on
-        the keywords typed by the user in the search field.
+        Called when the user change the content of the search field
         """
-        if self.__main_win.docsearch == None:
-            return
-        sentence = self.get_search_sentence()
-        print "Search: %s" % (sentence.encode('ascii', 'replace'))
-
-        suggestions = self.__main_win.docsearch.find_suggestions(sentence)
-        print "Got %d suggestions" % len(suggestions)
-        self.__liststore_suggestion.clear()
-        for suggestion in suggestions:
-            self.__liststore_suggestion.append([suggestion])
-
-        documents = self.__main_win.docsearch.find_documents(sentence)
-        print "Got %d documents" % len(documents)
-        self.show_doc_list(reversed(documents))
+        self.refresh_doc_list()
 
     def __destroy_current_doc_cb(self, objsrc=None):
         """
@@ -212,6 +198,26 @@ class Tabs(object):
         self.__page_list.clear()
         for page in range(1, self.__main_win.doc.nb_pages + 1):
             self.__page_list.append([_('Page %d') % (page)])
+
+    def refresh_doc_list(self):
+        """
+        Update the suggestions list and the matching documents list based on
+        the keywords typed by the user in the search field.
+        """
+        if self.__main_win.docsearch == None:
+            return
+        sentence = self.get_search_sentence()
+        print "Search: %s" % (sentence.encode('ascii', 'replace'))
+
+        suggestions = self.__main_win.docsearch.find_suggestions(sentence)
+        print "Got %d suggestions" % len(suggestions)
+        self.__liststore_suggestion.clear()
+        for suggestion in suggestions:
+            self.__liststore_suggestion.append([suggestion])
+
+        documents = self.__main_win.docsearch.find_documents(sentence)
+        print "Got %d documents" % len(documents)
+        self.show_doc_list(reversed(documents))
 
     def __add_label_cb(self, objsrc=None):
         """
@@ -790,6 +796,9 @@ class MainWindow(object):
             self.docsearch.index_page(page)
             self.tabs.refresh_page_list()
             self.page = page
+            # in case a document was freshly created, we have to update the
+            # document list as well
+            self.tabs.refresh_doc_list()
             self.__reset_page_vpaned()
         finally:
             self.set_progress(0.0, "")

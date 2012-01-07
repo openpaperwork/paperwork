@@ -165,6 +165,9 @@ class DocSearch(object):
         Arguments:
             page --- from which keywords must be extracted
         """
+        if not page.doc in self.docs:
+            self.docs.append(page.doc)
+            self.docs.sort()
         self.__index_page(page)
         # remake these two:
         self.__extract_keywords(dummy_progress_cb)

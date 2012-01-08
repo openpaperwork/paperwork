@@ -10,18 +10,18 @@ import time
 import gettext
 import gtk
 
-from aboutdialog import AboutDialog
-from doc import ScannedDoc
-from page import ScannedPage
-from docsearch import DocSearch
-from scanner import PaperworkScanner
-from settingswindow import SettingsWindow
-from labels import LabelEditor
-from util import gtk_refresh
-from util import image2pixbuf
-from util import load_uifile
-from util import MIN_KEYWORD_LEN
-from util import split_words
+from paperwork.controller.aboutdialog import AboutDialog
+from paperwork.model.doc import ScannedDoc
+from paperwork.model.page import ScannedPage
+from paperwork.model.docsearch import DocSearch
+from paperwork.model.scanner import PaperworkScanner
+from paperwork.controller.settingswindow import SettingsWindow
+from paperwork.model.labels import LabelEditor
+from paperwork.util import gtk_refresh
+from paperwork.util import image2pixbuf
+from paperwork.util import load_uifile
+from paperwork.util import MIN_KEYWORD_LEN
+from paperwork.util import split_words
 
 _ = gettext.gettext
 

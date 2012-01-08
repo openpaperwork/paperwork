@@ -4,7 +4,7 @@ Code to manage document labels
 
 import gtk
 
-from util import load_uifile
+from paperwork.util import load_uifile
 
 
 class Label(object):

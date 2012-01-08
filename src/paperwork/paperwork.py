@@ -13,8 +13,8 @@ import gtk.glade
 import locale
 import pygtk
 
-from config import PaperworkConfig
-from mainwindow import MainWindow
+from model.config import PaperworkConfig
+from controller.mainwindow import MainWindow
 
 pygtk.require("2.0")
 

@@ -3,7 +3,7 @@ Contains the code relative to the about dialog (the one you get when you click
 on Help->About)
 """
 
-from util import load_uifile
+from paperwork.util import load_uifile
 
 
 class AboutDialog(object):

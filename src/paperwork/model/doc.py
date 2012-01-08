@@ -8,9 +8,9 @@ import os
 import os.path
 import time
 
-from page import ScannedPage
-from labels import Label
-from util import dummy_progress_cb
+from paperwork.model.page import ScannedPage
+from paperwork.model.labels import Label
+from paperwork.util import dummy_progress_cb
 
 
 class ScannedPageListIterator(object):

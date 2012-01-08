@@ -11,10 +11,10 @@ import gettext
 import pycountry
 import tesseract
 
-from scanner import PaperworkScanner
-from util import gtk_refresh
-from util import image2pixbuf
-from util import load_uifile
+from paperwork.model.scanner import PaperworkScanner
+from paperwork.util import gtk_refresh
+from paperwork.util import image2pixbuf
+from paperwork.util import load_uifile
 
 _ = gettext.gettext
 

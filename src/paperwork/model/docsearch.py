@@ -6,10 +6,10 @@ import os
 import os.path
 import time
 import threading
-from doc import ScannedDoc
-from util import dummy_progress_cb
-from util import MIN_KEYWORD_LEN
-from util import split_words
+from paperwork.model.doc import ScannedDoc
+from paperwork.util import dummy_progress_cb
+from paperwork.util import MIN_KEYWORD_LEN
+from paperwork.util import split_words
 
 
 class DocSearch(object):

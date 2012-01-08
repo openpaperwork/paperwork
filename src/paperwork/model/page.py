@@ -12,8 +12,8 @@ import gtk
 import PIL
 
 import tesseract
-from util import dummy_progress_cb
-from util import split_words
+from paperwork.util import dummy_progress_cb
+from paperwork.util import split_words
 
 
 class ScannedPage(object):

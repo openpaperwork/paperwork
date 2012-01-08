@@ -4,7 +4,7 @@ Paperwork configuration management code
 
 import ConfigParser
 import os
-from scanner import PaperworkScanner
+from paperwork.model.scanner import PaperworkScanner
 
 
 class PaperworkConfig(object):

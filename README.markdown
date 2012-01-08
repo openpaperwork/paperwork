@@ -8,10 +8,11 @@ Paperwork is a tool to make papers searchable.
 
 Papers are organized into documents. Each document contains pages.
 
-It uses mainly 2 other pieces of software:
+It uses mainly 3 other pieces of software:
 
 * Sane: To scan the pages
-* Tesseract: To extract the words from the pages
+* Tesseract: To extract the words from the pages (OCR)
+* GTK/Glade: For the user interface
 
 Page orientation is automatically guessed using Tesseract.
 

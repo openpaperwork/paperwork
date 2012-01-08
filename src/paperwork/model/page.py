@@ -10,8 +10,8 @@ import re
 
 import gtk
 import PIL
-
 import tesseract
+
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
 

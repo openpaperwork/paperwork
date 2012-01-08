@@ -11,12 +11,12 @@ import gettext
 import gtk
 
 from paperwork.controller.aboutdialog import AboutDialog
-from paperwork.model.doc import ScannedDoc
-from paperwork.model.page import ScannedPage
-from paperwork.model.docsearch import DocSearch
-from paperwork.model.scanner import PaperworkScanner
 from paperwork.controller.settingswindow import SettingsWindow
+from paperwork.model.doc import ScannedDoc
+from paperwork.model.docsearch import DocSearch
 from paperwork.model.labels import LabelEditor
+from paperwork.model.page import ScannedPage
+from paperwork.model.scanner import PaperworkScanner
 from paperwork.util import gtk_refresh
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile

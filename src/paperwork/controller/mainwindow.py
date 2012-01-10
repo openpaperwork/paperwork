@@ -135,6 +135,8 @@ class Tabs(object):
         Find the currently selected page, and display it accordingly
         """
         page = self.__get_selected_page()
+        if self.__main_win.page == page:
+            return
         print "Showing selected page: %s" % (page)
         self.__main_win.page = page
         return True

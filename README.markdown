@@ -61,15 +61,15 @@ GPLv3. See COPYING.
 Dependencies
 ------------
 
-* pygtk v2
+* pygtk v2 (required)
 	* Debian/Ubuntu package: python-gtk2
-* pycountry
+* pycountry (required)
 	* Debian/Ubuntu package: python-pycountry
-* python-imaging
+* python-imaging (required)
 	* Debian/Ubuntu package: python-imaging
-* python-imaging-sane (optional)
+* python-imaging-sane (optional for document searching ; required for scanning)
 	* Debian/Ubuntu package: python-imaging-sane
-* Tesseract v3
+* Tesseract v3 (optional for document searching ; required for scanning)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
 		* sudo apt-get install libjpeg-dev libtiff-dev libleptonica-dev
@@ -81,14 +81,14 @@ Dependencies
 		* make -j4
 		* sudo make install
 		* sudo ldconfig
-* Tesseract v3 trained data:
+* Tesseract v3 trained data (optional for document searching ; required for scanning):
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
 		* Download the [trained data](http://code.google.com/p/tesseract-ocr/downloads/list)
 		  for your language(s)
 		* for file in \*.traineddata.gz; do gunzip $file ; done
 		* sudo cp \*.traineddata /usr/local/share/tessdata
-* python-tesseract
+* python-tesseract (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
 		* git clone git://github.com/jflesch/python-tesseract.git

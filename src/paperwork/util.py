@@ -10,7 +10,7 @@ import unicodedata
 import glib
 import gtk
 
-FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ ()]", re.UNICODE)
+FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 MIN_KEYWORD_LEN = 3
 

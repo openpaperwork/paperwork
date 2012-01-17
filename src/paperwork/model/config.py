@@ -57,7 +57,7 @@ class PaperworkConfig(object):
         """
         Directory in which Paperwork must look for documents.
         Reminder: Documents are directories containing files called
-        'paper.<X>.jpg', 'paper.<X>.txt' and possibly 'paper.<X>.box' ('<X>'
+        'paper.<X>.jpg', 'paper.<X>.txt' and possibly 'paper.<X>.words' ('<X>'
         being the page number).
 
         Returns:
@@ -176,6 +176,29 @@ class PaperworkConfig(object):
 
     scanner_calibration = property(__get_scanner_calibration,
                                    __set_scanner_calibration)
+
+    def __get_scanner_sources(self):
+        """
+        Indicates if the scanner source names
+
+        Array of string
+        """
+        try:
+            str_list = self.__configparser.get("Scanner", "Sources")
+            return str_list.split(",")
+        except ConfigParser.NoOptionError:
+            return []
+
+    def __set_scanner_sources(self, sources):
+        """
+        Indicates if the scanner source names
+
+        Array of string
+        """
+        str_list = ",".join(sources)
+        self.__configparser.set("Scanner", "Sources", str_list)
+
+    scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
 
     def write(self):
         """

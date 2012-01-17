@@ -11,6 +11,7 @@ import gettext
 import gtk
 
 from paperwork.controller.aboutdialog import AboutDialog
+from paperwork.controller.multiscan import MultiscanDialog
 from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.model.doc import ScannedDoc
 from paperwork.model.docsearch import DocSearch
@@ -616,12 +617,23 @@ class MainWindow(object):
         """
         Update buttons states (sensitive or not, tooltips, etc)
         """
-        self.__widget_tree.get_object("menuitemScan") \
-                .set_sensitive(self.__device.state[0])
+        single_page = self.__device.state[0]
+        multiple_pages = (self.__device.state[0] and
+                          (self.__device.SCANNER_SOURCE_ADF
+                           in self.__config.scanner_sources))
+
+        self.__widget_tree.get_object("menuitemScanSingle") \
+                .set_sensitive(single_page)
+        self.__widget_tree.get_object("menuitemScanFeeder") \
+                .set_sensitive(multiple_pages)
+        self.__widget_tree.get_object("imagemenuitemScanSingle") \
+                .set_sensitive(single_page)
+        self.__widget_tree.get_object("imagemenuitemScanFeeder") \
+                .set_sensitive(multiple_pages)
         self.__widget_tree.get_object("toolbuttonScan") \
-                .set_sensitive(self.__device.state[0])
+                .set_sensitive(single_page)
         self.__widget_tree.get_object("buttonScanPage") \
-                .set_sensitive(self.__device.state[0])
+                .set_sensitive(single_page)
         tooltips = gtk.Tooltips()
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
                          self.__device.state[1])
@@ -790,6 +802,7 @@ class MainWindow(object):
 
         self.show_busy_cursor()
         try:
+            self.__device.selected_source = self.__device.SCANNER_SOURCE_FLATBED
             self.doc.scan_next_page(self.__device,
                                     self.__config.ocrlang,
                                     self.__config.scanner_calibration,
@@ -806,8 +819,14 @@ class MainWindow(object):
             self.set_progress(0.0, "")
             self.show_normal_cursor()
 
+    def scan_from_feeder(self):
+        MultiscanDialog(self, self.__config, self.__device)
+
     def __scan_next_page_cb(self, objsrc=None):
         self.scan_next_page()
+
+    def __scan_from_feeder_cb(self, objsrc=None):
+        self.scan_from_feeder()
 
     def __ask_confirmation(self):
         """
@@ -989,10 +1008,16 @@ class MainWindow(object):
                 self.__new_document_cb)
         self.__widget_tree.get_object("toolbuttonQuit").connect("clicked",
                 lambda x: self.__destroy())
-        self.__widget_tree.get_object("menuitemScan").connect("activate",
-                self.__scan_next_page_cb)
         self.__widget_tree.get_object("toolbuttonScan").connect("clicked",
                 self.__scan_next_page_cb)
+        self.__widget_tree.get_object("menuitemScanSingle").connect("activate",
+                self.__scan_next_page_cb)
+        self.__widget_tree.get_object("menuitemScanFeeder").connect("activate",
+                self.__scan_from_feeder_cb)
+        self.__widget_tree.get_object("imagemenuitemScanSingle").connect("activate",
+                self.__scan_next_page_cb)
+        self.__widget_tree.get_object("imagemenuitemScanFeeder").connect("activate",
+                self.__scan_from_feeder_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",
                 self.__print_doc_cb)
         self.__widget_tree.get_object("menuitemPrint").connect("activate",

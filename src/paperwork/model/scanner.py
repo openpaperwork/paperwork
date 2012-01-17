@@ -32,11 +32,16 @@ class PaperworkScanner(object):
     RECOMMENDED_RESOLUTION = 300
     CALIBRATION_RESOLUTION = 200
 
+    SCANNER_SOURCE_AUTO = "Auto"
+    SCANNER_SOURCE_FLATBED = "Flatbed"
+    SCANNER_SOURCE_ADF = "ADF" # automatic document feeder
+
     def __init__(self):
         # selected_device: one value from sane.get_devices()[0]
         # (scanner id)
         self.__selected_device = None
         self.selected_resolution = self.RECOMMENDED_RESOLUTION
+        self.selected_source = "Auto"
 
         # state = (X, Y):
         # X = True/False: True = sane is init and a scanner is selected
@@ -80,7 +85,7 @@ class PaperworkScanner(object):
         elif not selected:
             self.state = (False, _('No scanner has been selected'))
         else:
-            self.state = (True, _('Scan new page'))
+            self.state = (True, _('Scan'))
         self.__selected_device = selected
 
     selected_device = property(__get_selected_device, __set_selected_device)
@@ -104,6 +109,7 @@ class PaperworkScanner(object):
                 for opt in device[1].get_options():
                     if opt[1] == "resolution":  # opt name
                         possible_resolutions = opt[8]  # opt possible values
+                        break
 
                 if type(possible_resolutions) == tuple:
                     start = (possible_resolutions[0]
@@ -121,6 +127,33 @@ class PaperworkScanner(object):
         finally:
             sane.exit()
         return possible_resolutions
+
+    def get_possible_sources(self, devid):
+        """
+        Get the possible scan sources.
+
+        Returns:
+            An array of string. If "Auto" is available, it should be first in
+            the list.
+        """
+        if not HAS_SANE:
+            return []
+
+        possible_sources = []
+        sane.init()
+        try:
+            device = self.__open_scanner(devid)
+
+            try:
+                for opt in device[1].get_options():
+                    if opt[1] == "source":  # opt name
+                        possible_sources = opt[8]  # opt possible values
+                        break
+            finally:
+                self.__close_scanner(device)
+        finally:
+            sane.exit()
+        return possible_sources
 
     def __open_scanner(self, devid=None):
         """
@@ -166,11 +199,15 @@ class PaperworkScanner(object):
         try:
             device[1].resolution = self.selected_resolution
         except AttributeError, exc:
-            print "WARNING: Can't set scanner resolution: " + exc
+            print "WARNING: Can't set scanner resolution: " + str(exc)
+        try:
+            device[1].source = self.selected_source
+        except AttributeError, exc:
+            print "WARNING: Can't set scanner source: " + str(exc)
         try:
             device[1].mode = 'Color'
         except AttributeError, exc:
-            print "WARNING: Can't set scanner mode: " + exc
+            print "WARNING: Can't set scanner mode: " + str(exc)
 
     def scan(self):
         """

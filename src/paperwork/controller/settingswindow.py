@@ -235,6 +235,9 @@ class SettingsWindow(object):
 
         if self.__get_selected_device() != None:
             self.__config.scanner_devid = self.__get_selected_device()
+            self.__config.scanner_sources = \
+                    self.__scanner_mgmt.get_possible_sources( \
+                                self.__get_selected_device())
         if self.__get_selected_resolution() != None:
             self.__config.scanner_resolution = self.__get_selected_resolution()
         if self.__calibration != None:

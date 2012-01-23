@@ -87,8 +87,8 @@ class SettingsWindow(object):
         self.__widget_tree = load_uifile("settingswindow.glade")
 
         self.__settings_win = self.__widget_tree.get_object("windowSettings")
-        self.__settings_win.set_transient_for(mainwindow.main_window)
         assert(self.__settings_win)
+        self.__settings_win.set_transient_for(mainwindow.main_window)
 
         self.__ocrlangs_widget = None
         self.__scanner_device_widget = None

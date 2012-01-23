@@ -262,7 +262,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -302,7 +301,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -317,7 +315,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -332,7 +329,6 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="homogeneous">True</property>
               </packing>
             </child>
           </object>
@@ -350,7 +346,6 @@
               <object class="GtkVBox" id="box1">
                 <property name="width_request">230</property>
                 <property name="visible">True</property>
-                <property name="orientation">vertical</property>
                 <property name="can_focus">False</property>
                 <child>
                   <object class="GtkEntry" id="entrySearch">
@@ -378,8 +373,6 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow1">
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="height_request">30</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -479,8 +472,6 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow3">
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
@@ -579,14 +570,11 @@
                     <child>
                       <object class="GtkVBox" id="vbox2">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow4">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
                             <child>
                               <object class="GtkViewport" id="viewport5">
                                 <property name="visible">True</property>
@@ -734,14 +722,11 @@
               <object class="GtkVPaned" id="vpanedPage">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="orientation">vertical</property>
                 <property name="position_set">True</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow2">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
                     <child>
                       <object class="GtkViewport" id="viewport3">
                         <property name="visible">True</property>
@@ -766,8 +751,6 @@
                   <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
-                    <property name="vscrollbar_policy">automatic</property>
                     <child>
                       <object class="GtkViewport" id="viewport2">
                         <property name="visible">True</property>

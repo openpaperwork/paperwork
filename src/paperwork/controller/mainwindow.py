@@ -265,7 +265,7 @@ class Tabs(object):
         selection_path = self.__label_list_ui.get_selection().get_selected()
         if selection_path[1] == None:
             print "No label selected"
-            return False
+            return True
 
         label = selection_path[0].get_value(selection_path[1], 2)
         action(label)

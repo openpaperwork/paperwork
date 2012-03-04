@@ -1,26 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
-  <object class="GtkListStore" id="liststoreScanList">
-    <columns>
-      <!-- column-name doc_name -->
-      <column type="gchararray"/>
-      <!-- column-name nb_pages -->
-      <column type="gint"/>
-      <!-- column-name scan_progress -->
-      <column type="gint"/>
-      <!-- column-name line_nb -->
-      <column type="gint"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">Document 1</col>
-        <col id="1">1</col>
-        <col id="2">0</col>
-        <col id="3">0</col>
-      </row>
-    </data>
-  </object>
   <object class="GtkDialog" id="dialogMultiscan">
     <property name="width_request">400</property>
     <property name="height_request">300</property>
@@ -235,5 +215,25 @@
       <action-widget response="0">buttonCancel</action-widget>
       <action-widget response="0">buttonOk</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkListStore" id="liststoreScanList">
+    <columns>
+      <!-- column-name doc_name -->
+      <column type="gchararray"/>
+      <!-- column-name nb_pages -->
+      <column type="gint"/>
+      <!-- column-name scan_progress -->
+      <column type="gint"/>
+      <!-- column-name line_nb -->
+      <column type="gint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Document 1</col>
+        <col id="1">1</col>
+        <col id="2">0</col>
+        <col id="3">0</col>
+      </row>
+    </data>
   </object>
 </interface>

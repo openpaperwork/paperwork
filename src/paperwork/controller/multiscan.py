@@ -46,6 +46,7 @@ class MultiscanDialog(object):
         self.__multiscan_dialog.destroy()
 
     def __modify_doc_cb(self, widget=None):
+        # TODO
         pass
 
     def __add_doc_cb(self, widget=None):
@@ -63,9 +64,17 @@ class MultiscanDialog(object):
         return True
 
     def __nb_pages_edited_cb(self, cellrenderer, path, new_text):
-        pass
+        selection_path = self.__scan_list_ui.get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No doc selected"
+            return True
+        line = selection_path[0].get_value(selection_path[1], 3)
+        self.__scan_list[line] = (int(new_text), 0)
+        self.__reload_scan_list()
+        return True
 
     def __scan_all_cb(self, widget=None):
+        # TODO
         pass
 
     def __connect_signals(self):

@@ -23,6 +23,8 @@ class MultiscanDialog(object):
         self.__scan_list_model = \
                 self.__widget_tree.get_object("liststoreScanList")
         self.__scan_list_ui = self.__widget_tree.get_object("treeviewScanList")
+        self.__nb_pages_column = \
+                self.__widget_tree.get_object("treeviewcolumnNbPages")
 
         self.__multiscan_dialog.set_transient_for(mainwindow.main_window)
 
@@ -46,8 +48,13 @@ class MultiscanDialog(object):
         self.__multiscan_dialog.destroy()
 
     def __modify_doc_cb(self, widget=None):
-        # TODO
-        pass
+        selection_path = self.__scan_list_ui.get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No doc selected"
+        line = selection_path[0].get_value(selection_path[1], 3)
+        self.__scan_list_ui.set_cursor(line,
+                                       self.__nb_pages_column,
+                                       start_editing=True)
 
     def __add_doc_cb(self, widget=None):
         self.__scan_list.append((1, 0))
@@ -68,8 +75,18 @@ class MultiscanDialog(object):
         if selection_path[1] == None:
             print "No doc selected"
             return True
+
         line = selection_path[0].get_value(selection_path[1], 3)
-        self.__scan_list[line] = (int(new_text), 0)
+        val = -1
+        try:
+            val = int(new_text)
+        except ValueError, exc:
+            pass
+        if val < 0:
+            print "Invalid value: %s" % (new_text)
+            return False
+
+        self.__scan_list[line] = (val, 0)
         self.__reload_scan_list()
         return True
 

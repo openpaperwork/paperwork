@@ -372,7 +372,9 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkScrolledWindow" id="scrolledwindow1">
+							<object class="GtkScrolledWindow" id="scrolledwindow1">
+							<property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
                             <property name="height_request">30</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -471,7 +473,9 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkScrolledWindow" id="scrolledwindow3">
+							<object class="GtkScrolledWindow" id="scrolledwindow3">
+                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
@@ -573,6 +577,8 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkScrolledWindow" id="scrolledwindow4">
+							<property name="hscrollbar_policy">automatic</property>
+                            <property name="vscrollbar_policy">automatic</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <child>
@@ -725,6 +731,8 @@
                 <property name="position_set">True</property>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindow2">
+					<property name="hscrollbar_policy">automatic</property>
+					<property name="vscrollbar_policy">automatic</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <child>
@@ -749,6 +757,8 @@
                 </child>
                 <child>
                   <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
+					<property name="hscrollbar_policy">automatic</property>
+					<property name="vscrollbar_policy">automatic</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <child>

@@ -121,13 +121,25 @@ class ScannedPage(object):
 
     img = property(__get_img)
 
-    def __scan(self, device, scanner_calibration, callback=dummy_progress_cb):
+    def __scan(self, device, scanner_calibration, callback=dummy_progress_cb,
+               img_generator=None):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
+
+        Arguments:
+            source --- Can be a Sane device or an Image generator
         """
+        callback(0, 100, self.SCAN_STEP_SCAN)
+
+        # TODO(Jflesch): call callback during the scan
+        if img_generator == None:
+            pic = source.scan()
+        else:
+            pic = img_generator.next()
+
         if scanner_calibration != None:
             cropping = (scanner_calibration[0][0]
                         * device.selected_resolution
@@ -141,14 +153,6 @@ class ScannedPage(object):
                         scanner_calibration[1][1]
                         * device.selected_resolution
                         / device.CALIBRATION_RESOLUTION)
-        else:
-            cropping = None
-
-        callback(0, 100, self.SCAN_STEP_SCAN)
-
-        # TODO(Jflesch): call callback during the scan
-        pic = device.scan()
-        if cropping:
             pic = pic.crop(cropping)
 
         outfiles = []
@@ -230,7 +234,7 @@ class ScannedPage(object):
         return (scores[0][1], scores[0][2], boxes)
 
     def scan_page(self, device, ocrlang, scanner_calibration,
-                  callback=dummy_progress_cb):
+                  callback=dummy_progress_cb, img_generator=None):
         """
         Scan the page & do OCR
         """
@@ -239,7 +243,8 @@ class ScannedPage(object):
         boxfile = self.__box_path
 
         callback(0, 100, self.SCAN_STEP_SCAN)
-        outfiles = self.__scan(device, scanner_calibration, callback)
+        outfiles = self.__scan(device, scanner_calibration, callback,
+                               img_generator)
         callback(0, 100, self.SCAN_STEP_OCR)
         (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 

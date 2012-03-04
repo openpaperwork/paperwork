@@ -109,13 +109,13 @@ class ScannedDoc(object):
 
     nb_pages = property(__get_nb_pages)
 
-    def scan_next_page(self, device, ocrlang, scanner_calibration,
-                       callback=dummy_progress_cb):
+    def scan_single_page(self, device, ocrlang, scanner_calibration,
+                         callback=dummy_progress_cb, img_generator=None):
         """
         Scan a new page and append it as the last page of the document
 
         Arguments:
-            device --- Sane device (see sane.open())
+            source --- Sane device (see sane.open())
             ocrlang --- Language to specify to the OCR tool
             callback -- Progression indication callback (see
                 util.dummy_progress_cb for the arguments to expected)
@@ -127,7 +127,8 @@ class ScannedDoc(object):
 
         page_nb = self.nb_pages
         page = ScannedPage(self, page_nb)
-        page.scan_page(device, ocrlang, scanner_calibration, callback)
+        page.scan_page(device, ocrlang, scanner_calibration, callback,
+                       img_generator)
 
     def __get_pages(self):
         """

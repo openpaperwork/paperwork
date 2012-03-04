@@ -3,7 +3,11 @@ Dialog to scan many pages and document at once
 """
 
 import gettext
+import gtk
 
+from paperwork.model.doc import ScannedDoc
+from paperwork.model.page import ScannedPage
+from paperwork.util import gtk_refresh
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
@@ -15,8 +19,11 @@ class MultiscanDialog(object):
         self.__device = device
         self.__widget_tree = load_uifile("multiscan.glade")
 
-        # array of integers (nb_pages)
-        self.__scan_list = [ (1, 0) ]
+        # scan_list: array of integers (nb_pages, progression, current_op)
+        self.__scan_list = [ (1, 0, None) ]
+        self.__running = False
+        # current_scan: (current_doc_idx, current_page, total_pages)
+        self.__current_scan = None
 
         self.__multiscan_dialog = \
                 self.__widget_tree.get_object("dialogMultiscan")
@@ -33,19 +40,26 @@ class MultiscanDialog(object):
         self.__multiscan_dialog.set_visible(True)
 
     def __reload_scan_list(self):
-        i = 0
         self.__scan_list_model.clear()
-        for (nb_pages, progress) in self.__scan_list:
+        for i in range(0, len(self.__scan_list)):
+            (nb_pages, progress, current_op) = self.__scan_list[i]
+            txt = _("Document %d") % (i+1)
+            if (current_op != None):
+                txt += " (%s)" % (current_op)
             self.__scan_list_model.append([
-                _("Document %d") % (i+1),
+                txt,
                 nb_pages,
                 progress,
                 i # line number
             ])
-            i += 1
 
     def __destroy_cb(self, widget=None):
         self.__multiscan_dialog.destroy()
+
+    def __cancel_cb(self, widget=None):
+        self.__running = False
+        if self.__current_scan == None:
+            self.__destroy_cb()
 
     def __modify_doc_cb(self, widget=None):
         selection_path = self.__scan_list_ui.get_selection().get_selected()
@@ -57,7 +71,7 @@ class MultiscanDialog(object):
                                        start_editing=True)
 
     def __add_doc_cb(self, widget=None):
-        self.__scan_list.append((1, 0))
+        self.__scan_list.append((1, 0, None))
         self.__reload_scan_list()
 
     def __remove_doc_cb(self, widget=None):
@@ -80,19 +94,89 @@ class MultiscanDialog(object):
         val = -1
         try:
             val = int(new_text)
-        except ValueError, exc:
+        except ValueError:
             pass
         if val < 0:
             print "Invalid value: %s" % (new_text)
             return False
 
-        self.__scan_list[line] = (val, 0)
+        self.__scan_list[line] = (val, 0, None)
         self.__reload_scan_list()
         return True
 
+    def __show_busy_cursor(self):
+        watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        self.__multiscan_dialog.window.set_cursor(watch)
+        gtk_refresh()
+
+    def __show_normal_cursor(self):
+        self.__multiscan_dialog.window.set_cursor(None)
+
+    def __set_widgets_sensitive(self, sensitive=True):
+        # all but the cancel button
+        self.__widget_tree.get_object("buttonEditDoc").set_sensitive(sensitive)
+        self.__widget_tree.get_object("buttonRemoveDoc").set_sensitive(
+            sensitive)
+        self.__widget_tree.get_object("buttonAddDoc").set_sensitive(sensitive)
+        self.__widget_tree.get_object("buttonOk").set_sensitive(sensitive)
+
+    def __scan_progress_cb(self, progression, total, step=None, doc=None):
+        """
+        Update the scan list to show the progression
+        """
+        (doc_idx, page_idx, total_pages) = self.__current_scan
+
+        page_progress = 100 / total_pages
+        progress = page_idx * page_progress
+        if step == ScannedPage.SCAN_STEP_SCAN:
+            txt = _('Scanning ...')
+        elif step == ScannedPage.SCAN_STEP_OCR:
+            txt = _('Reading ...')
+            progress += page_progress / 2
+        else:
+            txt = None
+
+        self.__scan_list[doc_idx] = (total_pages, progress, txt)
+        self.__reload_scan_list()
+        gtk_refresh()
+
     def __scan_all_cb(self, widget=None):
-        # TODO
-        pass
+        total = 0
+        self.__running = True
+        try:
+            self.__show_busy_cursor()
+            self.__set_widgets_sensitive(False)
+            scan_iter = self.__device.multi_scan()
+            for doc_idx in range(0, len(self.__scan_list)):
+                nb_pages = self.__scan_list[doc_idx][0]
+                doc = ScannedDoc(self.__config.workdir) # new document
+                for page_idx in range(0, nb_pages):
+                    if not self.__running:
+                        raise StopIteration()
+                    self.__current_scan = (doc_idx, page_idx, nb_pages)
+                    doc.scan_single_page(self.__device,
+                                         self.__config.ocrlang,
+                                         self.__config.scanner_calibration,
+                                         callback=self.__scan_progress_cb,
+                                         img_generator=scan_iter)
+                    total += 1
+                self.__scan_list[doc_idx] = (nb_pages, 100, None)
+                self.__reload_scan_list()
+                gtk_refresh()
+        except StopIteration:
+            msg = _("Less pages than expected have been scanned"
+                    " (got %d pages)") % (total)
+            dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                       type=gtk.MESSAGE_WARNING,
+                                       buttons=gtk.BUTTONS_OK,
+                                       message_format=msg)
+            dialog.run()
+            dialog.destroy()
+        finally:
+            self.__set_widgets_sensitive(True)
+            self.__show_normal_cursor()
+        self.__multiscan_dialog.destroy()
+        self.__mainwindow.reindex()
 
     def __connect_signals(self):
         self.__multiscan_dialog.connect("destroy", self.__destroy_cb)
@@ -107,4 +191,4 @@ class MultiscanDialog(object):
         self.__widget_tree.get_object("buttonOk").connect(
                 "clicked", self.__scan_all_cb)
         self.__widget_tree.get_object("buttonCancel").connect(
-                "clicked", self.__destroy_cb)
+                "clicked", self.__cancel_cb)

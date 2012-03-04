@@ -314,7 +314,7 @@ class Tabs(object):
         self.__main_win.new_document()
 
     def __scan_page_cb(self, widget=None):
-        self.__main_win.scan_next_page()
+        self.__main_win.scan_single_page()
 
     def __connect_signals(self):
         """
@@ -792,7 +792,7 @@ class MainWindow(object):
         self.set_progress(float(progression) / total, txt)
         gtk_refresh()
 
-    def scan_next_page(self):
+    def scan_single_page(self):
         """
         Scan a new page and append it to the current document
         """
@@ -803,10 +803,10 @@ class MainWindow(object):
         self.show_busy_cursor()
         try:
             self.__device.selected_source = self.__device.SCANNER_SOURCE_FLATBED
-            self.doc.scan_next_page(self.__device,
-                                    self.__config.ocrlang,
-                                    self.__config.scanner_calibration,
-                                    self.cb_progress)
+            self.doc.scan_single_page(self.__device,
+                                      self.__config.ocrlang,
+                                      self.__config.scanner_calibration,
+                                      self.cb_progress)
             page = self.doc.pages[self.doc.nb_pages - 1]
             self.docsearch.index_page(page)
             self.tabs.refresh_page_list()
@@ -822,8 +822,8 @@ class MainWindow(object):
     def scan_from_feeder(self):
         MultiscanDialog(self, self.__config, self.__device)
 
-    def __scan_next_page_cb(self, objsrc=None):
-        self.scan_next_page()
+    def __scan_single_page_cb(self, objsrc=None):
+        self.scan_single_page()
 
     def __scan_from_feeder_cb(self, objsrc=None):
         self.scan_from_feeder()
@@ -1009,13 +1009,13 @@ class MainWindow(object):
         self.__widget_tree.get_object("toolbuttonQuit").connect("clicked",
                 lambda x: self.__destroy())
         self.__widget_tree.get_object("toolbuttonScan").connect("clicked",
-                self.__scan_next_page_cb)
+                self.__scan_single_page_cb)
         self.__widget_tree.get_object("menuitemScanSingle").connect("activate",
-                self.__scan_next_page_cb)
+                self.__scan_single_page_cb)
         self.__widget_tree.get_object("menuitemScanFeeder").connect("activate",
                 self.__scan_from_feeder_cb)
         self.__widget_tree.get_object("imagemenuitemScanSingle").connect("activate",
-                self.__scan_next_page_cb)
+                self.__scan_single_page_cb)
         self.__widget_tree.get_object("imagemenuitemScanFeeder").connect("activate",
                 self.__scan_from_feeder_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",

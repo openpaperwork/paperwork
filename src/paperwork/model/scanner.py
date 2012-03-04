@@ -41,7 +41,6 @@ class PaperworkScanner(object):
         # (scanner id)
         self.__selected_device = None
         self.selected_resolution = self.RECOMMENDED_RESOLUTION
-        self.selected_source = "Auto"
 
         # state = (X, Y):
         # X = True/False: True = sane is init and a scanner is selected
@@ -172,27 +171,29 @@ class PaperworkScanner(object):
             raise Exception("No scanner selected")
 
         while True:
-            for device in sane.get_devices():
-                if device[0] == devid:
-                    print "Will use device '%s'" % (str(device))
-                    dev_obj = sane.open(device[0])
-                    return (device[0], dev_obj)
-
-            msg = ("No scanner found (is your scanner turned on ?)."
-                   + " Look again ?")
-            dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                       type=gtk.MESSAGE_WARNING,
-                                       buttons=gtk.BUTTONS_YES_NO,
-                                       message_format=msg)
-            response = dialog.run()
-            dialog.destroy()
-            if response == gtk.RESPONSE_NO:
-                raise PaperworkScannerException("No scanner found")
+            try:
+                dev_obj = sane.open(devid)
+                print "Will use device '%s'" % (devid)
+                return (devid, dev_obj)
+            except RuntimeError, exc:
+                # the sane module doesn't return any specific exception :(
+                msg = _("No scanner found (is your scanner turned on ?)."
+                       " Look again ?")
+                # TODO(Jflesch): This should be in the controller/view code
+                dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                           type=gtk.MESSAGE_WARNING,
+                                           buttons=gtk.BUTTONS_YES_NO,
+                                           message_format=msg)
+                response = dialog.run()
+                dialog.destroy()
+                if response == gtk.RESPONSE_NO:
+                    raise PaperworkScannerException("No scanner found")
 
     def __close_scanner(self, device):
         device[1].close()
 
-    def __set_scanner_settings(self, device):
+    def __set_scanner_settings(self, device, batch=False,
+                               source=SCANNER_SOURCE_AUTO):
         """
         Apply the scanner settings to the currently opened device.
         """
@@ -201,13 +202,17 @@ class PaperworkScanner(object):
         except AttributeError, exc:
             print "WARNING: Can't set scanner resolution: " + str(exc)
         try:
-            device[1].source = self.selected_source
+            device[1].source = source
         except AttributeError, exc:
             print "WARNING: Can't set scanner source: " + str(exc)
         try:
             device[1].mode = 'Color'
         except AttributeError, exc:
             print "WARNING: Can't set scanner mode: " + str(exc)
+        try:
+            device[1].batch_scan = batch
+        except AttributeError, exc:
+            print "WARNING: Can't set batch_scan mode: " + str(exc)
 
     def scan(self):
         """
@@ -220,10 +225,32 @@ class PaperworkScanner(object):
         try:
             device = self.__open_scanner()
             try:
-                self.__set_scanner_settings(device)
+                self.__set_scanner_settings(device,
+                                            source=self.SCANNER_SOURCE_AUTO)
                 scan = device[1].scan()
             finally:
                 self.__close_scanner(device)
         finally:
             sane.exit()
         return scan
+
+    def multi_scan(self):
+        """
+        Run multiple scan, and yields each time the corresponding output image
+        """
+        if not HAS_SANE:
+            raise Exception("Sane module not found")
+        scan = None
+        sane.init()
+        try:
+            device = self.__open_scanner()
+            try:
+                self.__set_scanner_settings(device, batch=True,
+                                            source=self.SCANNER_SOURCE_ADF)
+                for scan in device[1].multi_scan():
+                    yield scan
+            finally:
+                self.__close_scanner(device)
+        finally:
+            sane.exit()
+

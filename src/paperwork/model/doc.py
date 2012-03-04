@@ -145,11 +145,11 @@ class ScannedDoc(object):
         print "Destroying doc: %s" % self.path
         for root, dirs, files in os.walk(self.path, topdown=False):
             for filename in files:
-                filepath = os.path.join(self.path, filename)
+                filepath = os.path.join(root, filename)
                 print "Deleting file %s" % filepath
                 os.unlink(filepath)
             for dirname in dirs:
-                dirpath = os.path.join(self.path, dirname)
+                dirpath = os.path.join(root, dirname)
                 print "Deleting dir %s" % dirpath
                 os.rmdir(dirpath)
         os.rmdir(self.path)

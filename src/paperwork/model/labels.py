@@ -12,13 +12,13 @@ class Label(object):
     Represents a Label (color + string).
     """
 
-    def __init__(self, name="", color="#000000000000"):
+    def __init__(self, name=u"", color="#000000000000"):
         """
         Arguments:
             name --- label name
             color --- label color (string representation, see get_color_str())
         """
-        self.name = name
+        self.name = unicode(name)
         self.color = gtk.gdk.color_parse(color)
 
     def __copy__(self):
@@ -112,7 +112,7 @@ class LabelEditor(object):
             response = gtk.RESPONSE_CANCEL
         if (response == gtk.RESPONSE_OK):
             print "Label validated"
-            self.label.name = name_entry.get_text()
+            self.label.name = unicode(name_entry.get_text())
             self.label.color = color_chooser.get_current_color()
         else:
             print "Label editing cancelled"

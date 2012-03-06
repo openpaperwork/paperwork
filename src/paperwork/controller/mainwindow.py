@@ -230,8 +230,10 @@ class Tabs(object):
         if labeleditor.edit(self.__main_win.main_window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
                                                  str(self.__main_win.doc))
-            self.doc.add_label(labeleditor.label)
-            self.docsearch.add_label(labeleditor.label, self.__main_win.doc)
+            self.__main_win.doc.add_label(labeleditor.label)
+            self.__main_win.docsearch.add_label(labeleditor.label,
+                                                self.__main_win.doc)
+            self.__main_win.reindex()
         self.refresh_label_list()
 
     def __label_toggled_cb(self, renderer, objpath):

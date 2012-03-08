@@ -5,7 +5,6 @@ Code relative to the main window management.
 from copy import copy
 import ImageDraw
 import os
-import time
 
 import gettext
 import gtk
@@ -254,7 +253,7 @@ class Tabs(object):
         Called when the user click on 'edit label'
         """
         label = self.__label_list[objpath][2]
-        self.__edit_label(label)
+        self.__main_win.edit_label(label)
 
     def __apply_to_current_label_cb(self, widget, action):
         """
@@ -393,7 +392,7 @@ class ImageArea(object):
         self.__connect_signals()
 
     @staticmethod
-    def __draw_box(draw, img_size, box, width, color):
+    def __draw_box(draw, box, width, color):
         """
         Draw a single box. See draw_boxes()
         """
@@ -441,7 +440,7 @@ class ImageArea(object):
                         draw_box = True
                         break
             if draw_box:
-                ImageArea.__draw_box(draw, img.size, box, width, color)
+                ImageArea.__draw_box(draw, box, width, color)
         return img
 
     def show_page(self, page):
@@ -456,15 +455,6 @@ class ImageArea(object):
         self.__main_win.show_busy_cursor()
         self.__main_win.set_progress(0.0, _('Loading image and text ...'))
         try:
-            if self.__page_scaled:
-                progress_callback = lambda \
-                        progression, total, step = None, doc = None: \
-                        self.__main_win.cb_progress(progression,
-                                                    total + (total / 3),
-                                                    step, doc)
-            else:
-                progress_callback = self.__main_win.cb_progress
-
             img = page.img
             boxes = page.boxes
 
@@ -553,6 +543,7 @@ class MainWindow(object):
 
         self.__doc = None
         self.__page = None
+        self.__page_scaled = True
         self.docsearch = None
         self.__win_size = None  # main window size (None = unknown yet)
 
@@ -804,19 +795,22 @@ class MainWindow(object):
 
         self.show_busy_cursor()
         try:
-            self.__device.selected_source = self.__device.SCANNER_SOURCE_FLATBED
-            self.doc.scan_single_page(self.__device,
-                                      self.__config.ocrlang,
-                                      self.__config.scanner_calibration,
-                                      self.cb_progress)
-            page = self.doc.pages[self.doc.nb_pages - 1]
-            self.docsearch.index_page(page)
-            self.tabs.refresh_page_list()
-            self.page = page
-            # in case a document was freshly created, we have to update the
-            # document list as well
-            self.tabs.refresh_doc_list()
-            self.__reset_page_vpaned()
+            scan_src = self.__device.open(multiscan=False)
+            try:
+                self.doc.scan_single_page(scan_src,
+                                          self.__config.ocrlang,
+                                          self.__config.scanner_calibration,
+                                          self.cb_progress)
+                page = self.doc.pages[self.doc.nb_pages - 1]
+                self.docsearch.index_page(page)
+                self.tabs.refresh_page_list()
+                self.page = page
+                # in case a document was freshly created, we have to update the
+                # document list as well
+                self.tabs.refresh_doc_list()
+                self.__reset_page_vpaned()
+            finally:
+                scan_src.close()
         finally:
             self.set_progress(0.0, "")
             self.show_normal_cursor()
@@ -1016,10 +1010,10 @@ class MainWindow(object):
                 self.__scan_single_page_cb)
         self.__widget_tree.get_object("menuitemScanFeeder").connect("activate",
                 self.__scan_from_feeder_cb)
-        self.__widget_tree.get_object("imagemenuitemScanSingle").connect("activate",
-                self.__scan_single_page_cb)
-        self.__widget_tree.get_object("imagemenuitemScanFeeder").connect("activate",
-                self.__scan_from_feeder_cb)
+        self.__widget_tree.get_object("imagemenuitemScanSingle").connect(
+                "activate", self.__scan_single_page_cb)
+        self.__widget_tree.get_object("imagemenuitemScanFeeder").connect(
+                "activate", self.__scan_from_feeder_cb)
         self.__widget_tree.get_object("toolbuttonPrint").connect("clicked",
                 self.__print_doc_cb)
         self.__widget_tree.get_object("menuitemPrint").connect("activate",

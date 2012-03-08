@@ -121,8 +121,7 @@ class ScannedPage(object):
 
     img = property(__get_img)
 
-    def __scan(self, device, scanner_calibration, callback=dummy_progress_cb,
-               img_generator=None):
+    def __scan(self, scan_src, scanner_calibration, callback=dummy_progress_cb):
         """
         Scan a page, and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
@@ -135,24 +134,21 @@ class ScannedPage(object):
         callback(0, 100, self.SCAN_STEP_SCAN)
 
         # TODO(Jflesch): call callback during the scan
-        if img_generator == None:
-            pic = source.scan()
-        else:
-            pic = img_generator.next()
+        pic = scan_src.scan()
 
         if scanner_calibration != None:
             cropping = (scanner_calibration[0][0]
-                        * device.selected_resolution
-                        / device.CALIBRATION_RESOLUTION,
+                        * scan_src.paperwork_dev.selected_resolution
+                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
                         scanner_calibration[0][1]
-                        * device.selected_resolution
-                        / device.CALIBRATION_RESOLUTION,
+                        * scan_src.paperwork_dev.selected_resolution
+                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
                         scanner_calibration[1][0]
-                        * device.selected_resolution
-                        / device.CALIBRATION_RESOLUTION,
+                        * scan_src.paperwork_dev.selected_resolution
+                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
                         scanner_calibration[1][1]
-                        * device.selected_resolution
-                        / device.CALIBRATION_RESOLUTION)
+                        * scan_src.paperwork_dev.selected_resolution
+                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION)
             pic = pic.crop(cropping)
 
         outfiles = []
@@ -233,8 +229,8 @@ class ScannedPage(object):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, device, ocrlang, scanner_calibration,
-                  callback=dummy_progress_cb, img_generator=None):
+    def scan_page(self, scan_src, ocrlang, scanner_calibration,
+                  callback=dummy_progress_cb):
         """
         Scan the page & do OCR
         """
@@ -243,8 +239,7 @@ class ScannedPage(object):
         boxfile = self.__box_path
 
         callback(0, 100, self.SCAN_STEP_SCAN)
-        outfiles = self.__scan(device, scanner_calibration, callback,
-                               img_generator)
+        outfiles = self.__scan(scan_src, scanner_calibration, callback)
         callback(0, 100, self.SCAN_STEP_OCR)
         (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 

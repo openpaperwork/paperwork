@@ -275,12 +275,16 @@ class SettingsWindow(object):
         self.__settings_win.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
         self.__calibration_img_widget.window.set_cursor(
                 gtk.gdk.Cursor(gtk.gdk.WATCH))
+        scan_src = device_mgmt.open(multiscan=False)
         try:
-            gtk_refresh()
-            self.__calibration_img = device_mgmt.scan()
+            try:
+                gtk_refresh()
+                self.__calibration_img = scan_src.scan()
+            finally:
+                self.__calibration_img_widget.window.set_cursor(None)
+                self.__settings_win.window.set_cursor(None)
         finally:
-            self.__calibration_img_widget.window.set_cursor(None)
-            self.__settings_win.window.set_cursor(None)
+            scan_src.close()
 
         if self.__calibration == None:
             self.__calibration = (
@@ -475,7 +479,7 @@ class SettingsWindow(object):
         if device == None:
             self.__possible_resolutions = []
         else:
-            self.__possible_resolutions =   \
+            self.__possible_resolutions = \
                 self.__scanner_mgmt.get_possible_resolutions(device)
 
         scanner_table = self.__widget_tree.get_object("tableScannerSettings")

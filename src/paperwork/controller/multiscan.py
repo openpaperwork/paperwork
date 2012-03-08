@@ -146,23 +146,25 @@ class MultiscanDialog(object):
         try:
             self.__show_busy_cursor()
             self.__set_widgets_sensitive(False)
-            scan_iter = self.__device.multi_scan()
-            for doc_idx in range(0, len(self.__scan_list)):
-                nb_pages = self.__scan_list[doc_idx][0]
-                doc = ScannedDoc(self.__config.workdir) # new document
-                for page_idx in range(0, nb_pages):
-                    if not self.__running:
-                        raise StopIteration()
-                    self.__current_scan = (doc_idx, page_idx, nb_pages)
-                    doc.scan_single_page(self.__device,
-                                         self.__config.ocrlang,
-                                         self.__config.scanner_calibration,
-                                         callback=self.__scan_progress_cb,
-                                         img_generator=scan_iter)
-                    total += 1
-                self.__scan_list[doc_idx] = (nb_pages, 100, None)
-                self.__reload_scan_list()
-                gtk_refresh()
+            scan_src = self.__device.open(multiscan=True)
+            try:
+                for doc_idx in range(0, len(self.__scan_list)):
+                    nb_pages = self.__scan_list[doc_idx][0]
+                    doc = ScannedDoc(self.__config.workdir) # new document
+                    for page_idx in range(0, nb_pages):
+                        if not self.__running:
+                            raise StopIteration()
+                        self.__current_scan = (doc_idx, page_idx, nb_pages)
+                        doc.scan_single_page(scan_src,
+                                             self.__config.ocrlang,
+                                             self.__config.scanner_calibration,
+                                             callback=self.__scan_progress_cb)
+                        total += 1
+                    self.__scan_list[doc_idx] = (nb_pages, 100, None)
+                    self.__reload_scan_list()
+                    gtk_refresh()
+            finally:
+                scan_src.close()
         except StopIteration:
             msg = _("Less pages than expected have been scanned"
                     " (got %d pages)") % (total)

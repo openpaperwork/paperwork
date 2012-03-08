@@ -152,7 +152,9 @@ class Tabs(object):
         for doc in docs:
             labels = doc.labels
             final_str = doc.name
-            final_str += (" (%d pages)" % (doc.nb_pages))
+            nb_pages = doc.nb_pages
+            if nb_pages > 1:
+                final_str += (_(" (%d pages)") % (doc.nb_pages))
             if len(labels) > 0:
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))

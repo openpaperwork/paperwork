@@ -262,6 +262,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -315,6 +316,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
             <child>
@@ -329,6 +331,7 @@
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="homogeneous">True</property>
               </packing>
             </child>
           </object>
@@ -344,7 +347,7 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkVBox" id="box1">
-                <property name="width_request">230</property>
+                <property name="width_request">275</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -808,7 +811,7 @@
             <property name="spacing">20</property>
             <child>
               <object class="GtkProgressBar" id="progressbar">
-                <property name="width_request">230</property>
+                <property name="width_request">275</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
               </object>

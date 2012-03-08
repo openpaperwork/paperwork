@@ -179,6 +179,7 @@ class MultiscanDialog(object):
             self.__show_normal_cursor()
         self.__multiscan_dialog.destroy()
         self.__mainwindow.reindex()
+        self.__mainwindow.tabs.show_tab(self.__mainwindow.tabs.TAB_DOCUMENTS)
 
     def __connect_signals(self):
         self.__multiscan_dialog.connect("destroy", self.__destroy_cb)

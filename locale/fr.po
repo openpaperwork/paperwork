@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-01-02 21:13+0100\n"
+"POT-Creation-Date: 2012-03-29 21:27+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,68 +18,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/mainwindow.py:62
+#: src/paperwork/model/scanner.py:65
+msgid "No scanner found (is your scanner turned on ?). Look again ?"
+msgstr ""
+"Aucun scanner trouvé (est-ce que votre scanner est allumé ?). Chercher à "
+"nouveau ?"
+
+#: src/paperwork/model/scanner.py:197 src/paperwork/model/scanner.py:233
+msgid "Sane module not found"
+msgstr "Module Sane non-trouvé"
+
+#: src/paperwork/model/scanner.py:199
+msgid "No scanner set"
+msgstr "Aucun scanner n'a été selectionné"
+
+#: src/paperwork/model/scanner.py:236
+msgid "Tesseract is not available. Can't do OCR"
+msgstr ""
+"Tesseract n'est pas disponible. Impossible de faire la reconnaissance de "
+"texte"
+
+#: src/paperwork/model/scanner.py:238
+msgid "No scanner has been selected"
+msgstr "Aucun scanner n'a été selectionné"
+
+# Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
+#: src/paperwork/model/scanner.py:240 src/paperwork/view/mainwindow.glade.h:2
+#: src/paperwork/view/settingswindow.glade.h:9
+msgid "Scan"
+msgstr "Scanner une page"
+
+#: src/paperwork/controller/mainwindow.py:62
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/mainwindow.py:63
+#: src/paperwork/controller/mainwindow.py:63
 msgid "'!' can be used as a prefix to"
 msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/mainwindow.py:64
+#: src/paperwork/controller/mainwindow.py:64
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/mainwindow.py:214
+#: src/paperwork/controller/mainwindow.py:157
+#, python-format
+msgid " (%d pages)"
+msgstr " (%d pages)"
+
+#: src/paperwork/controller/mainwindow.py:205
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/mainwindow.py:446
+#: src/paperwork/controller/mainwindow.py:459
 msgid "Loading image and text ..."
 msgstr "Chargement de l'image et de son texte ..."
 
-#: src/mainwindow.py:468
+#: src/paperwork/controller/mainwindow.py:472
 msgid "Resizing the image ..."
 msgstr "Redimensionnement de l'image"
 
-#: src/mainwindow.py:567 src/mainwindow.glade.h:9
+#: src/paperwork/controller/mainwindow.py:572
+#: src/paperwork/view/mainwindow.glade.h:11
 msgid "New document"
 msgstr "Nouveau document"
 
-#: src/mainwindow.py:569 src/mainwindow.glade.h:15
+#: src/paperwork/controller/mainwindow.py:574
+#: src/paperwork/view/mainwindow.glade.h:14
 msgid "Quit"
 msgstr "Quitter"
 
-#: src/mainwindow.py:572 src/mainwindow.glade.h:14
+#: src/paperwork/controller/mainwindow.py:577
+#: src/paperwork/view/mainwindow.glade.h:13
 msgid "Print"
 msgstr "Imprimer"
 
-#: src/mainwindow.py:752
+#: src/paperwork/controller/mainwindow.py:772
+#: src/paperwork/controller/multiscan.py:132
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/mainwindow.py:754 src/mainwindow.py:756
+#: src/paperwork/controller/mainwindow.py:774
+#: src/paperwork/controller/mainwindow.py:776
+#: src/paperwork/controller/multiscan.py:134
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/mainwindow.py:758
+#: src/paperwork/controller/mainwindow.py:778
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/mainwindow.py:760
+#: src/paperwork/controller/mainwindow.py:780
 msgid "Updating label ..."
 msgstr "Mise à jour du label ..."
 
-#: src/mainwindow.py:762
+#: src/paperwork/controller/mainwindow.py:782
 msgid "Removing label ..."
 msgstr "Suppression du label ..."
 
-#: src/mainwindow.py:809
+#: src/paperwork/controller/mainwindow.py:842
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/mainwindow.py:903
+#: src/paperwork/controller/mainwindow.py:936
 msgid ""
 "This may take a very long time\n"
 "Are you sure ?"
@@ -87,170 +128,182 @@ msgstr ""
 "Cette opération peut prendre beaucoup de temps\n"
 "Êtes-vous sûr ?"
 
-#: src/scanner.py:46 src/scanner.py:76
-msgid "Sane module not found"
-msgstr "Module Sane non-trouvé"
+#: src/paperwork/controller/multiscan.py:46
+#, python-format
+msgid "Document %d"
+msgstr "Document %d"
 
-#: src/scanner.py:48
-msgid "No scanner set"
-msgstr "Aucun scanner n'a été selectionné"
+#: src/paperwork/controller/multiscan.py:169
+#, python-format
+msgid "Less pages than expected have been scanned (got %d pages)"
+msgstr "Moins de pages qu'attendues ont été scannées (%d pages scannées)"
 
-#: src/scanner.py:79
-msgid "Tesseract is not available. Can't do OCR"
-msgstr ""
-"Tesseract n'est pas disponible. Impossible de faire la reconnaissance de "
-"texte"
-
-#: src/scanner.py:81
-msgid "No scanner has been selected"
-msgstr "Aucun scanner n'a été selectionné"
-
-#: src/scanner.py:83 src/mainwindow.glade.h:20
-msgid "Scan new page"
-msgstr "Scanner une nouvelle page"
-
-#: src/settingswindow.py:178
+#: src/paperwork/controller/settingswindow.py:178
 msgid " (recommended)"
 msgstr " (recommandé)"
 
-#: src/aboutdialog.glade.h:1
-msgid "\n"
-msgstr "\n"
-
-#: src/aboutdialog.glade.h:3
+#: src/paperwork/view/aboutdialog.glade.h:1
 msgid "About"
 msgstr "À propos"
 
-#: src/aboutdialog.glade.h:4
+#: src/paperwork/view/aboutdialog.glade.h:2
+msgid "\n"
+msgstr "\n"
+
+#: src/paperwork/view/aboutdialog.glade.h:4
 msgid "Grep for Dead Trees"
 msgstr "Grep pour les arbres morts"
 
-#: src/labeledit.glade.h:1
-msgid "Color"
-msgstr "Couleur"
-
-#: src/labeledit.glade.h:2
-msgid "Label"
-msgstr "Label"
-
-#: src/labeledit.glade.h:3
+#: src/paperwork/view/labeledit.glade.h:1
 msgid "Label editor"
 msgstr "Éditeur de label"
 
-#: src/mainwindow.glade.h:1
-msgid "Advanced"
-msgstr "Avancé"
+#: src/paperwork/view/labeledit.glade.h:2
+msgid "Label"
+msgstr "Label"
 
-#: src/mainwindow.glade.h:2
-msgid "Delete document"
-msgstr "Effacer le document"
+#: src/paperwork/view/labeledit.glade.h:3
+msgid "Color"
+msgstr "Couleur"
 
-#: src/mainwindow.glade.h:3
-msgid "Delete page"
-msgstr "Effacer la page"
-
-#: src/mainwindow.glade.h:4
-msgid "Destroy"
-msgstr "Détruire"
-
-#: src/mainwindow.glade.h:5
-msgid "Documents"
-msgstr "Documents"
-
-#: src/mainwindow.glade.h:6
-msgid "Edit"
-msgstr "Éditer"
-
-#: src/mainwindow.glade.h:7
-msgid "Highlight all the words"
-msgstr "Mettre en évidence tout les mots"
-
-#: src/mainwindow.glade.h:8
-msgid "Labels"
-msgstr "Labels"
-
-#: src/mainwindow.glade.h:10
-msgid "Open directory"
-msgstr "Ouvrir le répertoire"
-
-#: src/mainwindow.glade.h:11
-msgid "Open the document in a file manager\n"
-msgstr ""
-
-#: src/mainwindow.glade.h:13
-msgid "Pages"
-msgstr "Pages"
-
-#: src/mainwindow.glade.h:16
-msgid "Redo OCR of all documents"
-msgstr "Refaire l'OCR sur tout les documents"
-
-#: src/mainwindow.glade.h:17
-msgid "Redo OCR on the document"
-msgstr "Refaire l'OCR sur le document"
-
-#: src/mainwindow.glade.h:18
-msgid "Reindex all documents"
-msgstr "Reindexer tout les documents"
-
-# Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/mainwindow.glade.h:19 src/settingswindow.glade.h:10
-msgid "Scan"
-msgstr "Scanner une page"
-
-#: src/mainwindow.glade.h:21
+#: src/paperwork/view/mainwindow.glade.h:1
 msgid "_File"
 msgstr "_Fichier"
 
-#: src/mainwindow.glade.h:22
+#: src/paperwork/view/mainwindow.glade.h:3
+msgid "Single page"
+msgstr "Page seule"
+
+#: src/paperwork/view/mainwindow.glade.h:4
+msgid "From Feeder"
+msgstr "Depuis le bac"
+
+#: src/paperwork/view/mainwindow.glade.h:5
+msgid "Advanced"
+msgstr "Avancé"
+
+#: src/paperwork/view/mainwindow.glade.h:6
+msgid "Highlight all the words"
+msgstr "Mettre en évidence tout les mots"
+
+#: src/paperwork/view/mainwindow.glade.h:7
+msgid "Redo OCR on the document"
+msgstr "Refaire l'OCR sur le document"
+
+#: src/paperwork/view/mainwindow.glade.h:8
+msgid "Redo OCR of all documents"
+msgstr "Refaire l'OCR sur tout les documents"
+
+#: src/paperwork/view/mainwindow.glade.h:9
+msgid "Reindex all documents"
+msgstr "Reindexer tout les documents"
+
+#: src/paperwork/view/mainwindow.glade.h:10
 msgid "_Help"
 msgstr "_Aide"
 
-#: src/settingswindow.glade.h:1
-msgid "<b>General</b>"
-msgstr "<b>Général</b>"
+#: src/paperwork/view/mainwindow.glade.h:12
+msgid "Single Page"
+msgstr "Page seule"
 
-#: src/settingswindow.glade.h:2
-msgid "<b>OCR</b>"
-msgstr "<b>OCR</b>"
+#: src/paperwork/view/mainwindow.glade.h:15
+#: src/paperwork/view/multiscan.glade.h:3
+msgid "Documents"
+msgstr "Documents"
 
-#: src/settingswindow.glade.h:3
-msgid "<b>Scanner calibration</b>"
-msgstr "<b>Calibration du scanner</b>"
+#: src/paperwork/view/mainwindow.glade.h:16
+msgid "Scan new page"
+msgstr "Scanner une nouvelle page"
 
-#: src/settingswindow.glade.h:4
-msgid "<b>Scanner</b>"
-msgstr "<b>Scanner</b>"
+#: src/paperwork/view/mainwindow.glade.h:17
+msgid "Pages"
+msgstr "Pages"
 
-#: src/settingswindow.glade.h:5
-msgid "Cancel"
-msgstr "Annuler"
+#: src/paperwork/view/mainwindow.glade.h:18
+msgid "Labels"
+msgstr "Labels"
 
-#: src/settingswindow.glade.h:6
-msgid "Device"
-msgstr "Périphérique"
+#: src/paperwork/view/mainwindow.glade.h:19
+msgid "Edit"
+msgstr "Éditer"
 
-#: src/settingswindow.glade.h:7
-msgid "Language"
-msgstr "Langue"
+#: src/paperwork/view/mainwindow.glade.h:20
+msgid "Destroy"
+msgstr "Détruire"
 
-#: src/settingswindow.glade.h:8
-msgid "Ok"
-msgstr "Ok"
+#: src/paperwork/view/mainwindow.glade.h:21
+msgid "Open the document in a file manager\n"
+msgstr "Ouvrir le document avec le gestionnaire de fichier\n"
 
-#: src/settingswindow.glade.h:9
-msgid "Resolution"
-msgstr "Résolution"
+#: src/paperwork/view/mainwindow.glade.h:23
+msgid "Open directory"
+msgstr "Ouvrir le répertoire"
 
-#: src/settingswindow.glade.h:11
+#: src/paperwork/view/mainwindow.glade.h:24
+msgid "Delete document"
+msgstr "Effacer le document"
+
+#: src/paperwork/view/mainwindow.glade.h:25
+msgid "Delete page"
+msgstr "Effacer la page"
+
+#: src/paperwork/view/multiscan.glade.h:1
+msgid "From scanner feeder"
+msgstr "Depuis le bac"
+
+#: src/paperwork/view/multiscan.glade.h:4
+msgid "Number of pages"
+msgstr "Nombre de pages"
+
+#: src/paperwork/view/multiscan.glade.h:5
+msgid "Document 1"
+msgstr "Document 1"
+
+#: src/paperwork/view/settingswindow.glade.h:1
 msgid "Settings"
 msgstr "Réglages"
 
-#: src/settingswindow.glade.h:12
+#: src/paperwork/view/settingswindow.glade.h:2
 msgid "Work directory"
 msgstr ""
 "Répertoire\n"
 "de travail"
+
+#: src/paperwork/view/settingswindow.glade.h:3
+msgid "<b>General</b>"
+msgstr "<b>Général</b>"
+
+#: src/paperwork/view/settingswindow.glade.h:4
+msgid "Device"
+msgstr "Périphérique"
+
+#: src/paperwork/view/settingswindow.glade.h:5
+msgid "Resolution"
+msgstr "Résolution"
+
+#: src/paperwork/view/settingswindow.glade.h:6
+msgid "<b>Scanner</b>"
+msgstr "<b>Scanner</b>"
+
+#: src/paperwork/view/settingswindow.glade.h:7
+msgid "Language"
+msgstr "Langue"
+
+#: src/paperwork/view/settingswindow.glade.h:8
+msgid "<b>OCR</b>"
+msgstr "<b>OCR</b>"
+
+#: src/paperwork/view/settingswindow.glade.h:10
+msgid "<b>Scanner calibration</b>"
+msgstr "<b>Calibration du scanner</b>"
+
+#: src/paperwork/view/settingswindow.glade.h:11
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/paperwork/view/settingswindow.glade.h:12
+msgid "Ok"
+msgstr "Ok"
 
 #~ msgid "Loading page ..."
 #~ msgstr "Chargement de la page ..."

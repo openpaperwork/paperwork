@@ -87,7 +87,7 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="treeviewcolumnDocNames">
-                            <property name="title">Documents</property>
+                            <property name="title" translatable="yes">Documents</property>
                             <property name="expand">True</property>
                             <child>
                               <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf2"/>
@@ -106,7 +106,7 @@
                             <property name="fixed_width">100</property>
                             <property name="min_width">150</property>
                             <property name="max_width">150</property>
-                            <property name="title">Number of pages</property>
+                            <property name="title" translatable="yes">Number of pages</property>
                             <child>
                               <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
                             </child>

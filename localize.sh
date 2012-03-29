@@ -26,14 +26,18 @@ then
 	mkdir -p locale
 
 	rm -f locale/messages.pot
-	for glade_file in src/*.glade
+	for glade_file in src/paperwork/view/*.glade
 	do
 		echo "${glade_file} --> .glade.h ..."
 		intltool-extract --type=gettext/glade ${glade_file} > /dev/null
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
-	xgettext -k_ -kN_ -o locale/messages.pot src/*.py src/*.glade.h > /dev/null
-	rm -f src/*.glade.h
+	xgettext -k_ -kN_ -o locale/messages.pot \
+		src/paperwork/model/*.py \
+		src/paperwork/controller/*.py \
+		src/paperwork/view/*.glade.h \
+		> /dev/null
+	rm -f src/paperwork/view/*.glade.h
 
 	for lang in ${LANGS}
 	do

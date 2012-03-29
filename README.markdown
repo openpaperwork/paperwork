@@ -115,6 +115,18 @@ Try to stick to PEP-8 as much as possible. Mainly:
 1. Lines are at most 80 characters long
 2. Indentation is done using 4 spaces
 
+### Code organisation
+
+The code is divided following a 3-Tier architecture but uses the MVC vocabulary:
+- View : The GUI itself (only .glade files for now)
+- Controller :
+  - Take the user action into account and change the model accordingly
+  - Extract the informations from the model and inject them in the view
+- Model : Backend code. Provides:
+  - Document indexation
+  - Keyword suggestions
+  - Document modifications (labels, etc) and deletion
+
 ### Tips
 
 If you want to make changes, here are few things that can help you:

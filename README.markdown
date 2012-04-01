@@ -118,14 +118,15 @@ Try to stick to PEP-8 as much as possible. Mainly:
 ### Code organisation
 
 The code is divided following a 3-Tier architecture but uses the MVC vocabulary:
-- View : The GUI itself (only .glade files for now)
-- Controller :
-  - Take the user action into account and change the model accordingly
-  - Extract the informations from the model and inject them in the view
-- Model : Backend code. Provides:
-  - Document indexation
-  - Keyword suggestions
-  - Document modifications (labels, etc) and deletion
+
+* View : The GUI itself (only .glade files for now)
+* Controller :
+  * Take the user action into account and change the model accordingly
+  * Extract the informations from the model and inject them in the view
+* Model : Backend code. Provides:
+  * Document indexation
+  * Keyword suggestions
+  * Document modifications (labels, etc) and deletion
 
 ### Tips
 

@@ -105,6 +105,11 @@ Installation
 
 Enjoy :-)
 
+Contact
+-------
+
+Mailing-list: [paperwork\_gui@googlegroups.com](mailto:paperwork_gui@googlegroups.com)
+
 Development
 -----------
 

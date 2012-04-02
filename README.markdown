@@ -108,7 +108,7 @@ Enjoy :-)
 Contact
 -------
 
-Mailing-list: [paperwork\_gui@googlegroups.com](mailto:paperwork_gui@googlegroups.com)
+Mailing-list: [paperwork-gui@googlegroups.com](mailto:paperwork-gui@googlegroups.com)
 
 Development
 -----------

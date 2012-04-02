@@ -93,14 +93,14 @@ Dependencies
 	* Manual installation:
 		* git clone git://github.com/jflesch/python-tesseract.git
 		* cd python-tesseract
-		* sudo python ./setup.py install
+		* sudo python2 ./setup.py install
 
 Installation
 ------------
 
 	$ git clone git://github.com/jflesch/paperwork.git
 	$ cd paperwork
-	$ sudo ./setup.py install
+	$ sudo python2 ./setup.py install
 	$ paperwork
 
 Enjoy :-)

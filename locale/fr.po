@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-29 21:27+0200\n"
+"POT-Creation-Date: 2012-04-09 00:47+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,32 +18,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/paperwork/model/scanner.py:65
+#: src/paperwork/model/scanner.py:62
 msgid "No scanner found (is your scanner turned on ?). Look again ?"
 msgstr ""
 "Aucun scanner trouvé (est-ce que votre scanner est allumé ?). Chercher à "
 "nouveau ?"
 
-#: src/paperwork/model/scanner.py:197 src/paperwork/model/scanner.py:233
+#: src/paperwork/model/scanner.py:193 src/paperwork/model/scanner.py:228
 msgid "Sane module not found"
 msgstr "Module Sane non-trouvé"
 
-#: src/paperwork/model/scanner.py:199
+#: src/paperwork/model/scanner.py:195
 msgid "No scanner set"
 msgstr "Aucun scanner n'a été selectionné"
 
-#: src/paperwork/model/scanner.py:236
-msgid "Tesseract is not available. Can't do OCR"
+#: src/paperwork/model/scanner.py:231
+msgid "No OCR tool found not available. Can't do OCR"
 msgstr ""
-"Tesseract n'est pas disponible. Impossible de faire la reconnaissance de "
+"Aucun outil d'OCR n'est pas disponible. Impossible de faire la reconnaissance de "
 "texte"
 
-#: src/paperwork/model/scanner.py:238
+#: src/paperwork/model/scanner.py:233
 msgid "No scanner has been selected"
 msgstr "Aucun scanner n'a été selectionné"
 
 # Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/paperwork/model/scanner.py:240 src/paperwork/view/mainwindow.glade.h:2
+#: src/paperwork/model/scanner.py:235 src/paperwork/view/mainwindow.glade.h:2
 #: src/paperwork/view/settingswindow.glade.h:9
 msgid "Scan"
 msgstr "Scanner une page"
@@ -138,7 +138,7 @@ msgstr "Document %d"
 msgid "Less pages than expected have been scanned (got %d pages)"
 msgstr "Moins de pages qu'attendues ont été scannées (%d pages scannées)"
 
-#: src/paperwork/controller/settingswindow.py:178
+#: src/paperwork/controller/settingswindow.py:182
 msgid " (recommended)"
 msgstr " (recommandé)"
 

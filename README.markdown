@@ -11,10 +11,10 @@ Papers are organized into documents. Each document contains pages.
 It uses mainly 3 other pieces of software:
 
 * Sane: To scan the pages
-* Tesseract: To extract the words from the pages (OCR)
+* Cuneiform or Tesseract: To extract the words from the pages (OCR)
 * GTK/Glade: For the user interface
 
-Page orientation is automatically guessed using Tesseract.
+Page orientation is automatically guessed using OCR.
 
 Paperwork uses a custom indexation system to search documents and to provide
 keyword suggestions. Since OCR is not perfect, and since some documents don't
@@ -69,30 +69,15 @@ Dependencies
 	* Debian/Ubuntu package: python-imaging
 * python-imaging-sane (optional for document searching ; required for scanning)
 	* Debian/Ubuntu package: python-imaging-sane
-* Tesseract v3 (optional for document searching ; required for scanning)
+* OCR (optional for document searching ; required for scanning)
+  * Cuneiform (>= v1.1)
+    * Debian/Ubuntu package: cuneiform
+  * **Or** Tesseract (>= v3)
+* pyocr (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:
-		* sudo apt-get install libjpeg-dev libtiff-dev libleptonica-dev
-		* Download [Tesseract](http://code.google.com/p/tesseract-ocr/downloads/list)
-		* tar -xvzf tesseract-\*.tar.gz
-		* cd tesseract-\*
-		* ./autogen.sh
-		* ./configure
-		* make -j4
-		* sudo make install
-		* sudo ldconfig
-* Tesseract v3 trained data (optional for document searching ; required for scanning):
-	* Debian/Ubuntu package: none at the moment
-	* Manual installation:
-		* Download the [trained data](http://code.google.com/p/tesseract-ocr/downloads/list)
-		  for your language(s)
-		* for file in \*.traineddata.gz; do gunzip $file ; done
-		* sudo cp \*.traineddata /usr/local/share/tessdata
-* python-tesseract (required)
-	* Debian/Ubuntu package: none at the moment
-	* Manual installation:
-		* git clone git://github.com/jflesch/python-tesseract.git
-		* cd python-tesseract
+		* git clone git://github.com/jflesch/pyocr.git
+		* cd pyocr
 		* sudo python2 ./setup.py install
 
 Installation

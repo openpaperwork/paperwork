@@ -4,7 +4,7 @@ Code relative to scanner management.
 
 import gettext
 import gtk
-import tesseract
+import pyocr.pyocr
 import time
 try:
     import sane
@@ -231,9 +231,9 @@ class PaperworkScanner(object):
         """
         if not HAS_SANE:
             self.state = (False, _('Sane module not found'))
-        elif not tesseract.is_tesseract_available():
+        elif len(pyocr.pyocr.get_available_tools()) <= 0:
             self.state = (False,
-                          _('Tesseract is not available. Can\'t do OCR'))
+                          _('No OCR tool found not available. Can\'t do OCR'))
         elif not selected:
             self.state = (False, _('No scanner has been selected'))
         else:

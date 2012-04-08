@@ -10,7 +10,8 @@ import re
 
 import gtk
 import PIL
-import tesseract
+import pyocr.builders
+import pyocr.pyocr
 
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
@@ -101,7 +102,7 @@ class ScannedPage(object):
         boxfile = self.__box_path
         txt = self.text
 
-        box_builder = tesseract.WordBoxBuilder()
+        box_builder = pyocr.builders.WordBoxBuilder()
 
         try:
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
@@ -203,6 +204,14 @@ class ScannedPage(object):
         """
         Do the OCR on the page
         """
+        ocr_tools = pyocr.pyocr.get_available_tools()
+        if len(ocr_tools) <= 0:
+            # shouldn't happen: scan buttons should be disabled
+            # in that case
+            raise Exception("No OCR tool available")
+
+        print "Using %s for OCR" % (ocr_tools[0].get_name())
+
         scores = []
 
         i = 0
@@ -210,7 +219,7 @@ class ScannedPage(object):
             callback(i, len(files) + 1, self.SCAN_STEP_OCR)
             i += 1
             print "Running OCR on scan '%s'" % (imgpath)
-            txt = tesseract.image_to_string(Image.open(imgpath), lang=ocrlang)
+            txt = ocr_tools[0].image_to_string(Image.open(imgpath), lang=ocrlang)
             txt = unicode(txt)
             score = self.__compute_ocr_score(txt)
             scores.append((score, imgpath, txt))
@@ -222,9 +231,9 @@ class ScannedPage(object):
 
         print "Extracting boxes ..."
         callback(i, len(files) + 1, self.SCAN_STEP_OCR)
-        boxes = tesseract.image_to_string(Image.open(scores[0][1]),
+        boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
                                           lang=ocrlang,
-                                          builder=tesseract.WordBoxBuilder())
+                                          builder=ocr_tools[0].WordBoxBuilder())
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)
@@ -253,7 +262,7 @@ class ScannedPage(object):
 
         # Save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.WordBoxBuilder().write_file(file_desc, boxes)
+            pyocr.builders.WordBoxBuilder().write_file(file_desc, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -348,7 +357,7 @@ class ScannedPage(object):
             file_desc.write(txt)
         # save the boxes
         with open(boxfile, 'w') as file_desc:
-            tesseract.WordBoxBuilder.write_file(file_desc, boxes)
+            pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
 
     def ch_number(self, offset):
         """

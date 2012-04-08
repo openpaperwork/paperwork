@@ -9,7 +9,7 @@ import os
 
 import gettext
 import pycountry
-import tesseract
+import pyocr.pyocr
 
 from paperwork.model.scanner import PaperworkScanner
 from paperwork.util import gtk_refresh
@@ -72,7 +72,11 @@ class SettingsWindow(object):
         self.__mainwindow = mainwindow
         self.__config = config
 
-        self.ocr_langs = tesseract.get_available_languages()
+        ocr_tools = pyocr.pyocr.get_available_tools()
+        if len(ocr_tools) <= 0:
+            self.ocr_langs = []
+        else:
+            self.ocr_langs = ocr_tools[0].get_available_languages()
         self.ocr_langs = self.__get_short_to_long_langs(self.ocr_langs)
         self.ocr_langs_reverse = dict((value, keyword) \
                              for keyword, value in self.ocr_langs.iteritems())

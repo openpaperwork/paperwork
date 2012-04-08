@@ -78,9 +78,9 @@ class PaperworkConfig(object):
 
     def __get_ocrlang(self):
         """
-        OCR lang. This the lang specified to Tesseract when doing OCR. The
-        string here in the configuration is identical to the one passed to
-        tesseract on the command line.
+        OCR lang. This the lang specified to the OCR. The string here in the
+        configuration is identical to the one passed to the OCR tool on the
+        command line.
 
         String.
         """

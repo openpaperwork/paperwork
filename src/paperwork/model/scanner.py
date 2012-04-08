@@ -31,7 +31,6 @@ def sane_init():
     if not HAS_SANE:
         raise PaperworkScannerException("Sane module not found")
 
-    print "SANE: INIT: %d" % (_opened_scanner_instances)
     if _opened_scanner_instances == 0:
         sane.init()
     _opened_scanner_instances += 1
@@ -41,7 +40,6 @@ def sane_exit():
     global _opened_scanner_instances
 
     _opened_scanner_instances -= 1
-    print "SANE: EXIT: %d" % (_opened_scanner_instances)
     if _opened_scanner_instances == 0:
         sane.exit()
 
@@ -58,7 +56,6 @@ class PaperworkPhyScanSrc(object):
 
         while True:
             try:
-                print "SANE: OPEN: %s" % (dev_id)
                 return sane.open(dev_id)
             except RuntimeError:
                 # the sane module doesn't return any specific exception :(
@@ -137,7 +134,6 @@ class PaperworkPhyScanSrc(object):
         raise Exception("Must be overloaded")
 
     def close(self):
-        print "SANE: CLOSE '%s'" % (str(self))
         self._sane_dev_obj.close()
         sane_exit()
 
@@ -207,7 +203,6 @@ class PaperworkScanner(object):
 
         sane_init()
         try:
-            print "SANE: GET DEVICES"
             devs = sane.get_devices()
             print "-- Devices found:"
             for dev in devs:
@@ -253,12 +248,10 @@ class PaperworkScanner(object):
             return []
 
         device = self.open(dev_id=devid)
-        print "-- Getting possible resolutions for %s" % (str(device))
         try:
             res = device.possible_resolutions
         finally:
             device.close()
-        print ("-- Possible resolutions for %s: %s" % (devid, str(res)))
         return res
 
     def get_possible_sources(self, devid):
@@ -266,12 +259,10 @@ class PaperworkScanner(object):
             return []
 
         device = self.open(dev_id=devid)
-        print "-- Getting possible sources for %s" % (str(device))
         try:
             sources = device.possible_sources
         finally:
             device.close()
-        print ("-- Possible sources for %s: %s" % (devid, str(sources)))
         return sources
 
     def open(self, multiscan=False, dev_id=None):

@@ -232,8 +232,7 @@ class ScannedPage(object):
         print "Extracting boxes ..."
         callback(i, len(files) + 1, self.SCAN_STEP_OCR)
         boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
-                                          lang=ocrlang,
-                                          builder=ocr_tools[0].WordBoxBuilder())
+                lang=ocrlang, builder=pyocr.builders.WordBoxBuilder())
         print "Done"
 
         return (scores[0][1], scores[0][2], boxes)

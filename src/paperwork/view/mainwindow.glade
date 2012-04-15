@@ -314,6 +314,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
+                        <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
                         <child>
                           <object class="GtkViewport" id="viewport4">
@@ -367,6 +368,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="hscrollbar_policy">never</property>
+                                <property name="vscrollbar_policy">automatic</property>
                                 <child>
                                   <object class="GtkViewport" id="viewport1">
                                     <property name="visible">True</property>

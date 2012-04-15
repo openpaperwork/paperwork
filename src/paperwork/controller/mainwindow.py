@@ -32,10 +32,6 @@ class Tabs(object):
     buttons.
     """
 
-    TAB_DOCUMENTS = 0
-    TAB_PAGES = 1
-    TAB_LABELS = 2
-
     def __init__(self, main_win, widget_tree):
         tooltips = gtk.Tooltips()
 
@@ -53,8 +49,6 @@ class Tabs(object):
         self.__search_field.set_completion(self.__search_completion)
         self.__match_list_ui = self.__widget_tree.get_object("treeviewMatch")
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
-        self.__selectors = self.__widget_tree.get_object("notebookSelectors")
-        self.show_tab(self.TAB_PAGES)
         self.__match_list_menu = \
                 self.__widget_tree.get_object("popupmenuMatchs")
 
@@ -154,7 +148,7 @@ class Tabs(object):
             final_str = doc.name
             nb_pages = doc.nb_pages
             if nb_pages > 1:
-                final_str += (_(" (%d pages)") % (doc.nb_pages))
+                final_str += (_("\n  %d pages") % (doc.nb_pages))
             if len(labels) > 0:
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
@@ -183,7 +177,6 @@ class Tabs(object):
         Clear the search field.
         """
         self.__search_field.set_text("")
-        self.show_tab(self.TAB_DOCUMENTS)
 
     def refresh_label_list(self):
         """
@@ -311,9 +304,6 @@ class Tabs(object):
     def select_page(self, page):
         self.__page_list_ui.get_selection().select_path(page.page_nb)
 
-    def show_tab(self, tab):
-        self.__selectors.set_current_page(tab)
-
     def __new_document_cb(self, widget=None):
         self.__main_win.new_document()
 
@@ -324,18 +314,8 @@ class Tabs(object):
         """
         Connect all the signals in the tabs area
         """
-        self.__widget_tree.get_object("buttonNewDoc").connect("clicked",
-                self.__new_document_cb)
-        self.__widget_tree.get_object("buttonDestroyDoc").connect("clicked",
-                self.__destroy_current_doc_cb)
-        self.__widget_tree.get_object("buttonScanPage").connect("clicked",
-                self.__scan_page_cb)
-        self.__widget_tree.get_object("buttonDestroyPage").connect("clicked",
-                self.__destroy_current_page_cb)
         self.__widget_tree.get_object("entrySearch").connect("icon-press",
                 self.__clear_search_cb)
-        self.__widget_tree.get_object("buttonAddLabel").connect("clicked",
-                self.__add_label_cb)
         self.__widget_tree.get_object("cellrenderertoggleLabel").connect(
                 "toggled", self.__label_toggled_cb)
         self.__widget_tree.get_object("menuitemDestroyPage2").connect(
@@ -349,12 +329,6 @@ class Tabs(object):
                 self.__main_win.destroy_label)
         self.__widget_tree.get_object("menuitemOpenDoc").connect(
                 "activate", self.__open_doc_cb)
-        self.__widget_tree.get_object("buttonEditLabel").connect("clicked",
-                self.__apply_to_current_label_cb, self.__main_win.edit_label)
-        self.__widget_tree.get_object("buttonDestroyLabel").connect("clicked",
-                self.__apply_to_current_label_cb, self.__main_win.destroy_label)
-        self.__search_field.connect("focus-in-event",
-                lambda x, y: self.__selectors.set_current_page(0))  # Doc tab
         self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.__page_list_ui.connect("button_press_event",
                                     self.__pop_menu_up_cb,
@@ -628,12 +602,8 @@ class MainWindow(object):
                 .set_sensitive(multiple_pages)
         self.__widget_tree.get_object("toolbuttonScan") \
                 .set_sensitive(single_page)
-        self.__widget_tree.get_object("buttonScanPage") \
-                .set_sensitive(single_page)
         tooltips = gtk.Tooltips()
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonScan"),
-                         self.__device.state[1])
-        tooltips.set_tip(self.__widget_tree.get_object("buttonScanPage"),
                          self.__device.state[1])
 
     def set_progress(self, progress, text):
@@ -793,8 +763,6 @@ class MainWindow(object):
         Scan a new page and append it to the current document
         """
         self.__check_workdir()
-
-        self.tabs.show_tab(self.tabs.TAB_PAGES)
 
         self.show_busy_cursor()
         try:
@@ -1082,7 +1050,6 @@ class MainWindow(object):
         """
         Start the edition of the new document.
         """
-        self.tabs.show_tab(self.tabs.TAB_PAGES)
         self.__show_doc(ScannedDoc(self.__config.workdir))  # new document
 
     def __new_document_cb(self, objsrc=None):

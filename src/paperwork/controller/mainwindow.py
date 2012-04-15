@@ -52,6 +52,7 @@ class Selecters(object):
         self.__match_list = self.__widget_tree.get_object("liststoreMatch")
         self.__match_list_menu = \
                 self.__widget_tree.get_object("popupmenuMatchs")
+        self.__entry_page_nb = self.__widget_tree.get_object("entryPageNb")
 
         tooltips.set_tip(self.__search_field,
                         (_('Search documents\n')
@@ -198,10 +199,12 @@ class Selecters(object):
         """
         self.__page_list.clear()
         for page in self.__main_win.doc.pages:
-            img = page.get_thumbnail(180)
+            img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
-            self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb),
-                                     page.page_nb - 1])
+            self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb + 1),
+                                     page.page_nb])
+        self.__widget_tree.get_object("labelTotalPages").set_text(
+                _("/ %d") % (self.__main_win.doc.nb_pages))
 
     def refresh_doc_list(self):
         """
@@ -331,6 +334,7 @@ class Selecters(object):
 
     def select_page(self, page):
         self.__page_list_ui.select_path(page.page_nb)
+        self.__entry_page_nb.set_text("%d" % (page.page_nb + 1))
 
     def __new_document_cb(self, widget=None):
         self.__main_win.new_document()

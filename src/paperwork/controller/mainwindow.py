@@ -3,6 +3,7 @@ Code relative to the main window management.
 """
 
 from copy import copy
+import Image
 import ImageDraw
 import os
 
@@ -59,7 +60,7 @@ class Tabs(object):
 
         # page selector
         self.__page_list = self.__widget_tree.get_object("liststorePage")
-        self.__page_list_ui = self.__widget_tree.get_object("treeviewPage")
+        self.__page_list_ui = self.__widget_tree.get_object("iconviewPage")
         self.__page_list_menu = self.__widget_tree.get_object("popupmenuPages")
 
         # label selector
@@ -117,11 +118,11 @@ class Tabs(object):
         Return and instance of page.ScannedPage representing the currently
         selected page.
         """
-        selection_path = self.__page_list_ui.get_selection().get_selected()
-        if selection_path[1] == None:
-            raise Exception("No page selected yet")
-        selection = selection_path[0].get_value(selection_path[1], 0)
-        page = self.__main_win.doc.pages[(int(selection[5:]) - 1)]
+        selection_path = self.__page_list_ui.get_selected_items()
+        if len(selection_path) <= 0:
+            return None
+        selection = selection_path[0][0]
+        page = self.__main_win.doc.pages[selection]
         return page
 
     def __show_selected_page_cb(self, objsrc=None):
@@ -129,6 +130,8 @@ class Tabs(object):
         Find the currently selected page, and display it accordingly
         """
         page = self.__get_selected_page()
+        if page == None:
+            return
         if self.__main_win.page == page:
             return
         print "Showing selected page: %s" % (page)
@@ -194,8 +197,16 @@ class Tabs(object):
         Reload and refresh the page list
         """
         self.__page_list.clear()
-        for page in range(1, self.__main_win.doc.nb_pages + 1):
-            self.__page_list.append([_('Page %d') % (page)])
+        for page in self.__main_win.doc.pages:
+            img = page.img
+            (w, h) = img.size
+            factor = (float(w)) / 192
+            w = 192
+            h /= factor
+            img = img.resize((int(w), int(h)), Image.BILINEAR)
+            pixbuf = image2pixbuf(img)
+            self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb),
+                                     page.page_nb - 1])
 
     def refresh_doc_list(self):
         """
@@ -278,7 +289,7 @@ class Tabs(object):
         # TODO(Jflesch): The following is absolutely not crossplatform
         os.system('xdg-open "%s"' % (self.__main_win.doc.path))
 
-    def __pop_menu_up_cb(self, treeview, event, ui_component, popup_menu):
+    def __treeview_pop_menu_up_cb(self, treeview, event, ui_component, popup_menu):
         """
         Callback used when the user right click on a tree view. Display
         the given popup_menu.
@@ -295,14 +306,36 @@ class Tabs(object):
         pathinfo = treeview.get_path_at_pos(ev_x, ev_y)
         if pathinfo is None:
             return False
-        path, col, cellx, celly = pathinfo
+        path = pathinfo
         treeview.grab_focus()
         treeview.set_cursor(path, col, 0)
         popup_menu.popup(None, None, None, event.button, ev_time)
         return True
 
+    def __iconview_pop_menu_up_cb(self, iconview, event, ui_component, popup_menu):
+        """
+        Callback used when the user right click on a tree view. Display
+        the given popup_menu.
+        """
+        # we are only interested in right clicks
+        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
+            return False
+        selection_path = self.__match_list_ui.get_selection().get_selected()
+        if selection_path == None:
+            return False
+        ev_x = int(event.x)
+        ev_y = int(event.y)
+        ev_time = event.time
+        path = iconview.get_path_at_pos(ev_x, ev_y)
+        if path is None:
+            return False
+        iconview.grab_focus()
+        iconview.set_cursor(path)
+        popup_menu.popup(None, None, None, event.button, ev_time)
+        return True
+
     def select_page(self, page):
-        self.__page_list_ui.get_selection().select_path(page.page_nb)
+        self.__page_list_ui.select_path(page.page_nb)
 
     def __new_document_cb(self, widget=None):
         self.__main_win.new_document()
@@ -330,24 +363,24 @@ class Tabs(object):
         self.__widget_tree.get_object("menuitemOpenDoc").connect(
                 "activate", self.__open_doc_cb)
         self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
+        self.__page_list_ui.connect("selection-changed",
+                                    self.__show_selected_page_cb)
         self.__page_list_ui.connect("button_press_event",
-                                    self.__pop_menu_up_cb,
+                                    self.__iconview_pop_menu_up_cb,
                                     self.__page_list_ui,
                                     self.__page_list_menu)
-        self.__page_list_ui.connect("cursor-changed",
-                self.__show_selected_page_cb)
         self.__search_field.connect("changed", self.__update_results_cb)
         self.__match_list_ui.connect("cursor-changed",
                 self.__show_selected_doc_cb)
         self.__match_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.__match_list_ui.connect("button_press_event",
-                                    self.__pop_menu_up_cb,
+                                    self.__treeview_pop_menu_up_cb,
                                     self.__match_list_ui,
                                     self.__match_list_menu)
         self.__label_list_ui.connect("row-activated",
                                      self.__edit_clicked_label_cb)
         self.__label_list_ui.connect("button_press_event",
-                                    self.__pop_menu_up_cb,
+                                    self.__treeview_pop_menu_up_cb,
                                     self.__label_list_ui,
                                     self.__label_list_menu)
 
@@ -1028,7 +1061,12 @@ class MainWindow(object):
             assert(self.__doc)
 
         self.main_window.set_title(self.__doc.name + " - " + self.WIN_TITLE)
-        self.tabs.refresh_page_list()
+        self.show_busy_cursor()
+        gtk_refresh()
+        try:
+            self.tabs.refresh_page_list()
+        finally:
+            self.show_normal_cursor()
         assert(self.__doc.pages[0] != None)
         print "Showing first page of the doc"
         self.page = self.__doc.pages[0]

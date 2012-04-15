@@ -203,7 +203,7 @@ class Selecters(object):
             factor = (float(w)) / 192
             w = 192
             h /= factor
-            img = img.resize((int(w), int(h)), Image.BILINEAR)
+            img = img.resize((int(w), int(h)))
             pixbuf = image2pixbuf(img)
             self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb),
                                      page.page_nb - 1])

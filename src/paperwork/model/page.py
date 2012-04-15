@@ -122,6 +122,15 @@ class ScannedPage(object):
 
     img = property(__get_img)
 
+    def get_thumbnail(self, width):
+        img = self.img
+        (w, h) = img.size
+        factor = (float(w) / width)
+        w = width
+        h /= factor
+        img = img.resize((int(w), int(h)))
+        return img
+
     def __scan(self, scan_src, scanner_calibration, callback=dummy_progress_cb):
         """
         Scan a page, and generate 4 output files:

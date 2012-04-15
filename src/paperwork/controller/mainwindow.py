@@ -198,12 +198,7 @@ class Selecters(object):
         """
         self.__page_list.clear()
         for page in self.__main_win.doc.pages:
-            img = page.img
-            (w, h) = img.size
-            factor = (float(w)) / 192
-            w = 192
-            h /= factor
-            img = img.resize((int(w), int(h)))
+            img = page.get_thumbnail(192)
             pixbuf = image2pixbuf(img)
             self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb),
                                      page.page_nb - 1])

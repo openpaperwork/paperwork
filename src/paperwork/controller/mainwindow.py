@@ -63,6 +63,7 @@ class Selecters(object):
         self.__page_list = self.__widget_tree.get_object("liststorePage")
         self.__page_list_ui = self.__widget_tree.get_object("iconviewPage")
         self.__page_list_menu = self.__widget_tree.get_object("popupmenuPages")
+        self.__page_nb_entry = self.__widget_tree.get_object("entryPageNb")
 
         # label selector
         self.__label_list = self.__widget_tree.get_object("liststoreLabel")
@@ -358,6 +359,18 @@ class Selecters(object):
         self.__main_win.page = self.__main_win.doc.pages[nb]
         return True
 
+    def __goto_page_cb(self, widget):
+        successful = False
+        try:
+            nb = int(widget.get_text()) - 1
+            if nb >= 0 and nb < self.__main_win.doc.nb_pages:
+                self.__main_win.page = self.__main_win.doc.pages[nb]
+                successful = True
+        except Exception:
+            pass
+        if not successful:
+            widget.set_text("%d" % (self.__main_win.page.page_nb + 1))
+
     def __connect_signals(self):
         """
         Connect all the signals in the tabs area
@@ -388,6 +401,7 @@ class Selecters(object):
                 "clicked", self.__next_page_cb)
         self.__widget_tree.get_object("buttonPrevPage").connect(
                 "clicked", self.__prev_page_cb)
+        self.__page_nb_entry.connect("activate", self.__goto_page_cb)
         self.__search_field.connect("changed", self.__update_results_cb)
         self.__match_list_ui.connect("cursor-changed",
                 self.__show_selected_doc_cb)

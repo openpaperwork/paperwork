@@ -342,6 +342,22 @@ class Selecters(object):
     def __scan_page_cb(self, widget=None):
         self.__main_win.scan_single_page()
 
+    def __next_page_cb(self, widget=None):
+        nb = self.__main_win.page.page_nb
+        nb += 1
+        if nb >= self.__main_win.doc.nb_pages:
+            return True
+        self.__main_win.page = self.__main_win.doc.pages[nb]
+        return True
+
+    def __prev_page_cb(self, widget=None):
+        nb = self.__main_win.page.page_nb
+        nb -= 1
+        if nb < 0:
+            return True
+        self.__main_win.page = self.__main_win.doc.pages[nb]
+        return True
+
     def __connect_signals(self):
         """
         Connect all the signals in the tabs area
@@ -368,6 +384,10 @@ class Selecters(object):
                                     self.__iconview_pop_menu_up_cb,
                                     self.__page_list_ui,
                                     self.__page_list_menu)
+        self.__widget_tree.get_object("buttonNextPage").connect(
+                "clicked", self.__next_page_cb)
+        self.__widget_tree.get_object("buttonPrevPage").connect(
+                "clicked", self.__prev_page_cb)
         self.__search_field.connect("changed", self.__update_results_cb)
         self.__match_list_ui.connect("cursor-changed",
                 self.__show_selected_doc_cb)

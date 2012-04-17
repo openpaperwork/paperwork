@@ -227,7 +227,7 @@
                 <property name="label" translatable="yes">Scan</property>
                 <property name="use_underline">True</property>
                 <property name="icon_name">scanner</property>
-                <child>
+                <child type="menu">
                   <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
                     <property name="tearoff_title">pouet</property>

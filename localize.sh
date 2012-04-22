@@ -5,15 +5,21 @@
 # must be specified (separated by ':')
 LANGS="fr_FR.UTF-8:fr"
 
-if [ $# -ne 1 ]
-then
+usage()
+{
 	echo "usage:" >&2
 	echo "  $0 (upd-po|gen-mo)" >&2
 	echo "" >&2
 	echo "  upd-po: Will generate or update .po files" >&2
 	echo "  gen-mo: Will use .po files to regenerate the .mo file" >&2
+	echo
+	echo "Usual steps to update translations are:"
+	echo "1) upd-po"
+	echo "2) Edit locale/<lang>.po"
+	echo "3) gen-mo"
+	echo "4) commit"
 	exit 1
-fi
+}
 
 if ! [ -d src ]
 then
@@ -21,7 +27,11 @@ then
 	exit 2
 fi
 
-if [ "$1" = "upd-po" ]
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]
+then
+	usage
+	exit 0
+elif [ "$1" = "upd-po" ]
 then
 	mkdir -p locale
 
@@ -56,9 +66,8 @@ then
 
 	echo "Done"
 	exit 0
-fi
 
-if [ "$1" = "gen-mo" ]
+elif [ "$1" = "gen-mo" ]
 then
 	for lang in ${LANGS}
 	do
@@ -75,5 +84,9 @@ then
 
 	echo "Done"
 	exit 0
+
+else
+	usage
+	exit 1
 fi
 

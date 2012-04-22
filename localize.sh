@@ -15,7 +15,7 @@ usage()
 	echo
 	echo "Usual steps to update translations are:"
 	echo "1) upd-po"
-	echo "2) Edit locale/<lang>.po"
+	echo "2) Edit locale/<lang>.po (look for the \"fuzzy\" keyword and empty strings !)"
 	echo "3) gen-mo"
 	echo "4) commit"
 	exit 1

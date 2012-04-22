@@ -201,7 +201,7 @@ class Selectors(object):
         """
         self.__page_list.clear()
         for page in self.__main_win.doc.pages:
-            img = page.get_thumbnail(120)
+            img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
             self.__page_list.append([pixbuf, _('Page %d') % (page.page_nb + 1),
                                      page.page_nb])

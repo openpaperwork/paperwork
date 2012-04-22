@@ -618,6 +618,8 @@ class MainWindow(object):
         # tooltip on toolbuttonScan is set by update_scan_buttons_state()
         tooltips.set_tip(self.__widget_tree.get_object("toolbuttonPrint"),
                          _("Print"))
+        tooltips.set_tip(self.__widget_tree.get_object("toolbuttonOpenDocDir"),
+                         _("Open parent folder"))
 
         self.__connect_signals()
 

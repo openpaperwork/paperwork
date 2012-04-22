@@ -27,10 +27,11 @@ from paperwork.util import split_words
 _ = gettext.gettext
 
 
-class Selecters(object):
+class Selectors(object):
     """
-    The 3 tabs on the left of the main window. Include the search field and its
-    buttons.
+    - Document selector
+    - Page selector (toolbar included)
+    - Label selector
     """
 
     def __init__(self, main_win, widget_tree):
@@ -397,9 +398,9 @@ class Selecters(object):
                                     self.__iconview_pop_menu_up_cb,
                                     self.__page_list_ui,
                                     self.__page_list_menu)
-        self.__widget_tree.get_object("buttonNextPage").connect(
+        self.__widget_tree.get_object("toolbuttonNextPage").connect(
                 "clicked", self.__next_page_cb)
-        self.__widget_tree.get_object("buttonPrevPage").connect(
+        self.__widget_tree.get_object("toolbuttonPrevPage").connect(
                 "clicked", self.__prev_page_cb)
         self.__page_nb_entry.connect("activate", self.__goto_page_cb)
         self.__search_field.connect("changed", self.__update_results_cb)
@@ -504,7 +505,7 @@ class ImageArea(object):
             if self.__main_win.must_show_all_boxes():
                 self.draw_boxes(img, boxes, color=(0x6c, 0x5d, 0xd1), width=1)
             self.draw_boxes(img, boxes, color=(0x00, 0x9f, 0x00), width=5,
-                            sentence=self.__main_win.selecters.get_search_sentence())
+                            sentence=self.__main_win.selectors.get_search_sentence())
 
             pixbuf = image2pixbuf(img)
 
@@ -618,7 +619,7 @@ class MainWindow(object):
 
         self.__connect_signals()
 
-        self.selecters = Selecters(self, self.__widget_tree)
+        self.selectors = Selectors(self, self.__widget_tree)
         self.image_area = ImageArea(self, self.__widget_tree)
 
         gtk_refresh()
@@ -636,7 +637,7 @@ class MainWindow(object):
             self.__widget_tree.get_object("menubarMainWin").set_sensitive(False)
             self.__widget_tree.get_object("toolbarMainWin").set_sensitive(False)
             self.reindex()
-            self.selecters.show_doc_list(reversed(self.docsearch.docs))
+            self.selectors.show_doc_list(reversed(self.docsearch.docs))
         finally:
             self.__widget_tree.get_object("menubarMainWin").set_sensitive(True)
             self.__widget_tree.get_object("toolbarMainWin").set_sensitive(True)
@@ -690,12 +691,12 @@ class MainWindow(object):
         """
         try:
             self.show_busy_cursor()
-            self.selecters.set_result_lists_sensitive(False)
+            self.selectors.set_result_lists_sensitive(False)
             self.set_progress(0.0, "")
             self.docsearch = DocSearch(self.__config.workdir,
                                        self.cb_progress)
         finally:
-            self.selecters.set_result_lists_sensitive(True)
+            self.selectors.set_result_lists_sensitive(True)
             self.set_progress(0.0, "")
             self.show_normal_cursor()
 
@@ -768,7 +769,7 @@ class MainWindow(object):
         """
         Display the specified page
         """
-        self.selecters.set_page_changers_sensitive(False)
+        self.selectors.set_page_changers_sensitive(False)
         try:
             assert(page != None)
             self.__page = page
@@ -777,14 +778,14 @@ class MainWindow(object):
             print "Showing page '%s'" % (page)
 
             self.image_area.show_page(page)
-            self.selecters.select_page(page)
+            self.selectors.select_page(page)
             try:
                 self.__show_page_txt(page)
             except IOError, exc:
                 print "Unable to show text for doc '%s': %s" % (page, exc)
                 self.__page_txt.get_buffer().set_text("")
         finally:
-            self.selecters.set_page_changers_sensitive(True)
+            self.selectors.set_page_changers_sensitive(True)
 
     def __get_current_page(self):
         return self.__page
@@ -840,11 +841,11 @@ class MainWindow(object):
                                           self.cb_progress)
                 page = self.doc.pages[self.doc.nb_pages - 1]
                 self.docsearch.index_page(page)
-                self.selecters.refresh_page_list()
+                self.selectors.refresh_page_list()
                 self.page = page
                 # in case a document was freshly created, we have to update the
                 # document list as well
-                self.selecters.refresh_doc_list()
+                self.selectors.refresh_doc_list()
                 self.__reset_page_vpaned()
             finally:
                 scan_src.close()
@@ -912,14 +913,14 @@ class MainWindow(object):
         print "Label edited. Applying changes"
         try:
             self.show_busy_cursor()
-            self.selecters.set_result_lists_sensitive(False)
+            self.selectors.set_result_lists_sensitive(False)
             self.set_progress(0.0, "")
             self.docsearch.update_label(label, new_label, self.cb_progress)
             print "Label updated"
             self.reindex()
         finally:
             self.set_progress(0.0, "")
-            self.selecters.set_result_lists_sensitive(True)
+            self.selectors.set_result_lists_sensitive(True)
             self.show_normal_cursor()
 
     def destroy_label(self, label):
@@ -931,14 +932,14 @@ class MainWindow(object):
             return
         try:
             self.show_busy_cursor()
-            self.selecters.set_result_lists_sensitive(False)
+            self.selectors.set_result_lists_sensitive(False)
             self.set_progress(0.0, "")
             self.docsearch.destroy_label(label, self.cb_progress)
             print "Label destroyed"
             self.reindex()
         finally:
             self.set_progress(0.0, "")
-            self.selecters.set_result_lists_sensitive(True)
+            self.selectors.set_result_lists_sensitive(True)
             self.show_normal_cursor()
 
     def __print_doc_cb(self, objsrc=None):
@@ -1025,7 +1026,7 @@ class MainWindow(object):
             return
         page.destroy()
         self.reindex()
-        self.selecters.refresh_page_list()
+        self.selectors.refresh_page_list()
         if (self.page == page):
             self.page = None
 
@@ -1097,13 +1098,13 @@ class MainWindow(object):
         self.show_busy_cursor()
         gtk_refresh()
         try:
-            self.selecters.refresh_page_list()
+            self.selectors.refresh_page_list()
         finally:
             self.show_normal_cursor()
         assert(self.__doc.pages[0] != None)
         print "Showing first page of the doc"
         self.page = self.__doc.pages[0]
-        self.selecters.refresh_label_list()
+        self.selectors.refresh_label_list()
 
     def __set_current_doc(self, doc):
         """

@@ -52,6 +52,52 @@
       <column type="gint"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststoreZoom">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Fit page width</col>
+        <col id="1">-1</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">50%</col>
+        <col id="1">50</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">70%</col>
+        <col id="1">70</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">85%</col>
+        <col id="1">85</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">100%</col>
+        <col id="1">100</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">125%</col>
+        <col id="1">125</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">150%</col>
+        <col id="1">150</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">175%</col>
+        <col id="1">175</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">200%</col>
+        <col id="1">200</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="title">Paperwork</property>
     <property name="default_width">1024</property>
@@ -207,73 +253,220 @@
           </packing>
         </child>
         <child>
-          <object class="GtkToolbar" id="toolbarMainWin">
+          <object class="GtkHBox" id="hbox2">
             <property name="visible">True</property>
             <child>
-              <object class="GtkToolButton" id="toolbuttonNew">
+              <object class="GtkToolbar" id="toolbarMainWin">
+                <property name="width_request">400</property>
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">New document</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-new</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkMenuToolButton" id="toolbuttonScan">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Scan</property>
-                <property name="use_underline">True</property>
-                <property name="icon_name">scanner</property>
-                <child type="menu">
-                  <object class="GtkMenu" id="menu1">
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonNew">
                     <property name="visible">True</property>
-                    <property name="tearoff_title">pouet</property>
-                    <child>
-                      <object class="GtkMenuItem" id="menuitemScanSingle">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">Single Page</property>
-                        <property name="use_underline">True</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuItem" id="menuitemScanFeeder">
-                        <property name="visible">True</property>
-                        <property name="label" translatable="yes">From Feeder</property>
-                        <property name="use_underline">True</property>
-                      </object>
-                    </child>
+                    <property name="label" translatable="yes">New document</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-new</property>
                   </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonPrint">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Print</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-print</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonQuit">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Quit</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-quit</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <object class="GtkToolButton" id="toolbuttonPrint">
+              <object class="GtkToolbar" id="toolbarPage">
                 <property name="visible">True</property>
-                <property name="label" translatable="yes">Print</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-print</property>
+                <child>
+                  <object class="GtkMenuToolButton" id="toolbuttonScan">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Scan</property>
+                    <property name="use_underline">True</property>
+                    <property name="icon_name">scanner</property>
+                    <child type="menu">
+                      <object class="GtkMenu" id="menu1">
+                        <property name="visible">True</property>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitemScanSingle">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Single Page</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuItem" id="menuitemScanFeeder">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">From Feeder</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem" id="toolbutton1">
+                    <property name="visible">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonPrevPage">
+                    <property name="visible">True</property>
+                    <property name="is_important">True</property>
+                    <property name="label" translatable="yes">Previous</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-go-up</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonNextPage">
+                    <property name="visible">True</property>
+                    <property name="is_important">True</property>
+                    <property name="label" translatable="yes">Next</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-go-down</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem" id="toolbutton2">
+                    <property name="visible">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolItem" id="customTextfieldPage">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkEntry" id="entryPageNb">
+                        <property name="width_request">35</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="invisible_char">&#x25CF;</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolItem" id="customLabelPages">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkLabel" id="labelTotalPages">
+                        <property name="visible">True</property>
+						<property name="label"></property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem" id="toolbutton3">
+                    <property name="visible">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolItem" id="customZoomSelector">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkComboBox" id="comboboxZoom">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="model">liststoreZoom</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem" id="toolbutton4">
+                    <property name="visible">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkToolButton" id="toolbuttonOpenFolder">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Open parent folder</property>
+                    <property name="use_underline">True</property>
+                    <property name="stock_id">gtk-directory</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="homogeneous">True</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSeparatorToolItem" id="toolbutton5">
+                    <property name="visible">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
               </object>
               <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="toolbuttonQuit">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">Quit</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-quit</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
@@ -355,144 +548,50 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkVBox" id="vbox42">
+                      <object class="GtkNotebook" id="notebook1">
                         <property name="visible">True</property>
-                        <property name="orientation">vertical</property>
-                        <property name="spacing">20</property>
+                        <property name="can_focus">True</property>
+                        <property name="homogeneous">True</property>
                         <child>
-                          <object class="GtkVBox" id="vbox2">
+                          <object class="GtkScrolledWindow" id="scrolledwindow3">
                             <property name="visible">True</property>
-                            <property name="orientation">vertical</property>
+                            <property name="can_focus">True</property>
+                            <property name="hscrollbar_policy">never</property>
+                            <property name="vscrollbar_policy">automatic</property>
                             <child>
-                              <object class="GtkScrolledWindow" id="scrolledwindow3">
+                              <object class="GtkViewport" id="viewport1">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="hscrollbar_policy">never</property>
-                                <property name="vscrollbar_policy">automatic</property>
+                                <property name="resize_mode">queue</property>
                                 <child>
-                                  <object class="GtkViewport" id="viewport1">
+                                  <object class="GtkIconView" id="iconviewPage">
                                     <property name="visible">True</property>
-                                    <property name="resize_mode">queue</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="model">liststorePage</property>
                                     <child>
-                                      <object class="GtkIconView" id="iconviewPage">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="model">liststorePage</property>
-                                        <child>
-                                          <object class="GtkCellRendererPixbuf" id="cellrenderertext1"/>
-                                          <attributes>
-                                            <attribute name="pixbuf">0</attribute>
-                                          </attributes>
-                                        </child>
-                                        <child>
-                                          <object class="GtkCellRendererText" id="cellrenderertext2"/>
-                                          <attributes>
-                                            <attribute name="text">1</attribute>
-                                          </attributes>
-                                        </child>
-                                      </object>
+                                      <object class="GtkCellRendererPixbuf" id="cellrendererThumb"/>
+                                      <attributes>
+                                        <attribute name="pixbuf">0</attribute>
+                                      </attributes>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                                      <attributes>
+                                        <attribute name="text">1</attribute>
+                                      </attributes>
                                     </child>
                                   </object>
                                 </child>
                               </object>
-                              <packing>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkHBox" id="hbox2">
-                                <property name="visible">True</property>
-                                <child>
-                                  <object class="GtkButton" id="buttonPrevPage">
-                                    <property name="label" translatable="yes">&lt;</property>
-                                    <property name="width_request">30</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkHBox" id="hbox4">
-                                    <property name="visible">True</property>
-                                    <child>
-                                      <object class="GtkLabel" id="label3">
-                                        <property name="visible">True</property>
-                                      </object>
-                                      <packing>
-                                        <property name="position">0</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="label1">
-                                        <property name="visible">True</property>
-                                        <property name="label" translatable="yes" comments="Keep a space at the end of the string">Page </property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="position">1</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkEntry" id="entryPageNb">
-                                        <property name="width_request">30</property>
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="invisible_char">&#x25CF;</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="position">2</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="labelTotalPages">
-                                        <property name="visible">True</property>
-                                        <property name="label" translatable="yes">/ 0</property>
-                                      </object>
-                                      <packing>
-                                        <property name="expand">False</property>
-                                        <property name="position">3</property>
-                                      </packing>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="label4">
-                                        <property name="visible">True</property>
-                                      </object>
-                                      <packing>
-                                        <property name="position">4</property>
-                                      </packing>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="buttonNextPage">
-                                    <property name="label" translatable="yes">&gt;</property>
-                                    <property name="width_request">30</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="position">2</property>
-                                  </packing>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="position">1</property>
-                              </packing>
                             </child>
                           </object>
+                        </child>
+                        <child type="tab">
+                          <object class="GtkLabel" id="label2">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Pages</property>
+                          </object>
                           <packing>
-                            <property name="position">0</property>
+                            <property name="tab_fill">False</property>
                           </packing>
                         </child>
                         <child>
@@ -558,8 +657,17 @@
                             </child>
                           </object>
                           <packing>
-                            <property name="expand">False</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child type="tab">
+                          <object class="GtkLabel" id="label5">
+                            <property name="visible">True</property>
+                            <property name="label" translatable="yes">Labels</property>
+                          </object>
+                          <packing>
+                            <property name="position">1</property>
+                            <property name="tab_fill">False</property>
                           </packing>
                         </child>
                       </object>
@@ -640,7 +748,7 @@
                 </child>
               </object>
               <packing>
-                <property name="position">2</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>

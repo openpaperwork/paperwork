@@ -308,7 +308,7 @@ class Selectors(object):
             return False
         path = pathinfo
         treeview.grab_focus()
-        treeview.set_cursor(path, col, 0)
+        treeview.set_cursor(path[0])
         popup_menu.popup(None, None, None, event.button, ev_time)
         return True
 

@@ -153,6 +153,7 @@ class MultiscanDialog(object):
                     doc = ScannedDoc(self.__config.workdir) # new document
                     for page_idx in range(0, nb_pages):
                         if not self.__running:
+                            print "Halted by the user"
                             raise StopIteration()
                         self.__current_scan = (doc_idx, page_idx, nb_pages)
                         doc.scan_single_page(scan_src,

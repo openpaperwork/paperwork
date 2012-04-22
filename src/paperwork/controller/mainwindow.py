@@ -280,7 +280,7 @@ class Selectors(object):
         self.refresh_label_list()
         return True
 
-    def __open_doc_cb(self, objsrc=None):
+    def __open_doc_dir_cb(self, objsrc=None):
         """
         Open the currently selected document in a file manager
         """
@@ -389,8 +389,10 @@ class Selectors(object):
         self.__widget_tree.get_object("menuitemDestroyLabel").connect(
                 "activate", self.__apply_to_current_label_cb,
                 self.__main_win.destroy_label)
-        self.__widget_tree.get_object("menuitemOpenDoc").connect(
-                "activate", self.__open_doc_cb)
+        self.__widget_tree.get_object("menuitemOpenDocDir").connect(
+                "activate", self.__open_doc_dir_cb)
+        self.__widget_tree.get_object("toolbuttonOpenDocDir").connect(
+                "clicked", self.__open_doc_dir_cb)
         self.__page_list_ui.add_events(gtk.gdk.BUTTON_PRESS_MASK)
         self.__page_list_ui.connect("selection-changed",
                                     self.__show_selected_page_cb)

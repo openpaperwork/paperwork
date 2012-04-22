@@ -445,7 +445,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkToolButton" id="toolbuttonOpenFolder">
+                  <object class="GtkToolButton" id="toolbuttonOpenDocDir">
                     <property name="visible">True</property>
                     <property name="label" translatable="yes">Open parent folder</property>
                     <property name="use_underline">True</property>
@@ -808,7 +808,7 @@
   <object class="GtkMenu" id="popupmenuMatchs">
     <property name="visible">True</property>
     <child>
-      <object class="GtkMenuItem" id="menuitemOpenDoc">
+      <object class="GtkMenuItem" id="menuitemOpenDocDir">
         <property name="visible">True</property>
         <property name="tooltip_text" translatable="yes">Open the document in a file manager
 </property>

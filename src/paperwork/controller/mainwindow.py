@@ -254,8 +254,7 @@ class Selectors(object):
         self.refresh_label_list()
         self.__update_results_cb()
 
-    def __edit_clicked_label_cb(self, treeview=None, objpath=None,
-                                view_column=None):
+    def __edit_label_clicked_cb(self, treeview, objpath, view_column=None):
         """
         Called when the user click on 'edit label'
         """
@@ -414,11 +413,19 @@ class Selectors(object):
                                     self.__match_list_ui,
                                     self.__match_list_menu)
         self.__label_list_ui.connect("row-activated",
-                                     self.__edit_clicked_label_cb)
+                                     self.__edit_label_clicked_cb)
         self.__label_list_ui.connect("button_press_event",
                                     self.__treeview_pop_menu_up_cb,
                                     self.__label_list_ui,
                                     self.__label_list_menu)
+        self.__widget_tree.get_object("buttonAddLabel").connect( \
+                "clicked", self.__add_label_cb)
+        self.__widget_tree.get_object("buttonEditLabel").connect( \
+                "clicked", self.__apply_to_current_label_cb,
+                self.__main_win.edit_label)
+        self.__widget_tree.get_object("buttonDelLabel").connect(
+                "clicked", self.__apply_to_current_label_cb,
+                self.__main_win.destroy_label)
 
 class ImageArea(object):
     """

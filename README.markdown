@@ -63,6 +63,8 @@ Dependencies
 
 * pygtk v2 (required)
 	* Debian/Ubuntu package: python-gtk2
+* python-glade2 (required)
+	* Debian/Ubuntu package: python-glade2
 * pycountry (required)
 	* Debian/Ubuntu package: python-pycountry
 * python-imaging (required)

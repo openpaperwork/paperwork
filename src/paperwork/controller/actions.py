@@ -19,6 +19,9 @@ class SimpleAction(object):
     def entry_changed(self, entry):
         self.do()
 
+    def treeview_cursor_changed(self, treeview):
+        self.do()
+
 
 def connect_buttons(buttons, action):
     for button in buttons:
@@ -31,5 +34,8 @@ def connect_buttons(buttons, action):
             button.connect("activate", action.menuitem_activate)
         elif isinstance(button, gtk.Editable):
             button.connect("changed", action.entry_changed)
+        elif isinstance(button, gtk.TreeView):
+            button.connect("cursor-changed",
+                           action.treeview_cursor_changed)
         else:
             assert()

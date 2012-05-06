@@ -1,6 +1,9 @@
 import os
+import sys
 import threading
 
+import Image
+import ImageColor
 import gtk
 import gettext
 import gobject
@@ -66,6 +69,41 @@ class WorkerDocIndexer(Worker):
 gobject.type_register(WorkerDocIndexer)
 
 
+class WorkerThumbnailer(Worker):
+    """
+    Generate thumbnails
+    """
+
+    __gsignals__ = {
+        'thumbnailing-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'thumbnailing-page-done': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                   (gobject.TYPE_INT, )),
+        'thumbnailing-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Thumbnailing")
+        self.__main_win = main_window
+        self.lock = threading.Lock()
+
+    def do(self):
+        self.emit('thumbnailing-start')
+        for page_idx in range(0, self.__main_win.doc.nb_pages):
+            page = self.__main_win.doc.pages[page_idx]
+            img = page.get_thumbnail(150)
+            pixbuf = image2pixbuf(img)
+            if not self.can_run:
+                return
+            self.__main_win.thumbnails[page_idx] = pixbuf
+            self.emit('thumbnailing-page-done', page_idx)
+        self.emit('thumbnailing-end')
+
+
+gobject.type_register(WorkerThumbnailer)
+
+
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
@@ -77,10 +115,42 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        if self.__main_win.workers['thumbnailer'].is_running:
+            self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        self.__main_win.thumbnails = []
         self.__main_win.page = self.__main_win.doc.pages[0]
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
+
+
+class ActionOpenSelectedDocument(SimpleAction):
+    """
+    Starts a new document.
+    """
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open selected document")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+
+        selection_path = \
+                self.__main_win.lists['matches'][0].get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No document selected. Can't open"
+            return
+        doc = selection_path[0].get_value(selection_path[1], 1)
+
+        print "Showing doc %s" % doc
+        if self.__main_win.workers['thumbnailer'].is_running:
+            self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.doc = doc
+        self.__main_win.set_default_thumbnails()
+        self.__main_win.page = self.__main_win.doc.pages[0]
+        self.__main_win.refresh_page_list()
+        self.__main_win.refresh_label_list()
+        self.__main_win.workers['thumbnailer'].start()
 
 
 class ActionStartWorker(SimpleAction):
@@ -135,20 +205,41 @@ class ActionQuit(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
+        # TODO(Jflesch): Find a better default thumbnail
+        self.default_thumbnail = image2pixbuf(img)
+        del img
+
         widget_tree = load_uifile("mainwindow.glade")
 
         self.window = widget_tree.get_object("mainWindow")
 
         self.docsearch = DummyDocSearch()
         self.doc = None
+        self.thumbnails = []
         self.page = None
 
-        self.listStores = {
-            'suggestions' : widget_tree.get_object("liststoreSuggestion"),
-            'labels' : widget_tree.get_object("liststoreLabel"),
-            'matches' : widget_tree.get_object("liststoreMatch"),
-            'pages' : widget_tree.get_object("liststorePage"),
-            'zoomLevels' : widget_tree.get_object("liststoreZoom"),
+        self.lists = {
+            'suggestions' : (
+                widget_tree.get_object("entrySearch"),
+                widget_tree.get_object("liststoreSuggestion")
+            ),
+            'matches' : (
+                widget_tree.get_object("treeviewMatch"),
+                widget_tree.get_object("liststoreMatch"),
+            ),
+            'pages' : (
+                widget_tree.get_object("iconviewPage"),
+                widget_tree.get_object("liststorePage"),
+            ),
+            'labels' : (
+                widget_tree.get_object("treeviewLabel"),
+                widget_tree.get_object("liststoreLabel"),
+            ),
+            'zoomLevels' : (
+                widget_tree.get_object("comboboxZoom"),
+                widget_tree.get_object("liststoreZoom"),
+            ),
         }
 
         self.indicators = {
@@ -188,7 +279,8 @@ class MainWindow(object):
         }
 
         self.workers = {
-            'reindex' : WorkerDocIndexer(self, config)
+            'reindex' : WorkerDocIndexer(self, config),
+            'thumbnailer' : WorkerThumbnailer(self),
         }
 
         self.actions = {
@@ -198,6 +290,12 @@ class MainWindow(object):
                     widget_tree.get_object("toolbuttonNew"),
                 ],
                 ActionNewDocument(self, config),
+            ),
+            'open_doc' : (
+                [
+                    widget_tree.get_object("treeviewMatch"),
+                ],
+                ActionOpenSelectedDocument(self)
             ),
             'single_scan' : [
                 widget_tree.get_object("menuitemScan"),
@@ -289,37 +387,27 @@ class MainWindow(object):
         }
 
         connect_buttons(self.actions['new_doc'][0], self.actions['new_doc'][1])
+        connect_buttons(self.actions['open_doc'][0], self.actions['open_doc'][1])
         connect_buttons(self.actions['reindex'][0], self.actions['reindex'][1])
         connect_buttons(self.actions['quit'][0], self.actions['quit'][1])
         connect_buttons(self.actions['search'][0], self.actions['search'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
-                                        self.set_progression(self.workers['reindex'],
-                                                            0.0, None))
-        self.workers['reindex'].connect('indexation-start', lambda indexer: \
-                                        self.set_search_availability(False))
-        self.workers['reindex'].connect('indexation-start', lambda indexer: \
-                                        self.set_mouse_cursor("Busy"))
+            gobject.idle_add(self.__on_indexation_start))
         self.workers['reindex'].connect('indexation-progression',
-                                        self.set_progression)
+            lambda indexer, progression, txt: \
+                gobject.idle_add(self.set_progression, indexer,
+                                 progression, txt))
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.set_search_availability(True))
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.set_mouse_cursor("Normal"))
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.set_progression(self.workers['reindex'],
-                                                            0.0, None))
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.refresh_page_list())
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.refresh_doc_list())
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-                                        self.refresh_label_list())
+            gobject.idle_add(self.__on_indexation_end))
+
+        self.workers['thumbnailer'].connect('thumbnailing-page-done',
+                lambda thumbnailer, page_idx: \
+                    gobject.idle_add(self.refresh_page_thumbnail, page_idx))
 
         self.window.set_visible(True)
 
     def set_search_availability(self, enabled):
-        print "Change search availability: %s" % str(enabled)
         for list_view in self.doc_browsing.values():
             list_view.set_sensitive(enabled)
 
@@ -336,6 +424,23 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
+    def __on_indexation_start(self):
+        self.set_progression(self.workers['reindex'], 0.0, None)
+        self.set_search_availability(False)
+        self.set_mouse_cursor("Busy")
+
+    def __on_indexation_end(self):
+        self.set_progression(self.workers['reindex'], 0.0, None)
+        self.set_search_availability(True)
+        self.set_mouse_cursor("Normal")
+        self.refresh_doc_list()
+        self.refresh_label_list()
+
+    def set_default_thumbnails(self):
+        self.thumbnails = []
+        for i in range(0, self.doc.nb_pages):
+            self.thumbnails.append(self.default_thumbnail)
+
     def refresh_doc_list(self):
         """
         Update the suggestions list and the matching documents list based on
@@ -346,15 +451,15 @@ class MainWindow(object):
 
         suggestions = self.docsearch.find_suggestions(sentence)
         print "Got %d suggestions" % len(suggestions)
-        self.listStores['suggestions'].clear()
+        self.lists['suggestions'][1].clear()
         for suggestion in suggestions:
-            self.listStores['suggestions'].append([suggestion])
+            self.lists['suggestions'][1].append([suggestion])
 
         documents = self.docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
         documents = reversed(documents)
 
-        self.listStores['matches'].clear()
+        self.lists['matches'][1].clear()
         for doc in documents:
             labels = doc.labels
             final_str = doc.name
@@ -364,31 +469,35 @@ class MainWindow(object):
             if len(labels) > 0:
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
-            self.listStores['matches'].append([final_str, doc])
+            self.lists['matches'][1].append([final_str, doc])
 
     def refresh_page_list(self):
         """
         Reload and refresh the page list
         """
-        self.listStores['pages'].clear()
+        self.lists['pages'][1].clear()
         for page in self.doc.pages:
-            img = page.get_thumbnail(150)
-            pixbuf = image2pixbuf(img)
-            self.listStores['pages'].append([
-                pixbuf, _('Page %d') % (page.page_nb + 1),
+            self.lists['pages'][1].append([
+                self.thumbnails[page.page_nb],
+                _('Page %d') % (page.page_nb + 1),
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
                 _("/ %d") % (self.doc.nb_pages))
 
+    def refresh_page_thumbnail(self, page_idx):
+        line_iter = self.lists['pages'][1].get_iter(page_idx)
+        thumb = self.thumbnails[page_idx]
+        self.lists['pages'][1].set_value(line_iter, 0, thumb)
+
     def refresh_label_list(self):
         """
         Reload and refresh the label list
         """
-        self.listStores['labels'].clear()
+        self.lists['labels'][1].clear()
         labels = self.doc.labels
         for label in self.docsearch.label_list:
-            self.listStores['labels'].append([
+            self.lists['labels'][1].append([
                 label.get_html(),
                 (label in labels),
                 label

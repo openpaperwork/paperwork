@@ -1,55 +1,140 @@
 import os
+import threading
 
 import gtk
 import gettext
+import gobject
 
+from paperwork.controller.actions import connect_buttons
+from paperwork.controller.actions import do_actions
+from paperwork.controller.actions import SimpleAction
 from paperwork.model.doc import ScannedDoc
+from paperwork.model.docsearch import DummyDocSearch
+from paperwork.model.docsearch import DocSearch
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
 
-class ActionButton(object):
+
+class WorkerDocIndexer(gobject.GObject):
     """
-    Template for all the actions started by buttons
+    Reindex all the documents
     """
-    def __init__(self, name):
-        self.name = name
+
+    __gsignals__ = {
+        'indexation-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'indexation-progression' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                    (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
+        'indexation-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window, config):
+        gobject.GObject.__init__(self)
+        self.__main_win = main_window
+        self.__config = config
+        self.__can_run = True
+        self.__thread = None
+
+    def __cb_progress(self, progression, total, step, doc=None):
+        """
+        Update the main progress bar
+        """
+        txt = None
+        if step == DocSearch.INDEX_STEP_READING:
+            txt = _('Reading ...')
+        elif step == DocSearch.INDEX_STEP_SORTING:
+            txt = _('Sorting ...')
+        else:
+            assert()  # unknown progression type
+            txt = ""
+        if doc != None:
+            txt += (" (%s)" % (doc.name))
+        self.emit('indexation-progression', float(progression) / total, txt)
+        if not self.__can_run:
+            raise StopIteration()
 
     def do(self):
-        print "Action: %s" % (self.name)
+        try:
+            docsearch = DocSearch(self.__config.workdir, self.__cb_progress)
+            self.__main_win.docsearch = docsearch
+        except StopIteration:
+            print "Indexation interrupted"
+        self.emit('indexation-end')
 
-    def button_clicked(self, toolbutton):
-        self.do()
+    def start(self):
+        self.emit('indexation-start')
+        self.__thread = threading.Thread(target=self.do)
+        self.__main_win.docsearch = DummyDocSearch()
+        self.__can_run = True
+        self.__thread.start()
 
-    def menuitem_activate(self, menuitem):
-        self.do()
+    def stop(self):
+        self.__can_run = False
+        assert(self.__thread != None)
+        self.__thread.join()
+
+    def __get_is_running(self):
+        return (self.__thread != None and self.__thread.is_alive())
+
+    is_running = property(__get_is_running)
+
+    def __str__(self):
+        return "Document reindexation"
 
 
-class ActionNewDocument(ActionButton):
+gobject.type_register(WorkerDocIndexer)
+
+
+class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
     Warning: Won't change anything in the UI
     """
     def __init__(self, main_window, config):
-        ActionButton.__init__(self, "New document")
+        SimpleAction.__init__(self, "New document")
         self.__main_win = main_window
         self.__config = config
 
     def do(self):
-        ActionButton.do(self)
+        SimpleAction.do(self)
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
 
 
-class ActionQuit(ActionButton):
+class ActionStartWorker(SimpleAction):
+    """
+    Start a threaded job
+    """
+    def __init__(self, worker):
+        SimpleAction.__init__(self, str(worker))
+        self.__worker = worker
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__worker.start()
+
+
+class ActionQuit(SimpleAction):
     """
     Quit
     """
     def __init__(self, main_window):
-        ActionButton.__init__(self, "Quit")
+        SimpleAction.__init__(self, "Quit")
         self.__main_win = main_window
 
     def do(self):
-        ActionButton.do(self)
+        SimpleAction.do(self)
+
+        for worker in self.__main_win.workers.values():
+            if worker.is_running and not worker.can_interrupt:
+                print ("Sorry, can't quit. Another thread is still running and"
+                       " can't be interrupted")
+                return
+        for worker in self.__main_win.workers.values():
+            if worker.is_running:
+                worker.stop()
+
         self.__main_win.window.destroy()
         gtk.main_quit()
 
@@ -59,6 +144,8 @@ class MainWindow(object):
         widget_tree = load_uifile("mainwindow.glade")
 
         self.window = widget_tree.get_object("mainWindow")
+
+        self.docsearch = DummyDocSearch()
 
         self.listStores = {
             'suggestions' : widget_tree.get_object("liststoreSuggestion"),
@@ -75,7 +162,7 @@ class MainWindow(object):
         self.listViews = {
             'matches' : widget_tree.get_object("treeviewMatch"),
             'pages' : widget_tree.get_object("iconviewPage"),
-            'labels' : widget_tree.get_object("labels"),
+            'labels' : widget_tree.get_object("treeviewLabel"),
         }
 
         self.text_area = widget_tree.get_object("textviewPageTxt")
@@ -90,6 +177,10 @@ class MainWindow(object):
             'labels' : widget_tree.get_object("popupmenuLabels"),
             'matches' : widget_tree.get_object("popupmenuMatchs"),
             'pages' : widget_tree.get_object("popupmenuPages"),
+        }
+
+        self.workers = {
+            'reindex' : WorkerDocIndexer(self, config)
         }
 
         self.actions = {
@@ -183,31 +274,58 @@ class MainWindow(object):
             'redo_ocr_all' : [
                 widget_tree.get_object("menuitemReOcrAll"),
             ],
-            'reindex' : [
-                widget_tree.get_object("menuitemReindexAll"),
-            ],
+            'reindex' : (
+                [
+                    widget_tree.get_object("menuitemReindexAll"),
+                ],
+                [
+                    ActionStartWorker(self.workers['reindex'])
+                ],
+            ),
             'about' : [
                 widget_tree.get_object("menuitemAbout"),
             ],
         }
 
-        self.connectButtons(self.actions['new'][0],
-                            self.actions['new'][1])
-        self.connectButtons(self.actions['quit'][0],
-                            self.actions['quit'][1])
+        connect_buttons(self.actions['new'][0], self.actions['new'][1])
+        connect_buttons(self.actions['reindex'][0], self.actions['reindex'][1])
+        connect_buttons(self.actions['quit'][0], self.actions['quit'][1])
+
+        self.workers['reindex'].connect('indexation-start', lambda indexer: \
+                                        self.set_search_availability(False))
+        self.workers['reindex'].connect('indexation-start', lambda indexer: \
+                                        self.set_mouse_cursor("Busy"))
+        self.workers['reindex'].connect('indexation-start', lambda indexer: \
+                                        self.set_progression(self.workers['reindex'],
+                                                            0.0, None))
+
+        self.workers['reindex'].connect('indexation-progression',
+                                        self.set_progression)
+
+        self.workers['reindex'].connect('indexation-end', lambda indexer: \
+                                        self.set_search_availability(True))
+        self.workers['reindex'].connect('indexation-end', lambda indexer: \
+                                        self.set_mouse_cursor("Normal"))
+        self.workers['reindex'].connect('indexation-end', lambda indexer: \
+                                        self.set_progression(self.workers['reindex'],
+                                                            0.0, None))
 
         self.window.set_visible(True)
 
-    @staticmethod
-    def connectButtons(buttons, actions):
-        for button in buttons:
-            assert(button != None)
-            for action in actions:
-                if isinstance(button, gtk.ToolButton):
-                    button.connect("clicked", action.button_clicked)
-                elif isinstance(button, gtk.Button):
-                    button.connect("clicked", action.button_clicked)
-                elif isinstance(button, gtk.MenuItem):
-                    button.connect("activate", action.menuitem_activate)
-                else:
-                    assert()
+    def set_search_availability(self, enabled):
+        for list_view in self.listViews.values():
+            list_view.set_sensitive(enabled)
+
+    def set_mouse_cursor(self, cursor):
+        self.window.window.set_cursor({
+            "Normal" : None,
+            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
+        }[cursor])
+
+    def set_progression(self, src, progression, text):
+        context_id = self.status['text'].get_context_id(str(src))
+        self.status['text'].pop(context_id)
+        if (text != None and text != ""):
+            self.status['text'].push(context_id, text)
+        self.status['progress'].set_fraction(progression)
+

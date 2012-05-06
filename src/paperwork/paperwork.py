@@ -5,6 +5,7 @@ Bootstrapping code
 """
 
 import os
+import sys
 
 import gettext
 import gobject
@@ -13,6 +14,7 @@ import gtk.glade
 import locale
 import pygtk
 
+from controller.actions import do_actions
 from controller.mainwindow import MainWindow
 from model.config import PaperworkConfig
 
@@ -53,7 +55,9 @@ def main():
     config = PaperworkConfig()
     config.read()
     main_win = MainWindow(config)
+    do_actions(main_win.actions['reindex'][1])
     gtk.main()
+    print "Good bye"
 
 if __name__ == "__main__":
     main()

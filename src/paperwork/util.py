@@ -110,16 +110,6 @@ def load_uifile(filename):
     return widget_tree
 
 
-def gtk_refresh():
-    """
-    Force a refresh of all GTK windows.
-
-    Warning: will also tell GTK to handle all events.
-    """
-    while gtk.events_pending():
-        gtk.main_iteration()
-
-
 def image2pixbuf(img):
     """
     Convert an image object to a gdk pixbuf

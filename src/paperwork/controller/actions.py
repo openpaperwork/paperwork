@@ -16,6 +16,9 @@ class SimpleAction(object):
     def menuitem_activate(self, menuitem):
         self.do()
 
+    def entry_changed(self, entry):
+        self.do()
+
 
 def connect_buttons(buttons, actions):
     for button in buttons:
@@ -27,6 +30,8 @@ def connect_buttons(buttons, actions):
                 button.connect("clicked", action.button_clicked)
             elif isinstance(button, gtk.MenuItem):
                 button.connect("activate", action.menuitem_activate)
+            elif isinstance(button, gtk.Editable):
+                button.connect("changed", action.entry_changed)
             else:
                 assert()
 

@@ -55,6 +55,7 @@ def main():
     config = PaperworkConfig()
     config.read()
     main_win = MainWindow(config)
+    do_actions(main_win.actions['new_doc'][1])
     do_actions(main_win.actions['reindex'][1])
     gtk.main()
     print "Good bye"

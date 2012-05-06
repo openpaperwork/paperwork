@@ -19,6 +19,10 @@ class Worker(gobject.GObject):
         assert()
 
     def start(self):
+        if self.is_running:
+            raise threading.ThreadError(
+                ("Tried to start a thread already running: %s"
+                 % (self.name)))
         self.__can_run = True
         self.__thread = threading.Thread(target=self.do)
         self.__thread.start()

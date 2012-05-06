@@ -11,7 +11,11 @@ from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import split_words
 
+
 class DummyDocSearch(object):
+    docs = []
+    label_list = []
+
     def __init__(self):
         pass
 
@@ -32,6 +36,7 @@ class DummyDocSearch(object):
 
     def destroy_label(self):
         assert()
+
 
 class DocSearch(object):
     """

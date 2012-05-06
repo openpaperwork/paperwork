@@ -20,21 +20,16 @@ class SimpleAction(object):
         self.do()
 
 
-def connect_buttons(buttons, actions):
+def connect_buttons(buttons, action):
     for button in buttons:
         assert(button != None)
-        for action in actions:
-            if isinstance(button, gtk.ToolButton):
-                button.connect("clicked", action.button_clicked)
-            elif isinstance(button, gtk.Button):
-                button.connect("clicked", action.button_clicked)
-            elif isinstance(button, gtk.MenuItem):
-                button.connect("activate", action.menuitem_activate)
-            elif isinstance(button, gtk.Editable):
-                button.connect("changed", action.entry_changed)
-            else:
-                assert()
-
-def do_actions(actions, **kwargs):
-    for action in actions:
-        action.do(**kwargs)
+        if isinstance(button, gtk.ToolButton):
+            button.connect("clicked", action.button_clicked)
+        elif isinstance(button, gtk.Button):
+            button.connect("clicked", action.button_clicked)
+        elif isinstance(button, gtk.MenuItem):
+            button.connect("activate", action.menuitem_activate)
+        elif isinstance(button, gtk.Editable):
+            button.connect("changed", action.entry_changed)
+        else:
+            assert()

@@ -6,7 +6,6 @@ import gettext
 import gobject
 
 from paperwork.controller.actions import connect_buttons
-from paperwork.controller.actions import do_actions
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.model.doc import ScannedDoc
@@ -70,7 +69,6 @@ gobject.type_register(WorkerDocIndexer)
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
-    Warning: Won't change anything in the UI
     """
     def __init__(self, main_window, config):
         SimpleAction.__init__(self, "New document")
@@ -80,6 +78,9 @@ class ActionNewDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        self.__main_win.page = self.__main_win.doc.pages[0]
+        self.__main_win.refresh_page_list()
+        self.__main_win.refresh_label_list()
 
 
 class ActionStartWorker(SimpleAction):
@@ -140,6 +141,7 @@ class MainWindow(object):
 
         self.docsearch = DummyDocSearch()
         self.doc = None
+        self.page = None
 
         self.listStores = {
             'suggestions' : widget_tree.get_object("liststoreSuggestion"),
@@ -190,16 +192,12 @@ class MainWindow(object):
         }
 
         self.actions = {
-            # Basic actions: there should be at least 2 items to do each of
-            # them
             'new_doc' : (
                 [
                     widget_tree.get_object("menuitemNew"),
                     widget_tree.get_object("toolbuttonNew"),
                 ],
-                [
-                    ActionNewDocument(self, config),
-                ]
+                ActionNewDocument(self, config),
             ),
             'single_scan' : [
                 widget_tree.get_object("menuitemScan"),
@@ -224,9 +222,7 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemQuit"),
                     widget_tree.get_object("toolbuttonQuit"),
                 ],
-                [
-                    ActionQuit(self),
-                ],
+                ActionQuit(self),
             ),
             'add_label' : [
                 widget_tree.get_object("buttonAddLabel"),
@@ -254,29 +250,21 @@ class MainWindow(object):
             ],
             'prev_page' : [
                 widget_tree.get_object("toolbuttonPrevPage"),
-                # the second way of doing that is clicking in the page list
             ],
             'next_page' : [
                 widget_tree.get_object("toolbuttonNextPage"),
-                # the second way of doing that is clicking in the page list
             ],
             'current_page' : [
                 widget_tree.get_object("entryPageNb"),
-                # the second way of selecting a page is clicking in the page
-                # list
             ],
             'zoom_levels' : [
                 widget_tree.get_object("comboboxZoom"),
-                # TODO
             ],
             'search' : (
                 [
                     self.search_field,
-                    # 2 search fields wouldn't make sense
                 ],
-                [
-                    ActionUpdateSearchResults(self),
-                ]
+                ActionUpdateSearchResults(self),
             ),
 
             # Advanced actions: having only 1 item to do them is fine
@@ -293,9 +281,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
-                [
-                    ActionStartWorker(self.workers['reindex'])
-                ],
+                ActionStartWorker(self.workers['reindex'])
             ),
             'about' : [
                 widget_tree.get_object("menuitemAbout"),
@@ -316,7 +302,6 @@ class MainWindow(object):
                                         self.set_mouse_cursor("Busy"))
         self.workers['reindex'].connect('indexation-progression',
                                         self.set_progression)
-
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
                                         self.set_search_availability(True))
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
@@ -394,7 +379,7 @@ class MainWindow(object):
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
-                _("/ %d") % (self.__main_win.doc.nb_pages))
+                _("/ %d") % (self.doc.nb_pages))
 
     def refresh_label_list(self):
         """

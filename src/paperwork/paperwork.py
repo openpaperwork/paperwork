@@ -14,7 +14,6 @@ import gtk.glade
 import locale
 import pygtk
 
-from controller.actions import do_actions
 from controller.mainwindow import MainWindow
 from model.config import PaperworkConfig
 
@@ -55,8 +54,8 @@ def main():
     config = PaperworkConfig()
     config.read()
     main_win = MainWindow(config)
-    do_actions(main_win.actions['new_doc'][1])
-    do_actions(main_win.actions['reindex'][1])
+    main_win.actions['new_doc'][1].do()
+    main_win.actions['reindex'][1].do()
     gtk.main()
     print "Good bye"
 

@@ -1,17 +1,38 @@
 import os
 
+import gtk
 import gettext
 
+from paperwork.model.doc import ScannedDoc
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
 
+class ActionNewDocument(object):
+    """
+    Starts a new document.
+    Warning: Won't change anything in the UI
+    """
+    def __init__(self, main_window, config):
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        print "Action: New document"
+        self.__main_win.doc = ScannedDoc(self.__config.workdir)
+
+    def button_clicked(self, toolbutton):
+        self.do()
+
+    def menuitem_activate(self, menuitem):
+        self.do()
+
 
 class MainWindow(object):
     def __init__(self, config):
-        self.config = config
-
         widget_tree = load_uifile("mainwindow.glade")
+
+        self.window = widget_tree.get_object("mainWindow")
 
         self.listStores = {
             'suggestions' : widget_tree.get_object("liststoreSuggestion"),
@@ -134,3 +155,20 @@ class MainWindow(object):
             'pages' : widget_tree.get_object("popupmenuPages"),
         }
 
+        self.connectButtons(self.actionItems['new'],
+                            ActionNewDocument(self, config))
+
+        self.window.set_visible(True)
+
+    @staticmethod
+    def connectButtons(buttons, action):
+        for button in buttons:
+            assert(button != None)
+            if isinstance(button, gtk.ToolButton):
+                button.connect("clicked", action.button_clicked)
+            elif isinstance(button, gtk.Button):
+                button.connect("clicked", action.button_clicked)
+            elif isinstance(button, gtk.MenuItem):
+                button.connect("activate", action.menuitem_activate)
+            else:
+                assert()

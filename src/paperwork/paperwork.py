@@ -50,15 +50,10 @@ def main():
 
     gobject.threads_init()
 
-    main_win = None
-    try:
-        config = PaperworkConfig()
-        config.read()
-        main_win = MainWindow(config)
-        gtk.main()
-    finally:
-        if main_win != None:
-            main_win.cleanup()
+    config = PaperworkConfig()
+    config.read()
+    main_win = MainWindow(config)
+    gtk.main()
 
 if __name__ == "__main__":
     main()

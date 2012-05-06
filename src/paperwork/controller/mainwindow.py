@@ -8,24 +8,50 @@ from paperwork.util import load_uifile
 
 _ = gettext.gettext
 
-class ActionNewDocument(object):
+class ActionButton(object):
     """
-    Starts a new document.
-    Warning: Won't change anything in the UI
+    Template for all the actions started by buttons
     """
-    def __init__(self, main_window, config):
-        self.__main_win = main_window
-        self.__config = config
+    def __init__(self, name):
+        self.name = name
 
     def do(self):
-        print "Action: New document"
-        self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        print "Action: %s" % (self.name)
 
     def button_clicked(self, toolbutton):
         self.do()
 
     def menuitem_activate(self, menuitem):
         self.do()
+
+
+class ActionNewDocument(ActionButton):
+    """
+    Starts a new document.
+    Warning: Won't change anything in the UI
+    """
+    def __init__(self, main_window, config):
+        ActionButton.__init__(self, "New document")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        ActionButton.do(self)
+        self.__main_win.doc = ScannedDoc(self.__config.workdir)
+
+
+class ActionQuit(ActionButton):
+    """
+    Quit
+    """
+    def __init__(self, main_window):
+        ActionButton.__init__(self, "Quit")
+        self.__main_win = main_window
+
+    def do(self):
+        ActionButton.do(self)
+        self.__main_win.window.destroy()
+        gtk.main_quit()
 
 
 class MainWindow(object):
@@ -156,19 +182,22 @@ class MainWindow(object):
         }
 
         self.connectButtons(self.actionItems['new'],
-                            ActionNewDocument(self, config))
+                            [ActionNewDocument(self, config)])
+        self.connectButtons(self.actionItems['quit'],
+                            [ActionQuit(self)])
 
         self.window.set_visible(True)
 
     @staticmethod
-    def connectButtons(buttons, action):
+    def connectButtons(buttons, actions):
         for button in buttons:
             assert(button != None)
-            if isinstance(button, gtk.ToolButton):
-                button.connect("clicked", action.button_clicked)
-            elif isinstance(button, gtk.Button):
-                button.connect("clicked", action.button_clicked)
-            elif isinstance(button, gtk.MenuItem):
-                button.connect("activate", action.menuitem_activate)
-            else:
-                assert()
+            for action in actions:
+                if isinstance(button, gtk.ToolButton):
+                    button.connect("clicked", action.button_clicked)
+                elif isinstance(button, gtk.Button):
+                    button.connect("clicked", action.button_clicked)
+                elif isinstance(button, gtk.MenuItem):
+                    button.connect("activate", action.menuitem_activate)
+                else:
+                    assert()

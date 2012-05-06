@@ -68,13 +68,42 @@ class MainWindow(object):
             'zoomLevels' : widget_tree.get_object("liststoreZoom"),
         }
 
-        self.actionItems = {
+        self.indicators = {
+            'total_page' : widget_tree.get_object("labelTotalPages"),
+        }
+
+        self.listViews = {
+            'matches' : widget_tree.get_object("treeviewMatch"),
+            'pages' : widget_tree.get_object("iconviewPage"),
+            'labels' : widget_tree.get_object("labels"),
+        }
+
+        self.text_area = widget_tree.get_object("textviewPageTxt")
+        self.img_area = widget_tree.get_object("imagePageImg")
+
+        self.status = {
+            'progress' : widget_tree.get_object("progressbar"),
+            'text' : widget_tree.get_object("statusbar"),
+        }
+
+        self.popupMenus = {
+            'labels' : widget_tree.get_object("popupmenuLabels"),
+            'matches' : widget_tree.get_object("popupmenuMatchs"),
+            'pages' : widget_tree.get_object("popupmenuPages"),
+        }
+
+        self.actions = {
             # Basic actions: there should be at least 2 items to do each of
             # them
-            'new' : [
-                widget_tree.get_object("menuitemNew"),
-                widget_tree.get_object("toolbuttonNew"),
-            ],
+            'new' : (
+                [
+                    widget_tree.get_object("menuitemNew"),
+                    widget_tree.get_object("toolbuttonNew"),
+                ],
+                [
+                    ActionNewDocument(self, config),
+                ]
+            ),
             'single_scan' : [
                 widget_tree.get_object("menuitemScan"),
                 widget_tree.get_object("imagemenuitemScanSingle"),
@@ -93,10 +122,15 @@ class MainWindow(object):
                 widget_tree.get_object("menuitemSettings"),
                 # TODO
             ],
-            'quit' : [
-                widget_tree.get_object("menuitemQuit"),
-                widget_tree.get_object("toolbuttonQuit"),
-            ],
+            'quit' : (
+                [
+                    widget_tree.get_object("menuitemQuit"),
+                    widget_tree.get_object("toolbuttonQuit"),
+                ],
+                [
+                    ActionQuit(self),
+                ],
+            ),
             'add_label' : [
                 widget_tree.get_object("buttonAddLabel"),
                 # TODO
@@ -157,34 +191,10 @@ class MainWindow(object):
             ],
         }
 
-        self.indicators = {
-            'total_page' : widget_tree.get_object("labelTotalPages"),
-        }
-
-        self.listViews = {
-            'matches' : widget_tree.get_object("treeviewMatch"),
-            'pages' : widget_tree.get_object("iconviewPage"),
-            'labels' : widget_tree.get_object("labels"),
-        }
-
-        self.text_area = widget_tree.get_object("textviewPageTxt")
-        self.img_area = widget_tree.get_object("imagePageImg")
-
-        self.status = {
-            'progress' : widget_tree.get_object("progressbar"),
-            'text' : widget_tree.get_object("statusbar"),
-        }
-
-        self.popupMenus = {
-            'labels' : widget_tree.get_object("popupmenuLabels"),
-            'matches' : widget_tree.get_object("popupmenuMatchs"),
-            'pages' : widget_tree.get_object("popupmenuPages"),
-        }
-
-        self.connectButtons(self.actionItems['new'],
-                            [ActionNewDocument(self, config)])
-        self.connectButtons(self.actionItems['quit'],
-                            [ActionQuit(self)])
+        self.connectButtons(self.actions['new'][0],
+                            self.actions['new'][1])
+        self.connectButtons(self.actions['quit'][0],
+                            self.actions['quit'][1])
 
         self.window.set_visible(True)
 

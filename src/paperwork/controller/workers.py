@@ -23,6 +23,7 @@ class Worker(gobject.GObject):
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
+        print "Starting job: %s" % (self.name)
         self.__can_run = True
         self.__thread = threading.Thread(target=self.do)
         self.__thread.start()

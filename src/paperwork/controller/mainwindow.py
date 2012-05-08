@@ -211,10 +211,10 @@ class ActionOpenDocumentSelected(SimpleAction):
         if self.__main_win.workers['thumbnailer'].is_running:
             self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.doc = doc
-        self.__main_win.page = self.__main_win.doc.pages[0]
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['thumbnailer'].start()
+        self.__main_win.show_page(self.__main_win.doc.pages[0])
 
 
 class ActionStartWorker(SimpleAction):
@@ -259,6 +259,29 @@ class ActionOpenPageSelected(SimpleAction):
         page_idx = selection_path[0][0]
         page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page)
+        # TODO(Jflesch): Move the vertical scrollbar of the page list
+        # up to the selected value
+
+
+class ActionMovePageIndex(SimpleAction):
+    def __init__(self, main_window, offset):
+        txt = "previous"
+        if offset > 0:
+            txt = "next"
+        SimpleAction.__init__(self, ("Show the %s page" % (txt)))
+        self.offset = offset
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        page_idx = self.__main_win.page.page_nb
+        page_idx += self.offset
+        if page_idx < 0 or page_idx >= self.__main_win.doc.nb_pages:
+            return
+        page = self.__main_win.doc.pages[page_idx]
+        self.__main_win.show_page(page)
+        # TODO(Jflesch): Move the vertical scrollbar of the page list
+        # up to the selected value
 
 
 class ActionOpenPageNb(SimpleAction):
@@ -475,12 +498,18 @@ class MainWindow(object):
                 widget_tree.get_object("menuitemDestroyPage2"),
                 # TODO
             ],
-            'prev_page' : [
-                widget_tree.get_object("toolbuttonPrevPage"),
-            ],
-            'next_page' : [
-                widget_tree.get_object("toolbuttonNextPage"),
-            ],
+            'prev_page' : (
+                [
+                    widget_tree.get_object("toolbuttonPrevPage"),
+                ],
+                ActionMovePageIndex(self, -1),
+            ),
+            'next_page' : (
+                [
+                    widget_tree.get_object("toolbuttonNextPage"),
+                ],
+                ActionMovePageIndex(self, 1),
+            ),
             'set_current_page' : (
                 [
                     widget_tree.get_object("entryPageNb"),
@@ -535,6 +564,10 @@ class MainWindow(object):
                        self.actions['zoom_levels'][1])
         connect_action(self.actions['set_current_page'][0],
                        self.actions['set_current_page'][1])
+        connect_action(self.actions['prev_page'][0],
+                       self.actions['prev_page'][1])
+        connect_action(self.actions['next_page'][0],
+                       self.actions['next_page'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb))

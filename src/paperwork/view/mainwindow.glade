@@ -420,7 +420,6 @@
                     <child>
                       <object class="GtkComboBox" id="comboboxZoom">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
                         <property name="model">liststoreZoom</property>
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext1"/>

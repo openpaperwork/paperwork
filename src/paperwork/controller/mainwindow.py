@@ -8,7 +8,7 @@ import gtk
 import gettext
 import gobject
 
-from paperwork.controller.actions import connect_buttons
+from paperwork.controller.actions import connect_action
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.model.doc import ScannedDoc
@@ -140,23 +140,27 @@ class WorkerImgBuilder(Worker):
             self.emit('img-building-result-stock', gtk.STOCK_MISSING_IMAGE)
             return
 
-        img = self.__main_win.page.img
-        pixbuf = image2pixbuf(img)
+        try:
+            img = self.__main_win.page.img
+            pixbuf = image2pixbuf(img)
 
-        factor = self.__get_zoom_factor()
-        print "Zoom: %f" % (factor)
+            factor = self.__get_zoom_factor()
+            print "Zoom: %f" % (factor)
 
-        if factor == 0.0:
-            wanted_width = self.__get_img_area_width()
-            factor = float(wanted_width) / pixbuf.get_width()
-            wanted_height = int(factor * pixbuf.get_height())
-        else:
-            wanted_width = int(factor * pixbuf.get_width())
-            wanted_height = int(factor * pixbuf.get_height())
-        pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
-                                     gtk.gdk.INTERP_BILINEAR)
+            if factor == 0.0:
+                wanted_width = self.__get_img_area_width()
+                factor = float(wanted_width) / pixbuf.get_width()
+                wanted_height = int(factor * pixbuf.get_height())
+            else:
+                wanted_width = int(factor * pixbuf.get_width())
+                wanted_height = int(factor * pixbuf.get_height())
+            pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
+                                         gtk.gdk.INTERP_BILINEAR)
 
-        self.emit('img-building-result-pixbuf', pixbuf)
+            self.emit('img-building-result-pixbuf', pixbuf)
+        except Exception, exc:
+            self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
+            raise exc
 
 
 gobject.type_register(WorkerImgBuilder)
@@ -185,7 +189,7 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.workers['img_builder'].start()
 
 
-class ActionOpenSelectedDocument(SimpleAction):
+class ActionOpenDocumentSelected(SimpleAction):
     """
     Starts a new document.
     """
@@ -239,9 +243,10 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_doc_list()
 
 
-class ActionOpenSelectedPage(SimpleAction):
+class ActionOpenPageSelected(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Show selected page")
+        SimpleAction.__init__(self, 
+                "Show a page (selected from the thumbnail list)")
         self.__main_win = main_window
 
     def do(self):
@@ -253,15 +258,28 @@ class ActionOpenSelectedPage(SimpleAction):
         # not from the position of the element in the list
         page_idx = selection_path[0][0]
         page = self.__main_win.doc.pages[page_idx]
-
-        print "Showing page %s" % (str(page))
-        if self.__main_win.workers['img_builder'].is_running:
-            self.__main_win.workers['img_builder'].stop()
-        self.__main_win.page = page
-        self.__main_win.workers['img_builder'].start()
+        self.__main_win.show_page(page)
 
 
-class ActionRefreshPage(SimpleAction):
+class ActionOpenPageNb(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Show a page (selected on its number)")
+        self.__main_win = main_window
+
+    def entry_changed(self, entry):
+        pass
+
+    def do(self):
+        SimpleAction.do(self)
+        page_nb = self.__main_win.indicators['current_page'].get_text()
+        page_nb = int(page_nb) - 1
+        if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
+            return
+        page = self.__main_win.doc.pages[page_nb]
+        self.__main_win.show_page(page)
+
+
+class ActionRebuildPage(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Refresh current page")
         self.__main_win = main_window
@@ -337,6 +355,7 @@ class MainWindow(object):
         }
 
         self.indicators = {
+            'current_page' : widget_tree.get_object("entryPageNb"),
             'total_pages' : widget_tree.get_object("labelTotalPages"),
         }
 
@@ -399,13 +418,13 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("treeviewMatch"),
                 ],
-                ActionOpenSelectedDocument(self)
+                ActionOpenDocumentSelected(self)
             ),
             'open_page' : (
                 [
                     widget_tree.get_object("iconviewPage"),
                 ],
-                ActionOpenSelectedPage(self)
+                ActionOpenPageSelected(self)
             ),
             'single_scan' : [
                 widget_tree.get_object("menuitemScan"),
@@ -462,14 +481,17 @@ class MainWindow(object):
             'next_page' : [
                 widget_tree.get_object("toolbuttonNextPage"),
             ],
-            'current_page' : [
-                widget_tree.get_object("entryPageNb"),
-            ],
+            'set_current_page' : (
+                [
+                    widget_tree.get_object("entryPageNb"),
+                ],
+                ActionOpenPageNb(self),
+            ),
             'zoom_levels' : (
                 [
                     widget_tree.get_object("comboboxZoom"),
                 ],
-                ActionRefreshPage(self)
+                ActionRebuildPage(self)
             ),
             'search' : (
                 [
@@ -477,8 +499,6 @@ class MainWindow(object):
                 ],
                 ActionUpdateSearchResults(self),
             ),
-
-            # Advanced actions: having only 1 item to do them is fine
             'show_all_boxes' : [
                 widget_tree.get_object("checkmenuitemShowAllBoxes"),
             ],
@@ -499,16 +519,22 @@ class MainWindow(object):
             ],
         }
 
-        connect_buttons(self.actions['new_doc'][0], self.actions['new_doc'][1])
-        connect_buttons(self.actions['open_doc'][0],
-                        self.actions['open_doc'][1])
-        connect_buttons(self.actions['reindex'][0], self.actions['reindex'][1])
-        connect_buttons(self.actions['quit'][0], self.actions['quit'][1])
-        connect_buttons(self.actions['search'][0], self.actions['search'][1])
-        connect_buttons(self.actions['open_page'][0],
-                        self.actions['open_page'][1])
-        connect_buttons(self.actions['zoom_levels'][0],
-                        self.actions['zoom_levels'][1])
+        connect_action(self.actions['new_doc'][0],
+                       self.actions['new_doc'][1])
+        connect_action(self.actions['open_doc'][0],
+                       self.actions['open_doc'][1])
+        connect_action(self.actions['reindex'][0],
+                       self.actions['reindex'][1])
+        connect_action(self.actions['quit'][0],
+                       self.actions['quit'][1])
+        connect_action(self.actions['search'][0],
+                       self.actions['search'][1])
+        connect_action(self.actions['open_page'][0],
+                       self.actions['open_page'][1])
+        connect_action(self.actions['zoom_levels'][0],
+                       self.actions['zoom_levels'][1])
+        connect_action(self.actions['set_current_page'][0],
+                       self.actions['set_current_page'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb))
@@ -656,3 +682,17 @@ class MainWindow(object):
                 (label in labels),
                 label
             ])
+
+    def show_page(self, page):
+        print "Showing page %s" % (str(page))
+
+        # TODO(Jflesch): We should not make assumption regarding
+        # the page position in the list
+        self.lists['pages'][0].select_path(page.page_nb)
+        self.indicators['current_page'].set_text(
+                "%d" % (page.page_nb + 1))
+
+        if self.workers['img_builder'].is_running:
+            self.workers['img_builder'].stop()
+        self.page = page
+        self.workers['img_builder'].start()

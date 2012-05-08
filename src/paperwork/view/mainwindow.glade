@@ -56,45 +56,57 @@
     <columns>
       <!-- column-name name -->
       <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gint"/>
+      <!-- column-name factor -->
+      <column type="gdouble"/>
     </columns>
     <data>
       <row>
         <col id="0" translatable="yes">Fit page width</col>
-        <col id="1">-1</col>
+        <col id="1">0</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">10%</col>
+        <col id="1">0.10</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">15%</col>
+        <col id="1">0.15</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">25%</col>
+        <col id="1">0.25</col>
       </row>
       <row>
         <col id="0" translatable="yes">50%</col>
-        <col id="1">50</col>
+        <col id="1">0.5</col>
       </row>
       <row>
         <col id="0" translatable="yes">70%</col>
-        <col id="1">70</col>
+        <col id="1">0.7</col>
       </row>
       <row>
         <col id="0" translatable="yes">85%</col>
-        <col id="1">85</col>
+        <col id="1">0.85</col>
       </row>
       <row>
         <col id="0" translatable="yes">100%</col>
-        <col id="1">100</col>
+        <col id="1">1.0</col>
       </row>
       <row>
         <col id="0" translatable="yes">125%</col>
-        <col id="1">125</col>
+        <col id="1">1.25</col>
       </row>
       <row>
         <col id="0" translatable="yes">150%</col>
-        <col id="1">150</col>
+        <col id="1">1.50</col>
       </row>
       <row>
         <col id="0" translatable="yes">175%</col>
-        <col id="1">175</col>
+        <col id="1">1.75</col>
       </row>
       <row>
         <col id="0" translatable="yes">200%</col>
-        <col id="1">200</col>
+        <col id="1">2.0</col>
       </row>
     </data>
   </object>

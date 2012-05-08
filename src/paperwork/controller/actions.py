@@ -22,6 +22,9 @@ class SimpleAction(object):
     def treeview_cursor_changed(self, treeview):
         self.do()
 
+    def iconview_selection_changed(self, iconview):
+        self.do()
+
 
 def connect_buttons(buttons, action):
     for button in buttons:
@@ -37,5 +40,8 @@ def connect_buttons(buttons, action):
         elif isinstance(button, gtk.TreeView):
             button.connect("cursor-changed",
                            action.treeview_cursor_changed)
+        elif isinstance(button, gtk.IconView):
+            button.connect("selection-changed",
+                           action.iconview_selection_changed)
         else:
             assert()

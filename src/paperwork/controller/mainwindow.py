@@ -77,7 +77,7 @@ class WorkerThumbnailer(Worker):
     __gsignals__ = {
         'thumbnailing-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'thumbnailing-page-done': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                   (gobject.TYPE_INT, )),
+                                   (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
         'thumbnailing-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
     }
 
@@ -86,7 +86,6 @@ class WorkerThumbnailer(Worker):
     def __init__(self, main_window):
         Worker.__init__(self, "Thumbnailing")
         self.__main_win = main_window
-        self.lock = threading.Lock()
 
     def do(self):
         self.emit('thumbnailing-start')
@@ -96,12 +95,41 @@ class WorkerThumbnailer(Worker):
             pixbuf = image2pixbuf(img)
             if not self.can_run:
                 return
-            self.__main_win.thumbnails[page_idx] = pixbuf
-            self.emit('thumbnailing-page-done', page_idx)
+            self.emit('thumbnailing-page-done', page_idx, pixbuf)
         self.emit('thumbnailing-end')
 
 
 gobject.type_register(WorkerThumbnailer)
+
+
+class WorkerImgBuilder(Worker):
+    """
+    Resize and paint on the page
+    """
+    __gsignals__ = {
+        'img-building-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'img-building-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                          (gobject.TYPE_PYOBJECT, )),
+    }
+
+    # even if it's not true, this process is not really long, so it doesn't
+    # really matter
+    can_interrupt = True
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Building page image")
+        self.__main_win = main_window
+
+    def do(self):
+        self.emit('img-building-start')
+        img = self.__main_win.page.img
+        pixbuf = image2pixbuf(img)
+        # TODO
+        resized = pixbuf
+        self.emit('img-building-end', resized)
+
+
+gobject.type_register(WorkerImgBuilder)
 
 
 class ActionNewDocument(SimpleAction):
@@ -146,7 +174,6 @@ class ActionOpenSelectedDocument(SimpleAction):
         if self.__main_win.workers['thumbnailer'].is_running:
             self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.doc = doc
-        self.__main_win.set_default_thumbnails()
         self.__main_win.page = self.__main_win.doc.pages[0]
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
@@ -177,6 +204,28 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
+
+
+class ActionOpenSelectedPage(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Show selected page")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        selection_path = self.__main_win.lists['pages'][0].get_selected_items()
+        if len(selection_path) <= 0:
+            return None
+        # TODO(Jflesch): We should get the page number from the list content,
+        # not from the position of the element in the list
+        page_idx = selection_path[0][0]
+        page = self.__main_win.doc.pages[page_idx]
+
+        print "Showing page %s" % (str(page))
+        if self.__main_win.workers['img_builder'].is_running:
+            self.__main_win.workers['img_builder'].stop()
+        self.__main_win.page = page
+        self.__main_win.workers['img_builder'].start()
 
 
 class ActionQuit(SimpleAction):
@@ -216,7 +265,6 @@ class MainWindow(object):
 
         self.docsearch = DummyDocSearch()
         self.doc = None
-        self.thumbnails = []
         self.page = None
 
         self.lists = {
@@ -281,6 +329,7 @@ class MainWindow(object):
         self.workers = {
             'reindex' : WorkerDocIndexer(self, config),
             'thumbnailer' : WorkerThumbnailer(self),
+            'img_builder' : WorkerImgBuilder(self),
         }
 
         self.actions = {
@@ -296,6 +345,12 @@ class MainWindow(object):
                     widget_tree.get_object("treeviewMatch"),
                 ],
                 ActionOpenSelectedDocument(self)
+            ),
+            'open_page' : (
+                [
+                    widget_tree.get_object("iconviewPage"),
+                ],
+                ActionOpenSelectedPage(self)
             ),
             'single_scan' : [
                 widget_tree.get_object("menuitemScan"),
@@ -387,10 +442,13 @@ class MainWindow(object):
         }
 
         connect_buttons(self.actions['new_doc'][0], self.actions['new_doc'][1])
-        connect_buttons(self.actions['open_doc'][0], self.actions['open_doc'][1])
+        connect_buttons(self.actions['open_doc'][0],
+                        self.actions['open_doc'][1])
         connect_buttons(self.actions['reindex'][0], self.actions['reindex'][1])
         connect_buttons(self.actions['quit'][0], self.actions['quit'][1])
         connect_buttons(self.actions['search'][0], self.actions['search'][1])
+        connect_buttons(self.actions['open_page'][0],
+                        self.actions['open_page'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start))
@@ -402,8 +460,18 @@ class MainWindow(object):
             gobject.idle_add(self.__on_indexation_end))
 
         self.workers['thumbnailer'].connect('thumbnailing-page-done',
-                lambda thumbnailer, page_idx: \
-                    gobject.idle_add(self.refresh_page_thumbnail, page_idx))
+                lambda thumbnailer, page_idx, thumbnail: \
+                    gobject.idle_add(self.set_page_thumbnail, page_idx,
+                                     thumbnail))
+
+        self.workers['img_builder'].connect('img-building-start',
+                lambda builder: \
+                    gobject.idle_add(self.img_area.set_from_stock(
+                        gtk.STOCK_HARDDISK, gtk.ICON_SIZE_DIALOG)))
+        self.workers['img_builder'].connect('img-building-end',
+                lambda builder, img: \
+                    gobject.idle_add(self.img_area.set_from_pixbuf(img)))
+
 
         self.window.set_visible(True)
 
@@ -435,11 +503,6 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
-
-    def set_default_thumbnails(self):
-        self.thumbnails = []
-        for i in range(0, self.doc.nb_pages):
-            self.thumbnails.append(self.default_thumbnail)
 
     def refresh_doc_list(self):
         """
@@ -473,22 +536,22 @@ class MainWindow(object):
 
     def refresh_page_list(self):
         """
-        Reload and refresh the page list
+        Reload and refresh the page list.
+        Warning: Will set default thumbnail on all the pages
         """
         self.lists['pages'][1].clear()
         for page in self.doc.pages:
             self.lists['pages'][1].append([
-                self.thumbnails[page.page_nb],
+                self.default_thumbnail,
                 _('Page %d') % (page.page_nb + 1),
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
                 _("/ %d") % (self.doc.nb_pages))
 
-    def refresh_page_thumbnail(self, page_idx):
+    def set_page_thumbnail(self, page_idx, thumbnail):
         line_iter = self.lists['pages'][1].get_iter(page_idx)
-        thumb = self.thumbnails[page_idx]
-        self.lists['pages'][1].set_value(line_iter, 0, thumb)
+        self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
 
     def refresh_label_list(self):
         """

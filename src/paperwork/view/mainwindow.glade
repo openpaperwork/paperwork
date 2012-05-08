@@ -421,6 +421,7 @@
                       <object class="GtkComboBox" id="comboboxZoom">
                         <property name="visible">True</property>
                         <property name="model">liststoreZoom</property>
+                        <property name="active">0</property>
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext1"/>
                           <attributes>

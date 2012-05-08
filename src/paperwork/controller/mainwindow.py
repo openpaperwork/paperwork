@@ -466,11 +466,11 @@ class MainWindow(object):
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
-                    gobject.idle_add(self.img_area.set_from_stock(
-                        gtk.STOCK_HARDDISK, gtk.ICON_SIZE_DIALOG)))
+                    gobject.idle_add(self.img_area.set_from_stock,
+                        gtk.STOCK_HARDDISK, gtk.ICON_SIZE_DIALOG))
         self.workers['img_builder'].connect('img-building-end',
                 lambda builder, img: \
-                    gobject.idle_add(self.img_area.set_from_pixbuf(img)))
+                    gobject.idle_add(self.img_area.set_from_pixbuf, img))
 
 
         self.window.set_visible(True)

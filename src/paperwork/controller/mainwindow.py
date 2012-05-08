@@ -1,3 +1,4 @@
+from copy import copy
 import os
 import sys
 import threading
@@ -83,10 +84,13 @@ class WorkerThumbnailer(Worker):
     """
 
     __gsignals__ = {
-        'thumbnailing-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'thumbnailing-page-done': (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                   (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
-        'thumbnailing-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'thumbnailing-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'thumbnailing-page-done':
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
+        'thumbnailing-end' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
     }
 
     can_interrupt = True
@@ -115,11 +119,14 @@ class WorkerImgBuilder(Worker):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'img-building-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'img-building-result-pixbuf' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, )),
-        'img-building-result-stock' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                        (gobject.TYPE_STRING, )),
+        'img-building-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'img-building-result-pixbuf' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_PYOBJECT, )),
+        'img-building-result-stock' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_STRING, )),
     }
 
     # even if it's not true, this process is not really long, so it doesn't
@@ -174,6 +181,41 @@ class WorkerImgBuilder(Worker):
 gobject.type_register(WorkerImgBuilder)
 
 
+class WorkerLabelUpdater(Worker):
+    """
+    Resize and paint on the page
+    """
+    __gsignals__ = {
+        'label-updating-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'label-updating-doc-updated' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
+        'label-updating-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = False
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Updating label")
+        self.__main_win = main_window
+
+    def __cb_progress(self, progression, total, step, doc):
+        self.emit('label-updating-doc-updated', float(progression) / total,
+                  doc.name)
+
+    def do(self, old_label, new_label):
+        self.emit('label-updating-start')
+        try:
+            self.__main_win.docsearch.update_label(old_label, new_label,
+                                                   self.__cb_progress)
+        finally:
+            self.emit('label-updating-end')
+
+
+gobject.type_register(WorkerLabelUpdater)
+
+
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
@@ -225,7 +267,7 @@ class ActionOpenDocumentSelected(SimpleAction):
         self.__main_win.show_page(self.__main_win.doc.pages[0])
 
 
-class ActionStartWorker(SimpleAction):
+class ActionStartSimpleWorker(SimpleAction):
     """
     Start a threaded job
     """
@@ -358,6 +400,35 @@ class ActionCreateLabel(SimpleAction):
         # TODO(Jflesch): Update keyword index
 
 
+class ActionEditLabel(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Editing label")
+        self.__main_win = main_window
+
+    def do(self):
+        if self.__main_win.workers['label_updater'].is_running:
+            return
+
+        selection_path = self.__main_win.lists['labels'][0] \
+                .get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No label selected"
+            return True
+        label = selection_path[0].get_value(selection_path[1], 2)
+
+        new_label = copy(label)
+        editor = LabelEditor(new_label)
+        if not editor.edit(self.__main_win.window):
+            print "Label edition cancelled"
+            return
+        print "Label edited. Applying changes"
+        if self.__main_win.workers['label_updater'].is_running:
+            return
+        self.__main_win.workers['label_updater'].start(old_label=label,
+                                                       new_label=new_label)
+        # TODO(Jflesch): Update keyword index
+
+
 class ActionQuit(SimpleAction):
     """
     Quit
@@ -471,6 +542,7 @@ class MainWindow(object):
             'reindex' : WorkerDocIndexer(self, config),
             'thumbnailer' : WorkerThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
+            'label_updater' : WorkerLabelUpdater(self),
         }
 
         self.actions = {
@@ -525,10 +597,13 @@ class MainWindow(object):
                 ],
                 ActionCreateLabel(self),
             ),
-            'edit_label' : [
-                widget_tree.get_object("menuitemEditLabel"),
-                widget_tree.get_object("buttonEditLabel"),
-            ],
+            'edit_label' : (
+                [
+                    widget_tree.get_object("menuitemEditLabel"),
+                    widget_tree.get_object("buttonEditLabel"),
+                ],
+                ActionEditLabel(self),
+            ),
             'del_label' : [
                 widget_tree.get_object("menuitemDestroyLabel"),
                 widget_tree.get_object("buttonDelLabel"),
@@ -592,7 +667,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
-                ActionStartWorker(self.workers['reindex'])
+                ActionStartSimpleWorker(self.workers['reindex'])
             ),
             'about' : [
                 widget_tree.get_object("menuitemAbout"),
@@ -621,17 +696,19 @@ class MainWindow(object):
                        self.actions['next_page'][1])
         connect_action(self.actions['create_label'][0],
                        self.actions['create_label'][1])
+        connect_action(self.actions['edit_label'][0],
+                       self.actions['edit_label'][1])
         self.actions['toggle_label'][0].connect("toggled",
                 self.actions['toggle_label'][1].toggle_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_start_cb))
+            gobject.idle_add(self.__on_indexation_start_cb, indexer))
         self.workers['reindex'].connect('indexation-progression',
             lambda indexer, progression, txt: \
                 gobject.idle_add(self.set_progression, indexer,
                                  progression, txt))
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_end_cb))
+            gobject.idle_add(self.__on_indexation_end_cb, indexer))
 
         self.workers['thumbnailer'].connect('thumbnailing-start',
                 lambda thumbnailer: \
@@ -658,6 +735,19 @@ class MainWindow(object):
                     gobject.idle_add(self.img_area.set_from_stock, img,
                                      gtk.ICON_SIZE_DIALOG))
 
+        self.workers['label_updater'].connect('label-updating-start',
+                lambda updater: \
+                    gobject.idle_add(self.__on_label_updating_start_cb,
+                                     updater))
+        self.workers['label_updater'].connect('label-updating-doc-updated',
+                lambda updater, progression, doc_name: \
+                    gobject.idle_add(self.__on_label_updating_doc_updated_cb,
+                                     updater, progression, doc_name))
+        self.workers['label_updater'].connect('label-updating-end',
+                lambda updater: \
+                    gobject.idle_add(self.__on_label_updating_end_cb,
+                                     updater))
+
         self.window.connect("size-allocate", self.__on_window_resize_cb)
 
         self.window.set_visible(True)
@@ -679,13 +769,13 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
-    def __on_indexation_start_cb(self):
-        self.set_progression(self.workers['reindex'], 0.0, None)
+    def __on_indexation_start_cb(self, src):
+        self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_indexation_end_cb(self):
-        self.set_progression(self.workers['reindex'], 0.0, None)
+    def __on_indexation_end_cb(self, src):
+        self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
@@ -710,6 +800,22 @@ class MainWindow(object):
             return
         self.__win_size_cache = allocation
         self.vpanels['txt_img_split'].set_position(0)
+
+    def __on_label_updating_start_cb(self, src):
+        self.set_progression(self.workers['reindex'], 0.0, None)
+        self.set_search_availability(False)
+        self.set_mouse_cursor("Busy")
+
+    def __on_label_updating_doc_updated_cb(self, src, progression, doc_name):
+        self.set_progression(src, progression,
+                             _("Label updating (%s) ...") % (doc_name))
+
+    def __on_label_updating_end_cb(self, src):
+        self.set_progression(src, 0.0, None)
+        self.set_search_availability(True)
+        self.set_mouse_cursor("Normal")
+        self.refresh_label_list()
+        self.refresh_doc_list()
 
     def refresh_doc_list(self):
         """
@@ -787,3 +893,12 @@ class MainWindow(object):
 
         txt = "\n".join(page.text)
         self.text_area.get_buffer().set_text(txt)
+
+    def get_selected_label(self):
+        selection_path = self.__label_list_ui.get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No label selected"
+            return True
+
+        label = selection_path[0].get_value(selection_path[1], 2)
+

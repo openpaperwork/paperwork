@@ -11,25 +11,25 @@ class Worker(gobject.GObject):
         self.can_run = True
         self.__thread = None
 
-    def do(self):
+    def do(self, **kwargs):
         # implemented by the child class
         #
         # if can_interrupt = True, the child class must check self.can_run as
         # often as possible
         assert()
 
-    def __wrapper(self):
+    def __wrapper(self, **kwargs):
         print "Workers: [%s] started" % (self.name)
-        self.do()
+        self.do(**kwargs)
         print "Workers: [%s] ended" % (self.name)
 
-    def start(self):
+    def start(self, **kwargs):
         if self.is_running:
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
         self.__can_run = True
-        self.__thread = threading.Thread(target=self.__wrapper)
+        self.__thread = threading.Thread(target=self.__wrapper, kwargs=kwargs)
         self.__thread.start()
 
     def stop(self):

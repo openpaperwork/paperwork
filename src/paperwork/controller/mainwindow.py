@@ -514,10 +514,17 @@ class MainWindow(object):
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
             gobject.idle_add(self.__on_indexation_end))
 
+        self.workers['thumbnailer'].connect('thumbnailing-start',
+                lambda thumbnailer: \
+                    gobject.idle_add(self.__on_thumbnailing_start,
+                                     thumbnailer))
         self.workers['thumbnailer'].connect('thumbnailing-page-done',
                 lambda thumbnailer, page_idx, thumbnail: \
-                    gobject.idle_add(self.set_page_thumbnail, page_idx,
-                                     thumbnail))
+                    gobject.idle_add(self.__on_thumbnailing_page_done,
+                                     thumbnailer, page_idx, thumbnail))
+        self.workers['thumbnailer'].connect('thumbnailing-end',
+                lambda thumbnailer: \
+                    gobject.idle_add(self.__on_thumbnailing_end, thumbnailer))
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
@@ -563,6 +570,20 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
+
+    def __on_thumbnailing_start(self, src):
+        self.set_progression(src, 0.0, _("Thumbnailing ..."))
+
+    def __on_thumbnailing_page_done(self, src, page_idx, thumbnail):
+        print "Updating thumbnail %d" % (page_idx)
+        line_iter = self.lists['pages'][1].get_iter(page_idx)
+        self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
+        self.lists['pages'][1].set_value(line_iter, 1, None)
+        self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
+                             _("Thumbnailing ..."))
+
+    def __on_thumbnailing_end(self, src):
+        self.set_progression(src, 0.0, None)
 
     def refresh_doc_list(self):
         """
@@ -610,12 +631,6 @@ class MainWindow(object):
             ])
         self.indicators['total_pages'].set_text(
                 _("/ %d") % (self.doc.nb_pages))
-
-    def set_page_thumbnail(self, page_idx, thumbnail):
-        print "Updating thumbnail %d" % (page_idx)
-        line_iter = self.lists['pages'][1].get_iter(page_idx)
-        self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
-        self.lists['pages'][1].set_value(line_iter, 1, None)
 
     def refresh_label_list(self):
         """

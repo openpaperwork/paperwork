@@ -729,3 +729,6 @@ class MainWindow(object):
             self.workers['img_builder'].stop()
         self.page = page
         self.workers['img_builder'].start()
+
+        txt = "\n".join(page.text)
+        self.text_area.get_buffer().set_text(txt)

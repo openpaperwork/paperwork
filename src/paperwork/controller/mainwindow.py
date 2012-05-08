@@ -314,6 +314,20 @@ class ActionRebuildPage(SimpleAction):
         self.__main_win.workers['img_builder'].start()
 
 
+class ActionToggleLabel(object):
+    def __init__(self, main_window):
+        self.__main_win = main_window
+
+    def toggle_cb(self, renderer, objpath):
+        label = self.__main_win.lists['labels'][1][objpath][2]
+        if label in self.__main_win.doc.labels:
+            self.__main_win.doc.remove_label(label)
+        else:
+            self.__main_win.doc.add_label(label)
+        self.__main_win.refresh_label_list()
+        self.__main_win.refresh_doc_list()
+
+
 class ActionQuit(SimpleAction):
     """
     Quit
@@ -528,6 +542,10 @@ class MainWindow(object):
                 ],
                 ActionUpdateSearchResults(self),
             ),
+            'toggle_label' : (
+                widget_tree.get_object("cellrenderertoggleLabel"),
+                ActionToggleLabel(self),
+            ),
             'show_all_boxes' : [
                 widget_tree.get_object("checkmenuitemShowAllBoxes"),
             ],
@@ -568,6 +586,8 @@ class MainWindow(object):
                        self.actions['prev_page'][1])
         connect_action(self.actions['next_page'][0],
                        self.actions['next_page'][1])
+        self.actions['toggle_label'][0].connect("toggled",
+                self.actions['toggle_label'][1].toggle_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb))

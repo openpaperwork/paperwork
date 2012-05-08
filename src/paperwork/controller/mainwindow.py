@@ -307,6 +307,7 @@ class MainWindow(object):
         widget_tree = load_uifile("mainwindow.glade")
 
         self.window = widget_tree.get_object("mainWindow")
+        self.__win_size_cache = None
 
         self.docsearch = DummyDocSearch()
         self.doc = None
@@ -374,6 +375,10 @@ class MainWindow(object):
         self.scrollBars = {
             'img_area' : (widget_tree.get_object("scrolledwindowPageImg"),
                           self.img_area),
+        }
+
+        self.vpanels = {
+            'txt_img_split' : widget_tree.get_object("vpanedPage")
         }
 
         self.workers = {
@@ -506,25 +511,26 @@ class MainWindow(object):
                         self.actions['zoom_levels'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_start))
+            gobject.idle_add(self.__on_indexation_start_cb))
         self.workers['reindex'].connect('indexation-progression',
             lambda indexer, progression, txt: \
                 gobject.idle_add(self.set_progression, indexer,
                                  progression, txt))
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_end))
+            gobject.idle_add(self.__on_indexation_end_cb))
 
         self.workers['thumbnailer'].connect('thumbnailing-start',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_thumbnailing_start,
+                    gobject.idle_add(self.__on_thumbnailing_start_cb,
                                      thumbnailer))
         self.workers['thumbnailer'].connect('thumbnailing-page-done',
                 lambda thumbnailer, page_idx, thumbnail: \
-                    gobject.idle_add(self.__on_thumbnailing_page_done,
+                    gobject.idle_add(self.__on_thumbnailing_page_done_cb,
                                      thumbnailer, page_idx, thumbnail))
         self.workers['thumbnailer'].connect('thumbnailing-end',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_thumbnailing_end, thumbnailer))
+                    gobject.idle_add(self.__on_thumbnailing_end_cb,
+                                     thumbnailer))
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
@@ -538,7 +544,7 @@ class MainWindow(object):
                     gobject.idle_add(self.img_area.set_from_stock, img,
                                      gtk.ICON_SIZE_DIALOG))
 
-
+        self.window.connect("size-allocate", self.__on_window_resize_cb)
 
         self.window.set_visible(True)
 
@@ -559,22 +565,22 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
-    def __on_indexation_start(self):
+    def __on_indexation_start_cb(self):
         self.set_progression(self.workers['reindex'], 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_indexation_end(self):
+    def __on_indexation_end_cb(self):
         self.set_progression(self.workers['reindex'], 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
 
-    def __on_thumbnailing_start(self, src):
+    def __on_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
 
-    def __on_thumbnailing_page_done(self, src, page_idx, thumbnail):
+    def __on_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         print "Updating thumbnail %d" % (page_idx)
         line_iter = self.lists['pages'][1].get_iter(page_idx)
         self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
@@ -582,8 +588,14 @@ class MainWindow(object):
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Thumbnailing ..."))
 
-    def __on_thumbnailing_end(self, src):
+    def __on_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
+
+    def __on_window_resize_cb(self, window, allocation):
+        if (self.__win_size_cache == allocation):
+            return
+        self.__win_size_cache = allocation
+        self.vpanels['txt_img_split'].set_position(0)
 
     def refresh_doc_list(self):
         """

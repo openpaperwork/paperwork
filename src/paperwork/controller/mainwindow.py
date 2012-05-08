@@ -8,14 +8,22 @@ import gtk
 import gettext
 import gobject
 
+#from paperwork.controller.aboutdialog import AboutDialog
 from paperwork.controller.actions import connect_action
 from paperwork.controller.actions import SimpleAction
+#from paperwork.controller.multiscan import MultiscanDialog
+#from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
 from paperwork.model.doc import ScannedDoc
-from paperwork.model.docsearch import DummyDocSearch
 from paperwork.model.docsearch import DocSearch
+from paperwork.model.docsearch import DummyDocSearch
+from paperwork.model.labels import LabelEditor
+from paperwork.model.page import ScannedPage
+from paperwork.model.scanner import PaperworkScanner
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
+from paperwork.util import MIN_KEYWORD_LEN
+from paperwork.util import split_words
 
 _ = gettext.gettext
 
@@ -320,12 +328,34 @@ class ActionToggleLabel(object):
 
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels'][1][objpath][2]
-        if label in self.__main_win.doc.labels:
-            self.__main_win.doc.remove_label(label)
-        else:
+        if not label in self.__main_win.doc.labels:
+            print ("Action: Adding label '%s' on document '%s'"
+                   % (str(label), str(self.__main_win.doc)))
             self.__main_win.doc.add_label(label)
+        else:
+            print ("Action: Removing label '%s' on document '%s'"
+                   % (str(label), str(self.__main_win.doc)))
+            self.__main_win.doc.remove_label(label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
+        # TODO(Jflesch): Update keyword index
+
+
+class ActionCreateLabel(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Creating label")
+        self.__main_win = main_window
+
+    def do(self):
+        labeleditor = LabelEditor()
+        if labeleditor.edit(self.__main_win.window):
+            print "Adding label %s to doc %s" % (str(labeleditor.label),
+                                                 str(self.__main_win.doc))
+            self.__main_win.doc.add_label(labeleditor.label)
+            self.__main_win.docsearch.add_label(labeleditor.label,
+                                                self.__main_win.doc)
+        self.__main_win.refresh_label_list()
+        # TODO(Jflesch): Update keyword index
 
 
 class ActionQuit(SimpleAction):
@@ -488,10 +518,13 @@ class MainWindow(object):
                 ],
                 ActionQuit(self),
             ),
-            'add_label' : [
-                widget_tree.get_object("buttonAddLabel"),
-                # TODO
-            ],
+            'create_label' : (
+                [
+                    widget_tree.get_object("buttonAddLabel"),
+                    # TODO
+                ],
+                ActionCreateLabel(self),
+            ),
             'edit_label' : [
                 widget_tree.get_object("menuitemEditLabel"),
                 widget_tree.get_object("buttonEditLabel"),
@@ -586,6 +619,8 @@ class MainWindow(object):
                        self.actions['prev_page'][1])
         connect_action(self.actions['next_page'][0],
                        self.actions['next_page'][1])
+        connect_action(self.actions['create_label'][0],
+                       self.actions['create_label'][1])
         self.actions['toggle_label'][0].connect("toggled",
                 self.actions['toggle_label'][1].toggle_cb)
 

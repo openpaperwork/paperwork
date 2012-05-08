@@ -602,7 +602,9 @@ class MainWindow(object):
         self.lists['pages'][1].clear()
         for page in self.doc.pages:
             self.lists['pages'][1].append([
-                self.default_thumbnail,
+                None,
+                gtk.STOCK_EXECUTE,
+                gtk.ICON_SIZE_DIALOG,
                 _('Page %d') % (page.page_nb + 1),
                 page.page_nb
             ])
@@ -613,6 +615,7 @@ class MainWindow(object):
         print "Updating thumbnail %d" % (page_idx)
         line_iter = self.lists['pages'][1].get_iter(page_idx)
         self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
+        self.lists['pages'][1].set_value(line_iter, 1, None)
 
     def refresh_label_list(self):
         """

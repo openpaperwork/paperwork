@@ -46,6 +46,10 @@
     <columns>
       <!-- column-name thumb -->
       <column type="GdkPixbuf"/>
+      <!-- column-name stock_icon -->
+      <column type="gchararray"/>
+      <!-- column-name stock_size -->
+      <column type="GtkIconSize"/>
       <!-- column-name txt -->
       <column type="gchararray"/>
       <!-- column-name page_nb -->
@@ -578,16 +582,19 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="model">liststorePage</property>
+                                    <property name="columns">1</property>
                                     <child>
                                       <object class="GtkCellRendererPixbuf" id="cellrendererThumb"/>
                                       <attributes>
                                         <attribute name="pixbuf">0</attribute>
+                                        <attribute name="stock-id">1</attribute>
+                                        <attribute name="stock-size">2</attribute>
                                       </attributes>
                                     </child>
                                     <child>
                                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                       <attributes>
-                                        <attribute name="text">1</attribute>
+                                        <attribute name="text">3</attribute>
                                       </attributes>
                                     </child>
                                   </object>

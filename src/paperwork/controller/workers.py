@@ -18,14 +18,18 @@ class Worker(gobject.GObject):
         # often as possible
         assert()
 
+    def __wrapper(self):
+        print "Workers: [%s] started" % (self.name)
+        self.do()
+        print "Workers: [%s] ended" % (self.name)
+
     def start(self):
         if self.is_running:
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
-        print "Starting job: %s" % (self.name)
         self.__can_run = True
-        self.__thread = threading.Thread(target=self.do)
+        self.__thread = threading.Thread(target=self.__wrapper)
         self.__thread.start()
 
     def stop(self):

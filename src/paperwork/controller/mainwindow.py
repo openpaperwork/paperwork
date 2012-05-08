@@ -610,6 +610,7 @@ class MainWindow(object):
                 _("/ %d") % (self.doc.nb_pages))
 
     def set_page_thumbnail(self, page_idx, thumbnail):
+        print "Updating thumbnail %d" % (page_idx)
         line_iter = self.lists['pages'][1].get_iter(page_idx)
         self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
 

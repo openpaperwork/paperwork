@@ -120,13 +120,37 @@ class WorkerImgBuilder(Worker):
         Worker.__init__(self, "Building page image")
         self.__main_win = main_window
 
+    def __get_zoom_factor(self):
+        el_idx = self.__main_win.lists['zoom_levels'][0].get_active()
+        el_iter = self.__main_win.lists['zoom_levels'][1].get_iter(el_idx)
+        return self.__main_win.lists['zoom_levels'][1].get_value(el_iter, 1)
+
+    def __get_img_area_width(self):
+        width = self.__main_win.scrollBars['img_area'][0].get_allocation().width
+        # TODO(JFlesch): This is not a safe assumption:
+        width -= 30
+        return width
+
     def do(self):
         self.emit('img-building-start')
+
         img = self.__main_win.page.img
         pixbuf = image2pixbuf(img)
-        # TODO
-        resized = pixbuf
-        self.emit('img-building-end', resized)
+
+        factor = self.__get_zoom_factor()
+        print "Zoom: %f" % (factor)
+
+        if factor == 0.0:
+            wanted_width = self.__get_img_area_width()
+            factor = float(wanted_width) / pixbuf.get_width()
+            wanted_height = int(factor * pixbuf.get_height())
+        else:
+            wanted_width = int(factor * pixbuf.get_width())
+            wanted_height = int(factor * pixbuf.get_height())
+        pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
+                                     gtk.gdk.INTERP_BILINEAR)
+
+        self.emit('img-building-end', pixbuf)
 
 
 gobject.type_register(WorkerImgBuilder)
@@ -284,7 +308,7 @@ class MainWindow(object):
                 widget_tree.get_object("treeviewLabel"),
                 widget_tree.get_object("liststoreLabel"),
             ),
-            'zoomLevels' : (
+            'zoom_levels' : (
                 widget_tree.get_object("comboboxZoom"),
                 widget_tree.get_object("liststoreZoom"),
             ),
@@ -324,6 +348,11 @@ class MainWindow(object):
                 widget_tree.get_object("iconviewPage"),
                 widget_tree.get_object("popupmenuPages")
             )
+        }
+
+        self.scrollBars = {
+            'img_area' : (widget_tree.get_object("scrolledwindowPageImg"),
+                          self.img_area),
         }
 
         self.workers = {

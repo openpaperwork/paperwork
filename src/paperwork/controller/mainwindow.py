@@ -108,8 +108,10 @@ class WorkerImgBuilder(Worker):
     """
     __gsignals__ = {
         'img-building-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'img-building-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          (gobject.TYPE_PYOBJECT, )),
+        'img-building-result-pixbuf' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                        (gobject.TYPE_PYOBJECT, )),
+        'img-building-result-stock' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                        (gobject.TYPE_STRING, )),
     }
 
     # even if it's not true, this process is not really long, so it doesn't
@@ -134,6 +136,10 @@ class WorkerImgBuilder(Worker):
     def do(self):
         self.emit('img-building-start')
 
+        if self.__main_win.page == None:
+            self.emit('img-building-result-stock', gtk.STOCK_MISSING_IMAGE)
+            return
+
         img = self.__main_win.page.img
         pixbuf = image2pixbuf(img)
 
@@ -150,7 +156,7 @@ class WorkerImgBuilder(Worker):
         pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                      gtk.gdk.INTERP_BILINEAR)
 
-        self.emit('img-building-end', pixbuf)
+        self.emit('img-building-result-pixbuf', pixbuf)
 
 
 gobject.type_register(WorkerImgBuilder)
@@ -169,11 +175,14 @@ class ActionNewDocument(SimpleAction):
         SimpleAction.do(self)
         if self.__main_win.workers['thumbnailer'].is_running:
             self.__main_win.workers['thumbnailer'].stop()
+        if self.__main_win.workers['img_builder'].is_running:
+            self.__main_win.workers['img_builder'].stop()
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        self.__main_win.page = None
         self.__main_win.thumbnails = []
-        self.__main_win.page = self.__main_win.doc.pages[0]
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
+        self.__main_win.workers['img_builder'].start()
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -249,6 +258,18 @@ class ActionOpenSelectedPage(SimpleAction):
         if self.__main_win.workers['img_builder'].is_running:
             self.__main_win.workers['img_builder'].stop()
         self.__main_win.page = page
+        self.__main_win.workers['img_builder'].start()
+
+
+class ActionRefreshPage(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Refresh current page")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        if self.__main_win.workers['img_builder'].is_running:
+            self.__main_win.workers['img_builder'].stop()
         self.__main_win.workers['img_builder'].start()
 
 
@@ -439,9 +460,12 @@ class MainWindow(object):
             'current_page' : [
                 widget_tree.get_object("entryPageNb"),
             ],
-            'zoom_levels' : [
-                widget_tree.get_object("comboboxZoom"),
-            ],
+            'zoom_levels' : (
+                [
+                    widget_tree.get_object("comboboxZoom"),
+                ],
+                ActionRefreshPage(self)
+            ),
             'search' : (
                 [
                     self.search_field,
@@ -478,6 +502,8 @@ class MainWindow(object):
         connect_buttons(self.actions['search'][0], self.actions['search'][1])
         connect_buttons(self.actions['open_page'][0],
                         self.actions['open_page'][1])
+        connect_buttons(self.actions['zoom_levels'][0],
+                        self.actions['zoom_levels'][1])
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start))
@@ -496,10 +522,15 @@ class MainWindow(object):
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
                     gobject.idle_add(self.img_area.set_from_stock,
-                        gtk.STOCK_HARDDISK, gtk.ICON_SIZE_DIALOG))
-        self.workers['img_builder'].connect('img-building-end',
+                        gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG))
+        self.workers['img_builder'].connect('img-building-result-pixbuf',
                 lambda builder, img: \
                     gobject.idle_add(self.img_area.set_from_pixbuf, img))
+        self.workers['img_builder'].connect('img-building-result-stock',
+                lambda builder, img: \
+                    gobject.idle_add(self.img_area.set_from_stock, img,
+                                     gtk.ICON_SIZE_DIALOG))
+
 
 
         self.window.set_visible(True)

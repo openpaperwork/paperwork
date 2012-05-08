@@ -25,6 +25,9 @@ class SimpleAction(object):
     def iconview_selection_changed(self, iconview):
         self.do()
 
+    def combobox_changed(self, combobox):
+        self.do()
+
 
 def connect_buttons(buttons, action):
     for button in buttons:
@@ -43,5 +46,7 @@ def connect_buttons(buttons, action):
         elif isinstance(button, gtk.IconView):
             button.connect("selection-changed",
                            action.iconview_selection_changed)
+        elif isinstance(button, gtk.ComboBox):
+            button.connect("changed", action.combobox_changed)
         else:
             assert()

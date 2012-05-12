@@ -703,6 +703,12 @@ class MainWindow(object):
         self.actions['toggle_label'][0].connect("toggled",
             self.actions['toggle_label'][1].toggle_cb)
 
+        for popup_menu in self.popupMenus.values():
+            # TODO(Jflesch): Find the correct signal
+            # This one doesn't take into account the key to access these menus
+            popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
+                                  popup_menu[0], popup_menu[1])
+
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb, indexer))
         self.workers['reindex'].connect('indexation-progression',
@@ -819,6 +825,12 @@ class MainWindow(object):
         self.refresh_label_list()
         self.refresh_doc_list()
 
+    def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
+        # we are only interested in right clicks
+        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
+            return
+        popup_menu.popup(None, None, None, event.button, event.time)
+
     def refresh_doc_list(self):
         """
         Update the suggestions list and the matching documents list based on
@@ -895,12 +907,3 @@ class MainWindow(object):
 
         txt = "\n".join(page.text)
         self.text_area.get_buffer().set_text(txt)
-
-    def get_selected_label(self):
-        selection_path = self.__label_list_ui.get_selection().get_selected()
-        if selection_path[1] == None:
-            print "No label selected"
-            return True
-
-        label = selection_path[0].get_value(selection_path[1], 2)
-

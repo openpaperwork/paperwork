@@ -10,7 +10,6 @@ import gettext
 import gobject
 
 #from paperwork.controller.aboutdialog import AboutDialog
-from paperwork.controller.actions import connect_action
 from paperwork.controller.actions import SimpleAction
 #from paperwork.controller.multiscan import MultiscanDialog
 #from paperwork.controller.settingswindow import SettingsWindow
@@ -685,34 +684,24 @@ class MainWindow(object):
             ],
         }
 
-        connect_action(self.actions['new_doc'][0],
-                       self.actions['new_doc'][1])
-        connect_action(self.actions['open_doc'][0],
-                       self.actions['open_doc'][1])
-        connect_action(self.actions['reindex'][0],
-                       self.actions['reindex'][1])
-        connect_action(self.actions['quit'][0],
-                       self.actions['quit'][1])
-        connect_action(self.actions['search'][0],
-                       self.actions['search'][1])
-        connect_action(self.actions['open_page'][0],
-                       self.actions['open_page'][1])
-        connect_action(self.actions['zoom_levels'][0],
-                       self.actions['zoom_levels'][1])
-        connect_action(self.actions['set_current_page'][0],
-                       self.actions['set_current_page'][1])
-        connect_action(self.actions['prev_page'][0],
-                       self.actions['prev_page'][1])
-        connect_action(self.actions['next_page'][0],
-                       self.actions['next_page'][1])
-        connect_action(self.actions['create_label'][0],
-                       self.actions['create_label'][1])
-        connect_action(self.actions['edit_label'][0],
-                       self.actions['edit_label'][1])
-        connect_action(self.actions['open_doc_dir'][0],
-                       self.actions['open_doc_dir'][1])
+        self.actions['new_doc'][1].connect(self.actions['new_doc'][0])
+        self.actions['open_doc'][1].connect(self.actions['open_doc'][0])
+        self.actions['reindex'][1].connect(self.actions['reindex'][0])
+        self.actions['quit'][1].connect(self.actions['quit'][0])
+        self.actions['search'][1].connect(self.actions['search'][0])
+        self.actions['open_page'][1].connect(self.actions['open_page'][0])
+        self.actions['zoom_levels'][1].connect(self.actions['zoom_levels'][0])
+        self.actions['set_current_page'][1].connect(
+            self.actions['set_current_page'][0])
+        self.actions['prev_page'][1].connect(self.actions['prev_page'][0])
+        self.actions['next_page'][1].connect(self.actions['next_page'][0])
+        self.actions['create_label'][1].connect(
+            self.actions['create_label'][0])
+        self.actions['edit_label'][1].connect(self.actions['edit_label'][0])
+        self.actions['open_doc_dir'][1].connect(
+            self.actions['open_doc_dir'][0])
         self.actions['toggle_label'][0].connect("toggled",
-                self.actions['toggle_label'][1].toggle_cb)
+            self.actions['toggle_label'][1].toggle_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb, indexer))

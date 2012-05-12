@@ -31,26 +31,25 @@ class SimpleAction(object):
     def combobox_changed(self, combobox):
         self.do()
 
-
-def connect_action(buttons, action):
-    for button in buttons:
-        assert(button != None)
-        if isinstance(button, gtk.ToolButton):
-            button.connect("clicked", action.button_clicked)
-        elif isinstance(button, gtk.Button):
-            button.connect("clicked", action.button_clicked)
-        elif isinstance(button, gtk.MenuItem):
-            button.connect("activate", action.menuitem_activate)
-        elif isinstance(button, gtk.Editable):
-            button.connect("changed", action.entry_changed)
-            button.connect("activate", action.entry_activate)
-        elif isinstance(button, gtk.TreeView):
-            button.connect("cursor-changed",
-                           action.treeview_cursor_changed)
-        elif isinstance(button, gtk.IconView):
-            button.connect("selection-changed",
-                           action.iconview_selection_changed)
-        elif isinstance(button, gtk.ComboBox):
-            button.connect("changed", action.combobox_changed)
-        else:
-            assert()
+    def connect(self, buttons):
+        for button in buttons:
+            assert(button != None)
+            if isinstance(button, gtk.ToolButton):
+                button.connect("clicked", self.button_clicked)
+            elif isinstance(button, gtk.Button):
+                button.connect("clicked", self.button_clicked)
+            elif isinstance(button, gtk.MenuItem):
+                button.connect("activate", self.menuitem_activate)
+            elif isinstance(button, gtk.Editable):
+                button.connect("changed", self.entry_changed)
+                button.connect("activate", self.entry_activate)
+            elif isinstance(button, gtk.TreeView):
+                button.connect("cursor-changed",
+                               self.treeview_cursor_changed)
+            elif isinstance(button, gtk.IconView):
+                button.connect("selection-changed",
+                               self.iconview_selection_changed)
+            elif isinstance(button, gtk.ComboBox):
+                button.connect("changed", self.combobox_changed)
+            else:
+                assert()

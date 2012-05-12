@@ -9,7 +9,7 @@ import gtk
 import gettext
 import gobject
 
-#from paperwork.controller.aboutdialog import AboutDialog
+from paperwork.controller.aboutdialog import AboutDialog
 from paperwork.controller.actions import SimpleAction
 #from paperwork.controller.multiscan import MultiscanDialog
 #from paperwork.controller.settingswindow import SettingsWindow
@@ -381,6 +381,10 @@ class ActionToggleLabel(object):
         self.__main_win.refresh_doc_list()
         # TODO(Jflesch): Update keyword index
 
+    def connect(self, cellrenderers):
+        for cellrenderer in cellrenderers:
+            cellrenderer.connect('toggled', self.toggle_cb)
+
 
 class ActionCreateLabel(SimpleAction):
     def __init__(self, main_window):
@@ -397,15 +401,6 @@ class ActionCreateLabel(SimpleAction):
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
         # TODO(Jflesch): Update keyword index
-
-
-class ActionOpenDocDir(SimpleAction):
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Open doc dir")
-        self.__main_win = main_window
-
-    def do(self):
-        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
 
 
 class ActionEditLabel(SimpleAction):
@@ -436,6 +431,25 @@ class ActionEditLabel(SimpleAction):
                                                        new_label=new_label)
         # TODO(Jflesch): Update keyword index
 
+
+class ActionOpenDocDir(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open doc dir")
+        self.__main_win = main_window
+
+    def do(self):
+        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
+
+
+class ActionAbout(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Opening about dialog")
+        self.__main_win = main_window
+
+    def do(self):
+        about = AboutDialog(self.__main_win.window)
+        about.show()
+        
 
 class ActionQuit(SimpleAction):
     """
@@ -616,7 +630,8 @@ class MainWindow(object):
                 widget_tree.get_object("menuitemDestroyLabel"),
                 widget_tree.get_object("buttonDelLabel"),
             ],
-            'open_doc_dir' : ([
+            'open_doc_dir' : (
+                [
                     widget_tree.get_object("menuitemOpenDocDir"),
                     widget_tree.get_object("toolbuttonOpenDocDir"),
                 ],
@@ -661,7 +676,9 @@ class MainWindow(object):
                 ActionUpdateSearchResults(self),
             ),
             'toggle_label' : (
-                widget_tree.get_object("cellrenderertoggleLabel"),
+                [
+                    widget_tree.get_object("cellrenderertoggleLabel"),
+                ],
                 ActionToggleLabel(self),
             ),
             'show_all_boxes' : [
@@ -679,9 +696,12 @@ class MainWindow(object):
                 ],
                 ActionStartSimpleWorker(self.workers['reindex'])
             ),
-            'about' : [
-                widget_tree.get_object("menuitemAbout"),
-            ],
+            'about' : (
+                [
+                    widget_tree.get_object("menuitemAbout"),
+                ],
+                ActionAbout(self),
+            ),
         }
 
         self.actions['new_doc'][1].connect(self.actions['new_doc'][0])
@@ -700,8 +720,10 @@ class MainWindow(object):
         self.actions['edit_label'][1].connect(self.actions['edit_label'][0])
         self.actions['open_doc_dir'][1].connect(
             self.actions['open_doc_dir'][0])
-        self.actions['toggle_label'][0].connect("toggled",
-            self.actions['toggle_label'][1].toggle_cb)
+        self.actions['toggle_label'][1].connect(
+            self.actions['toggle_label'][0])
+        self.actions['about'][1].connect(
+            self.actions['about'][0])
 
         for popup_menu in self.popupMenus.values():
             # TODO(Jflesch): Find the correct signal

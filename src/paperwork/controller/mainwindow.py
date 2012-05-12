@@ -400,6 +400,15 @@ class ActionCreateLabel(SimpleAction):
         # TODO(Jflesch): Update keyword index
 
 
+class ActionOpenDocDir(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open doc dir")
+        self.__main_win = main_window
+
+    def do(self):
+        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
+
+
 class ActionEditLabel(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Editing label")
@@ -608,10 +617,12 @@ class MainWindow(object):
                 widget_tree.get_object("menuitemDestroyLabel"),
                 widget_tree.get_object("buttonDelLabel"),
             ],
-            'open_doc_dir' : [
-                widget_tree.get_object("menuitemOpenDocDir"),
-                widget_tree.get_object("toolbuttonOpenDocDir"),
-            ],
+            'open_doc_dir' : ([
+                    widget_tree.get_object("menuitemOpenDocDir"),
+                    widget_tree.get_object("toolbuttonOpenDocDir"),
+                ],
+                ActionOpenDocDir(self),
+            ),
             'del_doc' : [
                 widget_tree.get_object("menuitemDestroyDoc2"),
                 # TODO
@@ -698,6 +709,8 @@ class MainWindow(object):
                        self.actions['create_label'][1])
         connect_action(self.actions['edit_label'][0],
                        self.actions['edit_label'][1])
+        connect_action(self.actions['open_doc_dir'][0],
+                       self.actions['open_doc_dir'][1])
         self.actions['toggle_label'][0].connect("toggled",
                 self.actions['toggle_label'][1].toggle_cb)
 

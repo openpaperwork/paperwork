@@ -498,6 +498,9 @@ class ActionQuit(SimpleAction):
         self.__main_win.window.destroy()
         gtk.main_quit()
 
+    def on_window_close_cb(self, window):
+        self.do()
+
 
 class MainWindow(object):
     def __init__(self, config):
@@ -757,6 +760,9 @@ class MainWindow(object):
             # This one doesn't take into account the key to access these menus
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
+
+        self.window.connect("destroy",
+                            ActionQuit(self).on_window_close_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb, indexer))

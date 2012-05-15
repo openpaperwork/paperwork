@@ -441,6 +441,30 @@ class ActionOpenDocDir(SimpleAction):
         os.system('xdg-open "%s"' % (self.__main_win.doc.path))
 
 
+class ActionPrintDoc(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open print dialog")
+        self.__main_win = main_window
+
+    def do(self):
+        print_settings = gtk.PrintSettings()
+        # By default, print context are using 72 dpi, but print_draw_page
+        # will change it to 300 dpi --> we have to tell PrintOperation to scale
+        print_settings.set_scale(100.0 * (72.0 / ScannedPage.PRINT_RESOLUTION))
+
+        print_op = gtk.PrintOperation()
+        print_op.set_print_settings(print_settings)
+        print_op.set_n_pages(self.__main_win.doc.nb_pages)
+        print_op.set_current_page(self.__main_win.page.page_nb)
+        print_op.set_use_full_page(True)
+        print_op.set_job_name(str(self.__main_win.doc))
+        print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
+        print_op.set_allow_async(True)
+        print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
+        print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
+                     self.__main_win.window)
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -597,10 +621,12 @@ class MainWindow(object):
                 widget_tree.get_object("imagemenuitemScanFeeder"),
                 widget_tree.get_object("menuitemScanFeeder"),
             ],
-            'print' : [
+            'print' : ([
                 widget_tree.get_object("menuitemPrint"),
                 widget_tree.get_object("toolbuttonPrint"),
             ],
+                ActionPrintDoc(self)
+            ),
             'settings' : [
                 widget_tree.get_object("menuitemSettings"),
                 # TODO
@@ -722,6 +748,7 @@ class MainWindow(object):
             self.actions['open_doc_dir'][0])
         self.actions['toggle_label'][1].connect(
             self.actions['toggle_label'][0])
+        self.actions['print'][1].connect(self.actions['print'][0])
         self.actions['about'][1].connect(
             self.actions['about'][0])
 

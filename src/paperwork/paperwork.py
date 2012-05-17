@@ -16,6 +16,7 @@ import pygtk
 
 from controller.mainwindow import MainWindow
 from model.config import PaperworkConfig
+from model.scanner import PaperworkScanner
 
 pygtk.require("2.0")
 
@@ -53,7 +54,11 @@ def main():
 
     config = PaperworkConfig()
     config.read()
-    main_win = MainWindow(config)
+
+    device = PaperworkScanner()
+    device.load_settings_from_config(config)
+
+    main_win = MainWindow(config, device)
     main_win.actions['new_doc'][1].do()
     main_win.actions['reindex'][1].do()
     gtk.main()

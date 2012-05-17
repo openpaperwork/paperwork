@@ -265,6 +265,10 @@ class PaperworkScanner(object):
             device.close()
         return sources
 
+    def load_settings_from_config(self, config):
+        self.selected_device = config.scanner_devid
+        self.selected_resolution = config.scanner_resolution
+
     def open(self, multiscan=False, dev_id=None):
         if not HAS_SANE:
             raise PaperworkScannerException("Sane module not found")

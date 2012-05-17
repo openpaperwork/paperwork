@@ -12,14 +12,13 @@ import gobject
 from paperwork.controller.aboutdialog import AboutDialog
 from paperwork.controller.actions import SimpleAction
 #from paperwork.controller.multiscan import MultiscanDialog
-#from paperwork.controller.settingswindow import SettingsWindow
+from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
 from paperwork.model.doc import ScannedDoc
 from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
 from paperwork.model.labels import LabelEditor
 from paperwork.model.page import ScannedPage
-from paperwork.model.scanner import PaperworkScanner
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import MIN_KEYWORD_LEN
@@ -465,6 +464,19 @@ class ActionPrintDoc(SimpleAction):
                      self.__main_win.window)
 
 
+class ActionOpenSettings(SimpleAction):
+    def __init__(self, main_window, config, scan_device):
+        SimpleAction.__init__(self, "Open settings dialog")
+        self.__main_win = main_window
+        self.__config = config
+        self.__device = None
+        self.__scan_device = scan_device
+
+    def do(self):
+        SettingsWindow(self.__main_win.window, self.__config,
+                       self.__scan_device)
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -503,7 +515,7 @@ class ActionQuit(SimpleAction):
 
 
 class MainWindow(object):
-    def __init__(self, config):
+    def __init__(self, config, scan_device):
         img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
         # TODO(Jflesch): Find a better default thumbnail
         self.default_thumbnail = image2pixbuf(img)
@@ -630,10 +642,13 @@ class MainWindow(object):
             ],
                 ActionPrintDoc(self)
             ),
-            'settings' : [
-                widget_tree.get_object("menuitemSettings"),
-                # TODO
-            ],
+            'open_settings' : (
+                [
+                    widget_tree.get_object("menuitemSettings"),
+                    # TODO
+                ],
+                ActionOpenSettings(self, config, scan_device)
+            ),
             'quit' : (
                 [
                     widget_tree.get_object("menuitemQuit"),
@@ -752,6 +767,8 @@ class MainWindow(object):
         self.actions['toggle_label'][1].connect(
             self.actions['toggle_label'][0])
         self.actions['print'][1].connect(self.actions['print'][0])
+        self.actions['open_settings'][1].connect(
+            self.actions['open_settings'][0])
         self.actions['about'][1].connect(
             self.actions['about'][0])
 

@@ -255,7 +255,6 @@ class ActionNewDocument(SimpleAction):
             self.__main_win.workers['img_builder'].stop()
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
         self.__main_win.page = None
-        self.__main_win.thumbnails = []
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['img_builder'].start()
@@ -963,12 +962,12 @@ class MainWindow(object):
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
-        Warning: Will set default thumbnail on all the pages
+        Warning: Will remove the thumbnails on all the pages
         """
         self.lists['pages'][1].clear()
         for page in self.doc.pages:
             self.lists['pages'][1].append([
-                None,
+                None,  # no thumbnail
                 gtk.STOCK_EXECUTE,
                 gtk.ICON_SIZE_DIALOG,
                 _('Page %d') % (page.page_nb + 1),

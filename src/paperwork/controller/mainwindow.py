@@ -146,6 +146,30 @@ class WorkerImgBuilder(Worker):
         width -= 30
         return width
 
+    @staticmethod
+    def __draw_boxes(img, boxes, color, width):
+        """
+        Draw the word boxes on the image
+
+        Arguments:
+            img --- the image
+            boxes --- see ScannedPage.boxes
+            color --- a tuple of 3 integers (each of them being 0 < X < 256)
+             indicating the color to use to draw the boxes
+            width --- Width of the line of the boxes
+        """
+        draw = ImageDraw.Draw(img)
+        for box in boxes:
+            for i in range(2, width + 2):
+                ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
+                draw.rectangle(((pt_a_x - i, pt_a_y - i),
+                                (pt_b_x + i, pt_b_y + i)),
+                               outline=color)
+        return img
+
+    def __must_draw_all_boxes(self):
+        self.__main_win.show_all_boxes.get_active()
+
     def do(self):
         self.emit('img-building-start')
 
@@ -605,6 +629,9 @@ class MainWindow(object):
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
         }
+
+        self.show_all_boxes = \
+            widget_tree.get_object("checkmenuitemShowAllBoxes")
 
         self.actions = {
             'new_doc' : (

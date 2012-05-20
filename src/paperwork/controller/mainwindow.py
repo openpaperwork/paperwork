@@ -5,6 +5,7 @@ import threading
 
 import Image
 import ImageColor
+import ImageDraw
 import gtk
 import gettext
 import gobject
@@ -21,8 +22,6 @@ from paperwork.model.labels import LabelEditor
 from paperwork.model.page import ScannedPage
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
-from paperwork.util import MIN_KEYWORD_LEN
-from paperwork.util import split_words
 
 _ = gettext.gettext
 
@@ -167,9 +166,6 @@ class WorkerImgBuilder(Worker):
                                outline=color)
         return img
 
-    def __must_draw_all_boxes(self):
-        self.__main_win.show_all_boxes.get_active()
-
     def do(self):
         self.emit('img-building-start')
 
@@ -179,6 +175,15 @@ class WorkerImgBuilder(Worker):
 
         try:
             img = self.__main_win.page.img
+
+            if self.__main_win.show_all_boxes.get_active():
+                self.__draw_boxes(img, self.__main_win.page.boxes,
+                                  color=(0x6c, 0x5d, 0xd1), width=1)
+            search = unicode(self.__main_win.search_field.get_text())
+            highlighted_boxes = self.__main_win.page.get_boxes(search)
+            self.__draw_boxes(img, highlighted_boxes,
+                              color=(0x00, 0x9f, 0x00), width=5)
+
             pixbuf = image2pixbuf(img)
 
             factor = self.__get_zoom_factor()
@@ -751,9 +756,12 @@ class MainWindow(object):
                 ],
                 ActionToggleLabel(self),
             ),
-            'show_all_boxes' : [
-                widget_tree.get_object("checkmenuitemShowAllBoxes"),
-            ],
+            'show_all_boxes' : (
+                [
+                    self.show_all_boxes
+                ],
+                ActionRebuildPage(self)
+            ),
             'redo_ocr_doc': [
                 widget_tree.get_object("menuitemReOcr"),
             ],
@@ -795,6 +803,8 @@ class MainWindow(object):
         self.actions['print'][1].connect(self.actions['print'][0])
         self.actions['open_settings'][1].connect(
             self.actions['open_settings'][0])
+        self.actions['show_all_boxes'][1].connect(
+            self.actions['show_all_boxes'][0])
         self.actions['about'][1].connect(
             self.actions['about'][0])
 

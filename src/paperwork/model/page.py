@@ -95,9 +95,7 @@ class ScannedPage(object):
 
     def __get_boxes(self):
         """
-        Get all the word boxes of this page. Note that this process may take
-        some time (usually 1 to 3 seconds). This is why this is not a property,
-        and this is why this function accept a progression callback argument.
+        Get all the word boxes of this page.
         """
         boxfile = self.__box_path
         txt = self.text
@@ -113,6 +111,32 @@ class ScannedPage(object):
             return []
 
     boxes = property(__get_boxes)
+
+    def get_boxes(self, sentence):
+        """
+        Get all the boxes corresponding the given sentence
+
+        Arguments:
+            sentence --- can be string (will be splited), or an array of strings
+        Returns:
+            an array of boxes (see pyocr boxes)
+        """
+        if isinstance(sentence, unicode):
+            keywords = split_words(sentence)
+        else:
+            assert(isinstance(sentence, list))
+            keywords = sentence
+
+        output = []
+        for keyword in keywords:
+            for box in self.boxes:
+                # unfold generator output
+                words = []
+                for word in split_words(box.content):
+                    words.append(word)
+                if keyword in words:
+                    output.append(box)
+        return output
 
     def __get_img(self):
         """

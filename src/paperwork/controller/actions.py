@@ -8,7 +8,7 @@ class SimpleAction(object):
         self.name = name
 
     def do(self):
-        print "Action: %s" % (self.name)
+        print "Action: [%s]" % (self.name)
 
     def on_button_clicked_cb(self, toolbutton):
         self.do()

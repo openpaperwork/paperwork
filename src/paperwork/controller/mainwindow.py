@@ -501,8 +501,13 @@ class ActionOpenSettings(SimpleAction):
         self.__scan_device = scan_device
 
     def do(self):
-        SettingsWindow(self.__main_win.window, self.__config,
-                       self.__scan_device)
+        sw = SettingsWindow(self.__main_win.window, self.__config,
+                            self.__scan_device)
+        sw.connect("need-reindex", self.__reindex_cb)
+
+    def __reindex_cb(self, settings_window):
+        self.__main_win.workers['reindex'].start()
+
 
 
 class ActionAbout(SimpleAction):
@@ -667,10 +672,11 @@ class MainWindow(object):
                 widget_tree.get_object("imagemenuitemScanFeeder"),
                 widget_tree.get_object("menuitemScanFeeder"),
             ],
-            'print' : ([
-                widget_tree.get_object("menuitemPrint"),
-                widget_tree.get_object("toolbuttonPrint"),
-            ],
+            'print' : (
+                [
+                    widget_tree.get_object("menuitemPrint"),
+                    widget_tree.get_object("toolbuttonPrint"),
+                ],
                 ActionPrintDoc(self)
             ),
             'open_settings' : (
@@ -782,31 +788,12 @@ class MainWindow(object):
             ),
         }
 
-        self.actions['new_doc'][1].connect(self.actions['new_doc'][0])
-        self.actions['open_doc'][1].connect(self.actions['open_doc'][0])
-        self.actions['reindex'][1].connect(self.actions['reindex'][0])
-        self.actions['quit'][1].connect(self.actions['quit'][0])
-        self.actions['search'][1].connect(self.actions['search'][0])
-        self.actions['open_page'][1].connect(self.actions['open_page'][0])
-        self.actions['zoom_levels'][1].connect(self.actions['zoom_levels'][0])
-        self.actions['set_current_page'][1].connect(
-            self.actions['set_current_page'][0])
-        self.actions['prev_page'][1].connect(self.actions['prev_page'][0])
-        self.actions['next_page'][1].connect(self.actions['next_page'][0])
-        self.actions['create_label'][1].connect(
-            self.actions['create_label'][0])
-        self.actions['edit_label'][1].connect(self.actions['edit_label'][0])
-        self.actions['open_doc_dir'][1].connect(
-            self.actions['open_doc_dir'][0])
-        self.actions['toggle_label'][1].connect(
-            self.actions['toggle_label'][0])
-        self.actions['print'][1].connect(self.actions['print'][0])
-        self.actions['open_settings'][1].connect(
-            self.actions['open_settings'][0])
-        self.actions['show_all_boxes'][1].connect(
-            self.actions['show_all_boxes'][0])
-        self.actions['about'][1].connect(
-            self.actions['about'][0])
+        for action in [
+            "new_doc", "open_doc", "reindex", "quit", "search", "open_page",
+            "zoom_levels", "set_current_page", "prev_page", "next_page",
+            "create_label", "edit_label", "open_doc_dir", "toggle_label",
+            "print", "open_settings", "show_all_boxes", "about"]:
+            self.actions[action][1].connect(self.actions[action][0])
 
         for popup_menu in self.popupMenus.values():
             # TODO(Jflesch): Find the correct signal

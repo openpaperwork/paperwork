@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkListStore" id="liststoreDevice">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name devid -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreOcrLang">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name sysName -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreResolution">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+  </object>
   <object class="GtkWindow" id="windowSettings">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Settings</property>
@@ -59,6 +83,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="action">select-folder</property>
+                                <property name="title" translatable="yes">Select a folder</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -129,10 +154,46 @@
                               </packing>
                             </child>
                             <child>
-                              <placeholder/>
+                              <object class="GtkComboBox" id="comboboxDevices">
+                                <property name="visible">True</property>
+                                <property name="sensitive">False</property>
+                                <property name="can_focus">False</property>
+                                <property name="model">liststoreDevice</property>
+                                <property name="id_column">0</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                                  <attributes>
+                                    <attribute name="xpad">1</attribute>
+                                    <attribute name="sensitive">1</attribute>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                              </packing>
                             </child>
                             <child>
-                              <placeholder/>
+                              <object class="GtkComboBox" id="comboboxResolution">
+                                <property name="visible">True</property>
+                                <property name="sensitive">False</property>
+                                <property name="can_focus">False</property>
+                                <property name="model">liststoreResolution</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                                  <attributes>
+                                    <attribute name="markup">1</attribute>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
+                              </packing>
                             </child>
                           </object>
                         </child>
@@ -183,7 +244,15 @@
                               </packing>
                             </child>
                             <child>
-                              <placeholder/>
+                              <object class="GtkComboBox" id="comboboxLang">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="model">liststoreOcrLang</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                              </packing>
                             </child>
                           </object>
                         </child>
@@ -307,6 +376,17 @@
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkProgressBar" id="progressbarScan">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>

@@ -27,6 +27,12 @@ class PaperworkScannerException(Exception):
 
 
 def sane_init():
+    """
+    Initialize Sane.
+
+    Warning:
+        Apparently, it can and must be only run from the main thread
+    """
     global _opened_scanner_instances
 
     if not HAS_SANE:
@@ -40,6 +46,12 @@ def sane_init():
 
 
 def sane_exit():
+    """
+    Cleanup Sane.
+
+    Warning:
+        Apparently, it can and must be only run from the main thread
+    """
     global _opened_scanner_instances
 
     _opened_scanner_instances -= 1
@@ -47,6 +59,14 @@ def sane_exit():
         print "Cleaning sane module"
         sys.stdout.flush()
         sane.exit()
+
+
+def assert_sane_init():
+    """
+    Make sure that sane has been initialized
+    """
+    global _opened_scanner_instances
+    assert(_opened_scanner_instances > 0)
 
 
 class PaperworkPhyScanSrc(object):
@@ -206,6 +226,7 @@ class PaperworkScanner(object):
         if not HAS_SANE:
             return []
 
+        devs = []
         sane_init()
         try:
             devs = sane.get_devices()
@@ -213,9 +234,9 @@ class PaperworkScanner(object):
             for dev in devs:
                 print dev
             print "--"
-            return devs
         finally:
             sane_exit()
+        return devs
 
     available_devices = property(__get_available_devices)
 

@@ -273,8 +273,8 @@ class SettingsWindow(gobject.GObject):
 
     def __on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)
-        settings['gui'].set_active(0)
         settings['gui'].set_model(settings['stores']['loading'])
+        settings['gui'].set_active(0)
         settings['stores']['loaded'].clear()
         settings['nb_elements'] = 0
         settings['active'] = -1
@@ -282,18 +282,19 @@ class SettingsWindow(gobject.GObject):
     def __on_value_found_cb(self, settings,
                             user_name, store_name, active):
         store_line = [user_name, store_name]
+        print "Got value [%s]" % (str(store_line))
         settings['stores']['loaded'].append(store_line)
         if active:
             settings['active'] = settings['nb_elements']
         settings['nb_elements'] += 1
 
     def __on_finding_end_cb(self, settings):
+        settings['gui'].set_sensitive(True)
         settings['gui'].set_model(settings['stores']['loaded'])
         if settings['active'] >= 0:
             settings['gui'].set_active(settings['active'])
         else:
             settings['gui'].set_active(0)
-        settings['gui'].set_sensitive(True)
 
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)

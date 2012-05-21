@@ -9,6 +9,17 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststoreLoading">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes" context="Scanner device detection &amp; Available resolution detection">Loading ...</col>
+      </row>
+    </data>
+  </object>
   <object class="GtkListStore" id="liststoreOcrLang">
     <columns>
       <!-- column-name userName -->
@@ -88,6 +99,7 @@
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
+                                <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
                           </object>
@@ -158,7 +170,8 @@
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">False</property>
-                                <property name="model">liststoreDevice</property>
+                                <property name="model">liststoreLoading</property>
+                                <property name="active">0</property>
                                 <property name="id_column">0</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
@@ -172,6 +185,7 @@
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
+                                <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
@@ -179,7 +193,8 @@
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">False</property>
-                                <property name="model">liststoreResolution</property>
+                                <property name="model">liststoreLoading</property>
+                                <property name="active">0</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                   <attributes>
@@ -193,6 +208,7 @@
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
+                                <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
                           </object>
@@ -252,6 +268,7 @@
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
+                                <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
                           </object>

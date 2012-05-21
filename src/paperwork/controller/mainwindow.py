@@ -254,10 +254,8 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        if self.__main_win.workers['thumbnailer'].is_running:
-            self.__main_win.workers['thumbnailer'].stop()
-        if self.__main_win.workers['img_builder'].is_running:
-            self.__main_win.workers['img_builder'].stop()
+        self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.workers['img_builder'].stop()
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
         self.__main_win.page = None
         self.__main_win.refresh_page_list()
@@ -284,8 +282,7 @@ class ActionOpenDocumentSelected(SimpleAction):
         doc = selection_path[0].get_value(selection_path[1], 1)
 
         print "Showing doc %s" % doc
-        if self.__main_win.workers['thumbnailer'].is_running:
-            self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.doc = doc
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
@@ -385,8 +382,7 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        if self.__main_win.workers['img_builder'].is_running:
-            self.__main_win.workers['img_builder'].stop()
+        self.__main_win.workers['img_builder'].stop()
         self.__main_win.workers['img_builder'].start()
 
 
@@ -532,13 +528,7 @@ class ActionQuit(SimpleAction):
         SimpleAction.do(self)
 
         for worker in self.__main_win.workers.values():
-            if worker.is_running and not worker.can_interrupt:
-                print ("Sorry, can't quit. Another thread is still running and"
-                       " can't be interrupted")
-                return
-        for worker in self.__main_win.workers.values():
-            if worker.is_running:
-                worker.stop()
+            worker.stop()
 
         self.__main_win.window.destroy()
         gtk.main_quit()
@@ -995,8 +985,7 @@ class MainWindow(object):
         self.indicators['current_page'].set_text(
                 "%d" % (page.page_nb + 1))
 
-        if self.workers['img_builder'].is_running:
-            self.workers['img_builder'].stop()
+        self.workers['img_builder'].stop()
         self.page = page
         self.workers['img_builder'].start()
 

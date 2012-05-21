@@ -33,15 +33,15 @@ class Worker(gobject.GObject):
         self.__thread.start()
 
     def stop(self):
-        if not self.can_interrupt:
-            raise threading.ThreadError(
-                ("Tried to stop a worker that cannot be stopped: %s"
-                 % (self.name)))
         if not self.is_running:
-            raise threading.ThreadError(
-                ("Tried to stop a thread that is not running: %s"
-                 % (self.name)))
+            return
+        if not self.can_interrupt:
+            print ("Trying to stop a worker that cannot be stopped: %s"
+                   % (self.name))
         self.__can_run = False
+        self.__thread.join()
+
+    def wait(self):
         self.__thread.join()
 
     def __get_is_running(self):

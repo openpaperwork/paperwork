@@ -5,6 +5,7 @@ Code relative to scanner management.
 import gettext
 import gtk
 import pyocr.pyocr
+import sys
 import time
 try:
     import sane
@@ -32,6 +33,8 @@ def sane_init():
         raise PaperworkScannerException("Sane module not found")
 
     if _opened_scanner_instances == 0:
+        print "Initializing sane module"
+        sys.stdout.flush()
         sane.init()
     _opened_scanner_instances += 1
 
@@ -41,6 +44,8 @@ def sane_exit():
 
     _opened_scanner_instances -= 1
     if _opened_scanner_instances == 0:
+        print "Cleaning sane module"
+        sys.stdout.flush()
         sane.exit()
 
 

@@ -16,7 +16,6 @@ import pyocr.pyocr
 
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
-from paperwork.model.scanner import PaperworkScanner
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 

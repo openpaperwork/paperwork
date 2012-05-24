@@ -1,8 +1,8 @@
-Paperwork
-=========
+# Paperwork
 
-Description
------------
+!TOC
+
+## Description
 
 Paperwork is a tool to make papers searchable.
 
@@ -20,8 +20,7 @@ Paperwork uses a custom indexation system to search documents and to provide
 keyword suggestions. Since OCR is not perfect, and since some documents don't
 contain useful keywords, Paperwork allows also to put labels on each document.
 
-Screenshots
------------
+## Screenshots
 
 ### Main window
 
@@ -53,13 +52,11 @@ Screenshots
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.settings.png" width="512" height="384" />
 </a>
 
-Licence
--------
+## Licence
 
 GPLv3. See COPYING.
 
-Dependencies
-------------
+## Dependencies
 
 * pygtk v2 (required)
 	* Debian/Ubuntu package: python-gtk2
@@ -82,8 +79,7 @@ Dependencies
 		* cd pyocr
 		* sudo python2 ./setup.py install
 
-Installation
-------------
+## Installation
 
 	$ git clone git://github.com/jflesch/paperwork.git
 	$ cd paperwork
@@ -92,14 +88,12 @@ Installation
 
 Enjoy :-)
 
-Contact
--------
+## Contact
 
 * Mailing-list: [paperwork-gui@googlegroups.com](mailto:paperwork-gui@googlegroups.com)
 * Bug tracker: [https://github.com/jflesch/paperwork/issues](https://github.com/jflesch/paperwork/issues)
 
-Development
------------
+## Development
 
 ### Rules
 
@@ -133,5 +127,4 @@ If you want to make changes, here are few things that can help you:
    './paperwork.conf'. Note that the settings dialog will also take care of
    updating './paperwork.conf' instead of '~/.paperwork.conf'.
 3. "pep8" is your friend
-4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc *.py
-
+4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc \*.py

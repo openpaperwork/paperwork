@@ -1,6 +1,7 @@
 # Paperwork
 
-!TOC
+* auto-gen TOC:
+{:toc}
 
 ## Description
 

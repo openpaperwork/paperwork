@@ -1,8 +1,5 @@
 # Paperwork
 
-* auto-gen TOC:
-{:toc}
-
 ## Description
 
 Paperwork is a tool to make papers searchable.

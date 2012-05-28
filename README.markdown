@@ -57,7 +57,7 @@ GPLv3. See COPYING.
 ## Dependencies
 
 
-* python v2.7
+* python v2.7<br/>
   Paperwork is written for Python **2.7**.
   So depending of your Linux distribution, you may have to invoke "python2"
   instead of "python" (for instance with Arch Linux)

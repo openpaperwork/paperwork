@@ -323,6 +323,7 @@
                 <child>
                   <object class="GtkMenuToolButton" id="toolbuttonScan">
                     <property name="visible">True</property>
+                    <property name="is_important">True</property>
                     <property name="label" translatable="yes">Scan</property>
                     <property name="use_underline">True</property>
                     <property name="icon_name">scanner</property>
@@ -361,7 +362,6 @@
                 <child>
                   <object class="GtkToolButton" id="toolbuttonPrevPage">
                     <property name="visible">True</property>
-                    <property name="is_important">True</property>
                     <property name="label" translatable="yes">Previous</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-go-up</property>
@@ -374,7 +374,6 @@
                 <child>
                   <object class="GtkToolButton" id="toolbuttonNextPage">
                     <property name="visible">True</property>
-                    <property name="is_important">True</property>
                     <property name="label" translatable="yes">Next</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">gtk-go-down</property>

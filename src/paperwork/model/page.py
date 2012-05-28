@@ -9,12 +9,13 @@ import os.path
 import re
 
 import gtk
-import PIL
 import pyocr.builders
 import pyocr.pyocr
 
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
+
+from config import PaperworkConfig
 
 
 class ScannedPage(object):
@@ -155,35 +156,28 @@ class ScannedPage(object):
         img = img.resize((int(w), int(h)))
         return img
 
-    def __scan(self, scan_src, scanner_calibration, callback=dummy_progress_cb):
+    def __save_imgs(self, img, scan_res, scanner_calibration,
+                    callback=dummy_progress_cb):
         """
-        Scan a page, and generate 4 output files:
+        Make a page (on disk), and generate 4 output files:
             <docid>/paper.rotated.0.bmp: original output
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
-
-        Arguments:
-            source --- Can be a Sane device or an Image generator
         """
-        callback(0, 100, self.SCAN_STEP_SCAN)
-
-        # TODO(Jflesch): call callback during the scan
-        pic = scan_src.scan()
-
         if scanner_calibration != None:
             cropping = (scanner_calibration[0][0]
-                        * scan_src.paperwork_dev.selected_resolution
-                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
+                        * scan_res
+                        / PaperworkConfig.CALIBRATION_RESOLUTION,
                         scanner_calibration[0][1]
-                        * scan_src.paperwork_dev.selected_resolution
-                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
+                        * scan_res
+                        / PaperworkConfig.CALIBRATION_RESOLUTION,
                         scanner_calibration[1][0]
-                        * scan_src.paperwork_dev.selected_resolution
-                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION,
+                        * scan_res
+                        / PaperworkConfig.CALIBRATION_RESOLUTION,
                         scanner_calibration[1][1]
-                        * scan_src.paperwork_dev.selected_resolution
-                        / scan_src.paperwork_dev.CALIBRATION_RESOLUTION)
-            pic = pic.crop(cropping)
+                        * scan_res
+                        / PaperworkConfig.CALIBRATION_RESOLUTION)
+            img = img.crop(cropping)
 
         outfiles = []
         for rotation in range(0, 2):
@@ -191,9 +185,9 @@ class ScannedPage(object):
                     ("rotated.%d.%s" % (rotation, self.EXT_IMG_SCAN)))
             print ("Saving scan (rotated %d degree) in '%s'"
                    % (rotation * -90, imgpath))
-            pic.save(imgpath)
+            img.save(imgpath)
             outfiles.append(imgpath)
-            pic = pic.rotate(-90)
+            img = img.rotate(-90)
         return outfiles
 
     @staticmethod
@@ -270,7 +264,7 @@ class ScannedPage(object):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def scan_page(self, scan_src, ocrlang, scanner_calibration,
+    def make(self, img, ocrlang, scan_res, scanner_calibration,
                   callback=dummy_progress_cb):
         """
         Scan the page & do OCR
@@ -280,12 +274,13 @@ class ScannedPage(object):
         boxfile = self.__box_path
 
         callback(0, 100, self.SCAN_STEP_SCAN)
-        outfiles = self.__scan(scan_src, scanner_calibration, callback)
+        outfiles = self.__save_imgs(img, scan_res, scanner_calibration,
+                                    callback)
         callback(0, 100, self.SCAN_STEP_OCR)
         (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 
         # Convert the image and save it in its final place
-        img = PIL.Image.open(bmpfile)
+        img = Image.open(bmpfile)
         img.save(imgfile)
 
         # Save the text

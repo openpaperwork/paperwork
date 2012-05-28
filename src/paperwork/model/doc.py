@@ -115,11 +115,22 @@ class ScannedDoc(object):
         Scan a new page and append it as the last page of the document
 
         Arguments:
-            scan_src --- see paperwork.model.scanner.PaperworkScanner.open()
+            scan_src --- see pyinsane.abstract_th.Scanner
             ocrlang --- Language to specify to the OCR tool
             callback -- Progression indication callback (see
                 util.dummy_progress_cb for the arguments to expected)
         """
+        callback(0, 100, ScannedPage.SCAN_STEP_SCAN)
+        # TODO(Jflesch): call callback during the scan
+        scan_inst = scan_src.scan(multiple=False)
+        try:
+            while True:
+                scan_inst.read()
+                time.sleep(0)
+        except EOFError:
+            pass
+        img = scan_inst.get_img(0)
+
         try:
             os.makedirs(self.path)
         except OSError:
@@ -127,7 +138,8 @@ class ScannedDoc(object):
 
         page_nb = self.nb_pages
         page = ScannedPage(self, page_nb)
-        page.scan_page(scan_src, ocrlang, scanner_calibration, callback)
+        page.make(img, ocrlang, scan_src.options['resolution'].value,
+                  scanner_calibration, callback)
 
     def __get_pages(self):
         """

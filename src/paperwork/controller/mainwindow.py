@@ -10,6 +10,8 @@ import gtk
 import gettext
 import gobject
 
+import pyinsane.rawapi
+
 from paperwork.controller.aboutdialog import AboutDialog
 from paperwork.controller.actions import SimpleAction
 #from paperwork.controller.multiscan import MultiscanDialog
@@ -24,6 +26,21 @@ from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
+
+
+def check_workdir(config):
+    """
+    Check that the current work dir (see config.PaperworkConfig) exists. If
+    not, open the settings dialog.
+    """
+    try:
+        os.stat(config.workdir)
+        return
+    except OSError, exc:
+        print ("Unable to stat dir '%s': %s --> mkdir"
+               % (config.workdir, exc))
+
+    os.mkdir(config.workdir, 0755)
 
 
 class WorkerDocIndexer(Worker):
@@ -241,6 +258,46 @@ class WorkerLabelUpdater(Worker):
 
 
 gobject.type_register(WorkerLabelUpdater)
+
+
+class WorkerSingleScan(Worker):
+    __gsignals__ = {
+        'single-scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'single-scan-ocr' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'single-scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                              (gobject.TYPE_PYOBJECT,) # ScannedPage
+                             ),
+    }
+
+    can_interrupt = False
+
+    def __init__(self, main_window, config):
+        Worker.__init__(self, "Scanning page")
+        self.__main_win = main_window
+        self.__config = config
+        self.__ocr_running = False
+
+    def __scan_progress_cb(self, progression, total, step, doc=None):
+        if (step == ScannedPage.SCAN_STEP_OCR) and (not self.__ocr_running):
+            self.emit('single-scan-ocr')
+            self.__ocr_running = True
+
+    def do(self, doc):
+        self.emit('single-scan-start')
+        self.__ocr_running = False
+        scanner = self.__config.get_scanner_inst()
+        try:
+            scanner.options['source'].value = "Auto"
+        except pyinsane.rawapi.SaneException:
+            print "Warning: Unable to set scanner source to 'Auto'"
+        doc.scan_single_page(scanner, self.__config.ocrlang,
+                             self.__config.scanner_calibration,
+                             self.__scan_progress_cb)
+        page = doc.pages[doc.nb_pages - 1]
+        self.emit('single-scan-done', page)
+
+
+gobject.type_register(WorkerSingleScan)
 
 
 class ActionNewDocument(SimpleAction):
@@ -502,6 +559,17 @@ class ActionOpenSettings(SimpleAction):
         self.__main_win.workers['reindex'].start()
 
 
+class ActionSingleScan(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Scan a single page")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        check_workdir(self.__config)
+        self.__main_win.workers['single_scan'].start(
+                doc=self.__main_win.doc)
+
 
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
@@ -624,6 +692,7 @@ class MainWindow(object):
             'thumbnailer' : WorkerThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
+            'single_scan' : WorkerSingleScan(self, config),
         }
 
         self.show_all_boxes = \
@@ -649,12 +718,14 @@ class MainWindow(object):
                 ],
                 ActionOpenPageSelected(self)
             ),
-            'single_scan' : [
-                widget_tree.get_object("menuitemScan"),
-                widget_tree.get_object("imagemenuitemScanSingle"),
-                widget_tree.get_object("toolbuttonScan"),
-                widget_tree.get_object("menuitemScanSingle"),
-            ],
+            'single_scan' : (
+                [
+                    widget_tree.get_object("imagemenuitemScanSingle"),
+                    widget_tree.get_object("toolbuttonScan"),
+                    widget_tree.get_object("menuitemScanSingle"),
+                ],
+                ActionSingleScan(self, config)
+            ),
             'multi_scan' : [
                 widget_tree.get_object("imagemenuitemScanFeeder"),
                 widget_tree.get_object("menuitemScanFeeder"),
@@ -779,7 +850,8 @@ class MainWindow(object):
             "new_doc", "open_doc", "reindex", "quit", "search", "open_page",
             "zoom_levels", "set_current_page", "prev_page", "next_page",
             "create_label", "edit_label", "open_doc_dir", "toggle_label",
-            "print", "open_settings", "show_all_boxes", "about"]:
+            "print", "open_settings", "show_all_boxes", "about",
+            "single_scan"]:
             self.actions[action][1].connect(self.actions[action][0])
 
         for popup_menu in self.popupMenus.values():
@@ -837,6 +909,16 @@ class MainWindow(object):
                 lambda updater: \
                     gobject.idle_add(self.__on_label_updating_end_cb,
                                      updater))
+
+        self.workers['single_scan'].connect('single-scan-start',
+                lambda worker: \
+                    gobject.idle_add(self.__on_single_scan_start, worker))
+        self.workers['single_scan'].connect('single-scan-ocr',
+                lambda worker: \
+                    gobject.idle_add(self.__on_single_scan_ocr, worker))
+        self.workers['single_scan'].connect('single-scan-done',
+                lambda worker, page: \
+                    gobject.idle_add(self.__on_single_scan_done, worker, page))
 
         self.window.connect("size-allocate", self.__on_window_resize_cb)
 
@@ -906,6 +988,24 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
         self.refresh_doc_list()
+
+    def __on_single_scan_start(self, src):
+        self.set_progression(src, 0.0, _("Scanning ..."))
+        self.set_mouse_cursor("Busy")
+        self.img_area.set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+
+    def __on_single_scan_ocr(self, src):
+        self.set_progression(src, 0.5, _("Reading ..."))
+
+    def __on_single_scan_done(self, src, page):
+        self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+        self.workers['thumbnailer'].stop()
+        self.refresh_page_list()
+        self.workers['thumbnailer'].start()
+        self.show_page(page)
+        self.workers['reindex'].stop()
+        self.workers['reindex'].start()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

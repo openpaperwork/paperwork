@@ -196,6 +196,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="model">liststoreLoading</property>
                                 <property name="active">0</property>
+                                <property name="id_column">0</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                   <attributes>
@@ -265,6 +266,13 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="model">liststoreOcrLang</property>
+                                <property name="id_column">0</property>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                                  <attributes>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -344,6 +352,7 @@
                                 <property name="label" translatable="yes">Scan</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="use_action_appearance">False</property>

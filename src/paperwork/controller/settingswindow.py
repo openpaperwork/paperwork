@@ -12,7 +12,7 @@ import gettext
 import gobject
 import gtk
 import pycountry
-import pyocr.pyocr
+import pyocr.pyocr as pyocr
 
 import pyinsane.abstract_th as pyinsane
 
@@ -152,8 +152,16 @@ class ActionSelectScanner(SimpleAction):
         settings = self.__settings_win.device_settings['devid']
         idx = settings['gui'].get_active()
         if idx < 0:
+            # happens when the scanner list has been updated
+            # but no scanner has been found
+            res_settings = self.__settings_win.device_settings['resolution']
+            res_settings['stores']['loaded'].clear()
+            res_settings['gui'].set_model(res_settings['stores']['loaded'])
+            res_settings['gui'].set_sensitive(False)
+            self.__settings_win.scan_button.set_sensitive(False)
             return
         print "Select scanner: %d" % idx
+        self.__settings_win.scan_button.set_sensitive(True)
         devid = settings['stores']['loaded'][idx][1]
         self.__settings_win.workers['resolution_finder'].start(devid=devid)
 
@@ -185,6 +193,16 @@ class ActionCancelSettings(SimpleAction):
     def do(self):
         self.__settings_win.display_config(self.__config)
         self.__settings_win.hide()
+
+
+class ActionScanCalibration(SimpleAction):
+    def __init__(self, settings_win):
+        SimpleAction.__init__(self, "Scan calibration sheet")
+        self.__settings_win = settings_win
+
+    def do(self):
+        # TODO
+        pass
 
 
 class SettingsWindow(gobject.GObject):
@@ -220,6 +238,10 @@ class SettingsWindow(gobject.GObject):
                 [widget_tree.get_object("comboboxDevices")],
                 ActionSelectScanner(self)
             ),
+            "scan_calibration" : (
+                [widget_tree.get_object("buttonScanCalibration")],
+                ActionScanCalibration(self)
+            )
         }
 
         self.device_settings = {
@@ -243,6 +265,15 @@ class SettingsWindow(gobject.GObject):
             },
         }
 
+        self.ocr_settings = {
+            "lang" : {
+                'gui' : widget_tree.get_object("comboboxLang"),
+                'store' : widget_tree.get_object("liststoreOcrLang"),
+            }
+        }
+
+        self.scan_button = widget_tree.get_object("buttonScanCalibration")
+
         self.workers = {
             "device_finder" : WorkerDeviceFinder(config.scanner_devid),
             "resolution_finder" : WorkerResolutionFinder(
@@ -250,14 +281,23 @@ class SettingsWindow(gobject.GObject):
                     config.RECOMMENDED_RESOLUTION),
         }
 
-        for action in ["apply", "cancel", "select_scanner"]:
+        ocr_tools = pyocr.get_available_tools()
+        if len(ocr_tools) <= 0:
+            ocr_langs = []
+        else:
+            ocr_langs = ocr_tools[0].get_available_languages()
+        ocr_langs = self.__get_short_to_long_langs(ocr_langs)
+        self.ocr_settings['lang']['store'].clear()
+        for (short_lang, long_lang) in ocr_langs.iteritems():
+            self.ocr_settings['lang']['store'].append([long_lang, short_lang])
+
+        for action in ["apply", "cancel", "select_scanner", "scan_calibration"]:
             actions[action][1].connect(actions[action][0])
 
         self.workers['device_finder'].connect(
                 'device-finding-start',
                 lambda worker: gobject.idle_add(
-                    self.__on_finding_start_cb,
-                    self.device_settings['devid']))
+                    self.__on_device_finding_start_cb))
         self.workers['device_finder'].connect(
                 'device-found',
                 lambda worker, user_name, store_name, active: \
@@ -291,6 +331,42 @@ class SettingsWindow(gobject.GObject):
 
         self.workers['device_finder'].start()
 
+    @staticmethod
+    def __get_short_to_long_langs(short_langs):
+        """
+        For each short language name, figures out its long name.
+
+        Arguments:
+            short_langs --- Array of strings. Each string is the short name of
+            a language. Should be 3 characters long (more should be fine as
+            well)
+
+        Returns:
+            A dictionnary: Keys are the short languages name, values are the
+            corresponding long languages names.
+        """
+        long_langs = {}
+        for short_lang in short_langs:
+            try:
+                try:
+                    country = pycountry.languages.get(terminology=short_lang[:3])
+                except KeyError:
+                    country = pycountry.languages.get(bibliographic=short_lang[:3])
+                extra = None
+                if "_" in short_lang:
+                    extra = short_lang.split("_")[1]
+                long_lang = country.name
+                if extra != None:
+                    long_lang += " (%s)" % (extra)
+                long_langs[short_lang] = long_lang
+            except KeyError, exc:
+                print ("Warning: Long name not found for language '%s'."
+                       % (short_lang))
+                print ("  Exception was: %s" % (str(exc)))
+                print ("  Will use short name as long name.")
+                long_langs[short_lang] = short_lang
+        return long_langs
+
     def __on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)
         settings['gui'].set_model(settings['stores']['loading'])
@@ -298,6 +374,12 @@ class SettingsWindow(gobject.GObject):
         settings['stores']['loaded'].clear()
         settings['nb_elements'] = 0
         settings['active'] = -1
+
+    def __on_device_finding_start_cb(self):
+        self.scan_button.set_sensitive(False)
+        self.__on_finding_start_cb(self.device_settings['devid'])
+        for element in self.device_settings.values():
+            element['gui'].set_sensitive(False)
 
     def __on_value_found_cb(self, settings,
                             user_name, store_name, active):

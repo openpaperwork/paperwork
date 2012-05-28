@@ -173,10 +173,31 @@ class ActionApplySettings(SimpleAction):
         self.__config = config
 
     def do(self):
+        need_reindex = False
         workdir = self.__settings_win.workdir_chooser.get_current_folder()
         if workdir != self.__config.workdir:
             self.__config.workdir = workdir
             need_reindex = True
+
+        setting = self.__settings_win.device_settings['devid']
+        idx = setting['gui'].get_active()
+        if idx >= 0:
+            devid = setting['stores']['loaded'][idx][1]
+            self.__config.scanner_devid = devid
+
+        setting = self.__settings_win.device_settings['resolution']
+        idx = setting['gui'].get_active()
+        if idx >= 0:
+            resolution = setting['stores']['loaded'][idx][1]
+            self.__config.scanner_devid = resolution
+
+        setting = self.__settings_win.ocr_settings['lang']
+        idx = setting['gui'].get_active()
+        if idx >= 0:
+            lang = setting['store'][idx][1]
+            self.__config.ocrlang = lang
+
+        self.__config.write()
 
         self.__settings_win.hide()
 
@@ -222,8 +243,6 @@ class SettingsWindow(gobject.GObject):
         self.window.set_transient_for(mainwindow_gui)
 
         self.workdir_chooser = widget_tree.get_object("filechooserbutton")
-
-        self.display_config(config)
 
         actions = {
             "apply" : (
@@ -327,6 +346,8 @@ class SettingsWindow(gobject.GObject):
                     self.__on_finding_end_cb,
                     self.device_settings['resolution']))
 
+        self.display_config(config)
+
         self.window.set_visible(True)
 
         self.workers['device_finder'].start()
@@ -373,7 +394,7 @@ class SettingsWindow(gobject.GObject):
         settings['gui'].set_active(0)
         settings['stores']['loaded'].clear()
         settings['nb_elements'] = 0
-        settings['active'] = -1
+        settings['active_idx'] = -1
 
     def __on_device_finding_start_cb(self):
         self.scan_button.set_sensitive(False)
@@ -387,19 +408,24 @@ class SettingsWindow(gobject.GObject):
         print "Got value [%s]" % (str(store_line))
         settings['stores']['loaded'].append(store_line)
         if active:
-            settings['active'] = settings['nb_elements']
+            settings['active_idx'] = settings['nb_elements']
         settings['nb_elements'] += 1
 
     def __on_finding_end_cb(self, settings):
         settings['gui'].set_sensitive(True)
         settings['gui'].set_model(settings['stores']['loaded'])
-        if settings['active'] >= 0:
-            settings['gui'].set_active(settings['active'])
+        if settings['active_idx'] >= 0:
+            settings['gui'].set_active(settings['active_idx'])
         else:
             settings['gui'].set_active(0)
 
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)
+        idx = 0
+        for (long_lang, short_lang) in self.ocr_settings['lang']['store']:
+            if short_lang == config.ocrlang:
+                self.ocr_settings['lang']['gui'].set_active(idx)
+            idx += 1
 
     def hide(self):
         """

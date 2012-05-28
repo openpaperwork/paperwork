@@ -18,6 +18,8 @@ Paperwork uses a custom indexation system to search documents and to provide
 keyword suggestions. Since OCR is not perfect, and since some documents don't
 contain useful keywords, Paperwork allows also to put labels on each document.
 
+Paperwork is written for Python **2.7**.
+
 ## Screenshots
 
 ### Main window
@@ -64,8 +66,12 @@ GPLv3. See COPYING.
 	* Debian/Ubuntu package: python-pycountry
 * python-imaging (required)
 	* Debian/Ubuntu package: python-imaging
-* python-imaging-sane (optional for document searching ; required for scanning)
-	* Debian/Ubuntu package: python-imaging-sane
+* pyinsane (required)
+	* Debian/Ubuntu package: none at the moment
+	* Manual installation:
+		* git clone git://github.com/jflesch/pyinsane.git
+		* cd pyinsane
+		* sudo python ./setup.py install
 * OCR (optional for document searching ; required for scanning)
   * Cuneiform (>= v1.1)
     * Debian/Ubuntu package: cuneiform
@@ -75,13 +81,13 @@ GPLv3. See COPYING.
 	* Manual installation:
 		* git clone git://github.com/jflesch/pyocr.git
 		* cd pyocr
-		* sudo python2 ./setup.py install
+		* sudo python ./setup.py install
 
 ## Installation
 
 	$ git clone git://github.com/jflesch/paperwork.git
 	$ cd paperwork
-	$ sudo python2 ./setup.py install
+	$ sudo python ./setup.py install
 	$ paperwork
 
 Enjoy :-)

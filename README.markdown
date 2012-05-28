@@ -76,9 +76,11 @@ GPLv3. See COPYING.
 		* cd pyinsane
 		* sudo python ./setup.py install
 * OCR (optional for document searching ; required for scanning)
-  * Cuneiform (>= v1.1)
+  * Tesseract (>= v3) (recommended)
+    * Debian package: none at the moment
+	* Ubuntu package: tesseract-ocr tesseract-ocr-<your language>
+  * **Or** Cuneiform (>= v1.1)
     * Debian/Ubuntu package: cuneiform
-  * **Or** Tesseract (>= v3)
 * pyocr (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

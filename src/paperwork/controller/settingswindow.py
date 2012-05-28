@@ -14,7 +14,7 @@ import gtk
 import pycountry
 import pyocr.pyocr
 
-import pyinsane.abstract_th
+import pyinsane.abstract_th as pyinsane
 
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
@@ -62,7 +62,7 @@ class WorkerDeviceFinder(Worker):
             time.sleep(1)
             print "Looking for scan devices ..."
             sys.stdout.flush()
-            devices = pyinsane.abstract_th.get_devices()
+            devices = pyinsane.get_devices()
             for device in devices:
                 selected = (self.__selected_devid == device.name)
                 name = self.__get_dev_name(device)
@@ -117,7 +117,7 @@ class WorkerResolutionFinder(Worker):
             time.sleep(1)
 
             print "Looking for resolution of device [%s]" % (devid)
-            device = pyinsane.abstract_th.Scanner(name=devid)
+            device = pyinsane.Scanner(name=devid)
             sys.stdout.flush()
             resolutions = device.options['resolution'].constraint
             print "Resolutions found: %s" % (str(resolutions))

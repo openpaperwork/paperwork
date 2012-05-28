@@ -5,7 +5,7 @@ Paperwork configuration management code
 import ConfigParser
 import os
 
-import pyinsane.abstract_th
+import pyinsane.abstract_th as pyinsane
 
 
 class PaperworkConfig(object):
@@ -203,7 +203,7 @@ class PaperworkConfig(object):
     scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
 
     def get_scanner_inst(self):
-        scanner = pyinsane.abstract_th.Scanner(self.scanner_devid)
+        scanner = pyinsane.Scanner(self.scanner_devid)
         scanner.options['resolution'].value = self.scanner_resolution
         return scanner
 

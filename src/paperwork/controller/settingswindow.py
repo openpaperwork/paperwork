@@ -136,6 +136,70 @@ class WorkerResolutionFinder(Worker):
 gobject.type_register(WorkerResolutionFinder)
 
 
+class WorkerCalibrationScan(Worker):
+    __gsignals__ = {
+        'calibration-scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                    ()),
+        'calibration-scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                   (gobject.TYPE_PYOBJECT, )  # PIL image
+                                  ),
+        'calibration-resize-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                     (gobject.TYPE_FLOAT, # resize factor
+                                      gobject.TYPE_PYOBJECT, ) # PIL image
+                                    ),
+    }
+
+    can_interrupt = False
+
+    def __init__(self, target_viewport):
+        Worker.__init__(self, "Calibration scan")
+        self.target_viewport = target_viewport
+
+    def do(self, devid):
+        self.emit('calibration-scan-start')
+
+        # scan
+        dev = pyinsane.Scanner(name=devid)
+        scan_inst = dev.scan(multiple=False)
+        try:
+            while True:
+                scan_inst.read()
+                time.sleep(0)  # Give some CPU time to PyGtk
+        except EOFError:
+            pass
+        orig_img = scan_inst.get_img()
+        self.emit('calibration-scan-done', orig_img)
+
+        # resize
+        orig_img_size = orig_img.getbbox()
+        orig_img_size = (orig_img_size[2], orig_img_size[3])
+        print "Calibration: Got an image of size '%s'" % (str(orig_img_size))
+
+        target_alloc = self.target_viewport.get_allocation()
+        max_width = target_alloc.width
+        max_height = target_alloc.height
+
+        if int(orig_img_size[0]) > int(max_width):
+            factor = (float(max_width) / orig_img_size[0])
+        elif int(orig_img_size[1]) > int(max_height):
+            factor = (float(max_width) / orig_img_size[1])
+        else:
+            factor = 1.0
+
+        target_width = int(factor * orig_img_size[0])
+        target_height = int(factor * orig_img_size[1])
+        target = (target_width, target_height)
+
+        print ("Calibration: Will resize it to: (%s) (ratio: %f)"
+               % (str(target), factor))
+
+        resized_img = orig_img.resize(target, Image.BILINEAR)
+        self.emit('calibration-resize-done', factor, resized_img)
+
+
+gobject.type_register(WorkerCalibrationScan)
+
+
 class ActionSelectScanner(SimpleAction):
     def __init__(self, settings_win):
         SimpleAction.__init__(self, "New scanner selected")
@@ -151,10 +215,10 @@ class ActionSelectScanner(SimpleAction):
             res_settings['stores']['loaded'].clear()
             res_settings['gui'].set_model(res_settings['stores']['loaded'])
             res_settings['gui'].set_sensitive(False)
-            self.__settings_win.scan_button.set_sensitive(False)
+            self.__settings_win.calibration["scan_button"].set_sensitive(False)
             return
         print "Select scanner: %d" % idx
-        self.__settings_win.scan_button.set_sensitive(True)
+        self.__settings_win.calibration["scan_button"].set_sensitive(True)
         devid = settings['stores']['loaded'][idx][1]
         self.__settings_win.workers['resolution_finder'].start(devid=devid)
 
@@ -215,8 +279,11 @@ class ActionScanCalibration(SimpleAction):
         self.__settings_win = settings_win
 
     def do(self):
-        # TODO
-        pass
+        setting = self.__settings_win.device_settings['devid']
+        idx = setting['gui'].get_active()
+        assert(idx >= 0)
+        devid = setting['stores']['loaded'][idx][1]
+        self.__settings_win.workers['scan'].start(devid=devid)
 
 
 class SettingsWindow(gobject.GObject):
@@ -284,13 +351,22 @@ class SettingsWindow(gobject.GObject):
             }
         }
 
-        self.scan_button = widget_tree.get_object("buttonScanCalibration")
+        self.calibration = {
+            "scan_button" : widget_tree.get_object("buttonScanCalibration"),
+            "image_gui" : widget_tree.get_object("imageCalibration"),
+            "image_viewport" : widget_tree.get_object("viewportCalibration"),
+            "images" : [],  # array of tuples : (resize factor, PIL image)
+            "image_eventbox" : widget_tree.get_object("eventboxCalibration"),
+            "image_scrollbars" : widget_tree.get_object("scrolledwindowCalibration"),
+        }
 
         self.workers = {
             "device_finder" : WorkerDeviceFinder(config.scanner_devid),
             "resolution_finder" : WorkerResolutionFinder(
                     config.scanner_resolution,
                     config.RECOMMENDED_RESOLUTION),
+            "scan" : WorkerCalibrationScan(
+                    self.calibration['image_viewport']),
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -338,6 +414,13 @@ class SettingsWindow(gobject.GObject):
                 lambda worker: gobject.idle_add(
                     self.__on_finding_end_cb,
                     self.device_settings['resolution']))
+
+        self.workers['scan'].connect('calibration-scan-start',
+                lambda worker: self.__on_scan_start())
+        self.workers['scan'].connect('calibration-scan-done',
+                lambda worker, img: self.__on_scan_done(img))
+        self.workers['scan'].connect('calibration-resize-done',
+                lambda worker, factor, img: self.__on_resize_done(factor, img))
 
         self.display_config(config)
 
@@ -390,7 +473,7 @@ class SettingsWindow(gobject.GObject):
         settings['active_idx'] = -1
 
     def __on_device_finding_start_cb(self):
-        self.scan_button.set_sensitive(False)
+        self.calibration["scan_button"].set_sensitive(False)
         self.__on_finding_start_cb(self.device_settings['devid'])
         for element in self.device_settings.values():
             element['gui'].set_sensitive(False)
@@ -411,6 +494,35 @@ class SettingsWindow(gobject.GObject):
             settings['gui'].set_active(settings['active_idx'])
         else:
             settings['gui'].set_active(0)
+
+    def set_mouse_cursor(self, cursor):
+        self.window.window.set_cursor({
+            "Normal" : None,
+            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
+        }[cursor])
+
+    def __on_scan_start(self):
+        self.calibration["scan_button"].set_sensitive(False)
+        self.set_mouse_cursor("Busy")
+        self.calibration['image_gui'].set_from_stock(gtk.STOCK_EXECUTE,
+                                                 gtk.ICON_SIZE_DIALOG)
+
+    def __on_scan_done(self, img):
+        self.calibration['images'] = [(1.0, img)]
+
+    def __on_resize_done(self, factor, img):
+        self.calibration['images'].insert(0, (factor, img))
+        self.set_mouse_cursor("Normal")
+        self.calibration["scan_button"].set_sensitive(True)
+        self.__redraw_image()
+
+    def __redraw_image(self):
+        (factor, img) = self.calibration['images'][0]
+
+        # TODO: Draw grips
+
+        img = image2pixbuf(img)
+        self.calibration['image_gui'].set_from_pixbuf(img)
 
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)

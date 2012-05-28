@@ -14,6 +14,7 @@ class PaperworkConfig(object):
     used.
     """
     RECOMMENDED_RESOLUTION = 300
+    CALIBRATION_RESOLUTION = 200
 
     # Possible config files are evaluated in the order they are in the array.
     # The last one of the list is the default one.

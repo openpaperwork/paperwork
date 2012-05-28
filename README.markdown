@@ -18,8 +18,6 @@ Paperwork uses a custom indexation system to search documents and to provide
 keyword suggestions. Since OCR is not perfect, and since some documents don't
 contain useful keywords, Paperwork allows also to put labels on each document.
 
-Paperwork is written for Python **2.7**.
-
 ## Screenshots
 
 ### Main window
@@ -58,6 +56,11 @@ GPLv3. See COPYING.
 
 ## Dependencies
 
+
+* python v2.7
+  Paperwork is written for Python **2.7**.
+  So depending of your Linux distribution, you may have to invoke "python2"
+  instead of "python" (for instance with Arch Linux)
 * pygtk v2 (required)
 	* Debian/Ubuntu package: python-gtk2
 * python-glade2 (required)

@@ -182,7 +182,7 @@ class ActionApplySettings(SimpleAction):
         idx = setting['gui'].get_active()
         if idx >= 0:
             resolution = setting['stores']['loaded'][idx][1]
-            self.__config.scanner_devid = resolution
+            self.__config.scanner_resolution = resolution
 
         setting = self.__settings_win.ocr_settings['lang']
         idx = setting['gui'].get_active()

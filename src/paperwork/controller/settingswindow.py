@@ -57,9 +57,6 @@ class WorkerDeviceFinder(Worker):
     def do(self):
         self.emit("device-finding-start")
         try:
-            # HACK(Jflesch): Using sane C binding obviously freeze Gobject/Gtk
-            # so we give it a little time to display/refresh the settings win
-            time.sleep(1)
             print "Looking for scan devices ..."
             sys.stdout.flush()
             devices = pyinsane.get_devices()
@@ -112,10 +109,6 @@ class WorkerResolutionFinder(Worker):
     def do(self, devid):
         self.emit("resolution-finding-start")
         try:
-            # HACK(Jflesch): Using sane C binding obviously freeze Gobject/Gtk
-            # so we give it a little time to display/refresh the settings win
-            time.sleep(1)
-
             print "Looking for resolution of device [%s]" % (devid)
             device = pyinsane.Scanner(name=devid)
             sys.stdout.flush()

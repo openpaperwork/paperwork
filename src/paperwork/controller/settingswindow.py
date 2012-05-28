@@ -14,12 +14,16 @@ import gtk
 import pycountry
 import pyocr.pyocr
 
+import pyinsane.abstract_th
+
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
+
+RECOMMENDED_RESOLUTION = 300
 
 
 class WorkerDeviceFinder(Worker):
@@ -36,20 +40,19 @@ class WorkerDeviceFinder(Worker):
 
     can_interrupt = False
 
-    def __init__(self, scanner_mgmt, selected_devid):
+    def __init__(self, selected_devid):
         Worker.__init__(self, "Device finder")
-        self.__scanner_mgmt = scanner_mgmt
         self.__selected_devid = selected_devid
 
     @staticmethod
     def __get_dev_name(dev):
         """
-        Return the human representation of Sane device
+        Return the human representation of a device
 
         Returns:
             A string
         """
-        return ("%s %s (%s)" % (dev[1], dev[2], dev[3]))
+        return ("%s %s" % (dev.vendor, dev.model))
 
     def do(self):
         self.emit("device-finding-start")
@@ -57,13 +60,15 @@ class WorkerDeviceFinder(Worker):
             # HACK(Jflesch): Using sane C binding obviously freeze Gobject/Gtk
             # so we give it a little time to display/refresh the settings win
             time.sleep(1)
-            devices = self.__scanner_mgmt.available_devices
+            print "Looking for scan devices ..."
+            sys.stdout.flush()
+            devices = pyinsane.abstract_th.get_devices()
             for device in devices:
-                selected = (self.__selected_devid == device[0])
+                selected = (self.__selected_devid == device.name)
                 name = self.__get_dev_name(device)
-                print "Device found: [%s] -> [%s]" % (name, device[0]) 
+                print "Device found: [%s] -> [%s]" % (name, device.name) 
                 sys.stdout.flush()
-                self.emit('device-found', name, device[0], selected)
+                self.emit('device-found', name, device.name, selected)
         finally:
             self.emit("device-finding-end")
 
@@ -86,36 +91,49 @@ class WorkerResolutionFinder(Worker):
 
     can_interrupt = False
 
-    def __init__(self, scanner_mgmt, selected_resolution):
+    def __init__(self, selected_resolution,
+                 recommended_resolution):
         Worker.__init__(self, "Resolution finder")
-        self.__scanner_mgmt = scanner_mgmt
         self.__selected_resolution = selected_resolution
+        self.__recommended_resolution = recommended_resolution
 
-    @staticmethod
-    def __get_resolution_name(resolution, recommended):
+    def __get_resolution_name(self, resolution):
         """
         Return the name corresponding to a resolution
 
         Arguments:
             resolution --- the resolution (integer)
-            recommended --- recommended resolution
         """
         txt = ("%d" % (resolution))
-        if (resolution == recommended):
+        if (resolution == self.__recommended_resolution):
             txt += _(' (recommended)')
         return txt
 
     def do(self, devid):
-        print "Looking for resolution of device [%s]" % (devid)
         self.emit("resolution-finding-start")
         try:
             # HACK(Jflesch): Using sane C binding obviously freeze Gobject/Gtk
             # so we give it a little time to display/refresh the settings win
             time.sleep(1)
-            resolutions = self.__scanner_mgmt.get_possible_resolutions(devid)
+
+            print "Looking for resolution of device [%s]" % (devid)
+            device = pyinsane.abstract_th.Scanner(name=devid)
+            sys.stdout.flush()
+            resolutions = device.options['resolution'].constraint
+            print "Resolutions found: %s" % (str(resolutions))
+            sys.stdout.flush()
+            # Sometimes sane return the resolutions as a integer array,
+            # sometimes as a range (-> tuple). So if it is a range, we turn
+            # it into an array
+            if isinstance(resolutions, tuple):
+                res_array = []
+                for res in range(resolutions[0], resolutions[1] + 1,
+                                 resolutions[2]):
+                    res_array.append(res)
+                resolutions = res_array
+
             for resolution in resolutions:
-                name = self.__get_resolution_name(resolution,
-                        self.__scanner_mgmt.RECOMMENDED_RESOLUTION)
+                name = self.__get_resolution_name(resolution)
                 self.emit('resolution-found', name, resolution,
                           (resolution == self.__selected_resolution))
         finally:
@@ -133,6 +151,9 @@ class ActionSelectScanner(SimpleAction):
     def do(self):
         settings = self.__settings_win.device_settings['devid']
         idx = settings['gui'].get_active()
+        if idx < 0:
+            return
+        print "Select scanner: %d" % idx
         devid = settings['stores']['loaded'][idx][1]
         self.__settings_win.workers['resolution_finder'].start(devid=devid)
 
@@ -175,7 +196,7 @@ class SettingsWindow(gobject.GObject):
         'need-reindex' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
     }
 
-    def __init__(self, mainwindow_gui, config, scanner_mgmt):
+    def __init__(self, mainwindow_gui, config):
         gobject.GObject.__init__(self)
         widget_tree = load_uifile("settingswindow.glade")
 
@@ -223,10 +244,10 @@ class SettingsWindow(gobject.GObject):
         }
 
         self.workers = {
-            "device_finder" : WorkerDeviceFinder(
-                    scanner_mgmt, config.scanner_devid),
+            "device_finder" : WorkerDeviceFinder(config.scanner_devid),
             "resolution_finder" : WorkerResolutionFinder(
-                    scanner_mgmt, config.scanner_resolution),
+                    config.scanner_resolution,
+                    config.RECOMMENDED_RESOLUTION),
         }
 
         for action in ["apply", "cancel", "select_scanner"]:

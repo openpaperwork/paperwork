@@ -4,7 +4,8 @@ Paperwork configuration management code
 
 import ConfigParser
 import os
-from paperwork.model.scanner import PaperworkScanner
+
+import pyinsane.abstract_th
 
 
 class PaperworkConfig(object):
@@ -12,6 +13,7 @@ class PaperworkConfig(object):
     Paperwork config. See each accessor to know for what purpose each value is
     used.
     """
+    RECOMMENDED_RESOLUTION = 300
 
     # Possible config files are evaluated in the order they are in the array.
     # The last one of the list is the default one.
@@ -125,7 +127,7 @@ class PaperworkConfig(object):
         try:
             return int(self.__configparser.get("Scanner", "Resolution"))
         except ConfigParser.NoOptionError:
-            return PaperworkScanner.RECOMMENDED_RESOLUTION
+            return self.RECOMMENDED_RESOLUTION
 
     def __set_scanner_resolution(self, resolution):
         """
@@ -199,6 +201,11 @@ class PaperworkConfig(object):
         self.__configparser.set("Scanner", "Sources", str_list)
 
     scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
+
+    def get_scanner_inst(self):
+        scanner = pyinsane.abstract_th.Scanner(self.scanner_devid)
+        scanner.options['resolution'].value = self.scanner_resolution
+        return scanner
 
     def write(self):
         """

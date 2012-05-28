@@ -14,11 +14,10 @@ import gtk.glade
 import locale
 import pygtk
 
+import pyinsane.abstract_th # Just to start the Sane thread
+
 from controller.mainwindow import MainWindow
 from model.config import PaperworkConfig
-from model.scanner import PaperworkScanner
-from model.scanner import sane_init
-from model.scanner import sane_exit
 
 pygtk.require("2.0")
 
@@ -53,22 +52,15 @@ def main():
             module.textdomain('paperwork')
 
     gobject.threads_init()
-    sane_init()
 
-    try:
-        config = PaperworkConfig()
-        config.read()
+    config = PaperworkConfig()
+    config.read()
 
-        device = PaperworkScanner()
-        device.load_settings_from_config(config)
-
-        main_win = MainWindow(config, device)
-        main_win.actions['new_doc'][1].do()
-        main_win.actions['reindex'][1].do()
-        gtk.main()
-        print "Good bye"
-    finally:
-        sane_exit()
+    main_win = MainWindow(config)
+    main_win.actions['new_doc'][1].do()
+    main_win.actions['reindex'][1].do()
+    gtk.main()
+    print "Good bye"
 
 
 if __name__ == "__main__":

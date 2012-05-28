@@ -489,16 +489,13 @@ class ActionPrintDoc(SimpleAction):
 
 
 class ActionOpenSettings(SimpleAction):
-    def __init__(self, main_window, config, scan_device):
+    def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Open settings dialog")
         self.__main_win = main_window
         self.__config = config
-        self.__device = None
-        self.__scan_device = scan_device
 
     def do(self):
-        sw = SettingsWindow(self.__main_win.window, self.__config,
-                            self.__scan_device)
+        sw = SettingsWindow(self.__main_win.window, self.__config)
         sw.connect("need-reindex", self.__reindex_cb)
 
     def __reindex_cb(self, settings_window):
@@ -538,7 +535,7 @@ class ActionQuit(SimpleAction):
 
 
 class MainWindow(object):
-    def __init__(self, config, scan_device):
+    def __init__(self, config):
         img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
         # TODO(Jflesch): Find a better default thumbnail
         self.default_thumbnail = image2pixbuf(img)
@@ -674,7 +671,7 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemSettings"),
                     # TODO
                 ],
-                ActionOpenSettings(self, config, scan_device)
+                ActionOpenSettings(self, config)
             ),
             'quit' : (
                 [

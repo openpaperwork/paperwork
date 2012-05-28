@@ -26,6 +26,163 @@ _ = gettext.gettext
 RECOMMENDED_RESOLUTION = 300
 
 
+class CalibrationGrip(object):
+    """
+    Represents one of the grip that user can move to calibrate its scanner.
+    """
+    GRIP_SIZE = 20
+    COLOR = (0x00, 0x00, 0xFF)
+
+    def __init__(self, pos_x, pos_y):
+        self.position = (int(pos_x), int(pos_y))
+
+    def draw(self, img, imgdraw, ratio):
+        """
+        Draw the grip on the image
+
+        Arguments:
+            imgdraw --- drawing area
+            ratio --- Scale at which the image is represented
+        """
+        bbox = img.getbbox()
+        img_x = bbox[2] / ratio
+        img_y = bbox[3] / ratio
+        (pos_x, pos_y) = self.position
+        # fix our position in case we are out the image
+        if pos_x < 0:
+            pos_x = 0
+        if pos_x >= img_x:
+            pos_x = img_x - 1
+        if pos_y < 0:
+            pos_y = 0
+        if pos_y >= img_y:
+            pos_y = img_y
+        self.position = (pos_x, pos_y)
+        pos_x = int(ratio * pos_x)
+        pos_y = int(ratio * pos_y)
+        imgdraw.rectangle(((pos_x - self.GRIP_SIZE, pos_y - self.GRIP_SIZE),
+                           (pos_x + self.GRIP_SIZE, pos_y + self.GRIP_SIZE)),
+                          outline=self.COLOR)
+
+    def is_on_grip(self, position, ratio):
+        """
+        Indicates if position is on the grip
+
+        Arguments:
+            position --- tuple (int, int)
+            ratio --- Scale at which the image is represented
+        
+        Returns:
+            True or False
+        """
+        x_min = int(ratio * self.position[0]) - self.GRIP_SIZE
+        y_min = int(ratio * self.position[1]) - self.GRIP_SIZE
+        x_max = int(ratio * self.position[0]) + self.GRIP_SIZE
+        y_max = int(ratio * self.position[1]) + self.GRIP_SIZE
+        return (x_min <= position[0] and position[0] <= x_max
+            and y_min <= position[1] and position[1] <= y_max)
+
+
+class CalibrationGripHandler(object):
+    def __init__(self, config, settings_win):
+        self.__settings_win = settings_win
+
+        calibration = config.scanner_calibration
+        if calibration == None:
+            self.__grips = None
+        else:
+            self.__grips = (CalibrationGrip(calibration[0][0],
+                                            calibration[0][1]),
+                            CalibrationGrip(calibration[1][0],
+                                            calibration[1][1]))
+        self.selected = None
+
+    def on_mouse_button_pressed_cb(self, event):
+        if self.__grips == None:
+            return
+
+        (mouse_x, mouse_y) = event.get_coords()
+        factor = self.__settings_win.calibration['images'][0][0]
+
+        self.selected = None
+        for grip in self.__grips:
+            if grip.is_on_grip((mouse_x, mouse_y), factor):
+                self.selected = grip
+                break
+
+    def on_mouse_motion(self, event):
+        if self.__grips == None:
+            return
+        if len(self.__settings_win.calibration['images']) <= 0:
+            return
+
+        (mouse_x, mouse_y) = event.get_coords()
+        factor = self.__settings_win.calibration['images'][0][0]
+
+        if self.selected:
+            is_on_grip = True
+        else:
+            is_on_grip = False
+            for grip in self.__grips:
+                if grip.is_on_grip((mouse_x, mouse_y), factor):
+                    is_on_grip = True
+                    break
+
+        if is_on_grip:
+            cursor = gtk.gdk.Cursor(gtk.gdk.TCROSS)
+        else:
+            cursor = gtk.gdk.Cursor(gtk.gdk.HAND1)
+        self.__settings_win.calibration['image_gui'].window.set_cursor(cursor)
+
+    def __move_grip(self, event_pos):
+        """
+        Move a grip, based on the position
+        """
+        (mouse_x, mouse_y) = event_pos
+        (factor, img) = self.__settings_win.calibration['images'][0]
+
+        if not self.selected:
+            return None
+
+        new_x = mouse_x / factor
+        new_y = mouse_y / factor
+        self.selected.position = (new_x, new_y)
+        self.__settings_win.redraw_calibration_image()
+
+    def on_mouse_button_released_cb(self, event):
+        if self.__grips == None:
+            return
+
+        self.__move_grip(event.get_coords())
+        if self.selected:
+            self.selected = None
+        else:
+            self.__settings_win.switch_calibration_img_scale()
+
+    def draw(self, img, imgdraw, factor):
+        if self.__grips == None:
+            bbox = img.getbbox()
+            self.__grips = (
+                CalibrationGrip(0, 0),
+                CalibrationGrip(bbox[2] / factor, bbox[3] / factor))
+        for grip in self.__grips:
+            grip.draw(img, imgdraw, factor)
+        a = (int(factor * self.__grips[0].position[0]),
+             int(factor * self.__grips[0].position[1]))
+        b = (int(factor * self.__grips[1].position[0]),
+             int(factor * self.__grips[1].position[1]))
+        imgdraw.rectangle((a, b), outline=CalibrationGrip.COLOR)
+
+    def has_coords(self):
+        return self.__grips != None
+
+    def get_coords(self):
+        return ((int(self.__grips[0].position[0]),
+                 int(self.__grips[0].position[1])),
+                (int(self.__grips[1].position[0]),
+                 int(self.__grips[1].position[1])))
+
+
 class WorkerDeviceFinder(Worker):
     __gsignals__ = {
         'device-finding-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -179,11 +336,10 @@ class WorkerCalibrationScan(Worker):
         max_width = target_alloc.width
         max_height = target_alloc.height
 
-        if int(orig_img_size[0]) > int(max_width):
-            factor = (float(max_width) / orig_img_size[0])
-        elif int(orig_img_size[1]) > int(max_height):
-            factor = (float(max_width) / orig_img_size[1])
-        else:
+        factor_width = (float(max_width) / orig_img_size[0])
+        factor_height = (float(max_height) / orig_img_size[1])
+        factor = min(factor_width, factor_height)
+        if factor > 1.0:
             factor = 1.0
 
         target_width = int(factor * orig_img_size[0])
@@ -253,6 +409,10 @@ class ActionApplySettings(SimpleAction):
         if idx >= 0:
             lang = setting['store'][idx][1]
             self.__config.ocrlang = lang
+
+        if self.__settings_win.grips.has_coords():
+            self.__config.scanner_calibration = \
+                    self.__settings_win.grips.get_coords()
 
         self.__config.write()
 
@@ -360,6 +520,8 @@ class SettingsWindow(gobject.GObject):
             "image_scrollbars" : widget_tree.get_object("scrolledwindowCalibration"),
         }
 
+        self.grips = CalibrationGripHandler(config, self)
+
         self.workers = {
             "device_finder" : WorkerDeviceFinder(config.scanner_devid),
             "resolution_finder" : WorkerResolutionFinder(
@@ -421,6 +583,15 @@ class SettingsWindow(gobject.GObject):
                 lambda worker, img: self.__on_scan_done(img))
         self.workers['scan'].connect('calibration-resize-done',
                 lambda worker, factor, img: self.__on_resize_done(factor, img))
+
+        self.calibration['image_eventbox'].connect("button-press-event",
+                lambda x, ev: self.grips.on_mouse_button_pressed_cb(ev))
+        self.calibration['image_eventbox'].connect("motion-notify-event",
+                lambda x, ev: self.grips.on_mouse_motion(ev))
+        self.calibration['image_eventbox'].connect("button-release-event",
+                lambda x, ev: self.grips.on_mouse_button_released_cb(ev))
+        self.calibration['image_eventbox'].add_events(
+                gtk.gdk.POINTER_MOTION_MASK)
 
         self.display_config(config)
 
@@ -504,8 +675,9 @@ class SettingsWindow(gobject.GObject):
     def __on_scan_start(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.set_mouse_cursor("Busy")
-        self.calibration['image_gui'].set_from_stock(gtk.STOCK_EXECUTE,
-                                                 gtk.ICON_SIZE_DIALOG)
+        self.calibration['image_gui'].set_alignment(0.5, 0.5)
+        self.calibration['image_gui'].set_from_stock(
+                gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
 
     def __on_scan_done(self, img):
         self.calibration['images'] = [(1.0, img)]
@@ -514,15 +686,20 @@ class SettingsWindow(gobject.GObject):
         self.calibration['images'].insert(0, (factor, img))
         self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)
-        self.__redraw_image()
+        self.calibration['image_gui'].set_alignment(0.0, 0.0)
+        self.redraw_calibration_image()
 
-    def __redraw_image(self):
+    def redraw_calibration_image(self):
         (factor, img) = self.calibration['images'][0]
-
-        # TODO: Draw grips
-
+        img = img.copy()
+        self.grips.draw(img, ImageDraw.Draw(img), factor)
         img = image2pixbuf(img)
         self.calibration['image_gui'].set_from_pixbuf(img)
+
+    def switch_calibration_img_scale(self):
+        img = self.calibration['images'].pop(0)
+        self.calibration['images'].append(img)
+        self.redraw_calibration_image()
 
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)

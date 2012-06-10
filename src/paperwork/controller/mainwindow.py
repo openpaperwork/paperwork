@@ -14,7 +14,7 @@ import pyinsane.rawapi
 
 from paperwork.controller.aboutdialog import AboutDialog
 from paperwork.controller.actions import SimpleAction
-#from paperwork.controller.multiscan import MultiscanDialog
+from paperwork.controller.multiscan import MultiscanDialog
 from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
 from paperwork.model.doc import ScannedDoc
@@ -571,6 +571,22 @@ class ActionSingleScan(SimpleAction):
                 doc=self.__main_win.doc)
 
 
+class ActionMultiScan(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Scan multiples pages")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        check_workdir(self.__config)
+        ms = MultiscanDialog(self.__main_win, self.__config)
+        ms.connect("need-reindex", self.__reindex_cb)
+
+    def __reindex_cb(self, settings_window):
+        self.__main_win.workers['reindex'].start()
+
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -726,10 +742,12 @@ class MainWindow(object):
                 ],
                 ActionSingleScan(self, config)
             ),
-            'multi_scan' : [
-                widget_tree.get_object("imagemenuitemScanFeeder"),
-                widget_tree.get_object("menuitemScanFeeder"),
-            ],
+            'multi_scan' : ([
+                    widget_tree.get_object("imagemenuitemScanFeeder"),
+                    widget_tree.get_object("menuitemScanFeeder"),
+                ],
+                ActionMultiScan(self, config)
+            ),
             'print' : (
                 [
                     widget_tree.get_object("menuitemPrint"),
@@ -851,7 +869,7 @@ class MainWindow(object):
             "zoom_levels", "set_current_page", "prev_page", "next_page",
             "create_label", "edit_label", "open_doc_dir", "toggle_label",
             "print", "open_settings", "show_all_boxes", "about",
-            "single_scan"]:
+            "single_scan", "multi_scan"]:
             self.actions[action][1].connect(self.actions[action][0])
 
         for popup_menu in self.popupMenus.values():

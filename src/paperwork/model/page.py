@@ -164,6 +164,10 @@ class ScannedPage(object):
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
         """
+        print "Scanner resolution: %d" % (scan_res)
+        print "Scanner calibration: %s" % (str(scanner_calibration))
+        print ("Calibration resolution: %d" %
+               (PaperworkConfig.CALIBRATION_RESOLUTION))
         if scanner_calibration != None:
             cropping = (scanner_calibration[0][0]
                         * scan_res
@@ -177,6 +181,7 @@ class ScannedPage(object):
                         scanner_calibration[1][1]
                         * scan_res
                         / PaperworkConfig.CALIBRATION_RESOLUTION)
+            print "Cropping: %s" % (str(cropping))
             img = img.crop(cropping)
 
         outfiles = []

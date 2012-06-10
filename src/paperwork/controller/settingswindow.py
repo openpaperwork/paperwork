@@ -16,6 +16,7 @@ import pyocr.pyocr as pyocr
 
 import pyinsane.abstract_th as pyinsane
 
+from paperwork.model.config import PaperworkConfig
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.util import image2pixbuf
@@ -317,6 +318,18 @@ class WorkerCalibrationScan(Worker):
 
         # scan
         dev = pyinsane.Scanner(name=devid)
+        try:
+            dev.options['source'].value = "Auto"
+        except pyinsane.rawapi.SaneException, exc:
+            print ("Warning: Unable to set scanner source to 'Auto': %s" %
+                   (str(exc)))
+        try:
+            dev.options['resolution'].value = \
+                    PaperworkConfig.CALIBRATION_RESOLUTION
+        except pyinsane.rawapi.SaneException:
+            print ("Warning: Unable to set scanner resolution to %d: %s" %
+                   (PaperworkConfig.CALIBRATION_RESOLUTION, str(exc)))
+
         scan_inst = dev.scan(multiple=False)
         try:
             while True:

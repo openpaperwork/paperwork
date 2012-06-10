@@ -288,8 +288,15 @@ class WorkerSingleScan(Worker):
         scanner = self.__config.get_scanner_inst()
         try:
             scanner.options['source'].value = "Auto"
+        except pyinsane.rawapi.SaneException, exc:
+            print ("Warning: Unable to set scanner source to 'Auto': %s" %
+                   (str(exc)))
+        try:
+            scanner.options['resolution'].value = \
+                    self.__config.scanner_resolution
         except pyinsane.rawapi.SaneException:
-            print "Warning: Unable to set scanner source to 'Auto'"
+            print ("Warning: Unable to set scanner resolution to %d: %s" %
+                   (self.__config.scanner_resolution, str(exc)))
         doc.scan_single_page(scanner, self.__config.ocrlang,
                              self.__config.scanner_calibration,
                              self.__scan_progress_cb)

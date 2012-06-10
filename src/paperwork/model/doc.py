@@ -109,7 +109,8 @@ class ScannedDoc(object):
 
     nb_pages = property(__get_nb_pages)
 
-    def scan_single_page(self, scan_src, ocrlang, scanner_calibration,
+    def scan_single_page(self, scan_src, resolution,
+                         ocrlang, scanner_calibration,
                          callback=dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document
@@ -121,15 +122,13 @@ class ScannedDoc(object):
                 util.dummy_progress_cb for the arguments to expected)
         """
         callback(0, 100, ScannedPage.SCAN_STEP_SCAN)
-        # TODO(Jflesch): call callback during the scan
-        scan_inst = scan_src.scan(multiple=False)
         try:
             while True:
-                scan_inst.read()
+                scan_src.read()
                 time.sleep(0)
         except EOFError:
             pass
-        img = scan_inst.get_img(0)
+        img = scan_src.get_img(0)
 
         try:
             os.makedirs(self.path)
@@ -138,7 +137,7 @@ class ScannedDoc(object):
 
         page_nb = self.nb_pages
         page = ScannedPage(self, page_nb)
-        page.make(img, ocrlang, scan_src.options['resolution'].value,
+        page.make(img, ocrlang, resolution,
                   scanner_calibration, callback)
 
     def __get_pages(self):

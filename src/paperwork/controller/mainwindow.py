@@ -297,7 +297,9 @@ class WorkerSingleScan(Worker):
         except pyinsane.rawapi.SaneException:
             print ("Warning: Unable to set scanner resolution to %d: %s" %
                    (self.__config.scanner_resolution, str(exc)))
-        doc.scan_single_page(scanner, self.__config.ocrlang,
+        scan_src = scanner.scan(multiple=False)
+        doc.scan_single_page(scan_src, scanner.options['resolution'].value,
+                             self.__config.ocrlang,
                              self.__config.scanner_calibration,
                              self.__scan_progress_cb)
         page = doc.pages[doc.nb_pages - 1]

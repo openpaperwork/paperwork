@@ -1061,7 +1061,7 @@ class MainWindow(object):
         self.lists['matches'][1].clear()
         for doc in documents:
             labels = doc.labels
-            final_str = "<b>%s</b>" % (doc.name)
+            final_str = "%s" % (doc.name)
             nb_pages = doc.nb_pages
             if nb_pages > 1:
                 final_str += (_("\n  %d pages") % (doc.nb_pages))

@@ -7,7 +7,7 @@ class SimpleAction(object):
     def __init__(self, name):
         self.name = name
 
-    def do(self):
+    def do(self, **kwargs):
         print "Action: [%s]" % (self.name)
 
     def on_button_clicked_cb(self, toolbutton):
@@ -31,6 +31,9 @@ class SimpleAction(object):
     def on_combobox_changed_cb(self, combobox):
         self.do()
 
+    def on_cell_edited_cb(self, cellrenderer, path, new_text):
+        self.do(new_text=new_text)
+
     def connect(self, buttons):
         for button in buttons:
             assert(button != None)
@@ -51,5 +54,7 @@ class SimpleAction(object):
                                self.on_iconview_selection_changed_cb)
             elif isinstance(button, gtk.ComboBox):
                 button.connect("changed", self.on_combobox_changed_cb)
+            elif isinstance(button, gtk.CellRenderer):
+                button.connect("edited", self.on_cell_edited_cb)
             else:
                 assert()

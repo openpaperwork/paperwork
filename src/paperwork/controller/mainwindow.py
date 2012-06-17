@@ -340,12 +340,12 @@ class ActionOpenDocumentSelected(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        selection_path = \
+        (model, selection_iter) = \
                 self.__main_win.lists['matches'][0].get_selection().get_selected()
-        if selection_path[1] == None:
+        if selection_iter == None:
             print "No document selected. Can't open"
             return
-        doc = selection_path[0].get_value(selection_path[1], 1)
+        doc = model.get_value(selection_iter, 1)
 
         print "Showing doc %s" % doc
         self.__main_win.workers['thumbnailer'].stop()

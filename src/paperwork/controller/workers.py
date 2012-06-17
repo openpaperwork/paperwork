@@ -51,3 +51,60 @@ class Worker(gobject.GObject):
 
     def __str__(self):
         return self.name
+
+
+class WorkerQueue(Worker):
+    can_interrupt = True
+
+    __gsignals__ = {
+        'queue-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'queue-stop' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                        # Arg: Exception raised by a worker, None if none
+                        (gobject.TYPE_PYOBJECT, )),
+    }
+    local_signals = ['queue-start', 'queue-stop']
+
+    def __init__(self, name):
+        Worker.__init__(self, name)
+        self.__queue = []
+        self.__current_worker = None
+        self.__signals = {}
+
+    def add_worker(self, worker):
+        for (signal, (handler, kargs)) in self.__signals.iteritems():
+            worker.connect(signal, handler, *kargs)
+        self.__queue.append(worker)
+
+    def do(self, **kwargs):
+        self.emit('queue-start')
+        exception = None
+        try:
+            try:
+                while len(self.__queue) > 0 and self.can_run:
+                    self.__current_worker = self.__queue.pop(0)
+                    print ("Queue [%s]: Starting worker [%s]"
+                           % (self.name, self.__current_worker.name))
+                    self.__current_worker.do(**kwargs)
+                    print ("Queue [%s]: Worker [%s] has ended"
+                           % (self.name, self.__current_worker.name))
+            except Exception, exc:
+                exception = exc
+                raise
+        finally:
+            self.__current_worker = None
+            self.emit('queue-stop', exception)
+
+    def connect(self, signal, handler, *kargs):
+        if signal in self.local_signals:
+            Worker.connect(self, signal, handler, *kargs)
+            return
+        self.__signals[signal] = (handler, kargs)
+        for worker in self.__queue:
+            worker.connect(signal, handler, *kargs)
+
+    def stop(self):
+        if self.__current_worker != None:
+            self.__current_worker.stop()
+        Worker.stop(self)
+
+gobject.type_register(WorkerQueue)

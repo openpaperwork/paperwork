@@ -874,6 +874,12 @@ class MainWindow(object):
             ),
         }
 
+        search_completion = gtk.EntryCompletion()
+        search_completion.set_model(self.lists['suggestions'][1])
+        search_completion.set_text_column(0)
+        search_completion.set_match_func(lambda x, y, z: True)
+        self.lists['suggestions'][0].set_completion(search_completion)
+
         self.indicators = {
             'current_page' : widget_tree.get_object("entryPageNb"),
             'total_pages' : widget_tree.get_object("labelTotalPages"),

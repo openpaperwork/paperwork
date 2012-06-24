@@ -39,7 +39,7 @@ contain useful keywords, Paperwork allows also to put labels on each document.
 ### Labels
 
 <a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png" width="140" height="268" />
+  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png" width="402" height="358" />
 </a>
 
 <a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.label_edit.png">

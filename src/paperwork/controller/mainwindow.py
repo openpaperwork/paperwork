@@ -878,7 +878,7 @@ class MainWindow(object):
             'open_settings' : (
                 [
                     widget_tree.get_object("menuitemSettings"),
-                    # TODO
+                    widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)
             ),
@@ -892,7 +892,7 @@ class MainWindow(object):
             'create_label' : (
                 [
                     widget_tree.get_object("buttonAddLabel"),
-                    # TODO
+                    widget_tree.get_object("menuitemAddLabel"),
                 ],
                 ActionCreateLabel(self),
             ),
@@ -917,12 +917,14 @@ class MainWindow(object):
             'del_doc' : (
                 [
                     widget_tree.get_object("menuitemDestroyDoc2"),
+                    widget_tree.get_object("toolbuttonDeleteDoc"),
                 ],
                 ActionDeleteDoc(self),
             ),
             'del_page' : (
                 [
                     widget_tree.get_object("menuitemDestroyPage2"),
+                    widget_tree.get_object("buttonDeletePage"),
                 ],
                 ActionDeletePage(self),
             ),

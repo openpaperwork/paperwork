@@ -2,6 +2,7 @@
 Contains all the code relative to keyword and document list management list.
 """
 
+import multiprocessing
 import os
 import os.path
 import time
@@ -50,7 +51,6 @@ class DocSearch(object):
     INDEX_STEP_SORTING = "sorting"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
-    OCR_MAX_THREADS = 4
     OCR_SLEEP_TIME = 0.5
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
@@ -442,11 +442,13 @@ class DocSearch(object):
         threads = []
         remaining = dlist[:]
 
+        max_threads = multiprocessing.cpu_count()
+
         while (len(remaining) > 0 or len(threads) > 0):
             for thread in threads:
                 if not thread.is_alive():
                     threads.remove(thread)
-            while (len(threads) < self.OCR_MAX_THREADS and len(remaining) > 0):
+            while (len(threads) < max_threads and len(remaining) > 0):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
                 doc = ScannedDoc(docpath, docid)

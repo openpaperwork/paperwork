@@ -24,6 +24,7 @@ from paperwork.model.labels import LabelEditor
 from paperwork.model.page import ScannedPage
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
+from paperwork.util import popup_no_scanner_found
 
 _ = gettext.gettext
 
@@ -285,18 +286,18 @@ class WorkerSingleScan(Worker):
     def do(self, doc):
         self.emit('single-scan-start')
         self.__ocr_running = False
-        scanner = self.__config.get_scanner_inst()
+        try:
+            scanner = self.__config.get_scanner_inst()
+        except Exception:
+            print "No scanner found !"
+            gobject.idle_add(popup_no_scanner_found, self.__main_win.window)
+            self.emit('single-scan-done', None)
+            raise
         try:
             scanner.options['source'].value = "Auto"
         except pyinsane.rawapi.SaneException, exc:
             print ("Warning: Unable to set scanner source to 'Auto': %s" %
                    (str(exc)))
-        try:
-            scanner.options['resolution'].value = \
-                    self.__config.scanner_resolution
-        except pyinsane.rawapi.SaneException:
-            print ("Warning: Unable to set scanner resolution to %d: %s" %
-                   (self.__config.scanner_resolution, str(exc)))
         scan_src = scanner.scan(multiple=False)
         doc.scan_single_page(scan_src, scanner.options['resolution'].value,
                              self.__config.ocrlang,
@@ -1115,7 +1116,8 @@ class MainWindow(object):
         self.workers['thumbnailer'].stop()
         self.refresh_page_list()
         self.workers['thumbnailer'].start()
-        self.show_page(page)
+        if page != None:
+            self.show_page(page)
         self.workers['reindex'].stop()
         self.workers['reindex'].start()
 

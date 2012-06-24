@@ -8,6 +8,7 @@ from paperwork.controller.workers import WorkerQueue
 from paperwork.model.doc import ScannedDoc
 from paperwork.model.page import ScannedPage
 from paperwork.util import load_uifile
+from paperwork.util import popup_no_scanner_found
 
 _ = gettext.gettext
 
@@ -162,6 +163,13 @@ class ActionScan(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        try:
+            scanner = self.__config.get_scanner_inst()
+        except Exception:
+            print "No scanner found !"
+            gobject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
+            raise
+
         for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
             line = self.__dialog.lists['docs']['model'][line_idx]
             doc = None
@@ -171,18 +179,11 @@ class ActionScan(SimpleAction):
                                    line_in_treeview=line_idx, doc=doc)
             self.__dialog.scan_queue.add_worker(worker)
         if not self.__dialog.scan_queue.is_running:
-            scanner = self.__config.get_scanner_inst()
             try:
                 scanner.options['source'].value = "ADF"
             except pyinsane.rawapi.SaneException, exc:
                 print ("Warning: Unable to set scanner source to 'Auto': %s" %
                        (str(exc)))
-            try:
-                scanner.options['resolution'].value = \
-                        self.__config.scanner_resolution
-            except pyinsane.rawapi.SaneException:
-                print ("Warning: Unable to set scanner resolution to %d: %s" %
-                       (self.__config.scanner_resolution, str(exc)))
             scan_src = scanner.scan(multiple=True)
             self.__dialog.scan_queue.start(scan_src=scan_src)
 
@@ -343,7 +344,8 @@ class MultiscanDialog(gobject.GObject):
             if isinstance(exception, StopIteration):
                 msg = _("Less pages than expected have been scanned"
                         " (got %d pages)") % (self.scanned_pages)
-                dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                dialog = gtk.MessageDialog(self.dialog,
+                                           flags=gtk.DIALOG_MODAL,
                                            type=gtk.MESSAGE_WARNING,
                                            buttons=gtk.BUTTONS_OK,
                                            message_format=msg)

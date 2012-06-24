@@ -7,8 +7,11 @@ import re
 import StringIO
 import unicodedata
 
+import gettext
 import glib
 import gtk
+
+_ = gettext.gettext
 
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
@@ -134,3 +137,16 @@ def dummy_progress_cb(progression, total, step=None, doc=None):
     Dummy progression callback. Do nothing.
     """
     pass
+
+def popup_no_scanner_found(parent):
+    # Pyinsane doesn't return any specific exception :(
+    print "Showing popup !"
+    msg = _("No scanner found (is your scanner turned on ?).")
+    dialog = gtk.MessageDialog(parent=parent,
+                               flags=gtk.DIALOG_MODAL,
+                               type=gtk.MESSAGE_WARNING,
+                               buttons=gtk.BUTTONS_OK,
+                               message_format=msg)
+    dialog.run()
+    dialog.destroy()
+

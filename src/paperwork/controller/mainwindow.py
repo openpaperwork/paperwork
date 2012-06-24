@@ -595,6 +595,87 @@ class ActionMultiScan(SimpleAction):
         self.__main_win.workers['reindex'].start()
 
 
+class ActionDeleteDoc(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Delete document")
+        self.__main_win = main_window
+
+    def __ask_confirmation(self):
+        """
+        Ask the user "Are you sure ?"
+
+        Returns:
+            True --- if they are
+            False --- if they aren't
+        """
+        confirm = gtk.MessageDialog(parent=self.__main_win.window,
+                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                type=gtk.MESSAGE_WARNING,
+                buttons=gtk.BUTTONS_YES_NO,
+                message_format=_('Are you sure ?'))
+        response = confirm.run()
+        confirm.destroy()
+        if response != gtk.RESPONSE_YES:
+            print "User cancelled"
+            return False
+        return True
+
+    def do(self):
+        """
+        Ask for confirmation and then delete the document being viewed.
+        """
+        if not self.__ask_confirmation():
+            return
+        print "Deleting ..."
+        self.__main_win.doc.destroy()
+        print "Deleted"
+        self.__main_win.actions['new_doc'][1].do()
+        self.__main_win.workers['reindex'].start()
+
+
+class ActionDeletePage(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Delete page")
+        self.__main_win = main_window
+
+    def __ask_confirmation(self):
+        """
+        Ask the user "Are you sure ?"
+
+        Returns:
+            True --- if they are
+            False --- if they aren't
+        """
+        confirm = gtk.MessageDialog(parent=self.__main_win.window,
+                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                type=gtk.MESSAGE_WARNING,
+                buttons=gtk.BUTTONS_YES_NO,
+                message_format=_('Are you sure ?'))
+        response = confirm.run()
+        confirm.destroy()
+        if response != gtk.RESPONSE_YES:
+            print "User cancelled"
+            return False
+        return True
+
+    def do(self):
+        """
+        Ask for confirmation and then delete the page being viewed.
+        """
+        if not self.__ask_confirmation():
+            return
+        print "Deleting ..."
+        self.__main_win.page.destroy()
+        print "Deleted"
+        self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.workers['img_builder'].stop()
+        self.__main_win.page = None
+        self.__main_win.refresh_page_list()
+        self.__main_win.refresh_label_list()
+        self.__main_win.workers['img_builder'].start()
+        self.__main_win.workers['thumbnailer'].start()
+        self.__main_win.workers['reindex'].start()
+
 
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
@@ -803,14 +884,18 @@ class MainWindow(object):
                 ],
                 ActionOpenDocDir(self),
             ),
-            'del_doc' : [
-                widget_tree.get_object("menuitemDestroyDoc2"),
-                # TODO
-            ],
-            'del_page' : [
-                widget_tree.get_object("menuitemDestroyPage2"),
-                # TODO
-            ],
+            'del_doc' : (
+                [
+                    widget_tree.get_object("menuitemDestroyDoc2"),
+                ],
+                ActionDeleteDoc(self),
+            ),
+            'del_page' : (
+                [
+                    widget_tree.get_object("menuitemDestroyPage2"),
+                ],
+                ActionDeletePage(self),
+            ),
             'prev_page' : (
                 [
                     widget_tree.get_object("toolbuttonPrevPage"),
@@ -878,7 +963,7 @@ class MainWindow(object):
             "zoom_levels", "set_current_page", "prev_page", "next_page",
             "create_label", "edit_label", "open_doc_dir", "toggle_label",
             "print", "open_settings", "show_all_boxes", "about",
-            "single_scan", "multi_scan"]:
+            "single_scan", "multi_scan", "del_doc", "del_page"]:
             self.actions[action][1].connect(self.actions[action][0])
 
         for popup_menu in self.popupMenus.values():

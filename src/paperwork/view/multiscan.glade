@@ -10,7 +10,7 @@
       <!-- column-name can_edit -->
       <column type="gboolean"/>
       <!-- column-name scan_progress -->
-      <column type="gfloat"/>
+      <column type="gint"/>
       <!-- column-name progress_txt -->
       <column type="gchararray"/>
       <!-- column-name can_delete -->

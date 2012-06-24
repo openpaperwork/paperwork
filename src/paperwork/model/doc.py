@@ -122,13 +122,14 @@ class ScannedDoc(object):
                 util.dummy_progress_cb for the arguments to expected)
         """
         callback(0, 100, ScannedPage.SCAN_STEP_SCAN)
+        nb_pages = scan_src.get_nb_img()
         try:
             while True:
                 scan_src.read()
                 time.sleep(0)
         except EOFError:
             pass
-        img = scan_src.get_img(0)
+        img = scan_src.get_img(nb_pages)
 
         try:
             os.makedirs(self.path)

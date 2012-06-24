@@ -1,10 +1,12 @@
 import gettext
 import gobject
+import gtk
 
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerQueue
 from paperwork.model.doc import ScannedDoc
+from paperwork.model.page import ScannedPage
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
@@ -23,22 +25,34 @@ class DocScanWorker(Worker):
                        (gobject.TYPE_INT, gobject.TYPE_INT)),
     }
 
+    can_interrupt = True
+
     def __init__(self, config, nb_pages, line_in_treeview, doc=None):
         Worker.__init__(self, "Document scanner (doc %d)" % (line_in_treeview))
         self.__config = config
         self.doc = doc
         self.nb_pages = nb_pages
         self.line_in_treeview = line_in_treeview
+        self.current_page = None
+
+    def __progress_cb(self, progression, total, step=None):
+        if not self.can_run:
+            raise Exception("Scan interrupted")
+        if progression == 0 and step == ScannedPage.SCAN_STEP_OCR:
+            self.emit('ocr-start', self.current_page, self.nb_pages)
 
     def do(self, scan_src):
         if self.doc == None:
             self.doc = ScannedDoc(self.__config.workdir)
-        for page in range(0, self.nb_pages):
-            self.emit('scan-start', page, self.nb_pages)
-            # TODO
-            self.emit('ocr-start', page, self.nb_pages)
-            # TODO
-            self.emit('scan-done', page, self.nb_pages)
+        for self.current_page in range(0, self.nb_pages):
+            self.emit('scan-start', self.current_page, self.nb_pages)
+            self.doc.scan_single_page(scan_src,
+                                      self.__config.scanner_resolution,
+                                      self.__config.ocrlang,
+                                      self.__config.scanner_calibration,
+                                      self.__progress_cb)
+            self.emit('scan-done', self.current_page, self.nb_pages)
+        self.current_page = None
 
 
 gobject.type_register(DocScanWorker)
@@ -60,7 +74,7 @@ class ActionAddDoc(SimpleAction):
                 _("Document %d") % docidx,
                 "1", # nb_pages
                 True, # can_edit (nb_pages)
-                0.0, # scan_progress_float
+                0, # scan_progress_int
                 "", # scan_progress_txt
                 True # can_delete
             ])
@@ -192,6 +206,8 @@ class MultiscanDialog(gobject.GObject):
     def __init__(self, main_window, config):
         gobject.GObject.__init__(self)
 
+        self.scanned_pages = 0
+
         self.__config = config
 
         widget_tree = load_uifile("multiscan.glade")
@@ -212,9 +228,9 @@ class MultiscanDialog(gobject.GObject):
         if len(main_window.doc.pages) > 0:
             self.lists['docs']['model'].append([
                 _("Current document (%s)") % (str(main_window.doc)),
-                0,  # nb_pages
+                "0",  # nb_pages
                 True,  # can_edit (nb_pages)
-                0.0,  # scan_progress_float
+                0,  # scan_progress_int
                 "",  # scan_progress_txt
                 False,  # can_delete
             ])
@@ -264,7 +280,6 @@ class MultiscanDialog(gobject.GObject):
             actions['start_edit_doc'][0][0],
             actions['del_doc'][0][0],
             actions['scan'][0][0],
-            self.lists['docs']['gui']
         ]
 
         self.scan_queue = WorkerQueue("Mutiple scans")
@@ -272,22 +287,71 @@ class MultiscanDialog(gobject.GObject):
                 gobject.idle_add(self.__on_global_scan_start_cb, queue))
         self.scan_queue.connect("queue-stop", lambda queue, exc: \
                 gobject.idle_add(self.__on_global_scan_end_cb, queue, exc))
+        self.scan_queue.connect("scan-start", lambda worker, page, total: \
+                gobject.idle_add(self.__on_scan_start_cb, worker, page, total))
+        self.scan_queue.connect("ocr-start", lambda worker, page, total: \
+                gobject.idle_add(self.__on_ocr_start_cb, worker, page, total))
+        self.scan_queue.connect("scan-done", lambda worker, page, total: \
+                gobject.idle_add(self.__on_scan_done_cb, worker, page, total))
 
         self.dialog = widget_tree.get_object("dialogMultiscan")
         self.dialog.set_transient_for(main_window.window)
         self.dialog.set_visible(True)
 
 
+    def set_mouse_cursor(self, cursor):
+        self.dialog.window.set_cursor({
+            "Normal" : None,
+            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
+        }[cursor])
+
+
     def __on_global_scan_start_cb(self, work_queue):
         for el in self.to_disable_on_scan:
             el.set_sensitive(False)
+        for line in self.lists['docs']['model']:
+            line[2] = False  # disable nb page edit
+            line[5] = False  # disable deletion
+        self.set_mouse_cursor("Busy")
+
+    def __on_scan_start_cb(self, worker, current_page, total_pages):
+        line_idx = worker.line_in_treeview
+        self.lists['docs']['model'][line_idx][1] = \
+                ("%d / %d" % (current_page, total_pages))
+        self.lists['docs']['model'][line_idx][3] = \
+                (current_page*100/total_pages)
+        self.lists['docs']['model'][line_idx][4] = _("Scanning")
+
+    def __on_ocr_start_cb(self, worker, current_page, total_pages):
+        line_idx = worker.line_in_treeview
+        self.lists['docs']['model'][line_idx][3] = \
+                ((current_page*100+50)/total_pages)
+        self.lists['docs']['model'][line_idx][4] = _("Reading")
+
+    def __on_scan_done_cb(self, worker, current_page, total_pages):
+        line_idx = worker.line_in_treeview
+        self.lists['docs']['model'][line_idx][1] = \
+                ("%d / %d" % (current_page+1, total_pages))
+        self.lists['docs']['model'][line_idx][3] = \
+                ((current_page*100+100)/total_pages)
+        self.lists['docs']['model'][line_idx][4] = _("Done")
+        self.scanned_pages += 1
 
     def __on_global_scan_end_cb(self, work_queue, exception=None):
+        self.set_mouse_cursor("Normal")
         if exception != None:
             if isinstance(exception, StopIteration):
-                # TODO
-                pass
-            return
+                msg = _("Less pages than expected have been scanned"
+                        " (got %d pages)") % (self.scanned_pages)
+                dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                           type=gtk.MESSAGE_WARNING,
+                                           buttons=gtk.BUTTONS_OK,
+                                           message_format=msg)
+                dialog.run()
+                dialog.destroy()
+            else:
+                raise exception
         self.dialog.destroy()
+        self.emit("need-reindex")
 
 gobject.type_register(MultiscanDialog)

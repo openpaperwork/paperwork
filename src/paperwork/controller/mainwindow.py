@@ -330,13 +330,15 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        for widget in self.__main_win.need_doc_widgets:
+            widget.set_sensitive(False)
         self.__main_win.page = None
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['img_builder'].start()
 
 
-class ActionOpenDocumentSelected(SimpleAction):
+class ActionDocumentSelected(SimpleAction):
     """
     Starts a new document.
     """
@@ -357,6 +359,8 @@ class ActionOpenDocumentSelected(SimpleAction):
         print "Showing doc %s" % doc
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.doc = doc
+        for widget in self.__main_win.need_doc_widgets:
+            widget.set_sensitive(True)
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['thumbnailer'].start()
@@ -389,7 +393,7 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_doc_list()
 
 
-class ActionOpenPageSelected(SimpleAction):
+class ActionPageSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, 
                 "Show a page (selected from the thumbnail list)")
@@ -457,6 +461,17 @@ class ActionRebuildPage(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.workers['img_builder'].stop()
         self.__main_win.workers['img_builder'].start()
+
+
+class ActionLabelSelected(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Label selected")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        for widget in self.__main_win.need_label_widgets:
+            widget.set_sensitive(True)
 
 
 class ActionToggleLabel(object):
@@ -677,6 +692,8 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         self.__main_win.page = None
+        for widget in self.__main_win.need_page_widgets:
+            widget.set_sensitive(False)
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['img_builder'].start()
@@ -846,13 +863,19 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("treeviewMatch"),
                 ],
-                ActionOpenDocumentSelected(self)
+                ActionDocumentSelected(self)
             ),
             'open_page' : (
                 [
                     widget_tree.get_object("iconviewPage"),
                 ],
-                ActionOpenPageSelected(self)
+                ActionPageSelected(self)
+            ),
+            'select_label' : (
+                [
+                    widget_tree.get_object("treeviewLabel"),
+                ],
+                ActionLabelSelected(self)
             ),
             'single_scan' : (
                 [
@@ -903,10 +926,13 @@ class MainWindow(object):
                 ],
                 ActionEditLabel(self),
             ),
-            'del_label' : [
-                widget_tree.get_object("menuitemDestroyLabel"),
-                widget_tree.get_object("buttonDelLabel"),
-            ],
+            'del_label' : (
+                [
+                    widget_tree.get_object("menuitemDestroyLabel"),
+                    widget_tree.get_object("buttonDelLabel"),
+                ],
+                # TODO
+            ),
             'open_doc_dir' : (
                 [
                     widget_tree.get_object("menuitemOpenDocDir"),
@@ -970,12 +996,18 @@ class MainWindow(object):
                 ],
                 ActionRebuildPage(self)
             ),
-            'redo_ocr_doc': [
-                widget_tree.get_object("menuitemReOcr"),
-            ],
-            'redo_ocr_all' : [
-                widget_tree.get_object("menuitemReOcrAll"),
-            ],
+            'redo_ocr_doc': (
+                [
+                    widget_tree.get_object("menuitemReOcr"),
+                ],
+                # TODO
+            ),
+            'redo_ocr_all' : (
+                [
+                    widget_tree.get_object("menuitemReOcrAll"),
+                ],
+                # TODO
+            ),
             'reindex' : (
                 [
                     widget_tree.get_object("menuitemReindexAll"),
@@ -995,8 +1027,29 @@ class MainWindow(object):
             "zoom_levels", "set_current_page", "prev_page", "next_page",
             "create_label", "edit_label", "open_doc_dir", "toggle_label",
             "print", "open_settings", "show_all_boxes", "about",
-            "single_scan", "multi_scan", "del_doc", "del_page"]:
+            "single_scan", "multi_scan", "del_doc", "del_page", "select_label"]:
             self.actions[action][1].connect(self.actions[action][0])
+
+        self.need_doc_widgets = (
+            self.actions['print'][0]
+            + self.actions['create_label'][0]
+            + self.actions['open_doc_dir'][0]
+            + self.actions['del_doc'][0]
+            + self.actions['set_current_page'][0]
+            + self.actions['toggle_label'][0]
+            + self.actions['redo_ocr_doc'][0]
+        )
+
+        self.need_page_widgets = (
+            self.actions['del_page'][0]
+            + self.actions['prev_page'][0]
+            + self.actions['next_page'][0]
+        )
+
+        self.need_label_widgets = (
+            self.actions['del_label'][0]
+            + self.actions['edit_label'][0]
+        )
 
         for popup_menu in self.popupMenus.values():
             # TODO(Jflesch): Find the correct signal
@@ -1160,13 +1213,18 @@ class MainWindow(object):
         self.workers['progress_updater'].stop()
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
+        for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.workers['thumbnailer'].stop()
         self.refresh_page_list()
         self.workers['thumbnailer'].start()
+
         if page != None:
             self.show_page(page)
+
         self.workers['reindex'].stop()
         self.workers['reindex'].start()
 
@@ -1222,6 +1280,8 @@ class MainWindow(object):
             ])
         self.indicators['total_pages'].set_text(
                 _("/ %d") % (self.doc.nb_pages))
+        for widget in self.need_page_widgets:
+            widget.set_sensitive(False)
 
     def refresh_label_list(self):
         """
@@ -1235,9 +1295,14 @@ class MainWindow(object):
                 (label in labels),
                 label
             ])
+        for widget in self.need_label_widgets:
+            widget.set_sensitive(False)
 
     def show_page(self, page):
         print "Showing page %s" % (str(page))
+
+        for widget in self.need_page_widgets:
+            widget.set_sensitive(True)
 
         # TODO(Jflesch): We should not make assumption regarding
         # the page position in the list

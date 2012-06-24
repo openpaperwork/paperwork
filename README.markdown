@@ -26,8 +26,6 @@ contain useful keywords, Paperwork allows also to put labels on each document.
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.main_window.png" width="512" height="384" />
 </a>
 
-### Page selection
-
 <a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.page_list.png">
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.page_list.png" width="512" height="384" />
 </a>
@@ -38,7 +36,11 @@ contain useful keywords, Paperwork allows also to put labels on each document.
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.suggestions.png" width="512" height="384" />
 </a>
 
-### Label edition
+### Labels
+
+<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png">
+  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png" width="140" height="268" />
+</a>
 
 <a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.label_edit.png">
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.label_edit.png" width="512" height="384" />

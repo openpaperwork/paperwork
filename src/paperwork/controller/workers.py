@@ -118,7 +118,7 @@ class WorkerProgressUpdater(Worker):
 
     can_interrupt = True
 
-    NB_UPDATES = 25
+    NB_UPDATES = 50
 
     def __init__(self, name, progressbar):
         self.name = "Progress bar updater: %s" % (name)

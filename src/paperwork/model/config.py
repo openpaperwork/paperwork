@@ -10,9 +10,9 @@ import pyinsane.abstract_th as pyinsane
 
 class _ScanTimes(object):
     __ITEM_2_CONFIG = {
-        'calibration' : 'ScanTimeCalibration',
-        'normal' : 'ScanTime',
-        'ocr' : 'OCRTime'
+        'calibration' : ('Scanner', 'ScanTimeCalibration'),
+        'normal' : ('Scanner', 'ScanTime'),
+        'ocr' : ('OCR', 'OCRTime'),
     }
 
     def __init__(self, config):
@@ -22,13 +22,13 @@ class _ScanTimes(object):
         cfg = self.__ITEM_2_CONFIG[item]
         try:
             return float(self.__config._configparser.get(
-                "Scanner", cfg))
+                cfg[0], cfg[1]))
         except ConfigParser.NoOptionError:
-            return 20.0
+            return 30.0
 
     def __setitem__(self, item, value):
         cfg = self.__ITEM_2_CONFIG[item]
-        self.__config._configparser.set("Scanner", cfg, str(value))
+        self.__config._configparser.set(cfg[0], cfg[1], str(value))
 
 
 class PaperworkConfig(object):

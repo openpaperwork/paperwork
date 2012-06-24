@@ -19,6 +19,7 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.model.config import PaperworkConfig
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
+from paperwork.controller.workers import WorkerProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -307,7 +308,7 @@ class WorkerCalibrationScan(Worker):
                                     ),
     }
 
-    can_interrupt = False
+    can_interrupt = True
 
     def __init__(self, target_viewport):
         Worker.__init__(self, "Calibration scan")
@@ -332,11 +333,13 @@ class WorkerCalibrationScan(Worker):
 
         scan_inst = dev.scan(multiple=False)
         try:
-            while True:
+            while self.can_run:
                 scan_inst.read()
                 time.sleep(0)  # Give some CPU time to PyGtk
         except EOFError:
             pass
+        if not self.can_run:
+            return
         orig_img = scan_inst.get_img()
         self.emit('calibration-scan-done', orig_img)
 
@@ -475,6 +478,8 @@ class SettingsWindow(gobject.GObject):
         self.window = widget_tree.get_object("windowSettings")
         self.window.set_transient_for(mainwindow_gui)
 
+        self.__config = config
+
         self.workdir_chooser = widget_tree.get_object("filechooserbutton")
 
         actions = {
@@ -535,6 +540,9 @@ class SettingsWindow(gobject.GObject):
 
         self.grips = CalibrationGripHandler(config, self)
 
+        self.progressbar = widget_tree.get_object("progressbarScan")
+        self.__scan_start = 0.0
+
         self.workers = {
             "device_finder" : WorkerDeviceFinder(config.scanner_devid),
             "resolution_finder" : WorkerResolutionFinder(
@@ -542,6 +550,8 @@ class SettingsWindow(gobject.GObject):
                     config.RECOMMENDED_RESOLUTION),
             "scan" : WorkerCalibrationScan(
                     self.calibration['image_viewport']),
+            "progress_updater" : WorkerProgressUpdater("calibration scan",
+                                                       self.progressbar)
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -692,8 +702,17 @@ class SettingsWindow(gobject.GObject):
         self.calibration['image_gui'].set_from_stock(
                 gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
 
+        self.__scan_start = time.time()
+        self.workers['progress_updater'].start(value_min=0.0, value_max=1.0,
+                total_time=self.__config.scan_time['calibration'])
+
     def __on_scan_done(self, img):
+        scan_stop = time.time()
+        self.workers['progress_updater'].stop()
+        self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
+
         self.calibration['images'] = [(1.0, img)]
+        self.progressbar.set_fraction(0.0)
 
     def __on_resize_done(self, factor, img):
         self.calibration['images'].insert(0, (factor, img))

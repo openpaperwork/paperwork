@@ -6,13 +6,11 @@
       <!-- column-name doc_name -->
       <column type="gchararray"/>
       <!-- column-name nb_pages -->
-      <column type="gint"/>
-      <!-- column-name scan_progress -->
-      <column type="gint"/>
-      <!-- column-name handler -->
-      <column type="PyObject"/>
+      <column type="gchararray"/>
       <!-- column-name can_edit -->
       <column type="gboolean"/>
+      <!-- column-name scan_progress -->
+      <column type="gfloat"/>
       <!-- column-name progress_txt -->
       <column type="gchararray"/>
       <!-- column-name can_delete -->
@@ -120,9 +118,8 @@
                         </child>
                         <child>
                           <object class="GtkTreeViewColumn" id="treeviewcolumnNbPages">
-                            <property name="sizing">autosize</property>
                             <property name="fixed_width">100</property>
-                            <property name="min_width">150</property>
+                            <property name="min_width">100</property>
                             <property name="max_width">143</property>
                             <property name="title" translatable="yes">Number of pages</property>
                             <child>
@@ -131,7 +128,7 @@
                             <child>
                               <object class="GtkCellRendererText" id="cellrenderertextNbPages"/>
                               <attributes>
-                                <attribute name="editable">4</attribute>
+                                <attribute name="editable">2</attribute>
                                 <attribute name="text">1</attribute>
                               </attributes>
                             </child>
@@ -150,7 +147,8 @@
                                 <property name="width">75</property>
                               </object>
                               <attributes>
-                                <attribute name="value">2</attribute>
+                                <attribute name="text">4</attribute>
+                                <attribute name="value">3</attribute>
                               </attributes>
                             </child>
                           </object>

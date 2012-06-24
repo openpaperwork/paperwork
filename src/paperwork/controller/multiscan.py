@@ -53,11 +53,16 @@ class ActionAddDoc(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         docidx = len(self.__dialog.lists['docs']['model'])
+        if not self.__dialog.lists['docs']['include_current_doc']:
+            docidx += 1
         self.__dialog.lists['docs']['model'].append(
             [
                 _("Document %d") % docidx,
-                1, 0, DocScanWorker(self.__config, 1, docidx),
-                True, "", True
+                "1", # nb_pages
+                True, # can_edit (nb_pages)
+                0.0, # scan_progress_float
+                "", # scan_progress_txt
+                True # can_delete
             ])
 
 
@@ -73,9 +78,8 @@ class ActionSelectDoc(SimpleAction):
         if selection_iter == None:
             print "No doc selected"
             return
-        val = model.get_value(selection_iter, 6)
+        val = model.get_value(selection_iter, 5)
         self.__dialog.removeDocButton.set_sensitive(val)
-
 
 
 class ActionRemoveDoc(SimpleAction):
@@ -91,12 +95,12 @@ class ActionRemoveDoc(SimpleAction):
             print "No doc selected"
             return
         model.remove(selection_iter)
-        line_idx = 0
-        for line in self.__dialog.lists['docs']['model']:
-            line[3].line_in_treeview = line_idx
-            if line_idx != 0:
+        for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
+            line = self.__dialog.lists['docs']['model'][line_idx]
+            if not self.__dialog.lists['docs']['include_current_doc']:
+                line[0] = _("Document %d") % (line_idx + 1)
+            elif line_idx != 0:
                 line[0] = _("Document %d") % line_idx
-            line_idx += 1
 
 
 class ActionStartEditDoc(SimpleAction):
@@ -124,6 +128,7 @@ class ActionEndEditDoc(SimpleAction):
 
     def do(self, new_text):
         SimpleAction.do(self, new_text=new_text)
+        new_text = str(int(new_text))  # make sure it's a valid number
         (model, selection_iter) = self.__dialog.lists['docs']['gui'] \
                 .get_selection().get_selected()
         if selection_iter == None:
@@ -131,20 +136,26 @@ class ActionEndEditDoc(SimpleAction):
             return
         line = model[selection_iter]
         line[1] = int(new_text)
-        line[3].nb_pages = int(new_text)
         model[selection_iter] = line
 
 
 class ActionScan(SimpleAction):
-    def __init__(self, multiscan_dialog, config):
+    def __init__(self, multiscan_dialog, config, main_win_doc):
         SimpleAction.__init__(self, "Start multi-scan")
         self.__dialog = multiscan_dialog
         self.__config = config
+        self.__main_win_doc = main_win_doc
 
     def do(self):
         SimpleAction.do(self)
-        for line in self.__dialog.lists['docs']['model']:
-            self.__dialog.scan_queue.add_worker(line[3])
+        for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
+            line = self.__dialog.lists['docs']['model'][line_idx]
+            doc = None
+            if line_idx == 0:
+                doc = self.__main_win_doc
+            worker = DocScanWorker(self.__config, nb_pages=int(line[1]),
+                                   line_in_treeview=line_idx, doc=doc)
+            self.__dialog.scan_queue.add_worker(worker)
         if not self.__dialog.scan_queue.is_running:
             scanner = self.__config.get_scanner_inst()
             try:
@@ -181,7 +192,6 @@ class MultiscanDialog(gobject.GObject):
     def __init__(self, main_window, config):
         gobject.GObject.__init__(self)
 
-        self.main_win = main_window
         self.__config = config
 
         widget_tree = load_uifile("multiscan.glade")
@@ -194,16 +204,21 @@ class MultiscanDialog(gobject.GObject):
                     'nb_pages' : \
                         widget_tree.get_object("treeviewcolumnNbPages"),
                 },
+                'include_current_doc': False,
             },
         }
 
         self.lists['docs']['model'].clear()
-        self.lists['docs']['model'].append([
-            _("Current document (%s)") % (str(self.main_win.doc)), 0, 0,
-            DocScanWorker(config, 0, 0, doc=self.main_win.doc),
-            True, "", False
-        ])
-        self.lists['docs']['model'][0][3]
+        if len(main_window.doc.pages) > 0:
+            self.lists['docs']['model'].append([
+                _("Current document (%s)") % (str(main_window.doc)),
+                0,  # nb_pages
+                True,  # can_edit (nb_pages)
+                0.0,  # scan_progress_float
+                "",  # scan_progress_txt
+                False,  # can_delete
+            ])
+            self.lists['docs']['include_current_doc'] = True
 
         self.removeDocButton = widget_tree.get_object("buttonRemoveDoc")
         self.removeDocButton.set_sensitive(False)
@@ -235,7 +250,7 @@ class MultiscanDialog(gobject.GObject):
             ),
             'scan' : (
                 [widget_tree.get_object("buttonOk")],
-                ActionScan(self, config),
+                ActionScan(self, config, main_window.doc),
             ),
         }
 

@@ -43,6 +43,7 @@ then
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \
+		src/paperwork/*.py \
 		src/paperwork/model/*.py \
 		src/paperwork/controller/*.py \
 		src/paperwork/view/*.glade.h \

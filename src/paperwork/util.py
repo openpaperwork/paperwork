@@ -150,3 +150,23 @@ def popup_no_scanner_found(parent):
     dialog.run()
     dialog.destroy()
 
+
+def ask_confirmation(parent):
+    """
+    Ask the user "Are you sure ?"
+
+    Returns:
+        True --- if they are
+        False --- if they aren't
+    """
+    confirm = gtk.MessageDialog(parent=parent,
+                                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                                type=gtk.MESSAGE_WARNING,
+                                buttons=gtk.BUTTONS_YES_NO,
+                                message_format=_('Are you sure ?'))
+    response = confirm.run()
+    confirm.destroy()
+    if response != gtk.RESPONSE_YES:
+        print "User cancelled"
+        return False
+    return True

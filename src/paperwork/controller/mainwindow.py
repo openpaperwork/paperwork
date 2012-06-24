@@ -24,6 +24,7 @@ from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
 from paperwork.model.labels import LabelEditor
 from paperwork.model.page import ScannedPage
+from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
@@ -261,6 +262,40 @@ class WorkerLabelUpdater(Worker):
 
 
 gobject.type_register(WorkerLabelUpdater)
+
+
+class WorkerLabelDeleter(Worker):
+    """
+    Resize and paint on the page
+    """
+    __gsignals__ = {
+        'label-deletion-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'label-deletion-doc-updated' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
+        'label-deletion-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = False
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Removing label")
+        self.__main_win = main_window
+
+    def __cb_progress(self, progression, total, step, doc):
+        self.emit('label-deletion-doc-updated', float(progression) / total,
+                  doc.name)
+
+    def do(self, label):
+        self.emit('label-deletion-start')
+        try:
+            self.__main_win.docsearch.destroy_label(label, self.__cb_progress)
+        finally:
+            self.emit('label-deletion-end')
+
+
+gobject.type_register(WorkerLabelDeleter)
 
 
 class WorkerSingleScan(Worker):
@@ -543,6 +578,31 @@ class ActionEditLabel(SimpleAction):
         # TODO(Jflesch): Update keyword index
 
 
+class ActionDeleteLabel(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Deleting label")
+        self.__main_win = main_window
+
+    def do(self):
+        if self.__main_win.workers['label_deleter'].is_running:
+            return
+
+        if not ask_confirmation(self.__main_win.window):
+            return
+
+        selection_path = self.__main_win.lists['labels'][0] \
+                .get_selection().get_selected()
+        if selection_path[1] == None:
+            print "No label selected"
+            return True
+        label = selection_path[0].get_value(selection_path[1], 2)
+
+        if self.__main_win.workers['label_deleter'].is_running:
+            return
+        self.__main_win.workers['label_deleter'].start(label=label)
+        # TODO(Jflesch): Update keyword index
+
+
 class ActionOpenDocDir(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Open doc dir")
@@ -622,31 +682,11 @@ class ActionDeleteDoc(SimpleAction):
         SimpleAction.__init__(self, "Delete document")
         self.__main_win = main_window
 
-    def __ask_confirmation(self):
-        """
-        Ask the user "Are you sure ?"
-
-        Returns:
-            True --- if they are
-            False --- if they aren't
-        """
-        confirm = gtk.MessageDialog(parent=self.__main_win.window,
-                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                type=gtk.MESSAGE_WARNING,
-                buttons=gtk.BUTTONS_YES_NO,
-                message_format=_('Are you sure ?'))
-        response = confirm.run()
-        confirm.destroy()
-        if response != gtk.RESPONSE_YES:
-            print "User cancelled"
-            return False
-        return True
-
     def do(self):
         """
         Ask for confirmation and then delete the document being viewed.
         """
-        if not self.__ask_confirmation():
+        if not ask_confirmation(self.__main_win.window):
             return
         print "Deleting ..."
         self.__main_win.doc.destroy()
@@ -660,31 +700,11 @@ class ActionDeletePage(SimpleAction):
         SimpleAction.__init__(self, "Delete page")
         self.__main_win = main_window
 
-    def __ask_confirmation(self):
-        """
-        Ask the user "Are you sure ?"
-
-        Returns:
-            True --- if they are
-            False --- if they aren't
-        """
-        confirm = gtk.MessageDialog(parent=self.__main_win.window,
-                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                type=gtk.MESSAGE_WARNING,
-                buttons=gtk.BUTTONS_YES_NO,
-                message_format=_('Are you sure ?'))
-        response = confirm.run()
-        confirm.destroy()
-        if response != gtk.RESPONSE_YES:
-            print "User cancelled"
-            return False
-        return True
-
     def do(self):
         """
         Ask for confirmation and then delete the page being viewed.
         """
-        if not self.__ask_confirmation():
+        if not ask_confirmation(self.__main_win.window):
             return
         print "Deleting ..."
         self.__main_win.page.destroy()
@@ -843,6 +863,7 @@ class MainWindow(object):
             'thumbnailer' : WorkerThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
+            'label_deleter' : WorkerLabelDeleter(self),
             'single_scan' : WorkerSingleScan(self, config),
             'progress_updater' : WorkerProgressUpdater(
                 "main window progress bar", self.status['progress']),
@@ -931,7 +952,7 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemDestroyLabel"),
                     widget_tree.get_object("buttonDelLabel"),
                 ],
-                # TODO
+                ActionDeleteLabel(self),
             ),
             'open_doc_dir' : (
                 [
@@ -1027,7 +1048,8 @@ class MainWindow(object):
             "zoom_levels", "set_current_page", "prev_page", "next_page",
             "create_label", "edit_label", "open_doc_dir", "toggle_label",
             "print", "open_settings", "show_all_boxes", "about",
-            "single_scan", "multi_scan", "del_doc", "del_page", "select_label"]:
+            "single_scan", "multi_scan", "del_doc", "del_page",
+            "select_label", "del_label"]:
             self.actions[action][1].connect(self.actions[action][0])
 
         self.need_doc_widgets = (
@@ -1107,6 +1129,19 @@ class MainWindow(object):
                     gobject.idle_add(self.__on_label_updating_end_cb,
                                      updater))
 
+        self.workers['label_deleter'].connect('label-deletion-start',
+                lambda updater: \
+                    gobject.idle_add(self.__on_label_updating_start_cb,
+                                     updater))
+        self.workers['label_deleter'].connect('label-deletion-doc-updated',
+                lambda updater, progression, doc_name: \
+                    gobject.idle_add(self.__on_label_deletion_doc_updated_cb,
+                                     updater, progression, doc_name))
+        self.workers['label_deleter'].connect('label-deletion-end',
+                lambda updater: \
+                    gobject.idle_add(self.__on_label_updating_end_cb,
+                                     updater))
+
         self.workers['single_scan'].connect('single-scan-start',
                 lambda worker: \
                     gobject.idle_add(self.__on_single_scan_start, worker))
@@ -1171,13 +1206,16 @@ class MainWindow(object):
         self.vpanels['txt_img_split'].set_position(0)
 
     def __on_label_updating_start_cb(self, src):
-        self.set_progression(self.workers['reindex'], 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
     def __on_label_updating_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
-                             _("Label updating (%s) ...") % (doc_name))
+                             _("Updating label (%s) ...") % (doc_name))
+
+    def __on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
+        self.set_progression(src, progression,
+                             _("Deleting label (%s) ...") % (doc_name))
 
     def __on_label_updating_end_cb(self, src):
         self.set_progression(src, 0.0, None)

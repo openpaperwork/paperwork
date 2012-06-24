@@ -25,16 +25,16 @@ class DummyDocSearch(object):
     def find_documents(self, sentence):
         return []
 
-    def add_label(self):
+    def add_label(self, label):
         assert()
 
     def redo_ocr(self):
         assert()
 
-    def update_label(self):
+    def update_label(self, old_label, new_label, cb_progress=None):
         assert()
 
-    def destroy_label(self):
+    def destroy_label(self, label, cb_progress=None):
         assert()
 
 

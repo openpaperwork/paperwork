@@ -462,6 +462,9 @@ class ActionUpdateSearchResults(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
 
+    def on_icon_press_cb(self, entry, iconpos=None, event=None):
+        entry.set_text("")
+
 
 class ActionPageSelected(SimpleAction):
     def __init__(self, main_window):

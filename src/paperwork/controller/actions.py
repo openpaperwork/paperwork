@@ -34,6 +34,9 @@ class SimpleAction(object):
     def on_cell_edited_cb(self, cellrenderer, path, new_text):
         self.do(new_text=new_text)
 
+    def on_icon_press_cb(self, entry=None, iconpos=None, event=None):
+        self.do()
+
     def connect(self, buttons):
         for button in buttons:
             assert(button != None)
@@ -46,6 +49,8 @@ class SimpleAction(object):
             elif isinstance(button, gtk.Editable):
                 button.connect("changed", self.on_entry_changed_cb)
                 button.connect("activate", self.on_entry_activate_cb)
+                if isinstance(button, gtk.Entry):
+                    button.connect("icon-press", self.on_icon_press_cb)
             elif isinstance(button, gtk.TreeView):
                 button.connect("cursor-changed",
                                self.on_treeview_cursor_changed_cb)

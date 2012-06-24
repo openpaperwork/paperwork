@@ -2,6 +2,7 @@ from copy import copy
 import os
 import sys
 import threading
+import time
 
 import Image
 import ImageColor
@@ -17,6 +18,7 @@ from paperwork.controller.actions import SimpleAction
 from paperwork.controller.multiscan import MultiscanDialog
 from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
+from paperwork.controller.workers import WorkerProgressUpdater
 from paperwork.model.doc import ScannedDoc
 from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
@@ -270,7 +272,7 @@ class WorkerSingleScan(Worker):
                              ),
     }
 
-    can_interrupt = False
+    can_interrupt = True
 
     def __init__(self, main_window, config):
         Worker.__init__(self, "Scanning page")
@@ -279,12 +281,15 @@ class WorkerSingleScan(Worker):
         self.__ocr_running = False
 
     def __scan_progress_cb(self, progression, total, step, doc=None):
+        if not self.can_run:
+            raise Exception("Interrupted by the user")
         if (step == ScannedPage.SCAN_STEP_OCR) and (not self.__ocr_running):
             self.emit('single-scan-ocr')
             self.__ocr_running = True
 
     def do(self, doc):
         self.emit('single-scan-start')
+
         self.__ocr_running = False
         try:
             scanner = self.__config.get_scanner_inst()
@@ -304,6 +309,7 @@ class WorkerSingleScan(Worker):
                              self.__config.scanner_calibration,
                              self.__scan_progress_cb)
         page = doc.pages[doc.nb_pages - 1]
+
         self.emit('single-scan-done', page)
 
 
@@ -692,9 +698,27 @@ class ActionQuit(SimpleAction):
     """
     Quit
     """
-    def __init__(self, main_window):
+    def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Quit")
         self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.window.destroy()
+
+    def on_window_close_cb(self, window):
+        self.do()
+
+
+class ActionRealQuit(SimpleAction):
+    """
+    Quit
+    """
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Quit (real)")
+        self.__main_win = main_window
+        self.__config = config
 
     def do(self):
         SimpleAction.do(self)
@@ -702,7 +726,7 @@ class ActionQuit(SimpleAction):
         for worker in self.__main_win.workers.values():
             worker.stop()
 
-        self.__main_win.window.destroy()
+        self.__config.write()
         gtk.main_quit()
 
     def on_window_close_cb(self, window):
@@ -720,6 +744,9 @@ class MainWindow(object):
 
         self.window = widget_tree.get_object("mainWindow")
         self.__win_size_cache = None
+
+        self.__config = config
+        self.__scan_start = 0.0
 
         self.docsearch = DummyDocSearch()
         self.doc = None
@@ -800,6 +827,8 @@ class MainWindow(object):
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
             'single_scan' : WorkerSingleScan(self, config),
+            'progress_updater' : WorkerProgressUpdater(
+                "main window progress bar", self.status['progress']),
         }
 
         self.show_all_boxes = \
@@ -858,7 +887,7 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemQuit"),
                     widget_tree.get_object("toolbuttonQuit"),
                 ],
-                ActionQuit(self),
+                ActionQuit(self, config),
             ),
             'create_label' : (
                 [
@@ -974,7 +1003,7 @@ class MainWindow(object):
                                   popup_menu[0], popup_menu[1])
 
         self.window.connect("destroy",
-                            ActionQuit(self).on_window_close_cb)
+                            ActionRealQuit(self, config).on_window_close_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
             gobject.idle_add(self.__on_indexation_start_cb, indexer))
@@ -1107,10 +1136,28 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
         self.img_area.set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
 
+        self.__scan_start = time.time()
+        self.workers['progress_updater'].start(
+            value_min=0.0, value_max=0.5,
+            total_time=self.__config.scan_time['normal'])
+
     def __on_single_scan_ocr(self, src):
+        scan_stop = time.time()
+        self.workers['progress_updater'].stop()
+        self.__config.scan_time['normal'] = scan_stop - self.__scan_start
+
         self.set_progression(src, 0.5, _("Reading ..."))
 
+        self.__scan_start = time.time()
+        self.workers['progress_updater'].start(
+            value_min=0.5, value_max=1.0,
+            total_time=self.__config.scan_time['ocr'])
+
     def __on_single_scan_done(self, src, page):
+        scan_stop = time.time()
+        self.workers['progress_updater'].stop()
+        self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
+
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.workers['thumbnailer'].stop()

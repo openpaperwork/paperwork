@@ -8,6 +8,29 @@ import os
 import pyinsane.abstract_th as pyinsane
 
 
+class _ScanTimes(object):
+    __ITEM_2_CONFIG = {
+        'calibration' : 'ScanTimeCalibration',
+        'normal' : 'ScanTime',
+        'ocr' : 'OCRTime'
+    }
+
+    def __init__(self, config):
+        self.__config = config
+
+    def __getitem__(self, item):
+        cfg = self.__ITEM_2_CONFIG[item]
+        try:
+            return float(self.__config._configparser.get(
+                "Scanner", cfg))
+        except ConfigParser.NoOptionError:
+            return 20.0
+
+    def __setitem__(self, item, value):
+        cfg = self.__ITEM_2_CONFIG[item]
+        self.__config._configparser.set("Scanner", cfg, str(value))
+
+
 class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is
@@ -24,8 +47,9 @@ class PaperworkConfig(object):
     ]
 
     def __init__(self):
-        # values are stored directly in self.__configparser
-        self.__configparser = ConfigParser.SafeConfigParser()
+        # values are stored directly in self._configparser
+        self._configparser = ConfigParser.SafeConfigParser()
+        self.scan_time = _ScanTimes(self)
 
         configfile_found = False
         for self.__configfile in self.CONFIGFILES:
@@ -45,16 +69,16 @@ class PaperworkConfig(object):
         read instead of '~/.paperwork.conf' ; see Paperwork.CONFIGFILES)
         """
         # smash the previous config
-        self.__configparser = ConfigParser.SafeConfigParser()
-        self.__configparser.read([self.__configfile])
+        self._configparser = ConfigParser.SafeConfigParser()
+        self._configparser.read([self.__configfile])
 
         # make sure that all the sections exist
-        if not self.__configparser.has_section("Global"):
-            self.__configparser.add_section("Global")
-        if not self.__configparser.has_section("OCR"):
-            self.__configparser.add_section("OCR")
-        if not self.__configparser.has_section("Scanner"):
-            self.__configparser.add_section("Scanner")
+        if not self._configparser.has_section("Global"):
+            self._configparser.add_section("Global")
+        if not self._configparser.has_section("OCR"):
+            self._configparser.add_section("OCR")
+        if not self._configparser.has_section("Scanner"):
+            self._configparser.add_section("Scanner")
 
     def __get_workdir(self):
         """
@@ -67,7 +91,7 @@ class PaperworkConfig(object):
             String.
         """
         try:
-            return self.__configparser.get("Global", "WorkDirectory")
+            return self._configparser.get("Global", "WorkDirectory")
         except ConfigParser.NoOptionError:
             return os.path.expanduser("~/papers")
 
@@ -75,7 +99,7 @@ class PaperworkConfig(object):
         """
         Set the work directory.
         """
-        self.__configparser.set("Global", "WorkDirectory", work_dir_str)
+        self._configparser.set("Global", "WorkDirectory", work_dir_str)
 
     workdir = property(__get_workdir, __set_workdir)
 
@@ -88,7 +112,7 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            return self.__configparser.get("OCR", "Lang")
+            return self._configparser.get("OCR", "Lang")
         except ConfigParser.NoOptionError:
             return "eng"
 
@@ -96,7 +120,7 @@ class PaperworkConfig(object):
         """
         Set the OCR lang
         """
-        self.__configparser.set("OCR", "Lang", lang)
+        self._configparser.set("OCR", "Lang", lang)
 
     ocrlang = property(__get_ocrlang, __set_ocrlang)
 
@@ -107,7 +131,7 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            return self.__configparser.get("Scanner", "Device")
+            return self._configparser.get("Scanner", "Device")
         except ConfigParser.NoOptionError:
             return None
 
@@ -115,7 +139,7 @@ class PaperworkConfig(object):
         """
         Set the device id selected by the user to use for scanning
         """
-        self.__configparser.set("Scanner", "Device", devid)
+        self._configparser.set("Scanner", "Device", devid)
 
     scanner_devid = property(__get_scanner_devid, __set_scanner_devid)
 
@@ -126,7 +150,7 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            return int(self.__configparser.get("Scanner", "Resolution"))
+            return int(self._configparser.get("Scanner", "Resolution"))
         except ConfigParser.NoOptionError:
             return self.RECOMMENDED_RESOLUTION
 
@@ -134,7 +158,7 @@ class PaperworkConfig(object):
         """
         Set the scanner resolution used for normal scans.
         """
-        self.__configparser.set("Scanner", "Resolution", str(resolution))
+        self._configparser.set("Scanner", "Resolution", str(resolution))
 
     scanner_resolution = property(__get_scanner_resolution,
                                   __set_scanner_resolution)
@@ -146,13 +170,13 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            pt_a_x = int(self.__configparser.get(
+            pt_a_x = int(self._configparser.get(
                 "Scanner", "Calibration_Pt_A_X"))
-            pt_a_y = int(self.__configparser.get(
+            pt_a_y = int(self._configparser.get(
                 "Scanner", "Calibration_Pt_A_Y"))
-            pt_b_x = int(self.__configparser.get(
+            pt_b_x = int(self._configparser.get(
                 "Scanner", "Calibration_Pt_B_X"))
-            pt_b_y = int(self.__configparser.get(
+            pt_b_y = int(self._configparser.get(
                 "Scanner", "Calibration_Pt_B_Y"))
             if (pt_a_x > pt_b_x):
                 (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
@@ -168,13 +192,13 @@ class PaperworkConfig(object):
         """
         Set the scanner resolution used for normal scans.
         """
-        self.__configparser.set("Scanner", "Calibration_Pt_A_X",
+        self._configparser.set("Scanner", "Calibration_Pt_A_X",
                                 str(calibration[0][0]))
-        self.__configparser.set("Scanner", "Calibration_Pt_A_Y",
+        self._configparser.set("Scanner", "Calibration_Pt_A_Y",
                                 str(calibration[0][1]))
-        self.__configparser.set("Scanner", "Calibration_Pt_B_X",
+        self._configparser.set("Scanner", "Calibration_Pt_B_X",
                                 str(calibration[1][0]))
-        self.__configparser.set("Scanner", "Calibration_Pt_B_Y",
+        self._configparser.set("Scanner", "Calibration_Pt_B_Y",
                                 str(calibration[1][1]))
 
     scanner_calibration = property(__get_scanner_calibration,
@@ -187,7 +211,7 @@ class PaperworkConfig(object):
         Array of string
         """
         try:
-            str_list = self.__configparser.get("Scanner", "Sources")
+            str_list = self._configparser.get("Scanner", "Sources")
             return str_list.split(",")
         except ConfigParser.NoOptionError:
             return []
@@ -199,7 +223,7 @@ class PaperworkConfig(object):
         Array of string
         """
         str_list = ",".join(sources)
-        self.__configparser.set("Scanner", "Sources", str_list)
+        self._configparser.set("Scanner", "Sources", str_list)
 
     scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
 
@@ -207,6 +231,7 @@ class PaperworkConfig(object):
         scanner = pyinsane.Scanner(self.scanner_devid)
         scanner.options['resolution'].value = self.scanner_resolution
         return scanner
+
 
     def write(self):
         """
@@ -216,5 +241,5 @@ class PaperworkConfig(object):
         file_path = self.__configfile
         print "Writing %s ... " % file_path
         with open(file_path, 'wb') as file_descriptor:
-            self.__configparser.write(file_descriptor)
+            self._configparser.write(file_descriptor)
         print "Done"

@@ -66,7 +66,7 @@ class WorkerDocIndexer(Worker):
         self.__main_win = main_window
         self.__config = config
 
-    def __cb_progress(self, progression, total, step, doc=None):
+    def __progress_cb(self, progression, total, step, doc=None):
         """
         Update the main progress bar
         """
@@ -87,7 +87,7 @@ class WorkerDocIndexer(Worker):
     def do(self):
         self.emit('indexation-start')
         try:
-            docsearch = DocSearch(self.__config.workdir, self.__cb_progress)
+            docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.__main_win.docsearch = docsearch
         except StopIteration:
             print "Indexation interrupted"
@@ -248,7 +248,7 @@ class WorkerLabelUpdater(Worker):
         Worker.__init__(self, "Updating label")
         self.__main_win = main_window
 
-    def __cb_progress(self, progression, total, step, doc):
+    def __progress_cb(self, progression, total, step, doc):
         self.emit('label-updating-doc-updated', float(progression) / total,
                   doc.name)
 
@@ -256,7 +256,7 @@ class WorkerLabelUpdater(Worker):
         self.emit('label-updating-start')
         try:
             self.__main_win.docsearch.update_label(old_label, new_label,
-                                                   self.__cb_progress)
+                                                   self.__progress_cb)
         finally:
             self.emit('label-updating-end')
 
@@ -283,19 +283,54 @@ class WorkerLabelDeleter(Worker):
         Worker.__init__(self, "Removing label")
         self.__main_win = main_window
 
-    def __cb_progress(self, progression, total, step, doc):
+    def __progress_cb(self, progression, total, step, doc):
         self.emit('label-deletion-doc-updated', float(progression) / total,
                   doc.name)
 
     def do(self, label):
         self.emit('label-deletion-start')
         try:
-            self.__main_win.docsearch.destroy_label(label, self.__cb_progress)
+            self.__main_win.docsearch.destroy_label(label, self.__progress_cb)
         finally:
             self.emit('label-deletion-end')
 
 
 gobject.type_register(WorkerLabelDeleter)
+
+
+class WorkerOCRRedoer(Worker):
+    """
+    Resize and paint on the page
+    """
+    __gsignals__ = {
+        'redo-ocr-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'redo-ocr-doc-updated' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
+        'redo-ocr-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = False
+
+    def __init__(self, main_window, config):
+        Worker.__init__(self, "Redoing OCR")
+        self.__main_win = main_window
+        self.__config = config
+
+    def __progress_cb(self, progression, total, step, doc):
+        self.emit('redo-ocr-doc-updated', float(progression) / total,
+                  doc.name)
+
+    def do(self, doc_target):
+        self.emit('redo-ocr-start')
+        try:
+            doc_target.redo_ocr(self.__config.ocrlang, self.__progress_cb)
+        finally:
+            self.emit('redo-ocr-end')
+
+
+gobject.type_register(WorkerOCRRedoer)
 
 
 class WorkerSingleScan(Worker):
@@ -546,7 +581,6 @@ class ActionCreateLabel(SimpleAction):
             self.__main_win.docsearch.add_label(labeleditor.label,
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
-        # TODO(Jflesch): Update keyword index
 
 
 class ActionEditLabel(SimpleAction):
@@ -575,7 +609,6 @@ class ActionEditLabel(SimpleAction):
             return
         self.__main_win.workers['label_updater'].start(old_label=label,
                                                        new_label=new_label)
-        # TODO(Jflesch): Update keyword index
 
 
 class ActionDeleteLabel(SimpleAction):
@@ -600,7 +633,6 @@ class ActionDeleteLabel(SimpleAction):
         if self.__main_win.workers['label_deleter'].is_running:
             return
         self.__main_win.workers['label_deleter'].start(label=label)
-        # TODO(Jflesch): Update keyword index
 
 
 class ActionOpenDocDir(SimpleAction):
@@ -719,6 +751,36 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.workers['img_builder'].start()
         self.__main_win.workers['thumbnailer'].start()
         self.__main_win.workers['reindex'].start()
+
+
+class ActionRedoDocOCR(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Redoing doc ocr")
+        self.__main_win = main_window
+
+    def do(self):
+        if not ask_confirmation(self.__main_win.window):
+            return
+
+        if self.__main_win.workers['ocr_redoer'].is_running:
+            return
+
+        self.__main_win.workers['ocr_redoer'].start(doc_target=self.__main_win.doc)
+
+
+class ActionRedoAllOCR(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Redoing doc ocr")
+        self.__main_win = main_window
+
+    def do(self):
+        if not ask_confirmation(self.__main_win.window):
+            return
+
+        if self.__main_win.workers['ocr_redoer'].is_running:
+            return
+
+        self.__main_win.workers['ocr_redoer'].start(doc_target=self.__main_win.docsearch)
 
 
 class ActionAbout(SimpleAction):
@@ -867,6 +929,7 @@ class MainWindow(object):
             'single_scan' : WorkerSingleScan(self, config),
             'progress_updater' : WorkerProgressUpdater(
                 "main window progress bar", self.status['progress']),
+            'ocr_redoer' : WorkerOCRRedoer(self, config),
         }
 
         self.show_all_boxes = \
@@ -1021,13 +1084,13 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemReOcr"),
                 ],
-                # TODO
+                ActionRedoDocOCR(self),
             ),
             'redo_ocr_all' : (
                 [
                     widget_tree.get_object("menuitemReOcrAll"),
                 ],
-                # TODO
+                ActionRedoAllOCR(self),
             ),
             'reindex' : (
                 [
@@ -1043,13 +1106,7 @@ class MainWindow(object):
             ),
         }
 
-        for action in [
-            "new_doc", "open_doc", "reindex", "quit", "search", "open_page",
-            "zoom_levels", "set_current_page", "prev_page", "next_page",
-            "create_label", "edit_label", "open_doc_dir", "toggle_label",
-            "print", "open_settings", "show_all_boxes", "about",
-            "single_scan", "multi_scan", "del_doc", "del_page",
-            "select_label", "del_label"]:
+        for action in self.actions:
             self.actions[action][1].connect(self.actions[action][0])
 
         self.need_doc_widgets = (
@@ -1130,17 +1187,30 @@ class MainWindow(object):
                                      updater))
 
         self.workers['label_deleter'].connect('label-deletion-start',
-                lambda updater: \
+                lambda deleter: \
                     gobject.idle_add(self.__on_label_updating_start_cb,
-                                     updater))
+                                     deleter))
         self.workers['label_deleter'].connect('label-deletion-doc-updated',
-                lambda updater, progression, doc_name: \
+                lambda deleter, progression, doc_name: \
                     gobject.idle_add(self.__on_label_deletion_doc_updated_cb,
-                                     updater, progression, doc_name))
+                                     deleter, progression, doc_name))
         self.workers['label_deleter'].connect('label-deletion-end',
-                lambda updater: \
+                lambda deleter: \
                     gobject.idle_add(self.__on_label_updating_end_cb,
-                                     updater))
+                                     deleter))
+
+        self.workers['ocr_redoer'].connect('redo-ocr-start',
+                lambda ocr_redoer: \
+                    gobject.idle_add(self.__on_redo_ocr_start_cb,
+                                     ocr_redoer))
+        self.workers['ocr_redoer'].connect('redo-ocr-doc-updated',
+                lambda ocr_redoer, progression, doc_name: \
+                    gobject.idle_add(self.__on_redo_ocr_doc_updated_cb,
+                                     ocr_redoer, progression, doc_name))
+        self.workers['ocr_redoer'].connect('redo-ocr-end',
+                lambda ocr_redoer: \
+                    gobject.idle_add(self.__on_redo_ocr_end_cb,
+                                     ocr_redoer))
 
         self.workers['single_scan'].connect('single-scan-start',
                 lambda worker: \
@@ -1223,6 +1293,30 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
         self.refresh_doc_list()
+        self.workers['reindex'].stop()
+        self.workers['reindex'].start()
+
+    def __on_redo_ocr_start_cb(self, src):
+        self.set_search_availability(False)
+        self.set_mouse_cursor("Busy")
+        self.set_progression(src, progression,
+                             _("Redoing OCR ..."))
+
+    def __on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
+        self.set_progression(src, progression,
+                             _("Redoing OCR (%s) ...") % (doc_name))
+
+    def __on_redo_ocr_end_cb(self, src):
+        self.set_progression(src, 0.0, None)
+        self.set_search_availability(True)
+        self.set_mouse_cursor("Normal")
+        self.refresh_label_list()
+        self.refresh_doc_list()
+        if self.page != None:
+            # in case the keywords were highlighted
+            self.show_page(self.page)
+        self.workers['reindex'].stop()
+        self.workers['reindex'].start()
 
     def __on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))

@@ -28,7 +28,7 @@ class DummyDocSearch(object):
     def add_label(self, label):
         assert()
 
-    def redo_ocr(self):
+    def redo_ocr(self, ocrlang, progress_callback):
         assert()
 
     def update_label(self, old_label, new_label, cb_progress=None):
@@ -425,7 +425,7 @@ class DocSearch(object):
             self.label_list.append(label)
             self.label_list.sort()
 
-    def redo_ocr(self, progress_callback, ocrlang):
+    def redo_ocr(self, ocrlang, progress_callback=dummy_progress_cb):
         """
         Rerun the OCR on *all* the documents. Can be a *really* long process,
         which is why progress_callback is a mandatory argument.

@@ -753,6 +753,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Scan single page</property>
                               </object>
                             </child>
                             <child>
@@ -760,6 +761,7 @@
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Scan from feeder</property>
                               </object>
                             </child>
                           </object>

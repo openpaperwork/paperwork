@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-29 12:02+0200\n"
+"POT-Creation-Date: 2012-06-29 12:11+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -27,7 +27,7 @@ msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
 #: src/paperwork/controller/mainwindow.py:75
-#: src/paperwork/controller/mainwindow.py:1357
+#: src/paperwork/controller/mainwindow.py:1362
 msgid "Reading ..."
 msgstr "Lecture ..."
 
@@ -47,35 +47,40 @@ msgstr "'!' peut être utilisé comme préfixe pour"
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/paperwork/controller/mainwindow.py:1280
-#: src/paperwork/controller/mainwindow.py:1288
+#: src/paperwork/controller/mainwindow.py:1136
+#: src/paperwork/view/mainwindow.glade.h:41
+msgid "Scan single page"
+msgstr "Scanner une seule page"
+
+#: src/paperwork/controller/mainwindow.py:1285
+#: src/paperwork/controller/mainwindow.py:1293
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/controller/mainwindow.py:1305
+#: src/paperwork/controller/mainwindow.py:1310
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1309
+#: src/paperwork/controller/mainwindow.py:1314
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1324
+#: src/paperwork/controller/mainwindow.py:1329
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/controller/mainwindow.py:1328
+#: src/paperwork/controller/mainwindow.py:1333
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1343
+#: src/paperwork/controller/mainwindow.py:1348
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/controller/mainwindow.py:1414
+#: src/paperwork/controller/mainwindow.py:1419
 #, python-format
 msgid ""
 "\n"
@@ -84,12 +89,12 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/controller/mainwindow.py:1431
+#: src/paperwork/controller/mainwindow.py:1436
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/controller/mainwindow.py:1435
+#: src/paperwork/controller/mainwindow.py:1440
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
@@ -218,7 +223,7 @@ msgstr "_Fichier"
 #: src/paperwork/view/mainwindow.glade.h:25
 #: src/paperwork/view/settingswindow.glade.h:11
 msgid "Scan"
-msgstr "Scanner une page"
+msgstr "Scanner"
 
 #: src/paperwork/view/mainwindow.glade.h:26
 msgid "Single page"
@@ -280,10 +285,6 @@ msgstr "Pages"
 #: src/paperwork/view/mainwindow.glade.h:40
 msgid "Labels"
 msgstr "Labels"
-
-#: src/paperwork/view/mainwindow.glade.h:41
-msgid "Scan single page"
-msgstr "Scanner une seule page"
 
 #: src/paperwork/view/mainwindow.glade.h:42
 msgid "Scan from feeder"
@@ -378,4 +379,3 @@ msgstr "Annuler"
 #: src/paperwork/view/settingswindow.glade.h:14
 msgid "Ok"
 msgstr "Ok"
-

@@ -807,8 +807,6 @@ class ActionRealQuit(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
-        tooltips = gtk.Tooltips()
-
         img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
         # TODO(Jflesch): Find a better default thumbnail
         self.default_thumbnail = image2pixbuf(img)
@@ -861,11 +859,10 @@ class MainWindow(object):
         }
 
         self.search_field = widget_tree.get_object("entrySearch")
-        tooltips.set_tip(self.search_field,
-                        (_('Search documents\n')
-                         + _('\'!\' can be used as a prefix to')
-                         + _(' negate a keyword')))
-
+        self.search_field.set_tooltip_text(
+                              (_('Search documents\n')
+                               + _('\'!\' can be used as a prefix to')
+                               + _(' negate a keyword')))
 
         self.doc_browsing = {
             'matches' : widget_tree.get_object("treeviewMatch"),
@@ -1104,12 +1101,12 @@ class MainWindow(object):
         for (buttons, action) in self.actions.values():
             for button in buttons:
                 if isinstance(button, gtk.ToolButton):
-                    tooltips.set_tip(button, button.get_label())
+                    button.set_tooltip_text(button.get_label())
 
         for button in self.actions['single_scan'][0]:
             # let's be more specific on the tool tips of these buttons
             if isinstance(button, gtk.ToolButton):
-                tooltips.set_tip(button, _("Scan single page"))
+                button.set_tooltip_text(_("Scan single page"))
 
         self.need_doc_widgets = (
             self.actions['print'][0]
@@ -1440,7 +1437,7 @@ class MainWindow(object):
     def __on_img_mouse_motion(self, event_box, event):
         try:
             # make sure we have an image currently displayed
-            self.img['image'].get_pixbuf()
+            self.img['image'].get_pixmap()
         except ValueError:
             return
 
@@ -1464,11 +1461,14 @@ class MainWindow(object):
         show_all = self.show_all_boxes.get_active()
         self.img['boxes']['current'] = new_box
 
-        if old_box and not show_all:
-            highlighted = (old_box in self.img['boxes']['highlighted'])
-            if not highlighted:
-                self.__undraw_box(self.img['image'].window, old_box)
+        if old_box:
+            self.img['image'].set_tooltip_text(None)
+            if not show_all:
+                highlighted = (old_box in self.img['boxes']['highlighted'])
+                if not highlighted:
+                    self.__undraw_box(self.img['image'].window, old_box)
         if new_box:
+            self.img['image'].set_tooltip_text(new_box.get_unicode_string())
             highlighted = (new_box in self.img['boxes']['highlighted'])
             self.__draw_box(self.img['image'].window, new_box, highlighted)
 

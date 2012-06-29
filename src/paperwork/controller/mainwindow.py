@@ -119,6 +119,8 @@ class WorkerThumbnailer(Worker):
 
     def do(self):
         self.emit('thumbnailing-start')
+        # give some time to the GUI to breath
+        time.sleep(0.3)
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
@@ -126,6 +128,8 @@ class WorkerThumbnailer(Worker):
             if not self.can_run:
                 return
             self.emit('thumbnailing-page-done', page_idx, pixbuf)
+            # give some time to the GUI to breath
+            time.sleep(0.3)
         self.emit('thumbnailing-end')
 
 
@@ -1262,6 +1266,7 @@ class MainWindow(object):
 
     def __on_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
+        self.set_mouse_cursor("Busy")
 
     def __on_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         print "Updating thumbnail %d" % (page_idx)
@@ -1273,6 +1278,7 @@ class MainWindow(object):
 
     def __on_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
 
     def __on_window_resize_cb(self, window, allocation):
         if (self.__win_size_cache == allocation):

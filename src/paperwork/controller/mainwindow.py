@@ -1468,7 +1468,7 @@ class MainWindow(object):
                 if not highlighted:
                     self.__undraw_box(self.img['image'].window, old_box)
         if new_box:
-            self.img['image'].set_tooltip_text(new_box.get_unicode_string())
+            self.img['image'].set_tooltip_text(new_box.content)
             highlighted = (new_box in self.img['boxes']['highlighted'])
             self.__draw_box(self.img['image'].window, new_box, highlighted)
 

@@ -837,6 +837,8 @@ class ActionRealQuit(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        tooltips = gtk.Tooltips()
+
         img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
         # TODO(Jflesch): Find a better default thumbnail
         self.default_thumbnail = image2pixbuf(img)
@@ -889,6 +891,11 @@ class MainWindow(object):
         }
 
         self.search_field = widget_tree.get_object("entrySearch")
+        tooltips.set_tip(self.search_field,
+                        (_('Search documents\n')
+                         + _('\'!\' can be used as a prefix to')
+                         + _(' negate a keyword')))
+
 
         self.doc_browsing = {
             'matches' : widget_tree.get_object("treeviewMatch"),
@@ -1117,6 +1124,11 @@ class MainWindow(object):
 
         for action in self.actions:
             self.actions[action][1].connect(self.actions[action][0])
+
+        for (buttons, action) in self.actions.values():
+            for button in buttons:
+                if isinstance(button, gtk.ToolButton):
+                    tooltips.set_tip(button, button.get_label())
 
         self.need_doc_widgets = (
             self.actions['print'][0]

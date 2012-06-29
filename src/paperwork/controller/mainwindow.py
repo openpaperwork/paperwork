@@ -431,6 +431,7 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
+        self.__main_win.refresh_highlighted_words()
 
     def on_icon_press_cb(self, entry, iconpos=None, event=None):
         entry.set_text("")
@@ -1378,10 +1379,11 @@ class MainWindow(object):
 
         show_all = self.show_all_boxes.get_active()
         if show_all:
-            for box in self.img['boxes']['all']:
-                self.__draw_box(pixmap, box, highlighted=False)
-        for box in self.img['boxes']['highlighted']:
-            self.__draw_box(pixmap, box, highlighted=True)
+            box_list = self.img['boxes']['all']
+        else:
+            box_list = self.img['boxes']['highlighted']
+        for box in box_list:
+            self.__draw_box(pixmap, box)
 
         self.img['image'].set_from_pixmap(pixmap, mask)
 
@@ -1406,19 +1408,8 @@ class MainWindow(object):
         d += width
         return ((int(a), int(b)), (int(c), int(d)))
 
-    def __undraw_box(self, drawable, box):
-        ((img_a, img_b), (img_c, img_d)) = \
-                self.__get_box_position(box, window=drawable, width=5)
-        ((pic_a, pic_b), (pic_c, pic_d)) = \
-                self.__get_box_position(box, window=None, width=5)
-        gc = drawable.new_gc()
-        drawable.draw_pixbuf(gc, self.img['pixbuf'],
-                             src_x=pic_a, src_y=pic_b,
-                             dest_x=img_a, dest_y=img_b,
-                             width=(img_c-img_a),
-                             height=(img_d-img_b))
-
-    def __draw_box(self, drawable, box, highlighted=False):
+    def __draw_box(self, drawable, box):
+        highlighted = (box in self.img['boxes']['highlighted'])
         width=1
         color='#6c5dd1'
         if highlighted:
@@ -1434,6 +1425,24 @@ class MainWindow(object):
                                     width=(img_c-img_a+(2*i)),
                                     height=(img_d-img_b+(2*i)))
     
+    def __undraw_box(self, drawable, box):
+        ((img_a, img_b), (img_c, img_d)) = \
+                self.__get_box_position(box, window=drawable, width=5)
+        ((pic_a, pic_b), (pic_c, pic_d)) = \
+                self.__get_box_position(box, window=None, width=5)
+        gc = drawable.new_gc()
+        drawable.draw_pixbuf(gc, self.img['pixbuf'],
+                             src_x=pic_a, src_y=pic_b,
+                             dest_x=img_a, dest_y=img_b,
+                             width=(img_c-img_a),
+                             height=(img_d-img_b))
+
+        show_all = self.show_all_boxes.get_active()
+        highlighted = (box in self.img['boxes']['highlighted'])
+        if show_all or highlighted:
+            # force redrawing
+            self.__draw_box(drawable, box)
+
     def __on_img_mouse_motion(self, event_box, event):
         try:
             # make sure we have an image currently displayed
@@ -1458,19 +1467,14 @@ class MainWindow(object):
         if old_box == new_box:
             return
 
-        show_all = self.show_all_boxes.get_active()
         self.img['boxes']['current'] = new_box
 
         if old_box:
             self.img['image'].set_tooltip_text(None)
-            if not show_all:
-                highlighted = (old_box in self.img['boxes']['highlighted'])
-                if not highlighted:
-                    self.__undraw_box(self.img['image'].window, old_box)
+            self.__undraw_box(self.img['image'].window, old_box)
         if new_box:
             self.img['image'].set_tooltip_text(new_box.content)
-            highlighted = (new_box in self.img['boxes']['highlighted'])
-            self.__draw_box(self.img['image'].window, new_box, highlighted)
+            self.__draw_box(self.img['image'].window, new_box)
 
     def refresh_doc_list(self):
         """
@@ -1535,6 +1539,17 @@ class MainWindow(object):
             ])
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)
+
+    def refresh_highlighted_words(self):
+        old_highlights = self.img['boxes']['highlighted']
+
+        search = unicode(self.search_field.get_text())
+        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
+
+        for box in old_highlights:
+            self.__undraw_box(self.img['image'].window, box)
+        for box in self.img['boxes']['highlighted']:
+            self.__draw_box(self.img['image'].window, box)
 
     def show_page(self, page):
         print "Showing page %s" % (str(page))

@@ -141,7 +141,7 @@ class WorkerImgBuilder(Worker):
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'img-building-result-pixbuf' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_PYOBJECT, )),
+             (gobject.TYPE_FLOAT, gobject.TYPE_PYOBJECT, )),
         'img-building-result-stock' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
              (gobject.TYPE_STRING, )),
@@ -155,37 +155,20 @@ class WorkerImgBuilder(Worker):
         Worker.__init__(self, "Building page image")
         self.__main_win = main_window
 
-    def __get_zoom_factor(self):
-        el_idx = self.__main_win.lists['zoom_levels'][0].get_active()
-        el_iter = self.__main_win.lists['zoom_levels'][1].get_iter(el_idx)
-        return self.__main_win.lists['zoom_levels'][1].get_value(el_iter, 1)
-
     def __get_img_area_width(self):
         width = self.__main_win.img['scrollbar'].get_allocation().width
         # TODO(JFlesch): This is not a safe assumption:
         width -= 30
         return width
 
-    @staticmethod
-    def __draw_boxes(img, boxes, color, width):
-        """
-        Draw the word boxes on the image
-
-        Arguments:
-            img --- the image
-            boxes --- see ScannedPage.boxes
-            color --- a tuple of 3 integers (each of them being 0 < X < 256)
-             indicating the color to use to draw the boxes
-            width --- Width of the line of the boxes
-        """
-        draw = ImageDraw.Draw(img)
-        for box in boxes:
-            for i in range(2, width + 2):
-                ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)) = box.position
-                draw.rectangle(((pt_a_x - i, pt_a_y - i),
-                                (pt_b_x + i, pt_b_y + i)),
-                               outline=color)
-        return img
+    def __get_zoom_factor(self, original_pixbuf):
+        el_idx = self.__main_win.lists['zoom_levels'][0].get_active()
+        el_iter = self.__main_win.lists['zoom_levels'][1].get_iter(el_idx)
+        factor = self.__main_win.lists['zoom_levels'][1].get_value(el_iter, 1)
+        if factor != 0.0:
+            return factor
+        wanted_width = self.__get_img_area_width()
+        return float(wanted_width) / original_pixbuf.get_width()
 
     def do(self):
         self.emit('img-building-start')
@@ -197,30 +180,17 @@ class WorkerImgBuilder(Worker):
         try:
             img = self.__main_win.page.img
 
-            if self.__main_win.show_all_boxes.get_active():
-                self.__draw_boxes(img, self.__main_win.page.boxes,
-                                  color=(0x6c, 0x5d, 0xd1), width=1)
-            search = unicode(self.__main_win.search_field.get_text())
-            highlighted_boxes = self.__main_win.page.get_boxes(search)
-            self.__draw_boxes(img, highlighted_boxes,
-                              color=(0x00, 0x9f, 0x00), width=5)
-
             pixbuf = image2pixbuf(img)
 
-            factor = self.__get_zoom_factor()
+            factor = self.__get_zoom_factor(pixbuf)
             print "Zoom: %f" % (factor)
 
-            if factor == 0.0:
-                wanted_width = self.__get_img_area_width()
-                factor = float(wanted_width) / pixbuf.get_width()
-                wanted_height = int(factor * pixbuf.get_height())
-            else:
-                wanted_width = int(factor * pixbuf.get_width())
-                wanted_height = int(factor * pixbuf.get_height())
+            wanted_width = int(factor * pixbuf.get_width())
+            wanted_height = int(factor * pixbuf.get_height())
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                          gtk.gdk.INTERP_BILINEAR)
 
-            self.emit('img-building-result-pixbuf', pixbuf)
+            self.emit('img-building-result-pixbuf', factor, pixbuf)
         except Exception, exc:
             self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
             raise exc
@@ -908,6 +878,14 @@ class MainWindow(object):
         self.img = {
             "image" : widget_tree.get_object("imagePageImg"),
             "scrollbar" : widget_tree.get_object("scrolledwindowPageImg"),
+            "eventbox" : widget_tree.get_object("eventboxImg"),
+            "pixbuf" : None,
+            "factor" : 1.0,
+            "boxes" : {
+                "highlighted" : [],
+                "all" : [],
+                "current" : None,
+            }
         }
 
         self.status = {
@@ -1160,6 +1138,10 @@ class MainWindow(object):
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
+        self.img['eventbox'].add_events(gtk.gdk.POINTER_MOTION_MASK)
+        self.img['eventbox'].connect("motion-notify-event",
+                                     self.__on_img_mouse_motion)
+
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
@@ -1190,8 +1172,9 @@ class MainWindow(object):
                     gobject.idle_add(self.img['image'].set_from_stock,
                         gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG))
         self.workers['img_builder'].connect('img-building-result-pixbuf',
-                lambda builder, img: \
-                    gobject.idle_add(self.img['image'].set_from_pixbuf, img))
+                lambda builder, factor, img: \
+                    gobject.idle_add(self.__on_img_building_result_pixbuf,
+                                     builder, factor, img))
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
                     gobject.idle_add(self.img['image'].set_from_stock, img,
@@ -1390,6 +1373,87 @@ class MainWindow(object):
             return
         popup_menu.popup(None, None, None, event.button, event.time)
 
+    def __on_img_building_result_pixbuf(self, builder, factor, img):
+        self.img['factor'] = factor
+        self.img['pixbuf'] = img
+        self.img['image'].set_from_pixbuf(img)
+
+    def __get_box_position(self, box, on_img_window=True, width=1):
+        ((a, b), (c, d)) = box.position
+        a *= self.img['factor']
+        b *= self.img['factor']
+        c *= self.img['factor']
+        d *= self.img['factor']
+        if on_img_window:
+            (win_w, win_h) = self.img['image'].window.get_size()
+            (pic_w, pic_h) = (self.img['pixbuf'].get_width(),
+                              self.img['pixbuf'].get_height())
+            (margin_x, margin_y) = ((win_w-pic_w)/2, (win_h-pic_h)/2)
+            a += margin_x
+            b += margin_y
+            c += margin_x
+            d += margin_y
+        a -= width
+        b -= width
+        c += width
+        d += width
+        return ((int(a), int(b)), (int(c), int(d)))
+
+    def __undraw_box(self, box):
+        ((img_a, img_b), (img_c, img_d)) = \
+                self.__get_box_position(box, on_img_window=True, width=5)
+        ((pic_a, pic_b), (pic_c, pic_d)) = \
+                self.__get_box_position(box, on_img_window=False, width=5)
+        gc = self.img['image'].window.new_gc()
+        self.img['image'].window.draw_pixbuf(gc, self.img['pixbuf'],
+                                             src_x=pic_a, src_y=pic_b,
+                                             dest_x=img_a, dest_y=img_b,
+                                             width=(img_c-img_a),
+                                             height=(img_d-img_b))
+
+    def __draw_box(self, box, highlighted=False):
+        width=1
+        color='#6c5dd1'
+        if highlighted:
+            width=5
+            color='#009f00'
+        ((img_a, img_b), (img_c, img_d)) = \
+                self.__get_box_position(box, on_img_window=True, width=0)
+        cm = self.img['image'].window.get_colormap()
+        gc = self.img['image'].window.new_gc(foreground=cm.alloc_color(color))
+        for i in range(0, width):
+            self.img['image'].window.draw_rectangle(gc, False,
+                                                    x=img_a-i, y=img_b-i,
+                                                    width=(img_c-img_a+(2*i)),
+                                                    height=(img_d-img_b+(2*i)))
+    
+    def __on_img_mouse_motion(self, event_box, event):
+        (mouse_x, mouse_y) = event.get_coords()
+
+        old_box = self.img['boxes']['current']
+        new_box = None
+        for box in self.img['boxes']['all']:
+            ((a, b), (c, d)) = \
+                    self.__get_box_position(box, on_img_window=True, width=0)
+            if (mouse_x < a or mouse_y < b
+                or mouse_x > c or mouse_y > d):
+                continue
+            new_box = box
+
+        if old_box == new_box:
+            return
+
+        self.img['boxes']['current'] = new_box
+
+        if old_box:
+            highlighted = (old_box in self.img['boxes']['highlighted'])
+            if not highlighted:
+                self.__undraw_box(old_box)
+        if new_box:
+            highlighted = (new_box in self.img['boxes']['highlighted'])
+            self.__draw_box(new_box, highlighted)
+
+
     def refresh_doc_list(self):
         """
         Update the suggestions list and the matching documents list based on
@@ -1467,7 +1531,12 @@ class MainWindow(object):
                 "%d" % (page.page_nb + 1))
 
         self.workers['img_builder'].stop()
+
         self.page = page
+        self.img['boxes']['all'] = self.page.boxes
+        search = unicode(self.search_field.get_text())
+        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
+
         self.workers['img_builder'].start()
 
         txt = "\n".join(page.text)

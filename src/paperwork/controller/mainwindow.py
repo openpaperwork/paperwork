@@ -1130,6 +1130,11 @@ class MainWindow(object):
                 if isinstance(button, gtk.ToolButton):
                     tooltips.set_tip(button, button.get_label())
 
+        for button in self.actions['single_scan'][0]:
+            # let's be more specific on the tool tips of these buttons
+            if isinstance(button, gtk.ToolButton):
+                tooltips.set_tip(button, _("Scan single page"))
+
         self.need_doc_widgets = (
             self.actions['print'][0]
             + self.actions['create_label'][0]

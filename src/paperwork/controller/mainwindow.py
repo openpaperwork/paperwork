@@ -161,7 +161,7 @@ class WorkerImgBuilder(Worker):
         return self.__main_win.lists['zoom_levels'][1].get_value(el_iter, 1)
 
     def __get_img_area_width(self):
-        width = self.__main_win.scrollBars['img_area'][0].get_allocation().width
+        width = self.__main_win.img['scrollbar'].get_allocation().width
         # TODO(JFlesch): This is not a safe assumption:
         width -= 30
         return width
@@ -905,7 +905,10 @@ class MainWindow(object):
         }
 
         self.text_area = widget_tree.get_object("textviewPageTxt")
-        self.img_area = widget_tree.get_object("imagePageImg")
+        self.img = {
+            "image" : widget_tree.get_object("imagePageImg"),
+            "scrollbar" : widget_tree.get_object("scrolledwindowPageImg"),
+        }
 
         self.status = {
             'progress' : widget_tree.get_object("progressbar"),
@@ -925,11 +928,6 @@ class MainWindow(object):
                 widget_tree.get_object("iconviewPage"),
                 widget_tree.get_object("popupmenuPages")
             )
-        }
-
-        self.scrollBars = {
-            'img_area' : (widget_tree.get_object("scrolledwindowPageImg"),
-                          self.img_area),
         }
 
         self.vpanels = {
@@ -1189,14 +1187,14 @@ class MainWindow(object):
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
-                    gobject.idle_add(self.img_area.set_from_stock,
+                    gobject.idle_add(self.img['image'].set_from_stock,
                         gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG))
         self.workers['img_builder'].connect('img-building-result-pixbuf',
                 lambda builder, img: \
-                    gobject.idle_add(self.img_area.set_from_pixbuf, img))
+                    gobject.idle_add(self.img['image'].set_from_pixbuf, img))
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
-                    gobject.idle_add(self.img_area.set_from_stock, img,
+                    gobject.idle_add(self.img['image'].set_from_stock, img,
                                      gtk.ICON_SIZE_DIALOG))
 
         self.workers['label_updater'].connect('label-updating-start',
@@ -1347,7 +1345,7 @@ class MainWindow(object):
     def __on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
-        self.img_area.set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
 
         self.__scan_start = time.time()
         self.workers['progress_updater'].start(

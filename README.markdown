@@ -71,6 +71,8 @@ GPLv3. See COPYING.
 	* Debian/Ubuntu package: python-pycountry
 * python-imaging (required)
 	* Debian/Ubuntu package: python-imaging
+* python-poppler (required)
+	* Debian/Ubuntu package: python-poppler
 * pyinsane (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

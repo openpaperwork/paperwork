@@ -9,11 +9,11 @@ import os.path
 import time
 
 from paperwork.model.labels import Label
-from paperwork.model.img.page import ScannedPage
+from paperwork.model.img.page import ImgPage
 from paperwork.util import dummy_progress_cb
 
 
-class ScannedPageListIterator(object):
+class ImgPageListIterator(object):
     """
     Iterates on a page list
     """
@@ -36,7 +36,7 @@ class ScannedPageListIterator(object):
         return page
 
 
-class ScannedPageList(object):
+class ImgPageList(object):
     """
     Page list. Page are accessed using [] operator.
     """
@@ -45,7 +45,7 @@ class ScannedPageList(object):
         self.doc = doc
 
     def __getitem__(self, idx):
-        return ScannedPage(self.doc, idx)
+        return ImgPage(self.doc, idx)
 
     def __len__(self):
         return self.doc.nb_pages
@@ -57,10 +57,10 @@ class ScannedPageList(object):
         return (self.doc == other.doc)
 
     def __iter__(self):
-        return ScannedPageListIterator(self)
+        return ImgPageListIterator(self)
 
 
-class ScannedDoc(object):
+class ImgDoc(object):
     """
     Represents a document (aka a set of pages + labels).
     """
@@ -96,9 +96,9 @@ class ScannedDoc(object):
             filelist = os.listdir(self.path)
             count = 0
             for filename in filelist:
-                if (filename[-4:].lower() != "." + ScannedPage.EXT_IMG
-                    or (filename[:len(ScannedPage.FILE_PREFIX)].lower() !=
-                        ScannedPage.FILE_PREFIX)):
+                if (filename[-4:].lower() != "." + ImgPage.EXT_IMG
+                    or (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
+                        ImgPage.FILE_PREFIX)):
                     continue
                 count += 1
             return count
@@ -121,7 +121,7 @@ class ScannedDoc(object):
             callback -- Progression indication callback (see
                 util.dummy_progress_cb for the arguments to expected)
         """
-        callback(0, 100, ScannedPage.SCAN_STEP_SCAN)
+        callback(0, 100, ImgPage.SCAN_STEP_SCAN)
         nb_pages = scan_src.get_nb_img()
         try:
             while True:
@@ -137,7 +137,7 @@ class ScannedDoc(object):
             pass
 
         page_nb = self.nb_pages
-        page = ScannedPage(self, page_nb)
+        page = ImgPage(self, page_nb)
         page.make(img, ocrlang, resolution,
                   scanner_calibration, callback)
 
@@ -146,7 +146,7 @@ class ScannedDoc(object):
         Return a list of pages.
         Pages are instantiated on-the-fly.
         """
-        return ScannedPageList(self)
+        return ImgPageList(self)
 
     pages = property(__get_pages)
 
@@ -171,7 +171,7 @@ class ScannedDoc(object):
         """
         Called for printing operation by Gtk
         """
-        page = ScannedPage(self, page_nb)
+        page = ImgPage(self, page_nb)
         page.print_page_cb(print_op, print_context)
 
     def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
@@ -182,8 +182,8 @@ class ScannedDoc(object):
         """
         nb_pages = self.nb_pages
         for i in range(0, nb_pages):
-            callback(i, nb_pages, ScannedPage.SCAN_STEP_OCR, self)
-            page = ScannedPage(self, i)
+            callback(i, nb_pages, ImgPage.SCAN_STEP_OCR, self)
+            page = ImgPage(self, i)
             page.redo_ocr(ocrlang)
 
     def add_label(self, label):

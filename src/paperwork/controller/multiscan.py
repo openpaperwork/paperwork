@@ -5,8 +5,8 @@ import gtk
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerQueue
-from paperwork.model.img.doc import ScannedDoc
-from paperwork.model.img.page import ScannedPage
+from paperwork.model.img.doc import ImgDoc
+from paperwork.model.img.page import ImgPage
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
 
@@ -39,12 +39,12 @@ class DocScanWorker(Worker):
     def __progress_cb(self, progression, total, step=None):
         if not self.can_run:
             raise Exception("Scan interrupted")
-        if progression == 0 and step == ScannedPage.SCAN_STEP_OCR:
+        if progression == 0 and step == ImgPage.SCAN_STEP_OCR:
             self.emit('ocr-start', self.current_page, self.nb_pages)
 
     def do(self, scan_src):
         if self.doc == None:
-            self.doc = ScannedDoc(self.__config.workdir)
+            self.doc = ImgDoc(self.__config.workdir)
         for self.current_page in range(0, self.nb_pages):
             self.emit('scan-start', self.current_page, self.nb_pages)
             self.doc.scan_single_page(scan_src,
@@ -342,7 +342,7 @@ class MultiscanDialog(gobject.GObject):
         self.set_mouse_cursor("Normal")
         if exception != None:
             if isinstance(exception, StopIteration):
-                msg = _("Less pages than expected have been scanned"
+                msg = _("Less pages than expected have been Img"
                         " (got %d pages)") % (self.scanned_pages)
                 dialog = gtk.MessageDialog(self.dialog,
                                            flags=gtk.DIALOG_MODAL,

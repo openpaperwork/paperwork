@@ -7,7 +7,7 @@ import os
 import os.path
 import time
 import threading
-from paperwork.model.img.doc import ScannedDoc
+from paperwork.model.img.doc import ImgDoc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import split_words
@@ -70,7 +70,7 @@ class DocSearch(object):
 
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
         self.__keywords = []            # array of strings (sorted)
-        self.docs = []                # array of doc.ScannedDoc (sorted)
+        self.docs = []                # array of doc.ImgDoc (sorted)
         self.__keywords_to_docs = {}    # keyword (string) -> doc paths
         self.label_list = []
 
@@ -140,7 +140,7 @@ class DocSearch(object):
                 progression = progression + 1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                doc = ScannedDoc(os.path.join(dirpath, dpath), dpath)
+                doc = ImgDoc(os.path.join(dirpath, dpath), dpath)
                 callback(progression, total, self.INDEX_STEP_READING, doc)
                 self.__index_doc(doc)
                 for label in doc.labels:
@@ -341,7 +341,7 @@ class DocSearch(object):
             keyword --- one keyword (string)
 
         Returns:
-            An array of ScannedDoc
+            An array of ImgDoc
         """
         try:
             return self.__keywords_to_docs[keyword][:]
@@ -451,7 +451,7 @@ class DocSearch(object):
             while (len(threads) < max_threads and len(remaining) > 0):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
-                doc = ScannedDoc(docpath, docid)
+                doc = ImgDoc(docpath, docid)
                 thread = threading.Thread(target=doc.redo_ocr,
                                           args=[ocrlang], name=docid)
                 thread.start()

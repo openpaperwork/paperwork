@@ -18,9 +18,9 @@ from paperwork.util import split_words
 from paperwork.model.config import PaperworkConfig
 
 
-class ScannedPage(object):
+class ImgPage(object):
     """
-    Represents a page. A page is a sub-element of ScannedDoc.
+    Represents a page. A page is a sub-element of ImgDoc.
     """
     FILE_PREFIX = "paper."
     EXT_TXT = "txt"
@@ -40,7 +40,7 @@ class ScannedPage(object):
 
     def __init__(self, doc, page_nb):
         """
-        Don't create directly. Please use ScannedDoc.get_page()
+        Don't create directly. Please use ImgDoc.get_page()
         """
         self.doc = doc
         self.page_nb = page_nb

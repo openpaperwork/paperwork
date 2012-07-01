@@ -21,8 +21,8 @@ from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerProgressUpdater
 from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
-from paperwork.model.img.doc import ScannedDoc
-from paperwork.model.img.page import ScannedPage
+from paperwork.model.img.doc import ImgDoc
+from paperwork.model.img.page import ImgPage
 from paperwork.model.labels import LabelEditor
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
@@ -312,7 +312,7 @@ class WorkerSingleScan(Worker):
         'single-scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'single-scan-ocr' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'single-scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                              (gobject.TYPE_PYOBJECT,) # ScannedPage
+                              (gobject.TYPE_PYOBJECT,) # ImgPage
                              ),
     }
 
@@ -327,7 +327,7 @@ class WorkerSingleScan(Worker):
     def __scan_progress_cb(self, progression, total, step, doc=None):
         if not self.can_run:
             raise Exception("Interrupted by the user")
-        if (step == ScannedPage.SCAN_STEP_OCR) and (not self.__ocr_running):
+        if (step == ImgPage.SCAN_STEP_OCR) and (not self.__ocr_running):
             self.emit('single-scan-ocr')
             self.__ocr_running = True
 
@@ -373,7 +373,7 @@ class ActionNewDocument(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
-        self.__main_win.doc = ScannedDoc(self.__config.workdir)
+        self.__main_win.doc = ImgDoc(self.__config.workdir)
         for widget in self.__main_win.need_doc_widgets:
             widget.set_sensitive(False)
         self.__main_win.page = None
@@ -631,7 +631,7 @@ class ActionPrintDoc(SimpleAction):
         print_settings = gtk.PrintSettings()
         # By default, print context are using 72 dpi, but print_draw_page
         # will change it to 300 dpi --> we have to tell PrintOperation to scale
-        print_settings.set_scale(100.0 * (72.0 / ScannedPage.PRINT_RESOLUTION))
+        print_settings.set_scale(100.0 * (72.0 / ImgPage.PRINT_RESOLUTION))
 
         print_op = gtk.PrintOperation()
         print_op.set_print_settings(print_settings)

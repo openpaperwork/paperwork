@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-01 21:18+0200\n"
+"POT-Creation-Date: 2012-07-01 22:47+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -26,12 +26,16 @@ msgstr "Aucun scanner trouvé (est-ce que votre scanner est allumé ?)"
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/paperwork/model/docimport.py:28
+#: src/paperwork/model/docimport.py:24
 msgid "Import PDF"
 msgstr "Importer un PDF"
 
+#: src/paperwork/model/docimport.py:82
+msgid "Import each PDF in the folder as a new document"
+msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
+
 #: src/paperwork/controller/mainwindow.py:76
-#: src/paperwork/controller/mainwindow.py:1405
+#: src/paperwork/controller/mainwindow.py:1413
 msgid "Reading ..."
 msgstr "Lecture ..."
 
@@ -39,61 +43,57 @@ msgstr "Lecture ..."
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/paperwork/controller/mainwindow.py:696
-msgid "Select file or folder to import ..."
-msgstr "Sélectionnez un fichier ou un dossier à importer ..."
-
-#: src/paperwork/controller/mainwindow.py:714
+#: src/paperwork/controller/mainwindow.py:721
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Ne sait pas comment importer '%s'. Désolé."
 
-#: src/paperwork/controller/mainwindow.py:913
+#: src/paperwork/controller/mainwindow.py:921
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/paperwork/controller/mainwindow.py:914
+#: src/paperwork/controller/mainwindow.py:922
 msgid "'!' can be used as a prefix to"
 msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/paperwork/controller/mainwindow.py:915
+#: src/paperwork/controller/mainwindow.py:923
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/paperwork/controller/mainwindow.py:1167
+#: src/paperwork/controller/mainwindow.py:1175
 #: src/paperwork/view/mainwindow.glade.h:43
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/controller/mainwindow.py:1326
-#: src/paperwork/controller/mainwindow.py:1335
+#: src/paperwork/controller/mainwindow.py:1334
+#: src/paperwork/controller/mainwindow.py:1343
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/controller/mainwindow.py:1353
+#: src/paperwork/controller/mainwindow.py:1361
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1357
+#: src/paperwork/controller/mainwindow.py:1365
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1372
+#: src/paperwork/controller/mainwindow.py:1380
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/controller/mainwindow.py:1376
+#: src/paperwork/controller/mainwindow.py:1384
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1391
+#: src/paperwork/controller/mainwindow.py:1399
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/controller/mainwindow.py:1567
+#: src/paperwork/controller/mainwindow.py:1575
 #, python-format
 msgid ""
 "\n"
@@ -102,12 +102,12 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/controller/mainwindow.py:1584
+#: src/paperwork/controller/mainwindow.py:1592
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/controller/mainwindow.py:1588
+#: src/paperwork/controller/mainwindow.py:1596
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
@@ -137,7 +137,7 @@ msgid "Done"
 msgstr "Fait"
 
 #: src/paperwork/controller/multiscan.py:351
-#, fuzzy, python-format
+#, python-format
 msgid "Less pages than expected have been Img (got %d pages)"
 msgstr "Moins de pages qu'attendues ont été scannées (%d pages scannées)"
 
@@ -158,8 +158,8 @@ msgid "Grep for Dead Trees"
 msgstr "Grep pour les arbres morts"
 
 #: src/paperwork/view/import.glade.h:1
-msgid "Import"
-msgstr "Importer"
+msgid "Select a file or a directory to import"
+msgstr "Sélectionnez un fichier ou un dossier à importer"
 
 #: src/paperwork/view/labeledit.glade.h:1
 msgid "Label editor"
@@ -404,3 +404,6 @@ msgstr "Annuler"
 #: src/paperwork/view/settingswindow.glade.h:14
 msgid "Ok"
 msgstr "Ok"
+
+#~ msgid "Import"
+#~ msgstr "Importer"

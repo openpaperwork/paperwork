@@ -19,6 +19,7 @@ from paperwork.controller.multiscan import MultiscanDialog
 from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerProgressUpdater
+from paperwork.model import docimport
 from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
 from paperwork.model.img.doc import ImgDoc
@@ -353,6 +354,7 @@ class WorkerSingleScan(Worker):
                              self.__config.scanner_calibration,
                              self.__scan_progress_cb)
         page = doc.pages[doc.nb_pages - 1]
+        self.__main_win.docsearch.index_page(page)
 
         self.emit('single-scan-done', page)
 
@@ -385,7 +387,7 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.workers['img_builder'].start()
 
 
-class ActionDocumentSelected(SimpleAction):
+class ActionOpenSelectedDocument(SimpleAction):
     """
     Starts a new document.
     """
@@ -404,17 +406,7 @@ class ActionDocumentSelected(SimpleAction):
         doc = model.get_value(selection_iter, 1)
 
         print "Showing doc %s" % doc
-        self.__main_win.workers['thumbnailer'].stop()
-        self.__main_win.doc = doc
-        for widget in self.__main_win.need_doc_widgets:
-            widget.set_sensitive(True)
-        for widget in self.__main_win.doc_edit_widgets:
-            widget.set_sensitive(doc.can_edit)
-        self.__main_win.refresh_page_list()
-        self.__main_win.refresh_label_list()
-        self.__main_win.workers['thumbnailer'].start()
-        self.__main_win.show_page(self.__main_win.doc.pages[0])
-
+        self.__main_win.show_doc(doc)
 
 class ActionStartSimpleWorker(SimpleAction):
     """
@@ -692,6 +684,54 @@ class ActionMultiScan(SimpleAction):
         self.__main_win.workers['reindex'].start()
 
 
+class ActionImport(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Import file(s)")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        check_workdir(self.__config)
+        file_chooser = gtk.FileChooserDialog(
+            title=_("Select file(s) to import ..."),
+            parent=self.__main_win.window,
+            action=gtk.FILE_CHOOSER_ACTION_OPEN,
+            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                     gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+        file_chooser.set_local_only(False)
+        file_chooser.set_select_multiple(False)
+
+        response = file_chooser.run()
+        if response != gtk.RESPONSE_OK:
+            file_chooser.destroy()
+            return
+        file_uri = file_chooser.get_uri()
+        file_chooser.destroy()
+
+        importers = docimport.get_possible_importers(file_uri,
+                                                     self.__main_win.doc)
+        if len(importers) <= 0:
+            msg = (_("Don't know how to import '%s'. Sorry.") %
+                   (os.path.basename(file_uri)))
+            dialog = \
+                gtk.MessageDialog(parent=self.__main_win.window,
+                                  flags=(gtk.DIALOG_MODAL
+                                         |gtk.DIALOG_DESTROY_WITH_PARENT),
+                                  type=gtk.MESSAGE_ERROR,
+                                  buttons=gtk.BUTTONS_OK,
+                                  message_format=msg)
+            dialog.run()
+            dialog.destroy()
+            return
+
+        # TODO(Jflesch): Handle multiple importers !
+        assert(len(importers) == 1)
+        doc = importers[0].import_doc(file_uri, self.__config,
+                                      self.__main_win.docsearch,
+                                      self.__main_win.doc)
+        self.__main_win.show_doc(doc)
+
+
 class ActionDeleteDoc(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Delete document")
@@ -946,7 +986,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("treeviewMatch"),
                 ],
-                ActionDocumentSelected(self)
+                ActionOpenSelectedDocument(self)
             ),
             'open_page' : (
                 [
@@ -968,11 +1008,19 @@ class MainWindow(object):
                 ],
                 ActionSingleScan(self, config)
             ),
-            'multi_scan' : ([
+            'multi_scan' : (
+                [
                     widget_tree.get_object("imagemenuitemScanFeeder"),
                     widget_tree.get_object("menuitemScanFeeder"),
                 ],
                 ActionMultiScan(self, config)
+            ),
+            'import' : (
+                [
+                    widget_tree.get_object("menuitemImport"),
+                    widget_tree.get_object("menuitemImport1"),
+                ],
+                ActionImport(self, config)
             ),
             'print' : (
                 [
@@ -1594,3 +1642,16 @@ class MainWindow(object):
 
         txt = "\n".join(page.text)
         self.text_area.get_buffer().set_text(txt)
+
+    def show_doc(self, doc):
+        self.workers['thumbnailer'].stop()
+        self.doc = doc
+        for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(self.doc.can_edit)
+        self.refresh_page_list()
+        self.refresh_label_list()
+        self.workers['thumbnailer'].start()
+        self.show_page(self.doc.pages[0])
+

@@ -28,9 +28,10 @@ class DocScanWorker(Worker):
 
     can_interrupt = True
 
-    def __init__(self, config, nb_pages, line_in_treeview, doc=None):
+    def __init__(self, config, nb_pages, line_in_treeview, docsearch, doc=None):
         Worker.__init__(self, "Document scanner (doc %d)" % (line_in_treeview))
         self.__config = config
+        self.docsearch = docsearch
         self.doc = doc
         self.nb_pages = nb_pages
         self.line_in_treeview = line_in_treeview
@@ -52,6 +53,8 @@ class DocScanWorker(Worker):
                                       self.__config.ocrlang,
                                       self.__config.scanner_calibration,
                                       self.__progress_cb)
+            page = self.doc[self.doc.nb_pages - 1]
+            self.docsearch.index_page(page)
             self.emit('scan-done', self.current_page, self.nb_pages)
         self.current_page = None
 
@@ -155,10 +158,11 @@ class ActionEndEditDoc(SimpleAction):
 
 
 class ActionScan(SimpleAction):
-    def __init__(self, multiscan_dialog, config, main_win_doc):
+    def __init__(self, multiscan_dialog, config, docsearch, main_win_doc):
         SimpleAction.__init__(self, "Start multi-scan")
         self.__dialog = multiscan_dialog
         self.__config = config
+        self.__docsearch = docsearch
         self.__main_win_doc = main_win_doc
 
     def do(self):
@@ -176,7 +180,9 @@ class ActionScan(SimpleAction):
             if line_idx == 0:
                 doc = self.__main_win_doc
             worker = DocScanWorker(self.__config, nb_pages=int(line[1]),
-                                   line_in_treeview=line_idx, doc=doc)
+                                   line_in_treeview=line_idx,
+                                   docsearch=self.__docsearch,
+                                   doc=doc)
             self.__dialog.scan_queue.add_worker(worker)
         if not self.__dialog.scan_queue.is_running:
             try:
@@ -267,7 +273,7 @@ class MultiscanDialog(gobject.GObject):
             ),
             'scan' : (
                 [widget_tree.get_object("buttonOk")],
-                ActionScan(self, config, main_window.doc),
+                ActionScan(self, config, main_window.docsearch, main_window.doc),
             ),
         }
 

@@ -1,24 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
-  <object class="GtkListStore" id="liststoreSuggestion">
-    <columns>
-      <!-- column-name suggestion -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkEntryCompletion" id="entrycompletionSearch">
     <property name="model">liststoreSuggestion</property>
-  </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-missing-image</property>
-  </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-missing-image</property>
   </object>
   <object class="GtkImage" id="imageOpen">
     <property name="visible">True</property>
@@ -56,6 +40,12 @@
       <column type="gchararray"/>
       <!-- column-name page_nb -->
       <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreSuggestion">
+    <columns>
+      <!-- column-name suggestion -->
+      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreZoom">
@@ -153,33 +143,38 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuItem" id="menuitemScan">
+                      <object class="GtkMenuItem" id="menuitemAdd">
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">Scan</property>
+                        <property name="label" translatable="yes">Add</property>
                         <child type="submenu">
                           <object class="GtkMenu" id="menu2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkImageMenuItem" id="imagemenuitemScanSingle">
-                                <property name="label" translatable="yes">Single page</property>
+                              <object class="GtkMenuItem" id="imagemenuitemScanSingle">
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="image">image1</property>
-                                <property name="use_stock">False</property>
+                                <property name="label" translatable="yes">Single page</property>
                               </object>
                             </child>
                             <child>
-                              <object class="GtkImageMenuItem" id="imagemenuitemScanFeeder">
-                                <property name="label" translatable="yes">From Feeder</property>
+                              <object class="GtkMenuItem" id="imagemenuitemScanFeeder">
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="image">image2</property>
-                                <property name="use_stock">False</property>
+                                <property name="label" translatable="yes">From Feeder</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="menuitemImport1">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Import file(s)</property>
+                                <property name="use_underline">True</property>
                               </object>
                             </child>
                           </object>
@@ -422,9 +417,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-						<object class="GtkScrolledWindow" id="scrolledwindow1">
-							<property name="hscrollbar_policy">automatic</property>
-							<property name="vscrollbar_policy">automatic</property>
+                      <object class="GtkScrolledWindow" id="scrolledwindow1">
                         <property name="width_request">200</property>
                         <property name="height_request">30</property>
                         <property name="visible">True</property>
@@ -440,7 +433,6 @@
                                 <property name="can_focus">True</property>
                                 <property name="model">liststoreMatch</property>
                                 <property name="headers_clickable">False</property>
-                                <property name="reorderable">False</property>
                                 <property name="rules_hint">True</property>
                                 <property name="search_column">0</property>
                                 <child internal-child="selection">
@@ -488,7 +480,6 @@
                               <object class="GtkScrolledWindow" id="scrolledwindow3">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-								<property name="vscrollbar_policy">automatic</property>
                                 <property name="hscrollbar_policy">never</property>
                                 <child>
                                   <object class="GtkViewport" id="viewport1">
@@ -560,8 +551,6 @@
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow4">
-								<property name="hscrollbar_policy">automatic</property>
-								<property name="vscrollbar_policy">automatic</property>
                                 <property name="height_request">300</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -767,6 +756,15 @@
                                 <property name="label" translatable="yes">Scan from feeder</property>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkMenuItem" id="menuitemImport">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Import file(s)</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -941,8 +939,6 @@
                     <property name="position_set">True</property>
                     <child>
                       <object class="GtkScrolledWindow" id="scrolledwindow2">
-						<property name="hscrollbar_policy">automatic</property>
-						<property name="vscrollbar_policy">automatic</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <child>
@@ -967,8 +963,6 @@
                     </child>
                     <child>
                       <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
-						<property name="hscrollbar_policy">automatic</property>
-						<property name="vscrollbar_policy">automatic</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <child>

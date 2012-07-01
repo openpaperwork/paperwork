@@ -92,7 +92,8 @@ class DocSearch(object):
         for (is_doc_type, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(files):
                 return doc_type(docpath, docid)
-        raise Exception("Unidentified doctype: %s / %s" % (docpath, docid))
+        print ("Warning: Unidentified doctype: %s / %s" % (docpath, docid))
+        return None
 
     def __reset_data(self):
         """
@@ -158,15 +159,14 @@ class DocSearch(object):
                 progression = progression + 1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                try:
-                    doc = self.get_doc(os.path.join(dirpath, dpath), dpath)
-                    callback(progression, total, self.INDEX_STEP_READING, doc)
-                    self.__index_doc(doc)
-                    for label in doc.labels:
-                        self.add_label(label, doc)
-                except Exception, exc:
-                    print ("Unable to read doc '%s' because: %s"
-                           % (dirpath, str(exc)))
+                docpath = os.path.join(dirpath, dpath)
+                doc = self.get_doc(docpath, dpath)
+                if doc == None:
+                    continue
+                callback(progression, total, self.INDEX_STEP_READING, doc)
+                self.__index_doc(doc)
+                for label in doc.labels:
+                    self.add_label(label, doc)
             progression = progression + 1
 
     @staticmethod
@@ -474,6 +474,8 @@ class DocSearch(object):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
                 doc = get_doc(docpath, docid)
+                if doc == None:
+                    continue
                 thread = threading.Thread(target=doc.redo_ocr,
                                           args=[ocrlang], name=docid)
                 thread.start()

@@ -11,7 +11,7 @@ class PdfPage(BasicPage):
         self.size = (int(size[0]), int(size[1]))
 
     def __get_text(self):
-        return self.pdf_page.get_text().split("\n")
+        return unicode(self.pdf_page.get_text()).split(u"\n")
 
     text = property(__get_text)
 

@@ -21,6 +21,12 @@ class PdfDoc(BasicDoc):
 
     nb_pages = property(__get_nb_pages)
 
+    def print_page_cb(self, print_op, print_context, page_nb):
+        """
+        Called for printing operation by Gtk
+        """
+        self.pages[page_nb].print_page_cb(print_op, print_context)
+
 
 def is_pdf_doc(filelist):
     return PDF_FILENAME in filelist

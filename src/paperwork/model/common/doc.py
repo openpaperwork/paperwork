@@ -31,6 +31,9 @@ class BasicDoc(object):
     def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
         raise NotImplementedError()
 
+    def print_page_cb(self, print_op, print_context, page_nb):
+        raise NotImplementedError()
+
     def __get_keywords(self):
         """
         Yield all the keywords contained in the document.

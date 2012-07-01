@@ -693,7 +693,7 @@ class ActionImport(SimpleAction):
     def do(self):
         check_workdir(self.__config)
         file_chooser = gtk.FileChooserDialog(
-            title=_("Select file(s) to import ..."),
+            title=_("Select file or folder to import ..."),
             parent=self.__main_win.window,
             action=gtk.FILE_CHOOSER_ACTION_OPEN,
             buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,

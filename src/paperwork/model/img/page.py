@@ -12,13 +12,13 @@ import gtk
 import pyocr.builders
 import pyocr.pyocr
 
+from paperwork.model.common.page import BasicPage
+from paperwork.model.config import PaperworkConfig
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
 
-from paperwork.model.config import PaperworkConfig
 
-
-class ImgPage(object):
+class ImgPage(BasicPage):
     """
     Represents a page. A page is a sub-element of ImgDoc.
     """
@@ -39,12 +39,7 @@ class ImgPage(object):
     ORIENTATION_LANDSCAPE = 1
 
     def __init__(self, doc, page_nb):
-        """
-        Don't create directly. Please use ImgDoc.get_page()
-        """
-        self.doc = doc
-        self.page_nb = page_nb
-        assert(self.page_nb >= 0)
+        BasicPage.__init__(self, doc, page_nb)
 
     def __get_filepath(self, ext):
         """
@@ -391,7 +386,7 @@ class ImgPage(object):
         with open(boxfile, 'w') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
 
-    def ch_number(self, offset):
+    def __ch_number(self, offset):
         """
         Move the page number by a given offset. Beware to not let any hole
         in the page numbers when doing this. Make sure also that the wanted
@@ -432,15 +427,5 @@ class ImgPage(object):
             os.unlink(self.__get_img_path())
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = self.doc.pages[page_nb]
-            page.ch_number(-1)
+            page.__ch_number(-1)
 
-    def __str__(self):
-        return "%s p%d" % (str(self.doc), self.page_nb + 1)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __eq__(self, other):
-        if None == other:
-            return False
-        return self.doc == other.doc and self.page_nb == other.page_nb

@@ -8,9 +8,15 @@ import os.path
 import time
 import threading
 from paperwork.model.img.doc import ImgDoc
+from paperwork.model.img.doc import is_img_doc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import split_words
+
+
+DOC_TYPE_LIST = [
+    (is_img_doc, ImgDoc)
+]
 
 
 class DummyDocSearch(object):
@@ -70,11 +76,19 @@ class DocSearch(object):
 
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
         self.__keywords = []            # array of strings (sorted)
-        self.docs = []                # array of doc.ImgDoc (sorted)
+        self.docs = []                # array of doc (sorted)
         self.__keywords_to_docs = {}    # keyword (string) -> doc paths
         self.label_list = []
 
         self.__index(callback)
+
+    @staticmethod
+    def get_doc(docpath, docid):
+        files = os.listdir(docpath)
+        for (is_doc_type, doc_type) in DOC_TYPE_LIST:
+            if is_doc_type(files):
+                return doc_type(docpath, docid)
+        raise Exception("Unidentified doctype: %s / %s" % (docpath, docid))
 
     def __reset_data(self):
         """
@@ -140,11 +154,15 @@ class DocSearch(object):
                 progression = progression + 1
                 continue
             elif os.path.isdir(os.path.join(dirpath, dpath)):
-                doc = ImgDoc(os.path.join(dirpath, dpath), dpath)
-                callback(progression, total, self.INDEX_STEP_READING, doc)
-                self.__index_doc(doc)
-                for label in doc.labels:
-                    self.add_label(label, doc)
+                try:
+                    doc = self.get_doc(os.path.join(dirpath, dpath), dpath)
+                    callback(progression, total, self.INDEX_STEP_READING, doc)
+                    self.__index_doc(doc)
+                    for label in doc.labels:
+                        self.add_label(label, doc)
+                except Exception, exc:
+                    print ("Unable to read doc '%s' because: %s"
+                           % (dirpath, str(exc)))
             progression = progression + 1
 
     @staticmethod
@@ -341,7 +359,7 @@ class DocSearch(object):
             keyword --- one keyword (string)
 
         Returns:
-            An array of ImgDoc
+            An array of docs
         """
         try:
             return self.__keywords_to_docs[keyword][:]
@@ -451,7 +469,7 @@ class DocSearch(object):
             while (len(threads) < max_threads and len(remaining) > 0):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
-                doc = ImgDoc(docpath, docid)
+                doc = get_doc(docpath, docid)
                 thread = threading.Thread(target=doc.redo_ocr,
                                           args=[ocrlang], name=docid)
                 thread.start()

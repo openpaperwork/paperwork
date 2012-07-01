@@ -26,6 +26,7 @@ setup(name="Paperwork",
       data_files=[
           ('share/paperwork', [
             'src/paperwork/view/aboutdialog.glade',
+            'src/paperwork/view/import.glade',
             'src/paperwork/view/mainwindow.glade',
             'src/paperwork/view/multiscan.glade',
             'src/paperwork/view/settingswindow.glade',

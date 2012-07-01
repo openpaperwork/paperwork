@@ -9,7 +9,7 @@ import os.path
 import time
 
 from paperwork.model.labels import Label
-from paperwork.model.page import ScannedPage
+from paperwork.model.img.page import ScannedPage
 from paperwork.util import dummy_progress_cb
 
 

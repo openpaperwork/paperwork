@@ -7,7 +7,7 @@ import os
 import os.path
 import time
 import threading
-from paperwork.model.doc import ScannedDoc
+from paperwork.model.img.doc import ScannedDoc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import split_words

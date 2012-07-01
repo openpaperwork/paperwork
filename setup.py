@@ -7,11 +7,21 @@ setup(name="Paperwork",
       description="Grep for dead trees",
       author="Jerome Flesch",
       author_email="jflesch@gmail.com",
-      packages=['paperwork', 'paperwork.controller', 'paperwork.model'],
+      packages=[
+          'paperwork',
+          'paperwork.controller',
+          'paperwork.model',
+          'paperwork.model.dummy',
+          'paperwork.model.pdf',
+          'paperwork.model.img',
+      ],
       package_dir={
           'paperwork': 'src/paperwork',
           'paperwork.controller': 'src/paperwork/controller',
           'paperwork.model': 'src/paperwork/model',
+          'paperwork.model.dummy': 'src/paperwork/model/dummy',
+          'paperwork.model.pdf': 'src/paperwork/model/pdf',
+          'paperwork.model.img': 'src/paperwork/model/img',
           },
       data_files=[
           ('share/paperwork', [

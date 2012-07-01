@@ -19,11 +19,11 @@ from paperwork.controller.multiscan import MultiscanDialog
 from paperwork.controller.settingswindow import SettingsWindow
 from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerProgressUpdater
-from paperwork.model.doc import ScannedDoc
 from paperwork.model.docsearch import DocSearch
 from paperwork.model.docsearch import DummyDocSearch
+from paperwork.model.img.doc import ScannedDoc
+from paperwork.model.img.page import ScannedPage
 from paperwork.model.labels import LabelEditor
-from paperwork.model.page import ScannedPage
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile

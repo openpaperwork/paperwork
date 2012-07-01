@@ -5,8 +5,8 @@ import gtk
 from paperwork.controller.actions import SimpleAction
 from paperwork.controller.workers import Worker
 from paperwork.controller.workers import WorkerQueue
-from paperwork.model.doc import ScannedDoc
-from paperwork.model.page import ScannedPage
+from paperwork.model.img.doc import ScannedDoc
+from paperwork.model.img.page import ScannedPage
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
 

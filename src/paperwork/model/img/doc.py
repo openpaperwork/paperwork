@@ -13,7 +13,7 @@ from paperwork.model.img.page import ImgPage
 from paperwork.util import dummy_progress_cb
 
 
-class ImgPageListIterator(object):
+class _ImgPageListIterator(object):
     """
     Iterates on a page list
     """
@@ -36,7 +36,7 @@ class ImgPageListIterator(object):
         return page
 
 
-class ImgPageList(object):
+class _ImgPageList(object):
     """
     Page list. Page are accessed using [] operator.
     """
@@ -57,7 +57,7 @@ class ImgPageList(object):
         return (self.doc == other.doc)
 
     def __iter__(self):
-        return ImgPageListIterator(self)
+        return _ImgPageListIterator(self)
 
 
 class ImgDoc(object):
@@ -146,7 +146,7 @@ class ImgDoc(object):
         Return a list of pages.
         Pages are instantiated on-the-fly.
         """
-        return ImgPageList(self)
+        return _ImgPageList(self)
 
     pages = property(__get_pages)
 
@@ -305,3 +305,10 @@ class ImgDoc(object):
                 yield(keyword)
 
     keywords = property(__get_keywords)
+
+
+def is_img_doc(filelist):
+    for filename in filelist:
+        if ".jpg" in filename.lower():
+            return True
+    return False

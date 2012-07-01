@@ -7,6 +7,7 @@ import re
 import StringIO
 import unicodedata
 
+import Image
 import gettext
 import glib
 import gtk
@@ -113,10 +114,28 @@ def load_uifile(filename):
     return widget_tree
 
 
+def surface2image(surface):
+    """
+    Convert a cairo surface into a PIL image
+    """
+    if surface == None:
+        return None
+    img = Image.frombuffer("RGBA",
+            (surface.get_width(), surface.get_height()),
+            surface.get_data(), "raw", "RGBA", 0, 1)
+
+    background = Image.new("RGB", img.size, (255, 255, 255))
+    background.paste(img, mask=img.split()[3]) # 3 is the alpha channel
+    return background
+
+
+
 def image2pixbuf(img):
     """
     Convert an image object to a gdk pixbuf
     """
+    if img == None:
+        return None
     file_desc = StringIO.StringIO()
     try:
         img.save(file_desc, "ppm")
@@ -130,7 +149,6 @@ def image2pixbuf(img):
     finally:
         loader.close()
     return pixbuf
-
 
 def dummy_progress_cb(progression, total, step=None, doc=None):
     """

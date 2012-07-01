@@ -108,32 +108,6 @@ class ImgPage(BasicPage):
 
     boxes = property(__get_boxes)
 
-    def get_boxes(self, sentence):
-        """
-        Get all the boxes corresponding the given sentence
-
-        Arguments:
-            sentence --- can be string (will be splited), or an array of strings
-        Returns:
-            an array of boxes (see pyocr boxes)
-        """
-        if isinstance(sentence, unicode):
-            keywords = split_words(sentence)
-        else:
-            assert(isinstance(sentence, list))
-            keywords = sentence
-
-        output = []
-        for keyword in keywords:
-            for box in self.boxes:
-                # unfold generator output
-                words = []
-                for word in split_words(box.content):
-                    words.append(word)
-                if keyword in words:
-                    output.append(box)
-        return output
-
     def __get_img(self):
         """
         Returns an image object corresponding to the page
@@ -350,19 +324,6 @@ class ImgPage(BasicPage):
         gdkcontext = gtk.gdk.CairoContext(cairo_context)
         gdkcontext.set_source_pixbuf(pixbuf, left_margin, top_margin)
         gdkcontext.paint()
-
-    def __get_keywords(self):
-        """
-        Get all the keywords related of this page
-
-        Returns:
-            An array of strings
-        """
-        for line in self.text:
-            for word in split_words(line):
-                yield(word)
-
-    keywords = property(__get_keywords)
 
     def redo_ocr(self, ocrlang):
         """

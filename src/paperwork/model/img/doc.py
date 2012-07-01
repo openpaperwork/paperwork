@@ -156,16 +156,6 @@ class ImgDoc(BasicDoc):
             page = ImgPage(self, i)
             page.redo_ocr(ocrlang)
 
-    def __get_keywords(self):
-        """
-        Yield all the keywords contained in the document.
-        """
-        for page in self.pages:
-            for keyword in page.keywords:
-                yield(keyword)
-
-    keywords = property(__get_keywords)
-
 
 def is_img_doc(filelist):
     for filename in filelist:

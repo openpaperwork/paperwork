@@ -14,7 +14,6 @@ class BasicDoc(object):
 
     nb_pages = 0
     pages = []
-    keywords = []
 
     def __init__(self, docpath, docid=None):
         if docid == None:
@@ -28,6 +27,19 @@ class BasicDoc(object):
 
     def __str__(self):
         return self.docid
+
+    def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
+        raise NotImplementedError()
+
+    def __get_keywords(self):
+        """
+        Yield all the keywords contained in the document.
+        """
+        for page in self.pages:
+            for keyword in page.keywords:
+                yield(keyword)
+
+    keywords = property(__get_keywords)
 
     def destroy(self):
         """
@@ -111,9 +123,6 @@ class BasicDoc(object):
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-
-    def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
-        raise NotImplementedError()
 
     def __doc_cmp(self, other):
         """

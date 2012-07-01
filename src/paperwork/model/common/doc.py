@@ -20,11 +20,9 @@ class BasicDoc(object):
         if docid == None:
             self.docid = time.strftime(self.DOCNAME_FORMAT)
             self.path = os.path.join(docpath, self.docid)
-            self.__docid_hash = hash(self.docid)
         else:
             self.docid = docid
             self.path = docpath
-            self.__docid_hash = hash(self.docid)
 
     def __str__(self):
         return self.docid
@@ -155,20 +153,26 @@ class BasicDoc(object):
         return self.__doc_cmp(other) != 0
 
     def __hash__(self):
-        return self.__docid_hash
+        return hash(self.docid)
 
     def __get_name(self):
         """
         Returns the localized name of the document (see l10n)
         """
         try:
+            split = self.docid.split("_")
+            short_docid = "_".join(split[:3])
+            extra = " ".join(split[3:])
             datetime_obj = datetime.datetime.strptime(
-                    self.docid, self.DOCNAME_FORMAT)
-        except ValueError, exc:
+                    short_docid, self.DOCNAME_FORMAT)
+            final = datetime_obj.strftime("%x %X")
+            if extra != "":
+                final += (" (%s)" % (extra))
+            return final
+        except Exception, exc:
             print ("Unable to parse document id [%s]: %s"
                    % (self.docid, str(exc)))
             return self.docid
-        return datetime_obj.strftime("%x %X")
 
     name = property(__get_name)
 

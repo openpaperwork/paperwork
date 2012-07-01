@@ -37,16 +37,16 @@ class PdfDoc(BasicDoc):
         self.pages[page_nb].print_page_cb(print_op, print_context)
 
     def import_pdf(self, file_uri):
+        print "PDF: Importing '%s'" % (file_uri)
         try:
             dest = gio.File("file://%s" % self.path)
             dest.make_directory()
-        except Error, exc:
+        except gio.Error, exc:
             print ("Warning: Error while trying to create '%s': %s" %
                    (self.path, str(exc)))
         f = gio.File(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest)
-
         self._open()
 
 

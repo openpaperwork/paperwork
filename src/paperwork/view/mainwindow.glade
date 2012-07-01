@@ -308,7 +308,7 @@
             <property name="can_focus">False</property>
             <child>
               <object class="GtkVBox" id="vbox22">
-                <property name="width_request">400</property>
+                <property name="width_request">430</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -418,10 +418,9 @@
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkScrolledWindow" id="scrolledwindow1">
-                        <property name="width_request">200</property>
 						<property name="hscrollbar_policy">automatic</property>
 						<property name="vscrollbar_policy">automatic</property>
-						<property name="height_request">30</property>
+                        <property name="width_request">215</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="shadow_type">in</property>

@@ -690,23 +690,30 @@ class ActionImport(SimpleAction):
         self.__main_win = main_window
         self.__config = config
 
+    def __select_file(self):
+        widget_tree = load_uifile("import.glade")
+        dialog = widget_tree.get_object("filechooserdialog")
+        dialog.set_local_only(False)
+        dialog.set_select_multiple(False)
+        dialog.set_current_folder(self.__config.workdir)
+
+        response = dialog.run()
+        if response != 0:
+            print "Import: Canceled by user"
+            dialog.destroy()
+            return None
+        file_uri = dialog.get_uri()
+        dialog.destroy()
+        print "Import: %s" % file_uri
+        return file_uri
+
+
     def do(self):
         check_workdir(self.__config)
-        file_chooser = gtk.FileChooserDialog(
-            title=_("Select file or folder to import ..."),
-            parent=self.__main_win.window,
-            action=gtk.FILE_CHOOSER_ACTION_OPEN,
-            buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                     gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-        file_chooser.set_local_only(False)
-        file_chooser.set_select_multiple(False)
 
-        response = file_chooser.run()
-        if response != gtk.RESPONSE_OK:
-            file_chooser.destroy()
+        file_uri = self.__select_file()
+        if file_uri == None:
             return
-        file_uri = file_chooser.get_uri()
-        file_chooser.destroy()
 
         importers = docimport.get_possible_importers(file_uri,
                                                      self.__main_win.doc)
@@ -730,6 +737,7 @@ class ActionImport(SimpleAction):
                                       self.__main_win.docsearch,
                                       self.__main_win.doc)
         self.__main_win.show_doc(doc)
+        self.__main_win.refresh_doc_list()
 
 
 class ActionDeleteDoc(SimpleAction):

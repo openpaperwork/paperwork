@@ -14,6 +14,7 @@ class BasicDoc(object):
 
     nb_pages = 0
     pages = []
+    can_edit = False
 
     def __init__(self, docpath, docid=None):
         if docid == None:

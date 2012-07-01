@@ -226,7 +226,7 @@ class MultiscanDialog(gobject.GObject):
         }
 
         self.lists['docs']['model'].clear()
-        if len(main_window.doc.pages) > 0:
+        if len(main_window.doc.pages) > 0 and main_window.doc.can_edit:
             self.lists['docs']['model'].append([
                 _("Current document (%s)") % (str(main_window.doc)),
                 "0",  # nb_pages

@@ -8,6 +8,8 @@ PDF_FILENAME = "doc.pdf"
 
 
 class PdfDoc(BasicDoc):
+    can_edit = False
+
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
         self.pdf = poppler.document_new_from_file(

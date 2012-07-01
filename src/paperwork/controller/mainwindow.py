@@ -373,9 +373,12 @@ class ActionNewDocument(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
-        self.__main_win.doc = ImgDoc(self.__config.workdir)
+        doc = ImgDoc(self.__config.workdir)
+        self.__main_win.doc = doc
         for widget in self.__main_win.need_doc_widgets:
             widget.set_sensitive(False)
+        for widget in self.__main_win.doc_edit_widgets:
+            widget.set_sensitive(doc.can_edit)
         self.__main_win.page = None
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
@@ -405,6 +408,8 @@ class ActionDocumentSelected(SimpleAction):
         self.__main_win.doc = doc
         for widget in self.__main_win.need_doc_widgets:
             widget.set_sensitive(True)
+        for widget in self.__main_win.doc_edit_widgets:
+            widget.set_sensitive(doc.can_edit)
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['thumbnailer'].start()
@@ -1134,6 +1139,11 @@ class MainWindow(object):
             + self.actions['edit_label'][0]
         )
 
+        self.doc_edit_widgets = (
+            self.actions['single_scan'][0]
+            + self.actions['del_page'][0]
+        )
+
         for popup_menu in self.popupMenus.values():
             # TODO(Jflesch): Find the correct signal
             # This one doesn't take into account the key to access these menus
@@ -1530,6 +1540,8 @@ class MainWindow(object):
                 _("/ %d") % (self.doc.nb_pages))
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(self.doc.can_edit)
 
     def refresh_label_list(self):
         """
@@ -1562,6 +1574,8 @@ class MainWindow(object):
 
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(self.doc.can_edit)
 
         # TODO(Jflesch): We should not make assumption regarding
         # the page position in the list

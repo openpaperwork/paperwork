@@ -64,6 +64,7 @@ class ImgDoc(BasicDoc):
     """
     Represents a document (aka a set of pages + labels).
     """
+    can_edit = True
 
     def __init__(self, docpath, docid=None):
         """

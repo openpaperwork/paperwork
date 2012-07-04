@@ -201,6 +201,8 @@ class ActionCancel(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        if self.__dialog.scan_queue.is_running:
+            self.__dialog.scan_queue.stop()
         self.__dialog.dialog.destroy()
 
 

@@ -1,3 +1,4 @@
+import sys
 import threading
 import time
 
@@ -36,8 +37,10 @@ class Worker(gobject.GObject):
     def stop(self):
         if not self.is_running:
             return
+        print "Stopping worker [%s]" % (self)
+        sys.stdout.flush()
         if not self.can_interrupt:
-            print ("Trying to stop a worker that cannot be stopped: %s"
+            print ("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False
         if self.__thread.is_alive():

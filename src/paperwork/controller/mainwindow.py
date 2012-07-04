@@ -48,6 +48,13 @@ def check_workdir(config):
     os.mkdir(config.workdir, 0755)
 
 
+def check_scanner(main_win, config):
+    if config.scanner_devid != None:
+        return True
+    main_win.actions['open_settings'][1].do()
+    return False
+
+
 class WorkerDocIndexer(Worker):
     """
     Reindex all the documents
@@ -665,6 +672,8 @@ class ActionSingleScan(SimpleAction):
 
     def do(self):
         check_workdir(self.__config)
+        if not check_scanner(self.__main_win, self.__config):
+            return
         self.__main_win.workers['single_scan'].start(
                 doc=self.__main_win.doc)
 
@@ -677,6 +686,8 @@ class ActionMultiScan(SimpleAction):
 
     def do(self):
         check_workdir(self.__config)
+        if not check_scanner(self.__main_win, self.__config):
+            return
         ms = MultiscanDialog(self.__main_win, self.__config)
         ms.connect("need-reindex", self.__reindex_cb)
 

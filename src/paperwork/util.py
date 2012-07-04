@@ -122,7 +122,7 @@ def surface2image(surface):
         return None
     img = Image.frombuffer("RGBA",
             (surface.get_width(), surface.get_height()),
-            surface.get_data(), "raw", "RGBA", 0, 1)
+            surface.get_data(), "raw", "BGRA", 0, 1)
 
     background = Image.new("RGB", img.size, (255, 255, 255))
     background.paste(img, mask=img.split()[3]) # 3 is the alpha channel

@@ -201,8 +201,6 @@ class ActionCancel(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        if self.__dialog.scan_queue.is_running:
-            self.__dialog.scan_queue.stop()
         self.__dialog.dialog.destroy()
 
 
@@ -304,6 +302,9 @@ class MultiscanDialog(gobject.GObject):
                 gobject.idle_add(self.__on_scan_done_cb, worker, page, total))
 
         self.dialog = widget_tree.get_object("dialogMultiscan")
+        self.dialog.connect("destroy", self.__on_destroy)
+
+
         self.dialog.set_transient_for(main_window.window)
         self.dialog.set_visible(True)
 
@@ -363,5 +364,10 @@ class MultiscanDialog(gobject.GObject):
                 raise exception
         self.dialog.destroy()
         self.emit("need-reindex")
+
+    def __on_destroy(self, window=None):
+        if self.scan_queue.is_running:
+            self.scan_queue.stop()
+        print "Multi-scan dialog destroyed"
 
 gobject.type_register(MultiscanDialog)

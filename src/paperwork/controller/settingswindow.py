@@ -616,6 +616,8 @@ class SettingsWindow(gobject.GObject):
         self.calibration['image_eventbox'].add_events(
                 gtk.gdk.POINTER_MOTION_MASK)
 
+        self.window.connect("destroy", self.__on_destroy)
+
         self.display_config(config)
 
         self.window.set_visible(True)
@@ -741,12 +743,15 @@ class SettingsWindow(gobject.GObject):
                 self.ocr_settings['lang']['gui'].set_active(idx)
             idx += 1
 
+    def __on_destroy(self, window=None):
+        for worker in self.workers.values():
+            worker.stop()
+        print "Settings window destroyed"
+
     def hide(self):
         """
         Hide and destroy the settings window.
         """
-        for worker in self.workers.values():
-            worker.stop()
         self.window.destroy()
 
 gobject.type_register(SettingsWindow)

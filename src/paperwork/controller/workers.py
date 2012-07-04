@@ -29,7 +29,7 @@ class Worker(gobject.GObject):
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
-        self.__can_run = True
+        self.can_run = True
         self.__thread = threading.Thread(target=self.__wrapper, kwargs=kwargs)
         self.__thread.start()
 
@@ -39,8 +39,9 @@ class Worker(gobject.GObject):
         if not self.can_interrupt:
             print ("Trying to stop a worker that cannot be stopped: %s"
                    % (self.name))
-        self.__can_run = False
-        self.__thread.join()
+        self.can_run = False
+        if self.__thread.is_alive():
+            self.__thread.join()
 
     def wait(self):
         self.__thread.join()

@@ -345,17 +345,17 @@ class WorkerSingleScan(Worker):
         self.__ocr_running = False
         try:
             scanner = self.__config.get_scanner_inst()
-        except Exception:
+            try:
+                scanner.options['source'].value = "Auto"
+            except pyinsane.rawapi.SaneException, exc:
+                print ("Warning: Unable to set scanner source to 'Auto': %s" %
+                       (str(exc)))
+            scan_src = scanner.scan(multiple=False)
+        except pyinsane.rawapi.SaneException, exc:
             print "No scanner found !"
             gobject.idle_add(popup_no_scanner_found, self.__main_win.window)
             self.emit('single-scan-done', None)
             raise
-        try:
-            scanner.options['source'].value = "Auto"
-        except pyinsane.rawapi.SaneException, exc:
-            print ("Warning: Unable to set scanner source to 'Auto': %s" %
-                   (str(exc)))
-        scan_src = scanner.scan(multiple=False)
         doc.scan_single_page(scan_src, scanner.options['resolution'].value,
                              self.__config.ocrlang,
                              self.__config.scanner_calibration,

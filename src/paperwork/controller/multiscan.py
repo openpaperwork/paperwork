@@ -184,14 +184,21 @@ class ActionScan(SimpleAction):
                                    docsearch=self.__docsearch,
                                    doc=doc)
             self.__dialog.scan_queue.add_worker(worker)
-        if not self.__dialog.scan_queue.is_running:
-            try:
-                scanner.options['source'].value = "ADF"
-            except pyinsane.rawapi.SaneException, exc:
-                print ("Warning: Unable to set scanner source to 'Auto': %s" %
-                       (str(exc)))
+        if self.__dialog.scan_queue.is_running:
+            return
+        try:
+            scanner.options['source'].value = "ADF"
+        except pyinsane.rawapi.SaneException, exc:
+            print ("Warning: Unable to set scanner source to 'Auto': %s" %
+                   (str(exc)))
+        try:
             scan_src = scanner.scan(multiple=True)
-            self.__dialog.scan_queue.start(scan_src=scan_src)
+        except Exception:
+            print "No scanner found !"
+            gobject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
+            raise
+
+        self.__dialog.scan_queue.start(scan_src=scan_src)
 
 
 class ActionCancel(SimpleAction):

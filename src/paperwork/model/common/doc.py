@@ -4,6 +4,7 @@ import os
 import os.path
 import time
 
+from paperwork.model.common.page import BasicPage
 from paperwork.model.labels import Label
 from paperwork.util import dummy_progress_cb
 
@@ -28,7 +29,16 @@ class BasicDoc(object):
         return self.docid
 
     def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
-        raise NotImplementedError()
+        """
+        Run the OCR again on all the pages of the document
+
+        Arguments
+        """
+        nb_pages = self.nb_pages
+        for i in range(0, nb_pages):
+            callback(i, nb_pages, BasicPage.SCAN_STEP_OCR, self)
+            page = self.pages[i]
+            page.redo_ocr(ocrlang)
 
     def print_page_cb(self, print_op, print_context, page_nb):
         raise NotImplementedError()

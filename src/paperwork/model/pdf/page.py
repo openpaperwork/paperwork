@@ -1,22 +1,79 @@
 import cairo
+import codecs
+import os
+import pyocr.builders
+import pyocr.pyocr
 
 from paperwork.model.common.page import BasicPage
 from paperwork.util import surface2image
 
 class PdfPage(BasicPage):
+    FILE_PREFIX = "paper."
+    EXT_TXT = "txt"
+    EXT_BOX = "words"
+
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
         self.pdf_page = doc.pdf.get_page(page_nb)
         size = self.pdf_page.get_size()
         self.size = (int(size[0]), int(size[1]))
 
+    def __get_filepath(self, ext):
+        """
+        Returns a file path relative to this page
+        """
+        return os.path.join(self.doc.path,
+                "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+
+    def __get_txt_path(self):
+        return self.__get_filepath(self.EXT_TXT)
+
+    def __get_box_path(self):
+        return self.__get_filepath(self.EXT_BOX)
+
     def __get_text(self):
-        return unicode(self.pdf_page.get_text()).split(u"\n")
+        txtfile = self.__get_txt_path()
+
+        try:
+            os.stat(txtfile)
+
+            txt = []
+            try:
+                with codecs.open(txtfile, 'r', encoding='utf-8') as file_desc:
+                    for line in file_desc.readlines():
+                        line = line.strip()
+                        txt.append(line)
+            except IOError, exc:
+                print "Unable to read [%s]: %s" % (txtfile, str(exc))
+            return txt
+        
+        except OSError, exc:  # os.stat() failed
+            return unicode(self.pdf_page.get_text()).split(u"\n")
 
     text = property(__get_text)
 
     def __get_boxes(self):
-        # TODO(Jflesch): Can't find poppler.Page.get_text_layout() ?
+        """
+        Get all the word boxes of this page.
+        """
+        boxfile = self.__get_box_path()
+        txt = self.text
+
+        try:
+            os.stat(boxfile)
+
+            box_builder = pyocr.builders.WordBoxBuilder()
+
+            try:
+                with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
+                    boxes = box_builder.read_file(file_desc)
+                return boxes
+            except IOError, exc:
+                print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
+                return []
+        except OSError, exc:  # os.stat() failed
+            # TODO(Jflesch): Can't find poppler.Page.get_text_layout() ?
+            pass
         return []
 
     boxes = property(__get_boxes)
@@ -63,3 +120,24 @@ class PdfPage(BasicPage):
         self.pdf_page.render_for_printing(ctx)
         return None
 
+    def redo_ocr(self, ocrlang):
+        img = self.img
+        txtfile = self.__get_txt_path()
+        boxfile = self.__get_box_path()
+
+        ocr_tools = pyocr.pyocr.get_available_tools()
+        if len(ocr_tools) <= 0:
+            # shouldn't happen: scan buttons should be disabled
+            # in that case
+            raise Exception("No OCR tool available")
+
+        txt = ocr_tools[0].image_to_string(img, lang=ocrlang)
+        boxes = ocr_tools[1].image_to_string(img, lang=ocrlang,
+                                             builder=pyocr.builders.WordBoxBuilder())
+
+        # save the text
+        with open(txtfile, 'w') as file_desc:
+            file_desc.write(txt)
+        # save the boxes
+        with open(boxfile, 'w') as file_desc:
+            pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)

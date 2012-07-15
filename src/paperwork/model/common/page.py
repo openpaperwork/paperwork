@@ -8,6 +8,9 @@ from paperwork.util import split_words
 
 
 class BasicPage(object):
+    SCAN_STEP_SCAN = "scanning"
+    SCAN_STEP_OCR = "ocr"
+
     text = ""
     boxes = []
     img = None

@@ -28,9 +28,6 @@ class ImgPage(BasicPage):
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
 
-    SCAN_STEP_SCAN = "scanning"
-    SCAN_STEP_OCR = "ocr"
-
     KEYWORD_HIGHLIGHT = 3
 
     PRINT_RESOLUTION = 150  # dpi

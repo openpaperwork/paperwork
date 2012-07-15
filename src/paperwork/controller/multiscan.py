@@ -212,6 +212,9 @@ class ActionCancel(SimpleAction):
 
 
 class MultiscanDialog(gobject.GObject):
+    __gsignals__ = {
+        'need-doclist-refresh' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
 
     def __init__(self, main_window, config):
         gobject.GObject.__init__(self)
@@ -366,6 +369,7 @@ class MultiscanDialog(gobject.GObject):
             else:
                 raise exception
         self.dialog.destroy()
+        self.emit('need-doclist-refresh')
 
     def __on_destroy(self, window=None):
         if self.scan_queue.is_running:

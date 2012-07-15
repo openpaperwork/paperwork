@@ -689,6 +689,10 @@ class ActionMultiScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
+        ms.connect("need-doclist-refresh", self.__doclist_refresh)
+
+    def __doclist_refresh(self, multiscan_window):
+        self.__main_win.refresh_doc_list()
 
 
 class ActionImport(SimpleAction):
@@ -1439,6 +1443,8 @@ class MainWindow(object):
 
         if page != None:
             self.show_page(page)
+
+        self.refresh_doc_list()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

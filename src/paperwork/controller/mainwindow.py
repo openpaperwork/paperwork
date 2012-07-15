@@ -689,10 +689,6 @@ class ActionMultiScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
-        ms.connect("need-reindex", self.__reindex_cb)
-
-    def __reindex_cb(self, settings_window):
-        self.__main_win.workers['reindex'].start()
 
 
 class ActionImport(SimpleAction):
@@ -1443,9 +1439,6 @@ class MainWindow(object):
 
         if page != None:
             self.show_page(page)
-
-        self.workers['reindex'].stop()
-        self.workers['reindex'].start()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

@@ -6,6 +6,7 @@ from paperwork.model.pdf.doc import PdfDoc
 
 _ = gettext.gettext
 
+
 class SinglePdfImporter(object):
     def __init__(self):
         pass
@@ -15,7 +16,7 @@ class SinglePdfImporter(object):
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
         doc = PdfDoc(config.workdir)
-        doc.import_pdf(file_uri)
+        doc.import_pdf(config, file_uri)
         for page in doc.pages:
             docsearch.index_page(page)
         return doc
@@ -70,7 +71,7 @@ class MultiplePdfImporter(object):
             doc = PdfDoc(config.workdir)
             doc.path += ("_%02d" % idx)
             doc.docid += ("_%02d" % idx)
-            doc.import_pdf(child.get_uri())
+            doc.import_pdf(config, child.get_uri())
             for page in doc.pages:
                 docsearch.index_page(page)
             idx += 1

@@ -1387,8 +1387,7 @@ class MainWindow(object):
     def __on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
-        self.set_progression(src, progression,
-                             _("Redoing OCR ..."))
+        self.set_progression(src, 0.0, _("Redoing OCR ..."))
 
     def __on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,

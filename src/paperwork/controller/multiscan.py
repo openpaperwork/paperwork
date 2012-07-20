@@ -53,7 +53,7 @@ class DocScanWorker(Worker):
                                       self.__config.ocrlang,
                                       self.__config.scanner_calibration,
                                       self.__progress_cb)
-            page = self.doc[self.doc.nb_pages - 1]
+            page = self.doc.pages[self.doc.nb_pages - 1]
             self.docsearch.index_page(page)
             self.emit('scan-done', self.current_page, self.nb_pages)
         self.current_page = None

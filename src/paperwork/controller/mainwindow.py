@@ -1624,6 +1624,9 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
     def refresh_highlighted_words(self):
+        if self.page == None:
+            return
+
         old_highlights = self.img['boxes']['highlighted']
 
         search = unicode(self.search_field.get_text())

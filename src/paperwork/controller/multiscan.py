@@ -371,6 +371,15 @@ class MultiscanDialog(gobject.GObject):
                 dialog.destroy()
             else:
                 raise exception
+        else:
+            msg = _("All the pages have been scanned")
+            dialog = gtk.MessageDialog(self.dialog,
+                                       flags=gtk.DIALOG_MODAL,
+                                       type=gtk.MESSAGE_INFO,
+                                       buttons=gtk.BUTTONS_OK,
+                                       message_format=msg)
+            dialog.run()
+            dialog.destroy()
         self.dialog.destroy()
         self.emit('need-doclist-refresh')
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-01 22:47+0200\n"
+"POT-Creation-Date: 2012-07-22 11:40+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -26,74 +26,74 @@ msgstr "Aucun scanner trouvé (est-ce que votre scanner est allumé ?)"
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/paperwork/model/docimport.py:24
+#: src/paperwork/model/docimport.py:25
 msgid "Import PDF"
 msgstr "Importer un PDF"
 
-#: src/paperwork/model/docimport.py:82
+#: src/paperwork/model/docimport.py:83
 msgid "Import each PDF in the folder as a new document"
 msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 
-#: src/paperwork/controller/mainwindow.py:76
-#: src/paperwork/controller/mainwindow.py:1413
+#: src/paperwork/controller/mainwindow.py:83
+#: src/paperwork/controller/mainwindow.py:1423
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/paperwork/controller/mainwindow.py:78
+#: src/paperwork/controller/mainwindow.py:85
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/paperwork/controller/mainwindow.py:721
+#: src/paperwork/controller/mainwindow.py:732
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Ne sait pas comment importer '%s'. Désolé."
 
-#: src/paperwork/controller/mainwindow.py:921
+#: src/paperwork/controller/mainwindow.py:932
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/paperwork/controller/mainwindow.py:922
+#: src/paperwork/controller/mainwindow.py:933
 msgid "'!' can be used as a prefix to"
 msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/paperwork/controller/mainwindow.py:923
+#: src/paperwork/controller/mainwindow.py:934
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/paperwork/controller/mainwindow.py:1175
+#: src/paperwork/controller/mainwindow.py:1186
 #: src/paperwork/view/mainwindow.glade.h:43
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/controller/mainwindow.py:1334
-#: src/paperwork/controller/mainwindow.py:1343
+#: src/paperwork/controller/mainwindow.py:1345
+#: src/paperwork/controller/mainwindow.py:1354
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/controller/mainwindow.py:1361
+#: src/paperwork/controller/mainwindow.py:1372
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1365
+#: src/paperwork/controller/mainwindow.py:1376
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1380
+#: src/paperwork/controller/mainwindow.py:1390
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/controller/mainwindow.py:1384
+#: src/paperwork/controller/mainwindow.py:1394
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1399
+#: src/paperwork/controller/mainwindow.py:1409
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/controller/mainwindow.py:1575
+#: src/paperwork/controller/mainwindow.py:1584
 #, python-format
 msgid ""
 "\n"
@@ -102,12 +102,12 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/controller/mainwindow.py:1592
+#: src/paperwork/controller/mainwindow.py:1601
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/controller/mainwindow.py:1596
+#: src/paperwork/controller/mainwindow.py:1605
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
@@ -119,27 +119,31 @@ msgstr "/ %d"
 msgid "Document %d"
 msgstr "Document %d"
 
-#: src/paperwork/controller/multiscan.py:237
+#: src/paperwork/controller/multiscan.py:289
 #, python-format
 msgid "Current document (%s)"
 msgstr "Document actuel (%s)"
 
-#: src/paperwork/controller/multiscan.py:330
+#: src/paperwork/controller/multiscan.py:342
 msgid "Scanning"
 msgstr "Scan"
 
-#: src/paperwork/controller/multiscan.py:336
+#: src/paperwork/controller/multiscan.py:348
 msgid "Reading"
 msgstr "Lecture"
 
-#: src/paperwork/controller/multiscan.py:344
+#: src/paperwork/controller/multiscan.py:356
 msgid "Done"
 msgstr "Fait"
 
-#: src/paperwork/controller/multiscan.py:351
+#: src/paperwork/controller/multiscan.py:363
 #, python-format
 msgid "Less pages than expected have been Img (got %d pages)"
 msgstr "Moins de pages qu'attendues ont été scannées (%d pages scannées)"
+
+#: src/paperwork/controller/multiscan.py:375
+msgid "All the pages have been scanned"
+msgstr "Toutes les pages ont été scannée"
 
 #: src/paperwork/controller/settingswindow.py:265
 msgid " (recommended)"
@@ -285,13 +289,13 @@ msgid "Delete document"
 msgstr "Effacer le document"
 
 #: src/paperwork/view/mainwindow.glade.h:37
+msgid "Print"
+msgstr "Imprimer"
+
+#: src/paperwork/view/mainwindow.glade.h:38
 #: src/paperwork/view/settingswindow.glade.h:2
 msgid "Settings"
 msgstr "Réglages"
-
-#: src/paperwork/view/mainwindow.glade.h:38
-msgid "Print"
-msgstr "Imprimer"
 
 #: src/paperwork/view/mainwindow.glade.h:39
 msgid "Quit"

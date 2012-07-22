@@ -237,18 +237,6 @@ class MultiscanDialog(gobject.GObject):
             },
         }
 
-        self.lists['docs']['model'].clear()
-        if len(main_window.doc.pages) > 0 and main_window.doc.can_edit:
-            self.lists['docs']['model'].append([
-                _("Current document (%s)") % (str(main_window.doc)),
-                "0",  # nb_pages
-                True,  # can_edit (nb_pages)
-                0,  # scan_progress_int
-                "",  # scan_progress_txt
-                False,  # can_delete
-            ])
-            self.lists['docs']['include_current_doc'] = True
-
         self.removeDocButton = widget_tree.get_object("buttonRemoveDoc")
         self.removeDocButton.set_sensitive(False)
 
@@ -294,6 +282,21 @@ class MultiscanDialog(gobject.GObject):
             actions['del_doc'][0][0],
             actions['scan'][0][0],
         ]
+
+        self.lists['docs']['model'].clear()
+        if len(main_window.doc.pages) > 0 and main_window.doc.can_edit:
+            self.lists['docs']['model'].append([
+                _("Current document (%s)") % (str(main_window.doc)),
+                "0",  # nb_pages
+                True,  # can_edit (nb_pages)
+                0,  # scan_progress_int
+                "",  # scan_progress_txt
+                False,  # can_delete
+            ])
+            self.lists['docs']['include_current_doc'] = True
+        else:
+            # add a first document to the list (the user will need one anyway)
+            actions['add_doc'][1].do()
 
         self.scan_queue = WorkerQueue("Mutiple scans")
         self.scan_queue.connect("queue-start", lambda queue: \

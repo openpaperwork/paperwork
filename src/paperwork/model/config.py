@@ -39,20 +39,23 @@ class PaperworkConfig(object):
     RECOMMENDED_RESOLUTION = 300
     CALIBRATION_RESOLUTION = 200
 
-    # Possible config files are evaluated in the order they are in the array.
-    # The last one of the list is the default one.
-    CONFIGFILES = [
-        "./paperwork.conf",
-        os.path.expanduser("~/.paperwork.conf")
-    ]
-
     def __init__(self):
         # values are stored directly in self._configparser
         self._configparser = ConfigParser.SafeConfigParser()
         self.scan_time = _ScanTimes(self)
 
+        # Possible config files are evaluated in the order they are in the array.
+        # The last one of the list is the default one.
+        configfiles = [
+            "./paperwork.conf",
+            os.path.expanduser("~/.paperwork.conf"),
+            ("%s/paperwork.conf"
+             % (os.getenv("XDG_CONFIG_HOME",
+                          os.path.expanduser("~/.config"))))
+        ]
+
         configfile_found = False
-        for self.__configfile in self.CONFIGFILES:
+        for self.__configfile in configfiles:
             if os.access(self.__configfile, os.R_OK):
                 configfile_found = True
                 print "Config file found: %s" % self.__configfile
@@ -66,7 +69,7 @@ class PaperworkConfig(object):
 
         Beware that the current work directory may affect this operation:
         If there is a 'paperwork.conf' in the current directory, it will be
-        read instead of '~/.paperwork.conf' ; see Paperwork.CONFIGFILES)
+        read instead of '~/.paperwork.conf', see __init__())
         """
         # smash the previous config
         self._configparser = ConfigParser.SafeConfigParser()

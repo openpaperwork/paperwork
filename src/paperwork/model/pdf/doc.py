@@ -56,6 +56,12 @@ class PdfDoc(BasicDoc):
         if nb_keywords < PDF_IMPORT_MIN_KEYWORDS:
             self.redo_ocr(config.ocrlang)
 
+    @staticmethod
+    def get_export_formats():
+        return []
+
+    def build_exporter(self, file_format='pdf'):
+        raise NotImplementedError()
 
 def is_pdf_doc(filelist):
     return PDF_FILENAME in filelist

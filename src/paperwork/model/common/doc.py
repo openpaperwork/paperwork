@@ -136,6 +136,21 @@ class BasicDoc(object):
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
 
+    @staticmethod
+    def get_export_formats():
+        raise NotImplementedError()
+
+    def build_exporter(self, file_format='pdf'):
+        """
+        Returns:
+            Returned object must implement the following methods:
+            .can_set_quality()
+            .set_quality(quality_pourcent)
+            .estimate_size()
+            .save(file_path)
+        """
+        raise NotImplementedError()
+
     def __doc_cmp(self, other):
         """
         Comparison function. Can be used to sort docs alphabetically.

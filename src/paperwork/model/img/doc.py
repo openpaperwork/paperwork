@@ -145,6 +145,14 @@ class ImgDoc(BasicDoc):
         page = ImgPage(self, page_nb)
         page.print_page_cb(print_op, print_context)
 
+    @staticmethod
+    def get_export_formats():
+        return []
+
+    def build_exporter(self, file_format='pdf'):
+        raise NotImplementedError()
+
+
 
 def is_img_doc(filelist):
     for filename in filelist:

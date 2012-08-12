@@ -141,3 +141,10 @@ class PdfPage(BasicPage):
         # save the boxes
         with open(boxfile, 'w') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
+
+    @staticmethod
+    def get_export_formats():
+        return []
+
+    def build_exporter(self, file_format='pdf'):
+        raise NotImplementedError()

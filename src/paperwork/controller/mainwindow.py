@@ -127,17 +127,15 @@ class WorkerThumbnailer(Worker):
 
     def do(self):
         self.emit('thumbnailing-start')
-        # give some time to the GUI to breath
-        time.sleep(0.3)
         for page_idx in range(0, self.__main_win.doc.nb_pages):
+            # give some time to the GUI to breath
+            time.sleep(0.3)
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
                 return
             self.emit('thumbnailing-page-done', page_idx, pixbuf)
-            # give some time to the GUI to breath
-            time.sleep(0.3)
         self.emit('thumbnailing-end')
 
 
@@ -415,6 +413,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         print "Showing doc %s" % doc
         self.__main_win.show_doc(doc)
 
+
 class ActionStartSimpleWorker(SimpleAction):
     """
     Start a threaded job
@@ -461,8 +460,6 @@ class ActionPageSelected(SimpleAction):
         page_idx = selection_path[0][0]
         page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page)
-        # TODO(Jflesch): Move the vertical scrollbar of the page list
-        # up to the selected value
 
 
 class ActionMovePageIndex(SimpleAction):
@@ -482,8 +479,6 @@ class ActionMovePageIndex(SimpleAction):
             return
         page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page)
-        # TODO(Jflesch): Move the vertical scrollbar of the page list
-        # up to the selected value
 
 
 class ActionOpenPageNb(SimpleAction):
@@ -825,6 +820,48 @@ class ActionRedoAllOCR(SimpleAction):
         self.__main_win.workers['ocr_redoer'].start(doc_target=self.__main_win.docsearch)
 
 
+class BasicActionOpenExportDialog(SimpleAction):
+    def __init__(self, main_window, action_txt):
+        SimpleAction.__init__(self, action_txt)
+        self.main_win = main_window
+
+    def open_dialog(self, to_export):
+        self.main_win.export['format']['store'].clear()
+        for out_format in to_export.get_export_formats():
+            self.main_win.export['format']['store'].append([out_format])
+        self.main_win.export['format']['widget'].set_active(0)
+        self.main_win.export['dialog'].set_visible(True)
+
+
+class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
+    def __init__(self, main_window):
+        BasicActionOpenExportDialog.__init__(self, main_window,
+                                             "Displaying page export dialog")
+
+    def do(self):
+        self.main_win.export['buttons']['ok'].set_label(_("Export page"))
+        BasicActionOpenExportDialog.open_dialog(self, self.main_win.page)
+
+
+class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
+    def __init__(self, main_window):
+        BasicActionOpenExportDialog.__init__(self, main_window,
+                                   "Displaying page export dialog")
+
+    def do(self):
+        self.main_win.export['buttons']['ok'].set_label(_("Export document"))
+        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
+
+
+class ActionCancelExport(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Cancel export")
+        self.__main_win = main_window
+
+    def do(self):
+        self.__main_win.export['dialog'].set_visible(False)
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -973,10 +1010,6 @@ class MainWindow(object):
             )
         }
 
-        self.vpanels = {
-            'txt_img_split' : widget_tree.get_object("vpanedPage")
-        }
-
         self.workers = {
             'reindex' : WorkerDocIndexer(self, config),
             'thumbnailer' : WorkerThumbnailer(self),
@@ -991,6 +1024,21 @@ class MainWindow(object):
 
         self.show_all_boxes = \
             widget_tree.get_object("checkmenuitemShowAllBoxes")
+
+        self.export = {
+            'dialog' : widget_tree.get_object("infobarExport"),
+            'format' : {
+                'widget' : widget_tree.get_object("comboboxExportFormat"),
+                'store' : widget_tree.get_object("liststoreExportFormat"),
+            },
+            'quality' : widget_tree.get_object("scaleQuality"),
+            'estimated_size' : \
+                widget_tree.get_object("labelEstimatedExportSize"),
+            'buttons' : {
+                'ok' : widget_tree.get_object("buttonExport"),
+                'cancel' : widget_tree.get_object("buttonCancelExport"),
+            }
+        }
 
         self.actions = {
             'new_doc' : (
@@ -1043,9 +1091,28 @@ class MainWindow(object):
             'print' : (
                 [
                     widget_tree.get_object("menuitemPrint"),
+                    widget_tree.get_object("menuitemPrint1"),
                     widget_tree.get_object("toolbuttonPrint"),
                 ],
                 ActionPrintDoc(self)
+            ),
+            'open_export_doc_dialog' : (
+                [
+                    widget_tree.get_object("menuitemExportDoc"),
+                    widget_tree.get_object("menuitemExportDoc1"),
+                ],
+                ActionOpenExportDocDialog(self)
+            ),
+            'open_export_page_dialog' : (
+                [
+                    widget_tree.get_object("menuitemExportPage"),
+                    widget_tree.get_object("menuitemExportPage1"),
+                ],
+                ActionOpenExportPageDialog(self)
+            ),
+            'cancel_export' : (
+                [widget_tree.get_object("buttonCancelExport")],
+                ActionCancelExport(self),
             ),
             'open_settings' : (
                 [
@@ -1192,12 +1259,14 @@ class MainWindow(object):
             + self.actions['set_current_page'][0]
             + self.actions['toggle_label'][0]
             + self.actions['redo_ocr_doc'][0]
+            + self.actions['open_export_doc_dialog'][0]
         )
 
         self.need_page_widgets = (
             self.actions['del_page'][0]
             + self.actions['prev_page'][0]
             + self.actions['next_page'][0]
+            + self.actions['open_export_page_dialog'][0]
         )
 
         self.need_label_widgets = (
@@ -1360,7 +1429,6 @@ class MainWindow(object):
         if (self.__win_size_cache == allocation):
             return
         self.__win_size_cache = allocation
-        self.vpanels['txt_img_split'].set_position(0)
 
     def __on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
@@ -1657,7 +1725,12 @@ class MainWindow(object):
         search = unicode(self.search_field.get_text())
         self.img['boxes']['highlighted'] = self.page.get_boxes(search)
 
+        self.export['dialog'].set_visible(False)
+
         self.workers['img_builder'].start()
+        # TODO(Jflesch): Move the vertical scrollbar of the page list
+        # up to the selected value
+
 
     def show_doc(self, doc):
         self.workers['thumbnailer'].stop()

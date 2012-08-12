@@ -61,6 +61,18 @@ class BasicPage(object):
                     output.append(box)
         return output
 
+    @staticmethod
+    def get_export_formats():
+        raise NotImplementedError()
+
+    def build_exporter(self, file_format='pdf'):
+        """
+        Returns:
+            Same thing than paperwork.model.common.doc.BasicDoc.build_exporter()
+        """
+        raise NotImplementedError()
+
+
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb + 1)
 

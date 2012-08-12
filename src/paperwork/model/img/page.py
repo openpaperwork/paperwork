@@ -387,3 +387,9 @@ class ImgPage(BasicPage):
             page = self.doc.pages[page_nb]
             page.__ch_number(-1)
 
+    @staticmethod
+    def get_export_formats():
+        return []
+
+    def build_exporter(self, file_format='pdf'):
+        raise NotImplementedError()

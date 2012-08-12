@@ -22,6 +22,12 @@
     <property name="yalign">0.49000000953674316</property>
     <property name="stock">gtk-open</property>
   </object>
+  <object class="GtkListStore" id="liststoreExportFormat">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststoreLabel">
     <columns>
       <!-- column-name labelName -->
@@ -786,20 +792,29 @@
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
-                              <object class="GtkMenuItem" id="menuitemExportPdf">
+                              <object class="GtkMenuItem" id="menuitemPrint1">
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Export document (PDF)</property>
+                                <property name="label" translatable="yes">Print</property>
                                 <property name="use_underline">True</property>
                               </object>
                             </child>
                             <child>
-                              <object class="GtkMenuItem" id="menuitemExportJpeg">
+                              <object class="GtkMenuItem" id="menuitemExportDoc">
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Export page (JPG)</property>
+                                <property name="label" translatable="yes">Export document</property>
+                                <property name="use_underline">True</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="menuitemExportPage">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Export page</property>
                                 <property name="use_underline">True</property>
                               </object>
                             </child>
@@ -975,10 +990,10 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkInfoBar" id="infobar1">
-                        <property name="visible">False</property>
+                      <object class="GtkInfoBar" id="infobarExport">
                         <property name="app_paintable">True</property>
                         <property name="can_focus">False</property>
+                        <property name="spacing">30</property>
                         <child internal-child="content_area">
                           <object class="GtkHBox" id="infobar-content_area1">
                             <property name="can_focus">False</property>
@@ -996,6 +1011,18 @@
                                     <property name="orientation">vertical</property>
                                     <property name="homogeneous">True</property>
                                     <child>
+                                      <object class="GtkLabel" id="label4">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">File format</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
                                       <object class="GtkLabel" id="label1">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -1004,7 +1031,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="position">0</property>
+                                        <property name="position">1</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1016,7 +1043,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="position">1</property>
+                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -1033,7 +1060,26 @@
                                     <property name="orientation">vertical</property>
                                     <property name="homogeneous">True</property>
                                     <child>
-                                      <object class="GtkHScale" id="scale1">
+                                      <object class="GtkComboBox" id="comboboxExportFormat">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="model">liststoreExportFormat</property>
+                                        <property name="active">0</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                                          <attributes>
+                                            <attribute name="text">0</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkHScale" id="scaleQuality">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="adjustment">adjustmentQuality</property>
@@ -1043,9 +1089,9 @@
                                         <property name="value_pos">left</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
+                                        <property name="expand">True</property>
                                         <property name="fill">True</property>
-                                        <property name="position">0</property>
+                                        <property name="position">1</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1056,7 +1102,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">True</property>
-                                        <property name="position">1</property>
+                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -1067,12 +1113,17 @@
                                   </packing>
                                 </child>
                               </object>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
                             </child>
                           </object>
                         </child>
                         <action-widgets>
-                          <action-widget response="0">button1</action-widget>
-                          <action-widget response="0">button2</action-widget>
+                          <action-widget response="0">buttonCancelExport</action-widget>
+                          <action-widget response="0">buttonExport</action-widget>
                         </action-widgets>
                         <child internal-child="action_area">
                           <object class="GtkButtonBox" id="infobar-action_area1">
@@ -1082,7 +1133,7 @@
                             <property name="spacing">6</property>
                             <property name="layout_style">end</property>
                             <child>
-                              <object class="GtkButton" id="button1">
+                              <object class="GtkButton" id="buttonCancelExport">
                                 <property name="label">gtk-cancel</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
@@ -1098,7 +1149,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="button2">
+                              <object class="GtkButton" id="buttonExport">
                                 <property name="label" translatable="yes">Export</property>
                                 <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
@@ -1116,8 +1167,8 @@
                           </object>
                         </child>
                         <action-widgets>
-                          <action-widget response="0">button1</action-widget>
-                          <action-widget response="0">button2</action-widget>
+                          <action-widget response="0">buttonCancelExport</action-widget>
+                          <action-widget response="0">buttonExport</action-widget>
                         </action-widgets>
                       </object>
                       <packing>
@@ -1240,7 +1291,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkMenuItem" id="menuitemExportPdf1">
+      <object class="GtkMenuItem" id="menuitemExportDoc1">
         <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -1262,7 +1313,7 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkMenuItem" id="menuitemExportJpeg1">
+      <object class="GtkMenuItem" id="menuitemExportPage1">
         <property name="use_action_appearance">False</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>

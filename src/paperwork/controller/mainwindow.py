@@ -940,7 +940,6 @@ class MainWindow(object):
             'search' : self.search_field,
         }
 
-        self.text_area = widget_tree.get_object("textviewPageTxt")
         self.img = {
             "image" : widget_tree.get_object("imagePageImg"),
             "scrollbar" : widget_tree.get_object("scrolledwindowPageImg"),
@@ -1659,9 +1658,6 @@ class MainWindow(object):
         self.img['boxes']['highlighted'] = self.page.get_boxes(search)
 
         self.workers['img_builder'].start()
-
-        txt = "\n".join(page.text)
-        self.text_area.get_buffer().set_text(txt)
 
     def show_doc(self, doc):
         self.workers['thumbnailer'].stop()

@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkAdjustment" id="adjustmentQuality">
+    <property name="lower">25</property>
+    <property name="upper">100</property>
+    <property name="value">75</property>
+    <property name="step_increment">5</property>
+    <property name="page_increment">20</property>
+  </object>
   <object class="GtkEntryCompletion" id="entrycompletionSearch">
     <property name="model">liststoreSuggestion</property>
+  </object>
+  <object class="GtkImage" id="imageExport">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-save-as</property>
   </object>
   <object class="GtkImage" id="imageOpen">
     <property name="visible">True</property>
@@ -819,6 +831,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
                       </packing>
                     </child>
                     <child>
@@ -833,6 +846,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
                       </packing>
                     </child>
                     <child>
@@ -937,6 +951,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
                       </packing>
                     </child>
                     <child>
@@ -956,32 +971,191 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
+                  <object class="GtkVBox" id="box2">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
+                    <property name="can_focus">False</property>
                     <child>
-                      <object class="GtkViewport" id="viewport2">
-                        <property name="visible">True</property>
-						<property name="hscrollbar_policy">automatic</property>
-						<property name="vscrollbar_policy">automatic</property>
-						<property name="hscrollbar_policy">automatic</property>
-						<property name="vscrollbar_policy">automatic</property>
+                      <object class="GtkInfoBar" id="infobar1">
+                        <property name="visible">False</property>
+                        <property name="app_paintable">True</property>
                         <property name="can_focus">False</property>
-                        <property name="resize_mode">queue</property>
-                        <child>
-                          <object class="GtkEventBox" id="eventboxImg">
-                            <property name="visible">True</property>
+                        <child internal-child="content_area">
+                          <object class="GtkHBox" id="infobar-content_area1">
                             <property name="can_focus">False</property>
+                            <property name="border_width">8</property>
+                            <property name="spacing">16</property>
                             <child>
-                              <object class="GtkImage" id="imagePageImg">
+                              <object class="GtkHBox" id="box6">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="stock">gtk-missing-image</property>
+                                <property name="spacing">10</property>
+                                <child>
+                                  <object class="GtkVBox" id="box7">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="homogeneous">True</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label1">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Quality</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="label3">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Estimated Size</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkVBox" id="box8">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="homogeneous">True</property>
+                                    <child>
+                                      <object class="GtkHScale" id="scale1">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="adjustment">adjustmentQuality</property>
+                                        <property name="fill_level">100</property>
+                                        <property name="round_digits">0</property>
+                                        <property name="digits">0</property>
+                                        <property name="value_pos">left</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="labelEstimatedExportSize">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <action-widgets>
+                          <action-widget response="0">button1</action-widget>
+                          <action-widget response="0">button2</action-widget>
+                        </action-widgets>
+                        <child internal-child="action_area">
+                          <object class="GtkButtonBox" id="infobar-action_area1">
+                            <property name="can_focus">False</property>
+                            <property name="border_width">5</property>
+                            <property name="orientation">vertical</property>
+                            <property name="spacing">6</property>
+                            <property name="layout_style">end</property>
+                            <child>
+                              <object class="GtkButton" id="button1">
+                                <property name="label">gtk-cancel</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="use_stock">True</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="button2">
+                                <property name="label" translatable="yes">Export</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="image">imageExport</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
+                        <action-widgets>
+                          <action-widget response="0">button1</action-widget>
+                          <action-widget response="0">button2</action-widget>
+                        </action-widgets>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolledwindowPageImg">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <child>
+                          <object class="GtkViewport" id="viewport2">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="resize_mode">queue</property>
+                            <child>
+                              <object class="GtkEventBox" id="eventboxImg">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkImage" id="imagePageImg">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="stock">gtk-missing-image</property>
+                                  </object>
+                                </child>
                               </object>
                             </child>
                           </object>
                         </child>
                       </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>

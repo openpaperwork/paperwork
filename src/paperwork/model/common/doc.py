@@ -146,7 +146,9 @@ class BasicDoc(object):
             Returned object must implement the following methods:
             .can_set_quality()
             .set_quality(quality_pourcent)
-            .estimate_size()
+            .estimate_size() : returns the size in bytes
+            .get_img() : returns a PIL Image
+            .get_mime_type()
             .save(file_path)
         """
         raise NotImplementedError()

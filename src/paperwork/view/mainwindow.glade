@@ -1081,6 +1081,7 @@
                                     <child>
                                       <object class="GtkHScale" id="scaleQuality">
                                         <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="adjustment">adjustmentQuality</property>
                                         <property name="fill_level">100</property>

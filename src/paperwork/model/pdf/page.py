@@ -146,5 +146,5 @@ class PdfPage(BasicPage):
     def get_export_formats():
         return []
 
-    def build_exporter(self, file_format='pdf'):
+    def build_exporter(self, file_format='png'):
         raise NotImplementedError()

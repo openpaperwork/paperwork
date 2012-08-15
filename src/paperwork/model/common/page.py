@@ -65,7 +65,7 @@ class BasicPage(object):
     def get_export_formats():
         raise NotImplementedError()
 
-    def build_exporter(self, file_format='pdf'):
+    def build_exporter(self, file_format='png'):
         """
         Returns:
             Same thing than paperwork.model.common.doc.BasicDoc.build_exporter()

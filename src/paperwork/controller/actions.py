@@ -37,6 +37,9 @@ class SimpleAction(object):
     def on_icon_press_cb(self, entry=None, iconpos=None, event=None):
         self.do()
 
+    def on_value_changed_cb(self, widget_range=None):
+        self.do()
+
     def connect(self, buttons):
         for button in buttons:
             assert(button != None)
@@ -61,5 +64,7 @@ class SimpleAction(object):
                 button.connect("changed", self.on_combobox_changed_cb)
             elif isinstance(button, gtk.CellRenderer):
                 button.connect("edited", self.on_cell_edited_cb)
+            elif isinstance(button, gtk.Range):
+                button.connect("value-changed", self.on_value_changed_cb)
             else:
                 assert()

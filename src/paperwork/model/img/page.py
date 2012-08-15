@@ -3,6 +3,7 @@ Code relative to page handling.
 """
 
 import codecs
+from copy import copy
 import Image
 import os
 import os.path
@@ -16,6 +17,77 @@ from paperwork.model.common.page import BasicPage
 from paperwork.model.config import PaperworkConfig
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
+
+
+class ImgExporter(object):
+    def __init__(self, page,
+                 img_format='PNG', mime='image/png',
+                 valid_exts=['png'],
+                 can_change_quality=False):
+        self.page = page
+        self.img_format = img_format
+        self.mime = mime
+        self.valid_exts = valid_exts
+        self.__can_change_quality = can_change_quality
+        self.__quality = 75
+        self.__img = None
+
+    def can_change_quality(self):
+        return self.__can_change_quality
+
+    def get_mime_type(self):
+        return self.mime
+
+    def save(self, target_path):
+        has_valid_ext = False
+        for valid_ext in self.valid_exts:
+            if target_path.lower().endswith(valid_ext):
+                has_valid_ext = True
+                break
+        if not has_valid_ext:
+            target_path += ".%s" % self.valid_exts[0]
+
+        # the user gives us a quality between 0 and 100
+        # but PIL expects a quality between 1 and 75
+        quality = int(float(self.__quality) / 100.0 * 74.0) + 1
+        # We also adjust the size of the image
+        resize_factor = (float(self.__quality) / 100.0)
+
+        img = self.page.img
+
+        new_size = (int(resize_factor * img.size[0]),
+                    int(resize_factor * img.size[1]))
+        img = img.resize(new_size)
+
+        img.save(target_path, self.img_format, quality=quality)
+        return img
+
+    def refresh(self):
+        tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
+                         self.valid_exts[0])
+        img = self.save(tmp)
+        self.__img = (tmp, img)
+
+    def set_quality(self, quality):
+        self.__quality = int(quality)
+        self.__img = None
+
+    def estimate_size(self):
+        if self.__img == None:
+            self.refresh()
+        return os.path.getsize(self.__img[0])
+
+    def get_img(self):
+        if self.__img == None:
+            self.refresh()
+        return self.__img[1]
+
+    def __str__(self):
+        return self.img_format
+
+    def __copy__(self):
+        return ImgExporter(self.page, self.img_format, self.mime,
+                           self.valid_exts, self.__can_change_quality)
 
 
 class ImgPage(BasicPage):
@@ -35,8 +107,15 @@ class ImgPage(BasicPage):
     ORIENTATION_PORTRAIT = 0
     ORIENTATION_LANDSCAPE = 1
 
+
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
+        self.__template_exporters = {
+            'PNG' : ImgExporter(self, 'PNG', 'image/png', ["png"],
+                                can_change_quality=False),
+            'JPEG' : ImgExporter(self, 'JPEG', 'image/jpeg', ["jpg", "jpeg"],
+                                 can_change_quality=True),
+        }
 
     def __get_filepath(self, ext):
         """
@@ -387,9 +466,8 @@ class ImgPage(BasicPage):
             page = self.doc.pages[page_nb]
             page.__ch_number(-1)
 
-    @staticmethod
-    def get_export_formats():
-        return []
+    def get_export_formats(self):
+        return self.__template_exporters.keys()
 
-    def build_exporter(self, file_format='pdf'):
-        raise NotImplementedError()
+    def build_exporter(self, file_format='PNG'):
+        return copy(self.__template_exporters[file_format.upper()])

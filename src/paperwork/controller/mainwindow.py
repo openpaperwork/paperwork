@@ -367,6 +367,35 @@ class WorkerSingleScan(Worker):
 gobject.type_register(WorkerSingleScan)
 
 
+class WorkerExportPreviewer(Worker):
+    __gsignals__ = {
+        'export-preview-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                 ()),
+        'export-preview-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                                 (gobject.TYPE_INT, gobject.TYPE_PYOBJECT,)),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Export previewer")
+        self.__main_win = main_window
+
+    def do(self):
+        for i in range(0, 7):
+            time.sleep(0.1)
+            if not self.can_run:
+                return
+        self.emit('export-preview-start')
+        size = self.__main_win.export['exporter'].estimate_size()
+        img = self.__main_win.export['exporter'].get_img()
+        pixbuf = image2pixbuf(img)
+        self.emit('export-preview-done', size, pixbuf)
+
+
+gobject.type_register(WorkerExportPreviewer)
+
+
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
@@ -831,7 +860,10 @@ class BasicActionOpenExportDialog(SimpleAction):
         for out_format in to_export.get_export_formats():
             self.main_win.export['format']['store'].append([out_format])
         self.main_win.export['format']['widget'].set_active(0)
+        self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['dialog'].set_visible(True)
+        self.main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
+                                                  gtk.ICON_SIZE_DIALOG)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -840,6 +872,7 @@ class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
                                              "Displaying page export dialog")
 
     def do(self):
+        self.main_win.export['to_export'] = self.main_win.page
         self.main_win.export['buttons']['ok'].set_label(_("Export page"))
         BasicActionOpenExportDialog.open_dialog(self, self.main_win.page)
 
@@ -850,8 +883,71 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
                                    "Displaying page export dialog")
 
     def do(self):
+        self.main_win.export['to_export'] = self.main_win.doc
         self.main_win.export['buttons']['ok'].set_label(_("Export document"))
         BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
+
+
+class ActionSelectExportFormat(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Select export format")
+        self.__main_win = main_window
+
+    def do(self):
+        format_idx = self.__main_win.export['format']['widget'].get_active()
+        imgformat = self.__main_win.export['format']['store'][format_idx][0]
+
+        exporter = self.__main_win.export['to_export'].build_exporter(imgformat)
+        self.__main_win.export['exporter'] = exporter
+        self.__main_win.export['quality']['widget'].set_sensitive(
+                exporter.can_change_quality())
+
+        if exporter.can_change_quality():
+            quality = self.__main_win.export['quality']['model'].get_value()
+            self.__main_win.export['exporter'].set_quality(quality)
+
+        self.__main_win.refresh_export_preview()
+
+
+class ActionSelectExportQuality(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Select export quality")
+        self.__main_win = main_window
+
+    def do(self):
+        if self.__main_win.export['exporter'].can_change_quality():
+            quality = self.__main_win.export['quality']['model'].get_value()
+            self.__main_win.export['exporter'].set_quality(quality)
+        self.__main_win.refresh_export_preview()
+
+
+class ActionExport(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Export")
+        self.__main_win = main_window
+
+    def do(self):
+        chooser = gtk.FileChooserDialog(title=None,
+                                        action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                                        buttons=(gtk.STOCK_CANCEL,
+                                                 gtk.RESPONSE_CANCEL,
+                                                 gtk.STOCK_SAVE,
+                                                 gtk.RESPONSE_OK))
+        file_filter = gtk.FileFilter()
+        file_filter.set_name(str(self.__main_win.export['exporter']))
+        file_filter.add_mime_type(
+                self.__main_win.export['exporter'].get_mime_type())
+        chooser.add_filter(file_filter)
+
+        response = chooser.run()
+        filepath = chooser.get_filename()
+        chooser.destroy()
+        if response != gtk.RESPONSE_OK:
+            print "Export canceled"
+            return
+        print "Saving export to '%s'" % filepath
+        self.__main_win.export['exporter'].save(filepath)
+        self.__main_win.export['dialog'].set_visible(False)
 
 
 class ActionCancelExport(SimpleAction):
@@ -985,6 +1081,7 @@ class MainWindow(object):
             "pixbuf" : None,
             "factor" : 1.0,
             "boxes" : {
+                "can_draw" : True,
                 "highlighted" : [],
                 "all" : [],
                 "current" : None,
@@ -1021,6 +1118,7 @@ class MainWindow(object):
             'progress_updater' : WorkerProgressUpdater(
                 "main window progress bar", self.status['progress']),
             'ocr_redoer' : WorkerOCRRedoer(self, config),
+            'export_previewer' : WorkerExportPreviewer(self),
         }
 
         self.show_all_boxes = \
@@ -1032,13 +1130,18 @@ class MainWindow(object):
                 'widget' : widget_tree.get_object("comboboxExportFormat"),
                 'store' : widget_tree.get_object("liststoreExportFormat"),
             },
-            'quality' : widget_tree.get_object("scaleQuality"),
+            'quality' : {
+                'widget' : widget_tree.get_object("scaleQuality"),
+                'model' : widget_tree.get_object("adjustmentQuality"),
+            },
             'estimated_size' : \
                 widget_tree.get_object("labelEstimatedExportSize"),
             'buttons' : {
                 'ok' : widget_tree.get_object("buttonExport"),
                 'cancel' : widget_tree.get_object("buttonCancelExport"),
-            }
+            },
+            'to_export' : None,  # usually self.page or self.doc
+            'exporter' : None,
         }
 
         self.actions = {
@@ -1114,6 +1217,18 @@ class MainWindow(object):
             'cancel_export' : (
                 [widget_tree.get_object("buttonCancelExport")],
                 ActionCancelExport(self),
+            ),
+            'select_export_format' : (
+                [widget_tree.get_object("comboboxExportFormat")],
+                ActionSelectExportFormat(self),
+            ),
+            'select_export_quality' : (
+                [widget_tree.get_object("scaleQuality")],
+                ActionSelectExportQuality(self),
+            ),
+            'export' : (
+                [widget_tree.get_object("buttonExport")],
+                ActionExport(self),
             ),
             'open_settings' : (
                 [
@@ -1377,6 +1492,14 @@ class MainWindow(object):
                 lambda worker, page: \
                     gobject.idle_add(self.__on_single_scan_done, worker, page))
 
+        self.workers['export_previewer'].connect('export-preview-start',
+                lambda worker: \
+                    gobject.idle_add(self.__on_export_preview_start))
+        self.workers['export_previewer'].connect('export-preview-done',
+                lambda worker, size, pixbuf: \
+                    gobject.idle_add(self.__on_export_preview_done, size,
+                                     pixbuf))
+
         self.window.connect("size-allocate", self.__on_window_resize_cb)
 
         self.window.set_visible(True)
@@ -1599,6 +1722,9 @@ class MainWindow(object):
         except ValueError:
             return
 
+        if not self.img['boxes']['can_draw']:
+            return
+
         (mouse_x, mouse_y) = event.get_coords()
 
         old_box = self.img['boxes']['current']
@@ -1727,6 +1853,7 @@ class MainWindow(object):
         self.img['boxes']['highlighted'] = self.page.get_boxes(search)
 
         self.export['dialog'].set_visible(False)
+        self.img['boxes']['can_draw'] = True
 
         self.workers['img_builder'].start()
         # TODO(Jflesch): Move the vertical scrollbar of the page list
@@ -1745,3 +1872,30 @@ class MainWindow(object):
         self.workers['thumbnailer'].start()
         self.show_page(self.doc.pages[0])
 
+    def __on_export_preview_start(self):
+        self.export['estimated_size'].set_text(_("Computing ..."))
+
+    @staticmethod
+    def sizeof_fmt(num):
+        STRINGS = [
+            _('%3.1f bytes'),
+            _('%3.1f KB'),
+            _('%3.1f MB'),
+            _('%3.1f GB'),
+            _('%3.1f TB'),
+        ]
+        for string in STRINGS:
+            if num < 1024.0:
+                return string % (num)
+            num /= 1024.0
+        return STRINGS[-1] % (num)
+
+    def __on_export_preview_done(self, img_size, pixbuf):
+        self.export['estimated_size'].set_text(self.sizeof_fmt(img_size))
+        (pixmap, mask) = pixbuf.render_pixmap_and_mask()
+        self.img['image'].set_from_pixmap(pixmap, mask)
+        self.img['boxes']['can_draw'] = False
+
+    def refresh_export_preview(self):
+        self.workers['export_previewer'].stop()
+        self.workers['export_previewer'].start()

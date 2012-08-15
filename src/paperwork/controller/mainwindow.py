@@ -558,6 +558,7 @@ class ActionCreateLabel(SimpleAction):
             self.__main_win.docsearch.add_label(labeleditor.label,
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
+        self.__main_win.refresh_doc_list()
 
 
 class ActionEditLabel(SimpleAction):

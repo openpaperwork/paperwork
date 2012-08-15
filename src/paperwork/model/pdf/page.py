@@ -132,7 +132,7 @@ class PdfPage(BasicPage):
             raise Exception("No OCR tool available")
 
         txt = ocr_tools[0].image_to_string(img, lang=ocrlang)
-        boxes = ocr_tools[1].image_to_string(img, lang=ocrlang,
+        boxes = ocr_tools[0].image_to_string(img, lang=ocrlang,
                                              builder=pyocr.builders.WordBoxBuilder())
 
         # save the text

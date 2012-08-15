@@ -51,7 +51,7 @@ class ImgExporter(object):
         # but PIL expects a quality between 1 and 75
         quality = int(float(self.__quality) / 100.0 * 74.0) + 1
         # We also adjust the size of the image
-        resize_factor = (float(self.__quality) / 100.0)
+        resize_factor = float(self.__quality) / 100.0
 
         img = self.page.img
 
@@ -60,12 +60,15 @@ class ImgExporter(object):
         img = img.resize(new_size)
 
         img.save(target_path, self.img_format, quality=quality)
-        return img
+        return target_path
 
     def refresh(self):
         tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
                          self.valid_exts[0])
-        img = self.save(tmp)
+        path = self.save(tmp)
+        img = Image.open(path)
+        img.load()
+
         self.__img = (tmp, img)
 
     def set_quality(self, quality):

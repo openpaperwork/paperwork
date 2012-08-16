@@ -21,7 +21,7 @@ class PdfDoc(BasicDoc):
     def _open(self):
         self.pdf = poppler.document_new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
-             password="cowabunga")
+             password=None)
         self.pages = [PdfPage(self, page_idx) \
                       for page_idx in range(0, self.pdf.get_n_pages())]
 

@@ -65,7 +65,7 @@ class MultiplePdfImporter(object):
             try:
                 # make sure we can import it
                 poppler.document_new_from_file(child.get_uri(),
-                                               password="cowabunga")
+                                               password=None)
             except Exception:
                 continue
             doc = PdfDoc(config.workdir)

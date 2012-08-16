@@ -20,20 +20,17 @@ from paperwork.util import split_words
 
 
 class ImgExporter(object):
-    def __init__(self, page,
-                 img_format='PNG', mime='image/png',
-                 valid_exts=['png'],
-                 can_change_quality=False):
+    def __init__(self, page, img_format='PNG', mime='image/png',
+                 valid_exts=['png']):
         self.page = page
         self.img_format = img_format
         self.mime = mime
         self.valid_exts = valid_exts
-        self.__can_change_quality = can_change_quality
         self.__quality = 75
         self.__img = None
 
     def can_change_quality(self):
-        return self.__can_change_quality
+        return True
 
     def get_mime_type(self):
         return self.mime
@@ -90,7 +87,7 @@ class ImgExporter(object):
 
     def __copy__(self):
         return ImgExporter(self.page, self.img_format, self.mime,
-                           self.valid_exts, self.__can_change_quality)
+                           self.valid_exts)
 
 
 class ImgPage(BasicPage):
@@ -114,10 +111,8 @@ class ImgPage(BasicPage):
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
         self.__template_exporters = {
-            'PNG' : ImgExporter(self, 'PNG', 'image/png', ["png"],
-                                can_change_quality=False),
-            'JPEG' : ImgExporter(self, 'JPEG', 'image/jpeg', ["jpg", "jpeg"],
-                                 can_change_quality=True),
+            'PNG' : ImgExporter(self, 'PNG', 'image/png', ["png"]),
+            'JPEG' : ImgExporter(self, 'JPEG', 'image/jpeg', ["jpg", "jpeg"]),
         }
 
     def __get_filepath(self, ext):

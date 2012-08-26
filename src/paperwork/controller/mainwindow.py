@@ -862,6 +862,8 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['format']['widget'].set_active(0)
         self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['dialog'].set_visible(True)
+        self.main_win.export['buttons']['ok'].set_sensitive(False)
+        self.main_win.export['export_path'].set_text("")
         self.main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
                                                   gtk.ICON_SIZE_DIALOG)
 
@@ -921,9 +923,9 @@ class ActionSelectExportQuality(SimpleAction):
         self.__main_win.refresh_export_preview()
 
 
-class ActionExport(SimpleAction):
+class ActionSelectExportPath(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Export")
+        SimpleAction.__init__(self, "Select export path")
         self.__main_win = main_window
 
     def do(self):
@@ -943,9 +945,19 @@ class ActionExport(SimpleAction):
         filepath = chooser.get_filename()
         chooser.destroy()
         if response != gtk.RESPONSE_OK:
-            print "Export canceled"
+            print "File path for export canceled"
             return
-        print "Saving export to '%s'" % filepath
+        self.__main_win.export['export_path'].set_text(filepath)
+        self.__main_win.export['buttons']['ok'].set_sensitive(True)
+
+
+class ActionExport(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Export")
+        self.__main_win = main_window
+
+    def do(self):
+        filepath = self.__main_win.export['export_path'].get_text()
         self.__main_win.export['exporter'].save(filepath)
         self.__main_win.export['dialog'].set_visible(False)
 
@@ -1136,7 +1148,9 @@ class MainWindow(object):
             },
             'estimated_size' : \
                 widget_tree.get_object("labelEstimatedExportSize"),
+            'export_path' : widget_tree.get_object("entryExportPath"),
             'buttons' : {
+                'select_path' : widget_tree.get_object("buttonSelectExportPath"),
                 'ok' : widget_tree.get_object("buttonExport"),
                 'cancel' : widget_tree.get_object("buttonCancelExport"),
             },
@@ -1225,6 +1239,10 @@ class MainWindow(object):
             'select_export_quality' : (
                 [widget_tree.get_object("scaleQuality")],
                 ActionSelectExportQuality(self),
+            ),
+            'select_export_path' : (
+                [widget_tree.get_object("buttonSelectExportPath")],
+                ActionSelectExportPath(self),
             ),
             'export' : (
                 [widget_tree.get_object("buttonExport")],

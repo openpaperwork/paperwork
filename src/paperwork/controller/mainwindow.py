@@ -920,6 +920,8 @@ class ActionSelectExportQuality(SimpleAction):
         if self.__main_win.export['exporter'].can_change_quality():
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
+        self.__main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
+                                                    gtk.ICON_SIZE_DIALOG)
         self.__main_win.refresh_export_preview()
 
 

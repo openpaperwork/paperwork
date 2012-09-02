@@ -7,6 +7,7 @@ import pyocr.pyocr
 from paperwork.model.common.page import BasicPage
 from paperwork.util import surface2image
 
+
 class PdfPage(BasicPage):
     FILE_PREFIX = "paper."
     EXT_TXT = "txt"
@@ -142,9 +143,3 @@ class PdfPage(BasicPage):
         with open(boxfile, 'w') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
 
-    @staticmethod
-    def get_export_formats():
-        return []
-
-    def build_exporter(self, file_format='png'):
-        raise NotImplementedError()

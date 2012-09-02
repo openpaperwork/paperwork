@@ -119,13 +119,11 @@ def load_uifile(filename):
 def image2surface(img):
     if img == None:
         return None
-    img = img.convert("RGBA")
-    img_data = img.tostring("raw", "BGRA", 0, 1)
-    img_ar = array.array('B', img_data)
-    stride = img.size[0] * 4
-    return cairo.ImageSurface.create_for_data(img_ar, cairo.FORMAT_ARGB32,
-                                              img.size[0], img.size[1],
-                                              stride)
+    file_desc = StringIO.StringIO()
+    img.save(file_desc, format="PNG")
+    file_desc.seek(0)
+    surface = cairo.ImageSurface.create_from_png(file_desc)
+    return surface
 
 
 def surface2image(surface):

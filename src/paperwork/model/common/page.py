@@ -37,7 +37,7 @@ class PageExporter(object):
 
         new_size = (int(resize_factor * img.size[0]),
                     int(resize_factor * img.size[1]))
-        img = img.resize(new_size)
+        img = img.resize(new_size, Image.ANTIALIAS)
 
         img.save(target_path, self.img_format, quality=quality)
         return target_path

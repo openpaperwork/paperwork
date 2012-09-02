@@ -50,7 +50,7 @@ class ImgToPdfDocExporter(object):
                 img = img.rotate(90)
             new_size = (int(quality * img.size[0]),
                         int(quality * img.size[1]))
-            img = img.resize(new_size)
+            img = img.resize(new_size, Image.ANTIALIAS)
 
             scale_factor_x = float(pdf_format[0]) / img.size[0]
             scale_factor_y = float(pdf_format[1]) / img.size[0]

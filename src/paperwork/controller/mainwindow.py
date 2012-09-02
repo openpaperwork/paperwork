@@ -922,11 +922,11 @@ class ActionSelectExportFormat(SimpleAction):
         exporter = self.__main_win.export['to_export'].build_exporter(imgformat)
         self.__main_win.export['exporter'] = exporter
         self.__main_win.export['quality']['widget'].set_sensitive(
-                exporter.can_change_quality())
+                exporter.can_change_quality)
         self.__main_win.export['quality']['label'].set_sensitive(
-                exporter.can_change_quality())
+                exporter.can_change_quality)
 
-        if exporter.can_change_quality():
+        if exporter.can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
             self.__main_win.refresh_export_preview()
@@ -942,7 +942,7 @@ class ActionSelectExportQuality(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        if self.__main_win.export['exporter'].can_change_quality():
+        if self.__main_win.export['exporter'].can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
             self.__main_win.refresh_export_preview()

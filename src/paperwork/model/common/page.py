@@ -88,7 +88,7 @@ class BasicPage(object):
         self.doc = doc
         self.page_nb = page_nb
         assert(self.page_nb >= 0)
-        self.__template_exporters = {
+        self.__prototype_exporters = {
             'PNG' : PageExporter(self, 'PNG', 'image/png', ["png"]),
             'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
         }
@@ -130,10 +130,10 @@ class BasicPage(object):
         return output
 
     def get_export_formats(self):
-        return self.__template_exporters.keys()
+        return self.__prototype_exporters.keys()
 
     def build_exporter(self, file_format='PNG'):
-        return copy(self.__template_exporters[file_format.upper()])
+        return copy(self.__prototype_exporters[file_format.upper()])
 
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb + 1)

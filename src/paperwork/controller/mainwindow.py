@@ -1938,7 +1938,6 @@ class MainWindow(object):
         self.img['boxes']['can_draw'] = False
 
     def refresh_export_preview(self):
-        self.__main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
-                                                    gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
         self.workers['export_previewer'].stop()
         self.workers['export_previewer'].start()

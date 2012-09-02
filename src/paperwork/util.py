@@ -110,7 +110,7 @@ def load_uifile(filename):
         print "UI file used: " + ui_file
         break
     if not has_ui_file:
-        raise Exception("Can't find ressource file. Aborting")
+        raise Exception("Can't find resource file. Aborting")
     return widget_tree
 
 

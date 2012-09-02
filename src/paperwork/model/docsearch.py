@@ -324,16 +324,6 @@ class DocSearch(object):
 
         return results
 
-    @staticmethod
-    def __unfold_generator(generator):
-        """
-        Get an array from the generator
-        """
-        out = []
-        for element in generator:
-            out.append(element)
-        return out
-
     def find_suggestions(self, sentence):
         """
         Search all possible suggestions. Suggestions returned always have at
@@ -347,7 +337,7 @@ class DocSearch(object):
             is a suggestion.
         """
         keywords = split_words(sentence)
-        results = self.__find_suggestions(self.__unfold_generator(keywords))
+        results = self.__find_suggestions([x for x in keywords])
         try:
             results.remove(sentence)    # remove strict match if it is here
         except ValueError:

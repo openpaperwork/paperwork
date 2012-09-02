@@ -12,11 +12,10 @@ PDF_IMPORT_MIN_KEYWORDS = 5
 
 
 class PdfDocExporter(object):
+    can_change_quality = False
+
     def __init__(self, doc):
         self.pdfpath = ("%s/%s" % (doc.path, PDF_FILENAME))
-
-    def can_change_quality(self):
-        return False
 
     def get_mime_type(self):
         return 'application/pdf'

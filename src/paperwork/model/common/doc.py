@@ -143,8 +143,8 @@ class BasicDoc(object):
     def build_exporter(self, file_format='pdf'):
         """
         Returns:
-            Returned object must implement the following methods:
-            .can_set_quality()
+            Returned object must implement the following methods/attributes:
+            .can_change_quality = (True|False)
             .set_quality(quality_pourcent)
             .estimate_size() : returns the size in bytes
             .get_img() : returns a PIL Image

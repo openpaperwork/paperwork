@@ -9,6 +9,8 @@ from paperwork.util import split_words
 
 
 class PageExporter(object):
+    can_change_quality = True
+
     def __init__(self, page, img_format='PNG', mime='image/png',
                  valid_exts=['png']):
         self.page = page
@@ -17,9 +19,6 @@ class PageExporter(object):
         self.valid_exts = valid_exts
         self.__quality = 75
         self.__img = None
-
-    def can_change_quality(self):
-        return True
 
     def get_mime_type(self):
         return self.mime
@@ -50,7 +49,7 @@ class PageExporter(object):
         img = Image.open(path)
         img.load()
 
-        self.__img = (tmp, img)
+        self.__img = (path, img)
 
     def set_quality(self, quality):
         self.__quality = int(quality)
@@ -125,9 +124,7 @@ class BasicPage(object):
         for keyword in keywords:
             for box in self.boxes:
                 # unfold generator output
-                words = []
-                for word in split_words(box.content):
-                    words.append(word)
+                words = [x for x in split_words(box.content)]
                 if keyword in words:
                     output.append(box)
         return output

@@ -104,7 +104,7 @@ def load_uifile(filename):
         try:
             widget_tree.add_from_file(ui_file)
         except glib.GError, exc:
-            print "Try to used UI file %s but failed: %s" % (ui_file, str(exc))
+            print "Tried to use UI file %s but failed: %s" % (ui_file, str(exc))
             continue
         has_ui_file = True
         print "UI file used: " + ui_file

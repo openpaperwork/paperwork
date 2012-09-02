@@ -29,6 +29,7 @@ from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
+from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
 
@@ -579,6 +580,7 @@ class ActionCreateLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
@@ -598,6 +600,8 @@ class ActionEditLabel(SimpleAction):
     def do(self):
         if self.__main_win.workers['label_updater'].is_running:
             return
+
+        SimpleAction.do(self)
 
         selection_path = self.__main_win.lists['labels'][0] \
                 .get_selection().get_selected()
@@ -627,6 +631,8 @@ class ActionDeleteLabel(SimpleAction):
         if self.__main_win.workers['label_deleter'].is_running:
             return
 
+        SimpleAction.do(self)
+
         if not ask_confirmation(self.__main_win.window):
             return
 
@@ -648,6 +654,7 @@ class ActionOpenDocDir(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         os.system('xdg-open "%s"' % (self.__main_win.doc.path))
 
 
@@ -657,6 +664,8 @@ class ActionPrintDoc(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
+
         print_settings = gtk.PrintSettings()
         # By default, print context are using 72 dpi, but print_draw_page
         # will change it to 300 dpi --> we have to tell PrintOperation to scale
@@ -682,6 +691,7 @@ class ActionOpenSettings(SimpleAction):
         self.__config = config
 
     def do(self):
+        SimpleAction.do(self)
         sw = SettingsWindow(self.__main_win.window, self.__config)
         sw.connect("need-reindex", self.__reindex_cb)
 
@@ -696,6 +706,7 @@ class ActionSingleScan(SimpleAction):
         self.__config = config
 
     def do(self):
+        SimpleAction.do(self)
         check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
@@ -710,6 +721,7 @@ class ActionMultiScan(SimpleAction):
         self.__config = config
 
     def do(self):
+        SimpleAction.do(self)
         check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
@@ -745,6 +757,8 @@ class ActionImport(SimpleAction):
 
 
     def do(self):
+        SimpleAction.do(self)
+
         check_workdir(self.__config)
 
         file_uri = self.__select_file()
@@ -787,6 +801,7 @@ class ActionDeleteDoc(SimpleAction):
         """
         if not ask_confirmation(self.__main_win.window):
             return
+        SimpleAction.do(self)
         print "Deleting ..."
         self.__main_win.doc.destroy()
         print "Deleted"
@@ -805,6 +820,7 @@ class ActionDeletePage(SimpleAction):
         """
         if not ask_confirmation(self.__main_win.window):
             return
+        SimpleAction.do(self)
         print "Deleting ..."
         self.__main_win.page.destroy()
         print "Deleted"
@@ -828,6 +844,7 @@ class ActionRedoDocOCR(SimpleAction):
     def do(self):
         if not ask_confirmation(self.__main_win.window):
             return
+        SimpleAction.do(self)
 
         if self.__main_win.workers['ocr_redoer'].is_running:
             return
@@ -843,6 +860,7 @@ class ActionRedoAllOCR(SimpleAction):
     def do(self):
         if not ask_confirmation(self.__main_win.window):
             return
+        SimpleAction.do(self)
 
         if self.__main_win.workers['ocr_redoer'].is_running:
             return
@@ -856,16 +874,15 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win = main_window
 
     def open_dialog(self, to_export):
+        SimpleAction.do(self)
+        self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['format']['store'].clear()
         for out_format in to_export.get_export_formats():
             self.main_win.export['format']['store'].append([out_format])
         self.main_win.export['format']['widget'].set_active(0)
-        self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
-        self.main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
-                                                  gtk.ICON_SIZE_DIALOG)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -874,6 +891,7 @@ class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
                                              "Displaying page export dialog")
 
     def do(self):
+        SimpleAction.do(self)
         self.main_win.export['to_export'] = self.main_win.page
         self.main_win.export['buttons']['ok'].set_label(_("Export page"))
         BasicActionOpenExportDialog.open_dialog(self, self.main_win.page)
@@ -885,6 +903,7 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
                                    "Displaying page export dialog")
 
     def do(self):
+        SimpleAction.do(self)
         self.main_win.export['to_export'] = self.main_win.doc
         self.main_win.export['buttons']['ok'].set_label(_("Export document"))
         BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
@@ -896,6 +915,7 @@ class ActionSelectExportFormat(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         format_idx = self.__main_win.export['format']['widget'].get_active()
         imgformat = self.__main_win.export['format']['store'][format_idx][0]
 
@@ -903,13 +923,16 @@ class ActionSelectExportFormat(SimpleAction):
         self.__main_win.export['exporter'] = exporter
         self.__main_win.export['quality']['widget'].set_sensitive(
                 exporter.can_change_quality())
+        self.__main_win.export['quality']['label'].set_sensitive(
+                exporter.can_change_quality())
 
         if exporter.can_change_quality():
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
-
-        self.__main_win.refresh_export_preview()
-
+            self.__main_win.refresh_export_preview()
+        else:
+            size_txt = sizeof_fmt(exporter.estimate_size())
+            self.__main_win.export['estimated_size'].set_text(size_txt)
 
 class ActionSelectExportQuality(SimpleAction):
     def __init__(self, main_window):
@@ -917,12 +940,11 @@ class ActionSelectExportQuality(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         if self.__main_win.export['exporter'].can_change_quality():
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
-        self.__main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
-                                                    gtk.ICON_SIZE_DIALOG)
-        self.__main_win.refresh_export_preview()
+            self.__main_win.refresh_export_preview()
 
 
 class ActionSelectExportPath(SimpleAction):
@@ -931,6 +953,7 @@ class ActionSelectExportPath(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         chooser = gtk.FileChooserDialog(title=None,
                                         action=gtk.FILE_CHOOSER_ACTION_SAVE,
                                         buttons=(gtk.STOCK_CANCEL,
@@ -959,6 +982,7 @@ class ActionExport(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         filepath = self.__main_win.export['export_path'].get_text()
         self.__main_win.export['exporter'].save(filepath)
         self.__main_win.export['dialog'].set_visible(False)
@@ -1122,19 +1146,6 @@ class MainWindow(object):
             )
         }
 
-        self.workers = {
-            'reindex' : WorkerDocIndexer(self, config),
-            'thumbnailer' : WorkerThumbnailer(self),
-            'img_builder' : WorkerImgBuilder(self),
-            'label_updater' : WorkerLabelUpdater(self),
-            'label_deleter' : WorkerLabelDeleter(self),
-            'single_scan' : WorkerSingleScan(self, config),
-            'progress_updater' : WorkerProgressUpdater(
-                "main window progress bar", self.status['progress']),
-            'ocr_redoer' : WorkerOCRRedoer(self, config),
-            'export_previewer' : WorkerExportPreviewer(self),
-        }
-
         self.show_all_boxes = \
             widget_tree.get_object("checkmenuitemShowAllBoxes")
 
@@ -1145,6 +1156,7 @@ class MainWindow(object):
                 'store' : widget_tree.get_object("liststoreExportFormat"),
             },
             'quality' : {
+                'label' : widget_tree.get_object("labelExportQuality"),
                 'widget' : widget_tree.get_object("scaleQuality"),
                 'model' : widget_tree.get_object("adjustmentQuality"),
             },
@@ -1158,6 +1170,19 @@ class MainWindow(object):
             },
             'to_export' : None,  # usually self.page or self.doc
             'exporter' : None,
+        }
+
+        self.workers = {
+            'reindex' : WorkerDocIndexer(self, config),
+            'thumbnailer' : WorkerThumbnailer(self),
+            'img_builder' : WorkerImgBuilder(self),
+            'label_updater' : WorkerLabelUpdater(self),
+            'label_deleter' : WorkerLabelDeleter(self),
+            'single_scan' : WorkerSingleScan(self, config),
+            'progress_updater' : WorkerProgressUpdater(
+                "main window progress bar", self.status['progress']),
+            'ocr_redoer' : WorkerOCRRedoer(self, config),
+            'export_previewer' : WorkerExportPreviewer(self),
         }
 
         self.actions = {
@@ -1895,27 +1920,14 @@ class MainWindow(object):
     def __on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))
 
-    @staticmethod
-    def sizeof_fmt(num):
-        STRINGS = [
-            _('%3.1f bytes'),
-            _('%3.1f KB'),
-            _('%3.1f MB'),
-            _('%3.1f GB'),
-            _('%3.1f TB'),
-        ]
-        for string in STRINGS:
-            if num < 1024.0:
-                return string % (num)
-            num /= 1024.0
-        return STRINGS[-1] % (num)
-
     def __on_export_preview_done(self, img_size, pixbuf):
-        self.export['estimated_size'].set_text(self.sizeof_fmt(img_size))
+        self.export['estimated_size'].set_text(sizeof_fmt(img_size))
         (pixmap, mask) = pixbuf.render_pixmap_and_mask()
         self.img['image'].set_from_pixmap(pixmap, mask)
         self.img['boxes']['can_draw'] = False
 
     def refresh_export_preview(self):
+        self.__main_win.img['image'].set_from_stock(gtk.STOCK_EXECUTE,
+                                                    gtk.ICON_SIZE_DIALOG)
         self.workers['export_previewer'].stop()
         self.workers['export_previewer'].start()

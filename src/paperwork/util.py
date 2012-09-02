@@ -188,3 +188,18 @@ def ask_confirmation(parent):
         print "User cancelled"
         return False
     return True
+
+
+def sizeof_fmt(num):
+        STRINGS = [
+            _('%3.1f bytes'),
+            _('%3.1f KB'),
+            _('%3.1f MB'),
+            _('%3.1f GB'),
+            _('%3.1f TB'),
+        ]
+        for string in STRINGS:
+            if num < 1024.0:
+                return string % (num)
+            num /= 1024.0
+        return STRINGS[-1] % (num)

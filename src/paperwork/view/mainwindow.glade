@@ -1023,7 +1023,7 @@
                                       </packing>
                                     </child>
                                     <child>
-                                      <object class="GtkLabel" id="label1">
+                                      <object class="GtkLabel" id="labelExportQuality">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="label" translatable="yes">Quality</property>

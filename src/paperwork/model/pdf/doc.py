@@ -1,5 +1,7 @@
 import gio
+import os
 import poppler
+import shutil
 
 from paperwork.model.common.doc import BasicDoc
 from paperwork.model.pdf.page import PdfPage
@@ -7,6 +9,36 @@ from paperwork.model.pdf.page import PdfPage
 
 PDF_FILENAME = "doc.pdf"
 PDF_IMPORT_MIN_KEYWORDS = 5
+
+
+class PdfDocExporter(object):
+    def __init__(self, doc):
+        self.pdfpath = ("%s/%s" % (doc.path, PDF_FILENAME))
+
+    def can_change_quality(self):
+        return False
+
+    def get_mime_type(self):
+        return 'application/pdf'
+
+    def save(self, target_path):
+        if not target_path.lower().endswith('pdf'):
+            target_path += ".pdf"
+        shutil.copy(self.pdfpath, target_path)
+        return target_path
+
+    def set_quality(self, quality):
+        raise NotImplementedError()
+
+    def estimate_size(self):
+        return os.path.getsize(self.pdfpath)
+
+    def get_img(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        return 'PDF'
+
 
 class PdfDoc(BasicDoc):
     can_edit = False
@@ -58,10 +90,10 @@ class PdfDoc(BasicDoc):
 
     @staticmethod
     def get_export_formats():
-        return []
+        return ['PDF']
 
     def build_exporter(self, file_format='pdf'):
-        raise NotImplementedError()
+        return PdfDocExporter(self)
 
 def is_pdf_doc(filelist):
     return PDF_FILENAME in filelist

@@ -8,9 +8,109 @@ import os
 import os.path
 import time
 
+import cairo
+import Image
+import poppler
+
 from paperwork.model.common.doc import BasicDoc
 from paperwork.model.img.page import ImgPage
 from paperwork.util import dummy_progress_cb
+from paperwork.util import surface2image
+from paperwork.util import image2surface
+
+
+class ImgToPdfDocExporter(object):
+    can_change_quality = True
+    valid_exts = ['pdf']
+    PDF_A4_FORMAT = (595, 842)
+
+    def __init__(self, doc):
+        self.doc = doc
+        self.__quality = 75
+        self.__preview = None  # will just contain the first page
+
+    def get_mime_type(self):
+        return 'application/pdf'
+
+    def get_file_extensions(self):
+        return ['pdf']
+
+    def __save(self, target_path, pages):
+        # TODO(Jflesch): Other formats (Letter, etc)
+        pdf_format = self.PDF_A4_FORMAT
+        pdf_surface = cairo.PDFSurface(target_path,
+                                       pdf_format[0], pdf_format[1])
+        pdf_context = cairo.Context(pdf_surface)
+
+        quality = float(self.__quality) / 100.0
+
+        for page in [self.doc.pages[x] for x in range(pages[0], pages[1])]:
+            img = page.img
+            if (img.size[0] > img.size[1]):
+                img = img.rotate(90)
+            new_size = (int(quality * img.size[0]),
+                        int(quality * img.size[1]))
+            img = img.resize(new_size)
+
+            scale_factor_x = float(pdf_format[0]) / img.size[0]
+            scale_factor_y = float(pdf_format[1]) / img.size[0]
+            scale_factor = min(scale_factor_x, scale_factor_y)
+
+            img_surface = image2surface(img)
+
+            pdf_context.identity_matrix()
+            pdf_context.scale(scale_factor, scale_factor)
+            pdf_context.set_source_surface(img_surface)
+            pdf_context.paint()
+
+            pdf_context.show_page()
+
+        return target_path
+
+    def save(self, target_path):
+        return self.__save(target_path, (0, self.doc.nb_pages))
+
+    def refresh(self):
+        # make the preview
+
+        tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
+                         self.valid_exts[0])
+        path = self.__save(tmp, pages=(0, 1))
+
+        # reload the preview
+
+        pdfdoc = poppler.document_new_from_file(
+            ("file://%s" % path), password=None)
+        assert(pdfdoc.get_n_pages() > 0)
+
+        pdfpage = pdfdoc.get_page(0)
+        pdfpage_size = pdfpage.get_size()
+
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                     int(pdfpage_size[0]),
+                                     int(pdfpage_size[1]))
+        ctx = cairo.Context(surface)
+        pdfpage.render(ctx)
+        img = surface2image(surface)
+
+        self.__preview = (path, img)
+
+    def set_quality(self, quality):
+        self.__quality = quality
+        self.__preview = None
+
+    def estimate_size(self):
+        if self.__preview == None:
+            self.refresh()
+        return os.path.getsize(self.__preview[0]) * self.doc.nb_pages
+
+    def get_img(self):
+        if self.__preview == None:
+            self.refresh()
+        return self.__preview[1]
+
+    def __str__(self):
+        return 'PDF'
 
 
 class _ImgPageListIterator(object):
@@ -147,11 +247,10 @@ class ImgDoc(BasicDoc):
 
     @staticmethod
     def get_export_formats():
-        return []
+        return ['PDF']
 
     def build_exporter(self, file_format='pdf'):
-        raise NotImplementedError()
-
+        return ImgToPdfDocExporter(self)
 
 
 def is_img_doc(filelist):

@@ -2,11 +2,13 @@
 Various tiny functions that didn't fit anywhere else.
 """
 
+import array
 import os
 import re
 import StringIO
 import unicodedata
 
+import cairo
 import Image
 import gettext
 import glib
@@ -114,6 +116,18 @@ def load_uifile(filename):
     return widget_tree
 
 
+def image2surface(img):
+    if img == None:
+        return None
+    img = img.convert("RGBA")
+    img_data = img.tostring("raw", "BGRA", 0, 1)
+    img_ar = array.array('B', img_data)
+    stride = img.size[0] * 4
+    return cairo.ImageSurface.create_for_data(img_ar, cairo.FORMAT_ARGB32,
+                                              img.size[0], img.size[1],
+                                              stride)
+
+
 def surface2image(surface):
     """
     Convert a cairo surface into a PIL image
@@ -127,7 +141,6 @@ def surface2image(surface):
     background = Image.new("RGB", img.size, (255, 255, 255))
     background.paste(img, mask=img.split()[3]) # 3 is the alpha channel
     return background
-
 
 
 def image2pixbuf(img):

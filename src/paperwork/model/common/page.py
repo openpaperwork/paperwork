@@ -24,15 +24,10 @@ class PageExporter(object):
     def get_mime_type(self):
         return self.mime
 
-    def save(self, target_path):
-        has_valid_ext = False
-        for valid_ext in self.valid_exts:
-            if target_path.lower().endswith(valid_ext):
-                has_valid_ext = True
-                break
-        if not has_valid_ext:
-            target_path += ".%s" % self.valid_exts[0]
+    def get_file_extensions(self):
+        return self.valid_exts
 
+    def save(self, target_path):
         # the user gives us a quality between 0 and 100
         # but PIL expects a quality between 1 and 75
         quality = int(float(self.__quality) / 100.0 * 74.0) + 1
@@ -96,7 +91,7 @@ class BasicPage(object):
         assert(self.page_nb >= 0)
         self.__template_exporters = {
             'PNG' : PageExporter(self, 'PNG', 'image/png', ["png"]),
-            'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpg", "jpeg"]),
+            'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
         }
 
     def get_thumbnail(self, width):

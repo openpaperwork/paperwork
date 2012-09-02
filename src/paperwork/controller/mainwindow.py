@@ -934,6 +934,7 @@ class ActionSelectExportFormat(SimpleAction):
             size_txt = sizeof_fmt(exporter.estimate_size())
             self.__main_win.export['estimated_size'].set_text(size_txt)
 
+
 class ActionSelectExportQuality(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Select export quality")
@@ -972,6 +973,16 @@ class ActionSelectExportPath(SimpleAction):
         if response != gtk.RESPONSE_OK:
             print "File path for export canceled"
             return
+
+        valid_exts = self.__main_win.export['exporter'].get_file_extensions()
+        has_valid_ext = False
+        for valid_ext in valid_exts:
+            if filepath.lower().endswith(valid_ext.lower()):
+                has_valid_ext = True
+                break
+        if not has_valid_ext:
+            filepath += ".%s" % valid_exts[0]
+
         self.__main_win.export['export_path'].set_text(filepath)
         self.__main_win.export['buttons']['ok'].set_sensitive(True)
 

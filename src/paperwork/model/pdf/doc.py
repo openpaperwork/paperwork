@@ -21,9 +21,10 @@ class PdfDocExporter(object):
     def get_mime_type(self):
         return 'application/pdf'
 
+    def get_file_extensions(self):
+        return ['pdf']
+
     def save(self, target_path):
-        if not target_path.lower().endswith('pdf'):
-            target_path += ".pdf"
         shutil.copy(self.pdfpath, target_path)
         return target_path
 

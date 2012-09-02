@@ -149,6 +149,7 @@ class BasicDoc(object):
             .estimate_size() : returns the size in bytes
             .get_img() : returns a PIL Image
             .get_mime_type()
+            .get_file_extensions()
             .save(file_path)
         """
         raise NotImplementedError()

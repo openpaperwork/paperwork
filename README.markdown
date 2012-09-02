@@ -4,19 +4,9 @@
 
 Paperwork is a tool to make papers searchable.
 
-Papers are organized into documents. Each document contains pages.
-
-It uses mainly 3 other pieces of software:
-
-* Sane: To scan the pages
-* Cuneiform or Tesseract: To extract the words from the pages (OCR)
-* GTK/Glade: For the user interface
-
-Page orientation is automatically guessed using OCR.
-
-Paperwork uses a custom indexation system to search documents and to provide
-keyword suggestions. Since OCR is not perfect, and since some documents don't
-contain useful keywords, Paperwork allows also to put labels on each document.
+The basic idea behind Paperwork is "scan & forget" : You should be able to just
+scan a new document and forget about it until the day you need it again. Let the
+machine do most of the work.
 
 ## Screenshots
 
@@ -51,6 +41,22 @@ contain useful keywords, Paperwork allows also to put labels on each document.
 <a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.settings.png">
   <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.settings.png" width="512" height="384" />
 </a>
+
+## Details
+
+Papers are organized into documents. Each document contains pages.
+
+It uses mainly 3 other pieces of software:
+
+* Sane: To scan the pages
+* Cuneiform or Tesseract: To extract the words from the pages (OCR)
+* GTK/Glade: For the user interface
+
+Page orientation is automatically guessed using OCR.
+
+Paperwork uses a custom indexation system to search documents and to provide
+keyword suggestions. Since OCR is not perfect, and since some documents don't
+contain useful keywords, Paperwork allows also to put labels on each document.
 
 ## Licence
 

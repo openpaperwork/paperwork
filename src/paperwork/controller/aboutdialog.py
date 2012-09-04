@@ -21,7 +21,7 @@ class AboutDialog(object):
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
 
-        self.__dialog.connect("response", lambda x, y: self.__dialog.destroy())
+        self.__dialog.connect("response", lambda x, y: x.destroy())
 
     def show(self):
         """

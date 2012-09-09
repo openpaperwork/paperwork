@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-02 19:58+0200\n"
+"POT-Creation-Date: 2012-09-09 18:21+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -60,7 +60,7 @@ msgid "Import each PDF in the folder as a new document"
 msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 
 #: src/paperwork/controller/mainwindow.py:84
-#: src/paperwork/controller/mainwindow.py:1670
+#: src/paperwork/controller/mainwindow.py:1878
 msgid "Reading ..."
 msgstr "Lecture ..."
 
@@ -68,67 +68,64 @@ msgstr "Lecture ..."
 msgid "Sorting ..."
 msgstr "Tri ..."
 
-#: src/paperwork/controller/mainwindow.py:771
+#: src/paperwork/controller/mainwindow.py:791
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Ne sait pas comment importer '%s'. Désolé."
 
-#: src/paperwork/controller/mainwindow.py:896
-#: src/paperwork/view/mainwindow.glade.h:46
+#: src/paperwork/controller/mainwindow.py:916
 msgid "Export page"
 msgstr "Exporter la page"
 
-#: src/paperwork/controller/mainwindow.py:908
-#: src/paperwork/view/mainwindow.glade.h:45
+#: src/paperwork/controller/mainwindow.py:928
 msgid "Export document"
 msgstr "Exporter le document"
 
-#: src/paperwork/controller/mainwindow.py:1115
+#: src/paperwork/controller/mainwindow.py:1224
 msgid "Search documents\n"
 msgstr "Rechercher des documents\n"
 
-#: src/paperwork/controller/mainwindow.py:1116
+#: src/paperwork/controller/mainwindow.py:1225
 msgid "'!' can be used as a prefix to"
 msgstr "'!' peut être utilisé comme préfixe pour"
 
-#: src/paperwork/controller/mainwindow.py:1117
+#: src/paperwork/controller/mainwindow.py:1226
 msgid " negate a keyword"
 msgstr " rejeter un mot clef"
 
-#: src/paperwork/controller/mainwindow.py:1424
-#: src/paperwork/view/mainwindow.glade.h:42
+#: src/paperwork/controller/mainwindow.py:1597
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/controller/mainwindow.py:1593
-#: src/paperwork/controller/mainwindow.py:1602
+#: src/paperwork/controller/mainwindow.py:1775
+#: src/paperwork/controller/mainwindow.py:1784
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/controller/mainwindow.py:1619
+#: src/paperwork/controller/mainwindow.py:1827
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1623
+#: src/paperwork/controller/mainwindow.py:1831
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1637
+#: src/paperwork/controller/mainwindow.py:1845
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/controller/mainwindow.py:1641
+#: src/paperwork/controller/mainwindow.py:1849
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/controller/mainwindow.py:1656
+#: src/paperwork/controller/mainwindow.py:1864
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/controller/mainwindow.py:1834
+#: src/paperwork/controller/mainwindow.py:2026
 #, python-format
 msgid ""
 "\n"
@@ -137,17 +134,17 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/controller/mainwindow.py:1851
+#: src/paperwork/controller/mainwindow.py:2043
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/controller/mainwindow.py:1855
+#: src/paperwork/controller/mainwindow.py:2047
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/controller/mainwindow.py:1932
+#: src/paperwork/controller/mainwindow.py:2126
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 
@@ -276,137 +273,177 @@ msgid "200%"
 msgstr "200%"
 
 #: src/paperwork/view/mainwindow.glade.h:24
-msgid "_File"
-msgstr "_Fichier"
+msgid "_Document"
+msgstr "_Document"
 
 #: src/paperwork/view/mainwindow.glade.h:25
-msgid "Add"
-msgstr "Ajouter"
+msgid "New Document"
+msgstr "Nouveau document"
 
 #: src/paperwork/view/mainwindow.glade.h:26
-msgid "Single page"
-msgstr "Page seule"
-
-#: src/paperwork/view/mainwindow.glade.h:27
-msgid "From Feeder"
-msgstr "Depuis le bac"
-
-#: src/paperwork/view/mainwindow.glade.h:28
-msgid "Import file(s)"
+msgid "Import File(s)"
 msgstr "Importer un ou plusieurs fichier(s)"
 
+#: src/paperwork/view/mainwindow.glade.h:27
+msgid "Open Containing Folder"
+msgstr "Ouvrir le répertoire parent"
+
+#: src/paperwork/view/mainwindow.glade.h:28
+msgid "Open the folder containing the current document"
+msgstr "Ouvrir le répertoire contenant le document"
+
 #: src/paperwork/view/mainwindow.glade.h:29
+msgid "Delete Document"
+msgstr "Effacer le document"
+
+#: src/paperwork/view/mainwindow.glade.h:30
+msgid "Print Document"
+msgstr "Imprimer le document"
+
+#: src/paperwork/view/mainwindow.glade.h:31
 msgid "Advanced"
 msgstr "Avancé"
 
-#: src/paperwork/view/mainwindow.glade.h:30
-msgid "Highlight all the words"
+#: src/paperwork/view/mainwindow.glade.h:32
+msgid "Highlight All The Words"
 msgstr "Mettre en évidence tout les mots"
 
-#: src/paperwork/view/mainwindow.glade.h:31
-msgid "Redo OCR on the document"
+#: src/paperwork/view/mainwindow.glade.h:33
+msgid "Redo OCR On The Document"
 msgstr "Refaire l'OCR sur le document"
 
-#: src/paperwork/view/mainwindow.glade.h:32
-msgid "Redo OCR of all documents"
+#: src/paperwork/view/mainwindow.glade.h:34
+msgid "Redo OCR Of All Documents"
 msgstr "Refaire l'OCR sur tout les documents"
 
-#: src/paperwork/view/mainwindow.glade.h:33
-msgid "Reindex all documents"
+#: src/paperwork/view/mainwindow.glade.h:35
+msgid "Reindex All Documents"
 msgstr "Reindexer tout les documents"
 
-#: src/paperwork/view/mainwindow.glade.h:34
+#: src/paperwork/view/mainwindow.glade.h:36
+msgid "_Page"
+msgstr "_Page"
+
+#: src/paperwork/view/mainwindow.glade.h:37
+msgid "Scan Single Page"
+msgstr "Scanner une page"
+
+#: src/paperwork/view/mainwindow.glade.h:38
+msgid "Scan Pages From Feeder"
+msgstr "Scanner depuis le bac"
+
+#: src/paperwork/view/mainwindow.glade.h:39
+msgid "Scan many pages from your scanner's document feeder"
+msgstr "Scanner plusieurs pages depuis le bac de votre scanner"
+
+#: src/paperwork/view/mainwindow.glade.h:40
+msgid "Delete Page"
+msgstr "Effacer la page"
+
+#: src/paperwork/view/mainwindow.glade.h:41
+msgid "_Edition"
+msgstr "É_dition"
+
+#: src/paperwork/view/mainwindow.glade.h:42
+msgid "_Display"
+msgstr "Affichage"
+
+#: src/paperwork/view/mainwindow.glade.h:43
+msgid "Toolbar"
+msgstr "Barre d'outils"
+
+#: src/paperwork/view/mainwindow.glade.h:44
 msgid "_Help"
 msgstr "_Aide"
 
-#: src/paperwork/view/mainwindow.glade.h:35
-msgid "New document"
-msgstr "Nouveau document"
-
-#: src/paperwork/view/mainwindow.glade.h:36
-msgid "Delete document"
-msgstr "Effacer le document"
-
-#: src/paperwork/view/mainwindow.glade.h:37
+#: src/paperwork/view/mainwindow.glade.h:45
 #: src/paperwork/view/settingswindow.glade.h:2
 msgid "Settings"
 msgstr "Réglages"
 
-#: src/paperwork/view/mainwindow.glade.h:38
+#: src/paperwork/view/mainwindow.glade.h:46
 msgid "Quit"
 msgstr "Quitter"
 
-#: src/paperwork/view/mainwindow.glade.h:39
+#: src/paperwork/view/mainwindow.glade.h:47
 msgid "Pages"
 msgstr "Pages"
 
-#: src/paperwork/view/mainwindow.glade.h:40
+#: src/paperwork/view/mainwindow.glade.h:48
 msgid "Labels"
 msgstr "Labels"
 
 # Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/paperwork/view/mainwindow.glade.h:41
+#: src/paperwork/view/mainwindow.glade.h:49
 #: src/paperwork/view/settingswindow.glade.h:11
 msgid "Scan"
 msgstr "Scanner"
 
-#: src/paperwork/view/mainwindow.glade.h:43
-msgid "Scan from feeder"
+#: src/paperwork/view/mainwindow.glade.h:50
+msgid "Scan From Feeder"
 msgstr "Scanner depuis le bac"
 
-#: src/paperwork/view/mainwindow.glade.h:44
+#: src/paperwork/view/mainwindow.glade.h:51
 msgid "Print"
 msgstr "Imprimer"
 
-#: src/paperwork/view/mainwindow.glade.h:47
+#: src/paperwork/view/mainwindow.glade.h:52
+msgid "Export Document"
+msgstr "Exporter le document"
+
+#: src/paperwork/view/mainwindow.glade.h:53
+msgid "Export Page"
+msgstr "Exporter la page"
+
+#: src/paperwork/view/mainwindow.glade.h:54
 msgid "Previous"
 msgstr "Précédente"
 
-#: src/paperwork/view/mainwindow.glade.h:48
+#: src/paperwork/view/mainwindow.glade.h:55
 msgid "Next"
 msgstr "Suivante"
 
-#: src/paperwork/view/mainwindow.glade.h:49
-msgid "Open parent folder"
-msgstr "Ouvrir le répertoire parent"
-
-#: src/paperwork/view/mainwindow.glade.h:50
+#: src/paperwork/view/mainwindow.glade.h:56
 msgid "File format"
 msgstr "Format de fichier"
 
-#: src/paperwork/view/mainwindow.glade.h:51
+#: src/paperwork/view/mainwindow.glade.h:57
 msgid "Quality"
 msgstr "Qualité"
 
-#: src/paperwork/view/mainwindow.glade.h:52
+#: src/paperwork/view/mainwindow.glade.h:58
 msgid "Estimated Size"
 msgstr "Taille estimée"
 
-#: src/paperwork/view/mainwindow.glade.h:53
+#: src/paperwork/view/mainwindow.glade.h:59
 msgid " Save as ... "
 msgstr " Enregistrer sous ... "
 
-#: src/paperwork/view/mainwindow.glade.h:54
+#: src/paperwork/view/mainwindow.glade.h:60
 msgid "Export"
 msgstr "Exporter"
 
-#: src/paperwork/view/mainwindow.glade.h:57
+#: src/paperwork/view/mainwindow.glade.h:63
 msgid "Edit"
 msgstr "Éditer"
 
-#: src/paperwork/view/mainwindow.glade.h:58
+#: src/paperwork/view/mainwindow.glade.h:64
 msgid "Destroy"
 msgstr "Détruire"
 
-#: src/paperwork/view/mainwindow.glade.h:59
+#: src/paperwork/view/mainwindow.glade.h:65
 msgid "Open the document in a file manager\n"
 msgstr "Ouvrir le document avec le gestionnaire de fichier\n"
 
-#: src/paperwork/view/mainwindow.glade.h:61
+#: src/paperwork/view/mainwindow.glade.h:67
 msgid "Open directory"
 msgstr "Ouvrir le répertoire"
 
-#: src/paperwork/view/mainwindow.glade.h:62
+#: src/paperwork/view/mainwindow.glade.h:68
+msgid "Delete document"
+msgstr "Effacer le document"
+
+#: src/paperwork/view/mainwindow.glade.h:69
 msgid "Delete page"
 msgstr "Effacer la page"
 
@@ -425,8 +462,6 @@ msgstr "Nombre de pages"
 #: src/paperwork/view/settingswindow.glade.h:3
 msgid "Work directory"
 msgstr "Répertoire de travail"
-"Répertoire\n"
-"de travail"
 
 #: src/paperwork/view/settingswindow.glade.h:4
 msgid "Select a folder"
@@ -467,3 +502,15 @@ msgstr "Annuler"
 #: src/paperwork/view/settingswindow.glade.h:14
 msgid "Ok"
 msgstr "Ok"
+
+#~ msgid "_File"
+#~ msgstr "_Fichier"
+
+#~ msgid "Add"
+#~ msgstr "Ajouter"
+
+#~ msgid "Single page"
+#~ msgstr "Page seule"
+
+#~ msgid "From Feeder"
+#~ msgstr "Depuis le bac"

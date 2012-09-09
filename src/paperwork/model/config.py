@@ -82,6 +82,8 @@ class PaperworkConfig(object):
             self._configparser.add_section("OCR")
         if not self._configparser.has_section("Scanner"):
             self._configparser.add_section("Scanner")
+        if not self._configparser.has_section("GUI"):
+            self._configparser.add_section("GUI")
 
     def __get_workdir(self):
         """
@@ -234,6 +236,28 @@ class PaperworkConfig(object):
         scanner = pyinsane.Scanner(self.scanner_devid)
         scanner.options['resolution'].value = self.scanner_resolution
         return scanner
+
+    def __get_toolbar_visible(self):
+        """
+        Must the toolbar(s) be displayed ?
+
+        Boolean.
+        """
+        try:
+            val = int(self._configparser.get("GUI", "ToolbarVisible"))
+            if val == 0:
+                return False
+            return True
+        except ConfigParser.NoOptionError:
+            return True
+
+    def __set_toolbar_visible(self, visible):
+        """
+        Set the OCR lang
+        """
+        self._configparser.set("GUI", "ToolbarVisible", str(int(visible)))
+
+    toolbar_visible = property(__get_toolbar_visible, __set_toolbar_visible)
 
 
     def write(self):

@@ -152,7 +152,7 @@ class WorkerImgBuilder(Worker):
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'img-building-result-pixbuf' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_FLOAT, gobject.TYPE_PYOBJECT, )),
+             (gobject.TYPE_FLOAT, gobject.TYPE_INT, gobject.TYPE_PYOBJECT, )),
         'img-building-result-stock' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
              (gobject.TYPE_STRING, )),
@@ -166,21 +166,6 @@ class WorkerImgBuilder(Worker):
         Worker.__init__(self, "Building page image")
         self.__main_win = main_window
 
-    def __get_img_area_width(self):
-        width = self.__main_win.img['scrollbar'].get_allocation().width
-        # TODO(JFlesch): This is not a safe assumption:
-        width -= 30
-        return width
-
-    def __get_zoom_factor(self, original_pixbuf):
-        el_idx = self.__main_win.lists['zoom_levels'][0].get_active()
-        el_iter = self.__main_win.lists['zoom_levels'][1].get_iter(el_idx)
-        factor = self.__main_win.lists['zoom_levels'][1].get_value(el_iter, 1)
-        if factor != 0.0:
-            return factor
-        wanted_width = self.__get_img_area_width()
-        return float(wanted_width) / original_pixbuf.get_width()
-
     def do(self):
         self.emit('img-building-start')
 
@@ -188,12 +173,18 @@ class WorkerImgBuilder(Worker):
             self.emit('img-building-result-stock', gtk.STOCK_MISSING_IMAGE)
             return
 
+        time.sleep(0.25) # to keep the GUI smooth
+        if not self.can_run:
+            self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
+            return 
+
         try:
             img = self.__main_win.page.img
 
             pixbuf = image2pixbuf(img)
+            original_width = pixbuf.get_width()
 
-            factor = self.__get_zoom_factor(pixbuf)
+            factor = self.__main_win.get_zoom_factor(original_width)
             print "Zoom: %f" % (factor)
 
             wanted_width = int(factor * pixbuf.get_width())
@@ -201,7 +192,7 @@ class WorkerImgBuilder(Worker):
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                          gtk.gdk.INTERP_BILINEAR)
 
-            self.emit('img-building-result-pixbuf', factor, pixbuf)
+            self.emit('img-building-result-pixbuf', factor, original_width, pixbuf)
         except Exception, exc:
             self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
             raise exc
@@ -416,6 +407,8 @@ class ActionNewDocument(SimpleAction):
             widget.set_sensitive(False)
         for widget in self.__main_win.doc_edit_widgets:
             widget.set_sensitive(doc.can_edit)
+        for widget in self.__main_win.need_page_widgets:
+            widget.set_sensitive(False)
         self.__main_win.page = None
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
@@ -457,6 +450,18 @@ class ActionStartSimpleWorker(SimpleAction):
         self.__worker.start()
 
 
+class ActionStartSearch(SimpleAction):
+    """
+    Let the user type keywords to do a document search
+    """
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Focus on search field")
+        self.__main_win = main_window
+
+    def do(self):
+        self.__main_win.search_field.grab_focus()
+
+
 class ActionUpdateSearchResults(SimpleAction):
     """
     Update search results
@@ -470,8 +475,11 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_doc_list()
         self.__main_win.refresh_highlighted_words()
 
-    def on_icon_press_cb(self, entry, iconpos=None, event=None):
-        entry.set_text("")
+    def on_icon_press_cb(self, entry, iconpos=gtk.ENTRY_ICON_SECONDARY, event=None):
+        if iconpos == gtk.ENTRY_ICON_PRIMARY:
+            entry.grab_focus()
+        else:
+            entry.set_text("")
 
 
 class ActionPageSelected(SimpleAction):
@@ -493,18 +501,30 @@ class ActionPageSelected(SimpleAction):
 
 
 class ActionMovePageIndex(SimpleAction):
-    def __init__(self, main_window, offset):
-        txt = "previous"
-        if offset > 0:
-            txt = "next"
+    def __init__(self, main_window, relative=True, value=0):
+        if relative:
+            txt = "previous"
+            if value > 0:
+                txt = "next"
+        else:
+            if value < 0:
+                txt = "last"
+            else:
+                txt = "page %d" % (value)
         SimpleAction.__init__(self, ("Show the %s page" % (txt)))
-        self.offset = offset
+        self.relative = relative
+        self.value = value
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
         page_idx = self.__main_win.page.page_nb
-        page_idx += self.offset
+        if self.relative:
+            page_idx += self.value
+        elif self.value < 0:
+            page_idx = self.__main_win.doc.nb_pages - 1
+        else:
+            page_idx = self.value
         if page_idx < 0 or page_idx >= self.__main_win.doc.nb_pages:
             return
         page = self.__main_win.doc.pages[page_idx]
@@ -996,6 +1016,7 @@ class ActionExport(SimpleAction):
         SimpleAction.do(self)
         filepath = self.__main_win.export['export_path'].get_text()
         self.__main_win.export['exporter'].save(filepath)
+        SimpleAction.do(self)
         self.__main_win.export['dialog'].set_visible(False)
 
 
@@ -1005,7 +1026,91 @@ class ActionCancelExport(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         self.__main_win.export['dialog'].set_visible(False)
+
+
+class ActionSetToolbarVisibility(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Set toolbar visibility")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        SimpleAction.do(self)
+        visible = self.__main_win.show_toolbar.get_active()
+        if self.__config.toolbar_visible != visible:
+            self.__config.toolbar_visible = visible
+        for toolbar in self.__main_win.toolbars:
+            toolbar.set_visible(visible)
+
+class ActionZoomChange(SimpleAction):
+    def __init__(self, main_window, offset):
+        SimpleAction.__init__(self, "Zoom += %d" % offset)
+        self.__main_win = main_window
+        self.__offset = offset
+
+    def do(self):
+        SimpleAction.do(self)
+
+        zoom_liststore = self.__main_win.lists['zoom_levels'][1]
+
+        zoom_list = [
+            (zoom_liststore[zoom_idx][1], zoom_idx)
+            for zoom_idx in range(0, len(zoom_liststore))
+        ]
+        zoom_list.append((99999.0, -1))
+        zoom_list.sort()
+
+        current_zoom = self.__main_win.get_zoom_factor()
+
+        # figures out where the current zoom fits in the zoom list
+        current_idx = -1
+
+        for zoom_list_idx in range(0, len(zoom_list)):
+            if (zoom_list[zoom_list_idx][0] == 0.0):
+                continue
+            print ("%f <= %f < %f ?" % (zoom_list[zoom_list_idx][0],
+                                       current_zoom,
+                                       zoom_list[zoom_list_idx+1][0]))
+            if (zoom_list[zoom_list_idx][0] <= current_zoom
+                and current_zoom < zoom_list[zoom_list_idx+1][0]):
+                current_idx = zoom_list_idx
+                break
+
+        assert(current_idx >= 0)
+
+        # apply the change
+        current_idx += self.__offset
+
+        if (current_idx < 0 or current_idx >= len(zoom_liststore)):
+            return
+
+        if zoom_list[current_idx][0] == 0.0:
+            return
+
+        self.__main_win.lists['zoom_levels'][0].set_active(zoom_list[current_idx][1])
+
+
+class ActionZoomSet(SimpleAction):
+    def __init__(self, main_window, value):
+        SimpleAction.__init__(self, ("Zoom = %f" % value))
+        self.__main_win = main_window
+        self.__value = value
+
+    def do(self):
+        SimpleAction.do(self)
+
+        zoom_liststore = self.__main_win.lists['zoom_levels'][1]
+
+        new_idx = -1
+        for zoom_idx in range(0, len(zoom_liststore)):
+            if (zoom_liststore[zoom_idx][1] == self.__value):
+                new_idx = zoom_idx
+                break
+        assert(new_idx >= 0)
+
+        self.__main_win.lists['zoom_levels'][0].set_active(new_idx)
 
 
 class ActionAbout(SimpleAction):
@@ -1063,6 +1168,10 @@ class MainWindow(object):
         # TODO(Jflesch): Find a better default thumbnail
         self.default_thumbnail = image2pixbuf(img)
         del img
+
+        # used by the set_mouse_cursor() function to keep track of how many
+        # threads requested a busy mouse cursor
+        self.__busy_mouse_counter = 0
 
         widget_tree = load_uifile("mainwindow.glade")
 
@@ -1129,6 +1238,7 @@ class MainWindow(object):
             "eventbox" : widget_tree.get_object("eventboxImg"),
             "pixbuf" : None,
             "factor" : 1.0,
+            "original_width" : 1,
             "boxes" : {
                 "can_draw" : True,
                 "highlighted" : [],
@@ -1159,6 +1269,16 @@ class MainWindow(object):
 
         self.show_all_boxes = \
             widget_tree.get_object("checkmenuitemShowAllBoxes")
+        self.show_toolbar = \
+            widget_tree.get_object("menuitemToolbarVisible")
+        self.show_toolbar.set_active(config.toolbar_visible)
+
+        self.toolbars = [
+            widget_tree.get_object("toolbarMainWin"),
+            widget_tree.get_object("toolbarPage"),
+        ]
+        for toolbar in self.toolbars:
+            toolbar.set_visible(config.toolbar_visible)
 
         self.export = {
             'dialog' : widget_tree.get_object("infobarExport"),
@@ -1323,6 +1443,7 @@ class MainWindow(object):
             ),
             'open_doc_dir' : (
                 [
+                    widget_tree.get_object("menuitemOpenParentDir"),
                     widget_tree.get_object("menuitemOpenDocDir"),
                     widget_tree.get_object("toolbuttonOpenDocDir"),
                 ],
@@ -1330,6 +1451,7 @@ class MainWindow(object):
             ),
             'del_doc' : (
                 [
+                    widget_tree.get_object("menuitemDestroyDoc"),
                     widget_tree.get_object("menuitemDestroyDoc2"),
                     widget_tree.get_object("toolbuttonDeleteDoc"),
                 ],
@@ -1337,22 +1459,37 @@ class MainWindow(object):
             ),
             'del_page' : (
                 [
+                    widget_tree.get_object("menuitemDestroyPage"),
                     widget_tree.get_object("menuitemDestroyPage2"),
                     widget_tree.get_object("buttonDeletePage"),
                 ],
                 ActionDeletePage(self),
             ),
+            'first_page' : (
+                [
+                    widget_tree.get_object("menuitemFirstPage"),
+                ],
+                ActionMovePageIndex(self, False, 0),
+            ),
             'prev_page' : (
                 [
+                    widget_tree.get_object("menuitemPrevPage"),
                     widget_tree.get_object("toolbuttonPrevPage"),
                 ],
-                ActionMovePageIndex(self, -1),
+                ActionMovePageIndex(self, True, -1),
             ),
             'next_page' : (
                 [
+                    widget_tree.get_object("menuitemNextPage"),
                     widget_tree.get_object("toolbuttonNextPage"),
                 ],
-                ActionMovePageIndex(self, 1),
+                ActionMovePageIndex(self, True, 1),
+            ),
+            'last_page' : (
+                [
+                    widget_tree.get_object("menuitemLastPage"),
+                ],
+                ActionMovePageIndex(self, False, -1),
             ),
             'set_current_page' : (
                 [
@@ -1365,6 +1502,36 @@ class MainWindow(object):
                     widget_tree.get_object("comboboxZoom"),
                 ],
                 ActionRebuildPage(self)
+            ),
+            'zoom_in' : (
+                [
+                    widget_tree.get_object("menuitemZoomIn"),
+                ],
+                ActionZoomChange(self, 1)
+            ),
+            'zoom_out' : (
+                [
+                    widget_tree.get_object("menuitemZoomOut"),
+                ],
+                ActionZoomChange(self, -1)
+            ),
+            'zoom_best_fit' : (
+                [
+                    widget_tree.get_object("menuitemZoomBestFit"),
+                ],
+                ActionZoomSet(self, 0.0)
+            ),
+            'zoom_normal' : (
+                [
+                    widget_tree.get_object("menuitemZoomNormal"),
+                ],
+                ActionZoomSet(self, 1.0)
+            ),
+            'start_search' : (
+                [
+                    widget_tree.get_object("menuitemFindTxt"),
+                ],
+                ActionStartSearch(self)
             ),
             'search' : (
                 [
@@ -1383,6 +1550,12 @@ class MainWindow(object):
                     self.show_all_boxes
                 ],
                 ActionRebuildPage(self)
+            ),
+            'show_toolbar' : (
+                [
+                    self.show_toolbar,
+                ],
+                ActionSetToolbarVisibility(self, config),
             ),
             'redo_ocr_doc': (
                 [
@@ -1436,8 +1609,10 @@ class MainWindow(object):
 
         self.need_page_widgets = (
             self.actions['del_page'][0]
+            + self.actions['first_page'][0]
             + self.actions['prev_page'][0]
             + self.actions['next_page'][0]
+            + self.actions['last_page'][0]
             + self.actions['open_export_page_dialog'][0]
         )
 
@@ -1488,16 +1663,14 @@ class MainWindow(object):
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
-                    gobject.idle_add(self.img['image'].set_from_stock,
-                        gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG))
+                    gobject.idle_add(self.__on_img_building_start))
         self.workers['img_builder'].connect('img-building-result-pixbuf',
-                lambda builder, factor, img: \
+                lambda builder, factor, original_width, img: \
                     gobject.idle_add(self.__on_img_building_result_pixbuf,
-                                     builder, factor, img))
+                                     builder, factor, original_width, img))
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
-                    gobject.idle_add(self.img['image'].set_from_stock, img,
-                                     gtk.ICON_SIZE_DIALOG))
+                    gobject.idle_add(self.__on_img_building_result_stock, img))
 
         self.workers['label_updater'].connect('label-updating-start',
                 lambda updater: \
@@ -1565,10 +1738,19 @@ class MainWindow(object):
             list_view.set_sensitive(enabled)
 
     def set_mouse_cursor(self, cursor):
-        self.window.window.set_cursor({
-            "Normal" : None,
-            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
-        }[cursor])
+        offset = {
+            "Normal" : -1,
+            "Busy" : 1
+        }[cursor]
+
+        self.__busy_mouse_counter += offset
+        assert(self.__busy_mouse_counter >= 0)
+
+        if self.__busy_mouse_counter > 0:
+            cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        else:
+            cursor = None
+        self.window.window.set_cursor(cursor)
 
     def set_progression(self, src, progression, text):
         context_id = self.status['text'].get_context_id(str(src))
@@ -1603,6 +1785,32 @@ class MainWindow(object):
 
     def __on_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+
+    def __on_img_building_start(self):
+        self.set_mouse_cursor("Busy")
+        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+
+    def __on_img_building_result_stock(self, img):
+        self.img['image'].set_from_stock(img, gtk.ICON_SIZE_DIALOG)
+        self.set_mouse_cursor("Normal")
+
+    def __on_img_building_result_pixbuf(self, builder, factor, original_width, img):
+        self.img['factor'] = factor
+        self.img['pixbuf'] = img
+        self.img['original_width'] = original_width
+
+        (pixmap, mask) = img.render_pixmap_and_mask()
+
+        show_all = self.show_all_boxes.get_active()
+        if show_all:
+            box_list = self.img['boxes']['all']
+        else:
+            box_list = self.img['boxes']['highlighted']
+        for box in box_list:
+            self.__draw_box(pixmap, box)
+
+        self.img['image'].set_from_pixmap(pixmap, mask)
         self.set_mouse_cursor("Normal")
 
     def __on_window_resize_cb(self, window, allocation):
@@ -1698,22 +1906,6 @@ class MainWindow(object):
         if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
             return
         popup_menu.popup(None, None, None, event.button, event.time)
-
-    def __on_img_building_result_pixbuf(self, builder, factor, img):
-        self.img['factor'] = factor
-        self.img['pixbuf'] = img
-
-        (pixmap, mask) = img.render_pixmap_and_mask()
-
-        show_all = self.show_all_boxes.get_active()
-        if show_all:
-            box_list = self.img['boxes']['all']
-        else:
-            box_list = self.img['boxes']['highlighted']
-        for box in box_list:
-            self.__draw_box(pixmap, box)
-
-        self.img['image'].set_from_pixmap(pixmap, mask)
 
     def __get_box_position(self, box, window=None, width=1):
         ((a, b), (c, d)) = box.position
@@ -1853,10 +2045,10 @@ class MainWindow(object):
             ])
         self.indicators['total_pages'].set_text(
                 _("/ %d") % (self.doc.nb_pages))
-        for widget in self.need_page_widgets:
-            widget.set_sensitive(False)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
+        for widget in self.need_page_widgets:
+            widget.set_sensitive(False)
 
     def refresh_label_list(self):
         """
@@ -1898,6 +2090,8 @@ class MainWindow(object):
         # TODO(Jflesch): We should not make assumption regarding
         # the page position in the list
         self.lists['pages'][0].select_path(page.page_nb)
+        self.lists['pages'][0].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+
         self.indicators['current_page'].set_text(
                 "%d" % (page.page_nb + 1))
 
@@ -1936,6 +2130,23 @@ class MainWindow(object):
         (pixmap, mask) = pixbuf.render_pixmap_and_mask()
         self.img['image'].set_from_pixmap(pixmap, mask)
         self.img['boxes']['can_draw'] = False
+
+    def __get_img_area_width(self):
+        width = self.img['scrollbar'].get_allocation().width
+        # TODO(JFlesch): This is not a safe assumption:
+        width -= 30
+        return width
+
+    def get_zoom_factor(self, pixbuf_width=None):
+        el_idx = self.lists['zoom_levels'][0].get_active()
+        el_iter = self.lists['zoom_levels'][1].get_iter(el_idx)
+        factor = self.lists['zoom_levels'][1].get_value(el_iter, 1)
+        if factor != 0.0:
+            return factor
+        wanted_width = self.__get_img_area_width()
+        if pixbuf_width == None:
+            pixbuf_width = self.img['original_width']
+        return float(wanted_width) / pixbuf_width
 
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)

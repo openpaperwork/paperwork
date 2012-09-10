@@ -135,6 +135,7 @@ class WorkerThumbnailer(Worker):
             img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
+                self.emit('thumbnailing-end')
                 return
             self.emit('thumbnailing-page-done', page_idx, pixbuf)
         self.emit('thumbnailing-end')

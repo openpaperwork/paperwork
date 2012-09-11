@@ -119,13 +119,6 @@ class DocSearch(object):
         else:
             self.__keywords_to_docs[keyword] = [doc]
 
-    def __index_page(self, page):
-        """
-        Add the keywords from a new page to self.__keywords_to_docs
-        """
-        for keyword in page.keywords:
-            self.__index_keyword(page.doc, keyword)
-
     def __index_doc(self, doc):
         """
         Add the keywords from the document to self.__keywords_to_docs
@@ -216,7 +209,8 @@ class DocSearch(object):
         if not page.doc in self.docs:
             self.docs.append(page.doc)
             self.docs.sort()
-        self.__index_page(page)
+        for keyword in page.keywords:
+            self.__index_keyword(page.doc, keyword)
         # remake these two:
         self.__extract_keywords(dummy_progress_cb)
 

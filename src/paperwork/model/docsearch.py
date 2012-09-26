@@ -457,7 +457,7 @@ class DocSearch(object):
             while (len(threads) < max_threads and len(remaining) > 0):
                 docid = remaining.pop()
                 docpath = os.path.join(self.rootdir, docid)
-                doc = get_doc(docpath, docid)
+                doc = self.get_doc(docpath, docid)
                 if doc == None:
                     continue
                 thread = threading.Thread(target=doc.redo_ocr,

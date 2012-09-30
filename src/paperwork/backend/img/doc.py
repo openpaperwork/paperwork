@@ -9,6 +9,7 @@ import os.path
 import time
 
 import cairo
+import gio
 import Image
 import poppler
 
@@ -164,6 +165,11 @@ class ImgDoc(BasicDoc):
     """
     Represents a document (aka a set of pages + labels).
     """
+    IMPORT_IMG_EXTENSIONS = [
+        ".jpg",
+        ".jpeg",
+        ".png"
+    ]
     can_edit = True
 
     def __init__(self, docpath, docid=None):
@@ -197,6 +203,18 @@ class ImgDoc(BasicDoc):
 
     nb_pages = property(__get_nb_pages)
 
+    def __add_img(self, img, ocrlang, resolution=0, scanner_calibration=None,
+                  callback=dummy_progress_cb):
+        try:
+            os.makedirs(self.path)
+        except OSError:
+            pass
+
+        page_nb = self.nb_pages
+        page = ImgPage(self, page_nb)
+        page.make(img, ocrlang, resolution,
+                  scanner_calibration, callback)
+
     def scan_single_page(self, scan_src, resolution,
                          ocrlang, scanner_calibration,
                          callback=dummy_progress_cb):
@@ -218,16 +236,12 @@ class ImgDoc(BasicDoc):
         except EOFError:
             pass
         img = scan_src.get_img(nb_pages)
+        self.__add_img(img, ocrlang, resolution, scanner_calibration, callback)
 
-        try:
-            os.makedirs(self.path)
-        except OSError:
-            pass
-
-        page_nb = self.nb_pages
-        page = ImgPage(self, page_nb)
-        page.make(img, ocrlang, resolution,
-                  scanner_calibration, callback)
+    def import_image(self, file_uri, ocrlang):
+        img_fp = gio.File(file_uri).read()
+        img = Image.open(img_fp)
+        self.__add_img(img, ocrlang)
 
     def __get_pages(self):
         """

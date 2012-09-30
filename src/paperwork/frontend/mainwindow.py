@@ -776,7 +776,7 @@ class ActionImport(SimpleAction):
         print "Import: %s" % file_uri
         return file_uri
 
-    def select_importer(self, importers):
+    def __select_importer(self, importers):
         widget_tree = load_uifile("import_select.glade")
         combobox = widget_tree.get_object("comboboxImportAction")
         importer_list = widget_tree.get_object("liststoreImportAction")
@@ -819,7 +819,7 @@ class ActionImport(SimpleAction):
             return
 
         if len(importers) > 1:
-            importer = select_importers(importers)
+            importer = self.__select_importers(importers)
         else:
             importer = importers[0]
         doc = importer.import_doc(file_uri, self.__config,

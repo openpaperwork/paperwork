@@ -3,6 +3,7 @@ import gio
 import poppler
 
 from paperwork.backend.pdf.doc import PdfDoc
+from paperwork.backend.img.doc import ImgDoc
 
 _ = gettext.gettext
 
@@ -83,8 +84,28 @@ class MultiplePdfImporter(object):
         return _("Import each PDF in the folder as a new document")
 
 
+class SingleImageImporter(object):
+    def __init__(self):
+        pass
+
+    def can_import(self, file_uri, current_doc=None):
+        for ext in ImgDoc.IMPORT_IMG_EXTENSIONS:
+            if file_uri.lower().endswith(ext):
+                return True
+        return False
+
+    def import_doc(self, file_uri, config, docsearch, current_doc=None):
+        if current_doc == None:
+            current_doc = ImgDoc(config.workdir)
+        current_doc.import_image(file_uri, config.ocrlang)
+        page = current_doc.pages[current_doc.nb_pages]
+        docsearch.index_page(page)
+        return current_doc
+
+
 IMPORTERS = [
     SinglePdfImporter(),
+    SingleImageImporter(),
     MultiplePdfImporter(),
 ]
 

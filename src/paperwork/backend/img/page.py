@@ -125,7 +125,7 @@ class ImgPage(BasicPage):
         img = img.resize((int(w), int(h)))
         return img
 
-    def __save_imgs(self, img, scan_res, scanner_calibration,
+    def __save_imgs(self, img, scan_res=0, scanner_calibration=None,
                     callback=dummy_progress_cb):
         """
         Make a page (on disk), and generate 4 output files:
@@ -137,7 +137,7 @@ class ImgPage(BasicPage):
         print "Scanner calibration: %s" % (str(scanner_calibration))
         print ("Calibration resolution: %d" %
                (PaperworkConfig.CALIBRATION_RESOLUTION))
-        if scanner_calibration != None:
+        if scan_res != 0 and scanner_calibration != None:
             cropping = (scanner_calibration[0][0]
                         * scan_res
                         / PaperworkConfig.CALIBRATION_RESOLUTION,
@@ -152,6 +152,10 @@ class ImgPage(BasicPage):
                         / PaperworkConfig.CALIBRATION_RESOLUTION)
             print "Cropping: %s" % (str(cropping))
             img = img.crop(cropping)
+
+        # strip the alpha channel if there is one
+        color_channels = img.split()
+        img = Image.merge("RGB", color_channels[:3])
 
         outfiles = []
         for rotation in range(0, 2):
@@ -238,7 +242,7 @@ class ImgPage(BasicPage):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def make(self, img, ocrlang, scan_res, scanner_calibration,
+    def make(self, img, ocrlang, scan_res=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
         """
         Scan the page & do OCR

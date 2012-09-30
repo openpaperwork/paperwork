@@ -426,6 +426,7 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.lists['matches'][0].get_selection().unselect_all()
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         doc = ImgDoc(self.__config.workdir)
@@ -1976,7 +1977,6 @@ class MainWindow(object):
         self.workers['thumbnailer'].start()
         if doc != None:
             self.show_doc(doc)
-
         self.refresh_doc_list()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
@@ -2096,7 +2096,12 @@ class MainWindow(object):
         documents = reversed(documents)
 
         self.lists['matches'][1].clear()
+        active_idx = -1
+        idx = 0
         for doc in documents:
+            if doc == self.doc:
+                active_idx = idx
+            idx += 1
             labels = doc.labels
             final_str = "%s" % (doc.name)
             nb_pages = doc.nb_pages
@@ -2106,6 +2111,14 @@ class MainWindow(object):
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
             self.lists['matches'][1].append([final_str, doc])
+
+        if active_idx >= 0:
+            self.lists['matches'][0].get_selection().unselect_all()
+            self.lists['matches'][0].get_selection().select_path(active_idx)
+            self.lists['matches'][0].scroll_to_cell(active_idx)
+        else:
+            self.lists['matches'][0].get_selection().unselect_all()
+
 
     def refresh_page_list(self):
         """

@@ -848,6 +848,9 @@ class ActionImport(SimpleAction):
             importer = self.__select_importers(importers)
         else:
             importer = importers[0]
+
+        gtk.RecentManager().add_item(file_uri)
+
         self.__main_win.workers['importer'].start(
             importer=importer, file_uri = file_uri)
 

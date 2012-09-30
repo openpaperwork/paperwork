@@ -791,7 +791,6 @@ class ActionImport(SimpleAction):
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
-        dialog.set_current_folder(self.__config.workdir)
 
         response = dialog.run()
         if response != 0:

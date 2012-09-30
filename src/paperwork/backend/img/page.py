@@ -13,9 +13,9 @@ import gtk
 import pyocr.builders
 import pyocr.pyocr
 
-from paperwork.model.common.page import BasicPage
-from paperwork.model.common.page import PageExporter
-from paperwork.model.config import PaperworkConfig
+from paperwork.backend.common.page import BasicPage
+from paperwork.backend.common.page import PageExporter
+from paperwork.backend.config import PaperworkConfig
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
 

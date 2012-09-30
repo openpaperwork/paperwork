@@ -4,8 +4,8 @@ import os
 import os.path
 import time
 
-from paperwork.model.common.page import BasicPage
-from paperwork.model.labels import Label
+from paperwork.backend.common.page import BasicPage
+from paperwork.backend.labels import Label
 from paperwork.util import dummy_progress_cb
 
 

@@ -12,8 +12,8 @@ import cairo
 import Image
 import poppler
 
-from paperwork.model.common.doc import BasicDoc
-from paperwork.model.img.page import ImgPage
+from paperwork.backend.common.doc import BasicDoc
+from paperwork.backend.img.page import ImgPage
 from paperwork.util import dummy_progress_cb
 from paperwork.util import surface2image
 from paperwork.util import image2surface

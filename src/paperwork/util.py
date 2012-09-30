@@ -22,7 +22,7 @@ MIN_KEYWORD_LEN = 3
 
 UI_FILES_DIRS = [
     ".",
-    "src/paperwork/view",
+    "src/paperwork/frontend",
     "/usr/local/share/paperwork",
     "/usr/share/paperwork",
 ]

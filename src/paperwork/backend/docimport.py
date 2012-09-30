@@ -2,7 +2,7 @@ import gettext
 import gio
 import poppler
 
-from paperwork.model.pdf.doc import PdfDoc
+from paperwork.backend.pdf.doc import PdfDoc
 
 _ = gettext.gettext
 

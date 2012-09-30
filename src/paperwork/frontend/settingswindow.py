@@ -16,10 +16,10 @@ import pyocr.pyocr as pyocr
 
 import pyinsane.abstract_th as pyinsane
 
-from paperwork.model.config import PaperworkConfig
-from paperwork.controller.actions import SimpleAction
-from paperwork.controller.workers import Worker
-from paperwork.controller.workers import WorkerProgressUpdater
+from paperwork.backend.config import PaperworkConfig
+from paperwork.frontend.actions import SimpleAction
+from paperwork.frontend.workers import Worker
+from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -211,7 +211,7 @@ class WorkerDeviceFinder(Worker):
         Returns:
             A string
         """
-        return ("%s %s" % (dev.vendor, dev.model))
+        return ("%s %s" % (dev.vendor, dev.backend))
 
     def do(self):
         self.emit("device-finding-start")

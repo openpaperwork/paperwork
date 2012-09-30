@@ -16,8 +16,8 @@ import pygtk
 
 import pyinsane.abstract_th  # Just to start the Sane thread
 
-from controller.mainwindow import MainWindow
-from model.config import PaperworkConfig
+from frontend.mainwindow import MainWindow
+from backend.config import PaperworkConfig
 
 pygtk.require("2.0")
 

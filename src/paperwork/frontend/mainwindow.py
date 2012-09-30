@@ -13,18 +13,18 @@ import gobject
 
 import pyinsane.rawapi
 
-from paperwork.controller.aboutdialog import AboutDialog
-from paperwork.controller.actions import SimpleAction
-from paperwork.controller.multiscan import MultiscanDialog
-from paperwork.controller.settingswindow import SettingsWindow
-from paperwork.controller.workers import Worker
-from paperwork.controller.workers import WorkerProgressUpdater
-from paperwork.model import docimport
-from paperwork.model.docsearch import DocSearch
-from paperwork.model.docsearch import DummyDocSearch
-from paperwork.model.img.doc import ImgDoc
-from paperwork.model.img.page import ImgPage
-from paperwork.model.labels import LabelEditor
+from paperwork.frontend.aboutdialog import AboutDialog
+from paperwork.frontend.actions import SimpleAction
+from paperwork.frontend.multiscan import MultiscanDialog
+from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.workers import Worker
+from paperwork.frontend.workers import WorkerProgressUpdater
+from paperwork.backend import docimport
+from paperwork.backend.docsearch import DocSearch
+from paperwork.backend.docsearch import DummyDocSearch
+from paperwork.backend.img.doc import ImgDoc
+from paperwork.backend.img.page import ImgPage
+from paperwork.backend.labels import LabelEditor
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile

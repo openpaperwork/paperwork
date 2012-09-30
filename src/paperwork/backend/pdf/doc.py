@@ -3,8 +3,8 @@ import os
 import poppler
 import shutil
 
-from paperwork.model.common.doc import BasicDoc
-from paperwork.model.pdf.page import PdfPage
+from paperwork.backend.common.doc import BasicDoc
+from paperwork.backend.pdf.page import PdfPage
 
 
 PDF_FILENAME = "doc.pdf"

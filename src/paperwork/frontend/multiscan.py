@@ -2,11 +2,11 @@ import gettext
 import gobject
 import gtk
 
-from paperwork.controller.actions import SimpleAction
-from paperwork.controller.workers import Worker
-from paperwork.controller.workers import WorkerQueue
-from paperwork.model.img.doc import ImgDoc
-from paperwork.model.img.page import ImgPage
+from paperwork.frontend.actions import SimpleAction
+from paperwork.frontend.workers import Worker
+from paperwork.frontend.workers import WorkerQueue
+from paperwork.backend.img.doc import ImgDoc
+from paperwork.backend.img.page import ImgPage
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
 

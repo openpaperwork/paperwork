@@ -8,10 +8,10 @@ import os.path
 import time
 import threading
 
-from paperwork.model.img.doc import ImgDoc
-from paperwork.model.img.doc import is_img_doc
-from paperwork.model.pdf.doc import PdfDoc
-from paperwork.model.pdf.doc import is_pdf_doc
+from paperwork.backend.img.doc import ImgDoc
+from paperwork.backend.img.doc import is_img_doc
+from paperwork.backend.pdf.doc import PdfDoc
+from paperwork.backend.pdf.doc import is_pdf_doc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import split_words

@@ -4,7 +4,7 @@ import os
 import pyocr.builders
 import pyocr.pyocr
 
-from paperwork.model.common.page import BasicPage
+from paperwork.backend.common.page import BasicPage
 from paperwork.util import surface2image
 
 

@@ -776,6 +776,22 @@ class ActionImport(SimpleAction):
         print "Import: %s" % file_uri
         return file_uri
 
+    def select_importer(self, importers):
+        widget_tree = load_uifile("import_select.glade")
+        combobox = widget_tree.get_object("comboboxImportAction")
+        importer_list = widget_tree.get_object("liststoreImportAction")
+        dialog = widget_tree.get_object("dialogImportSelect")
+
+        importer_list.clear()
+        for importer in importers:
+            importer_list.append([str(importer), importer])
+
+        response = dialog.run()
+        if not response:
+            raise Exception("Import cancelled by user")
+
+        active_idx = combobox.get_active()
+        return import_list[active_idx][1]
 
     def do(self):
         SimpleAction.do(self)
@@ -802,9 +818,11 @@ class ActionImport(SimpleAction):
             dialog.destroy()
             return
 
-        # TODO(Jflesch): Handle multiple importers !
-        assert(len(importers) == 1)
-        doc = importers[0].import_doc(file_uri, self.__config,
+        if len(importers) > 1:
+            importer = select_importers(importers)
+        else:
+            importer = importers[0]
+        doc = importer.import_doc(file_uri, self.__config,
                                       self.__main_win.docsearch,
                                       self.__main_win.doc)
         self.__main_win.show_doc(doc)

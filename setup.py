@@ -27,6 +27,7 @@ setup(name="Paperwork",
           ('share/paperwork', [
             'src/paperwork/frontend/aboutdialog.glade',
             'src/paperwork/frontend/import.glade',
+            'src/paperwork/frontend/import_select.glade',
             'src/paperwork/frontend/mainwindow.glade',
             'src/paperwork/frontend/multiscan.glade',
             'src/paperwork/frontend/settingswindow.glade',

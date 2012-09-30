@@ -360,6 +360,32 @@ class WorkerSingleScan(Worker):
 gobject.type_register(WorkerSingleScan)
 
 
+class WorkerImporter(Worker):
+    __gsignals__ = {
+        'import-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'import-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                              (gobject.TYPE_PYOBJECT,) # ImgDoc
+                             ),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window, config):
+        Worker.__init__(self, "Importing file")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self, importer, file_uri):
+        self.emit('import-start')
+        doc = importer.import_doc(file_uri, self.__config,
+                                  self.__main_win.docsearch,
+                                  self.__main_win.doc)
+        self.emit('import-done', doc)
+
+
+gobject.type_register(WorkerImporter)
+
+
 class WorkerExportPreviewer(Worker):
     __gsignals__ = {
         'export-preview-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
@@ -822,11 +848,8 @@ class ActionImport(SimpleAction):
             importer = self.__select_importers(importers)
         else:
             importer = importers[0]
-        doc = importer.import_doc(file_uri, self.__config,
-                                      self.__main_win.docsearch,
-                                      self.__main_win.doc)
-        self.__main_win.show_doc(doc)
-        self.__main_win.refresh_doc_list()
+        self.__main_win.workers['importer'].start(
+            importer=importer, file_uri = file_uri)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1329,6 +1352,7 @@ class MainWindow(object):
             'label_updater' : WorkerLabelUpdater(self),
             'label_deleter' : WorkerLabelDeleter(self),
             'single_scan' : WorkerSingleScan(self, config),
+            'importer' : WorkerImporter(self, config),
             'progress_updater' : WorkerProgressUpdater(
                 "main window progress bar", self.status['progress']),
             'ocr_redoer' : WorkerOCRRedoer(self, config),
@@ -1740,6 +1764,13 @@ class MainWindow(object):
                 lambda worker, page: \
                     gobject.idle_add(self.__on_single_scan_done, worker, page))
 
+        self.workers['importer'].connect('import-start',
+                lambda worker: \
+                    gobject.idle_add(self.__on_import_start, worker))
+        self.workers['importer'].connect('import-done',
+                lambda worker, doc: \
+                    gobject.idle_add(self.__on_import_done, worker, doc))
+
         self.workers['export_previewer'].connect('export-preview-start',
                 lambda worker: \
                     gobject.idle_add(self.__on_export_preview_start))
@@ -1917,6 +1948,34 @@ class MainWindow(object):
 
         if page != None:
             self.show_page(page)
+
+        self.refresh_doc_list()
+
+    def __on_import_start(self, src):
+        self.set_progression(src, 0.0, _("Importing ..."))
+        self.set_mouse_cursor("Busy")
+        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.workers['progress_updater'].start(
+            value_min=0.0, value_max=1.0,
+            total_time=self.__config.scan_time['ocr'])
+        self.__scan_start = time.time()
+
+    def __on_import_done(self, src, doc):
+        scan_stop = time.time()
+        self.workers['progress_updater'].stop()
+        # Note: don't update scan time here : OCR is not required for all
+        # imports
+
+        for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+
+        self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+        self.workers['thumbnailer'].stop()
+        self.refresh_page_list()
+        self.workers['thumbnailer'].start()
+        if doc != None:
+            self.show_doc(doc)
 
         self.refresh_doc_list()
 
@@ -2125,9 +2184,6 @@ class MainWindow(object):
         self.img['boxes']['can_draw'] = True
 
         self.workers['img_builder'].start()
-        # TODO(Jflesch): Move the vertical scrollbar of the page list
-        # up to the selected value
-
 
     def show_doc(self, doc):
         self.workers['thumbnailer'].stop()

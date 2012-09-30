@@ -102,6 +102,9 @@ class SingleImageImporter(object):
         docsearch.index_page(page)
         return current_doc
 
+    def __str__(self):
+        return _("Append the image to the current document")
+
 
 IMPORTERS = [
     SinglePdfImporter(),

@@ -109,7 +109,7 @@ Enjoy :-)
 
 ## Contact
 
-* Mailing-list: [paperwork-gui@googlegroups.com](mailto:paperwork-gui@googlegroups.com)
+* Mailing-list: [paperwork-gui@googlegroups.com](https://groups.google.com/d/forum/paperwork-gui)
 * Bug tracker: [https://github.com/jflesch/paperwork/issues](https://github.com/jflesch/paperwork/issues)
 
 ## Development

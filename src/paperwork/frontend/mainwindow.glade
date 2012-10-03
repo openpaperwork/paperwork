@@ -715,6 +715,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="model">liststoreMatch</property>
+                            <property name="headers_clickable">False</property>
                             <property name="rules_hint">True</property>
                             <property name="search_column">0</property>
                             <child internal-child="selection">

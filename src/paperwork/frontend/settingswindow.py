@@ -211,7 +211,7 @@ class WorkerDeviceFinder(Worker):
         Returns:
             A string
         """
-        return ("%s %s" % (dev.vendor, dev.backend))
+        return ("%s %s" % (dev.vendor, dev.model))
 
     def do(self):
         self.emit("device-finding-start")

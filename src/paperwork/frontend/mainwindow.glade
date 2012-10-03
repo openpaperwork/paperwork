@@ -725,7 +725,6 @@
                               <object class="GtkTreeViewColumn" id="treeviewcolumnDocument">
                                 <property name="title">Documents</property>
                                 <property name="clickable">True</property>
-                                <property name="sort_column_id">0</property>
                                 <child>
                                   <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf2"/>
                                   <attributes>

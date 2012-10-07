@@ -1,3 +1,20 @@
+#    Paperwork - Using OCR to grep dead trees the easy way
+#    Copyright (C) 2012  Jerome Flesch
+#    Copyright (C) 2012  Sebastien Maccagnoni-Munch
+#
+#    Paperwork is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Paperwork is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 Code relative to page handling.
 """
@@ -29,6 +46,7 @@ class ImgPage(BasicPage):
     EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
+    EXT_THUMB = "thumb.jpg"
 
     KEYWORD_HIGHLIGHT = 3
 
@@ -71,6 +89,14 @@ class ImgPage(BasicPage):
         return self.__get_filepath(self.EXT_IMG)
 
     __img_path = property(__get_img_path)
+
+    def __get_thumb_path(self):
+        """
+        Returns the file path of the thumbnail corresponding to this page
+        """
+        return self.__get_filepath(self.EXT_THUMB)
+
+    __thumb_path = property(__get_thumb_path)
 
     def __get_text(self):
         """
@@ -116,14 +142,37 @@ class ImgPage(BasicPage):
 
     img = property(__get_img)
 
-    def get_thumbnail(self, width):
+    def __make_thumbnail(self, width):
+        """
+        Create the page's thumbnail
+        """
         img = self.img
         (w, h) = img.size
         factor = (float(w) / width)
         w = width
         h /= factor
-        img = img.resize((int(w), int(h)))
+        img = img.resize((int(w), int(h)), Image.ANTIALIAS)
+        img.save(self.__thumb_path)
         return img
+
+    def __get_thumbnail(self):
+        """
+        Returns an image object corresponding to the last saved thumbnail
+        """
+        return Image.open(self.__thumb_path)
+
+    def get_thumbnail(self, width):
+        """
+        Returns an image object corresponding to the up-to-date thumbnail
+        """
+        try:
+            if os.path.getmtime(self.__img_path) > \
+               os.path.getmtime(self.__thumb_path):
+                return self.__make_thumbnail(width)
+            else:
+                return self.__get_thumbnail()
+        except:
+            return self.__make_thumbnail(width)
 
     def __save_imgs(self, img, scan_res=0, scanner_calibration=None,
                     callback=dummy_progress_cb):

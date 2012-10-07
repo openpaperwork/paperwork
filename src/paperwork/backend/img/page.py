@@ -138,7 +138,7 @@ class ImgPage(BasicPage):
         img.save(self.__thumb_path, 'JPEG')
         return img
 
-    def __get_thumbnail(self, thumbsize):
+    def __get_thumbnail(self):
         """
         Returns an image object corresponding to the last saved thumbnail
         """
@@ -153,7 +153,7 @@ class ImgPage(BasicPage):
                os.path.getmtime(self.__thumb_path):
                 return self.__make_thumbnail(width)
             else:
-                return self.__get_thumbnail(width)
+                return self.__get_thumbnail()
         except:
             return self.__make_thumbnail(width)
 

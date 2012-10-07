@@ -46,7 +46,7 @@ class ImgPage(BasicPage):
     EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
-    EXT_THUMB = "thumb"
+    EXT_THUMB = "thumb.jpg"
 
     KEYWORD_HIGHLIGHT = 3
 
@@ -152,7 +152,7 @@ class ImgPage(BasicPage):
         w = width
         h /= factor
         img = img.resize((int(w), int(h)), Image.ANTIALIAS)
-        img.save(self.__thumb_path, 'JPEG')
+        img.save(self.__thumb_path)
         return img
 
     def __get_thumbnail(self):

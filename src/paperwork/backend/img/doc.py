@@ -1,5 +1,6 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
 #    Copyright (C) 2012  Jerome Flesch
+#    Copyright (C) 2012  Sebastien Maccagnoni-Munch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -206,6 +207,7 @@ class ImgDoc(BasicDoc):
             count = 0
             for filename in filelist:
                 if (filename[-4:].lower() != "." + ImgPage.EXT_IMG
+                    or (filename[-10:].lower() == "." + ImgPage.EXT_THUMB)
                     or (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
                         ImgPage.FILE_PREFIX)):
                     continue

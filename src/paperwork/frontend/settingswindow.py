@@ -1,3 +1,18 @@
+#    Paperwork - Using OCR to grep dead trees the easy way
+#    Copyright (C) 2012  Jerome Flesch
+#
+#    Paperwork is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Paperwork is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 """
 Settings window.
 """
@@ -73,7 +88,7 @@ class CalibrationGrip(object):
         Arguments:
             position --- tuple (int, int)
             ratio --- Scale at which the image is represented
-        
+
         Returns:
             True or False
         """
@@ -222,7 +237,7 @@ class WorkerDeviceFinder(Worker):
             for device in devices:
                 selected = (self.__selected_devid == device.name)
                 name = self.__get_dev_name(device)
-                print "Device found: [%s] -> [%s]" % (name, device.name) 
+                print "Device found: [%s] -> [%s]" % (name, device.name)
                 sys.stdout.flush()
                 self.emit('device-found', name, device.name, selected)
         finally:

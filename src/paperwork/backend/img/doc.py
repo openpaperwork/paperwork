@@ -1,3 +1,19 @@
+#    Paperwork - Using OCR to grep dead trees the easy way
+#    Copyright (C) 2012  Jerome Flesch
+#    Copyright (C) 2012  Sebastien Maccagnoni-Munch
+#
+#    Paperwork is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Paperwork is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 """
 Code for managing documents (not page individually ! see page.py for that)
 """
@@ -191,6 +207,7 @@ class ImgDoc(BasicDoc):
             count = 0
             for filename in filelist:
                 if (filename[-4:].lower() != "." + ImgPage.EXT_IMG
+                    or (filename[-10:].lower() == "." + ImgPage.EXT_THUMB)
                     or (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
                         ImgPage.FILE_PREFIX)):
                     continue

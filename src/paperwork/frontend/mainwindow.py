@@ -1,3 +1,20 @@
+#    Paperwork - Using OCR to grep dead trees the easy way
+#    Copyright (C) 2012  Jerome Flesch
+#    Copyright (C) 2012  Sebastien Maccagnoni-Munch
+#
+#    Paperwork is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    Paperwork is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
+
 from copy import copy
 import os
 import sys
@@ -129,8 +146,6 @@ class WorkerThumbnailer(Worker):
     def do(self):
         self.emit('thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
-            # give some time to the GUI to breath
-            time.sleep(0.3)
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
@@ -177,7 +192,7 @@ class WorkerImgBuilder(Worker):
         time.sleep(0.25) # to keep the GUI smooth
         if not self.can_run:
             self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
-            return 
+            return
 
         try:
             img = self.__main_win.page.img
@@ -497,7 +512,7 @@ class ActionUpdateSearchResults(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Update search results")
         self.__main_win = main_window
-    
+
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
@@ -512,7 +527,7 @@ class ActionUpdateSearchResults(SimpleAction):
 
 class ActionPageSelected(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, 
+        SimpleAction.__init__(self,
                 "Show a page (selected from the thumbnail list)")
         self.__main_win = main_window
 
@@ -1166,7 +1181,7 @@ class ActionAbout(SimpleAction):
     def do(self):
         about = AboutDialog(self.__main_win.window)
         about.show()
-        
+
 
 class ActionQuit(SimpleAction):
     """
@@ -2024,7 +2039,7 @@ class MainWindow(object):
                                     x=img_a-i, y=img_b-i,
                                     width=(img_c-img_a+(2*i)),
                                     height=(img_d-img_b+(2*i)))
-    
+
     def __undraw_box(self, drawable, box):
         ((img_a, img_b), (img_c, img_d)) = \
                 self.__get_box_position(box, window=drawable, width=5)

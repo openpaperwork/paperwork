@@ -575,8 +575,9 @@ class SettingsWindow(gobject.GObject):
         else:
             ocr_langs = ocr_tools[0].get_available_languages()
         ocr_langs = self.__get_short_to_long_langs(ocr_langs)
+        ocr_langs.sort(key=lambda lang: lang[1])
         self.ocr_settings['lang']['store'].clear()
-        for (short_lang, long_lang) in ocr_langs.iteritems():
+        for (short_lang, long_lang) in ocr_langs:
             self.ocr_settings['lang']['store'].append([long_lang, short_lang])
 
         for action in ["apply", "cancel", "select_scanner", "scan_calibration"]:
@@ -650,10 +651,9 @@ class SettingsWindow(gobject.GObject):
             well)
 
         Returns:
-            A dictionnary: Keys are the short languages name, values are the
-            corresponding long languages names.
+            Tuples: (short name, long name)
         """
-        long_langs = {}
+        langs = []
         for short_lang in short_langs:
             try:
                 try:
@@ -666,14 +666,14 @@ class SettingsWindow(gobject.GObject):
                 long_lang = country.name
                 if extra != None:
                     long_lang += " (%s)" % (extra)
-                long_langs[short_lang] = long_lang
+                langs.append((short_lang, long_lang))
             except KeyError, exc:
                 print ("Warning: Long name not found for language '%s'."
                        % (short_lang))
                 print ("  Exception was: %s" % (str(exc)))
                 print ("  Will use short name as long name.")
-                long_langs[short_lang] = short_lang
-        return long_langs
+                langs.append((short_lang, short_lang))
+        return langs
 
     def __on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)

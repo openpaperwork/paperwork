@@ -640,6 +640,13 @@ class SettingsWindow(gobject.GObject):
 
         self.window.set_visible(True)
 
+        # Must be connected after the window has been displayed.
+        # Otherwise, if "disable OCR" is already selected in the config
+        # it will display a warning popup even before the dialog has been
+        # displayed
+        self.ocr_settings['lang']['gui'].connect(
+            "changed", self.__on_ocr_lang_changed)
+
         self.workers['device_finder'].start()
 
     @staticmethod
@@ -676,6 +683,20 @@ class SettingsWindow(gobject.GObject):
                 print ("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))
         return langs
+
+    def __on_ocr_lang_changed(self, combobox):
+        idx = self.ocr_settings['lang']['gui'].get_active()
+        lang = self.ocr_settings['lang']['store'][idx][1]
+        if lang == None:
+            msg = _("Without OCR, Paperwork will not be able to guess"
+                    " automatically page orientation")
+            dialog = gtk.MessageDialog(self.window,
+                                       flags=gtk.DIALOG_MODAL,
+                                       type=gtk.MESSAGE_WARNING,
+                                       buttons=gtk.BUTTONS_OK,
+                                       message_format=msg)
+            dialog.run()
+            dialog.destroy()
 
     def __on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)

@@ -278,7 +278,7 @@ class ImgPage(BasicPage):
             score = self.__compute_ocr_score(txt)
             scores.append((score, imgpath, txt))
 
-        # Note: we want the higher first
+        # We want the higher score first
         scores.sort(cmp=lambda x, y: self.__compare_score(y[0], x[0]))
 
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
@@ -291,7 +291,7 @@ class ImgPage(BasicPage):
 
         return (scores[0][1], scores[0][2], boxes)
 
-    def make(self, img, ocrlang, scan_res=0, scanner_calibration=None,
+    def make(self, img, ocrlang=None, scan_res=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
         """
         Scan the page & do OCR
@@ -304,7 +304,10 @@ class ImgPage(BasicPage):
         outfiles = self.__save_imgs(img, scan_res, scanner_calibration,
                                     callback)
         callback(0, 100, self.SCAN_STEP_OCR)
-        (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
+        if ocrlang is None:
+            (bmpfile, txt, boxes) = (outfiles[0], "", [])
+        else:
+            (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
 
         # Convert the image and save it in its final place
         img = Image.open(bmpfile)

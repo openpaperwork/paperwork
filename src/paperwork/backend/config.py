@@ -132,14 +132,20 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            return self._configparser.get("OCR", "Lang")
+            ocrlang = self._configparser.get("OCR", "Lang")
+            if ocrlang == "None":
+                return None
+            return ocrlang
         except ConfigParser.NoOptionError:
+            # TODO(Jflesch): default to the system locale
             return "eng"
 
     def __set_ocrlang(self, lang):
         """
         Set the OCR lang
         """
+        if lang == None:
+            lang = "None"
         self._configparser.set("OCR", "Lang", lang)
 
     ocrlang = property(__get_ocrlang, __set_ocrlang)

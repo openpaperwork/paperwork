@@ -220,7 +220,7 @@ class ImgDoc(BasicDoc):
 
     nb_pages = property(__get_nb_pages)
 
-    def __add_img(self, img, ocrlang, resolution=0, scanner_calibration=None,
+    def __add_img(self, img, ocrlang=None, resolution=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
         try:
             os.makedirs(self.path)
@@ -233,7 +233,7 @@ class ImgDoc(BasicDoc):
                   scanner_calibration, callback)
 
     def scan_single_page(self, scan_src, resolution,
-                         ocrlang, scanner_calibration,
+                         scanner_calibration, ocrlang=None,
                          callback=dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document

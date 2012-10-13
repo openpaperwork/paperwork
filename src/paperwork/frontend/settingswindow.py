@@ -1,4 +1,4 @@
-#    Paperwork - Using OCR to grep dead trees the easy way
+#   Paperwork - Using OCR to grep dead trees the easy way
 #    Copyright (C) 2012  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
@@ -576,6 +576,8 @@ class SettingsWindow(gobject.GObject):
             ocr_langs = ocr_tools[0].get_available_languages()
         ocr_langs = self.__get_short_to_long_langs(ocr_langs)
         ocr_langs.sort(key=lambda lang: lang[1])
+        ocr_langs.insert(0, (None, _("Disable OCR")))
+
         self.ocr_settings['lang']['store'].clear()
         for (short_lang, long_lang) in ocr_langs:
             self.ocr_settings['lang']['store'].append([long_lang, short_lang])

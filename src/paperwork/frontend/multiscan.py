@@ -66,8 +66,8 @@ class DocScanWorker(Worker):
             self.emit('scan-start', self.current_page, self.nb_pages)
             self.doc.scan_single_page(scan_src,
                                       self.__config.scanner_resolution,
-                                      self.__config.ocrlang,
                                       self.__config.scanner_calibration,
+                                      self.__config.ocrlang,
                                       self.__progress_cb)
             page = self.doc.pages[self.doc.nb_pages - 1]
             self.docsearch.index_page(page)

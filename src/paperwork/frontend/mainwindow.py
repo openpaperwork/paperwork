@@ -363,8 +363,8 @@ class WorkerSingleScan(Worker):
             self.emit('single-scan-done', None)
             raise
         doc.scan_single_page(scan_src, scanner.options['resolution'].value,
-                             self.__config.ocrlang,
                              self.__config.scanner_calibration,
+                             self.__config.ocrlang,
                              self.__scan_progress_cb)
         page = doc.pages[doc.nb_pages - 1]
         self.__main_win.docsearch.index_page(page)

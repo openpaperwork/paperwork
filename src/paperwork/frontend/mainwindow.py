@@ -442,7 +442,6 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.lists['matches'][0].get_selection().unselect_all()
         self.__main_win.workers['thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         doc = ImgDoc(self.__config.workdir)
@@ -456,6 +455,7 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.page = None
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
+        self.__main_win.refresh_doc_list()
         self.__main_win.workers['img_builder'].start()
 
 

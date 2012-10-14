@@ -77,7 +77,7 @@ class DocSearch(object):
     INDEX_STEP_SORTING = "sorting"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
-    OCR_SLEEP_TIME = 0.5
+    OCR_THREADS_POLLING_TIME = 0.5
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -483,7 +483,7 @@ class DocSearch(object):
                 progress_callback(len(dlist) - len(remaining),
                                   len(dlist), self.INDEX_STEP_READING,
                                   doc)
-            time.sleep(self.OCR_SLEEP_TIME)
+            time.sleep(self.OCR_THREADS_POLLING_TIME)
         print "OCR of all documents done"
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):

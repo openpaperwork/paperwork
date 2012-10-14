@@ -253,6 +253,7 @@ class ImgDoc(BasicDoc):
         except EOFError:
             pass
         img = scan_src.get_img(nb_pages)
+        callback(0, 100, ImgPage.SCAN_STEP_SCAN)
         self.__add_img(img, ocrlang, resolution, scanner_calibration, callback)
 
     def import_image(self, file_uri, ocrlang):

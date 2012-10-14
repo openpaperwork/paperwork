@@ -22,9 +22,12 @@ Code relative to page handling.
 import codecs
 from copy import copy
 import Image
+import multiprocessing
 import os
 import os.path
 import re
+import threading
+import time
 
 import gtk
 import pyocr.builders
@@ -35,6 +38,41 @@ from paperwork.backend.common.page import PageExporter
 from paperwork.backend.config import PaperworkConfig
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
+
+
+class ImgOCRThread(threading.Thread):
+    def __init__(self, ocr_tool, ocr_lang, imgpath):
+        threading.Thread.__init__(self, name="OCR")
+        self.ocr_tool = ocr_tool
+        self.ocr_lang = ocr_lang
+        self.imgpath = imgpath
+        self.score = -1
+        self.text = None
+
+    @staticmethod
+    def __compute_ocr_score(txt):
+        """
+        Try to evaluate how well the OCR worked.
+        Current implementation:
+            The score is the number of words only made of 4 or more letters
+            ([a-zA-Z])
+        """
+        # TODO(Jflesch): i18n / l10n
+        score = 0
+        prog = re.compile(r'^[a-zA-Z]{4,}$')
+        for word in txt.split(" "):
+            if prog.match(word):
+                score += 1
+        print "---"
+        print txt
+        print "---"
+        print "Got score of %d" % (score)
+        return score
+
+    def run(self):
+        img = Image.open(self.imgpath)
+        self.text = self.ocr_tool.image_to_string(img, lang=self.ocr_lang)
+        self.score = self.__compute_ocr_score(self.text)
 
 
 class ImgPage(BasicPage):
@@ -55,6 +93,7 @@ class ImgPage(BasicPage):
     ORIENTATION_PORTRAIT = 0
     ORIENTATION_LANDSCAPE = 1
 
+    OCR_THREADS_POLLING_TIME = 0.1
 
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
@@ -218,26 +257,6 @@ class ImgPage(BasicPage):
         return outfiles
 
     @staticmethod
-    def __compute_ocr_score(txt):
-        """
-        Try to evaluate how well the OCR worked.
-        Current implementation:
-            The score is the number of words only made of 4 or more letters
-            ([a-zA-Z])
-        """
-        # TODO(Jflesch): i18n / l10n
-        score = 0
-        prog = re.compile(r'^[a-zA-Z]{4,}$')
-        for word in txt.split(" "):
-            if prog.match(word):
-                score += 1
-        print "---"
-        print txt
-        print "---"
-        print "Got score of %d" % (score)
-        return score
-
-    @staticmethod
     def __compare_score(score_x, score_y):
         """
         Compare scores
@@ -258,25 +277,41 @@ class ImgPage(BasicPage):
         """
         Do the OCR on the page
         """
+
+        callback(0, 100, self.SCAN_STEP_OCR)
+
         ocr_tools = pyocr.pyocr.get_available_tools()
         if len(ocr_tools) <= 0:
             # shouldn't happen: scan buttons should be disabled
             # in that case
+            callback(0, 100, self.SCAN_STEP_OCR)
             raise Exception("No OCR tool available")
-
         print "Using %s for OCR" % (ocr_tools[0].get_name())
+
+        max_threads = multiprocessing.cpu_count()
+        threads = []
+        print "Will use %d process for OCR" % (max_threads)
 
         scores = []
 
-        i = 0
-        for imgpath in files:
-            callback(i, len(files) + 1, self.SCAN_STEP_OCR)
-            i += 1
-            print "Running OCR on scan '%s'" % (imgpath)
-            txt = ocr_tools[0].image_to_string(Image.open(imgpath), lang=ocrlang)
-            txt = unicode(txt)
-            score = self.__compute_ocr_score(txt)
-            scores.append((score, imgpath, txt))
+        # Run the OCR tools in as many threads as there are processors/core
+        # on the computer
+        while (len(files) > 0 or len(threads) > 0):
+            # look for finished threads
+            for thread in threads:
+                if not thread.is_alive():
+                    threads.remove(thread)
+                    scores.append((thread.score, thread.imgpath, thread.text))
+                    callback(len(scores),
+                             len(scores) + len(files) + len(threads) + 1,
+                             self.SCAN_STEP_OCR)
+            # start new threads if required
+            while (len(threads) < max_threads and len(files) > 0):
+                imgpath = files.pop()
+                thread = ImgOCRThread(ocr_tools[0], ocrlang, imgpath)
+                thread.start()
+                threads.append(thread)
+            time.sleep(self.OCR_THREADS_POLLING_TIME)
 
         # We want the higher score first
         scores.sort(cmp=lambda x, y: self.__compare_score(y[0], x[0]))
@@ -284,11 +319,12 @@ class ImgPage(BasicPage):
         print "Best: %f -> %s" % (scores[0][0], scores[0][1])
 
         print "Extracting boxes ..."
-        callback(i, len(files) + 1, self.SCAN_STEP_OCR)
+        callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
         boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
                 lang=ocrlang, builder=pyocr.builders.WordBoxBuilder())
         print "Done"
 
+        callback(100, 100, self.SCAN_STEP_OCR)
         return (scores[0][1], scores[0][2], boxes)
 
     def make(self, img, ocrlang=None, scan_res=0, scanner_calibration=None,
@@ -300,10 +336,8 @@ class ImgPage(BasicPage):
         txtfile = self.__txt_path
         boxfile = self.__box_path
 
-        callback(0, 100, self.SCAN_STEP_SCAN)
         outfiles = self.__save_imgs(img, scan_res, scanner_calibration,
                                     callback)
-        callback(0, 100, self.SCAN_STEP_OCR)
         if ocrlang is None:
             (bmpfile, txt, boxes) = (outfiles[0], "", [])
         else:

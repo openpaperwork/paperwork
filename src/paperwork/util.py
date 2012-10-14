@@ -25,6 +25,7 @@ import unicodedata
 
 import cairo
 import Image
+import ImageDraw
 import gettext
 import glib
 import gtk
@@ -229,3 +230,9 @@ def sizeof_fmt(num):
                 return string % (num)
             num /= 1024.0
         return STRINGS[-1] % (num)
+
+def add_img_border(img, color="#a6a5a4"):
+    img_draw = ImageDraw.Draw(img)
+    img_draw.rectangle([(0, 0), (img.size[0]-1, img.size[1]-1)], outline=color)
+    del img_draw
+    return img

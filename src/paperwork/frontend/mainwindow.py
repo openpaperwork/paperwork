@@ -23,7 +23,6 @@ import time
 
 import Image
 import ImageColor
-import ImageDraw
 import gtk
 import gettext
 import gobject
@@ -42,6 +41,7 @@ from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.backend.labels import LabelEditor
+from paperwork.util import add_img_border
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
@@ -148,6 +148,7 @@ class WorkerPageThumbnailer(Worker):
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
+            img = add_img_border(img)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
                 self.emit('page-thumbnailing-end')
@@ -188,6 +189,7 @@ class WorkerDocThumbnailer(Worker):
             if doc.nb_pages <= 0:
                 continue
             img = doc.pages[0].get_thumbnail(150)
+            img = add_img_border(img)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
                 self.emit('doc-thumbnailing-end')

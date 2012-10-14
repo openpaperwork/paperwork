@@ -2217,7 +2217,6 @@ class MainWindow(object):
             # append a new document to the list
             documents.append(ImgDoc(self.__config.workdir))
         documents = [doc for doc in reversed(documents)]
-
         self.lists['matches']['doclist'] = documents
 
         self.lists['matches']['model'].clear()
@@ -2247,7 +2246,11 @@ class MainWindow(object):
                     gtk.ICON_SIZE_DIALOG,
                 ])
 
+        if documents[0].is_new and self.doc.is_new:
+            active_idx = 0
+
         self.lists['matches']['active_idx'] = active_idx
+
         if active_idx >= 0:
             self.lists['matches']['gui'].unselect_all()
             self.lists['matches']['gui'].select_path(active_idx)

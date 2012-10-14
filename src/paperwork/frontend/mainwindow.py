@@ -2111,6 +2111,7 @@ class MainWindow(object):
         documents = self.docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
         if sentence == u"":
+            # append a new document to the list
             documents.append(ImgDoc(self.__config.workdir))
         documents = reversed(documents)
 
@@ -2134,7 +2135,16 @@ class MainWindow(object):
         if active_idx >= 0:
             self.lists['matches'][0].get_selection().unselect_all()
             self.lists['matches'][0].get_selection().select_path(active_idx)
-            self.lists['matches'][0].scroll_to_cell(active_idx)
+            # HACK(Jflesch): The document says that scroll_to_cell() should do
+            # nothing if the target cell is already visible (which is the
+            # desired behavior here). Except we just emptied the document list
+            # model and remade it from scratch. For some reason, it seems that 
+            # Gtk will then always consider that the cell is not visible and
+            # move the scrollbar.
+            # --> we use idle_add to move the scrollbar only once everything has
+            # been displayed
+            gobject.idle_add(self.lists['matches'][0].scroll_to_cell,
+                             active_idx)
         else:
             self.lists['matches'][0].get_selection().unselect_all()
 

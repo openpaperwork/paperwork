@@ -18,9 +18,12 @@ Paperwork configuration management code
 """
 
 import ConfigParser
+import locale
 import os
+import pycountry
 
 import pyinsane.abstract_th as pyinsane
+import pyocr.pyocr
 
 
 class _ScanTimes(object):
@@ -53,6 +56,7 @@ class PaperworkConfig(object):
     """
     RECOMMENDED_RESOLUTION = 300
     CALIBRATION_RESOLUTION = 200
+    DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
     def __init__(self):
         # values are stored directly in self._configparser
@@ -137,8 +141,30 @@ class PaperworkConfig(object):
                 return None
             return ocrlang
         except ConfigParser.NoOptionError:
-            # TODO(Jflesch): default to the system locale
-            return "eng"
+            pass
+
+        # Try to guess based on the system locale what would be
+        # the best OCR language
+
+        ocr_tools = pyocr.pyocr.get_available_tools()
+        if (len(ocr_tools) < 0):
+            return self.DEFAULT_OCR_LANG
+        ocr_langs = ocr_tools[0].get_available_languages()
+
+        default_locale_long = locale.getdefaultlocale()[0]
+        # Usually something like "fr_FR" --> we just need the first part
+        default_locale = default_locale_long.split("_")[0]
+        try:
+            lang = pycountry.pycountry.languages.get(alpha2=default_locale)
+            for ocr_lang in (lang.terminology, lang.bibliographic):
+                if ocr_lang in ocr_langs:
+                    return ocr_lang
+        except Exception, exc:
+            print ("Warning: Failed to figure out system language"
+                   " (locale is [%s]). Will default to %s"
+                   % (default_locale_long, default_locale_long))
+            print "Exception was: %s" % str(exc)
+        return self.DEFAULT_OCR_LANG
 
     def __set_ocrlang(self, lang):
         """

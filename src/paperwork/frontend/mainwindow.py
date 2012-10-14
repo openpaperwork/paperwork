@@ -1917,7 +1917,6 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        print "Updating page thumbnail %d" % (page_idx)
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
         self.lists['pages']['model'].set_value(line_iter, 1, None)
@@ -1933,7 +1932,6 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
-        print "Updating doc thumbnail %d" % (doc_idx)
         line_iter = self.lists['matches']['model'].get_iter(doc_idx)
         self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
         self.lists['matches']['model'].set_value(line_iter, 3, None)

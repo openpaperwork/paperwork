@@ -471,7 +471,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         SimpleAction.do(self)
 
         (model, selection_iter) = \
-                self.__main_win.lists['matches'][0].get_selection().get_selected()
+                self.__main_win.lists['matches']['gui'].get_selection().get_selected()
         if selection_iter == None:
             print "No document selected. Can't open"
             return
@@ -534,7 +534,7 @@ class ActionPageSelected(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        selection_path = self.__main_win.lists['pages'][0].get_selected_items()
+        selection_path = self.__main_win.lists['pages']['gui'].get_selected_items()
         if len(selection_path) <= 0:
             return None
         # TODO(Jflesch): We should get the page number from the list content,
@@ -620,7 +620,7 @@ class ActionToggleLabel(object):
         self.__main_win = main_window
 
     def toggle_cb(self, renderer, objpath):
-        label = self.__main_win.lists['labels'][1][objpath][2]
+        label = self.__main_win.lists['labels']['model'][objpath][2]
         if not label in self.__main_win.doc.labels:
             print ("Action: Adding label '%s' on document '%s'"
                    % (str(label), str(self.__main_win.doc)))
@@ -667,7 +667,7 @@ class ActionEditLabel(SimpleAction):
 
         SimpleAction.do(self)
 
-        selection_path = self.__main_win.lists['labels'][0] \
+        selection_path = self.__main_win.lists['labels']['model'] \
                 .get_selection().get_selected()
         if selection_path[1] == None:
             print "No label selected"
@@ -700,7 +700,7 @@ class ActionDeleteLabel(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
 
-        selection_path = self.__main_win.lists['labels'][0] \
+        selection_path = self.__main_win.lists['labels']['gui'] \
                 .get_selection().get_selected()
         if selection_path[1] == None:
             print "No label selected"
@@ -1114,7 +1114,7 @@ class ActionZoomChange(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        zoom_liststore = self.__main_win.lists['zoom_levels'][1]
+        zoom_liststore = self.__main_win.lists['zoom_levels']['model']
 
         zoom_list = [
             (zoom_liststore[zoom_idx][1], zoom_idx)
@@ -1150,7 +1150,8 @@ class ActionZoomChange(SimpleAction):
         if zoom_list[current_idx][0] == 0.0:
             return
 
-        self.__main_win.lists['zoom_levels'][0].set_active(zoom_list[current_idx][1])
+        self.__main_win.lists['zoom_levels']['gui'].set_active(
+                zoom_list[current_idx][1])
 
 
 class ActionZoomSet(SimpleAction):
@@ -1162,7 +1163,7 @@ class ActionZoomSet(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        zoom_liststore = self.__main_win.lists['zoom_levels'][1]
+        zoom_liststore = self.__main_win.lists['zoom_levels']['model']
 
         new_idx = -1
         for zoom_idx in range(0, len(zoom_liststore)):
@@ -1171,7 +1172,7 @@ class ActionZoomSet(SimpleAction):
                 break
         assert(new_idx >= 0)
 
-        self.__main_win.lists['zoom_levels'][0].set_active(new_idx)
+        self.__main_win.lists['zoom_levels']['gui'].set_active(new_idx)
 
 
 class ActionAbout(SimpleAction):
@@ -1247,33 +1248,33 @@ class MainWindow(object):
         self.page = None
 
         self.lists = {
-            'suggestions' : (
-                widget_tree.get_object("entrySearch"),
-                widget_tree.get_object("liststoreSuggestion")
-            ),
-            'matches' : (
-                widget_tree.get_object("treeviewMatch"),
-                widget_tree.get_object("liststoreMatch"),
-            ),
-            'pages' : (
-                widget_tree.get_object("iconviewPage"),
-                widget_tree.get_object("liststorePage"),
-            ),
-            'labels' : (
-                widget_tree.get_object("treeviewLabel"),
-                widget_tree.get_object("liststoreLabel"),
-            ),
-            'zoom_levels' : (
-                widget_tree.get_object("comboboxZoom"),
-                widget_tree.get_object("liststoreZoom"),
-            ),
+            'suggestions' : {
+                'gui' : widget_tree.get_object("entrySearch"),
+                'model' : widget_tree.get_object("liststoreSuggestion")
+            },
+            'matches' : {
+                'gui' : widget_tree.get_object("treeviewMatch"),
+                'model' : widget_tree.get_object("liststoreMatch"),
+            },
+            'pages' : {
+                'gui' : widget_tree.get_object("iconviewPage"),
+                'model' : widget_tree.get_object("liststorePage"),
+            },
+            'labels' : {
+                'gui' : widget_tree.get_object("treeviewLabel"),
+                'model' : widget_tree.get_object("liststoreLabel"),
+            },
+            'zoom_levels' : {
+                'gui' : widget_tree.get_object("comboboxZoom"),
+                'model' : widget_tree.get_object("liststoreZoom"),
+            },
         }
 
         search_completion = gtk.EntryCompletion()
-        search_completion.set_model(self.lists['suggestions'][1])
+        search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
         search_completion.set_match_func(lambda x, y, z: True)
-        self.lists['suggestions'][0].set_completion(search_completion)
+        self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.indicators = {
             'current_page' : widget_tree.get_object("entryPageNb"),
@@ -1846,9 +1847,9 @@ class MainWindow(object):
 
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         print "Updating thumbnail %d" % (page_idx)
-        line_iter = self.lists['pages'][1].get_iter(page_idx)
-        self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
-        self.lists['pages'][1].set_value(line_iter, 1, None)
+        line_iter = self.lists['pages']['model'].get_iter(page_idx)
+        self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
+        self.lists['pages']['model'].set_value(line_iter, 1, None)
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Thumbnailing ..."))
 
@@ -2109,9 +2110,9 @@ class MainWindow(object):
 
         suggestions = self.docsearch.find_suggestions(sentence)
         print "Got %d suggestions" % len(suggestions)
-        self.lists['suggestions'][1].clear()
+        self.lists['suggestions']['model'].clear()
         for suggestion in suggestions:
-            self.lists['suggestions'][1].append([suggestion])
+            self.lists['suggestions']['model'].append([suggestion])
 
         documents = self.docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
@@ -2120,7 +2121,7 @@ class MainWindow(object):
             documents.append(ImgDoc(self.__config.workdir))
         documents = reversed(documents)
 
-        self.lists['matches'][1].clear()
+        self.lists['matches']['model'].clear()
         active_idx = -1
         idx = 0
         for doc in documents:
@@ -2135,11 +2136,11 @@ class MainWindow(object):
             if len(labels) > 0:
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
-            self.lists['matches'][1].append([final_str, doc])
+            self.lists['matches']['model'].append([final_str, doc])
 
         if active_idx >= 0:
-            self.lists['matches'][0].get_selection().unselect_all()
-            self.lists['matches'][0].get_selection().select_path(active_idx)
+            self.lists['matches']['gui'].get_selection().unselect_all()
+            self.lists['matches']['gui'].get_selection().select_path(active_idx)
             # HACK(Jflesch): The document says that scroll_to_cell() should do
             # nothing if the target cell is already visible (which is the
             # desired behavior here). Except we just emptied the document list
@@ -2148,10 +2149,10 @@ class MainWindow(object):
             # move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything has
             # been displayed
-            gobject.idle_add(self.lists['matches'][0].scroll_to_cell,
+            gobject.idle_add(self.lists['matches']['gui'].scroll_to_cell,
                              active_idx)
         else:
-            self.lists['matches'][0].get_selection().unselect_all()
+            self.lists['matches']['gui'].get_selection().unselect_all()
 
 
     def refresh_page_list(self):
@@ -2159,9 +2160,9 @@ class MainWindow(object):
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        self.lists['pages'][1].clear()
+        self.lists['pages']['model'].clear()
         for page in self.doc.pages:
-            self.lists['pages'][1].append([
+            self.lists['pages']['model'].append([
                 None,  # no thumbnail
                 gtk.STOCK_EXECUTE,
                 gtk.ICON_SIZE_DIALOG,
@@ -2179,10 +2180,10 @@ class MainWindow(object):
         """
         Reload and refresh the label list
         """
-        self.lists['labels'][1].clear()
+        self.lists['labels']['model'].clear()
         labels = self.doc.labels
         for label in self.docsearch.label_list:
-            self.lists['labels'][1].append([
+            self.lists['labels']['model'].append([
                 label.get_html(),
                 (label in labels),
                 label
@@ -2214,8 +2215,8 @@ class MainWindow(object):
 
         # TODO(Jflesch): We should not make assumption regarding
         # the page position in the list
-        self.lists['pages'][0].select_path(page.page_nb)
-        self.lists['pages'][0].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+        self.lists['pages']['gui'].select_path(page.page_nb)
+        self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
 
         self.indicators['current_page'].set_text(
                 "%d" % (page.page_nb + 1))
@@ -2264,9 +2265,9 @@ class MainWindow(object):
         return width
 
     def get_zoom_factor(self, pixbuf_width=None):
-        el_idx = self.lists['zoom_levels'][0].get_active()
-        el_iter = self.lists['zoom_levels'][1].get_iter(el_idx)
-        factor = self.lists['zoom_levels'][1].get_value(el_iter, 1)
+        el_idx = self.lists['zoom_levels']['gui'].get_active()
+        el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
+        factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
         if factor != 0.0:
             return factor
         wanted_width = self.__get_img_area_width()

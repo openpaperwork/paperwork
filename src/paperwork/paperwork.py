@@ -71,7 +71,6 @@ def main():
     config.read()
 
     main_win = MainWindow(config)
-    main_win.actions['new_doc'][1].do()
     main_win.actions['reindex'][1].do()
     gtk.main()
     print "Good bye"

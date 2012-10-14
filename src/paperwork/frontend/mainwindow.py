@@ -159,6 +159,46 @@ class WorkerPageThumbnailer(Worker):
 gobject.type_register(WorkerPageThumbnailer)
 
 
+class WorkerDocThumbnailer(Worker):
+    """
+    Generate doc list thumbnails
+    """
+
+    __gsignals__ = {
+        'doc-thumbnailing-start' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'doc-thumbnailing-doc-done':
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+             (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
+        'doc-thumbnailing-end' :
+            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window):
+        Worker.__init__(self, "Doc thumbnailing")
+        self.__main_win = main_window
+
+    def do(self):
+        self.emit('doc-thumbnailing-start')
+        doclist = self.__main_win.lists['matches']['doclist']
+        for doc_idx in range(0, len(doclist)):
+            doc = doclist[doc_idx]
+            if doc.nb_pages <= 0:
+                continue
+            img = doc.pages[0].get_thumbnail(150)
+            pixbuf = image2pixbuf(img)
+            if not self.can_run:
+                self.emit('doc-thumbnailing-end')
+                return
+            self.emit('doc-thumbnailing-doc-done', doc_idx, pixbuf)
+        self.emit('doc-thumbnailing-end')
+
+
+gobject.type_register(WorkerDocThumbnailer)
+
+
 class WorkerImgBuilder(Worker):
     """
     Resize and paint on the page
@@ -443,6 +483,7 @@ class ActionNewDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.workers['page_thumbnailer'].stop()
+        self.__main_win.workers['doc_thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         doc = ImgDoc(self.__config.workdir)
         self.__main_win.doc = doc
@@ -457,6 +498,7 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
         self.__main_win.workers['img_builder'].start()
+        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -470,12 +512,13 @@ class ActionOpenSelectedDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        (model, selection_iter) = \
-                self.__main_win.lists['matches']['gui'].get_selection().get_selected()
-        if selection_iter == None:
+        selection_path = \
+                self.__main_win.lists['matches']['gui'].get_selected_items()
+        if len(selection_path) <= 0:
             print "No document selected. Can't open"
             return
-        doc = model.get_value(selection_iter, 1)
+        doc_idx = selection_path[0][0]
+        doc = self.__main_win.lists['matches']['model'][doc_idx][1]
 
         print "Showing doc %s" % doc
         self.__main_win.show_doc(doc)
@@ -516,8 +559,10 @@ class ActionUpdateSearchResults(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.workers['doc_thumbnailer'].stop()
         self.__main_win.refresh_doc_list()
         self.__main_win.refresh_highlighted_words()
+        self.__main_win.workers['doc_thumbnailer'].start()
 
     def on_icon_press_cb(self, entry, iconpos=gtk.ENTRY_ICON_SECONDARY, event=None):
         if iconpos == gtk.ENTRY_ICON_PRIMARY:
@@ -620,6 +665,7 @@ class ActionToggleLabel(object):
         self.__main_win = main_window
 
     def toggle_cb(self, renderer, objpath):
+        self.__main_win.workers['doc_thumbnailer'].stop()
         label = self.__main_win.lists['labels']['model'][objpath][2]
         if not label in self.__main_win.doc.labels:
             print ("Action: Adding label '%s' on document '%s'"
@@ -631,6 +677,7 @@ class ActionToggleLabel(object):
             self.__main_win.doc.remove_label(label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
+        self.__main_win.workers['doc_thumbnailer'].start()
         # TODO(Jflesch): Update keyword index
 
     def connect(self, cellrenderers):
@@ -645,6 +692,7 @@ class ActionCreateLabel(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.workers['doc_thumbnailer'].stop()
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
@@ -654,6 +702,7 @@ class ActionCreateLabel(SimpleAction):
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
+        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionEditLabel(SimpleAction):
@@ -793,7 +842,9 @@ class ActionMultiScan(SimpleAction):
         ms.connect("need-doclist-refresh", self.__doclist_refresh)
 
     def __doclist_refresh(self, multiscan_window):
+        self.__main_win.workers['doc_thumbnailer'].stop()
         self.__main_win.refresh_doc_list()
+        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionImport(SimpleAction):
@@ -1226,11 +1277,6 @@ class ActionRealQuit(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
-        img = Image.new("RGB", (150, 200), ImageColor.getrgb("#EEEEEE"))
-        # TODO(Jflesch): Find a better default thumbnail
-        self.default_thumbnail = image2pixbuf(img)
-        del img
-
         # used by the set_mouse_cursor() function to keep track of how many
         # threads requested a busy mouse cursor
         self.__busy_mouse_counter = 0
@@ -1244,7 +1290,7 @@ class MainWindow(object):
         self.__scan_start = 0.0
 
         self.docsearch = DummyDocSearch()
-        self.doc = None
+        self.doc = ImgDoc(self.__config.workdir)
         self.page = None
 
         self.lists = {
@@ -1253,8 +1299,10 @@ class MainWindow(object):
                 'model' : widget_tree.get_object("liststoreSuggestion")
             },
             'matches' : {
-                'gui' : widget_tree.get_object("treeviewMatch"),
+                'gui' : widget_tree.get_object("iconviewMatch"),
                 'model' : widget_tree.get_object("liststoreMatch"),
+                'doclist' : [],
+                'active_idx' : -1,
             },
             'pages' : {
                 'gui' : widget_tree.get_object("iconviewPage"),
@@ -1288,7 +1336,7 @@ class MainWindow(object):
                                + _(' negate a keyword')))
 
         self.doc_browsing = {
-            'matches' : widget_tree.get_object("treeviewMatch"),
+            'matches' : widget_tree.get_object("iconviewMatch"),
             'pages' : widget_tree.get_object("iconviewPage"),
             'labels' : widget_tree.get_object("treeviewLabel"),
             'search' : self.search_field,
@@ -1314,13 +1362,13 @@ class MainWindow(object):
             'text' : widget_tree.get_object("statusbar"),
         }
 
-        self.popupMenus = {
+        self.popup_menus = {
             'labels' : (
                 widget_tree.get_object("treeviewLabel"),
                 widget_tree.get_object("popupmenuLabels")
             ),
             'matches' : (
-                widget_tree.get_object("treeviewMatch"),
+                widget_tree.get_object("iconviewMatch"),
                 widget_tree.get_object("popupmenuMatchs")
             ),
             'pages' : (
@@ -1368,6 +1416,7 @@ class MainWindow(object):
         self.workers = {
             'reindex' : WorkerDocIndexer(self, config),
             'page_thumbnailer' : WorkerPageThumbnailer(self),
+            'doc_thumbnailer' : WorkerDocThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
             'label_deleter' : WorkerLabelDeleter(self),
@@ -1389,7 +1438,7 @@ class MainWindow(object):
             ),
             'open_doc' : (
                 [
-                    widget_tree.get_object("treeviewMatch"),
+                    widget_tree.get_object("iconviewMatch"),
                 ],
                 ActionOpenSelectedDocument(self)
             ),
@@ -1647,6 +1696,9 @@ class MainWindow(object):
         }
 
         for action in self.actions:
+            for button in self.actions[action][0]:
+                if button is None:
+                    print "MISSING BUTTON: %s" % (action)
             self.actions[action][1].connect(self.actions[action][0])
 
         for (buttons, action) in self.actions.values():
@@ -1689,9 +1741,11 @@ class MainWindow(object):
             + self.actions['del_page'][0]
         )
 
-        for popup_menu in self.popupMenus.values():
+        for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             # TODO(Jflesch): Find the correct signal
             # This one doesn't take into account the key to access these menus
+            if popup_menu[0] is None:
+                print "MISSING POPUP MENU: %s" % popup_menu_name
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
@@ -1722,6 +1776,19 @@ class MainWindow(object):
         self.workers['page_thumbnailer'].connect('page-thumbnailing-end',
                 lambda thumbnailer: \
                     gobject.idle_add(self.__on_page_thumbnailing_end_cb,
+                                     thumbnailer))
+
+        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-start',
+                lambda thumbnailer: \
+                    gobject.idle_add(self.__on_doc_thumbnailing_start_cb,
+                                     thumbnailer))
+        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-doc-done',
+                lambda thumbnailer, doc_idx, thumbnail: \
+                    gobject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
+                                     thumbnailer, doc_idx, thumbnail))
+        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-end',
+                lambda thumbnailer: \
+                    gobject.idle_add(self.__on_doc_thumbnailing_end_cb,
                                      thumbnailer))
 
         self.workers['img_builder'].connect('img-building-start',
@@ -1835,18 +1902,20 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_indexation_end_cb(self, src):
+        self.workers['doc_thumbnailer'].stop()
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
+        self.workers['doc_thumbnailer'].start()
 
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
         self.set_mouse_cursor("Busy")
 
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        print "Updating thumbnail %d" % (page_idx)
+        print "Updating page thumbnail %d" % (page_idx)
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
         self.lists['pages']['model'].set_value(line_iter, 1, None)
@@ -1854,6 +1923,27 @@ class MainWindow(object):
                              _("Thumbnailing ..."))
 
     def __on_page_thumbnailing_end_cb(self, src):
+        self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+
+    def __on_doc_thumbnailing_start_cb(self, src):
+        self.set_progression(src, 0.0, _("Thumbnailing ..."))
+        self.set_mouse_cursor("Busy")
+
+    def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
+        print "Updating doc thumbnail %d" % (doc_idx)
+        line_iter = self.lists['matches']['model'].get_iter(doc_idx)
+        self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
+        self.lists['matches']['model'].set_value(line_iter, 3, None)
+        self.set_progression(src, ((float)(doc_idx+1) /
+                                   len(self.lists['matches']['doclist'])),
+                             _("Thumbnailing ..."))
+        active_doc_idx = self.lists['matches']['active_idx']
+        if active_doc_idx == doc_idx:
+            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             active_doc_idx, False, 0.0, 0.0)
+
+    def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
@@ -1901,6 +1991,7 @@ class MainWindow(object):
                              _("Deleting label (%s) ...") % (doc_name))
 
     def __on_label_updating_end_cb(self, src):
+        self.workers['doc_thumbnailer'].stop()
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
@@ -1908,6 +1999,7 @@ class MainWindow(object):
         self.refresh_doc_list()
         self.workers['reindex'].stop()
         self.workers['reindex'].start()
+        self.workers['doc_thumbnailer'].start()
 
     def __on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)
@@ -1923,7 +2015,6 @@ class MainWindow(object):
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
-        self.refresh_doc_list()
         if self.page != None:
             # in case the keywords were highlighted
             self.show_page(self.page)
@@ -1956,6 +2047,8 @@ class MainWindow(object):
     def __on_single_scan_done(self, src, page):
         scan_stop = time.time()
         self.workers['progress_updater'].stop()
+        self.workers['doc_thumbnailer'].stop()
+        self.workers['page_thumbnailer'].stop()
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
         for widget in self.need_doc_widgets:
@@ -1965,14 +2058,14 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.workers['page_thumbnailer'].stop()
         self.refresh_page_list()
-        self.workers['page_thumbnailer'].start()
 
         if page != None:
             self.show_page(page)
 
         self.refresh_doc_list()
+        self.workers['page_thumbnailer'].start()
+        self.workers['doc_thumbnailer'].start()
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
@@ -1989,16 +2082,19 @@ class MainWindow(object):
         # Note: don't update scan time here : OCR is not required for all
         # imports
 
+        self.workers['page_thumbnailer'].stop()
+        self.workers['doc_thumbnailer'].stop()
+
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.workers['page_thumbnailer'].stop()
         self.refresh_page_list()
-        self.workers['page_thumbnailer'].start()
         self.show_doc(doc)
         self.refresh_doc_list()
+        self.workers['page_thumbnailer'].start()
+        self.workers['doc_thumbnailer'].start()
         if page != None:
             self.show_page(page)
 
@@ -2104,6 +2200,7 @@ class MainWindow(object):
         """
         Update the suggestions list and the matching documents list based on
         the keywords typed by the user in the search field.
+        Warning: Will reset all the thumbnail to the default one
         """
         sentence = unicode(self.search_field.get_text())
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
@@ -2119,7 +2216,9 @@ class MainWindow(object):
         if sentence == u"":
             # append a new document to the list
             documents.append(ImgDoc(self.__config.workdir))
-        documents = reversed(documents)
+        documents = [doc for doc in reversed(documents)]
+
+        self.lists['matches']['doclist'] = documents
 
         self.lists['matches']['model'].clear()
         active_idx = -1
@@ -2136,11 +2235,23 @@ class MainWindow(object):
             if len(labels) > 0:
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
-            self.lists['matches']['model'].append([final_str, doc])
+            stock = gtk.STOCK_EXECUTE
+            if nb_pages <= 0:
+                stock = None
+            self.lists['matches']['model'].append(
+                [
+                    final_str,
+                    doc,
+                    None,
+                    stock,
+                    gtk.ICON_SIZE_DIALOG,
+                ])
 
+        self.lists['matches']['active_idx'] = active_idx
         if active_idx >= 0:
-            self.lists['matches']['gui'].get_selection().unselect_all()
-            self.lists['matches']['gui'].get_selection().select_path(active_idx)
+            self.lists['matches']['gui'].unselect_all()
+            self.lists['matches']['gui'].select_path(active_idx)
+
             # HACK(Jflesch): The document says that scroll_to_cell() should do
             # nothing if the target cell is already visible (which is the
             # desired behavior here). Except we just emptied the document list
@@ -2149,10 +2260,11 @@ class MainWindow(object):
             # move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything has
             # been displayed
-            gobject.idle_add(self.lists['matches']['gui'].scroll_to_cell,
-                             active_idx)
+            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             active_idx, False, 0.0, 0.0)
         else:
-            self.lists['matches']['gui'].get_selection().unselect_all()
+            self.lists['matches']['gui'].unselect_all()
+            pass
 
 
     def refresh_page_list(self):

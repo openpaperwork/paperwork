@@ -2110,6 +2110,8 @@ class MainWindow(object):
 
         documents = self.docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
+        if sentence == u"":
+            documents.append(ImgDoc(self.__config.workdir))
         documents = reversed(documents)
 
         self.lists['matches'][1].clear()
@@ -2225,7 +2227,11 @@ class MainWindow(object):
         self.refresh_page_list()
         self.refresh_label_list()
         self.workers['thumbnailer'].start()
-        self.show_page(self.doc.pages[0])
+        if self.doc.nb_pages > 0:
+            self.show_page(self.doc.pages[0])
+        else:
+            self.img['image'].set_from_stock(gtk.STOCK_MISSING_IMAGE,
+                                             gtk.ICON_SIZE_DIALOG)
 
     def __on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))

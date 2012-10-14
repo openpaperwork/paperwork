@@ -16,6 +16,7 @@
 
 import codecs
 import datetime
+import gettext
 import os
 import os.path
 import time
@@ -23,6 +24,9 @@ import time
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
 from paperwork.util import dummy_progress_cb
+
+
+_ = gettext.gettext
 
 
 class BasicDoc(object):
@@ -176,6 +180,12 @@ class BasicDoc(object):
         """
         if other == None:
             return -1
+        if self.is_new and other.is_new:
+            return 0
+        if self.is_new and not other.is_new:
+            return -1
+        if not self.is_new and other.is_new:
+            return 1
         return cmp(self.docid, other.docid)
 
     def __lt__(self, other):
@@ -199,10 +209,22 @@ class BasicDoc(object):
     def __hash__(self):
         return hash(self.docid)
 
+    def __is_new(self):
+        try:
+            os.stat(self.path)
+            return False
+        except OSError:
+            # this document doesn't exist yet
+            return True
+
+    is_new = property(__is_new)
+
     def __get_name(self):
         """
         Returns the localized name of the document (see l10n)
         """
+        if self.is_new:
+            return _("New document")
         try:
             split = self.docid.split("_")
             short_docid = "_".join(split[:3])

@@ -2118,7 +2118,7 @@ class MainWindow(object):
         if sentence == u"":
             # append a new document to the list
             documents.append(ImgDoc(self.__config.workdir))
-        documents = reversed(documents)
+        documents = [doc for doc in reversed(documents)]
 
         self.lists['matches'][1].clear()
         active_idx = -1
@@ -2136,6 +2136,9 @@ class MainWindow(object):
                 final_str += ("\n  "
                         + "\n  ".join([x.get_html() for x in labels]))
             self.lists['matches'][1].append([final_str, doc])
+
+        if documents[0].is_new and self.doc.is_new:
+            active_idx = 0
 
         if active_idx >= 0:
             self.lists['matches'][0].get_selection().unselect_all()

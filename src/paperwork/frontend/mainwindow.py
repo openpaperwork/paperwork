@@ -379,8 +379,9 @@ class WorkerImporter(Worker):
     __gsignals__ = {
         'import-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
         'import-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                              (gobject.TYPE_PYOBJECT,) # ImgDoc
-                             ),
+                         (gobject.TYPE_PYOBJECT,  # Doc
+                          gobject.TYPE_PYOBJECT),  # Page
+                        ),
     }
 
     can_interrupt = True
@@ -392,10 +393,10 @@ class WorkerImporter(Worker):
 
     def do(self, importer, file_uri):
         self.emit('import-start')
-        doc = importer.import_doc(file_uri, self.__config,
+        (doc, page) = importer.import_doc(file_uri, self.__config,
                                   self.__main_win.docsearch,
                                   self.__main_win.doc)
-        self.emit('import-done', doc)
+        self.emit('import-done', doc, page)
 
 
 gobject.type_register(WorkerImporter)
@@ -1786,8 +1787,8 @@ class MainWindow(object):
                 lambda worker: \
                     gobject.idle_add(self.__on_import_start, worker))
         self.workers['importer'].connect('import-done',
-                lambda worker, doc: \
-                    gobject.idle_add(self.__on_import_done, worker, doc))
+                lambda worker, doc, page: \
+                    gobject.idle_add(self.__on_import_done, worker, doc, page))
 
         self.workers['export_previewer'].connect('export-preview-start',
                 lambda worker: \
@@ -1978,7 +1979,7 @@ class MainWindow(object):
             total_time=self.__config.scan_time['ocr'])
         self.__scan_start = time.time()
 
-    def __on_import_done(self, src, doc):
+    def __on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
         self.workers['progress_updater'].stop()
         # Note: don't update scan time here : OCR is not required for all
@@ -1992,9 +1993,10 @@ class MainWindow(object):
         self.workers['thumbnailer'].stop()
         self.refresh_page_list()
         self.workers['thumbnailer'].start()
-        if doc != None:
-            self.show_doc(doc)
+        self.show_doc(doc)
         self.refresh_doc_list()
+        if page != None:
+            self.show_page(page)
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

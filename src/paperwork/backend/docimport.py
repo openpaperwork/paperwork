@@ -36,7 +36,7 @@ class SinglePdfImporter(object):
         doc.import_pdf(config, file_uri)
         for page in doc.pages:
             docsearch.index_page(page)
-        return doc
+        return (doc, doc.pages[0])
 
     def __str__(self):
         return _("Import PDF")
@@ -94,7 +94,7 @@ class MultiplePdfImporter(object):
             idx += 1
 
         assert(doc != None)
-        return doc
+        return (doc, doc.pages[0])
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
@@ -114,9 +114,9 @@ class SingleImageImporter(object):
         if current_doc == None:
             current_doc = ImgDoc(config.workdir)
         current_doc.import_image(file_uri, config.ocrlang)
-        page = current_doc.pages[current_doc.nb_pages]
+        page = current_doc.pages[current_doc.nb_pages-1]
         docsearch.index_page(page)
-        return current_doc
+        return (current_doc, page)
 
     def __str__(self):
         return _("Append the image to the current document")

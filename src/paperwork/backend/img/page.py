@@ -291,7 +291,7 @@ class ImgPage(BasicPage):
 
         max_threads = multiprocessing.cpu_count()
         threads = []
-        print "Will use %d process for OCR" % (max_threads)
+        print "Will use %d process(es) for OCR" % (max_threads)
 
         scores = []
 

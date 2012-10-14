@@ -246,7 +246,8 @@ class ImgPage(BasicPage):
         img = Image.merge("RGB", color_channels[:3])
 
         outfiles = []
-        for rotation in range(0, 2):
+        # rotate the image 0, 90, 180 and 270 degrees
+        for rotation in range(0, 4):
             imgpath = os.path.join(self.doc.path,
                     ("rotated.%d.%s" % (rotation, self.EXT_IMG_SCAN)))
             print ("Saving scan (rotated %d degree) in '%s'"

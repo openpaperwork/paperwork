@@ -180,12 +180,6 @@ class BasicDoc(object):
         """
         if other == None:
             return -1
-        if self.is_new and other.is_new:
-            return 0
-        if self.is_new and not other.is_new:
-            return -1
-        if not self.is_new and other.is_new:
-            return 1
         return cmp(self.docid, other.docid)
 
     def __lt__(self, other):

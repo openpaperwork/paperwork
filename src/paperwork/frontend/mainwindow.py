@@ -1933,7 +1933,8 @@ class MainWindow(object):
         self.set_progression(src, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
-
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(False)
         self.__scan_start = time.time()
         self.workers['progress_updater'].start(
             value_min=0.0, value_max=0.5,
@@ -1957,6 +1958,8 @@ class MainWindow(object):
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
         for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+        for widget in self.doc_edit_widgets:
             widget.set_sensitive(True)
 
         self.set_progression(src, 0.0, None)

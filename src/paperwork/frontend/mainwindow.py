@@ -122,41 +122,41 @@ class WorkerDocIndexer(Worker):
 gobject.type_register(WorkerDocIndexer)
 
 
-class WorkerThumbnailer(Worker):
+class WorkerPageThumbnailer(Worker):
     """
-    Generate thumbnails
+    Generate page thumbnails
     """
 
     __gsignals__ = {
-        'thumbnailing-start' :
+        'page-thumbnailing-start' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'thumbnailing-page-done':
+        'page-thumbnailing-page-done':
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
              (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
-        'thumbnailing-end' :
+        'page-thumbnailing-end' :
             (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
     }
 
     can_interrupt = True
 
     def __init__(self, main_window):
-        Worker.__init__(self, "Thumbnailing")
+        Worker.__init__(self, "Page thumbnailing")
         self.__main_win = main_window
 
     def do(self):
-        self.emit('thumbnailing-start')
+        self.emit('page-thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
-                self.emit('thumbnailing-end')
+                self.emit('page-thumbnailing-end')
                 return
-            self.emit('thumbnailing-page-done', page_idx, pixbuf)
-        self.emit('thumbnailing-end')
+            self.emit('page-thumbnailing-page-done', page_idx, pixbuf)
+        self.emit('page-thumbnailing-end')
 
 
-gobject.type_register(WorkerThumbnailer)
+gobject.type_register(WorkerPageThumbnailer)
 
 
 class WorkerImgBuilder(Worker):
@@ -442,7 +442,7 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.workers['page_thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         doc = ImgDoc(self.__config.workdir)
         self.__main_win.doc = doc
@@ -529,7 +529,7 @@ class ActionUpdateSearchResults(SimpleAction):
 class ActionPageSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self,
-                "Show a page (selected from the thumbnail list)")
+                "Show a page (selected from the page thumbnail list)")
         self.__main_win = main_window
 
     def do(self):
@@ -905,7 +905,7 @@ class ActionDeletePage(SimpleAction):
         print "Deleting ..."
         self.__main_win.page.destroy()
         print "Deleted"
-        self.__main_win.workers['thumbnailer'].stop()
+        self.__main_win.workers['page_thumbnailer'].stop()
         self.__main_win.workers['img_builder'].stop()
         self.__main_win.page = None
         for widget in self.__main_win.need_page_widgets:
@@ -913,7 +913,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.workers['img_builder'].start()
-        self.__main_win.workers['thumbnailer'].start()
+        self.__main_win.workers['page_thumbnailer'].start()
         self.__main_win.workers['reindex'].start()
 
 
@@ -1366,7 +1366,7 @@ class MainWindow(object):
 
         self.workers = {
             'reindex' : WorkerDocIndexer(self, config),
-            'thumbnailer' : WorkerThumbnailer(self),
+            'page_thumbnailer' : WorkerPageThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
             'label_updater' : WorkerLabelUpdater(self),
             'label_deleter' : WorkerLabelDeleter(self),
@@ -1710,17 +1710,17 @@ class MainWindow(object):
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
             gobject.idle_add(self.__on_indexation_end_cb, indexer))
 
-        self.workers['thumbnailer'].connect('thumbnailing-start',
+        self.workers['page_thumbnailer'].connect('page-thumbnailing-start',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_thumbnailing_start_cb,
+                    gobject.idle_add(self.__on_page_thumbnailing_start_cb,
                                      thumbnailer))
-        self.workers['thumbnailer'].connect('thumbnailing-page-done',
+        self.workers['page_thumbnailer'].connect('page-thumbnailing-page-done',
                 lambda thumbnailer, page_idx, thumbnail: \
-                    gobject.idle_add(self.__on_thumbnailing_page_done_cb,
+                    gobject.idle_add(self.__on_page_thumbnailing_page_done_cb,
                                      thumbnailer, page_idx, thumbnail))
-        self.workers['thumbnailer'].connect('thumbnailing-end',
+        self.workers['page_thumbnailer'].connect('page-thumbnailing-end',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_thumbnailing_end_cb,
+                    gobject.idle_add(self.__on_page_thumbnailing_end_cb,
                                      thumbnailer))
 
         self.workers['img_builder'].connect('img-building-start',
@@ -1840,11 +1840,11 @@ class MainWindow(object):
         self.refresh_doc_list()
         self.refresh_label_list()
 
-    def __on_thumbnailing_start_cb(self, src):
+    def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
         self.set_mouse_cursor("Busy")
 
-    def __on_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
+    def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         print "Updating thumbnail %d" % (page_idx)
         line_iter = self.lists['pages'][1].get_iter(page_idx)
         self.lists['pages'][1].set_value(line_iter, 0, thumbnail)
@@ -1852,7 +1852,7 @@ class MainWindow(object):
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Thumbnailing ..."))
 
-    def __on_thumbnailing_end_cb(self, src):
+    def __on_page_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
@@ -1964,9 +1964,9 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.workers['thumbnailer'].stop()
+        self.workers['page_thumbnailer'].stop()
         self.refresh_page_list()
-        self.workers['thumbnailer'].start()
+        self.workers['page_thumbnailer'].start()
 
         if page != None:
             self.show_page(page)
@@ -1993,9 +1993,9 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.workers['thumbnailer'].stop()
+        self.workers['page_thumbnailer'].stop()
         self.refresh_page_list()
-        self.workers['thumbnailer'].start()
+        self.workers['page_thumbnailer'].start()
         self.show_doc(doc)
         self.refresh_doc_list()
         if page != None:
@@ -2233,7 +2233,7 @@ class MainWindow(object):
         self.workers['img_builder'].start()
 
     def show_doc(self, doc):
-        self.workers['thumbnailer'].stop()
+        self.workers['page_thumbnailer'].stop()
         self.doc = doc
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
@@ -2241,7 +2241,7 @@ class MainWindow(object):
             widget.set_sensitive(self.doc.can_edit)
         self.refresh_page_list()
         self.refresh_label_list()
-        self.workers['thumbnailer'].start()
+        self.workers['page_thumbnailer'].start()
         if self.doc.nb_pages > 0:
             self.show_page(self.doc.pages[0])
         else:

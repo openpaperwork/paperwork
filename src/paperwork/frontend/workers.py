@@ -61,9 +61,11 @@ class Worker(gobject.GObject):
         self.can_run = False
         if self.__thread.is_alive():
             self.__thread.join()
+            assert(not self.__thread.is_alive())
 
     def wait(self):
         self.__thread.join()
+        assert(not self.__thread.is_alive())
 
     def __get_is_running(self):
         return (self.__thread != None and self.__thread.is_alive())

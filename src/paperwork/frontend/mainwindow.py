@@ -718,7 +718,7 @@ class ActionEditLabel(SimpleAction):
 
         SimpleAction.do(self)
 
-        selection_path = self.__main_win.lists['labels']['model'] \
+        selection_path = self.__main_win.lists['labels']['gui'] \
                 .get_selection().get_selected()
         if selection_path[1] == None:
             print "No label selected"

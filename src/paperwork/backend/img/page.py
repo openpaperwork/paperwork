@@ -279,6 +279,8 @@ class ImgPage(BasicPage):
         Do the OCR on the page
         """
 
+        files = files[:]
+
         callback(0, 100, self.SCAN_STEP_OCR)
 
         ocr_tools = pyocr.pyocr.get_available_tools()

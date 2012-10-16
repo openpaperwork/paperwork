@@ -14,9 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import sys
 import threading
 import time
+import traceback
 
 import gobject
 
@@ -28,6 +30,7 @@ class Worker(gobject.GObject):
         self.name = name
         self.can_run = True
         self.__thread = None
+        self.__started_by = None
 
     def do(self, **kwargs):
         # implemented by the child class
@@ -43,29 +46,43 @@ class Worker(gobject.GObject):
 
     def start(self, **kwargs):
         if self.is_running:
+            print "====="
+            print "ERROR"
+            print "Thread '%s' was already started by:" % (self.name)
+            idx = 0
+            for stack_el in self.__started_by:
+                print ("%2d : %20s : L%5d : %s"
+                       % (idx, os.path.basename(stack_el[0]),
+                          stack_el[1], stack_el[2]))
+                idx += 1
+            print "====="
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
+        self.__started_by = traceback.extract_stack()
         self.can_run = True
         self.__thread = threading.Thread(target=self.__wrapper, kwargs=kwargs)
         self.__thread.start()
 
+    def soft_stop(self):
+        self.can_run = False
+
     def stop(self):
-        if not self.is_running:
-            return
         print "Stopping worker [%s]" % (self)
         sys.stdout.flush()
         if not self.can_interrupt:
             print ("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False
-        if self.__thread.is_alive():
+        if self.is_running:
             self.__thread.join()
-            assert(not self.__thread.is_alive())
+            assert(not self.is_running)
 
     def wait(self):
+        if not self.is_running:
+            return
         self.__thread.join()
-        assert(not self.__thread.is_alive())
+        assert(not self.is_running)
 
     def __get_is_running(self):
         return (self.__thread != None and self.__thread.is_alive())

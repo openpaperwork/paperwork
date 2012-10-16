@@ -22,6 +22,21 @@ class SimpleAction(object):
     """
     def __init__(self, name):
         self.name = name
+        self.__signal_handlers = [
+            (gtk.ToolButton, "clicked", self.on_button_clicked_cb, -1),
+            (gtk.Button, "clicked", self.on_button_clicked_cb, -1),
+            (gtk.MenuItem, "activate", self.on_menuitem_activate_cb, -1),
+            (gtk.Editable, "changed", self.on_entry_changed_cb, -1),
+            (gtk.Editable, "activate", self.on_entry_activate_cb, -1),
+            (gtk.Entry, "icon-press", self.on_icon_press_cb, -1),
+            (gtk.TreeView, "cursor-changed",
+             self.on_treeview_cursor_changed_cb, -1),
+            (gtk.IconView, "selection-changed",
+             self.on_iconview_selection_changed_cb, -1),
+            (gtk.ComboBox, "changed", self.on_combobox_changed_cb, -1),
+            (gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
+            (gtk.Range, "value-changed", self.on_value_changed_cb, -1),
+        ]
 
     def do(self, **kwargs):
         print "Action: [%s]" % (self.name)
@@ -59,28 +74,24 @@ class SimpleAction(object):
     def connect(self, buttons):
         for button in buttons:
             assert(button != None)
-            if isinstance(button, gtk.ToolButton):
-                button.connect("clicked", self.on_button_clicked_cb)
-            elif isinstance(button, gtk.Button):
-                button.connect("clicked", self.on_button_clicked_cb)
-            elif isinstance(button, gtk.MenuItem):
-                button.connect("activate", self.on_menuitem_activate_cb)
-            elif isinstance(button, gtk.Editable):
-                button.connect("changed", self.on_entry_changed_cb)
-                button.connect("activate", self.on_entry_activate_cb)
-                if isinstance(button, gtk.Entry):
-                    button.connect("icon-press", self.on_icon_press_cb)
-            elif isinstance(button, gtk.TreeView):
-                button.connect("cursor-changed",
-                               self.on_treeview_cursor_changed_cb)
-            elif isinstance(button, gtk.IconView):
-                button.connect("selection-changed",
-                               self.on_iconview_selection_changed_cb)
-            elif isinstance(button, gtk.ComboBox):
-                button.connect("changed", self.on_combobox_changed_cb)
-            elif isinstance(button, gtk.CellRenderer):
-                button.connect("edited", self.on_cell_edited_cb)
-            elif isinstance(button, gtk.Range):
-                button.connect("value-changed", self.on_value_changed_cb)
-            else:
-                assert()
+            handled = False
+            for handler_idx in range(0, len(self.__signal_handlers)):
+                (obj_class, signal, handler, handler_id) = \
+                        self.__signal_handlers[handler_idx]
+                if isinstance(button, obj_class):
+                    handler_id = button.connect(signal, handler)
+                    handled = True
+                self.__signal_handlers[handler_idx] = \
+                        (obj_class, signal, handler, handler_id)
+            assert(handled)
+
+    def disconnect(self, buttons):
+        for button in buttons:
+            assert(button != None)
+            for handler_idx in range(0, len(self.__signal_handlers)):
+                (obj_class, signal, handler, handler_id) = \
+                        self.__signal_handlers[handler_idx]
+                if isinstance(button, obj_class):
+                    button.disconnect(handler_id)
+                self.__signal_handlers[handler_idx] = \
+                        (obj_class, signal, handler, -1)

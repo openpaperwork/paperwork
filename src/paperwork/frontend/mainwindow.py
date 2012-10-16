@@ -484,9 +484,6 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['page_thumbnailer'].stop()
-        self.__main_win.workers['doc_thumbnailer'].stop()
-        self.__main_win.workers['img_builder'].stop()
         doc = ImgDoc(self.__config.workdir)
         self.__main_win.doc = doc
         for widget in self.__main_win.need_doc_widgets:
@@ -499,8 +496,6 @@ class ActionNewDocument(SimpleAction):
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
-        self.__main_win.workers['img_builder'].start()
-        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -561,10 +556,8 @@ class ActionUpdateSearchResults(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['doc_thumbnailer'].stop()
         self.__main_win.refresh_doc_list()
         self.__main_win.refresh_highlighted_words()
-        self.__main_win.workers['doc_thumbnailer'].start()
 
     def on_icon_press_cb(self, entry, iconpos=gtk.ENTRY_ICON_SECONDARY, event=None):
         if iconpos == gtk.ENTRY_ICON_PRIMARY:
@@ -667,7 +660,6 @@ class ActionToggleLabel(object):
         self.__main_win = main_window
 
     def toggle_cb(self, renderer, objpath):
-        self.__main_win.workers['doc_thumbnailer'].stop()
         label = self.__main_win.lists['labels']['model'][objpath][2]
         if not label in self.__main_win.doc.labels:
             print ("Action: Adding label '%s' on document '%s'"
@@ -679,7 +671,6 @@ class ActionToggleLabel(object):
             self.__main_win.doc.remove_label(label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
-        self.__main_win.workers['doc_thumbnailer'].start()
         # TODO(Jflesch): Update keyword index
 
     def connect(self, cellrenderers):
@@ -694,7 +685,6 @@ class ActionCreateLabel(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['doc_thumbnailer'].stop()
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
@@ -704,7 +694,6 @@ class ActionCreateLabel(SimpleAction):
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_doc_list()
-        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionEditLabel(SimpleAction):
@@ -844,9 +833,7 @@ class ActionMultiScan(SimpleAction):
         ms.connect("need-doclist-refresh", self.__doclist_refresh)
 
     def __doclist_refresh(self, multiscan_window):
-        self.__main_win.workers['doc_thumbnailer'].stop()
         self.__main_win.refresh_doc_list()
-        self.__main_win.workers['doc_thumbnailer'].start()
 
 
 class ActionImport(SimpleAction):
@@ -958,16 +945,11 @@ class ActionDeletePage(SimpleAction):
         print "Deleting ..."
         self.__main_win.page.destroy()
         print "Deleted"
-        self.__main_win.workers['page_thumbnailer'].stop()
-        self.__main_win.workers['img_builder'].stop()
         self.__main_win.page = None
         for widget in self.__main_win.need_page_widgets:
             widget.set_sensitive(False)
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
-        self.__main_win.workers['img_builder'].start()
-        self.__main_win.workers['page_thumbnailer'].start()
-        self.__main_win.workers['reindex'].start()
 
 
 class ActionRedoDocOCR(SimpleAction):
@@ -1904,13 +1886,11 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_indexation_end_cb(self, src):
-        self.workers['doc_thumbnailer'].stop()
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
-        self.workers['doc_thumbnailer'].start()
 
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
@@ -2046,9 +2026,6 @@ class MainWindow(object):
 
     def __on_single_scan_done(self, src, page):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
-        self.workers['doc_thumbnailer'].stop()
-        self.workers['page_thumbnailer'].stop()
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
         for widget in self.need_doc_widgets:
@@ -2064,8 +2041,6 @@ class MainWindow(object):
             self.show_page(page)
 
         self.refresh_doc_list()
-        self.workers['page_thumbnailer'].start()
-        self.workers['doc_thumbnailer'].start()
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
@@ -2082,9 +2057,6 @@ class MainWindow(object):
         # Note: don't update scan time here : OCR is not required for all
         # imports
 
-        self.workers['page_thumbnailer'].stop()
-        self.workers['doc_thumbnailer'].stop()
-
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
 
@@ -2093,8 +2065,6 @@ class MainWindow(object):
         self.refresh_page_list()
         self.show_doc(doc)
         self.refresh_doc_list()
-        self.workers['page_thumbnailer'].start()
-        self.workers['doc_thumbnailer'].start()
         if page != None:
             self.show_page(page)
 
@@ -2202,6 +2172,8 @@ class MainWindow(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
+        self.workers['doc_thumbnailer'].soft_stop()
+
         sentence = unicode(self.search_field.get_text())
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
 
@@ -2218,6 +2190,8 @@ class MainWindow(object):
             documents.append(ImgDoc(self.__config.workdir))
         documents = [doc for doc in reversed(documents)]
         self.lists['matches']['doclist'] = documents
+
+        self.workers['doc_thumbnailer'].wait()
 
         self.lists['matches']['model'].clear()
         active_idx = -1
@@ -2267,14 +2241,15 @@ class MainWindow(object):
                              active_idx, False, 0.0, 0.0)
         else:
             self.lists['matches']['gui'].unselect_all()
-            pass
 
+        self.workers['doc_thumbnailer'].start()
 
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
+        self.workers['page_thumbnailer'].stop()
         self.lists['pages']['model'].clear()
         for page in self.doc.pages:
             self.lists['pages']['model'].append([
@@ -2290,6 +2265,7 @@ class MainWindow(object):
             widget.set_sensitive(self.doc.can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
+        self.workers['page_thumbnailer'].start()
 
     def refresh_label_list(self):
         """
@@ -2323,20 +2299,28 @@ class MainWindow(object):
     def show_page(self, page):
         print "Showing page %s" % (str(page))
 
+        self.workers['img_builder'].stop()
+
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
 
+        # we are going to select the current page in the list
+        # except we don't want to be called again because of it
+        self.actions['open_page'][1].disconnect(self.actions['open_page'][0])
         # TODO(Jflesch): We should not make assumption regarding
         # the page position in the list
         self.lists['pages']['gui'].select_path(page.page_nb)
         self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+        self.actions['open_page'][1].connect(self.actions['open_page'][0])
 
+        # we are going to update the page number
+        # except we don't want to be called again because of this update
+        self.actions['set_current_page'][1].disconnect(self.actions['set_current_page'][0])
         self.indicators['current_page'].set_text(
                 "%d" % (page.page_nb + 1))
-
-        self.workers['img_builder'].stop()
+        self.actions['set_current_page'][1].disconnect(self.actions['set_current_page'][0])
 
         self.page = page
         self.img['boxes']['all'] = self.page.boxes
@@ -2349,7 +2333,6 @@ class MainWindow(object):
         self.workers['img_builder'].start()
 
     def show_doc(self, doc):
-        self.workers['page_thumbnailer'].stop()
         self.doc = doc
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
@@ -2357,7 +2340,6 @@ class MainWindow(object):
             widget.set_sensitive(self.doc.can_edit)
         self.refresh_page_list()
         self.refresh_label_list()
-        self.workers['page_thumbnailer'].start()
         if self.doc.nb_pages > 0:
             self.show_page(self.doc.pages[0])
         else:

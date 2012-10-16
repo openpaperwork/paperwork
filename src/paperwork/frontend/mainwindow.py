@@ -2226,8 +2226,14 @@ class MainWindow(object):
         self.lists['matches']['active_idx'] = active_idx
 
         if active_idx >= 0:
+            # we are going to select the current page in the list
+            # except we don't want to be called again because of it
+            self.actions['open_doc'][1].disconnect(self.actions['open_doc'][0])
+
             self.lists['matches']['gui'].unselect_all()
             self.lists['matches']['gui'].select_path(active_idx)
+
+            self.actions['open_doc'][1].connect(self.actions['open_doc'][0])
 
             # HACK(Jflesch): The document says that scroll_to_cell() should do
             # nothing if the target cell is already visible (which is the

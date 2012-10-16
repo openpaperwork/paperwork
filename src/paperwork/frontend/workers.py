@@ -70,7 +70,7 @@ class Worker(gobject.GObject):
     def stop(self):
         print "Stopping worker [%s]" % (self)
         sys.stdout.flush()
-        if not self.can_interrupt:
+        if not self.can_interrupt and self.is_running:
             print ("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False

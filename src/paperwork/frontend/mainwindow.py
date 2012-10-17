@@ -36,6 +36,7 @@ from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.workers import Worker
 from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.backend import docimport
+from paperwork.backend.common.page import DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
@@ -227,7 +228,7 @@ class WorkerImgBuilder(Worker):
     def do(self):
         self.emit('img-building-start')
 
-        if self.__main_win.page == None:
+        if self.__main_win.page.img == None:
             self.emit('img-building-result-stock', gtk.STOCK_MISSING_IMAGE)
             return
 
@@ -484,18 +485,31 @@ class ActionNewDocument(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        doc = ImgDoc(self.__config.workdir)
-        self.__main_win.doc = doc
-        for widget in self.__main_win.need_doc_widgets:
-            widget.set_sensitive(False)
-        for widget in self.__main_win.doc_edit_widgets:
-            widget.set_sensitive(doc.can_edit)
-        for widget in self.__main_win.need_page_widgets:
-            widget.set_sensitive(False)
-        self.__main_win.page = None
-        self.__main_win.refresh_page_list()
-        self.__main_win.refresh_label_list()
-        self.__main_win.refresh_doc_list()
+
+        must_insert_new = False
+
+        doclist = self.__main_win.lists['matches']['doclist']
+        if (len(doclist) <= 0):
+            must_insert_new = True
+        else:
+            must_insert_new = not doclist[0].is_new
+
+        if must_insert_new:
+            doc = ImgDoc(self.__config.workdir)
+            doclist.insert(0, doc)
+            self.__main_win.lists['matches']['model'].insert(
+                0,
+                [
+                    doc.name,
+                    doc,
+                    None,
+                    None,
+                    gtk.ICON_SIZE_DIALOG,
+                ])
+
+        self.__main_win.lists['matches']['gui'].select_path(0)
+        self.__main_win.lists['matches']['gui'].scroll_to_path(
+            0, False, 0.0, 0.0)
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -566,7 +580,7 @@ class ActionUpdateSearchResults(SimpleAction):
             entry.set_text("")
 
 
-class ActionPageSelected(SimpleAction):
+class ActionOpenPageSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self,
                 "Show a page (selected from the page thumbnail list)")
@@ -576,7 +590,8 @@ class ActionPageSelected(SimpleAction):
         SimpleAction.do(self)
         selection_path = self.__main_win.lists['pages']['gui'].get_selected_items()
         if len(selection_path) <= 0:
-            return None
+            self.__main_win.show_page(DummyPage(self.__main_win.doc))
+            return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
         page_idx = selection_path[0][0]
@@ -1275,7 +1290,7 @@ class MainWindow(object):
 
         self.docsearch = DummyDocSearch()
         self.doc = ImgDoc(self.__config.workdir)
-        self.page = None
+        self.page = DummyPage(self.doc)
 
         self.lists = {
             'suggestions' : {
@@ -1430,7 +1445,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("iconviewPage"),
                 ],
-                ActionPageSelected(self)
+                ActionOpenPageSelected(self)
             ),
             'select_label' : (
                 [
@@ -1995,9 +2010,8 @@ class MainWindow(object):
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
-        if self.page != None:
-            # in case the keywords were highlighted
-            self.show_page(self.page)
+        # in case the keywords were highlighted
+        self.show_page(self.page)
         self.workers['reindex'].stop()
         self.workers['reindex'].start()
 
@@ -2036,9 +2050,9 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
-
-        if page != None:
-            self.show_page(page)
+    
+        assert(page is not None)
+        self.show_page(page)
 
         self.refresh_doc_list()
 
@@ -2289,9 +2303,6 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
     def refresh_highlighted_words(self):
-        if self.page == None:
-            return
-
         old_highlights = self.img['boxes']['highlighted']
 
         search = unicode(self.search_field.get_text())
@@ -2312,20 +2323,20 @@ class MainWindow(object):
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
 
-        # we are going to select the current page in the list
-        # except we don't want to be called again because of it
-        self.actions['open_page'][1].enabled = False
-        # TODO(Jflesch): We should not make assumption regarding
-        # the page position in the list
-        self.lists['pages']['gui'].select_path(page.page_nb)
-        self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
-        self.actions['open_page'][1].enabled = True
+        if page.page_nb >= 0:
+            # we are going to select the current page in the list
+            # except we don't want to be called again because of it
+            self.actions['open_page'][1].enabled = False
+            # TODO(Jflesch): We should not make assumption regarding
+            # the page position in the list
+            self.lists['pages']['gui'].select_path(page.page_nb)
+            self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+            self.actions['open_page'][1].enabled = True
 
         # we are going to update the page number
         # except we don't want to be called again because of this update
         self.actions['set_current_page'][1].enabled = False
-        self.indicators['current_page'].set_text(
-                "%d" % (page.page_nb + 1))
+        self.indicators['current_page'].set_text("%d" % (page.page_nb + 1))
         self.actions['set_current_page'][1].enabled = True
 
         self.page = page

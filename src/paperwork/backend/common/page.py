@@ -175,37 +175,3 @@ class BasicPage(object):
 
     keywords = property(__get_keywords)
 
-
-class DummyPage(object):
-    page_nb = -1
-    text = ""
-    boxes = []
-    keywords = []
-    img = None
-
-    def __init__(self, parent_doc):
-        self.doc = parent_doc
-
-    def get_thumbnail(self, width):
-        raise NotImplementedError()
-
-    def print_page_cb(self, print_op, print_context):
-        raise NotImplementedError()
-
-    def redo_ocr(self, ocrlang):
-        pass
-
-    def destroy(self):
-        pass
-
-    def get_boxes(self, sentence):
-        return []
-
-    def get_export_formats(self):
-        return []
-
-    def build_exporter(self, file_format='PNG'):
-        raise NotImplementedError()
-
-    def __str__(self):
-        return "Dummy page"

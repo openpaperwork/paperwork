@@ -37,39 +37,45 @@ class SimpleAction(object):
             (gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
             (gtk.Range, "value-changed", self.on_value_changed_cb, -1),
         ]
+        self.enabled = True
 
     def do(self, **kwargs):
         print "Action: [%s]" % (self.name)
 
+    def __do(self, **kwargs):
+        if not self.enabled:
+            return
+        self.do(**kwargs)
+
     def on_button_clicked_cb(self, toolbutton):
-        self.do()
+        self.__do()
 
     def on_menuitem_activate_cb(self, menuitem):
-        self.do()
+        self.__do()
 
     def on_entry_changed_cb(self, entry):
-        self.do()
+        self.__do()
 
     def on_entry_activate_cb(self, entry):
-        self.do()
+        self.__do()
 
     def on_treeview_cursor_changed_cb(self, treeview):
-        self.do()
+        self.__do()
 
     def on_iconview_selection_changed_cb(self, iconview):
-        self.do()
+        self.__do()
 
     def on_combobox_changed_cb(self, combobox):
-        self.do()
+        self.__do()
 
     def on_cell_edited_cb(self, cellrenderer, path, new_text):
-        self.do(new_text=new_text)
+        self.__do(new_text=new_text)
 
     def on_icon_press_cb(self, entry=None, iconpos=None, event=None):
-        self.do()
+        self.__do()
 
     def on_value_changed_cb(self, widget_range=None):
-        self.do()
+        self.__do()
 
     def connect(self, buttons):
         for button in buttons:
@@ -84,14 +90,3 @@ class SimpleAction(object):
                 self.__signal_handlers[handler_idx] = \
                         (obj_class, signal, handler, handler_id)
             assert(handled)
-
-    def disconnect(self, buttons):
-        for button in buttons:
-            assert(button != None)
-            for handler_idx in range(0, len(self.__signal_handlers)):
-                (obj_class, signal, handler, handler_id) = \
-                        self.__signal_handlers[handler_idx]
-                if isinstance(button, obj_class):
-                    button.disconnect(handler_id)
-                self.__signal_handlers[handler_idx] = \
-                        (obj_class, signal, handler, -1)

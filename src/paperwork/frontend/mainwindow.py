@@ -2220,12 +2220,12 @@ class MainWindow(object):
         if active_idx >= 0:
             # we are going to select the current page in the list
             # except we don't want to be called again because of it
-            self.actions['open_doc'][1].disconnect(self.actions['open_doc'][0])
+            self.actions['open_doc'][1].enabled = False
 
             self.lists['matches']['gui'].unselect_all()
             self.lists['matches']['gui'].select_path(active_idx)
 
-            self.actions['open_doc'][1].connect(self.actions['open_doc'][0])
+            self.actions['open_doc'][1].enabled = True
 
             # HACK(Jflesch): The document says that scroll_to_cell() should do
             # nothing if the target cell is already visible (which is the
@@ -2304,18 +2304,18 @@ class MainWindow(object):
         if page.page_nb >= 0:
             # we are going to select the current page in the list
             # except we don't want to be called again because of it
-            self.actions['open_page'][1].disconnect(self.actions['open_page'][0])
+            self.actions['open_page'][1].enabled = False
             # TODO(Jflesch): We should not make assumption regarding
             # the page position in the list
             self.lists['pages']['gui'].select_path(page.page_nb)
             self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
-            self.actions['open_page'][1].connect(self.actions['open_page'][0])
+            self.actions['open_page'][1].enabled = True
 
         # we are going to update the page number
         # except we don't want to be called again because of this update
-        self.actions['set_current_page'][1].disconnect(self.actions['set_current_page'][0])
+        self.actions['set_current_page'][1].enabled = False
         self.indicators['current_page'].set_text("%d" % (page.page_nb + 1))
-        self.actions['set_current_page'][1].disconnect(self.actions['set_current_page'][0])
+        self.actions['set_current_page'][1].enabled = True
 
         self.page = page
         self.img['boxes']['all'] = self.page.boxes

@@ -182,10 +182,14 @@ class WorkerDocThumbnailer(Worker):
         Worker.__init__(self, "Doc thumbnailing")
         self.__main_win = main_window
 
-    def do(self):
+    def do(self, doc_indexes=None):
         self.emit('doc-thumbnailing-start')
+
         doclist = self.__main_win.lists['matches']['doclist']
-        for doc_idx in range(0, len(doclist)):
+        if doc_indexes is None:
+            doc_indexes = range(0, len(doclist))
+
+        for doc_idx in doc_indexes:
             doc = doclist[doc_idx]
             if doc.nb_pages <= 0:
                 continue
@@ -571,6 +575,7 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
+        self.__main_win.refresh_suggestions_list()
         self.__main_win.refresh_highlighted_words()
 
     def on_icon_press_cb(self, entry, iconpos=gtk.ENTRY_ICON_SECONDARY, event=None):
@@ -685,7 +690,7 @@ class ActionToggleLabel(object):
                    % (str(label), str(self.__main_win.doc)))
             self.__main_win.doc.remove_label(label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_doc_list()
+        self.__main_win.refresh_docs([self.__main_win.doc])
         # TODO(Jflesch): Update keyword index
 
     def connect(self, cellrenderers):
@@ -708,7 +713,7 @@ class ActionCreateLabel(SimpleAction):
             self.__main_win.docsearch.add_label(labeleditor.label,
                                                 self.__main_win.doc)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_doc_list()
+        self.__main_win.refresh_docs([self.__main_win.doc])
 
 
 class ActionEditLabel(SimpleAction):
@@ -2050,7 +2055,7 @@ class MainWindow(object):
         assert(page is not None)
         self.show_page(page)
 
-        self.refresh_doc_list()
+        self.append_docs([self.doc])
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
@@ -2074,6 +2079,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
         self.show_doc(doc)
+        # Many documents may have been imported actually. So we still
+        # refresh the whole list
         self.refresh_doc_list()
         if page != None:
             self.show_page(page)
@@ -2176,7 +2183,158 @@ class MainWindow(object):
             self.img['image'].set_tooltip_text(new_box.content)
             self.__draw_box(self.img['image'].window, new_box)
 
-    def refresh_doc_list(self):
+    def refresh_suggestions_list(self):
+        sentence = unicode(self.search_field.get_text())
+        print "[Suggestions] Search: %s" % (sentence.encode('ascii', 'replace'))
+
+        suggestions = self.docsearch.find_suggestions(sentence)
+        print "Got %d suggestions" % len(suggestions)
+        self.lists['suggestions']['model'].clear()
+        for suggestion in suggestions:
+            self.lists['suggestions']['model'].append([suggestion])
+
+    @staticmethod
+    def __get_doc_txt(doc):
+        labels = doc.labels
+        final_str = "%s" % (doc.name)
+        nb_pages = doc.nb_pages
+        if nb_pages > 1:
+            final_str += (_("\n  %d pages") % (doc.nb_pages))
+        if len(labels) > 0:
+            final_str += ("\n  "
+                    + "\n  ".join([x.get_html() for x in labels]))
+        return final_str
+
+    def __get_doc_model_line(self, doc):
+        doc_txt = self.__get_doc_txt(doc)
+        stock = gtk.STOCK_EXECUTE
+        if doc.nb_pages <= 0:
+            stock = None
+        return ([
+            doc_txt,
+            doc,
+            None,
+            stock,
+            gtk.ICON_SIZE_DIALOG,
+        ])
+
+    def __select_doc(self, doc_idx):
+        if doc_idx >= 0:
+            # we are going to select the current page in the list
+            # except we don't want to be called again because of it
+            self.actions['open_doc'][1].enabled = False
+
+            self.lists['matches']['gui'].unselect_all()
+            self.lists['matches']['gui'].select_path(doc_idx)
+
+            self.actions['open_doc'][1].enabled = True
+
+            # HACK(Jflesch): The Gtk documentation says that scroll_to_cell()
+            # should do nothing if the target cell is already visible (which
+            # is the desired behavior here). Except we just emptied the
+            # document list model and remade it from scratch. For some reason,
+            # it seems that  Gtk will then always consider that the cell is
+            # not visible and move the scrollbar.
+            # --> we use idle_add to move the scrollbar only once everything has
+            # been displayed
+            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             doc_idx, False, 0.0, 0.0)
+        else:
+            self.lists['matches']['gui'].unselect_all()
+
+    def __insert_new_doc(self):
+        sentence = unicode(self.search_field.get_text())
+        print "Search: %s" % (sentence.encode('ascii', 'replace'))
+
+        doc_list = self.lists['matches']['doclist']
+
+        # When a scan is done, we try to refresh only the current document.
+        # However, the current document may be "New document". In which case
+        # it won't appear as "New document" anymore. So we have to add a new
+        # one to the list
+        if sentence == u"" and (len(doc_list) == 0 or not doc_list[0].is_new):
+            # append a new document to the list
+            new_doc = ImgDoc(self.__config.workdir)
+            doc_list.insert(0, new_doc)
+            new_doc_line = self.__get_doc_model_line(new_doc)
+            self.lists['matches']['model'].insert(0, new_doc_line)
+            return True
+        return False
+
+    def append_docs(self, docs):
+        # We don't stop the doc thumbnailer here. It might be
+        # refreshing other documents we won't
+        self.workers['doc_thumbnailer'].wait()
+
+        doc_list = self.lists['matches']['doclist']
+        model = self.lists['matches']['model']
+
+        if (len(doc_list) > 0
+            and (doc_list[0] in docs or doc_list[0].is_new)):
+            # Remove temporarily "New document" from the list
+            doc_list.pop(0)
+            model.remove(model[0].iter)
+
+        active_idx = -1
+        for doc in docs:
+            if doc == self.doc:
+                active_idx = 0
+            elif active_idx >= 0:
+                active_idx += 1
+            doc_list.insert(0, doc)
+            doc_line = self.__get_doc_model_line(doc)
+            model.insert(0, doc_line)
+
+        max_thumbnail_idx = len(docs)
+        if self.__insert_new_doc():
+            if active_idx >= 0:
+                active_idx += 1
+            max_thumbnail_idx += 1
+
+        if active_idx >= 0:
+            self.__select_doc(active_idx)
+
+        self.workers['doc_thumbnailer'].start(
+            doc_indexes=range(0, max_thumbnail_idx))
+
+    def refresh_docs(self, docs):
+        """
+        Refresh specific documents in the document list
+
+        Arguments:
+            docs --- Array of Doc
+        """
+        # We don't stop the doc thumbnailer here. It might be
+        # refreshing other documents we won't
+        self.workers['doc_thumbnailer'].wait()
+
+        doc_list = self.lists['matches']['doclist']
+
+        self.__insert_new_doc()
+
+        doc_indexes = []
+        active_idx = -1
+
+        for doc in docs:
+            try:
+                doc_idx = doc_list.index(doc)
+            except ValueError, err:
+                print ("Warning: Should refresh doc %s in doc list, but"
+                       " didn't find it !" % str(doc))
+                continue
+            doc_indexes.append(doc_idx)
+            if self.doc == doc:
+                active_idx = doc_idx
+            doc_txt = self.__get_doc_txt(doc)
+            doc_line = self.__get_doc_model_line(doc)
+            self.lists['matches']['model'][doc_idx] = doc_line
+
+        if active_idx >= 0:
+            self.__select_doc(active_idx)
+
+        self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
+
+    def refresh_doc_list(self, docs=[]):
         """
         Update the suggestions list and the matching documents list based on
         the keywords typed by the user in the search field.
@@ -2186,12 +2344,6 @@ class MainWindow(object):
 
         sentence = unicode(self.search_field.get_text())
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
-
-        suggestions = self.docsearch.find_suggestions(sentence)
-        print "Got %d suggestions" % len(suggestions)
-        self.lists['suggestions']['model'].clear()
-        for suggestion in suggestions:
-            self.lists['suggestions']['model'].append([suggestion])
 
         documents = self.docsearch.find_documents(sentence)
         print "Got %d documents" % len(documents)
@@ -2210,53 +2362,15 @@ class MainWindow(object):
             if doc == self.doc:
                 active_idx = idx
             idx += 1
-            labels = doc.labels
-            final_str = "%s" % (doc.name)
-            nb_pages = doc.nb_pages
-            if nb_pages > 1:
-                final_str += (_("\n  %d pages") % (doc.nb_pages))
-            if len(labels) > 0:
-                final_str += ("\n  "
-                        + "\n  ".join([x.get_html() for x in labels]))
-            stock = gtk.STOCK_EXECUTE
-            if nb_pages <= 0:
-                stock = None
             self.lists['matches']['model'].append(
-                [
-                    final_str,
-                    doc,
-                    None,
-                    stock,
-                    gtk.ICON_SIZE_DIALOG,
-                ])
+                self.__get_doc_model_line(doc))
 
-        if documents[0].is_new and self.doc.is_new:
+        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
             active_idx = 0
 
         self.lists['matches']['active_idx'] = active_idx
 
-        if active_idx >= 0:
-            # we are going to select the current page in the list
-            # except we don't want to be called again because of it
-            self.actions['open_doc'][1].enabled = False
-
-            self.lists['matches']['gui'].unselect_all()
-            self.lists['matches']['gui'].select_path(active_idx)
-
-            self.actions['open_doc'][1].enabled = True
-
-            # HACK(Jflesch): The document says that scroll_to_cell() should do
-            # nothing if the target cell is already visible (which is the
-            # desired behavior here). Except we just emptied the document list
-            # model and remade it from scratch. For some reason, it seems that 
-            # Gtk will then always consider that the cell is not visible and
-            # move the scrollbar.
-            # --> we use idle_add to move the scrollbar only once everything has
-            # been displayed
-            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             active_idx, False, 0.0, 0.0)
-        else:
-            self.lists['matches']['gui'].unselect_all()
+        self.__select_doc(active_idx)
 
         self.workers['doc_thumbnailer'].start()
 

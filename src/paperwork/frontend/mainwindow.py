@@ -1986,15 +1986,11 @@ class MainWindow(object):
                              _("Deleting label (%s) ...") % (doc_name))
 
     def __on_label_updating_end_cb(self, src):
-        self.workers['doc_thumbnailer'].stop()
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        self.refresh_label_list()
-        self.refresh_doc_list()
         self.workers['reindex'].stop()
         self.workers['reindex'].start()
-        self.workers['doc_thumbnailer'].start()
 
     def __on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)

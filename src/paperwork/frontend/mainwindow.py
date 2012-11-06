@@ -2275,6 +2275,14 @@ class MainWindow(object):
             doc_list.pop(0)
             model.remove(model[0].iter)
 
+        for doc in docs:
+            if doc in doc_list:
+                # already in the list --> won't append
+                docs.remove(doc)
+
+        if len(docs) <= 0:
+            return
+
         active_idx = -1
         for doc in docs:
             if doc == self.doc:

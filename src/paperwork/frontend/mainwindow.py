@@ -23,9 +23,10 @@ import time
 
 import Image
 import ImageColor
-import gtk
+from gi.repository import Gtk
+from gi.repository import Gdk
 import gettext
-import gobject
+from gi.repository import GObject
 
 import pyinsane.rawapi
 
@@ -80,10 +81,10 @@ class WorkerDocIndexer(Worker):
     """
 
     __gsignals__ = {
-        'indexation-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'indexation-progression' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                    (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
-        'indexation-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'indexation-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'indexation-progression' : (GObject.SignalFlags.RUN_LAST, None,
+                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'indexation-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -120,7 +121,7 @@ class WorkerDocIndexer(Worker):
             print "Indexation interrupted"
         self.emit('indexation-end')
 
-gobject.type_register(WorkerDocIndexer)
+GObject.type_register(WorkerDocIndexer)
 
 
 class WorkerPageThumbnailer(Worker):
@@ -130,12 +131,12 @@ class WorkerPageThumbnailer(Worker):
 
     __gsignals__ = {
         'page-thumbnailing-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-thumbnailing-page-done':
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_INT, GObject.TYPE_PYOBJECT)),
         'page-thumbnailing-end' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -158,7 +159,7 @@ class WorkerPageThumbnailer(Worker):
         self.emit('page-thumbnailing-end')
 
 
-gobject.type_register(WorkerPageThumbnailer)
+GObject.type_register(WorkerPageThumbnailer)
 
 
 class WorkerDocThumbnailer(Worker):
@@ -168,12 +169,12 @@ class WorkerDocThumbnailer(Worker):
 
     __gsignals__ = {
         'doc-thumbnailing-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'doc-thumbnailing-doc-done':
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_INT, gobject.TYPE_PYOBJECT)),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_INT, GObject.TYPE_PYOBJECT)),
         'doc-thumbnailing-end' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -203,7 +204,7 @@ class WorkerDocThumbnailer(Worker):
         self.emit('doc-thumbnailing-end')
 
 
-gobject.type_register(WorkerDocThumbnailer)
+GObject.type_register(WorkerDocThumbnailer)
 
 
 class WorkerImgBuilder(Worker):
@@ -212,13 +213,13 @@ class WorkerImgBuilder(Worker):
     """
     __gsignals__ = {
         'img-building-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'img-building-result-pixbuf' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_FLOAT, gobject.TYPE_INT, gobject.TYPE_PYOBJECT, )),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_FLOAT, GObject.TYPE_INT, GObject.TYPE_PYOBJECT, )),
         'img-building-result-stock' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_STRING, )),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_STRING, )),
     }
 
     # even if it's not true, this process is not really long, so it doesn't
@@ -233,12 +234,12 @@ class WorkerImgBuilder(Worker):
         self.emit('img-building-start')
 
         if self.__main_win.page.img == None:
-            self.emit('img-building-result-stock', gtk.STOCK_MISSING_IMAGE)
+            self.emit('img-building-result-stock', Gtk.STOCK_MISSING_IMAGE)
             return
 
         time.sleep(0.25) # to keep the GUI smooth
         if not self.can_run:
-            self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
+            self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
             return
 
         try:
@@ -253,15 +254,15 @@ class WorkerImgBuilder(Worker):
             wanted_width = int(factor * pixbuf.get_width())
             wanted_height = int(factor * pixbuf.get_height())
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
-                                         gtk.gdk.INTERP_BILINEAR)
+                                         GdkPixbuf.InterpType.BILINEAR)
 
             self.emit('img-building-result-pixbuf', factor, original_width, pixbuf)
         except Exception, exc:
-            self.emit('img-building-result-stock', gtk.STOCK_DIALOG_ERROR)
+            self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
             raise exc
 
 
-gobject.type_register(WorkerImgBuilder)
+GObject.type_register(WorkerImgBuilder)
 
 
 class WorkerLabelUpdater(Worker):
@@ -270,11 +271,11 @@ class WorkerLabelUpdater(Worker):
     """
     __gsignals__ = {
         'label-updating-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-updating-doc-updated' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
-        'label-updating-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'label-updating-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -296,7 +297,7 @@ class WorkerLabelUpdater(Worker):
             self.emit('label-updating-end')
 
 
-gobject.type_register(WorkerLabelUpdater)
+GObject.type_register(WorkerLabelUpdater)
 
 
 class WorkerLabelDeleter(Worker):
@@ -305,11 +306,11 @@ class WorkerLabelDeleter(Worker):
     """
     __gsignals__ = {
         'label-deletion-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-deletion-doc-updated' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
-        'label-deletion-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'label-deletion-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -330,7 +331,7 @@ class WorkerLabelDeleter(Worker):
             self.emit('label-deletion-end')
 
 
-gobject.type_register(WorkerLabelDeleter)
+GObject.type_register(WorkerLabelDeleter)
 
 
 class WorkerOCRRedoer(Worker):
@@ -339,11 +340,11 @@ class WorkerOCRRedoer(Worker):
     """
     __gsignals__ = {
         'redo-ocr-start' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None, ()),
         'redo-ocr-doc-updated' :
-            (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-             (gobject.TYPE_FLOAT, gobject.TYPE_STRING)),
-        'redo-ocr-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+            (GObject.SignalFlags.RUN_LAST, None,
+             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'redo-ocr-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -365,15 +366,15 @@ class WorkerOCRRedoer(Worker):
             self.emit('redo-ocr-end')
 
 
-gobject.type_register(WorkerOCRRedoer)
+GObject.type_register(WorkerOCRRedoer)
 
 
 class WorkerSingleScan(Worker):
     __gsignals__ = {
-        'single-scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'single-scan-ocr' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'single-scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                              (gobject.TYPE_PYOBJECT,) # ImgPage
+        'single-scan-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'single-scan-ocr' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'single-scan-done' : (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_PYOBJECT,) # ImgPage
                              ),
     }
 
@@ -406,7 +407,7 @@ class WorkerSingleScan(Worker):
             scan_src = scanner.scan(multiple=False)
         except pyinsane.rawapi.SaneException, exc:
             print "No scanner found !"
-            gobject.idle_add(popup_no_scanner_found, self.__main_win.window)
+            GObject.idle_add(popup_no_scanner_found, self.__main_win.window)
             self.emit('single-scan-done', None)
             raise
         doc.scan_single_page(scan_src, scanner.options['resolution'].value,
@@ -419,15 +420,15 @@ class WorkerSingleScan(Worker):
         self.emit('single-scan-done', page)
 
 
-gobject.type_register(WorkerSingleScan)
+GObject.type_register(WorkerSingleScan)
 
 
 class WorkerImporter(Worker):
     __gsignals__ = {
-        'import-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'import-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                         (gobject.TYPE_PYOBJECT,  # Doc
-                          gobject.TYPE_PYOBJECT),  # Page
+        'import-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'import-done' : (GObject.SignalFlags.RUN_LAST, None,
+                         (GObject.TYPE_PYOBJECT,  # Doc
+                          GObject.TYPE_PYOBJECT),  # Page
                         ),
     }
 
@@ -446,15 +447,15 @@ class WorkerImporter(Worker):
         self.emit('import-done', doc, page)
 
 
-gobject.type_register(WorkerImporter)
+GObject.type_register(WorkerImporter)
 
 
 class WorkerExportPreviewer(Worker):
     __gsignals__ = {
-        'export-preview-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'export-preview-start' : (GObject.SignalFlags.RUN_LAST, None,
                                  ()),
-        'export-preview-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                 (gobject.TYPE_INT, gobject.TYPE_PYOBJECT,)),
+        'export-preview-done' : (GObject.SignalFlags.RUN_LAST, None,
+                                 (GObject.TYPE_INT, GObject.TYPE_PYOBJECT,)),
     }
 
     can_interrupt = True
@@ -475,7 +476,7 @@ class WorkerExportPreviewer(Worker):
         self.emit('export-preview-done', size, pixbuf)
 
 
-gobject.type_register(WorkerExportPreviewer)
+GObject.type_register(WorkerExportPreviewer)
 
 
 class ActionNewDocument(SimpleAction):
@@ -508,12 +509,13 @@ class ActionNewDocument(SimpleAction):
                     doc,
                     None,
                     None,
-                    gtk.ICON_SIZE_DIALOG,
+                    Gtk.IconSize.DIALOG,
                 ])
 
-        self.__main_win.lists['matches']['gui'].select_path(0)
-        self.__main_win.lists['matches']['gui'].scroll_to_path(
-            0, False, 0.0, 0.0)
+        # ### TODO
+        # self.__main_win.lists['matches']['gui'].select_path(0)
+        # self.__main_win.lists['matches']['gui'].scroll_to_path(
+        #     0, False, 0.0, 0.0)
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -578,8 +580,8 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_suggestions_list()
         self.__main_win.refresh_highlighted_words()
 
-    def on_icon_press_cb(self, entry, iconpos=gtk.ENTRY_ICON_SECONDARY, event=None):
-        if iconpos == gtk.ENTRY_ICON_PRIMARY:
+    def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY, event=None):
+        if iconpos == Gtk.EntryIconPosition.PRIMARY:
             entry.grab_focus()
         else:
             entry.set_text("")
@@ -790,12 +792,12 @@ class ActionPrintDoc(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        print_settings = gtk.PrintSettings()
+        print_settings = Gtk.PrintSettings()
         # By default, print context are using 72 dpi, but print_draw_page
         # will change it to 300 dpi --> we have to tell PrintOperation to scale
         print_settings.set_scale(100.0 * (72.0 / ImgPage.PRINT_RESOLUTION))
 
-        print_op = gtk.PrintOperation()
+        print_op = Gtk.PrintOperation()
         print_op.set_print_settings(print_settings)
         print_op.set_n_pages(self.__main_win.doc.nb_pages)
         print_op.set_current_page(self.__main_win.page.page_nb)
@@ -804,7 +806,7 @@ class ActionPrintDoc(SimpleAction):
         print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
         print_op.set_allow_async(True)
         print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
-        print_op.run(gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
+        print_op.run(Gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
                      self.__main_win.window)
 
 
@@ -910,11 +912,11 @@ class ActionImport(SimpleAction):
             msg = (_("Don't know how to import '%s'. Sorry.") %
                    (os.path.basename(file_uri)))
             dialog = \
-                gtk.MessageDialog(parent=self.__main_win.window,
-                                  flags=(gtk.DIALOG_MODAL
-                                         |gtk.DIALOG_DESTROY_WITH_PARENT),
-                                  type=gtk.MESSAGE_ERROR,
-                                  buttons=gtk.BUTTONS_OK,
+                Gtk.MessageDialog(parent=self.__main_win.window,
+                                  flags=(Gtk.DialogFlags.MODAL
+                                         |Gtk.DialogFlags.DESTROY_WITH_PARENT),
+                                  type=Gtk.MessageType.ERROR,
+                                  buttons=Gtk.ButtonsType.OK,
                                   message_format=msg)
             dialog.run()
             dialog.destroy()
@@ -925,7 +927,7 @@ class ActionImport(SimpleAction):
         else:
             importer = importers[0]
 
-        gtk.RecentManager().add_item(file_uri)
+        Gtk.RecentManager().add_item(file_uri)
 
         self.__main_win.workers['importer'].start(
             importer=importer, file_uri = file_uri)
@@ -1091,13 +1093,13 @@ class ActionSelectExportPath(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        chooser = gtk.FileChooserDialog(title=None,
-                                        action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                        buttons=(gtk.STOCK_CANCEL,
-                                                 gtk.RESPONSE_CANCEL,
-                                                 gtk.STOCK_SAVE,
-                                                 gtk.RESPONSE_OK))
-        file_filter = gtk.FileFilter()
+        chooser = Gtk.FileChooserDialog(title=None,
+                                        action=Gtk.FileChooserAction.SAVE,
+                                        buttons=(Gtk.STOCK_CANCEL,
+                                                 Gtk.ResponseType.CANCEL,
+                                                 Gtk.STOCK_SAVE,
+                                                 Gtk.ResponseType.OK))
+        file_filter = Gtk.FileFilter()
         file_filter.set_name(str(self.__main_win.export['exporter']))
         file_filter.add_mime_type(
                 self.__main_win.export['exporter'].get_mime_type())
@@ -1106,7 +1108,7 @@ class ActionSelectExportPath(SimpleAction):
         response = chooser.run()
         filepath = chooser.get_filename()
         chooser.destroy()
-        if response != gtk.RESPONSE_OK:
+        if response != Gtk.ResponseType.OK:
             print "File path for export canceled"
             return
 
@@ -1273,7 +1275,7 @@ class ActionRealQuit(SimpleAction):
             worker.stop()
 
         self.__config.write()
-        gtk.main_quit()
+        Gtk.main_quit()
 
     def on_window_close_cb(self, window):
         self.do()
@@ -1322,10 +1324,10 @@ class MainWindow(object):
             },
         }
 
-        search_completion = gtk.EntryCompletion()
+        search_completion = Gtk.EntryCompletion()
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
-        search_completion.set_match_func(lambda x, y, z: True)
+        search_completion.set_match_func(lambda x, y, z: True, None)
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.indicators = {
@@ -1707,12 +1709,12 @@ class MainWindow(object):
 
         for (buttons, action) in self.actions.values():
             for button in buttons:
-                if isinstance(button, gtk.ToolButton):
+                if isinstance(button, Gtk.ToolButton):
                     button.set_tooltip_text(button.get_label())
 
         for button in self.actions['single_scan'][0]:
             # let's be more specific on the tool tips of these buttons
-            if isinstance(button, gtk.ToolButton):
+            if isinstance(button, Gtk.ToolButton):
                 button.set_tooltip_text(_("Scan single page"))
 
         self.need_doc_widgets = (
@@ -1753,7 +1755,7 @@ class MainWindow(object):
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        self.img['eventbox'].add_events(gtk.gdk.POINTER_MOTION_MASK)
+        self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.img['eventbox'].connect("motion-notify-event",
                                      self.__on_img_mouse_motion)
 
@@ -1761,113 +1763,113 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         self.workers['reindex'].connect('indexation-start', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_start_cb, indexer))
+            GObject.idle_add(self.__on_indexation_start_cb, indexer))
         self.workers['reindex'].connect('indexation-progression',
             lambda indexer, progression, txt: \
-                gobject.idle_add(self.set_progression, indexer,
+                GObject.idle_add(self.set_progression, indexer,
                                  progression, txt))
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
-            gobject.idle_add(self.__on_indexation_end_cb, indexer))
+            GObject.idle_add(self.__on_indexation_end_cb, indexer))
 
         self.workers['page_thumbnailer'].connect('page-thumbnailing-start',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_page_thumbnailing_start_cb,
+                    GObject.idle_add(self.__on_page_thumbnailing_start_cb,
                                      thumbnailer))
         self.workers['page_thumbnailer'].connect('page-thumbnailing-page-done',
                 lambda thumbnailer, page_idx, thumbnail: \
-                    gobject.idle_add(self.__on_page_thumbnailing_page_done_cb,
+                    GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
                                      thumbnailer, page_idx, thumbnail))
         self.workers['page_thumbnailer'].connect('page-thumbnailing-end',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_page_thumbnailing_end_cb,
+                    GObject.idle_add(self.__on_page_thumbnailing_end_cb,
                                      thumbnailer))
 
         self.workers['doc_thumbnailer'].connect('doc-thumbnailing-start',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_doc_thumbnailing_start_cb,
+                    GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
                                      thumbnailer))
         self.workers['doc_thumbnailer'].connect('doc-thumbnailing-doc-done',
                 lambda thumbnailer, doc_idx, thumbnail: \
-                    gobject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
+                    GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
                                      thumbnailer, doc_idx, thumbnail))
         self.workers['doc_thumbnailer'].connect('doc-thumbnailing-end',
                 lambda thumbnailer: \
-                    gobject.idle_add(self.__on_doc_thumbnailing_end_cb,
+                    GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
                                      thumbnailer))
 
         self.workers['img_builder'].connect('img-building-start',
                 lambda builder: \
-                    gobject.idle_add(self.__on_img_building_start))
+                    GObject.idle_add(self.__on_img_building_start))
         self.workers['img_builder'].connect('img-building-result-pixbuf',
                 lambda builder, factor, original_width, img: \
-                    gobject.idle_add(self.__on_img_building_result_pixbuf,
+                    GObject.idle_add(self.__on_img_building_result_pixbuf,
                                      builder, factor, original_width, img))
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
-                    gobject.idle_add(self.__on_img_building_result_stock, img))
+                    GObject.idle_add(self.__on_img_building_result_stock, img))
 
         self.workers['label_updater'].connect('label-updating-start',
                 lambda updater: \
-                    gobject.idle_add(self.__on_label_updating_start_cb,
+                    GObject.idle_add(self.__on_label_updating_start_cb,
                                      updater))
         self.workers['label_updater'].connect('label-updating-doc-updated',
                 lambda updater, progression, doc_name: \
-                    gobject.idle_add(self.__on_label_updating_doc_updated_cb,
+                    GObject.idle_add(self.__on_label_updating_doc_updated_cb,
                                      updater, progression, doc_name))
         self.workers['label_updater'].connect('label-updating-end',
                 lambda updater: \
-                    gobject.idle_add(self.__on_label_updating_end_cb,
+                    GObject.idle_add(self.__on_label_updating_end_cb,
                                      updater))
 
         self.workers['label_deleter'].connect('label-deletion-start',
                 lambda deleter: \
-                    gobject.idle_add(self.__on_label_updating_start_cb,
+                    GObject.idle_add(self.__on_label_updating_start_cb,
                                      deleter))
         self.workers['label_deleter'].connect('label-deletion-doc-updated',
                 lambda deleter, progression, doc_name: \
-                    gobject.idle_add(self.__on_label_deletion_doc_updated_cb,
+                    GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
                                      deleter, progression, doc_name))
         self.workers['label_deleter'].connect('label-deletion-end',
                 lambda deleter: \
-                    gobject.idle_add(self.__on_label_updating_end_cb,
+                    GObject.idle_add(self.__on_label_updating_end_cb,
                                      deleter))
 
         self.workers['ocr_redoer'].connect('redo-ocr-start',
                 lambda ocr_redoer: \
-                    gobject.idle_add(self.__on_redo_ocr_start_cb,
+                    GObject.idle_add(self.__on_redo_ocr_start_cb,
                                      ocr_redoer))
         self.workers['ocr_redoer'].connect('redo-ocr-doc-updated',
                 lambda ocr_redoer, progression, doc_name: \
-                    gobject.idle_add(self.__on_redo_ocr_doc_updated_cb,
+                    GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
                                      ocr_redoer, progression, doc_name))
         self.workers['ocr_redoer'].connect('redo-ocr-end',
                 lambda ocr_redoer: \
-                    gobject.idle_add(self.__on_redo_ocr_end_cb,
+                    GObject.idle_add(self.__on_redo_ocr_end_cb,
                                      ocr_redoer))
 
         self.workers['single_scan'].connect('single-scan-start',
                 lambda worker: \
-                    gobject.idle_add(self.__on_single_scan_start, worker))
+                    GObject.idle_add(self.__on_single_scan_start, worker))
         self.workers['single_scan'].connect('single-scan-ocr',
                 lambda worker: \
-                    gobject.idle_add(self.__on_single_scan_ocr, worker))
+                    GObject.idle_add(self.__on_single_scan_ocr, worker))
         self.workers['single_scan'].connect('single-scan-done',
                 lambda worker, page: \
-                    gobject.idle_add(self.__on_single_scan_done, worker, page))
+                    GObject.idle_add(self.__on_single_scan_done, worker, page))
 
         self.workers['importer'].connect('import-start',
                 lambda worker: \
-                    gobject.idle_add(self.__on_import_start, worker))
+                    GObject.idle_add(self.__on_import_start, worker))
         self.workers['importer'].connect('import-done',
                 lambda worker, doc, page: \
-                    gobject.idle_add(self.__on_import_done, worker, doc, page))
+                    GObject.idle_add(self.__on_import_done, worker, doc, page))
 
         self.workers['export_previewer'].connect('export-preview-start',
                 lambda worker: \
-                    gobject.idle_add(self.__on_export_preview_start))
+                    GObject.idle_add(self.__on_export_preview_start))
         self.workers['export_previewer'].connect('export-preview-done',
                 lambda worker, size, pixbuf: \
-                    gobject.idle_add(self.__on_export_preview_done, size,
+                    GObject.idle_add(self.__on_export_preview_done, size,
                                      pixbuf))
 
         self.window.connect("size-allocate", self.__on_window_resize_cb)
@@ -1888,10 +1890,11 @@ class MainWindow(object):
         assert(self.__busy_mouse_counter >= 0)
 
         if self.__busy_mouse_counter > 0:
-            cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+            cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
         else:
             cursor = None
-        self.window.window.set_cursor(cursor)
+        # ### TODO
+        # self.window.window.set_cursor(cursor)
 
     def set_progression(self, src, progression, text):
         context_id = self.status['text'].get_context_id(str(src))
@@ -1939,9 +1942,10 @@ class MainWindow(object):
                                    len(self.lists['matches']['doclist'])),
                              _("Thumbnailing ..."))
         active_doc_idx = self.lists['matches']['active_idx']
-        if active_doc_idx == doc_idx:
-            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             active_doc_idx, False, 0.0, 0.0)
+        # ### TODO
+        #if active_doc_idx == doc_idx:
+        #    GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+        #                     active_doc_idx, False, 0.0, 0.0)
 
     def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -1949,10 +1953,10 @@ class MainWindow(object):
 
     def __on_img_building_start(self):
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
     def __on_img_building_result_stock(self, img):
-        self.img['image'].set_from_stock(img, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
     def __on_img_building_result_pixbuf(self, builder, factor, original_width, img):
@@ -2019,7 +2023,7 @@ class MainWindow(object):
     def __on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(False)
         self.__scan_start = time.time()
@@ -2060,7 +2064,7 @@ class MainWindow(object):
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
         self.workers['progress_updater'].start(
             value_min=0.0, value_max=1.0,
             total_time=self.__config.scan_time['ocr'])
@@ -2087,7 +2091,7 @@ class MainWindow(object):
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks
-        if event.button != 3 or event.type != gtk.gdk.BUTTON_PRESS:
+        if event.button != 3 or event.type != Gdk.EventType.BUTTON_PRESS:
             return
         popup_menu.popup(None, None, None, event.button, event.time)
 
@@ -2150,7 +2154,9 @@ class MainWindow(object):
     def __on_img_mouse_motion(self, event_box, event):
         try:
             # make sure we have an image currently displayed
-            self.img['image'].get_pixmap()
+            # ### TODO
+            #self.img['image'].get_pixmap()
+            return
         except ValueError:
             return
 
@@ -2207,7 +2213,7 @@ class MainWindow(object):
 
     def __get_doc_model_line(self, doc):
         doc_txt = self.__get_doc_txt(doc)
-        stock = gtk.STOCK_EXECUTE
+        stock = Gtk.STOCK_EXECUTE
         if doc.nb_pages <= 0:
             stock = None
         return ([
@@ -2215,7 +2221,7 @@ class MainWindow(object):
             doc,
             None,
             stock,
-            gtk.ICON_SIZE_DIALOG,
+            Gtk.IconSize.DIALOG,
         ])
 
     def __select_doc(self, doc_idx):
@@ -2225,7 +2231,8 @@ class MainWindow(object):
             self.actions['open_doc'][1].enabled = False
 
             self.lists['matches']['gui'].unselect_all()
-            self.lists['matches']['gui'].select_path(doc_idx)
+            # ### TODO
+            # self.lists['matches']['gui'].select_path(doc_idx)
 
             self.actions['open_doc'][1].enabled = True
 
@@ -2237,8 +2244,9 @@ class MainWindow(object):
             # not visible and move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything has
             # been displayed
-            gobject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             doc_idx, False, 0.0, 0.0)
+            # ### TODO
+            #GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+            #                 doc_idx, False, 0.0, 0.0)
         else:
             self.lists['matches']['gui'].unselect_all()
 
@@ -2392,8 +2400,8 @@ class MainWindow(object):
         for page in self.doc.pages:
             self.lists['pages']['model'].append([
                 None,  # no thumbnail
-                gtk.STOCK_EXECUTE,
-                gtk.ICON_SIZE_DIALOG,
+                Gtk.STOCK_EXECUTE,
+                Gtk.IconSize.DIALOG,
                 _('Page %d') % (page.page_nb + 1),
                 page.page_nb
             ])
@@ -2447,8 +2455,9 @@ class MainWindow(object):
             self.actions['open_page'][1].enabled = False
             # TODO(Jflesch): We should not make assumption regarding
             # the page position in the list
-            self.lists['pages']['gui'].select_path(page.page_nb)
-            self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+            # ### TODO
+            #self.lists['pages']['gui'].select_path(page.page_nb)
+            #self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
             self.actions['open_page'][1].enabled = True
 
         # we are going to update the page number
@@ -2478,8 +2487,8 @@ class MainWindow(object):
         if self.doc.nb_pages > 0:
             self.show_page(self.doc.pages[0])
         else:
-            self.img['image'].set_from_stock(gtk.STOCK_MISSING_IMAGE,
-                                             gtk.ICON_SIZE_DIALOG)
+            self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
+                                             Gtk.IconSize.DIALOG)
 
     def __on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))
@@ -2508,6 +2517,6 @@ class MainWindow(object):
         return float(wanted_width) / pixbuf_width
 
     def refresh_export_preview(self):
-        self.img['image'].set_from_stock(gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
         self.workers['export_previewer'].stop()
         self.workers['export_previewer'].start()

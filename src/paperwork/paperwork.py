@@ -22,18 +22,15 @@ import os
 import sys
 
 import gettext
-import gobject
-import gtk
-import gtk.glade
+from gi.repository import GObject
+from gi.repository import Gtk
 import locale
-import pygtk
+import gi
 
 import pyinsane.abstract_th  # Just to start the Sane thread
 
 from frontend.mainwindow import MainWindow
 from backend.config import PaperworkConfig
-
-pygtk.require("2.0")
 
 # we use the french locale as reference to know where to look for locales
 # order matters
@@ -61,18 +58,18 @@ def main():
     if not got_locales:
         print "WARNING: Locales not found"
     else:
-        for module in (gettext, gtk.glade):
+        for module in (gettext, ):
             module.bindtextdomain('paperwork', locales_path)
             module.textdomain('paperwork')
 
-    gobject.threads_init()
+    GObject.threads_init()
 
     config = PaperworkConfig()
     config.read()
 
     main_win = MainWindow(config)
     main_win.actions['reindex'][1].do()
-    gtk.main()
+    Gtk.main()
     print "Good bye"
 
 

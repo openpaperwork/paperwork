@@ -15,8 +15,8 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.workers import Worker
@@ -31,15 +31,15 @@ _ = gettext.gettext
 
 class DocScanWorker(Worker):
     __gsignals__ = {
-        'scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'scan-start' : (GObject.SignalFlags.RUN_LAST, None,
                         # current page / total
-                        (gobject.TYPE_INT, gobject.TYPE_INT)),
-        'ocr-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                        (GObject.TYPE_INT, GObject.TYPE_INT)),
+        'ocr-start' : (GObject.SignalFlags.RUN_LAST, None,
                         # current page / total
-                       (gobject.TYPE_INT, gobject.TYPE_INT)),
-        'scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+                       (GObject.TYPE_INT, GObject.TYPE_INT)),
+        'scan-done' : (GObject.SignalFlags.RUN_LAST, None,
                         # current page / total
-                       (gobject.TYPE_INT, gobject.TYPE_INT)),
+                       (GObject.TYPE_INT, GObject.TYPE_INT)),
     }
 
     can_interrupt = True
@@ -75,7 +75,7 @@ class DocScanWorker(Worker):
         self.current_page = None
 
 
-gobject.type_register(DocScanWorker)
+GObject.type_register(DocScanWorker)
 
 
 class ActionAddDoc(SimpleAction):
@@ -187,7 +187,7 @@ class ActionScan(SimpleAction):
             scanner = self.__config.get_scanner_inst()
         except Exception:
             print "No scanner found !"
-            gobject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
+            GObject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
             raise
 
         for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
@@ -211,7 +211,7 @@ class ActionScan(SimpleAction):
             scan_src = scanner.scan(multiple=True)
         except Exception:
             print "No scanner found !"
-            gobject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
+            GObject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
             raise
 
         self.__dialog.scan_queue.start(scan_src=scan_src)
@@ -227,13 +227,13 @@ class ActionCancel(SimpleAction):
         self.__dialog.dialog.destroy()
 
 
-class MultiscanDialog(gobject.GObject):
+class MultiscanDialog(GObject.GObject):
     __gsignals__ = {
-        'need-doclist-refresh' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'need-doclist-refresh' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self, main_window, config):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
 
         self.scanned_pages = 0
 
@@ -316,15 +316,15 @@ class MultiscanDialog(gobject.GObject):
 
         self.scan_queue = WorkerQueue("Mutiple scans")
         self.scan_queue.connect("queue-start", lambda queue: \
-                gobject.idle_add(self.__on_global_scan_start_cb, queue))
+                GObject.idle_add(self.__on_global_scan_start_cb, queue))
         self.scan_queue.connect("queue-stop", lambda queue, exc: \
-                gobject.idle_add(self.__on_global_scan_end_cb, queue, exc))
+                GObject.idle_add(self.__on_global_scan_end_cb, queue, exc))
         self.scan_queue.connect("scan-start", lambda worker, page, total: \
-                gobject.idle_add(self.__on_scan_start_cb, worker, page, total))
+                GObject.idle_add(self.__on_scan_start_cb, worker, page, total))
         self.scan_queue.connect("ocr-start", lambda worker, page, total: \
-                gobject.idle_add(self.__on_ocr_start_cb, worker, page, total))
+                GObject.idle_add(self.__on_ocr_start_cb, worker, page, total))
         self.scan_queue.connect("scan-done", lambda worker, page, total: \
-                gobject.idle_add(self.__on_scan_done_cb, worker, page, total))
+                GObject.idle_add(self.__on_scan_done_cb, worker, page, total))
 
         self.dialog = widget_tree.get_object("dialogMultiscan")
         self.dialog.connect("destroy", self.__on_destroy)
@@ -337,7 +337,7 @@ class MultiscanDialog(gobject.GObject):
     def set_mouse_cursor(self, cursor):
         self.dialog.window.set_cursor({
             "Normal" : None,
-            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
+            "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
 
 
@@ -378,10 +378,10 @@ class MultiscanDialog(gobject.GObject):
             if isinstance(exception, StopIteration):
                 msg = _("Less pages than expected have been Img"
                         " (got %d pages)") % (self.scanned_pages)
-                dialog = gtk.MessageDialog(self.dialog,
-                                           flags=gtk.DIALOG_MODAL,
-                                           type=gtk.MESSAGE_WARNING,
-                                           buttons=gtk.BUTTONS_OK,
+                dialog = Gtk.MessageDialog(self.dialog,
+                                           flags=Gtk.DialogFlags.MODAL,
+                                           type=Gtk.MessageType.WARNING,
+                                           buttons=Gtk.ButtonsType.OK,
                                            message_format=msg)
                 dialog.run()
                 dialog.destroy()
@@ -389,10 +389,10 @@ class MultiscanDialog(gobject.GObject):
                 raise exception
         else:
             msg = _("All the pages have been scanned")
-            dialog = gtk.MessageDialog(self.dialog,
-                                       flags=gtk.DIALOG_MODAL,
-                                       type=gtk.MESSAGE_INFO,
-                                       buttons=gtk.BUTTONS_OK,
+            dialog = Gtk.MessageDialog(self.dialog,
+                                       flags=Gtk.DialogFlags.MODAL,
+                                       type=Gtk.MessageType.INFO,
+                                       buttons=Gtk.ButtonsType.OK,
                                        message_format=msg)
             dialog.run()
             dialog.destroy()
@@ -404,4 +404,4 @@ class MultiscanDialog(gobject.GObject):
             self.scan_queue.stop()
         print "Multi-scan dialog destroyed"
 
-gobject.type_register(MultiscanDialog)
+GObject.type_register(MultiscanDialog)

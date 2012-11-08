@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import gtk
+from gi.repository import Gtk
 
 class SimpleAction(object):
     """
@@ -23,19 +23,19 @@ class SimpleAction(object):
     def __init__(self, name):
         self.name = name
         self.__signal_handlers = [
-            (gtk.ToolButton, "clicked", self.on_button_clicked_cb, -1),
-            (gtk.Button, "clicked", self.on_button_clicked_cb, -1),
-            (gtk.MenuItem, "activate", self.on_menuitem_activate_cb, -1),
-            (gtk.Editable, "changed", self.on_entry_changed_cb, -1),
-            (gtk.Editable, "activate", self.on_entry_activate_cb, -1),
-            (gtk.Entry, "icon-press", self.on_icon_press_cb, -1),
-            (gtk.TreeView, "cursor-changed",
+            (Gtk.ToolButton, "clicked", self.on_button_clicked_cb, -1),
+            (Gtk.Button, "clicked", self.on_button_clicked_cb, -1),
+            (Gtk.MenuItem, "activate", self.on_menuitem_activate_cb, -1),
+            (Gtk.Editable, "changed", self.on_entry_changed_cb, -1),
+            (Gtk.Editable, "activate", self.on_entry_activate_cb, -1),
+            (Gtk.Entry, "icon-press", self.on_icon_press_cb, -1),
+            (Gtk.TreeView, "cursor-changed",
              self.on_treeview_cursor_changed_cb, -1),
-            (gtk.IconView, "selection-changed",
+            (Gtk.IconView, "selection-changed",
              self.on_iconview_selection_changed_cb, -1),
-            (gtk.ComboBox, "changed", self.on_combobox_changed_cb, -1),
-            (gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
-            (gtk.Range, "value-changed", self.on_value_changed_cb, -1),
+            (Gtk.ComboBox, "changed", self.on_combobox_changed_cb, -1),
+            (Gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
+            (Gtk.Range, "value-changed", self.on_value_changed_cb, -1),
         ]
         self.enabled = True
 

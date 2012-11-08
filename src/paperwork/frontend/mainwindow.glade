@@ -8,6 +8,19 @@
     <property name="step_increment">5</property>
     <property name="page_increment">20</property>
   </object>
+  <object class="GtkEntryCompletion" id="entrycompletionSearch">
+    <property name="model">liststoreSuggestion</property>
+  </object>
+  <object class="GtkImage" id="image1">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-dnd</property>
+  </object>
+  <object class="GtkImage" id="image2">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-dnd-multiple</property>
+  </object>
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -157,19 +170,6 @@
         <col id="1">2</col>
       </row>
     </data>
-  </object>
-  <object class="GtkEntryCompletion" id="entrycompletionSearch">
-    <property name="model">liststoreSuggestion</property>
-  </object>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-dnd</property>
-  </object>
-  <object class="GtkImage" id="image2">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-dnd-multiple</property>
   </object>
   <object class="GtkWindow" id="mainWindow">
     <property name="can_focus">False</property>
@@ -612,8 +612,10 @@
           <object class="GtkHBox" id="box3">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="homogeneous">True</property>
             <child>
               <object class="GtkVBox" id="vbox22">
+                <property name="width_request">445</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -712,10 +714,8 @@
                       <object class="GtkVBox" id="box10">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkLabel" id="label1">
-                            <property name="width_request">220</property>
                             <property name="height_request">35</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -772,7 +772,6 @@
                     </child>
                     <child>
                       <object class="GtkNotebook" id="notebook1">
-                        <property name="width_request">220</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <child>
@@ -784,7 +783,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="hscrollbar_policy">never</property>
-								<property name="vscrollbar_policy">automatic</property>
                                 <child>
                                   <object class="GtkIconView" id="iconviewPage">
                                     <property name="visible">True</property>
@@ -850,8 +848,6 @@
                               <object class="GtkScrolledWindow" id="scrolledwindow4">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-								<property name="hscrollbar_policy">automatic</property>
-								<property name="vscrollbar_policy">automatic</property>
                                 <child>
                                   <object class="GtkTreeView" id="treeviewLabel">
                                     <property name="visible">True</property>
@@ -1271,7 +1267,7 @@
                         <property name="can_focus">False</property>
                         <property name="spacing">30</property>
                         <child internal-child="content_area">
-                          <object class="GtkHBox" id="infobar-content_area1">
+                          <object class="GtkBox" id="infobar-content_area1">
                             <property name="can_focus">False</property>
                             <property name="border_width">8</property>
                             <property name="spacing">16</property>

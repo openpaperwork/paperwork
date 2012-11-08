@@ -25,9 +25,9 @@ import os.path
 import time
 
 import cairo
-import gio
+from gi.repository import Gio
 import Image
-import poppler
+from gi.repository import Poppler
 
 from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.page import ImgPage
@@ -96,7 +96,7 @@ class ImgToPdfDocExporter(object):
 
         # reload the preview
 
-        pdfdoc = poppler.document_new_from_file(
+        pdfdoc = Poppler.Document.new_from_file(
             ("file://%s" % path), password=None)
         assert(pdfdoc.get_n_pages() > 0)
 
@@ -257,7 +257,7 @@ class ImgDoc(BasicDoc):
         self.__add_img(img, ocrlang, resolution, scanner_calibration, callback)
 
     def import_image(self, file_uri, ocrlang):
-        img_fp = gio.File(file_uri).read()
+        img_fp = Gio.File(file_uri).read()
         img = Image.open(img_fp)
         self.__add_img(img, ocrlang)
 

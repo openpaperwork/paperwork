@@ -18,7 +18,7 @@
 Code to manage document labels
 """
 
-import gtk
+from gi.repository import Gtk
 
 from paperwork.util import load_uifile
 
@@ -35,7 +35,7 @@ class Label(object):
             color --- label color (string representation, see get_color_str())
         """
         self.name = unicode(name)
-        self.color = gtk.gdk.color_parse(color)
+        self.color = Gdk.color_parse(color)
 
     def __copy__(self):
         return Label(self.name, self.get_color_str())
@@ -119,14 +119,14 @@ class LabelEditor(object):
         color_chooser.set_current_color(self.label.color)
 
         dialog.set_transient_for(main_window)
-        dialog.add_button("Cancel", gtk.RESPONSE_CANCEL)
-        dialog.add_button("Ok", gtk.RESPONSE_OK)
+        dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
+        dialog.add_button("Ok", Gtk.ResponseType.OK)
         response = dialog.run()
 
-        if (response == gtk.RESPONSE_OK
+        if (response == Gtk.ResponseType.OK
             and name_entry.get_text().strip() == ""):
-            response = gtk.RESPONSE_CANCEL
-        if (response == gtk.RESPONSE_OK):
+            response = Gtk.ResponseType.CANCEL
+        if (response == Gtk.ResponseType.OK):
             print "Label validated"
             self.label.name = unicode(name_entry.get_text())
             self.label.color = color_chooser.get_current_color()
@@ -136,4 +136,4 @@ class LabelEditor(object):
         dialog.destroy()
 
         print "Label after editing: %s" % (self.label)
-        return (response == gtk.RESPONSE_OK)
+        return (response == Gtk.ResponseType.OK)

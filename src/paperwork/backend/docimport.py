@@ -15,8 +15,8 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
-import gio
-import poppler
+from gi.repository import Gio
+from gi.repository import Poppler
 
 from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.img.doc import ImgDoc
@@ -48,30 +48,30 @@ class MultiplePdfImporter(object):
 
     def __get_all_children(self, parent):
         children = parent.enumerate_children(
-                attributes=gio.FILE_ATTRIBUTE_STANDARD_NAME,
-                flags=gio.FILE_QUERY_INFO_NOFOLLOW_SYMLINKS)
+                attributes=Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+                flags=Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS)
         for child in children:
             name = child.get_attribute_as_string(
-                    gio.FILE_ATTRIBUTE_STANDARD_NAME)
+                    Gio.FILE_ATTRIBUTE_STANDARD_NAME)
             child = parent.get_child(name)
             try:
                 for child in self.__get_all_children(child):
                     yield child
-            except gio.Error:
+            except Gio.Error:
                 yield child
 
     def can_import(self, file_uri, current_doc=None):
         try:
-            parent = gio.File(file_uri)
+            parent = Gio.File(file_uri)
             for child in self.__get_all_children(parent):
                 if child.get_basename().lower().endswith(".pdf"):
                     return True
-        except gio.Error:
+        except Gio.Error:
             pass
         return False
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
-        parent = gio.File(file_uri)
+        parent = Gio.File(file_uri)
         doc = None
 
         idx = 0
@@ -81,7 +81,7 @@ class MultiplePdfImporter(object):
                 continue
             try:
                 # make sure we can import it
-                poppler.document_new_from_file(child.get_uri(),
+                Poppler.Document.new_from_file(child.get_uri(),
                                                password=None)
             except Exception:
                 continue

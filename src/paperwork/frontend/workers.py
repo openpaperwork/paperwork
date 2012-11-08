@@ -20,13 +20,13 @@ import threading
 import time
 import traceback
 
-import gobject
+from gi.repository import GObject
 
-class Worker(gobject.GObject):
+class Worker(GObject.GObject):
     can_interrupt = False
 
     def __init__(self, name):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.name = name
         self.can_run = True
         self.__thread = None
@@ -97,10 +97,10 @@ class WorkerQueue(Worker):
     can_interrupt = True
 
     __gsignals__ = {
-        'queue-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
-        'queue-stop' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'queue-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'queue-stop' : (GObject.SignalFlags.RUN_LAST, None,
                         # Arg: Exception raised by a worker, None if none
-                        (gobject.TYPE_PYOBJECT, )),
+                        (GObject.TYPE_PYOBJECT, )),
     }
     local_signals = ['queue-start', 'queue-stop']
 
@@ -147,7 +147,7 @@ class WorkerQueue(Worker):
             self.__current_worker.stop()
         Worker.stop(self)
 
-gobject.type_register(WorkerQueue)
+GObject.type_register(WorkerQueue)
 
 
 class WorkerProgressUpdater(Worker):
@@ -173,8 +173,8 @@ class WorkerProgressUpdater(Worker):
             val /= self.NB_UPDATES
             val += value_min
 
-            gobject.idle_add(self.progressbar.set_fraction, val)
+            GObject.idle_add(self.progressbar.set_fraction, val)
             time.sleep(total_time / self.NB_UPDATES)
 
 
-gobject.type_register(WorkerProgressUpdater)
+GObject.type_register(WorkerProgressUpdater)

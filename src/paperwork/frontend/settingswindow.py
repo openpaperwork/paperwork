@@ -24,8 +24,8 @@ import sys
 import time
 
 import gettext
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 import pycountry
 import pyocr.pyocr as pyocr
 
@@ -146,9 +146,9 @@ class CalibrationGripHandler(object):
                     break
 
         if is_on_grip:
-            cursor = gtk.gdk.Cursor(gtk.gdk.TCROSS)
+            cursor = Gdk.Cursor.new(Gdk.TCROSS)
         else:
-            cursor = gtk.gdk.Cursor(gtk.gdk.HAND1)
+            cursor = Gdk.Cursor.new(Gdk.HAND1)
         self.__settings_win.calibration['image_gui'].window.set_cursor(cursor)
 
     def __move_grip(self, event_pos):
@@ -202,14 +202,14 @@ class CalibrationGripHandler(object):
 
 class WorkerDeviceFinder(Worker):
     __gsignals__ = {
-        'device-finding-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'device-finding-start' : (GObject.SignalFlags.RUN_LAST, None,
                                   ()),
-        'device-found' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                          (gobject.TYPE_STRING,  # user name
-                           gobject.TYPE_STRING,  # device id
-                           gobject.TYPE_BOOLEAN)  # is the active one
+        'device-found' : (GObject.SignalFlags.RUN_LAST, None,
+                          (GObject.TYPE_STRING,  # user name
+                           GObject.TYPE_STRING,  # device id
+                           GObject.TYPE_BOOLEAN)  # is the active one
                          ),
-        'device-finding-end' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ())
+        'device-finding-end' : (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
     can_interrupt = False
@@ -244,20 +244,20 @@ class WorkerDeviceFinder(Worker):
             self.emit("device-finding-end")
 
 
-gobject.type_register(WorkerDeviceFinder)
+GObject.type_register(WorkerDeviceFinder)
 
 
 class WorkerResolutionFinder(Worker):
     __gsignals__ = {
-        'resolution-finding-start' : (gobject.SIGNAL_RUN_LAST,
-                                      gobject.TYPE_NONE, ()),
-        'resolution-found' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                              (gobject.TYPE_STRING,  # user name
-                               gobject.TYPE_INT,  # resolution value
-                               gobject.TYPE_BOOLEAN)  # is the active one
+        'resolution-finding-start' : (GObject.SignalFlags.RUN_LAST,
+                                      None, ()),
+        'resolution-found' : (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_STRING,  # user name
+                               GObject.TYPE_INT,  # resolution value
+                               GObject.TYPE_BOOLEAN)  # is the active one
                               ),
-        'resolution-finding-end' : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE, ())
+        'resolution-finding-end' : (GObject.SignalFlags.RUN_LAST,
+                                    None, ())
     }
 
     can_interrupt = False
@@ -307,19 +307,19 @@ class WorkerResolutionFinder(Worker):
             self.emit("resolution-finding-end")
 
 
-gobject.type_register(WorkerResolutionFinder)
+GObject.type_register(WorkerResolutionFinder)
 
 
 class WorkerCalibrationScan(Worker):
     __gsignals__ = {
-        'calibration-scan-start' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
+        'calibration-scan-start' : (GObject.SignalFlags.RUN_LAST, None,
                                     ()),
-        'calibration-scan-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, )  # PIL image
+        'calibration-scan-done' : (GObject.SignalFlags.RUN_LAST, None,
+                                   (GObject.TYPE_PYOBJECT, )  # PIL image
                                   ),
-        'calibration-resize-done' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE,
-                                     (gobject.TYPE_FLOAT, # resize factor
-                                      gobject.TYPE_PYOBJECT, ) # PIL image
+        'calibration-resize-done' : (GObject.SignalFlags.RUN_LAST, None,
+                                     (GObject.TYPE_FLOAT, # resize factor
+                                      GObject.TYPE_PYOBJECT, ) # PIL image
                                     ),
     }
 
@@ -384,7 +384,7 @@ class WorkerCalibrationScan(Worker):
         self.emit('calibration-resize-done', factor, resized_img)
 
 
-gobject.type_register(WorkerCalibrationScan)
+GObject.type_register(WorkerCalibrationScan)
 
 
 class ActionSelectScanner(SimpleAction):
@@ -477,21 +477,21 @@ class ActionScanCalibration(SimpleAction):
         self.__settings_win.workers['scan'].start(devid=devid)
 
 
-class SettingsWindow(gobject.GObject):
+class SettingsWindow(GObject.GObject):
     """
     Settings window.
     """
 
     __gsignals__ = {
-        'need-reindex' : (gobject.SIGNAL_RUN_LAST, gobject.TYPE_NONE, ()),
+        'need-reindex' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self, mainwindow_gui, config):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         widget_tree = load_uifile("settingswindow.glade")
 
         self.window = widget_tree.get_object("windowSettings")
-        self.window.set_transient_for(mainwindow_gui)
+        self.set_transient_for(mainwindow_gui)
 
         self.__config = config
 
@@ -587,34 +587,34 @@ class SettingsWindow(gobject.GObject):
 
         self.workers['device_finder'].connect(
                 'device-finding-start',
-                lambda worker: gobject.idle_add(
+                lambda worker: GObject.idle_add(
                     self.__on_device_finding_start_cb))
         self.workers['device_finder'].connect(
                 'device-found',
                 lambda worker, user_name, store_name, active: \
-                    gobject.idle_add(self.__on_value_found_cb,
+                    GObject.idle_add(self.__on_value_found_cb,
                                      self.device_settings['devid'],
                                      user_name, store_name, active))
         self.workers['device_finder'].connect(
                 'device-finding-end',
-                lambda worker: gobject.idle_add(
+                lambda worker: GObject.idle_add(
                     self.__on_finding_end_cb,
                     self.device_settings['devid']))
 
         self.workers['resolution_finder'].connect(
                 'resolution-finding-start',
-                lambda worker: gobject.idle_add(
+                lambda worker: GObject.idle_add(
                     self.__on_finding_start_cb,
                     self.device_settings['resolution']))
         self.workers['resolution_finder'].connect(
                 'resolution-found',
                 lambda worker, user_name, store_name, active: \
-                    gobject.idle_add(self.__on_value_found_cb,
+                    GObject.idle_add(self.__on_value_found_cb,
                                      self.device_settings['resolution'],
                                      user_name, store_name, active))
         self.workers['resolution_finder'].connect(
                 'resolution-finding-end',
-                lambda worker: gobject.idle_add(
+                lambda worker: GObject.idle_add(
                     self.__on_finding_end_cb,
                     self.device_settings['resolution']))
 
@@ -632,7 +632,7 @@ class SettingsWindow(gobject.GObject):
         self.calibration['image_eventbox'].connect("button-release-event",
                 lambda x, ev: self.grips.on_mouse_button_released_cb(ev))
         self.calibration['image_eventbox'].add_events(
-                gtk.gdk.POINTER_MOTION_MASK)
+                Gdk.EventMask.POINTER_MOTION_MASK)
 
         self.window.connect("destroy", self.__on_destroy)
 
@@ -690,10 +690,10 @@ class SettingsWindow(gobject.GObject):
         if lang == None:
             msg = _("Without OCR, Paperwork will not be able to guess"
                     " automatically page orientation")
-            dialog = gtk.MessageDialog(self.window,
-                                       flags=gtk.DIALOG_MODAL,
-                                       type=gtk.MESSAGE_WARNING,
-                                       buttons=gtk.BUTTONS_OK,
+            dialog = Gtk.MessageDialog(self.window,
+                                       flags=Gtk.DialogFlags.MODAL,
+                                       type=Gtk.MessageType.WARNING,
+                                       buttons=Gtk.ButtonsType.OK,
                                        message_format=msg)
             dialog.run()
             dialog.destroy()
@@ -732,7 +732,7 @@ class SettingsWindow(gobject.GObject):
     def set_mouse_cursor(self, cursor):
         self.window.window.set_cursor({
             "Normal" : None,
-            "Busy" : gtk.gdk.Cursor(gtk.gdk.WATCH),
+            "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
 
     def __on_scan_start(self):
@@ -740,7 +740,7 @@ class SettingsWindow(gobject.GObject):
         self.set_mouse_cursor("Busy")
         self.calibration['image_gui'].set_alignment(0.5, 0.5)
         self.calibration['image_gui'].set_from_stock(
-                gtk.STOCK_EXECUTE, gtk.ICON_SIZE_DIALOG)
+                Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
         self.__scan_start = time.time()
         self.workers['progress_updater'].start(value_min=0.0, value_max=1.0,
@@ -792,4 +792,4 @@ class SettingsWindow(gobject.GObject):
         """
         self.window.destroy()
 
-gobject.type_register(SettingsWindow)
+GObject.type_register(SettingsWindow)

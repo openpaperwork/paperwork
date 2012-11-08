@@ -14,9 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import gio
+from gi.repository import Gio
 import os
-import poppler
+from gi.repository import Poppler
 import shutil
 
 from paperwork.backend.common.doc import BasicDoc
@@ -67,7 +67,7 @@ class PdfDoc(BasicDoc):
             self._open()
 
     def _open(self):
-        self.pdf = poppler.document_new_from_file(
+        self.pdf = Poppler.Document.New_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
              password=None)
         self.pages = [PdfPage(self, page_idx) \
@@ -87,12 +87,12 @@ class PdfDoc(BasicDoc):
     def import_pdf(self, config, file_uri):
         print "PDF: Importing '%s'" % (file_uri)
         try:
-            dest = gio.File("file://%s" % self.path)
+            dest = Gio.File("file://%s" % self.path)
             dest.make_directory()
-        except gio.Error, exc:
+        except Gio.Error, exc:
             print ("Warning: Error while trying to create '%s': %s" %
                    (self.path, str(exc)))
-        f = gio.File(file_uri)
+        f = Gio.File(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest)
         self._open()

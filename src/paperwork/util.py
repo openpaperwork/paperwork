@@ -27,8 +27,8 @@ import cairo
 import Image
 import ImageDraw
 import gettext
-import glib
-import gtk
+import gi
+from gi.repository import Gtk
 
 _ = gettext.gettext
 
@@ -115,13 +115,13 @@ def load_uifile(filename):
     Throws:
         Exception -- If the file cannot be found
     """
-    widget_tree = gtk.Builder()
+    widget_tree = Gtk.Builder()
     has_ui_file = False
     for ui_dir in UI_FILES_DIRS:
         ui_file = os.path.join(ui_dir, filename)
         try:
             widget_tree.add_from_file(ui_file)
-        except glib.GError, exc:
+        except gi._glib.GError, exc:
             print "Tried to use UI file %s but failed: %s" % (ui_file, str(exc))
             continue
         has_ui_file = True
@@ -169,7 +169,7 @@ def image2pixbuf(img):
         contents = file_desc.getvalue()
     finally:
         file_desc.close()
-    loader = gtk.gdk.PixbufLoader("pnm")
+    loader = GdkPixbuf.PixbufLoader("pnm")
     try:
         loader.write(contents, len(contents))
         pixbuf = loader.get_pixbuf()
@@ -187,10 +187,10 @@ def popup_no_scanner_found(parent):
     # Pyinsane doesn't return any specific exception :(
     print "Showing popup !"
     msg = _("No scanner found (is your scanner turned on ?)")
-    dialog = gtk.MessageDialog(parent=parent,
-                               flags=gtk.DIALOG_MODAL,
-                               type=gtk.MESSAGE_WARNING,
-                               buttons=gtk.BUTTONS_OK,
+    dialog = Gtk.MessageDialog(parent=parent,
+                               flags=Gtk.DialogFlags.MODAL,
+                               type=Gtk.MessageType.WARNING,
+                               buttons=Gtk.ButtonsType.OK,
                                message_format=msg)
     dialog.run()
     dialog.destroy()
@@ -204,14 +204,14 @@ def ask_confirmation(parent):
         True --- if they are
         False --- if they aren't
     """
-    confirm = gtk.MessageDialog(parent=parent,
-                                flags=gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                                type=gtk.MESSAGE_WARNING,
-                                buttons=gtk.BUTTONS_YES_NO,
+    confirm = Gtk.MessageDialog(parent=parent,
+                                flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                type=Gtk.MessageType.WARNING,
+                                buttons=Gtk.ButtonsType.YES_NO,
                                 message_format=_('Are you sure ?'))
     response = confirm.run()
     confirm.destroy()
-    if response != gtk.RESPONSE_YES:
+    if response != Gtk.ResponseType.YES:
         print "User cancelled"
         return False
     return True

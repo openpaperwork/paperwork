@@ -612,7 +612,6 @@
           <object class="GtkHBox" id="box3">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="homogeneous">True</property>
             <child>
               <object class="GtkVBox" id="vbox22">
                 <property name="width_request">445</property>

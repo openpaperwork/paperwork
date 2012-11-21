@@ -97,7 +97,7 @@ class DocSearch(object):
         # we don't use __reset_data() here. Otherwise pylint won't be happy.
         self.__keywords = []            # array of strings (sorted)
         self.docs = []                # array of doc (sorted)
-        self.__keywords_to_docs = {}    # keyword (string) -> doc paths
+        self.__keyword_to_docs = {}    # keyword (string) -> doc paths
         self.label_list = []
 
         self.__index(callback)
@@ -117,39 +117,33 @@ class DocSearch(object):
         """
         self.__keywords = []
         self.docs = []
-        self.__keywords_to_docs = {}
+        self.__keyword_to_docs = {}
         self.label_list = []
 
-    def __index_keyword(self, doc, keyword):
+    def __index_doc(self, doc, docs_set, keyword_to_docs):
         """
-        Add the specified keyword to the index.
-
-        Arguments:
-            doc --- the document from which comes the keyword
-            keyword --- the keyword
+        Add the keywords from the document to self.__keyword_to_docs
         """
-        if keyword in self.__keywords_to_docs:
-            docs = self.__keywords_to_docs[keyword]
-            if not doc in docs:
-                docs.append(doc)
-        else:
-            self.__keywords_to_docs[keyword] = [doc]
-
-    def __index_doc(self, doc):
-        """
-        Add the keywords from the document to self.__keywords_to_docs
-        """
-        self.docs.append(doc)
+        docs_set.add(doc)
         for keyword in doc.keywords:
-            self.__index_keyword(doc, keyword)
+            if keyword in keyword_to_docs:
+                docs = keyword_to_docs[keyword]
+                docs.add(doc)
+            else:
+                keyword_to_docs[keyword] = set([doc])
 
-    def __index_dir(self, dirpath, callback=dummy_progress_cb):
+    def __index_dir(self, dirpath,
+                    docs_set, keyword_to_docs,
+                    callback=dummy_progress_cb):
         """
         Look in the given directory for documents to index.
         May also be called on the directory of a document itself.
 
         Arguments:
             dirpath --- directory to explore
+            keywords_set --- set of keywords to complete
+            docs_set --- set of documents to complete
+            keyword_to_docs --- dict keyword->docs to complete
             callback -- progression indicator callback (see
                 util.dummy_progress_cb)
         """
@@ -173,7 +167,7 @@ class DocSearch(object):
                 if doc == None:
                     continue
                 callback(progression, total, self.INDEX_STEP_READING, doc)
-                self.__index_doc(doc)
+                self.__index_doc(doc, docs_set, keyword_to_docs)
                 for label in doc.labels:
                     self.add_label(label, doc)
             progression = progression + 1
@@ -181,7 +175,7 @@ class DocSearch(object):
     @staticmethod
     def __docpath_to_id(docpath):
         """
-        Generate a document id baed on a document path.
+        Generate a document id based on a document path.
         """
         try:
             return os.path.split(docpath)[1]
@@ -189,19 +183,23 @@ class DocSearch(object):
             print "Warning: Invalid document path: %s" % (docpath)
             return docpath
 
-    def __extract_keywords(self, callback=dummy_progress_cb):
+    def __sort_keywords(self, docs, keyword_to_docs,
+                        callback=dummy_progress_cb):
         """
-        Extract and index all the keywords from all the documents in
-        self.rootdir.
+        Sort and index all the keywords from all the documents
         """
-        callback(1, 3, self.INDEX_STEP_SORTING)
-        self.__keywords = self.__keywords_to_docs.keys()
-        for label in self.label_list:
-            if not label.name in self.__keywords:
-                self.__keywords.append(label.name)
-        callback(2, 3, self.INDEX_STEP_SORTING)
-        self.__keywords.sort()
-        self.docs.sort()
+
+        callback(1, 4, self.INDEX_STEP_SORTING)
+        keywords = keyword_to_docs.keys()
+        docs = list(docs)
+        callback(2, 4, self.INDEX_STEP_SORTING)
+        keywords.sort()
+        callback(3, 4, self.INDEX_STEP_SORTING)
+        docs.sort()
+
+        self.docs = docs
+        self.__keywords = keywords
+        self.__keyword_to_docs = keyword_to_docs
 
     def __index(self, callback=dummy_progress_cb):
         """
@@ -212,8 +210,11 @@ class DocSearch(object):
                 util.dummy_progress_cb)
         """
         self.__reset_data()
-        self.__index_dir(self.rootdir, callback=callback)
-        self.__extract_keywords(callback)
+        docs = set()
+        keyword_to_docs = {}
+        self.__index_dir(self.rootdir, docs, keyword_to_docs,
+                         callback=callback)
+        self.__sort_keywords(docs, keyword_to_docs, callback=callback)
 
     def index_page(self, page):
         """
@@ -366,9 +367,9 @@ class DocSearch(object):
             An array of docs
         """
         try:
-            return self.__keywords_to_docs[keyword][:]
+            return self.__keyword_to_docs[keyword]
         except KeyError:
-            return []
+            return set()
 
     def find_documents(self, sentence):
         """
@@ -409,8 +410,7 @@ class DocSearch(object):
             if documents == None:
                 documents = docs
             else:
-                # intersection of both arrays
-                documents = [val for val in documents if val in docs]
+                documents.intersection_update(docs)
 
         if documents == None:
             return []
@@ -420,12 +420,9 @@ class DocSearch(object):
         for keyword in negative_keywords:
             docs = self.__find_documents(keyword)
             print "Found %d documents to remove" % (len(documents))
-            for doc in docs:
-                try:
-                    documents.remove(doc)
-                except ValueError:
-                    pass
+            documents.symmetric_difference_update(docs)
 
+        documents = list(documents)
         documents.sort()
         return documents
 
@@ -439,10 +436,12 @@ class DocSearch(object):
         """
         label_words = split_words(label.name)
         for word in label_words:
-            self.__index_keyword(doc, word)
-            if not word in self.__keywords:
+            if not word in self.__keyword_to_docs:
                 self.__keywords.append(word)
                 self.__keywords.sort()
+                self.__keyword_to_docs[word] = set([doc])
+            else:
+                self.__keyword_to_docs[word].add(doc)
         if not label in self.label_list:
             self.label_list.append(label)
             self.label_list.sort()

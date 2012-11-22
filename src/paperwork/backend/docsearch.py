@@ -231,7 +231,7 @@ class DocSearch(object):
                 docs = self.__keyword_to_docs[keyword]
                 docs.add(page.doc)
             else:
-                self.__keyword_to_docs[keyword] = set([doc])
+                self.__keyword_to_docs[keyword] = set([page.doc])
                 self.__keywords.append(keyword)
         self.__keywords.sort()
 

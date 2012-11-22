@@ -227,9 +227,13 @@ class DocSearch(object):
             self.docs.append(page.doc)
             self.docs.sort()
         for keyword in page.keywords:
-            self.__index_keyword(page.doc, keyword)
-        # remake these two:
-        self.__extract_keywords(dummy_progress_cb)
+            if keyword in self.__keyword_to_docs:
+                docs = self.__keyword_to_docs[keyword]
+                docs.add(page.doc)
+            else:
+                self.__keyword_to_docs[keyword] = set([doc])
+                self.__keywords.append(keyword)
+        self.__keywords.sort()
 
     def __get_keyword_suggestions(self, keyword):
         """

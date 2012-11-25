@@ -284,6 +284,8 @@ def check_spelling(ocr_lang, txt):
         if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
             continue
 
+        score += 1
+
         print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
 
         # let's replace the word by its suggestion

@@ -23,12 +23,16 @@ import re
 import StringIO
 import unicodedata
 
+import enchant
+import enchant.tokenize
+import Levenshtein
 import cairo
 import Image
 import ImageDraw
 import gettext
 import glib
 import gtk
+import pycountry
 
 _ = gettext.gettext
 
@@ -236,3 +240,57 @@ def add_img_border(img, color="#a6a5a4"):
     img_draw.rectangle([(0, 0), (img.size[0]-1, img.size[1]-1)], outline=color)
     del img_draw
     return img
+
+def check_spelling(ocr_lang, txt):
+    """
+    Check the spelling in the text, and compute a score. The score is the
+    number of words correctly (or almost correctly) spelled.
+
+    Returns:
+        A tuple : (fixed text, score)
+    """
+    # Maximum distance from the first suggestion from python-enchant
+    MAX_LEVENSHTEIN_DISTANCE = 1
+    MIN_WORD_LEN = 4
+
+    # TODO(Jflesch): We are assuming here that we can figure out the best
+    # dictionary based on the 3 letters OCR lang. This is a bad assumption
+    try:
+        language = pycountry.languages.get(terminology=ocr_lang[:3])
+    except KeyError:
+        language = pycountry.languages.get(bibliographic=ocr_lang[:3])
+    spelling_lang = language.alpha2
+
+    words_dict = enchant.request_dict(spelling_lang)
+    try:
+        tknzr = enchant.tokenize.get_tokenizer(spelling_lang)
+    except enchant.tokenize.TokenizerNotFoundError:
+        # Fall back to default tokenization if no match for 'lang'
+        tknzr = enchant.tokenize.get_tokenizer()
+
+    score = 0
+    offset = 0
+    for (word, word_pos) in tknzr(txt):
+        if words_dict.check(word):
+            score += 1
+            continue
+        if len(word) < MIN_WORD_LEN:
+            continue
+        suggestions = words_dict.suggest(word)
+        if (len(suggestions) <= 0):
+            continue
+        main_suggestion = suggestions[0]
+        lv_dist = Levenshtein.distance(word, main_suggestion)
+        if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
+            continue
+
+        print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
+
+        # let's replace the word by its suggestion
+
+        pre_txt = txt[:word_pos + offset]
+        post_txt = txt[word_pos + len(word) + offset:]
+        txt = pre_txt + main_suggestion + post_txt
+        offset += (len(main_suggestion) - len(word))
+
+    return (txt, score)

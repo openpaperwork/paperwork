@@ -79,6 +79,10 @@ GPLv3. See COPYING.
 	* Debian/Ubuntu package: python-imaging
 * python-poppler (required)
 	* Debian/Ubuntu package: python-poppler
+* python-enchant (required)
+	* Debian/Ubuntu package: python-enchant
+* python-levenshtein (required)
+	* Debian/Ubuntu package: python-levenshtein
 * pyinsane (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

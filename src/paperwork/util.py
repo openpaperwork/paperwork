@@ -244,7 +244,9 @@ def add_img_border(img, color="#a6a5a4"):
 def check_spelling(ocr_lang, txt):
     """
     Check the spelling in the text, and compute a score. The score is the
-    number of words correctly (or almost correctly) spelled.
+    number of words correctly (or almost correctly) spelled, minus the number of
+    mispelled words. Words "almost" correct remains neutral (-> are not included
+    in the score)
 
     Returns:
         A tuple : (fixed text, score)
@@ -278,13 +280,12 @@ def check_spelling(ocr_lang, txt):
             continue
         suggestions = words_dict.suggest(word)
         if (len(suggestions) <= 0):
+            score -= 1
             continue
         main_suggestion = suggestions[0]
         lv_dist = Levenshtein.distance(word, main_suggestion)
         if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
             continue
-
-        score += 1
 
         print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
 

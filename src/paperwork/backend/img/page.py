@@ -36,6 +36,7 @@ import pyocr.pyocr
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.common.page import PageExporter
 from paperwork.backend.config import PaperworkConfig
+from paperwork.util import check_spelling
 from paperwork.util import dummy_progress_cb
 from paperwork.util import split_words
 
@@ -49,8 +50,11 @@ class ImgOCRThread(threading.Thread):
         self.score = -1
         self.text = None
 
+    def __compute_ocr_score_with_spell_checking(self, txt):
+        return check_spelling(self.ocr_lang, txt)
+
     @staticmethod
-    def __compute_ocr_score(txt):
+    def __compute_ocr_score_without_spell_checking(txt):
         """
         Try to evaluate how well the OCR worked.
         Current implementation:
@@ -63,16 +67,37 @@ class ImgOCRThread(threading.Thread):
         for word in txt.split(" "):
             if prog.match(word):
                 score += 1
-        print "---"
-        print txt
-        print "---"
-        print "Got score of %d" % (score)
-        return score
+        return (txt, score)
 
     def run(self):
+        SCORE_METHODS = [
+            ("spell_checker", self.__compute_ocr_score_with_spell_checking),
+            ("lucky_guess", self.__compute_ocr_score_without_spell_checking),
+            ("no_score", lambda txt: (txt, 0))
+        ]
+
         img = Image.open(self.imgpath)
+
+        print ("Running OCR on '%s'" % self.imgpath)
         self.text = self.ocr_tool.image_to_string(img, lang=self.ocr_lang)
-        self.score = self.__compute_ocr_score(self.text)
+
+        for score_method in SCORE_METHODS:
+            try:
+                print ("Evaluating score of this page orientation (%s)"
+                       " using method '%s' ..."
+                       % (self.imgpath, score_method[0]))
+                (fixed_text, self.score) = score_method[1](self.text)
+                # TODO(Jflesch): For now, we throw away the fixed version:
+                # The original version may contain proper nouns, and spell
+                # checking could make them disappear
+                # However, it would be best if we could keep both versions
+                # without increasing too much indexation time
+                print "Page orientation score: %d" % self.score
+                return
+            except Exception, exc:
+                print ("**WARNING** Scoring method '%s' failed !"
+                       % score_method[0])
+                print ("Reason: %s" % (str(exc)))
 
 
 class ImgPage(BasicPage):
@@ -291,7 +316,8 @@ class ImgPage(BasicPage):
             raise Exception("No OCR tool available")
         print "Using %s for OCR" % (ocr_tools[0].get_name())
 
-        max_threads = multiprocessing.cpu_count()
+        #max_threads = multiprocessing.cpu_count()
+        max_threads = 1
         threads = []
         print "Will use %d process(es) for OCR" % (max_threads)
 

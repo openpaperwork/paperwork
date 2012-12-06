@@ -412,7 +412,7 @@ class DocSearch(object):
         for keyword in positive_keywords:
             docs = self.__find_documents(keyword)
             if documents == None:
-                documents = docs
+                documents = set(docs)
             else:
                 documents.intersection_update(docs)
 

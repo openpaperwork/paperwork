@@ -32,6 +32,7 @@ import ImageDraw
 import gettext
 import gi
 from gi.repository import Gtk
+from gi.repository import GdkPixbuf
 import pycountry
 
 _ = gettext.gettext
@@ -173,13 +174,14 @@ def image2pixbuf(img):
         contents = file_desc.getvalue()
     finally:
         file_desc.close()
-    loader = GdkPixbuf.PixbufLoader("pnm")
+    loader = GdkPixbuf.PixbufLoader.new_with_type("pnm")
     try:
-        loader.write(contents, len(contents))
+        loader.write(contents)
         pixbuf = loader.get_pixbuf()
     finally:
         loader.close()
     return pixbuf
+
 
 def dummy_progress_cb(progression, total, step=None, doc=None):
     """

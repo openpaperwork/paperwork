@@ -65,7 +65,9 @@ class PdfPage(BasicPage):
             return txt
 
         except OSError, exc:  # os.stat() failed
-            return unicode(self.pdf_page.get_text()).split(u"\n")
+            txt = self.pdf_page.get_text()
+            txt = unicode(txt, errors='replace')
+            return txt.split(u"\n")
 
     text = property(__get_text)
 

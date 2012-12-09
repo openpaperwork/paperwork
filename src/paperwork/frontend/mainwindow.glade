@@ -612,8 +612,7 @@
         <child>
           <object class="GtkBox" id="box3">
             <property name="visible">True</property>
-			<property name="can_focus">False</property>
-			<property name="orientation">horizontal</property>
+            <property name="can_focus">False</property>
             <child>
               <object class="GtkBox" id="vbox22">
                 <property name="width_request">445</property>
@@ -712,6 +711,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="spacing">5</property>
+                    <property name="homogeneous">True</property>
                     <child>
                       <object class="GtkBox" id="box10">
                         <property name="visible">True</property>
@@ -737,6 +737,7 @@
                             <property name="shadow_type">in</property>
                             <child>
                               <object class="GtkIconView" id="iconviewMatch">
+                                <property name="width_request">100</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="model">liststoreMatch</property>
@@ -768,7 +769,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">0</property>
                       </packing>
@@ -789,6 +790,7 @@
                                 <property name="hscrollbar_policy">never</property>
                                 <child>
                                   <object class="GtkIconView" id="iconviewPage">
+                                    <property name="width_request">100</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="model">liststorePage</property>
@@ -977,7 +979,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
                       </packing>

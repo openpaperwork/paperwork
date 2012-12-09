@@ -266,6 +266,8 @@ class ImgPage(BasicPage):
             print "Cropping: %s" % (str(cropping))
             img = img.crop(cropping)
 
+        img.load()  # WORKAROUND: For PIL on ArchLinux
+
         # strip the alpha channel if there is one
         color_channels = img.split()
         img = Image.merge("RGB", color_channels[:3])

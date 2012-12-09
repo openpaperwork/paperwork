@@ -1274,6 +1274,7 @@
                       <object class="GtkInfoBar" id="infobarExport">
                         <property name="app_paintable">True</property>
                         <property name="can_focus">False</property>
+                        <property name="vexpand">False</property>
                         <property name="spacing">30</property>
                         <child internal-child="content_area">
                           <object class="GtkBox" id="infobar-content_area1">

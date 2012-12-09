@@ -2057,6 +2057,8 @@ class MainWindow(object):
 
         self.append_docs([self.doc])
 
+        self.workers['progress_updater'].stop()
+
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")

@@ -2402,8 +2402,7 @@ class MainWindow(object):
 
     def __on_export_preview_done(self, img_size, pixbuf):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
-        (pixmap, mask) = pixbuf.render_pixmap_and_mask()
-        self.img['image'].set_from_pixmap(pixmap, mask)
+        self.img['image'].set_from_pixbuf(pixbuf)
 
     def __get_img_area_width(self):
         width = self.img['scrollbar'].get_allocation().width

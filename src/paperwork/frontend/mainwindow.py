@@ -1015,8 +1015,12 @@ class BasicActionOpenExportDialog(SimpleAction):
         SimpleAction.do(self)
         self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['format']['store'].clear()
+        nb_export_formats = 0
         for out_format in to_export.get_export_formats():
             self.main_win.export['format']['store'].append([out_format])
+            nb_export_formats += 1
+        self.main_win.export['buttons']['select_path'].set_sensitive(
+            nb_export_formats >= 1)
         self.main_win.export['format']['widget'].set_active(0)
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
@@ -1093,7 +1097,8 @@ class ActionSelectExportPath(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        chooser = Gtk.FileChooserDialog(title=None,
+        chooser = Gtk.FileChooserDialog(title=_("Save as"),
+                                        parent=self.__main_win.window,
                                         action=Gtk.FileChooserAction.SAVE,
                                         buttons=(Gtk.STOCK_CANCEL,
                                                  Gtk.ResponseType.CANCEL,
@@ -2060,6 +2065,8 @@ class MainWindow(object):
         self.show_page(page)
 
         self.append_docs([self.doc])
+
+        self.workers['progress_updater'].stop()
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))

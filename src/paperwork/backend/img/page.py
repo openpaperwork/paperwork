@@ -266,6 +266,8 @@ class ImgPage(BasicPage):
             print "Cropping: %s" % (str(cropping))
             img = img.crop(cropping)
 
+        img.load()  # WORKAROUND: For PIL on ArchLinux
+
         # strip the alpha channel if there is one
         color_channels = img.split()
         img = Image.merge("RGB", color_channels[:3])
@@ -316,8 +318,7 @@ class ImgPage(BasicPage):
             raise Exception("No OCR tool available")
         print "Using %s for OCR" % (ocr_tools[0].get_name())
 
-        #max_threads = multiprocessing.cpu_count()
-        max_threads = 1
+        max_threads = multiprocessing.cpu_count()
         threads = []
         print "Will use %d process(es) for OCR" % (max_threads)
 

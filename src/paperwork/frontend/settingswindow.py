@@ -25,6 +25,7 @@ import time
 
 import gettext
 from gi.repository import GObject
+from gi.repository import Gdk
 from gi.repository import Gtk
 import pycountry
 import pyocr.pyocr as pyocr
@@ -491,7 +492,7 @@ class SettingsWindow(GObject.GObject):
         widget_tree = load_uifile("settingswindow.glade")
 
         self.window = widget_tree.get_object("windowSettings")
-        self.set_transient_for(mainwindow_gui)
+        self.window.set_transient_for(mainwindow_gui)
 
         self.__config = config
 

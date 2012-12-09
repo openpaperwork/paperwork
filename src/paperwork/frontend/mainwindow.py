@@ -23,9 +23,9 @@ import time
 
 import Image
 import ImageColor
+import gettext
 from gi.repository import Gtk
 from gi.repository import Gdk
-import gettext
 from gi.repository import GObject
 
 import pyinsane.rawapi
@@ -534,7 +534,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         if len(selection_path) <= 0:
             print "No document selected. Can't open"
             return
-        doc_idx = selection_path[0][0]
+        doc_idx = selection_path[0].get_indices()[0]
         doc = self.__main_win.lists['matches']['model'][doc_idx][1]
 
         print "Showing doc %s" % doc
@@ -601,7 +601,7 @@ class ActionOpenPageSelected(SimpleAction):
             return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
-        page_idx = selection_path[0][0]
+        page_idx = selection_path[0].get_indices()[0]
         page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page)
 

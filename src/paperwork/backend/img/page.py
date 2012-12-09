@@ -318,8 +318,7 @@ class ImgPage(BasicPage):
             raise Exception("No OCR tool available")
         print "Using %s for OCR" % (ocr_tools[0].get_name())
 
-        #max_threads = multiprocessing.cpu_count()
-        max_threads = 1
+        max_threads = multiprocessing.cpu_count()
         threads = []
         print "Will use %d process(es) for OCR" % (max_threads)
 

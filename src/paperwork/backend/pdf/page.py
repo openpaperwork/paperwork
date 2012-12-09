@@ -155,9 +155,9 @@ class PdfPage(BasicPage):
                                              builder=pyocr.builders.WordBoxBuilder())
 
         # save the text
-        with open(txtfile, 'w') as file_desc:
+        with codecs.open(txtfile, 'w', encoding='utf-8') as file_desc:
             file_desc.write(txt)
         # save the boxes
-        with open(boxfile, 'w') as file_desc:
+        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
 

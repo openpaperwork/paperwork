@@ -15,6 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
+import gi
 from gi.repository import Gio
 from gi.repository import Poppler
 
@@ -48,8 +49,9 @@ class MultiplePdfImporter(object):
 
     def __get_all_children(self, parent):
         children = parent.enumerate_children(
-                attributes=Gio.FILE_ATTRIBUTE_STANDARD_NAME,
-                flags=Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS)
+                Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+                Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+                None)
         for child in children:
             name = child.get_attribute_as_string(
                     Gio.FILE_ATTRIBUTE_STANDARD_NAME)
@@ -57,21 +59,21 @@ class MultiplePdfImporter(object):
             try:
                 for child in self.__get_all_children(child):
                     yield child
-            except Gio.Error:
+            except gi._glib.GError:
                 yield child
 
     def can_import(self, file_uri, current_doc=None):
         try:
-            parent = Gio.File(file_uri)
+            parent = Gio.File.parse_name(file_uri)
             for child in self.__get_all_children(parent):
                 if child.get_basename().lower().endswith(".pdf"):
                     return True
-        except Gio.Error:
+        except gi._glib.GError:
             pass
         return False
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
-        parent = Gio.File(file_uri)
+        parent = Gio.File.parse_name(file_uri)
         doc = None
 
         idx = 0

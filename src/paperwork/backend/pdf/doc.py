@@ -14,10 +14,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-from gi.repository import Gio
 import os
-from gi.repository import Poppler
 import shutil
+
+import gi
+from gi.repository import Gio
+from gi.repository import Poppler
 
 from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.pdf.page import PdfPage
@@ -87,14 +89,16 @@ class PdfDoc(BasicDoc):
     def import_pdf(self, config, file_uri):
         print "PDF: Importing '%s'" % (file_uri)
         try:
-            dest = Gio.File("file://%s" % self.path)
-            dest.make_directory()
-        except Gio.Error, exc:
+            dest = Gio.File.parse_name("file://%s" % self.path)
+            dest.make_directory(None)
+        except gi._glib.GError:
             print ("Warning: Error while trying to create '%s': %s" %
                    (self.path, str(exc)))
-        f = Gio.File(file_uri)
+        f = Gio.File.parse_name(file_uri)
         dest = dest.get_child(PDF_FILENAME)
-        f.copy(dest)
+        f.copy(dest,
+               0,  # TODO(Jflesch): Missing flags: don't keep attributes
+               None, None, None)
         self._open()
         nb_keywords = 0
         for keyword in self.keywords:

@@ -181,7 +181,7 @@
       <object class="GtkBox" id="vbox1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-		<property name="orientation">vertical</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkMenuBar" id="menubarMainWin">
             <property name="visible">True</property>
@@ -619,7 +619,7 @@
                 <property name="width_request">445</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-				<property name="orientation">vertical</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkToolbar" id="toolbarMainWin">
                     <property name="visible">True</property>
@@ -712,12 +712,11 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="spacing">5</property>
-                    <property name="orientation">horizontal</property>
                     <child>
                       <object class="GtkBox" id="box10">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-						<property name="orientation">vertical</property>
+                        <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkLabel" id="label1">
                             <property name="height_request">35</property>
@@ -782,7 +781,7 @@
                           <object class="GtkBox" id="box1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-							<property name="orientation">vertical</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow3">
                                 <property name="visible">True</property>
@@ -849,7 +848,7 @@
                           <object class="GtkBox" id="vbox2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-							<property name="orientation">vertical</property>
+                            <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkScrolledWindow" id="scrolledwindow4">
                                 <property name="visible">True</property>
@@ -1015,7 +1014,7 @@
                 <property name="can_focus">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
-				<property name="orientation">vertical</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkToolbar" id="toolbarPage">
                     <property name="visible">True</property>
@@ -1268,7 +1267,7 @@
                   <object class="GtkBox" id="box2">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-					<property name="orientation">vertical</property>
+                    <property name="orientation">vertical</property>
                     <child>
                       <object class="GtkInfoBar" id="infobarExport">
                         <property name="app_paintable">True</property>
@@ -1284,13 +1283,12 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="spacing">10</property>
-								<property name="orientation">horizontal</property>
                                 <child>
                                   <object class="GtkBox" id="box7">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="orientation">vertical</property>
                                     <property name="homogeneous">True</property>
-									<property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkLabel" id="label4">
                                         <property name="visible">True</property>
@@ -1349,8 +1347,8 @@
                                   <object class="GtkBox" id="box8">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="orientation">vertical</property>
                                     <property name="homogeneous">True</property>
-									<property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkComboBox" id="comboboxExportFormat">
                                         <property name="visible">True</property>
@@ -1402,7 +1400,6 @@
                                       <object class="GtkBox" id="box9">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-										<property name="orientation">horizontal</property>
                                         <child>
                                           <object class="GtkEntry" id="entryExportPath">
                                             <property name="visible">True</property>

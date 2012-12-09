@@ -24,9 +24,11 @@ import time
 import Image
 import ImageColor
 import gettext
+import cairo
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
 
 import pyinsane.rawapi
 
@@ -1360,12 +1362,6 @@ class MainWindow(object):
             "pixbuf" : None,
             "factor" : 1.0,
             "original_width" : 1,
-            "boxes" : {
-                "can_draw" : True,
-                "highlighted" : [],
-                "all" : [],
-                "current" : None,
-            }
         }
 
         self.status = {
@@ -1966,22 +1962,16 @@ class MainWindow(object):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
-    def __on_img_building_result_pixbuf(self, builder, factor, original_width, img):
+    def __on_img_building_result_pixbuf(self, builder, factor, original_width,
+                                        pixbuf):
         self.img['factor'] = factor
-        self.img['pixbuf'] = img
+        self.img['pixbuf'] = pixbuf
         self.img['original_width'] = original_width
 
-        (pixmap, mask) = img.render_pixmap_and_mask()
-
         show_all = self.show_all_boxes.get_active()
-        if show_all:
-            box_list = self.img['boxes']['all']
-        else:
-            box_list = self.img['boxes']['highlighted']
-        for box in box_list:
-            self.__draw_box(pixmap, box)
+        # TODO TODO TODO: Draw box
 
-        self.img['image'].set_from_pixmap(pixmap, mask)
+        self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
 
     def __on_window_resize_cb(self, window, allocation):
@@ -2104,62 +2094,6 @@ class MainWindow(object):
             return
         popup_menu.popup(None, None, None, event.button, event.time)
 
-    def __get_box_position(self, box, window=None, width=1):
-        ((a, b), (c, d)) = box.position
-        a *= self.img['factor']
-        b *= self.img['factor']
-        c *= self.img['factor']
-        d *= self.img['factor']
-        if window:
-            (win_w, win_h) = window.get_size()
-            (pic_w, pic_h) = (self.img['pixbuf'].get_width(),
-                              self.img['pixbuf'].get_height())
-            (margin_x, margin_y) = ((win_w-pic_w)/2, (win_h-pic_h)/2)
-            a += margin_x
-            b += margin_y
-            c += margin_x
-            d += margin_y
-        a -= width
-        b -= width
-        c += width
-        d += width
-        return ((int(a), int(b)), (int(c), int(d)))
-
-    def __draw_box(self, drawable, box):
-        highlighted = (box in self.img['boxes']['highlighted'])
-        width=1
-        color='#6c5dd1'
-        if highlighted:
-            width=3
-            color='#009f00'
-        ((img_a, img_b), (img_c, img_d)) = \
-                self.__get_box_position(box, window=drawable, width=0)
-        cm = drawable.get_colormap()
-        gc = drawable.new_gc(foreground=cm.alloc_color(color))
-        for i in range(0, width):
-            drawable.draw_rectangle(gc, False,
-                                    x=img_a-i, y=img_b-i,
-                                    width=(img_c-img_a+(2*i)),
-                                    height=(img_d-img_b+(2*i)))
-
-    def __undraw_box(self, drawable, box):
-        ((img_a, img_b), (img_c, img_d)) = \
-                self.__get_box_position(box, window=drawable, width=5)
-        ((pic_a, pic_b), (pic_c, pic_d)) = \
-                self.__get_box_position(box, window=None, width=5)
-        gc = drawable.new_gc()
-        drawable.draw_pixbuf(gc, self.img['pixbuf'],
-                             src_x=pic_a, src_y=pic_b,
-                             dest_x=img_a, dest_y=img_b,
-                             width=(img_c-img_a),
-                             height=(img_d-img_b))
-
-        show_all = self.show_all_boxes.get_active()
-        highlighted = (box in self.img['boxes']['highlighted'])
-        if show_all or highlighted:
-            # force redrawing
-            self.__draw_box(drawable, box)
-
     def __on_img_mouse_motion(self, event_box, event):
         try:
             # make sure we have an image currently displayed
@@ -2169,34 +2103,9 @@ class MainWindow(object):
         except ValueError:
             return
 
-        if not self.img['boxes']['can_draw']:
-            return
-
         (mouse_x, mouse_y) = event.get_coords()
 
-        old_box = self.img['boxes']['current']
-        new_box = None
-        for box in self.img['boxes']['all']:
-            ((a, b), (c, d)) = \
-                    self.__get_box_position(box,
-                                            window=self.img['image'].window,
-                                            width=0)
-            if (mouse_x < a or mouse_y < b
-                or mouse_x > c or mouse_y > d):
-                continue
-            new_box = box
-
-        if old_box == new_box:
-            return
-
-        self.img['boxes']['current'] = new_box
-
-        if old_box:
-            self.img['image'].set_tooltip_text(None)
-            self.__undraw_box(self.img['image'].window, old_box)
-        if new_box:
-            self.img['image'].set_tooltip_text(new_box.content)
-            self.__draw_box(self.img['image'].window, new_box)
+        # TODO TODO TODO: highlight box + tooltip
 
     def refresh_suggestions_list(self):
         sentence = unicode(self.search_field.get_text())
@@ -2438,15 +2347,8 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
     def refresh_highlighted_words(self):
-        old_highlights = self.img['boxes']['highlighted']
-
-        search = unicode(self.search_field.get_text())
-        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
-
-        for box in old_highlights:
-            self.__undraw_box(self.img['image'].window, box)
-        for box in self.img['boxes']['highlighted']:
-            self.__draw_box(self.img['image'].window, box)
+        # TODO TODO TODO: Highlight searched keywords
+        pass
 
     def show_page(self, page):
         print "Showing page %s" % (str(page))
@@ -2476,12 +2378,8 @@ class MainWindow(object):
         self.actions['set_current_page'][1].enabled = True
 
         self.page = page
-        self.img['boxes']['all'] = self.page.boxes
-        search = unicode(self.search_field.get_text())
-        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
 
         self.export['dialog'].set_visible(False)
-        self.img['boxes']['can_draw'] = True
 
         self.workers['img_builder'].start()
 
@@ -2506,7 +2404,6 @@ class MainWindow(object):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
         (pixmap, mask) = pixbuf.render_pixmap_and_mask()
         self.img['image'].set_from_pixmap(pixmap, mask)
-        self.img['boxes']['can_draw'] = False
 
     def __get_img_area_width(self):
         width = self.img['scrollbar'].get_allocation().width

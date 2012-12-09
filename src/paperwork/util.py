@@ -273,18 +273,21 @@ def check_spelling(ocr_lang, txt):
     score = 0
     offset = 0
     for (word, word_pos) in tknzr(txt):
-        if words_dict.check(word):
-            score += 1
-            continue
         if len(word) < MIN_WORD_LEN:
+            continue
+        if words_dict.check(word):
+            # immediately correct words are a really good hint for orientation
+            score += 100
             continue
         suggestions = words_dict.suggest(word)
         if (len(suggestions) <= 0):
-            score -= 1
+            # this word is useless. It may even indicates a bad orientation
+            score -= 10
             continue
         main_suggestion = suggestions[0]
         lv_dist = Levenshtein.distance(word, main_suggestion)
         if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
+            # hm, this word looks like it's in a bad shape
             continue
 
         print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
@@ -295,5 +298,8 @@ def check_spelling(ocr_lang, txt):
         post_txt = txt[word_pos + len(word) + offset:]
         txt = pre_txt + main_suggestion + post_txt
         offset += (len(main_suggestion) - len(word))
+
+        # fixed words may be a good hint for orientation
+        score += 5
 
     return (txt, score)

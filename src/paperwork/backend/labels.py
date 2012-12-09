@@ -18,6 +18,7 @@
 Code to manage document labels
 """
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 from paperwork.util import load_uifile

@@ -67,7 +67,7 @@ class PdfDoc(BasicDoc):
             self._open()
 
     def _open(self):
-        self.pdf = Poppler.Document.New_from_file(
+        self.pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
              password=None)
         self.pages = [PdfPage(self, page_idx) \

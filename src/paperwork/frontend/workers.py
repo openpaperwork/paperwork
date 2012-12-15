@@ -22,6 +22,10 @@ import traceback
 
 from gi.repository import GObject
 
+
+MASTER_LOCK = threading.Lock()
+
+
 class Worker(GObject.GObject):
     can_interrupt = False
 
@@ -40,9 +44,16 @@ class Worker(GObject.GObject):
         assert()
 
     def __wrapper(self, **kwargs):
+        # TODO(Jflesch): Remove master lock:
+        # Some library (poppler, sane), don't support really well
+        # multi-threading. However things seems to work fine if we use
+        # only 2 threads: One for Gtk&friends, one for the long operation
+        # (indexation, scanning, etC)
+        MASTER_LOCK.acquire()
         print "Workers: [%s] started" % (self.name)
         self.do(**kwargs)
         print "Workers: [%s] ended" % (self.name)
+        MASTER_LOCK.release()
 
     def start(self, **kwargs):
         if self.is_running:

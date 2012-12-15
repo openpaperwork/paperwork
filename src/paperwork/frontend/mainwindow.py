@@ -2092,7 +2092,7 @@ class MainWindow(object):
         # we are only interested in right clicks
         if event.button != 3 or event.type != Gdk.EventType.BUTTON_PRESS:
             return
-        popup_menu.popup(None, None, None, event.button, event.time)
+        popup_menu.popup(None, None, None, None, event.button, event.time)
 
     def __on_img_mouse_motion(self, event_box, event):
         try:

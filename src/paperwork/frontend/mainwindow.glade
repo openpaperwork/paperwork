@@ -1170,10 +1170,11 @@
                         <property name="use_action_appearance">False</property>
                         <child>
                           <object class="GtkEntry" id="entryPageNb">
-                            <property name="width_request">35</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="invisible_char">●</property>
+                            <property name="width_chars">4</property>
+                            <property name="xalign">1</property>
                             <property name="invisible_char_set">True</property>
                           </object>
                         </child>

@@ -169,8 +169,8 @@ class ActionEndEditDoc(SimpleAction):
             print "No doc selected"
             return
         line = model[selection_iter]
-        line[1] = int(new_text)
-        model[selection_iter] = line
+        int(new_text)  # make sure it's a valid number
+        line[1] = new_text
 
 
 class ActionScan(SimpleAction):
@@ -333,13 +333,13 @@ class MultiscanDialog(GObject.GObject):
         self.dialog.set_transient_for(main_window.window)
         self.dialog.set_visible(True)
 
-
     def set_mouse_cursor(self, cursor):
-        self.dialog.window.set_cursor({
-            "Normal" : None,
-            "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
-        }[cursor])
-
+        # TODO TODO TODO
+        #self.dialog.window.set_cursor({
+        #    "Normal" : None,
+        #    "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
+        #}[cursor])
+        pass
 
     def __on_global_scan_start_cb(self, work_queue):
         for el in self.to_disable_on_scan:

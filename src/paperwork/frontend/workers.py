@@ -15,6 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from Queue import Queue
 import sys
 import threading
 import time
@@ -23,7 +24,40 @@ import traceback
 from gi.repository import GObject
 
 
-MASTER_LOCK = threading.Lock()
+class _WorkerThread(object):
+    def __init__(self):
+        self.__must_stop = False
+        self.__todo = Queue()
+        self.thread = threading.Thread(target=self.run)
+        self.thread.start()
+
+    def run(self):
+        global _WORKER_THREAD
+        global _WORKER_THREAD_LOCK
+
+        print "Workers: Worker thread started"
+
+        while True:
+            (worker, kwargs) = self.__todo.get()
+            if worker is not None:
+                worker._wrapper(**kwargs)
+            _WORKER_THREAD_LOCK.acquire()
+            try:
+                if self.__todo.empty():
+                    _WORKER_THREAD = None
+                    break
+            finally:
+                _WORKER_THREAD_LOCK.release()
+
+        print "Workers: Worker thread stopped"
+
+    def queue_worker(self, worker, kwargs):
+        print "Workers: Queueing [%s]" % (worker.name)
+        self.__todo.put((worker, kwargs))
+
+
+_WORKER_THREAD_LOCK = threading.Lock()
+_WORKER_THREAD = None
 
 
 class Worker(GObject.GObject):
@@ -33,7 +67,7 @@ class Worker(GObject.GObject):
         GObject.GObject.__init__(self)
         self.name = name
         self.can_run = True
-        self.__thread = None
+        self.is_running = False
         self.__started_by = None
 
     def do(self, **kwargs):
@@ -43,21 +77,20 @@ class Worker(GObject.GObject):
         # often as possible
         assert()
 
-    def __wrapper(self, **kwargs):
-        # TODO TODO TODO(Jflesch): Remove master lock:
-        # Some library (poppler, sane), don't support really well
-        # multi-threading. However things seems to work fine if we use
-        # only 2 threads: One for Gtk&friends, one for the long operation
-        # (indexation, scanning, etC)
-        MASTER_LOCK.acquire()
+    def _wrapper(self, **kwargs):
+        self.is_running = True
+        print "Workers: [%s] started" % (self.name)
         try:
-            print "Workers: [%s] started" % (self.name)
             self.do(**kwargs)
-            print "Workers: [%s] ended" % (self.name)
         finally:
-            MASTER_LOCK.release()
+            self.is_running = False
+            self.__started_by = None
+            print "Workers: [%s] ended" % (self.name)
 
     def start(self, **kwargs):
+        global _WORKER_THREAD
+        global _WORKER_THREAD_LOCK
+
         if self.is_running:
             print "====="
             print "ERROR"
@@ -74,11 +107,32 @@ class Worker(GObject.GObject):
                  % (self.name)))
         self.__started_by = traceback.extract_stack()
         self.can_run = True
-        self.__thread = threading.Thread(target=self.__wrapper, kwargs=kwargs)
-        self.__thread.start()
+
+        _WORKER_THREAD_LOCK.acquire()
+        try:
+            if _WORKER_THREAD is None:
+                _WORKER_THREAD = _WorkerThread()
+            _WORKER_THREAD.queue_worker(self, kwargs)
+        finally:
+            _WORKER_THREAD_LOCK.release()
 
     def soft_stop(self):
         self.can_run = False
+
+    def __wait(self):
+        global _WORKER_THREAD
+        global _WORKER_THREAD_LOCK
+
+        thread = None
+        _WORKER_THREAD_LOCK.acquire()
+        try:
+            if _WORKER_THREAD is not None:
+                thread = _WORKER_THREAD.thread
+        finally:
+            _WORKER_THREAD_LOCK.release()
+        if thread is not None and thread.is_alive():
+            thread.join()
+            assert(not self.is_running)
 
     def stop(self):
         print "Stopping worker [%s]" % (self)
@@ -87,20 +141,11 @@ class Worker(GObject.GObject):
             print ("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False
-        if self.is_running:
-            self.__thread.join()
-            assert(not self.is_running)
 
     def wait(self):
         if not self.is_running:
             return
-        self.__thread.join()
-        assert(not self.is_running)
-
-    def __get_is_running(self):
-        return (self.__thread != None and self.__thread.is_alive())
-
-    is_running = property(__get_is_running)
+        self.__wait()
 
     def __str__(self):
         return self.name

@@ -1894,8 +1894,7 @@ class MainWindow(object):
             cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
         else:
             cursor = None
-        # ### TODO
-        # self.window.window.set_cursor(cursor)
+        self.window.get_window().set_cursor(cursor)
 
     def set_progression(self, src, progression, text):
         context_id = self.status['text'].get_context_id(str(src))

@@ -334,11 +334,10 @@ class MultiscanDialog(GObject.GObject):
         self.dialog.set_visible(True)
 
     def set_mouse_cursor(self, cursor):
-        # TODO TODO TODO
-        #self.dialog.window.set_cursor({
-        #    "Normal" : None,
-        #    "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
-        #}[cursor])
+        self.dialog.get_window().set_cursor({
+            "Normal" : None,
+            "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
+        }[cursor])
         pass
 
     def __on_global_scan_start_cb(self, work_queue):

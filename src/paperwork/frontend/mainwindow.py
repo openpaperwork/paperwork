@@ -2089,12 +2089,8 @@ class MainWindow(object):
         popup_menu.popup(None, None, None, None, event.button, event.time)
 
     def __on_img_mouse_motion(self, event_box, event):
-        try:
-            # make sure we have an image currently displayed
-            # ### TODO
-            #self.img['image'].get_pixmap()
-            return
-        except ValueError:
+        # make sure we have an image currently displayed
+        if (self.img['image'] == None):
             return
 
         (mouse_x, mouse_y) = event.get_coords()
@@ -2357,8 +2353,6 @@ class MainWindow(object):
             # we are going to select the current page in the list
             # except we don't want to be called again because of it
             self.actions['open_page'][1].enabled = False
-            # TODO(Jflesch): We should not make assumption regarding
-            # the page position in the list
             path = Gtk.TreePath(page.page_nb)
             self.lists['pages']['gui'].select_path(path)
             self.lists['pages']['gui'].scroll_to_path(path, False, 0.0, 0.0)

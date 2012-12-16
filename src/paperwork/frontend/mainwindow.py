@@ -514,10 +514,10 @@ class ActionNewDocument(SimpleAction):
                     Gtk.IconSize.DIALOG,
                 ])
 
-        # ### TODO
-        # self.__main_win.lists['matches']['gui'].select_path(0)
-        # self.__main_win.lists['matches']['gui'].scroll_to_path(
-        #     0, False, 0.0, 0.0)
+        path = Gtk.TreePath(0)
+        self.__main_win.lists['matches']['gui'].select_path(path)
+        self.__main_win.lists['matches']['gui'].scroll_to_path(
+            path, False, 0.0, 0.0)
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -1334,7 +1334,6 @@ class MainWindow(object):
         search_completion = Gtk.EntryCompletion()
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
-        search_completion.set_match_func(lambda x, y, z: True, None)
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.indicators = {
@@ -1922,8 +1921,6 @@ class MainWindow(object):
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
-        # TODO TODO TODO
-        #self.lists['pages']['model'].set_value(line_iter, 1, None)
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Thumbnailing ..."))
 
@@ -1938,16 +1935,14 @@ class MainWindow(object):
     def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
         line_iter = self.lists['matches']['model'].get_iter(doc_idx)
         self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
-        # TODO TODO TODO
-        #self.lists['matches']['model'].set_value(line_iter, 3, None)
         self.set_progression(src, ((float)(doc_idx+1) /
                                    len(self.lists['matches']['doclist'])),
                              _("Thumbnailing ..."))
         active_doc_idx = self.lists['matches']['active_idx']
-        # ### TODO
-        #if active_doc_idx == doc_idx:
-        #    GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-        #                     active_doc_idx, False, 0.0, 0.0)
+        if active_doc_idx == doc_idx:
+            path = Gtk.TreePath(active_doc_idx)
+            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             path, False, 0.0, 0.0)
 
     def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -2148,8 +2143,7 @@ class MainWindow(object):
             self.actions['open_doc'][1].enabled = False
 
             self.lists['matches']['gui'].unselect_all()
-            # ### TODO
-            # self.lists['matches']['gui'].select_path(doc_idx)
+            self.lists['matches']['gui'].select_path(Gtk.TreePath(doc_idx))
 
             self.actions['open_doc'][1].enabled = True
 
@@ -2161,9 +2155,9 @@ class MainWindow(object):
             # not visible and move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything has
             # been displayed
-            # ### TODO
-            #GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-            #                 doc_idx, False, 0.0, 0.0)
+            path = Gtk.TreePath(doc_idx)
+            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             path, False, 0.0, 0.0)
         else:
             self.lists['matches']['gui'].unselect_all()
 
@@ -2365,9 +2359,9 @@ class MainWindow(object):
             self.actions['open_page'][1].enabled = False
             # TODO(Jflesch): We should not make assumption regarding
             # the page position in the list
-            # ### TODO
-            #self.lists['pages']['gui'].select_path(page.page_nb)
-            #self.lists['pages']['gui'].scroll_to_path(page.page_nb, False, 0.0, 0.0)
+            path = Gtk.TreePath(page.page_nb)
+            self.lists['pages']['gui'].select_path(path)
+            self.lists['pages']['gui'].scroll_to_path(path, False, 0.0, 0.0)
             self.actions['open_page'][1].enabled = True
 
         # we are going to update the page number

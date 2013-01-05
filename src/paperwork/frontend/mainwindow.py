@@ -580,7 +580,7 @@ class ActionUpdateSearchResults(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
         self.__main_win.refresh_suggestions_list()
-        self.__main_win.refresh_highlighted_words()
+        self.__main_win.refresh_page()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY, event=None):
         if iconpos == Gtk.EntryIconPosition.PRIMARY:
@@ -659,13 +659,23 @@ class ActionOpenPageNb(SimpleAction):
 
 class ActionRebuildPage(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Refresh current page")
+        SimpleAction.__init__(self, "Reload current page")
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
         self.__main_win.workers['img_builder'].stop()
         self.__main_win.workers['img_builder'].start()
+
+
+class ActionRefreshPage(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Refresh current page")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.refresh_page()
 
 
 class ActionLabelSelected(SimpleAction):
@@ -1361,6 +1371,12 @@ class MainWindow(object):
             "pixbuf" : None,
             "factor" : 1.0,
             "original_width" : 1,
+            "boxes" : {
+                'all' : [],
+                'visible' : [],
+                'highlighted' : [],
+                'selected' : [],
+            }
         }
 
         self.status = {
@@ -1667,7 +1683,7 @@ class MainWindow(object):
                 [
                     self.show_all_boxes
                 ],
-                ActionRebuildPage(self)
+                ActionRefreshPage(self)
             ),
             'show_toolbar' : (
                 [
@@ -1872,6 +1888,8 @@ class MainWindow(object):
                     GObject.idle_add(self.__on_export_preview_done, size,
                                      pixbuf))
 
+        self.img['image'].connect_after('draw', self.__on_img_draw)
+
         self.window.connect("size-allocate", self.__on_window_resize_cb)
 
         self.window.set_visible(True)
@@ -1953,17 +1971,21 @@ class MainWindow(object):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
     def __on_img_building_result_stock(self, img):
+        self.img['boxes']['all'] = []
+        self.img['boxes']['highlighted'] = []
+        self.img['boxes']['visible'] = []
+
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
     def __on_img_building_result_pixbuf(self, builder, factor, original_width,
                                         pixbuf):
+        self.img['boxes']['all'] = self.page.boxes
+        self.__reload_boxes()
+
         self.img['factor'] = factor
         self.img['pixbuf'] = pixbuf
         self.img['original_width'] = original_width
-
-        show_all = self.show_all_boxes.get_active()
-        # TODO TODO TODO: Draw box
 
         self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
@@ -2095,7 +2117,66 @@ class MainWindow(object):
 
         (mouse_x, mouse_y) = event.get_coords()
 
-        # TODO TODO TODO: highlight box + tooltip
+        selected = None
+        for box in self.img['boxes']['all']:
+            ((a, b), (c, d)) = \
+                    self.__get_box_position(box,
+                                            window=self.img['image'],
+                                            width=0)
+            if (mouse_x < a or mouse_y < b
+                or mouse_x > c or mouse_y > d):
+                continue
+            selected = box
+            break
+
+        if selected is not None and selected in self.img['boxes']['selected']:
+            return
+
+        if selected is not None:
+            self.img['boxes']['selected'] = [selected]
+            self.img['image'].set_tooltip_text(selected.content)
+        else:
+            self.img['boxes']['selected'] = []
+            self.img['image'].set_has_tooltip(False)
+        self.img['image'].queue_draw()
+
+    def __get_box_position(self, box, window=None, width=1):
+        ((a, b), (c, d)) = box.position
+        a *= self.img['factor']
+        b *= self.img['factor']
+        c *= self.img['factor']
+        d *= self.img['factor']
+        if window:
+            (win_w, win_h) = (window.get_allocation().width,
+                              window.get_allocation().height)
+            (pic_w, pic_h) = (self.img['pixbuf'].get_width(),
+                              self.img['pixbuf'].get_height())
+            (margin_x, margin_y) = ((win_w-pic_w)/2, (win_h-pic_h)/2)
+            a += margin_x
+            b += margin_y
+            c += margin_x
+            d += margin_y
+        a -= width
+        b -= width
+        c += width
+        d += width
+        return ((int(a), int(b)), (int(c), int(d)))
+
+    def __on_img_draw(self, imgwidget, cairo_context):
+        for ((color_r, color_b, color_g), line_width, boxes) in [
+                ((0.421875, 0.36328125, 0.81640625), 1, self.img['boxes']['visible']),
+                ((0.421875, 0.36328125, 0.81640625), 2,
+                 self.img['boxes']['selected']),
+                ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])
+            ]:
+            cairo_context.set_source_rgb(color_r, color_b, color_g)
+            cairo_context.set_line_width(line_width)
+
+            for box in boxes:
+                ((a, b), (c, d)) = self.__get_box_position(box, imgwidget,
+                                                           width=line_width)
+                cairo_context.rectangle(a, b, c-a, d-b)
+                cairo_context.stroke()
 
     def refresh_suggestions_list(self):
         sentence = unicode(self.search_field.get_text())
@@ -2335,9 +2416,17 @@ class MainWindow(object):
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)
 
-    def refresh_highlighted_words(self):
-        # TODO TODO TODO: Highlight searched keywords
-        pass
+    def __reload_boxes(self):
+        search = unicode(self.search_field.get_text())
+        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
+        if self.show_all_boxes.get_active():
+            self.img['boxes']['visible'] = self.img['boxes']['all']
+        else:
+            self.img['boxes']['visible'] = []
+
+    def refresh_page(self):
+        self.__reload_boxes()
+        self.img['image'].queue_draw()
 
     def show_page(self, page):
         print "Showing page %s" % (str(page))

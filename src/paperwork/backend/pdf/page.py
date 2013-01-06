@@ -21,7 +21,22 @@ import pyocr.builders
 import pyocr.pyocr
 
 from paperwork.backend.common.page import BasicPage
+from paperwork.util import split_words
 from paperwork.util import surface2image
+
+
+# By default, PDF are too small for a good image rendering
+# so we increase their size
+PDF_RENDER_FACTOR=2
+
+
+class PdfBox(object):
+    def __init__(self, content, rectangle, pdf_size):
+        self.content = content
+        self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
+                         int(rectangle.y1 * PDF_RENDER_FACTOR)),
+                        (int(rectangle.x2 * PDF_RENDER_FACTOR),
+                         int(rectangle.y2 * PDF_RENDER_FACTOR)))
 
 
 class PdfPage(BasicPage):
@@ -34,6 +49,7 @@ class PdfPage(BasicPage):
         self.pdf_page = doc.pdf.get_page(page_nb)
         size = self.pdf_page.get_size()
         self.size = (int(size[0]), int(size[1]))
+        self.__boxes = None
 
     def __get_filepath(self, ext):
         """
@@ -75,9 +91,11 @@ class PdfPage(BasicPage):
         """
         Get all the word boxes of this page.
         """
-        boxfile = self.__get_box_path()
-        txt = self.text
+        if self.__boxes is not None:
+            return self.__boxes
 
+        # Check first if there is an OCR file available
+        boxfile = self.__get_box_path()
         try:
             os.stat(boxfile)
 
@@ -85,17 +103,29 @@ class PdfPage(BasicPage):
 
             try:
                 with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
-                    boxes = box_builder.read_file(file_desc)
-                return boxes
+                    self.__boxes = box_builder.read_file(file_desc)
+                return self.__boxes
             except IOError, exc:
                 print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
-                return []
+                # will fall back on pdf boxes
         except OSError, exc:  # os.stat() failed
-            # TODO(Jflesch): Can't find poppler.Page.get_text_layout() ?
             pass
-        return []
+
+        # fall back on what libpoppler tells us
+        txt = self.pdf_page.get_text()
+        pdf_size = self.pdf_page.get_size()
+        words = set()
+        self.__boxes = []
+        for line in txt.split("\n"):
+            for word in split_words(unicode(line, errors='replace')):
+                words.add(word)
+        for word in words:
+            for rect in self.pdf_page.find_text(word):
+                self.__boxes.append(PdfBox(word, rect, pdf_size))
+        return self.__boxes
 
     boxes = property(__get_boxes)
+
 
     def __render_img(self, factor):
         # TODO(Jflesch): In a perfect world, we shouldn't use ImageSurface.
@@ -112,7 +142,7 @@ class PdfPage(BasicPage):
         return surface2image(surface)
 
     def __get_img(self):
-        return self.__render_img(2)
+        return self.__render_img(PDF_RENDER_FACTOR)
 
     img = property(__get_img)
 

@@ -32,22 +32,20 @@ class _WorkerThread(object):
         self.thread.start()
 
     def run(self):
-        global _WORKER_THREAD
-        global _WORKER_THREAD_LOCK
-
         print "Workers: Worker thread started"
 
         while True:
             (worker, kwargs) = self.__todo.get()
-            if worker is not None:
-                worker._wrapper(**kwargs)
-            _WORKER_THREAD_LOCK.acquire()
+            if worker is None:
+                print "Workers: Worker thread halting"
+                return
             try:
-                if self.__todo.empty():
-                    _WORKER_THREAD = None
-                    break
-            finally:
-                _WORKER_THREAD_LOCK.release()
+                worker._wrapper(**kwargs)
+            except Exception, exc:
+                print ("Worker [%s] raised an exception: %s"
+                       % (worker.name, str(exc)))
+                traceback.print_exc(file=sys.stdout)
+            self.__todo.task_done()
 
         print "Workers: Worker thread stopped"
 
@@ -55,9 +53,22 @@ class _WorkerThread(object):
         print "Workers: Queueing [%s]" % (worker.name)
         self.__todo.put((worker, kwargs))
 
+    def halt(self):
+        print "Workers: Requesting halt"
+        self.__todo.put((None, None))
 
-_WORKER_THREAD_LOCK = threading.Lock()
-_WORKER_THREAD = None
+    def wait(self):
+        """
+        Wait for all the pending workers to end
+        """
+        self.__todo.join()
+
+
+_WORKER_THREAD = _WorkerThread()
+
+
+def halt():
+    _WORKER_THREAD.halt()
 
 
 class Worker(GObject.GObject):
@@ -78,6 +89,8 @@ class Worker(GObject.GObject):
         assert()
 
     def _wrapper(self, **kwargs):
+        if not self.can_run:
+            return
         self.is_running = True
         print "Workers: [%s] started" % (self.name)
         try:
@@ -89,7 +102,6 @@ class Worker(GObject.GObject):
 
     def start(self, **kwargs):
         global _WORKER_THREAD
-        global _WORKER_THREAD_LOCK
 
         if self.is_running:
             print "====="
@@ -108,31 +120,10 @@ class Worker(GObject.GObject):
         self.__started_by = traceback.extract_stack()
         self.can_run = True
 
-        _WORKER_THREAD_LOCK.acquire()
-        try:
-            if _WORKER_THREAD is None:
-                _WORKER_THREAD = _WorkerThread()
-            _WORKER_THREAD.queue_worker(self, kwargs)
-        finally:
-            _WORKER_THREAD_LOCK.release()
+        _WORKER_THREAD.queue_worker(self, kwargs)
 
     def soft_stop(self):
         self.can_run = False
-
-    def __wait(self):
-        global _WORKER_THREAD
-        global _WORKER_THREAD_LOCK
-
-        thread = None
-        _WORKER_THREAD_LOCK.acquire()
-        try:
-            if _WORKER_THREAD is not None:
-                thread = _WORKER_THREAD.thread
-        finally:
-            _WORKER_THREAD_LOCK.release()
-        if thread is not None and thread.is_alive():
-            thread.join()
-            assert(not self.is_running)
 
     def stop(self):
         print "Stopping worker [%s]" % (self)
@@ -142,10 +133,21 @@ class Worker(GObject.GObject):
                    % (self.name))
         self.can_run = False
 
+        # Sadly, it seems there is no nice way for us to wait for all
+        # the instances of our worker to end. We can only wait for
+        # all the workers to end
+        _WORKER_THREAD.wait()
+
     def wait(self):
+        global _WORKER_THREAD
+
         if not self.is_running:
             return
-        self.__wait()
+
+        thread = _WORKER_THREAD.thread
+        if thread is not None and thread.is_alive():
+            thread.join()
+            assert(not self.is_running)
 
     def __str__(self):
         return self.name

@@ -30,6 +30,7 @@ import gi
 import pyinsane.abstract_th  # Just to start the Sane thread
 
 from frontend.mainwindow import MainWindow
+from frontend import workers
 from backend.config import PaperworkConfig
 
 # we use the french locale as reference to know where to look for locales
@@ -70,6 +71,7 @@ def main():
     main_win = MainWindow(config)
     main_win.actions['reindex'][1].do()
     Gtk.main()
+    workers.halt()
     print "Good bye"
 
 

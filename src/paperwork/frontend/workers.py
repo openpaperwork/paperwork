@@ -71,7 +71,7 @@ def halt():
     _WORKER_THREAD.halt()
 
 
-class Worker(GObject.GObject):
+class BasicWorker(GObject.GObject):
     can_interrupt = False
 
     def __init__(self, name):
@@ -101,8 +101,6 @@ class Worker(GObject.GObject):
             print "Workers: [%s] ended" % (self.name)
 
     def start(self, **kwargs):
-        global _WORKER_THREAD
-
         if self.is_running:
             print "====="
             print "ERROR"
@@ -120,19 +118,26 @@ class Worker(GObject.GObject):
         self.__started_by = traceback.extract_stack()
         self.can_run = True
 
-        _WORKER_THREAD.queue_worker(self, kwargs)
-
     def soft_stop(self):
-        self.can_run = False
-
-    def stop(self):
         print "Stopping worker [%s]" % (self)
-        sys.stdout.flush()
         if not self.can_interrupt and self.is_running:
             print ("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False
 
+
+class Worker(BasicWorker):
+    def __init__(self, name):
+        BasicWorker.__init__(self, name)
+
+    def start(self, **kwargs):
+        global _WORKER_THREAD
+        BasicWorker.start(self)
+        _WORKER_THREAD.queue_worker(self, kwargs)
+
+    def stop(self):
+        global _WORKER_THREAD
+        self.soft_stop()
         # Sadly, it seems there is no nice way for us to wait for all
         # the instances of our worker to end. We can only wait for
         # all the workers to end
@@ -144,9 +149,37 @@ class Worker(GObject.GObject):
         if not self.is_running:
             return
 
-        thread = _WORKER_THREAD.thread
-        if thread is not None and thread.is_alive():
-            thread.join()
+        # Sadly, it seems there is no nice way for us to wait for all
+        # the instances of our worker to end. We can only wait for
+        # all the workers to end
+        _WORKER_THREAD.wait()
+
+    def __str__(self):
+        return self.name
+
+
+class IndependantWorker(BasicWorker):
+    def __init__(self, name):
+        BasicWorker.__init__(self, name)
+        self.thread = None
+
+    def start(self, **kwargs):
+        BasicWorker.start(self)
+
+        self.thread = threading.Thread(target=self._wrapper, kwargs=kwargs)
+        self.thread.start()
+
+    def stop(self):
+        print "Stopping worker [%s]" % (self)
+        self.soft_stop()
+        self.wait()
+
+    def wait(self):
+        if not self.is_running:
+            return
+
+        if self.thread is not None and self.thread.is_alive():
+            self.thread.join()
             assert(not self.is_running)
 
     def __str__(self):
@@ -210,7 +243,7 @@ class WorkerQueue(Worker):
 GObject.type_register(WorkerQueue)
 
 
-class WorkerProgressUpdater(Worker):
+class WorkerProgressUpdater(IndependantWorker):
     """
     Update a progress bar a predefined timing.
     """
@@ -221,7 +254,7 @@ class WorkerProgressUpdater(Worker):
 
     def __init__(self, name, progressbar):
         self.name = "Progress bar updater: %s" % (name)
-        Worker.__init__(self, self.name)
+        IndependantWorker.__init__(self, self.name)
         self.progressbar = progressbar
 
     def do(self, value_min=0.0, value_max=0.5, total_time=20.0):

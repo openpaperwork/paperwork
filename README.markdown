@@ -69,16 +69,18 @@ GPLv3. See COPYING.
   Paperwork is written for Python **2.7**.
   So depending of your Linux distribution, you may have to invoke "python2"
   instead of "python" (for instance with Arch Linux)
-* pygtk v2 (required)
-	* Debian/Ubuntu package: python-gtk2
-* python-glade2 (required)
-	* Debian/Ubuntu package: python-glade2
+* pygi (required):
+    * Debian/Ubuntu package: python-gi
+* gtk v3 (required)
+	* Debian/Ubuntu package: gir1.2-gtk-3.0
+* gladeui (required)
+	* Debian/Ubuntu package: gir1.2-gladeui-2.0
 * pycountry (required)
 	* Debian/Ubuntu package: python-pycountry
-* python-imaging (required)
+* python-imaging (aka PIL) (required)
 	* Debian/Ubuntu package: python-imaging
-* python-poppler (required)
-	* Debian/Ubuntu package: python-poppler
+* poppler (required)
+	* Debian/Ubuntu package: gir1.2-poppler-0.18
 * python-enchant (required)
 	* Debian/Ubuntu package: python-enchant
 * python-levenshtein (required)

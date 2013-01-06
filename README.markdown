@@ -12,34 +12,34 @@ machine do most of the work.
 
 ### Main window
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.main_window.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.main_window.png" width="512" height="384" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.main_window.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.main_window.png" width="512" height="384" />
 </a>
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.page_list.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.page_list.png" width="512" height="384" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.page_list.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.page_list.png" width="512" height="384" />
 </a>
 
 ### Search suggestions
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.suggestions.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.suggestions.png" width="512" height="384" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.suggestions.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.suggestions.png" width="512" height="384" />
 </a>
 
 ### Labels
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.multiple_labels.png" width="402" height="358" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.multiple_labels.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.multiple_labels.png" width="402" height="358" />
 </a>
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.label_edit.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.label_edit.png" width="512" height="384" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.label_edit.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.label_edit.png" width="512" height="384" />
 </a>
 
 ### Settings window
 
-<a href="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.settings.png">
-  <img src="http://jflesch.kwain.net/data/images/paperwork/paperwork.alpha.settings.png" width="512" height="384" />
+<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.settings.png">
+  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.settings.png" width="512" height="384" />
 </a>
 
 ## Details

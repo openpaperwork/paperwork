@@ -16,6 +16,7 @@
 
 import gettext
 from gi.repository import GObject
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 from paperwork.frontend.actions import SimpleAction
@@ -107,8 +108,12 @@ class ActionSelectDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        (model, selection_iter) = self.__dialog.lists['docs']['gui'] \
-                .get_selection().get_selected()
+        selection = self.__dialog.lists['docs']['gui'] \
+                .get_selection()
+        if selection == None:
+            print "No doc selected"
+            return
+        (model, selection_iter) = selection.get_selected()
         if selection_iter == None:
             print "No doc selected"
             return

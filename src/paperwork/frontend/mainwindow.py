@@ -218,7 +218,10 @@ class WorkerImgBuilder(Worker):
             (GObject.SignalFlags.RUN_LAST, None, ()),
         'img-building-result-pixbuf' :
             (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_FLOAT, GObject.TYPE_INT, GObject.TYPE_PYOBJECT, )),
+             (GObject.TYPE_FLOAT, GObject.TYPE_INT,
+              GObject.TYPE_PYOBJECT,  # pixbuf
+              GObject.TYPE_PYOBJECT,  # array of boxes
+             )),
         'img-building-result-stock' :
             (GObject.SignalFlags.RUN_LAST, None,
              (GObject.TYPE_STRING, )),
@@ -258,7 +261,8 @@ class WorkerImgBuilder(Worker):
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                          GdkPixbuf.InterpType.BILINEAR)
 
-            self.emit('img-building-result-pixbuf', factor, original_width, pixbuf)
+            self.emit('img-building-result-pixbuf', factor, original_width,
+                      pixbuf, self.__main_win.page.boxes)
         except Exception, exc:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
             raise exc
@@ -1818,9 +1822,9 @@ class MainWindow(object):
                 lambda builder: \
                     GObject.idle_add(self.__on_img_building_start))
         self.workers['img_builder'].connect('img-building-result-pixbuf',
-                lambda builder, factor, original_width, img: \
+                lambda builder, factor, original_width, img, boxes: \
                     GObject.idle_add(self.__on_img_building_result_pixbuf,
-                                     builder, factor, original_width, img))
+                                     builder, factor, original_width, img, boxes))
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
                     GObject.idle_add(self.__on_img_building_result_stock, img))
@@ -1980,8 +1984,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
 
     def __on_img_building_result_pixbuf(self, builder, factor, original_width,
-                                        pixbuf):
-        self.img['boxes']['all'] = self.page.boxes
+                                        pixbuf, boxes):
+        self.img['boxes']['all'] = boxes
         self.__reload_boxes()
 
         self.img['factor'] = factor

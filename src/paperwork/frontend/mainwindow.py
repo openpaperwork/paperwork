@@ -2097,8 +2097,7 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.refresh_page_list()
-        self.show_doc(doc)
+        self.show_doc(doc)  # will refresh the page list
         # Many documents may have been imported actually. So we still
         # refresh the whole list
         self.refresh_doc_list()

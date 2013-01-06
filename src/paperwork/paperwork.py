@@ -65,14 +65,16 @@ def main():
 
     GObject.threads_init()
 
-    config = PaperworkConfig()
-    config.read()
+    try:
+        config = PaperworkConfig()
+        config.read()
 
-    main_win = MainWindow(config)
-    main_win.actions['reindex'][1].do()
-    Gtk.main()
-    workers.halt()
-    print "Good bye"
+        main_win = MainWindow(config)
+        main_win.actions['reindex'][1].do()
+        Gtk.main()
+    finally:
+        workers.halt()
+        print "Good bye"
 
 
 if __name__ == "__main__":

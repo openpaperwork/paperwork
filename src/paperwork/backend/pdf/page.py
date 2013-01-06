@@ -33,10 +33,12 @@ PDF_RENDER_FACTOR=2
 class PdfBox(object):
     def __init__(self, content, rectangle, pdf_size):
         self.content = content
+        # XXX(Jflesch): Coordinates seem to come from the bottom left of the
+        # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                         int(rectangle.y1 * PDF_RENDER_FACTOR)),
+                         int((pdf_size[1] - rectangle.y2) * PDF_RENDER_FACTOR)),
                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                         int(rectangle.y2 * PDF_RENDER_FACTOR)))
+                         int((pdf_size[1] - rectangle.y1) * PDF_RENDER_FACTOR)))
 
 
 class PdfPage(BasicPage):

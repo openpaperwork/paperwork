@@ -147,10 +147,10 @@ class CalibrationGripHandler(object):
                     break
 
         if is_on_grip:
-            cursor = Gdk.Cursor.new(Gdk.TCROSS)
+            cursor = Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         else:
-            cursor = Gdk.Cursor.new(Gdk.HAND1)
-        self.__settings_win.calibration['image_gui'].window.set_cursor(cursor)
+            cursor = Gdk.Cursor.new(Gdk.CursorType.HAND1)
+        self.__settings_win.calibration['image_gui'].get_window().set_cursor(cursor)
 
     def __move_grip(self, event_pos):
         """
@@ -620,11 +620,12 @@ class SettingsWindow(GObject.GObject):
                     self.device_settings['resolution']))
 
         self.workers['scan'].connect('calibration-scan-start',
-                lambda worker: self.__on_scan_start())
+                lambda worker: GObject.idle_add(self.__on_scan_start))
         self.workers['scan'].connect('calibration-scan-done',
-                lambda worker, img: self.__on_scan_done(img))
+                lambda worker, img: GObject.idle_add(self.__on_scan_done, img))
         self.workers['scan'].connect('calibration-resize-done',
-                lambda worker, factor, img: self.__on_resize_done(factor, img))
+                lambda worker, factor, img: \
+                    GObject.idle_add(self.__on_resize_done, factor, img))
 
         self.calibration['image_eventbox'].connect("button-press-event",
                 lambda x, ev: self.grips.on_mouse_button_pressed_cb(ev))
@@ -731,7 +732,7 @@ class SettingsWindow(GObject.GObject):
             settings['gui'].set_active(0)
 
     def set_mouse_cursor(self, cursor):
-        self.window.window.set_cursor({
+        self.window.get_window().set_cursor({
             "Normal" : None,
             "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
@@ -749,7 +750,7 @@ class SettingsWindow(GObject.GObject):
 
     def __on_scan_done(self, img):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
+        self.workers['progress_updater'].soft_stop()
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['images'] = [(1.0, img)]

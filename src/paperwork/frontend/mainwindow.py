@@ -1303,6 +1303,7 @@ class MainWindow(object):
         # used by the set_mouse_cursor() function to keep track of how many
         # threads requested a busy mouse cursor
         self.__busy_mouse_counter = 0
+        self.__last_highlight_update = time.time()
 
         widget_tree = load_uifile("mainwindow.glade")
 
@@ -1967,14 +1968,14 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
 
     def __on_img_building_start(self):
-        self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
-
-    def __on_img_building_result_stock(self, img):
         self.img['boxes']['all'] = []
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
+        self.set_mouse_cursor("Busy")
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+
+    def __on_img_building_result_stock(self, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
@@ -2111,13 +2112,19 @@ class MainWindow(object):
         popup_menu.popup(None, None, None, None, event.button, event.time)
 
     def __on_img_mouse_motion(self, event_box, event):
-        # make sure we have an image currently displayed
-        if (self.img['image'] == None):
-            return
-
         (mouse_x, mouse_y) = event.get_coords()
 
+        # prevent looking for boxes all the time
+        # XXX(Jflesch): This is a hack .. it may have visible side effects
+        # in the GUI ...
+        now = time.time()
+        if (now - self.__last_highlight_update <= 0.05):
+            return
+        self.__last_highlight_update = now
+
+        to_refresh = self.img['boxes']['selected']
         selected = None
+
         for box in self.img['boxes']['all']:
             ((a, b), (c, d)) = \
                     self.__get_box_position(box,
@@ -2129,8 +2136,10 @@ class MainWindow(object):
             selected = box
             break
 
-        if selected is not None and selected in self.img['boxes']['selected']:
-            return
+        if selected is not None:
+            if selected in self.img['boxes']['selected']:
+                return
+            to_refresh.append(selected)
 
         if selected is not None:
             self.img['boxes']['selected'] = [selected]
@@ -2138,7 +2147,13 @@ class MainWindow(object):
         else:
             self.img['boxes']['selected'] = []
             self.img['image'].set_has_tooltip(False)
-        self.img['image'].queue_draw()
+
+        for box in to_refresh:
+            position = self.__get_box_position(box,
+                            window=self.img['image'], width=5)
+            self.img['image'].queue_draw_area(position[0][0], position[0][1],
+                                             position[1][0] - position[0][0],
+                                             position[1][1] - position[0][1])
 
     def __get_box_position(self, box, window=None, width=1):
         ((a, b), (c, d)) = box.position
@@ -2166,7 +2181,7 @@ class MainWindow(object):
         for ((color_r, color_b, color_g), line_width, boxes) in [
                 ((0.421875, 0.36328125, 0.81640625), 1, self.img['boxes']['visible']),
                 ((0.421875, 0.36328125, 0.81640625), 2,
-                 self.img['boxes']['selected']),
+                    self.img['boxes']['selected']),
                 ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])
             ]:
             cairo_context.set_source_rgb(color_r, color_b, color_g)

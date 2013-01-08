@@ -871,14 +871,6 @@
                                         <property name="title">Label</property>
                                         <property name="expand">True</property>
                                         <child>
-                                          <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf3"/>
-                                          <attributes>
-                                            <attribute name="xalign">0</attribute>
-                                            <attribute name="yalign">0</attribute>
-                                            <attribute name="stock-id">0</attribute>
-                                          </attributes>
-                                        </child>
-                                        <child>
                                           <object class="GtkCellRendererText" id="cellrenderertextLabel"/>
                                           <attributes>
                                             <attribute name="editable">0</attribute>
@@ -892,9 +884,6 @@
                                       <object class="GtkTreeViewColumn" id="treeviewcolumnLabelSelected">
                                         <property name="sizing">autosize</property>
                                         <property name="fixed_width">50</property>
-                                        <child>
-                                          <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf4"/>
-                                        </child>
                                         <child>
                                           <object class="GtkCellRendererToggle" id="cellrenderertoggleLabel"/>
                                           <attributes>

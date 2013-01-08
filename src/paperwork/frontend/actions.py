@@ -45,37 +45,37 @@ class SimpleAction(object):
     def __do(self, **kwargs):
         if not self.enabled:
             return
-        self.do(**kwargs)
+        return self.do(**kwargs)
 
     def on_button_clicked_cb(self, toolbutton):
-        self.__do()
+        return self.__do()
 
     def on_menuitem_activate_cb(self, menuitem):
-        self.__do()
+        return self.__do()
 
     def on_entry_changed_cb(self, entry):
-        self.__do()
+        return self.__do()
 
     def on_entry_activate_cb(self, entry):
-        self.__do()
+        return self.__do()
 
     def on_treeview_cursor_changed_cb(self, treeview):
-        self.__do()
+        return self.__do()
 
     def on_iconview_selection_changed_cb(self, iconview):
-        self.__do()
+        return self.__do()
 
     def on_combobox_changed_cb(self, combobox):
-        self.__do()
+        return self.__do()
 
     def on_cell_edited_cb(self, cellrenderer, path, new_text):
-        self.__do(new_text=new_text)
+        return self.__do(new_text=new_text)
 
     def on_icon_press_cb(self, entry=None, iconpos=None, event=None):
-        self.__do()
+        return self.__do()
 
     def on_value_changed_cb(self, widget_range=None):
-        self.__do()
+        return self.__do()
 
     def connect(self, buttons):
         for button in buttons:

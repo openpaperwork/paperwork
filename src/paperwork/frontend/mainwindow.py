@@ -691,6 +691,7 @@ class ActionLabelSelected(SimpleAction):
         SimpleAction.do(self)
         for widget in self.__main_win.need_label_widgets:
             widget.set_sensitive(True)
+        return True
 
 
 class ActionToggleLabel(object):

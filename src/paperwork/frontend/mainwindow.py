@@ -2430,7 +2430,8 @@ class MainWindow(object):
             self.lists['labels']['model'].append([
                 label.get_html(),
                 (label in labels),
-                label
+                label,
+                True
             ])
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)

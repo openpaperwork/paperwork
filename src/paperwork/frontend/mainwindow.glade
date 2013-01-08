@@ -77,6 +77,8 @@
       <column type="gboolean"/>
       <!-- column-name label -->
       <column type="PyObject"/>
+      <!-- column-name enabled -->
+      <column type="gboolean"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststoreMatch">
@@ -887,7 +889,7 @@
                                         <child>
                                           <object class="GtkCellRendererToggle" id="cellrenderertoggleLabel"/>
                                           <attributes>
-                                            <attribute name="sensitive">1</attribute>
+                                            <attribute name="sensitive">3</attribute>
                                             <attribute name="active">1</attribute>
                                           </attributes>
                                         </child>

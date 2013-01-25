@@ -823,7 +823,7 @@ class ActionPrintDoc(SimpleAction):
         print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
         print_op.set_allow_async(True)
         print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
-        print_op.run(Gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG,
+        print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG,
                      self.__main_win.window)
 
 

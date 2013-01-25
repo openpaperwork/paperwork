@@ -38,6 +38,7 @@ from paperwork.backend.common.page import PageExporter
 from paperwork.backend.config import PaperworkConfig
 from paperwork.util import check_spelling
 from paperwork.util import dummy_progress_cb
+from paperwork.util import image2surface
 from paperwork.util import split_words
 
 
@@ -401,49 +402,51 @@ class ImgPage(BasicPage):
                                         self.PRINT_RESOLUTION,
                                         self.PRINT_RESOLUTION)
 
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.__img_path)
+        img = self.img
+        (width, height) = img.size
 
         # take care of rotating the image if required
         if print_context.get_width() <= print_context.get_height():
             print_orientation = self.ORIENTATION_PORTRAIT
         else:
             print_orientation = self.ORIENTATION_LANDSCAPE
-        if pixbuf.get_width() <= pixbuf.get_height():
-            pixbuf_orientation = self.ORIENTATION_PORTRAIT
+        if width <= height:
+            img_orientation = self.ORIENTATION_PORTRAIT
         else:
-            pixbuf_orientation = self.ORIENTATION_LANDSCAPE
-        if print_orientation != pixbuf_orientation:
+            img_orientation = self.ORIENTATION_LANDSCAPE
+        if print_orientation != img_orientation:
             print "Rotating the page ..."
-            pixbuf = pixbuf.rotate_simple(Gdk.PIXBUF_ROTATE_CLOCKWISE)
+            img = img.rotate(90)
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
         page_setup = print_context.get_page_setup()
         top_margin = (int(print_context.get_height())
-                      * (page_setup.get_top_margin(Gtk.UNIT_POINTS)
-                         / page_setup.get_paper_height(Gtk.UNIT_POINTS)))
+                      * (page_setup.get_top_margin(Gtk.Unit.POINTS)
+                         / page_setup.get_paper_height(Gtk.Unit.POINTS)))
         bottom_margin = (int(print_context.get_height())
-                      * (page_setup.get_bottom_margin(Gtk.UNIT_POINTS)
-                         / page_setup.get_paper_height(Gtk.UNIT_POINTS)))
+                      * (page_setup.get_bottom_margin(Gtk.Unit.POINTS)
+                         / page_setup.get_paper_height(Gtk.Unit.POINTS)))
         left_margin = (int(print_context.get_width())
-                      * (page_setup.get_left_margin(Gtk.UNIT_POINTS)
-                         / page_setup.get_paper_width(Gtk.UNIT_POINTS)))
+                      * (page_setup.get_left_margin(Gtk.Unit.POINTS)
+                         / page_setup.get_paper_width(Gtk.Unit.POINTS)))
         right_margin = (int(print_context.get_width())
-                      * (page_setup.get_right_margin(Gtk.UNIT_POINTS)
-                         / page_setup.get_paper_width(Gtk.UNIT_POINTS)))
+                      * (page_setup.get_right_margin(Gtk.Unit.POINTS)
+                         / page_setup.get_paper_width(Gtk.Unit.POINTS)))
 
         new_w = int(print_context.get_width() - left_margin - right_margin)
         new_h = int(print_context.get_height() - top_margin - bottom_margin)
         print "DPI: %fx%f" % (print_context.get_dpi_x(),
                               print_context.get_dpi_y())
         print "Scaling it down to %fx%f..." % (new_w, new_h)
-        pixbuf = pixbuf.scale_simple(new_w, new_h, GdkPixbuf.InterpType.BILINEAR)
+        img = img.resize((new_w, new_h), Image.ANTIALIAS)
+
+        surface = image2surface(img)
 
         # .. and print !
         cairo_context = print_context.get_cairo_context()
-        gdkcontext = Gdk.CairoContext(cairo_context)
-        gdkcontext.set_source_pixbuf(pixbuf, left_margin, top_margin)
-        gdkcontext.paint()
+        cairo_context.set_source_surface(surface)
+        cairo_context.paint()
 
     def redo_ocr(self, ocrlang):
         """

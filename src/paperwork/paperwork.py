@@ -59,7 +59,7 @@ def main():
     if not got_locales:
         print "WARNING: Locales not found"
     else:
-        for module in (gettext, ):
+        for module in (gettext, locale):
             module.bindtextdomain('paperwork', locales_path)
             module.textdomain('paperwork')
 

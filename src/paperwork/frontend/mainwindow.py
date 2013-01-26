@@ -2201,7 +2201,7 @@ class MainWindow(object):
                 cairo_context.stroke()
 
     def refresh_suggestions_list(self):
-        sentence = unicode(self.search_field.get_text())
+        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         print "[Suggestions] Search: %s" % (sentence.encode('ascii', 'replace'))
 
         suggestions = self.docsearch.find_suggestions(sentence)
@@ -2261,7 +2261,7 @@ class MainWindow(object):
             self.lists['matches']['gui'].unselect_all()
 
     def __insert_new_doc(self):
-        sentence = unicode(self.search_field.get_text())
+        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
 
         doc_list = self.lists['matches']['doclist']
@@ -2368,7 +2368,7 @@ class MainWindow(object):
         """
         self.workers['doc_thumbnailer'].soft_stop()
 
-        sentence = unicode(self.search_field.get_text())
+        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         print "Search: %s" % (sentence.encode('ascii', 'replace'))
 
         documents = self.docsearch.find_documents(sentence)
@@ -2440,7 +2440,7 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
     def __reload_boxes(self):
-        search = unicode(self.search_field.get_text())
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
         self.img['boxes']['highlighted'] = self.page.get_boxes(search)
         if self.show_all_boxes.get_active():
             self.img['boxes']['visible'] = self.img['boxes']['all']

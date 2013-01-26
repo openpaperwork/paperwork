@@ -35,7 +35,10 @@ class Label(object):
             name --- label name
             color --- label color (string representation, see get_color_str())
         """
-        self.name = unicode(name)
+        if type(name) == unicode:
+            self.name = name
+        else:
+            self.name = unicode(name, encoding='utf-8')
         self.color = Gdk.color_parse(color)
 
     def __copy__(self):

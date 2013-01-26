@@ -393,7 +393,7 @@ class DocSearch(object):
         negative_keywords = []
 
         print ("Looking for documents containing %s"
-               % (sentence.encode('ascii', 'replace')))
+               % (sentence.encode('utf-8', 'replace')))
 
         for keyword in split_words(sentence):
             if keyword[:1] != "!":

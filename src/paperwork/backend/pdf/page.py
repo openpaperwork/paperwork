@@ -84,7 +84,7 @@ class PdfPage(BasicPage):
 
         except OSError, exc:  # os.stat() failed
             txt = self.pdf_page.get_text()
-            txt = unicode(txt, errors='replace')
+            txt = unicode(txt, encoding='utf-8')
             return txt.split(u"\n")
 
     text = property(__get_text)
@@ -119,7 +119,7 @@ class PdfPage(BasicPage):
         words = set()
         self.__boxes = []
         for line in txt.split("\n"):
-            for word in split_words(unicode(line, errors='replace')):
+            for word in split_words(unicode(line, encoding='utf-8')):
                 words.add(word)
         for word in words:
             for rect in self.pdf_page.find_text(word):

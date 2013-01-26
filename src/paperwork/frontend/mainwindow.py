@@ -242,7 +242,11 @@ class WorkerImgBuilder(Worker):
             self.emit('img-building-result-stock', Gtk.STOCK_MISSING_IMAGE)
             return
 
-        time.sleep(0.25) # to keep the GUI smooth
+        # to keep the GUI smooth
+        for t in range(0, 25):
+            if not self.can_run:
+                break
+            time.sleep(0.01)
         if not self.can_run:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
             return
@@ -1313,7 +1317,6 @@ class MainWindow(object):
         widget_tree = load_uifile("mainwindow.glade")
 
         self.window = widget_tree.get_object("mainWindow")
-        self.__win_size_cache = None
 
         self.__config = config
         self.__scan_start = 0.0
@@ -1373,6 +1376,10 @@ class MainWindow(object):
         self.img = {
             "image" : widget_tree.get_object("imagePageImg"),
             "scrollbar" : widget_tree.get_object("scrolledwindowPageImg"),
+            "viewport" : {
+                "widget" : widget_tree.get_object("viewportImg"),
+                "size" : (0, 0),
+            },
             "eventbox" : widget_tree.get_object("eventboxImg"),
             "pixbuf" : None,
             "factor" : 1.0,
@@ -1896,7 +1903,8 @@ class MainWindow(object):
 
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
-        self.window.connect("size-allocate", self.__on_window_resize_cb)
+        self.img['viewport']['widget'].connect("size-allocate",
+                                               self.__on_img_resize_cb)
 
         self.window.set_visible(True)
 
@@ -1995,11 +2003,6 @@ class MainWindow(object):
 
         self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
-
-    def __on_window_resize_cb(self, window, allocation):
-        if (self.__win_size_cache == allocation):
-            return
-        self.__win_size_cache = allocation
 
     def __on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
@@ -2501,10 +2504,7 @@ class MainWindow(object):
         self.img['image'].set_from_pixbuf(pixbuf)
 
     def __get_img_area_width(self):
-        width = self.img['scrollbar'].get_allocation().width
-        # TODO(JFlesch): This is not a safe assumption:
-        width -= 30
-        return width
+        return self.img['viewport']['widget'].get_allocation().width
 
     def get_zoom_factor(self, pixbuf_width=None):
         el_idx = self.lists['zoom_levels']['gui'].get_active()
@@ -2521,3 +2521,23 @@ class MainWindow(object):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
         self.workers['export_previewer'].stop()
         self.workers['export_previewer'].start()
+
+    def __on_img_resize_cb(self, viewport, rectangle):
+        old_size = self.img['viewport']['size']
+        new_size = (rectangle.width, rectangle.height)
+        if old_size == new_size:
+            return
+        self.img['viewport']['size'] = new_size
+        print ("Image view port resized. (%d, %d) --> (%d, %d)"
+               % (old_size[0], old_size[1], new_size[0], new_size[1]))
+        
+        # check if zoom level is set to adjusted, if yes,
+        # we must resize the image
+        el_idx = self.lists['zoom_levels']['gui'].get_active()
+        el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
+        factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        if factor != 0.0:
+            return
+
+        self.workers['img_builder'].stop()
+        self.workers['img_builder'].start()

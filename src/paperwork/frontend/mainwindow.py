@@ -1351,6 +1351,7 @@ class MainWindow(object):
         search_completion = Gtk.EntryCompletion()
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
+        search_completion.set_match_func(lambda a, b, c, d: True, None)
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.indicators = {

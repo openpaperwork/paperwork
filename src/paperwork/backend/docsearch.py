@@ -169,7 +169,8 @@ class DocSearch(object):
         if txt == u"":
             self.__delete_doc_from_index(index_writer, doc.docid)
             return True
-        labels = u",".join([unicode(label.name) for label in doc.labels])
+        labels = u",".join([strip_accents(unicode(label.name))
+                            for label in doc.labels])
 
         index_writer.update_document(
             docid=docid,

@@ -120,7 +120,7 @@ class DocSearch(object):
             self.index = whoosh.index.create_in(self.indexdir, schema)
             print ("Index '%s' created" % self.indexdir)
 
-        self.__searcher = None
+        self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
         self.__docs_by_id = {}  # docid --> doc
@@ -137,7 +137,15 @@ class DocSearch(object):
     def __update_doc_in_index(self, index_writer, doc):
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
 
-        # TODO(Jflesch): Check last_mod !
+        query = whoosh.query.Term("docid", doc.docid)
+        index_docs = self.__searcher.search(query)
+        assert(len(index_docs) <= 1)
+
+        if len(index_docs) >= 1:
+            last_read = index_docs[0]['last_read']
+            if last_read == last_mod:
+                return
+
         print ("%s has been modified. Reindexing ..." % doc.docid)
 
         docid = unicode(doc.docid)
@@ -158,6 +166,13 @@ class DocSearch(object):
         )
 
     def __update_index(self, progress_cb=dummy_progress_cb):
+        # getting the doc list from the index
+        query = whoosh.query.Every()
+        results = self.__searcher.search(query, limit=None)
+        old_doc_list = [result['docid'] for result in results]
+        old_doc_list = set(old_doc_list)
+        print "Index contains %d documents" % len(old_doc_list)
+
         index_writer = self.index.writer()
 
         self.__docs_by_id = {}
@@ -167,14 +182,20 @@ class DocSearch(object):
             doc = self.__inst_doc_from_id(docdir)
             if doc is None:
                 continue
+            if docdir in old_doc_list:
+                old_doc_list.remove(docdir)
             self.__docs_by_id[docdir] = doc
             progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
             self.__update_doc_in_index(index_writer, doc)
             progress += 1
 
         progress_cb(3, 4, self.INDEX_STEP_COMMIT)
-        # TODO(Jflesch): remove optimize=True
-        index_writer.commit(optimize=True)
+        # remove all documents that don't exist anymore from the index
+        for old_doc in old_doc_list:
+            print "%s doesn't exist anymore. Removing from the index" % old_doc
+            query = whoosh.query.Term("docid", old_doc)
+            index_writer.delete_by_query(query)
+        index_writer.commit()
         progress_cb(4, 4, self.INDEX_STEP_COMMIT)
 
         self.__searcher = self.index.searcher()

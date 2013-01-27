@@ -179,7 +179,7 @@ class ImgPage(BasicPage):
         try:
             with codecs.open(txtfile, 'r', encoding='utf-8') as file_desc:
                 for line in file_desc.readlines():
-                    line = line.strip() + "\n"
+                    line = line.strip()
                     txt.append(line)
         except IOError, exc:
             print "Unable to read [%s]: %s" % (txtfile, str(exc))

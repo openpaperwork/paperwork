@@ -159,7 +159,8 @@ class DocSearch(object):
         docid = unicode(doc.docid)
         txt = u""
         for page in doc.pages:
-            txt += unicode(page.text)
+            for line in page.text:
+                txt += unicode(line) + u"\n"
         for label in doc.labels:
             txt += u" " + unicode(label.name)
         txt = txt.strip()
@@ -265,6 +266,8 @@ class DocSearch(object):
         Returns:
             An array of document id (strings)
         """
+        sentence = sentence.strip()
+
         if sentence == u"":
             return self.docs
 

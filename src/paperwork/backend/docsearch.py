@@ -39,6 +39,7 @@ from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import mkdir_p
 from paperwork.util import split_words
+from paperwork.util import strip_accents
 
 
 DOC_TYPE_LIST = [
@@ -163,10 +164,12 @@ class DocSearch(object):
         for label in doc.labels:
             txt += u" " + unicode(label.name)
         txt = txt.strip()
+        txt = strip_accents(txt)
         if txt == u"":
             self.__delete_doc_from_index(index_writer, doc.docid)
             return True
-        labels = u",".join([unicode(label.name) for label in doc.labels])
+        labels = u",".join([strip_accents(unicode(label.name))
+                            for label in doc.labels])
 
         index_writer.update_document(
             docid=docid,
@@ -242,7 +245,14 @@ class DocSearch(object):
         docs = []
         results = self.__searcher.search(query, limit=None)
         docids = [result['docid'] for result in results]
-        docs = [self.__docs_by_id[docid] for docid in docids]
+        docs = [self.__docs_by_id.get(docid) for docid in docids]
+        while True:
+            try:
+                docs.remove(None)
+                print ("WARNING: Index is not sync with docsearch. Shouldn't"
+                       " happen")
+            except ValueError, exc:
+                break
         return docs
 
     def __get_all_docs(self):
@@ -267,6 +277,8 @@ class DocSearch(object):
         if sentence == u"":
             return self.docs
 
+        sentence = strip_accents(sentence)
+
         query = self.__qparser.parse(sentence)
         return self.__find_documents(query)
 
@@ -287,7 +299,7 @@ class DocSearch(object):
 
         corrector = self.__searcher.corrector("content")
         for keyword_idx in range(0, len(keywords)):
-            keyword = keywords[keyword_idx]
+            keyword = strip_accents(keywords[keyword_idx])
             keyword_suggestions = corrector.suggest(keyword, limit=5)[:]
             for keyword_suggestion in keyword_suggestions:
                 new_suggestion = keywords[:]

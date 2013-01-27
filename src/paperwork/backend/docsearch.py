@@ -39,6 +39,7 @@ from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import mkdir_p
 from paperwork.util import split_words
+from paperwork.util import strip_accents
 
 
 DOC_TYPE_LIST = [
@@ -164,6 +165,7 @@ class DocSearch(object):
         for label in doc.labels:
             txt += u" " + unicode(label.name)
         txt = txt.strip()
+        txt = strip_accents(txt)
         if txt == u"":
             self.__delete_doc_from_index(index_writer, doc.docid)
             return True
@@ -271,6 +273,8 @@ class DocSearch(object):
         if sentence == u"":
             return self.docs
 
+        sentence = strip_accents(sentence)
+
         query = self.__qparser.parse(sentence)
         return self.__find_documents(query)
 
@@ -291,12 +295,12 @@ class DocSearch(object):
 
         corrector = self.__searcher.corrector("content")
         for keyword_idx in range(0, len(keywords)):
-            keyword = keywords[keyword_idx]
+            keyword = strip_accents(keywords[keyword_idx])
             keyword_suggestions = corrector.suggest(keyword, limit=5)[:]
             for keyword_suggestion in keyword_suggestions:
                 new_suggestion = keywords[:]
                 new_suggestion[keyword_idx] = keyword_suggestion
-                new_suggestion = " ".join(new_suggestion)
+                new_suggestion = u" ".join(new_suggestion)
                 if len(self.find_documents(new_suggestion)) <= 0:
                     continue
                 final_suggestions.append(new_suggestion)

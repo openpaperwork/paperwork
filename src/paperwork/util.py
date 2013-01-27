@@ -50,7 +50,7 @@ UI_FILES_DIRS = [
 ]
 
 
-def __strip_accents(string):
+def strip_accents(string):
     """
     Strip all the accents from the string
     """
@@ -83,7 +83,7 @@ def split_words(sentence):
 
     # TODO: i18n
     sentence = sentence.lower()
-    sentence = __strip_accents(sentence)
+    sentence = strip_accents(sentence)
 
     words = FORCED_SPLIT_KEYWORDS_REGEX.split(sentence)
     for word in __cleanup_word_array(words):

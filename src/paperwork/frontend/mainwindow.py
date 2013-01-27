@@ -126,6 +126,47 @@ class WorkerDocIndexer(Worker):
 GObject.type_register(WorkerDocIndexer)
 
 
+class WorkerDocSearcher(Worker):
+    """
+    Search the documents
+    """
+
+    __gsignals__ = {
+        'search-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        # first obj: array of documents
+        # second obj: array of suggestions
+        'search-result' : (GObject.SignalFlags.RUN_LAST, None,
+                        (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window, config):
+        Worker.__init__(self, "Search")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        sentence = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+
+        self.emit('search-start')
+
+        if not self.can_run:
+            return
+
+        documents = self.__main_win.docsearch.find_documents(sentence)
+        if sentence == u"":
+            # append a new document to the list
+            documents.insert(0, ImgDoc(self.__config.workdir))
+
+        suggestions = self.__main_win.docsearch.find_suggestions(sentence)
+
+        self.emit('search-result', documents, suggestions)
+
+
+GObject.type_register(WorkerDocSearcher)
+
+
 class WorkerPageThumbnailer(Worker):
     """
     Generate page thumbnails
@@ -587,7 +628,6 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
-        self.__main_win.refresh_suggestions_list()
         self.__main_win.refresh_page()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY, event=None):
@@ -1452,6 +1492,7 @@ class MainWindow(object):
 
         self.workers = {
             'reindex' : WorkerDocIndexer(self, config),
+            'searcher' : WorkerDocSearcher(self, config),
             'page_thumbnailer' : WorkerPageThumbnailer(self),
             'doc_thumbnailer' : WorkerDocThumbnailer(self),
             'img_builder' : WorkerImgBuilder(self),
@@ -1802,6 +1843,11 @@ class MainWindow(object):
         self.workers['reindex'].connect('indexation-end', lambda indexer: \
             GObject.idle_add(self.__on_indexation_end_cb, indexer))
 
+        self.workers['searcher'].connect('search-result', \
+            lambda searcher, documents, suggestions: \
+                GObject.idle_add(self.__on_search_result_cb, documents,
+                                 suggestions))
+
         self.workers['page_thumbnailer'].connect('page-thumbnailing-start',
                 lambda thumbnailer: \
                     GObject.idle_add(self.__on_page_thumbnailing_start_cb,
@@ -1947,6 +1993,36 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_doc_list()
         self.refresh_label_list()
+
+    def __on_search_result_cb(self, documents, suggestions):
+        self.workers['doc_thumbnailer'].stop()
+
+        print "Got %d suggestions" % len(suggestions)
+        self.lists['suggestions']['model'].clear()
+        for suggestion in suggestions:
+            self.lists['suggestions']['model'].append([suggestion])
+
+        print "Git %d documents" % len(documents)
+        self.lists['matches']['model'].clear()
+        active_idx = -1
+        idx = 0
+        for doc in documents:
+            if doc == self.doc:
+                active_idx = idx
+            idx += 1
+            self.lists['matches']['model'].append(
+                self.__get_doc_model_line(doc))
+
+        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
+            active_idx = 0
+
+        self.lists['matches']['doclist'] = documents
+        self.lists['matches']['active_idx'] = active_idx
+
+        self.__select_doc(active_idx)
+
+        self.workers['doc_thumbnailer'].start()
+
 
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Thumbnailing ..."))
@@ -2202,16 +2278,6 @@ class MainWindow(object):
                 cairo_context.rectangle(a, b, c-a, d-b)
                 cairo_context.stroke()
 
-    def refresh_suggestions_list(self):
-        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        print "[Suggestions] Search: %s" % (sentence.encode('ascii', 'replace'))
-
-        suggestions = self.docsearch.find_suggestions(sentence)
-        print "Got %d suggestions" % len(suggestions)
-        self.lists['suggestions']['model'].clear()
-        for suggestion in suggestions:
-            self.lists['suggestions']['model'].append([suggestion])
-
     @staticmethod
     def __get_doc_txt(doc):
         labels = doc.labels
@@ -2369,38 +2435,8 @@ class MainWindow(object):
         Warning: Will reset all the thumbnail to the default one
         """
         self.workers['doc_thumbnailer'].soft_stop()
-
-        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        print "Search: %s" % (sentence.encode('ascii', 'replace'))
-
-        documents = self.docsearch.find_documents(sentence)
-        print "Got %d documents" % len(documents)
-        if sentence == u"":
-            # append a new document to the list
-            documents.insert(0, ImgDoc(self.__config.workdir))
-        documents = [doc for doc in documents]
-        self.lists['matches']['doclist'] = documents
-
-        self.workers['doc_thumbnailer'].wait()
-
-        self.lists['matches']['model'].clear()
-        active_idx = -1
-        idx = 0
-        for doc in documents:
-            if doc == self.doc:
-                active_idx = idx
-            idx += 1
-            self.lists['matches']['model'].append(
-                self.__get_doc_model_line(doc))
-
-        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
-            active_idx = 0
-
-        self.lists['matches']['active_idx'] = active_idx
-
-        self.__select_doc(active_idx)
-
-        self.workers['doc_thumbnailer'].start()
+        self.workers['searcher'].soft_stop()
+        self.workers['searcher'].start()
 
     def refresh_page_list(self):
         """

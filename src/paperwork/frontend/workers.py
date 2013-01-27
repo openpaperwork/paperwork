@@ -101,7 +101,7 @@ class BasicWorker(GObject.GObject):
             print "Workers: [%s] ended" % (self.name)
 
     def start(self, **kwargs):
-        if self.is_running:
+        if self.is_running and self.can_run:
             print "====="
             print "ERROR"
             print "Thread '%s' was already started by:" % (self.name)

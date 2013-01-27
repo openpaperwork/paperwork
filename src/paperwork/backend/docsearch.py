@@ -112,7 +112,7 @@ class DocSearch(object):
             print ("Failed to open index '%s'" % self.indexdir)
             print ("Will try to create a new one")
             schema = whoosh.fields.Schema(
-                docid=whoosh.fields.ID(stored=True),
+                docid=whoosh.fields.ID(stored=True, unique=True),
                 content=whoosh.fields.TEXT(spelling=True),
                 labels=whoosh.fields.KEYWORD(stored=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
@@ -120,9 +120,13 @@ class DocSearch(object):
             self.index = whoosh.index.create_in(self.indexdir, schema)
             print ("Index '%s' created" % self.indexdir)
 
+        self.__searcher = None
+        self.__qparser = whoosh.qparser.QueryParser("content",
+                                                    self.index.schema)
+        self.__docs_by_id = {}  # docid --> doc
         self.__update_index(callback)
 
-    def __get_doc_from_id(self, docid):
+    def __inst_doc_from_id(self, docid):
         docpath = os.path.join(self.rootdir, docid)
         for (is_doc_type, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
@@ -156,19 +160,24 @@ class DocSearch(object):
     def __update_index(self, progress_cb=dummy_progress_cb):
         index_writer = self.index.writer()
 
+        self.__docs_by_id = {}
         docdirs = os.listdir(self.rootdir)
         progress = 0
         for docdir in docdirs:
-            doc = self.__get_doc_from_id(docdir)
+            doc = self.__inst_doc_from_id(docdir)
             if doc is None:
                 continue
+            self.__docs_by_id[docdir] = doc
             progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
             self.__update_doc_in_index(index_writer, doc)
             progress += 1
 
         progress_cb(3, 4, self.INDEX_STEP_COMMIT)
-        index_writer.commit()
+        # TODO(Jflesch): remove optimize=True
+        index_writer.commit(optimize=True)
         progress_cb(4, 4, self.INDEX_STEP_COMMIT)
+
+        self.__searcher = self.index.searcher()
 
 
     def index_page(self, page):
@@ -184,15 +193,9 @@ class DocSearch(object):
 
     def __find_documents(self, query):
         docs = []
-        with self.index.searcher() as searcher:
-            results = searcher.search(query, limit=None)
-            docids = [result['docid'] for result in results]
-            docs = [self.__get_doc_from_id(docid) for docid in docids]
-        try:
-            while True:
-                docs.remove(None)
-        except ValueError, exc:
-            pass
+        results = self.__searcher.search(query, limit=None)
+        docids = [result['docid'] for result in results]
+        docs = [self.__docs_by_id[docid] for docid in docids]
         return docs
 
     def __get_all_docs(self):
@@ -222,8 +225,7 @@ class DocSearch(object):
         if sentence == u"":
             return self.docs
 
-        qp = whoosh.qparser.QueryParser("content", self.index.schema)
-        query = qp.parse(sentence)
+        query = self.__qparser.parse(sentence)
         return self.__find_documents(query)
 
     def find_suggestions(self, sentence):
@@ -241,16 +243,17 @@ class DocSearch(object):
         keywords = sentence.split(" ")
         final_suggestions = []
 
-        with self.index.searcher() as searcher:
-            corrector = searcher.corrector("content")
-            for keyword_idx in range(0, len(keywords)):
-                keyword = keywords[keyword_idx]
-                keyword_suggestions = corrector.suggest(keyword, limit=5)
-                for keyword_suggestion in keyword_suggestions:
-                    new_suggestion = keywords[:]
-                    new_suggestion[keyword_idx] = keyword_suggestion
-                    new_suggestion = " ".join(new_suggestion)
-                    final_suggestions.append(new_suggestion)
+        corrector = self.__searcher.corrector("content")
+        for keyword_idx in range(0, len(keywords)):
+            keyword = keywords[keyword_idx]
+            keyword_suggestions = corrector.suggest(keyword, limit=5)[:]
+            for keyword_suggestion in keyword_suggestions:
+                new_suggestion = keywords[:]
+                new_suggestion[keyword_idx] = keyword_suggestion
+                new_suggestion = " ".join(new_suggestion)
+                if len(self.find_documents(new_suggestion)) <= 0:
+                    continue
+                final_suggestions.append(new_suggestion)
         return final_suggestions
 
     def add_label(self, label, doc):

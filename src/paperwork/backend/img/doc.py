@@ -298,6 +298,7 @@ def is_img_doc(docpath):
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:
+        print "Warning: Failed to list files in %s: %s" % (docpath, str(exc))
         return False
     for filename in filelist:
         if ".jpg" in filename.lower():

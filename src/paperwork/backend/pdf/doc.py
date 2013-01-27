@@ -130,5 +130,6 @@ def is_pdf_doc(docpath):
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:
+        print "Warning: Failed to list files in %s: %s" % (docpath, str(exc))
         return False
     return PDF_FILENAME in filelist

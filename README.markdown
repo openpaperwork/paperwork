@@ -121,17 +121,6 @@ GPLv3. See COPYING.
 Enjoy :-)
 
 
-## Tips
-
-### Searching
-
-Paperwork search mechanism is built around python-whoosh. Paperwork uses the default query parser of Whoosh. Whoosh query language allows to:
-
-* Search a specific label: "label:[label]"
-* Reject documents containing a specific keyword: "NOT [keyword]"
-* Find documents with one word or another: "[keyword] OR [keyword]"
-
-
 ## Contact
 
 * Mailing-list: [paperwork-gui@googlegroups.com](https://groups.google.com/d/forum/paperwork-gui)

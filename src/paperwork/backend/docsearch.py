@@ -24,6 +24,9 @@ import os.path
 import time
 import threading
 
+import whoosh.fields
+import whoosh.index
+
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
@@ -98,6 +101,23 @@ class DocSearch(object):
                                   os.path.expanduser("~/.local/share"))
         self.indexdir = os.path.join(base_indexdir, "paperwork", "index")
         mkdir_p(self.indexdir)
+
+        try:
+            print ("Opening index dir '%s' ..." % self.indexdir)
+            self.index = whoosh.index.open_dir(self.indexdir)
+        except whoosh.index.EmptyIndexError, exc:
+            print ("Failed to open index '%s'" % self.indexdir)
+            print ("Will try to create a new one")
+            schema = whoosh.fields.Schema(
+                docid=whoosh.fields.ID,
+                content=whoosh.fields.TEXT,
+                labels=whoosh.fields.KEYWORD,
+                last_read=whoosh.fields.DATETIME,
+                thumbnail=whoosh.fields.STORED,
+            )
+            self.index = whoosh.index.create_in(self.indexdir, schema)
+            print ("Index '%s' created" % self.indexdir)
+
 
     def index_page(self, page):
         """

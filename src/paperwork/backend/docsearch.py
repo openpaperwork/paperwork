@@ -113,7 +113,7 @@ class DocSearch(object):
             print ("Will try to create a new one")
             schema = whoosh.fields.Schema(
                 docid=whoosh.fields.ID(stored=True),
-                content=whoosh.fields.TEXT,
+                content=whoosh.fields.TEXT(spelling=True),
                 labels=whoosh.fields.KEYWORD(stored=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
@@ -209,21 +209,6 @@ class DocSearch(object):
 
     label_list = property(__get_all_labels)
 
-    def find_suggestions(self, sentence):
-        """
-        Search all possible suggestions. Suggestions returned always have at
-        least one document matching.
-
-        Arguments:
-            sentence --- keywords (single strings) for which we want
-                suggestions
-        Return:
-            An array of sets of keywords. Each set of keywords (-> one string)
-            is a suggestion.
-        """
-        # TODO
-        return []
-
     def find_documents(self, sentence):
         """
         Returns all the documents matching the given keywords
@@ -240,6 +225,33 @@ class DocSearch(object):
         qp = whoosh.qparser.QueryParser("content", self.index.schema)
         query = qp.parse(sentence)
         return self.__find_documents(query)
+
+    def find_suggestions(self, sentence):
+        """
+        Search all possible suggestions. Suggestions returned always have at
+        least one document matching.
+
+        Arguments:
+            sentence --- keywords (single strings) for which we want
+                suggestions
+        Return:
+            An array of sets of keywords. Each set of keywords (-> one string)
+            is a suggestion.
+        """
+        keywords = sentence.split(" ")
+        final_suggestions = []
+
+        with self.index.searcher() as searcher:
+            corrector = searcher.corrector("content")
+            for keyword_idx in range(0, len(keywords)):
+                keyword = keywords[keyword_idx]
+                keyword_suggestions = corrector.suggest(keyword, limit=5)
+                for keyword_suggestion in keyword_suggestions:
+                    new_suggestion = keywords[:]
+                    new_suggestion[keyword_idx] = keyword_suggestion
+                    new_suggestion = " ".join(new_suggestion)
+                    final_suggestions.append(new_suggestion)
+        return final_suggestions
 
     def add_label(self, label, doc):
         """

@@ -30,6 +30,7 @@ from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.pdf.doc import is_pdf_doc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
+from paperwork.util import mkdir_p
 from paperwork.util import split_words
 
 
@@ -93,6 +94,10 @@ class DocSearch(object):
                     being read
         """
         self.rootdir = rootdir
+        base_indexdir = os.getenv("XDG_DATA_HOME",
+                                  os.path.expanduser("~/.local/share"))
+        self.indexdir = os.path.join(base_indexdir, "paperwork", "index")
+        mkdir_p(self.indexdir)
 
     def index_page(self, page):
         """

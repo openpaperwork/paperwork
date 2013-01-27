@@ -129,11 +129,31 @@ class BasicWorker(GObject.GObject):
 class Worker(BasicWorker):
     def __init__(self, name):
         BasicWorker.__init__(self, name)
+        self.__is_in_queue = False
+        self.__must_restart = False
+        self.__last_args = {}
+
+    def _wrapper(self, **kwargs):
+        try:
+            BasicWorker._wrapper(self, **kwargs)
+        finally:
+            if self.__must_restart:
+                _WORKER_THREAD.queue_worker(self, self.__last_args)
+                self.__must_restart = False
+            else:
+                self.__is_in_queue = False
 
     def start(self, **kwargs):
         global _WORKER_THREAD
+        self.__last_args = kwargs
         BasicWorker.start(self)
-        _WORKER_THREAD.queue_worker(self, kwargs)
+        print "Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
+                                      str(self.is_running))
+        if not self.__is_in_queue:
+            _WORKER_THREAD.queue_worker(self, kwargs)
+            self.__is_in_queue = True
+        else:
+            self.__must_restart = True
 
     def stop(self):
         global _WORKER_THREAD

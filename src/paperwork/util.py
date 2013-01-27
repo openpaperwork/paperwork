@@ -18,6 +18,7 @@ Various tiny functions that didn't fit anywhere else.
 """
 
 import array
+import errno
 import os
 import re
 import StringIO
@@ -305,3 +306,11 @@ def check_spelling(ocr_lang, txt):
         score += 5
 
     return (txt, score)
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError, exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise

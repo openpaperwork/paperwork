@@ -2375,7 +2375,7 @@ class MainWindow(object):
         print "Got %d documents" % len(documents)
         if sentence == u"":
             # append a new document to the list
-            documents.append(ImgDoc(self.__config.workdir))
+            documents.insert(0, ImgDoc(self.__config.workdir))
         documents = [doc for doc in documents]
         self.lists['matches']['doclist'] = documents
 

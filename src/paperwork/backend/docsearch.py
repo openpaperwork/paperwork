@@ -308,6 +308,7 @@ class DocSearch(object):
                 if len(self.find_documents(new_suggestion)) <= 0:
                     continue
                 final_suggestions.append(new_suggestion)
+        final_suggestions.sort()
         return final_suggestions
 
     def add_label(self, doc, label):

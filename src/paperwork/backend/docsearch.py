@@ -138,6 +138,10 @@ class DocSearch(object):
         print "Warning: unknown doc type: %s" % docid
         return None
 
+    def __delete_doc_from_index(self, index_writer, docid):
+        query = whoosh.query.Term("docid", docid)
+        index_writer.delete_by_query(query)
+
     def __update_doc_in_index(self, index_writer, doc):
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
 
@@ -148,7 +152,7 @@ class DocSearch(object):
         if len(index_docs) >= 1:
             last_read = index_docs[0]['last_read']
             if last_read == last_mod:
-                return
+                return False
 
         print ("%s has been modified. Reindexing ..." % doc.docid)
 
@@ -160,8 +164,8 @@ class DocSearch(object):
             txt += u" " + unicode(label.name)
         txt = txt.strip()
         if txt == u"":
-            # TODO(Jflesch): delete doc
-            return
+            self.__delete_doc_from_index(index_writer, doc.docid)
+            return True
         labels = u",".join([unicode(label.name) for label in doc.labels])
 
         index_writer.update_document(
@@ -170,8 +174,11 @@ class DocSearch(object):
             label=labels,
             last_read=last_mod
         )
+        return True
 
     def __update_index(self, progress_cb=dummy_progress_cb):
+        has_mod = False
+
         # getting the doc list from the index
         query = whoosh.query.Every()
         results = self.__searcher.search(query, limit=None)
@@ -193,7 +200,8 @@ class DocSearch(object):
                 old_doc_list.remove(docdir)
             self.__docs_by_id[docdir] = doc
             progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
-            self.__update_doc_in_index(index_writer, doc)
+            if self.__update_doc_in_index(index_writer, doc):
+                has_mod = True
             for label in doc.labels:
                 labels.add(label)
             progress += 1
@@ -206,9 +214,13 @@ class DocSearch(object):
         # remove all documents that don't exist anymore from the index
         for old_doc in old_doc_list:
             print "%s doesn't exist anymore. Removing from the index" % old_doc
-            query = whoosh.query.Term("docid", old_doc)
-            index_writer.delete_by_query(query)
-        index_writer.commit()
+            self.__delete_doc_from_index(index_writer, old_doc)
+            has_mod = True
+
+        if has_mod:
+            index_writer.commit()
+        else:
+            index_writer.cancel()
 
         progress_cb(4, 4, self.INDEX_STEP_COMMIT)
 

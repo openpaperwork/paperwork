@@ -101,8 +101,16 @@ def split_words(sentence):
             for subword in subwords:
                 if subword == "":
                     continue
+                if subword[0] == '"':
+                    subword = subword[1:]
+                if subword[-1] == '"':
+                    subword = subword[:-1]
                 yield subword
         elif can_yield:
+            if word[0] == '"':
+                word = word[1:]
+            if word[-1] == '"':
+                word = word[:-1]
             yield word
 
 

@@ -68,6 +68,16 @@ class PdfDoc(BasicDoc):
         if docid != None:
             self._open()
 
+    def __get_last_mod(self):
+        pdfpath = os.path.join(self.path, PDF_FILENAME)
+        last_mod = os.stat(pdfpath).st_mtime
+        for page in self.pages:
+            if page.last_mod > last_mod:
+                last_mod = page.last_mod
+        return last_mod
+
+    last_mod = property(__get_last_mod)
+
     def _open(self):
         self.pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
@@ -115,6 +125,10 @@ class PdfDoc(BasicDoc):
     def build_exporter(self, file_format='pdf'):
         return PdfDocExporter(self)
 
-def is_pdf_doc(filelist):
-    return PDF_FILENAME in filelist
 
+def is_pdf_doc(docpath):
+    try:
+        filelist = os.listdir(docpath)
+    except OSError, exc:
+        return False
+    return PDF_FILENAME in filelist

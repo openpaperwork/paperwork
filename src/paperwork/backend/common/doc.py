@@ -37,6 +37,8 @@ class BasicDoc(object):
     pages = []
     can_edit = False
 
+    last_mod = 0.0
+
     def __init__(self, docpath, docid=None):
         if docid == None:
             self.docid = time.strftime(self.DOCNAME_FORMAT)
@@ -47,6 +49,9 @@ class BasicDoc(object):
 
     def __str__(self):
         return self.docid
+
+    def _get_lastmod(self):
+        raise NotImplementedError()
 
     def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
         """

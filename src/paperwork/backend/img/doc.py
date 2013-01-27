@@ -197,6 +197,15 @@ class ImgDoc(BasicDoc):
         """
         BasicDoc.__init__(self, docpath, docid)
 
+    def __get_last_mod(self):
+        last_mod = 0.0
+        for page in self.pages:
+            if last_mod < page.last_mod:
+                last_mod = page.last_mod
+        return last_mod
+
+    last_mod = property(__get_last_mod)
+
     def __get_nb_pages(self):
         """
         Compute the number of pages in the document. It basically counts
@@ -285,7 +294,11 @@ class ImgDoc(BasicDoc):
         return ImgToPdfDocExporter(self)
 
 
-def is_img_doc(filelist):
+def is_img_doc(docpath):
+    try:
+        filelist = os.listdir(docpath)
+    except OSError, exc:
+        return False
     for filename in filelist:
         if ".jpg" in filename.lower():
             return True

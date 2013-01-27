@@ -66,6 +66,14 @@ class PdfPage(BasicPage):
     def __get_box_path(self):
         return self.__get_filepath(self.EXT_BOX)
 
+    def __get_last_mod(self):
+        try:
+            return os.stat(self.__get_txt_path()).st_mtime
+        except OSError, exc:
+            return 0.0
+
+    last_mod = property(__get_last_mod)
+
     def __get_text(self):
         txtfile = self.__get_txt_path()
 

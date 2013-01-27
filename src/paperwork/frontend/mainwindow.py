@@ -103,8 +103,8 @@ class WorkerDocIndexer(Worker):
         txt = None
         if step == DocSearch.INDEX_STEP_READING:
             txt = _('Reading ...')
-        elif step == DocSearch.INDEX_STEP_SORTING:
-            txt = _('Sorting ...')
+        elif step == DocSearch.INDEX_STEP_COMMIT:
+            txt = _('Updating index ...')
         else:
             assert()  # unknown progression type
             txt = ""

@@ -162,6 +162,14 @@ class ImgPage(BasicPage):
 
     __thumb_path = property(__get_thumb_path)
 
+    def __get_last_mod(self):
+        try:
+            return os.stat(self.__get_txt_path()).st_mtime
+        except OSError, exc:
+            return 0.0
+
+    last_mod = property(__get_last_mod)
+
     def __get_text(self):
         """
         Get the text corresponding to this page

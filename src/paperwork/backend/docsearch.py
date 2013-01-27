@@ -18,6 +18,7 @@
 Contains all the code relative to keyword and document list management list.
 """
 
+import datetime
 import multiprocessing
 import os
 import os.path
@@ -78,7 +79,7 @@ class DocSearch(object):
     """
 
     INDEX_STEP_READING = "reading"
-    INDEX_STEP_SORTING = "sorting"
+    INDEX_STEP_COMMIT = "commit"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
     OCR_THREADS_POLLING_TIME = 0.5
@@ -113,10 +114,51 @@ class DocSearch(object):
                 content=whoosh.fields.TEXT,
                 labels=whoosh.fields.KEYWORD,
                 last_read=whoosh.fields.DATETIME,
-                thumbnail=whoosh.fields.STORED,
             )
             self.index = whoosh.index.create_in(self.indexdir, schema)
             print ("Index '%s' created" % self.indexdir)
+
+        self.__update_index(callback)
+
+    def __get_doc_from_path(self, docid, docpath):
+        for (is_doc_type, doc_type) in DOC_TYPE_LIST:
+            if is_doc_type(docpath):
+                return doc_type(docpath, docid)
+        return None
+
+    def __update_index(self, progress_cb=dummy_progress_cb):
+        index_writer = self.index.writer()
+
+        docdirs = os.listdir(self.rootdir)
+        progress = 0
+        for docdir in docdirs:
+            doc = self.__get_doc_from_path(docdir, os.path.join(self.rootdir, docdir))
+            if doc is None:
+                continue
+            progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
+            last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
+
+            # TODO(Jflesch): Check last_mod !
+
+            print ("%s has been modified. Reindexing ..." % doc.docid)
+
+            docid = unicode(doc.docid)
+            txt = u""
+            for page in doc.pages:
+                txt += unicode(page.text)
+            labels = u",".join([unicode(label.name) for label in doc.labels])
+
+            index_writer.update_document(
+                docid=docid,
+                content=txt,
+                labels=labels,
+                last_read=last_mod
+            )
+            progress += 1
+
+        progress_cb(3, 4, self.INDEX_STEP_COMMIT)
+        index_writer.commit()
+        progress_cb(4, 4, self.INDEX_STEP_COMMIT)
 
 
     def index_page(self, page):

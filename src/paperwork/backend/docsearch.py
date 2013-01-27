@@ -94,128 +94,6 @@ class DocSearch(object):
         """
         self.rootdir = rootdir
 
-        # we don't use __reset_data() here. Otherwise pylint won't be happy.
-        self.__keywords = []            # array of strings (sorted)
-        self.docs = []                # array of doc (sorted)
-        self.__keyword_to_docs = {}    # keyword (string) -> doc paths
-        self.label_list = []
-
-        self.__index(callback)
-
-    @staticmethod
-    def get_doc(docpath, docid):
-        files = os.listdir(docpath)
-        for (is_doc_type, doc_type) in DOC_TYPE_LIST:
-            if is_doc_type(files):
-                return doc_type(docpath, docid)
-        print ("Warning: Unidentified doctype: %s / %s" % (docpath, docid))
-        return None
-
-    def __reset_data(self):
-        """
-        Purge the lists of documents and keywords
-        """
-        self.__keywords = []
-        self.docs = []
-        self.__keyword_to_docs = {}
-        self.label_list = []
-
-    def __index_doc(self, doc, docs_set, keyword_to_docs):
-        """
-        Add the keywords from the document to self.__keyword_to_docs
-        """
-        docs_set.add(doc)
-        for keyword in doc.keywords:
-            if keyword in keyword_to_docs:
-                docs = keyword_to_docs[keyword]
-                docs.add(doc)
-            else:
-                keyword_to_docs[keyword] = set([doc])
-
-    def __index_dir(self, dirpath,
-                    docs_set, keyword_to_docs,
-                    callback=dummy_progress_cb):
-        """
-        Look in the given directory for documents to index.
-        May also be called on the directory of a document itself.
-
-        Arguments:
-            dirpath --- directory to explore
-            keywords_set --- set of keywords to complete
-            docs_set --- set of documents to complete
-            keyword_to_docs --- dict keyword->docs to complete
-            callback -- progression indicator callback (see
-                util.dummy_progress_cb)
-        """
-        try:
-            dlist = os.listdir(dirpath)
-        except OSError, exc:
-            print "Unable to read dir '%s': %s" % (dirpath, str(exc))
-            return
-        dlist.sort()
-
-        progression = 0
-        total = len(dlist)
-
-        for dpath in dlist:
-            if dpath[:1] == "." or dpath[-1:] == "~":
-                progression = progression + 1
-                continue
-            elif os.path.isdir(os.path.join(dirpath, dpath)):
-                docpath = os.path.join(dirpath, dpath)
-                doc = self.get_doc(docpath, dpath)
-                if doc == None:
-                    continue
-                callback(progression, total, self.INDEX_STEP_READING, doc)
-                self.__index_doc(doc, docs_set, keyword_to_docs)
-                for label in doc.labels:
-                    self.add_label(label, doc)
-            progression = progression + 1
-
-    @staticmethod
-    def __docpath_to_id(docpath):
-        """
-        Generate a document id based on a document path.
-        """
-        try:
-            return os.path.split(docpath)[1]
-        except IndexError:
-            print "Warning: Invalid document path: %s" % (docpath)
-            return docpath
-
-    def __sort_keywords(self, docs, keyword_to_docs,
-                        callback=dummy_progress_cb):
-        """
-        Sort and index all the keywords from all the documents
-        """
-
-        callback(1, 4, self.INDEX_STEP_SORTING)
-        keywords = keyword_to_docs.keys()
-        docs = list(docs)
-        callback(2, 4, self.INDEX_STEP_SORTING)
-        keywords.sort()
-        callback(3, 4, self.INDEX_STEP_SORTING)
-        docs.sort()
-
-        self.docs = docs
-        self.__keywords = keywords
-        self.__keyword_to_docs = keyword_to_docs
-
-    def __index(self, callback=dummy_progress_cb):
-        """
-        Index all the documents in self.rootdir.
-
-        Arguments:
-            callback --- progression indicator callback (see
-                util.dummy_progress_cb)
-        """
-        self.__reset_data()
-        docs = set()
-        keyword_to_docs = {}
-        self.__index_dir(self.rootdir, docs, keyword_to_docs,
-                         callback=callback)
-        self.__sort_keywords(docs, keyword_to_docs, callback=callback)
-
     def index_page(self, page):
         """
         Extract all the keywords from the given page
@@ -223,121 +101,20 @@ class DocSearch(object):
         Arguments:
             page --- from which keywords must be extracted
         """
-        if not page.doc in self.docs:
-            self.docs.append(page.doc)
-            self.docs.sort()
-        for keyword in page.keywords:
-            if keyword in self.__keyword_to_docs:
-                docs = self.__keyword_to_docs[keyword]
-                docs.add(page.doc)
-            else:
-                self.__keyword_to_docs[keyword] = set([page.doc])
-                self.__keywords.append(keyword)
-        self.__keywords.sort()
+        # TODO
+        pass
 
-    def __get_keyword_suggestions(self, keyword):
-        """
-        Return all the suggestions for a single keyword.
+    def __get_all_docs(self):
+        # TODO
+        return []
 
-        Arguments:
-            keyword --- keyword (string) for which we are looking for
-                suggestions
+    docs = property(__get_all_docs)
 
-        Returns:
-            An array of suggestions (strings)
-        """
-        neg = (keyword[:1] == "!")
-        if neg:
-            keyword = keyword[1:]
+    def __get_all_labels(self):
+        # TODO
+        return []
 
-        lkeyword = len(keyword)
-        lkeywords = len(self.__keywords)
-
-        if lkeyword < MIN_KEYWORD_LEN:
-            return []
-
-        # the array is sorted. So we use dichotomy to
-        # figure the position of the first element matching the keyword
-        # and the position of the last one
-
-        # first element
-        njump = (lkeywords / 4) or 1
-        idx_min = lkeywords / 2
-        idx_min_found = False
-
-        while not idx_min_found:
-            if idx_min <= 0 or idx_min > lkeywords - 1:
-                idx_min_found = True
-            elif (self.__keywords[idx_min - 1][:lkeyword] < keyword
-                  and self.__keywords[idx_min][:lkeyword] > keyword):
-                print "No suggestion found for '%s'" % keyword
-                return []
-            elif (self.__keywords[idx_min - 1][:lkeyword] != keyword
-                  and self.__keywords[idx_min][:lkeyword] == keyword):
-                idx_min_found = True
-            elif self.__keywords[idx_min][:lkeyword] >= keyword:
-                idx_min = idx_min - njump
-            else:
-                idx_min = idx_min + njump
-            njump = (njump / 2) or 1
-
-        if idx_min > lkeywords - 1:
-            print "No suggestion found for '%s'" % keyword
-            return []
-
-        # last element
-        njump = ((lkeywords - idx_min) / 4) or 1
-        idx_max = ((lkeywords - idx_min) / 2) + idx_min
-        idx_max_found = False
-
-        while not idx_max_found:
-            if idx_max <= 0 or idx_max >= lkeywords - 1:
-                idx_max_found = True
-            elif (self.__keywords[idx_max + 1][:lkeyword] != keyword
-                  and self.__keywords[idx_max][:lkeyword] == keyword):
-                idx_max_found = True
-            elif self.__keywords[idx_max][:lkeyword] <= keyword:
-                idx_max = idx_max + njump
-            else:
-                idx_max = idx_max - njump
-            njump = (njump / 2) or 1
-
-        results = self.__keywords[idx_min:(idx_max + 1)]
-
-        if neg:
-            results = [("!%s" % (result)) for result in results]
-
-        print "Got %d suggestions for [%s]" % (len(results), keyword)
-
-        return results
-
-    def __find_suggestions(self, keywords):
-        """
-        see DocSearch.find_suggestions().
-        """
-        if len(keywords) <= 0:
-            return []
-
-        # search suggestion for the first keywords
-        first_keyword_suggestions = self.__get_keyword_suggestions(keywords[0])
-        if len(keywords) <= 1:
-            return first_keyword_suggestions
-
-        results = []
-
-        # .. and for all the remaining keywords
-        # XXX(Jflesch): recursivity
-        other_keywords_suggestions = self.__find_suggestions(keywords[1:])
-
-        for first_keyword_suggestion in first_keyword_suggestions:
-            for suggestion in other_keywords_suggestions:
-                suggestion = first_keyword_suggestion + " " + suggestion
-                # immediatly look if it has matching documents
-                if len(self.find_documents(suggestion)) <= 0:
-                    continue
-                results.append(suggestion)
-
-        return results
+    label_list = property(__get_all_labels)
 
     def find_suggestions(self, sentence):
         """
@@ -351,29 +128,8 @@ class DocSearch(object):
             An array of sets of keywords. Each set of keywords (-> one string)
             is a suggestion.
         """
-        keywords = split_words(sentence)
-        results = self.__find_suggestions([x for x in keywords])
-        try:
-            results.remove(sentence)    # remove strict match if it is here
-        except ValueError:
-            pass
-        results.sort()
-        return results
-
-    def __find_documents(self, keyword):
-        """
-        Returns all the documents matching the given keywords
-
-        Arguments:
-            keyword --- one keyword (string)
-
-        Returns:
-            An array of docs
-        """
-        try:
-            return self.__keyword_to_docs[keyword]
-        except KeyError:
-            return set()
+        # TODO
+        return []
 
     def find_documents(self, sentence):
         """
@@ -385,50 +141,8 @@ class DocSearch(object):
         Returns:
             An array of document id (strings)
         """
-
-        if sentence.strip() == "":
-            return self.docs[:]
-
-        positive_keywords = []
-        negative_keywords = []
-
-        print ("Looking for documents containing %s"
-               % (sentence.encode('utf-8', 'replace')))
-
-        for keyword in split_words(sentence):
-            if keyword[:1] != "!":
-                positive_keywords.append(keyword)
-            else:
-                negative_keywords.append(keyword[1:])
-
-        if (len(positive_keywords) == 0 and len(negative_keywords) == 0):
-            return []
-
-        documents = None
-
-        if len(positive_keywords) <= 0:
-            positive_keywords = ["*"]
-
-        for keyword in positive_keywords:
-            docs = self.__find_documents(keyword)
-            if documents == None:
-                documents = set(docs)
-            else:
-                documents.intersection_update(docs)
-
-        if documents == None:
-            return []
-
-        print "Found %d documents" % (len(documents))
-
-        for keyword in negative_keywords:
-            docs = self.__find_documents(keyword)
-            print "Found %d documents to remove" % (len(documents))
-            documents.symmetric_difference_update(docs)
-
-        documents = list(documents)
-        documents.sort()
-        return documents
+        # TODO
+        return []
 
     def add_label(self, label, doc):
         """
@@ -438,17 +152,23 @@ class DocSearch(object):
             label --- The new label (see labels.Label)
             doc --- The first document on which this label has been added
         """
-        label_words = split_words(label.name)
-        for word in label_words:
-            if not word in self.__keyword_to_docs:
-                self.__keywords.append(word)
-                self.__keywords.sort()
-                self.__keyword_to_docs[word] = set([doc])
-            else:
-                self.__keyword_to_docs[word].add(doc)
-        if not label in self.label_list:
-            self.label_list.append(label)
-            self.label_list.sort()
+        # TODO: Index
+        # TODO: Add label to the global list (if any)
+        pass
+
+    def update_label(self, old_label, new_label, callback=dummy_progress_cb):
+        """
+        Replace 'old_label' by 'new_label' on all the documents
+        """
+        # TODO
+        pass
+
+    def destroy_label(self, label, callback=dummy_progress_cb):
+        """
+        Remove the label 'label' from all the documents
+        """
+        # TODO
+        pass
 
     def redo_ocr(self, ocrlang, progress_callback=dummy_progress_cb):
         """
@@ -489,29 +209,3 @@ class DocSearch(object):
             time.sleep(self.OCR_THREADS_POLLING_TIME)
         print "OCR of all documents done"
 
-    def update_label(self, old_label, new_label, callback=dummy_progress_cb):
-        """
-        Replace 'old_label' by 'new_label' on all the documents
-        """
-        self.label_list.remove(old_label)
-        if new_label not in self.label_list:
-            self.label_list.append(new_label)
-        self.label_list.sort()
-        current = 0
-        total = len(self.docs)
-        for doc in self.docs:
-            callback(current, total, self.LABEL_STEP_UPDATING, doc)
-            doc.update_label(old_label, new_label)
-            current += 1
-
-    def destroy_label(self, label, callback=dummy_progress_cb):
-        """
-        Remove the label 'label' from all the documents
-        """
-        self.label_list.remove(label)
-        current = 0
-        total = len(self.docs)
-        for doc in self.docs:
-            callback(current, total, self.LABEL_STEP_DESTROYING, doc)
-            doc.remove_label(label)
-            current += 1

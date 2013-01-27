@@ -39,7 +39,6 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.util import check_spelling
 from paperwork.util import dummy_progress_cb
 from paperwork.util import image2surface
-from paperwork.util import split_words
 
 
 class ImgOCRThread(threading.Thread):

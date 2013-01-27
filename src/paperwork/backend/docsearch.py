@@ -27,6 +27,8 @@ import threading
 
 import whoosh.fields
 import whoosh.index
+import whoosh.qparser
+import whoosh.query
 
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
@@ -110,21 +112,41 @@ class DocSearch(object):
             print ("Failed to open index '%s'" % self.indexdir)
             print ("Will try to create a new one")
             schema = whoosh.fields.Schema(
-                docid=whoosh.fields.ID,
+                docid=whoosh.fields.ID(stored=True),
                 content=whoosh.fields.TEXT,
-                labels=whoosh.fields.KEYWORD,
-                last_read=whoosh.fields.DATETIME,
+                labels=whoosh.fields.KEYWORD(stored=True),
+                last_read=whoosh.fields.DATETIME(stored=True),
             )
             self.index = whoosh.index.create_in(self.indexdir, schema)
             print ("Index '%s' created" % self.indexdir)
 
         self.__update_index(callback)
 
-    def __get_doc_from_path(self, docid, docpath):
+    def __get_doc_from_id(self, docid):
+        docpath = os.path.join(self.rootdir, docid)
         for (is_doc_type, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
                 return doc_type(docpath, docid)
         return None
+
+    def __update_doc_in_index(self, index_writer, doc):
+        last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
+
+        # TODO(Jflesch): Check last_mod !
+        print ("%s has been modified. Reindexing ..." % doc.docid)
+
+        docid = unicode(doc.docid)
+        txt = u""
+        for page in doc.pages:
+            txt += unicode(page.text)
+        labels = u",".join([unicode(label.name) for label in doc.labels])
+
+        index_writer.update_document(
+            docid=docid,
+            content=txt,
+            labels=labels,
+            last_read=last_mod
+        )
 
     def __update_index(self, progress_cb=dummy_progress_cb):
         index_writer = self.index.writer()
@@ -132,28 +154,11 @@ class DocSearch(object):
         docdirs = os.listdir(self.rootdir)
         progress = 0
         for docdir in docdirs:
-            doc = self.__get_doc_from_path(docdir, os.path.join(self.rootdir, docdir))
+            doc = self.__get_doc_from_id(docdir)
             if doc is None:
                 continue
             progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
-            last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
-
-            # TODO(Jflesch): Check last_mod !
-
-            print ("%s has been modified. Reindexing ..." % doc.docid)
-
-            docid = unicode(doc.docid)
-            txt = u""
-            for page in doc.pages:
-                txt += unicode(page.text)
-            labels = u",".join([unicode(label.name) for label in doc.labels])
-
-            index_writer.update_document(
-                docid=docid,
-                content=txt,
-                labels=labels,
-                last_read=last_mod
-            )
+            self.__update_doc_in_index(index_writer, doc)
             progress += 1
 
         progress_cb(3, 4, self.INDEX_STEP_COMMIT)
@@ -168,12 +173,23 @@ class DocSearch(object):
         Arguments:
             page --- from which keywords must be extracted
         """
-        # TODO
-        pass
+        index_writer = self.index.writer()
+        self.__update_doc_in_index(index_writer, page.doc)
+        index_writer.commit()
+
+    def __find_documents(self, query):
+        docs = []
+        with self.index.searcher() as searcher:
+            results = searcher.search(query, limit=None)
+            docids = [result['docid'] for result in results]
+            docs = [self.__get_doc_from_id(docid) for docid in docids]
+        return docs
 
     def __get_all_docs(self):
-        # TODO
-        return []
+        query = whoosh.query.Every("docid")
+        docs = self.__find_documents(query)
+        docs.sort()
+        return docs
 
     docs = property(__get_all_docs)
 
@@ -208,8 +224,12 @@ class DocSearch(object):
         Returns:
             An array of document id (strings)
         """
-        # TODO
-        return []
+        if sentence == u"":
+            return self.docs
+
+        qp = whoosh.qparser.QueryParser("content", self.index.schema)
+        query = qp.parse(sentence)
+        return self.__find_documents(query)
 
     def add_label(self, label, doc):
         """

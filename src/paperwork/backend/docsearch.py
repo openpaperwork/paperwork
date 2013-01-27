@@ -296,6 +296,8 @@ class DocSearch(object):
         corrector = self.__searcher.corrector("content")
         for keyword_idx in range(0, len(keywords)):
             keyword = strip_accents(keywords[keyword_idx])
+            if (len(keyword) <= MIN_KEYWORD_LEN):
+                continue
             keyword_suggestions = corrector.suggest(keyword, limit=5)[:]
             for keyword_suggestion in keyword_suggestions:
                 new_suggestion = keywords[:]

@@ -1361,7 +1361,7 @@ class MainWindow(object):
         self.search_field = widget_tree.get_object("entrySearch")
         self.search_field.set_tooltip_text(
             _('Search documents')
-            + _('\n* To search document with a specific label: "label:[label]"')
+            + _('\n* To search documents with a specific label: "label:[label]"')
             + _('\n* Ignore documents containing a specific keyword: "NOT [keyword]"')
             + _('\n* Find documents with one word or another: "[keyword] OR [keyword]"')
             )

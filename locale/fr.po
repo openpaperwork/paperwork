@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-27 21:01+0100\n"
+"POT-Creation-Date: 2013-01-27 21:15+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -64,7 +64,7 @@ msgid "Append the image to the current document"
 msgstr "Ajouter l'image au document actuellement ouvert"
 
 #: src/paperwork/frontend/mainwindow.py:105
-#: src/paperwork/frontend/mainwindow.py:2059
+#: src/paperwork/frontend/mainwindow.py:2061
 msgid "Reading ..."
 msgstr "Lecture ..."
 
@@ -90,56 +90,72 @@ msgid "Save as"
 msgstr " Enregistrer sous"
 
 #: src/paperwork/frontend/mainwindow.py:1363
-msgid "Search documents\n"
-msgstr "Rechercher des documents\n"
+msgid "Search documents"
+msgstr "Rechercher des documents"
 
 #: src/paperwork/frontend/mainwindow.py:1364
-msgid "'!' can be used as a prefix to"
-msgstr "'!' peut être utilisé comme préfixe pour"
+msgid ""
+"\n"
+"* To search documents with a specific label: \"label:[label]\""
+msgstr ""
+"\n"
+"* Pour recherche des documents avec un label spécifique: \"label:[label]\""
 
 #: src/paperwork/frontend/mainwindow.py:1365
-msgid " negate a keyword"
-msgstr " rejeter un mot clef"
+msgid ""
+"\n"
+"* Ignore documents containing a specific keyword: \"NOT [keyword]\""
+msgstr ""
+"\n"
+"* Ignorer des documents contenant un mot-clef spécifique: \"NOT [keyword]\""
 
-#: src/paperwork/frontend/mainwindow.py:1745
+#: src/paperwork/frontend/mainwindow.py:1366
+msgid ""
+"\n"
+"* Find documents with one word or another: \"[keyword] OR [keyword]\""
+msgstr ""
+"\n"
+"* Trouver des documents avec un mot ou un autre: \"[keyword] OR [keyword]\""
+
+#: src/paperwork/frontend/mainwindow.py:1747
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/frontend/mainwindow.py:1948
-#: src/paperwork/frontend/mainwindow.py:1955
-#: src/paperwork/frontend/mainwindow.py:1962
-#: src/paperwork/frontend/mainwindow.py:1970
+#: src/paperwork/frontend/mainwindow.py:1950
+#: src/paperwork/frontend/mainwindow.py:1957
+#: src/paperwork/frontend/mainwindow.py:1964
+#: src/paperwork/frontend/mainwindow.py:1972
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/frontend/mainwindow.py:2011
+#: src/paperwork/frontend/mainwindow.py:2013
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2015
+#: src/paperwork/frontend/mainwindow.py:2017
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2027
+#: src/paperwork/frontend/mainwindow.py:2029
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2031
+#: src/paperwork/frontend/mainwindow.py:2033
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2044
+#: src/paperwork/frontend/mainwindow.py:2046
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/frontend/mainwindow.py:2087
+#: src/paperwork/frontend/mainwindow.py:2089
 msgid "Importing ..."
 msgstr "Import en cours ..."
 
-#: src/paperwork/frontend/mainwindow.py:2217
+#: src/paperwork/frontend/mainwindow.py:2219
 #, python-format
 msgid ""
 "\n"
@@ -148,17 +164,17 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/frontend/mainwindow.py:2413
+#: src/paperwork/frontend/mainwindow.py:2415
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/frontend/mainwindow.py:2417
+#: src/paperwork/frontend/mainwindow.py:2419
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow.py:2498
+#: src/paperwork/frontend/mainwindow.py:2500
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 
@@ -537,6 +553,12 @@ msgstr "Annuler"
 #: src/paperwork/frontend/settingswindow.glade.h:14
 msgid "Ok"
 msgstr "Ok"
+
+#~ msgid "'!' can be used as a prefix to"
+#~ msgstr "'!' peut être utilisé comme préfixe pour"
+
+#~ msgid " negate a keyword"
+#~ msgstr " rejeter un mot clef"
 
 #~ msgid "Sorting ..."
 #~ msgstr "Tri ..."

@@ -707,14 +707,13 @@ class ActionToggleLabel(object):
         if not label in self.__main_win.doc.labels:
             print ("Action: Adding label '%s' on document '%s'"
                    % (str(label), str(self.__main_win.doc)))
-            self.__main_win.doc.add_label(label)
+            self.__main_win.docsearch.add_label(self.__main_win.doc, label)
         else:
             print ("Action: Removing label '%s' on document '%s'"
                    % (str(label), str(self.__main_win.doc)))
-            self.__main_win.doc.remove_label(label)
+            self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs([self.__main_win.doc])
-        # TODO(Jflesch): Update keyword index
 
     def connect(self, cellrenderers):
         for cellrenderer in cellrenderers:
@@ -732,9 +731,8 @@ class ActionCreateLabel(SimpleAction):
         if labeleditor.edit(self.__main_win.window):
             print "Adding label %s to doc %s" % (str(labeleditor.label),
                                                  str(self.__main_win.doc))
-            self.__main_win.doc.add_label(labeleditor.label)
-            self.__main_win.docsearch.add_label(labeleditor.label,
-                                                self.__main_win.doc)
+            self.__main_win.docsearch.add_label(self.__main_win.doc,
+                                                labeleditor.label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs([self.__main_win.doc])
 

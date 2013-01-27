@@ -74,6 +74,15 @@ class PdfDoc(BasicDoc):
         for page in self.pages:
             if page.last_mod > last_mod:
                 last_mod = page.last_mod
+
+        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        try:
+            labels_last_mod = os.stat(labels_path).st_mtime
+            if labels_last_mod > last_mod:
+                last_mod = labels_last_mod
+        except OSError, err:
+            pass
+
         return last_mod
 
     last_mod = property(__get_last_mod)

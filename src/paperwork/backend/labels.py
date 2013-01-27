@@ -73,6 +73,9 @@ class Label(object):
     def __ne__(self, other):
         return self.__label_cmp(other) != 0
 
+    def __hash__(self):
+        return hash(self.name)
+
     def get_html_color(self):
         """
         get a string representing the color, using HTML notation

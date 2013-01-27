@@ -18,6 +18,7 @@
 Contains all the code relative to keyword and document list management list.
 """
 
+import copy
 import datetime
 import multiprocessing
 import os
@@ -105,6 +106,9 @@ class DocSearch(object):
         self.indexdir = os.path.join(base_indexdir, "paperwork", "index")
         mkdir_p(self.indexdir)
 
+        self.__docs_by_id = {}  # docid --> doc
+        self.label_list = []
+
         try:
             print ("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
@@ -114,7 +118,8 @@ class DocSearch(object):
             schema = whoosh.fields.Schema(
                 docid=whoosh.fields.ID(stored=True, unique=True),
                 content=whoosh.fields.TEXT(spelling=True),
-                labels=whoosh.fields.KEYWORD(stored=True),
+                label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                             spelling=True, scorable=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
             self.index = whoosh.index.create_in(self.indexdir, schema)
@@ -123,7 +128,6 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
-        self.__docs_by_id = {}  # docid --> doc
         self.__update_index(callback)
 
     def __inst_doc_from_id(self, docid):
@@ -152,6 +156,8 @@ class DocSearch(object):
         txt = u""
         for page in doc.pages:
             txt += unicode(page.text)
+        for label in doc.labels:
+            txt += u" " + unicode(label.name)
         txt = txt.strip()
         if txt == u"":
             # TODO(Jflesch): delete doc
@@ -161,7 +167,7 @@ class DocSearch(object):
         index_writer.update_document(
             docid=docid,
             content=txt,
-            labels=labels,
+            label=labels,
             last_read=last_mod
         )
 
@@ -171,11 +177,12 @@ class DocSearch(object):
         results = self.__searcher.search(query, limit=None)
         old_doc_list = [result['docid'] for result in results]
         old_doc_list = set(old_doc_list)
-        print "Index contains %d documents" % len(old_doc_list)
 
         index_writer = self.index.writer()
 
         self.__docs_by_id = {}
+        labels = set()
+
         docdirs = os.listdir(self.rootdir)
         progress = 0
         for docdir in docdirs:
@@ -187,15 +194,22 @@ class DocSearch(object):
             self.__docs_by_id[docdir] = doc
             progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
             self.__update_doc_in_index(index_writer, doc)
+            for label in doc.labels:
+                labels.add(label)
             progress += 1
 
         progress_cb(3, 4, self.INDEX_STEP_COMMIT)
+
+        self.label_list = [label for label in labels]
+        self.label_list.sort()
+
         # remove all documents that don't exist anymore from the index
         for old_doc in old_doc_list:
             print "%s doesn't exist anymore. Removing from the index" % old_doc
             query = whoosh.query.Term("docid", old_doc)
             index_writer.delete_by_query(query)
         index_writer.commit()
+
         progress_cb(4, 4, self.INDEX_STEP_COMMIT)
 
         self.__searcher = self.index.searcher()
@@ -227,11 +241,6 @@ class DocSearch(object):
 
     docs = property(__get_all_docs)
 
-    def __get_all_labels(self):
-        # TODO
-        return []
-
-    label_list = property(__get_all_labels)
 
     def find_documents(self, sentence):
         """
@@ -277,31 +286,69 @@ class DocSearch(object):
                 final_suggestions.append(new_suggestion)
         return final_suggestions
 
-    def add_label(self, label, doc):
+    def add_label(self, doc, label):
         """
-        Add a new label to the list of known labels.
+        Add a label on a document.
 
         Arguments:
             label --- The new label (see labels.Label)
             doc --- The first document on which this label has been added
         """
-        # TODO: Index
-        # TODO: Add label to the global list (if any)
-        pass
+        label = copy.copy(label)
+        if not label in self.label_list:
+            self.label_list.append(label)
+            self.label_list.sort()
+        doc.add_label(label)
+        index_writer = self.index.writer()
+        self.__update_doc_in_index(index_writer, doc)
+        index_writer.commit()
+        self.__searcher = self.index.searcher()
+
+    def remove_label(self, doc, label):
+        """
+        Remove a label from a doc
+        """
+        doc.remove_label(label)
+        index_writer = self.index.writer()
+        self.__update_doc_in_index(index_writer, doc)
+        index_writer.commit()
+        self.__searcher = self.index.searcher()
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """
         Replace 'old_label' by 'new_label' on all the documents
         """
-        # TODO
-        pass
+        self.label_list.remove(old_label)
+        if new_label not in self.label_list:
+            self.label_list.append(new_label)
+            self.label_list.sort()
+        current = 0
+        total = len(self.docs)
+        for doc in self.docs:
+            must_reindex = (old_label in doc.labels)
+            callback(current, total, self.LABEL_STEP_UPDATING, doc)
+            doc.update_label(old_label, new_label)
+            if must_reindex:
+                self.__update_doc_in_index(index_writer, doc)
+            current += 1
+        self.__searcher = self.index.searcher()
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         """
         Remove the label 'label' from all the documents
         """
-        # TODO
-        pass
+        self.label_list.remove(label)
+        current = 0
+        docs = self.docs
+        total = len(docs)
+        for doc in docs:
+            must_reindex = (label in doc.labels)
+            callback(current, total, self.LABEL_STEP_DESTROYING, doc)
+            doc.remove_label(label)
+            if must_reindex:
+                self.__update_doc_in_index(index_writer, doc)
+            current += 1
+        self.__searcher = self.index.searcher()
 
     def redo_ocr(self, ocrlang, progress_callback=dummy_progress_cb):
         """

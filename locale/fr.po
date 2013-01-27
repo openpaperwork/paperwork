@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-01-27 21:15+0100\n"
+"POT-Creation-Date: 2013-01-27 22:22+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -64,7 +64,7 @@ msgid "Append the image to the current document"
 msgstr "Ajouter l'image au document actuellement ouvert"
 
 #: src/paperwork/frontend/mainwindow.py:105
-#: src/paperwork/frontend/mainwindow.py:2061
+#: src/paperwork/frontend/mainwindow.py:2062
 msgid "Reading ..."
 msgstr "Lecture ..."
 
@@ -96,66 +96,74 @@ msgstr "Rechercher des documents"
 #: src/paperwork/frontend/mainwindow.py:1364
 msgid ""
 "\n"
-"* To search documents with a specific label: \"label:[label]\""
+"* To search documents with a specific label: label:[label]"
 msgstr ""
 "\n"
-"* Pour recherche des documents avec un label spécifique: \"label:[label]\""
+"* Pour recherche des documents avec un label spécifique: label:[label]"
 
 #: src/paperwork/frontend/mainwindow.py:1365
 msgid ""
 "\n"
-"* Ignore documents containing a specific keyword: \"NOT [keyword]\""
+"* Only the documents with a specific keyword: \"[keyword]\""
 msgstr ""
 "\n"
-"* Ignorer des documents contenant un mot-clef spécifique: \"NOT [keyword]\""
+"* Seulement les documents avec un mot-clef spécifique: \"[keyword]\""
 
 #: src/paperwork/frontend/mainwindow.py:1366
 msgid ""
 "\n"
-"* Find documents with one word or another: \"[keyword] OR [keyword]\""
+"* Ignore documents containing a specific keyword: NOT [keyword]"
 msgstr ""
 "\n"
-"* Trouver des documents avec un mot ou un autre: \"[keyword] OR [keyword]\""
+"* Ignorer les documents contenant un mot-clef spécifique: NOT [keyword]"
 
-#: src/paperwork/frontend/mainwindow.py:1747
+#: src/paperwork/frontend/mainwindow.py:1367
+msgid ""
+"\n"
+"* Find documents with one word or another: [keyword] OR [keyword]"
+msgstr ""
+"\n"
+"* Trouver des documents avec un mot ou un autre: [keyword] OR [keyword]"
+
+#: src/paperwork/frontend/mainwindow.py:1748
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/frontend/mainwindow.py:1950
-#: src/paperwork/frontend/mainwindow.py:1957
-#: src/paperwork/frontend/mainwindow.py:1964
-#: src/paperwork/frontend/mainwindow.py:1972
+#: src/paperwork/frontend/mainwindow.py:1951
+#: src/paperwork/frontend/mainwindow.py:1958
+#: src/paperwork/frontend/mainwindow.py:1965
+#: src/paperwork/frontend/mainwindow.py:1973
 msgid "Thumbnailing ..."
 msgstr "Création des vignettes ..."
 
-#: src/paperwork/frontend/mainwindow.py:2013
+#: src/paperwork/frontend/mainwindow.py:2014
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2017
+#: src/paperwork/frontend/mainwindow.py:2018
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2029
+#: src/paperwork/frontend/mainwindow.py:2030
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2033
+#: src/paperwork/frontend/mainwindow.py:2034
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2046
+#: src/paperwork/frontend/mainwindow.py:2047
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/frontend/mainwindow.py:2089
+#: src/paperwork/frontend/mainwindow.py:2090
 msgid "Importing ..."
 msgstr "Import en cours ..."
 
-#: src/paperwork/frontend/mainwindow.py:2219
+#: src/paperwork/frontend/mainwindow.py:2220
 #, python-format
 msgid ""
 "\n"
@@ -164,17 +172,17 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/frontend/mainwindow.py:2415
+#: src/paperwork/frontend/mainwindow.py:2416
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/frontend/mainwindow.py:2419
+#: src/paperwork/frontend/mainwindow.py:2420
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow.py:2500
+#: src/paperwork/frontend/mainwindow.py:2501
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 

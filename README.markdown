@@ -89,6 +89,8 @@ GPLv3. See COPYING.
 	* Debian/Ubuntu package: python-enchant
 * python-levenshtein (required)
 	* Debian/Ubuntu package: python-levenshtein
+* python-whoosh (required)
+	* Debian/Ubuntu package: python-whoosh
 * pyinsane (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

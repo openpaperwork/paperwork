@@ -127,6 +127,7 @@ class DocSearch(object):
         for (is_doc_type, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
                 return doc_type(docpath, docid)
+        print "Warning: unknown doc type: %s" % docid
         return None
 
     def __update_doc_in_index(self, index_writer, doc):
@@ -139,6 +140,10 @@ class DocSearch(object):
         txt = u""
         for page in doc.pages:
             txt += unicode(page.text)
+        txt = txt.strip()
+        if txt == u"":
+            # TODO(Jflesch): delete doc
+            return
         labels = u",".join([unicode(label.name) for label in doc.labels])
 
         index_writer.update_document(
@@ -183,6 +188,11 @@ class DocSearch(object):
             results = searcher.search(query, limit=None)
             docids = [result['docid'] for result in results]
             docs = [self.__get_doc_from_id(docid) for docid in docids]
+        try:
+            while True:
+                docs.remove(None)
+        except ValueError, exc:
+            pass
         return docs
 
     def __get_all_docs(self):

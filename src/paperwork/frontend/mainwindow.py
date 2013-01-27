@@ -1359,10 +1359,6 @@ class MainWindow(object):
         }
 
         self.search_field = widget_tree.get_object("entrySearch")
-        self.search_field.set_tooltip_text(
-                              (_('Search documents\n')
-                               + _('\'!\' can be used as a prefix to')
-                               + _(' negate a keyword')))
 
         self.doc_browsing = {
             'matches' : widget_tree.get_object("iconviewMatch"),

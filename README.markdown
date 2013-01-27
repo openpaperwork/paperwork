@@ -1,5 +1,6 @@
 # Paperwork
 
+
 ## Description
 
 Paperwork is a tool to make papers searchable.
@@ -7,6 +8,7 @@ Paperwork is a tool to make papers searchable.
 The basic idea behind Paperwork is "scan & forget" : You should be able to just
 scan a new document and forget about it until the day you need it again. Let the
 machine do most of the work.
+
 
 ## Screenshots
 
@@ -42,6 +44,7 @@ machine do most of the work.
   <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.settings.png" width="512" height="384" />
 </a>
 
+
 ## Details
 
 Papers are organized into documents. Each document contains pages.
@@ -58,12 +61,13 @@ Paperwork uses a custom indexation system to search documents and to provide
 keyword suggestions. Since OCR is not perfect, and since some documents don't
 contain useful keywords, Paperwork allows also to put labels on each document.
 
+
 ## Licence
 
 GPLv3. See COPYING.
 
-## Dependencies
 
+## Dependencies
 
 * python v2.7<br/>
   Paperwork is written for Python **2.7**.
@@ -104,6 +108,7 @@ GPLv3. See COPYING.
 		* cd pyocr
 		* sudo python ./setup.py install
 
+
 ## Installation
 
 	$ git clone git://github.com/jflesch/paperwork.git
@@ -113,10 +118,23 @@ GPLv3. See COPYING.
 
 Enjoy :-)
 
+
+## Tips
+
+### Searching
+
+Paperwork search mechanism is built around python-whoosh. Paperwork uses the default query parser of Whoosh. Whoosh query language allows to:
+
+* Search a specific label: "label:[label]"
+* Reject documents containing a specific keyword: "NOT [keyword]"
+* Find documents with one word or another: "[keyword] OR [keyword]"
+
+
 ## Contact
 
 * Mailing-list: [paperwork-gui@googlegroups.com](https://groups.google.com/d/forum/paperwork-gui)
 * Bug tracker: [https://github.com/jflesch/paperwork/issues](https://github.com/jflesch/paperwork/issues)
+
 
 ## Development
 

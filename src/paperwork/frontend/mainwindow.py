@@ -2565,6 +2565,8 @@ class MainWindow(object):
         new_size = (rectangle.width, rectangle.height)
         if old_size == new_size:
             return
+
+        self.workers['img_builder'].soft_stop()
         self.img['viewport']['size'] = new_size
         print ("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
@@ -2577,5 +2579,4 @@ class MainWindow(object):
         if factor != 0.0:
             return
 
-        self.workers['img_builder'].stop()
         self.workers['img_builder'].start()

@@ -233,7 +233,7 @@ class ImgPage(BasicPage):
         """
         return Image.open(self.__thumb_path)
 
-    def get_thumbnail(self, width):
+    def _get_thumbnail(self, width):
         """
         Returns an image object corresponding to the up-to-date thumbnail
         """

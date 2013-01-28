@@ -103,14 +103,26 @@ class BasicPage(object):
         """
         self.doc = doc
         self.page_nb = page_nb
+        self.__thumbnail_cache = (None, 0)
         assert(self.page_nb >= 0)
         self.__prototype_exporters = {
             'PNG' : PageExporter(self, 'PNG', 'image/png', ["png"]),
             'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
         }
 
-    def get_thumbnail(self, width):
+    def _get_thumbnail(self, width):
         raise NotImplementedError()
+
+    def get_thumbnail(self, width):
+        # keep the thumbnail of the first pages in memory
+        # they are requested much more often
+        if (self.page_nb == 0
+            and width == self.__thumbnail_cache[1]):
+            return self.__thumbnail_cache[0]
+        thumbnail = self._get_thumbnail(width)
+        if self.page_nb == 0:
+            self.__thumbnail_cache = (thumbnail, width)
+        return thumbnail
 
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()

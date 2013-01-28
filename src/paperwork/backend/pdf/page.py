@@ -156,7 +156,7 @@ class PdfPage(BasicPage):
 
     img = property(__get_img)
 
-    def get_thumbnail(self, width):
+    def _get_thumbnail(self, width):
         factor = float(width) / self.size[0]
         return self.__render_img(factor)
 

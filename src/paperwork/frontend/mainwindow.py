@@ -2025,21 +2025,21 @@ class MainWindow(object):
 
 
     def __on_page_thumbnailing_start_cb(self, src):
-        self.set_progression(src, 0.0, _("Thumbnailing ..."))
+        self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
 
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
-                             _("Thumbnailing ..."))
+                             _("Loading thumbnails ..."))
 
     def __on_page_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
     def __on_doc_thumbnailing_start_cb(self, src):
-        self.set_progression(src, 0.0, _("Thumbnailing ..."))
+        self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
 
     def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
@@ -2047,7 +2047,7 @@ class MainWindow(object):
         self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
         self.set_progression(src, ((float)(doc_idx+1) /
                                    len(self.lists['matches']['doclist'])),
-                             _("Thumbnailing ..."))
+                             _("Loading thumbnails ..."))
         active_doc_idx = self.lists['matches']['active_idx']
         if active_doc_idx == doc_idx:
             path = Gtk.TreePath(active_doc_idx)

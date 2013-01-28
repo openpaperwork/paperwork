@@ -134,7 +134,7 @@ msgstr "Scanner une seule page"
 #: src/paperwork/frontend/mainwindow.py:2042
 #: src/paperwork/frontend/mainwindow.py:2050
 msgid "Loading thumbnails ..."
-msgstr "Chargement oes vignettes ..."
+msgstr "Chargement des vignettes ..."
 
 #: src/paperwork/frontend/mainwindow.py:2091
 #, python-format

@@ -146,7 +146,7 @@ The code is splited in two pieces:
 
 If you want to make changes, here are few things that can help you:
 
-1. You don't need to install paperwork to run it. Just run 'src/paperwork.py'.
+1. You don't need to install paperwork to run it. Just run 'src/paperwork.py' (do not run 'cd src ; ./paperwork.py' ! Otherwise Paperwork won't use the correct glade files).
 2. Paperwork looks for a 'paperwork.conf' in the current work directory before
    looking for a '.paperwork.conf' in your home directory. So if you want to
    use a different config and/or a different set of documents for development

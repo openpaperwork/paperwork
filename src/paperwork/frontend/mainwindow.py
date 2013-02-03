@@ -1345,6 +1345,23 @@ class ActionRealQuit(SimpleAction):
         self.do()
 
 
+class ActionRebuildIndex(SimpleAction):
+    def __init__(self, main_window, config, force=False):
+        SimpleAction.__init__(self, "Rebuild index")
+        self.__main_win = main_window
+        self.__config = config
+        self.__force = force
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.workers['reindex'].stop()
+        docsearch = self.__main_win.docsearch
+        self.__main_win.docsearch = DummyDocSearch()
+        if self.__force:
+            docsearch.destroy_index()
+        self.__main_win.workers['reindex'].start()
+
+
 class MainWindow(object):
     def __init__(self, config):
         # used by the set_mouse_cursor() function to keep track of how many
@@ -1763,7 +1780,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
-                ActionStartSimpleWorker(self.workers['reindex'])
+                ActionRebuildIndex(self, config, force=True),
             ),
             'about' : (
                 [

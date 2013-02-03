@@ -24,6 +24,7 @@ import time
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
 from paperwork.util import dummy_progress_cb
+from paperwork.util import rm_rf
 
 
 _ = gettext.gettext
@@ -37,8 +38,6 @@ class BasicDoc(object):
     pages = []
     can_edit = False
 
-    last_mod = 0.0
-
     def __init__(self, docpath, docid=None):
         if docid == None:
             self.docid = time.strftime(self.DOCNAME_FORMAT)
@@ -50,8 +49,10 @@ class BasicDoc(object):
     def __str__(self):
         return self.docid
 
-    def _get_lastmod(self):
-        raise NotImplementedError()
+    def __get_last_mod(self):
+        return os.stat(self.path).st_mtime
+
+    last_mod = property(__get_last_mod)
 
     def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
         """
@@ -83,16 +84,7 @@ class BasicDoc(object):
         Delete the document. The *whole* document. There will be no survivors.
         """
         print "Destroying doc: %s" % self.path
-        for root, dirs, files in os.walk(self.path, topdown=False):
-            for filename in files:
-                filepath = os.path.join(root, filename)
-                print "Deleting file %s" % filepath
-                os.unlink(filepath)
-            for dirname in dirs:
-                dirpath = os.path.join(root, dirname)
-                print "Deleting dir %s" % dirpath
-                os.rmdir(dirpath)
-        os.rmdir(self.path)
+        rm_rf(self.path)
         print "Done"
 
     def add_label(self, label):

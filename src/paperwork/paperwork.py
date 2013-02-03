@@ -29,7 +29,7 @@ import gi
 
 import pyinsane.abstract_th  # Just to start the Sane thread
 
-from frontend.mainwindow import MainWindow
+from frontend import mainwindow
 from frontend import workers
 from backend.config import PaperworkConfig
 
@@ -69,8 +69,8 @@ def main():
         config = PaperworkConfig()
         config.read()
 
-        main_win = MainWindow(config)
-        main_win.actions['reindex'][1].do()
+        main_win = mainwindow.MainWindow(config)
+        mainwindow.ActionRebuildIndex(main_win, config).do()
         Gtk.main()
     finally:
         workers.halt()

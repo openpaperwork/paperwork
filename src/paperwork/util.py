@@ -322,3 +322,16 @@ def mkdir_p(path):
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else: raise
+
+
+def rm_rf(path):
+    for root, dirs, files in os.walk(path, topdown=False):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            print "Deleting file %s" % filepath
+            os.unlink(filepath)
+        for dirname in dirs:
+            dirpath = os.path.join(root, dirname)
+            print "Deleting dir %s" % dirpath
+            os.rmdir(dirpath)
+    os.rmdir(path)

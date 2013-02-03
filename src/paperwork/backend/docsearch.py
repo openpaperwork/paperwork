@@ -38,6 +38,7 @@ from paperwork.backend.pdf.doc import is_pdf_doc
 from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import mkdir_p
+from paperwork.util import rm_rf
 from paperwork.util import split_words
 from paperwork.util import strip_accents
 
@@ -71,6 +72,9 @@ class DummyDocSearch(object):
         assert()
 
     def destroy_label(self, label, cb_progress=None):
+        assert()
+
+    def destroy_index(self):
         assert()
 
 
@@ -413,3 +417,11 @@ class DocSearch(object):
             time.sleep(self.OCR_THREADS_POLLING_TIME)
         print "OCR of all documents done"
 
+    def destroy_index(self):
+        """
+        Destroy the index. Don't use this DocSearch object anymore after this
+        call. Next instantiation of a DocSearch will rebuild the whole index
+        """
+        print "Destroying the index ..."
+        rm_rf(self.indexdir)
+        print "Done"

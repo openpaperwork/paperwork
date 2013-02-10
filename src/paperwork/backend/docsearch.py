@@ -26,6 +26,7 @@ import os.path
 import time
 import threading
 
+from gi.repository import GObject
 import whoosh.fields
 import whoosh.index
 import whoosh.qparser
@@ -44,8 +45,8 @@ from paperwork.util import strip_accents
 
 
 DOC_TYPE_LIST = [
-    (is_pdf_doc, PdfDoc),
-    (is_img_doc, ImgDoc)
+    (is_pdf_doc, PdfDoc.doctype, PdfDoc),
+    (is_img_doc, ImgDoc.doctype, ImgDoc)
 ]
 
 
@@ -55,6 +56,12 @@ class DummyDocSearch(object):
 
     def __init__(self):
         pass
+
+    def get_doc_examiner(self):
+        assert()
+
+    def get_index_updater(self):
+        assert()
 
     def find_suggestions(self, sentence):
         return []
@@ -78,6 +85,79 @@ class DummyDocSearch(object):
         assert()
 
 
+class DocDirExaminer(GObject.GObject):
+    def __init__(self, docsearch):
+        GObject.GObject.__init__(self)
+        self.docsearch = docsearch
+        # we may be run in an independent thread --> use an independent searcher
+        self.__searcher = docsearch.index.searcher()
+
+    def examine_rootdir(self,
+                        on_new_doc,
+                        on_doc_modified,
+                        on_doc_deleted,
+                        progress_cb=dummy_progress_cb):
+        # getting the doc list from the index
+        query = whoosh.query.Every()
+        results = self.__searcher.search(query, limit=None)
+        old_doc_list = [result['docid'] for result in results]
+        old_doc_infos = {}
+        for result in results:
+            old_doc_infos[result['docid']] = (result['doctype'],
+                                              result['last_read'])
+        old_doc_list = set(old_doc_list)
+
+        # and compare it to the current directory content
+        docdirs = os.listdir(self.docsearch.rootdir)
+        progress = 0
+        for docdir in docdirs:
+            old_infos = old_doc_infos.get(docdir)
+            doctype = None
+            if old_infos is not None:
+                doctype = old_infos[0]
+            doc = self.docsearch.get_doc_from_docid(docdir, doctype)
+            if doc is None:
+                continue
+            if docdir in old_doc_list:
+                old_doc_list.remove(docdir)
+                assert(old_infos is not None)
+                last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
+                if old_infos[1] != last_mod:
+                    on_doc_modified(doc)
+            else:
+                on_new_doc(doc)
+            progress_cb(progress, len(docdirs), DocSearch.INDEX_STEP_CHECKING, doc)
+            progress += 1
+
+        # remove all documents from the index that don't exist anymore
+        for old_doc in old_doc_list:
+            on_doc_delected(old_doc)
+
+        progress_cb(1, 1, DocSearch.INDEX_STEP_CHECKING)
+
+
+class DocIndexUpdater(GObject.GObject):
+    def __init__(self, docsearch):
+        self.docsearch = docsearch
+        self.writer = docsearch.index.writer()
+
+    def add_doc(self, doc):
+        print "Indexing new doc: %s" % (str(doc))
+        self.docsearch._update_doc_in_index(self.writer, doc)
+
+    def upd_doc(self, doc):
+        print "Updating modified doc: %s" % (str(doc))
+        self.docsearch._update_doc_in_index(self.writer, doc)
+
+    def del_doc(self, docid):
+        print "Removing doc from the index: %s" % (docid)
+        self.docsearch._delete_doc_from_index(self.writer, docid)
+
+    def commit(self):
+        print "Index: Commiting changes"
+        self.writer.commit()
+
+
 class DocSearch(object):
     """
     Index a set of documents. Can provide:
@@ -86,7 +166,9 @@ class DocSearch(object):
         * instances of documents
     """
 
-    INDEX_STEP_READING = "reading"
+    INDEX_STEP_LOADING = "loading"
+    INDEX_STEP_CHECKING = "checking"
+    INDEX_STEP_READING = "checking"
     INDEX_STEP_COMMIT = "commit"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
@@ -122,6 +204,7 @@ class DocSearch(object):
             print ("Will try to create a new one")
             schema = whoosh.fields.Schema(
                 docid=whoosh.fields.ID(stored=True, unique=True),
+                doctype=whoosh.fields.ID(stored=True, unique=False),
                 content=whoosh.fields.TEXT(spelling=True),
                 label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                              spelling=True, scorable=True),
@@ -135,13 +218,32 @@ class DocSearch(object):
                                                     self.index.schema)
         self.__reload_index(callback)
 
-    def __inst_doc_from_id(self, docid):
+    def get_doc_examiner(self):
+        return DocDirExaminer(self)
+
+    def get_index_updater(self):
+        return DocIndexUpdater(self)
+
+    def __inst_doc_from_id(self, docid, doc_type_name=None):
         docpath = os.path.join(self.rootdir, docid)
-        for (is_doc_type, doc_type) in DOC_TYPE_LIST:
+        if doc_type_name is not None:
+            # if we already know the doc type name
+            for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
+                if doc_type_name_b == doc_type_name:
+                    return doc_type(docpath, docid)
+            print ("Warning: unknown doc type found in the index: %s"
+                   % doc_type_name)
+        # otherwise we guess the doc type
+        for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
                 return doc_type(docpath, docid)
-        print "Warning: unknown doc type: %s" % docid
+        print "Warning: unknown doc type for doc %s" % docid
         return None
+
+    def get_doc_from_docid(self, docid, doc_type_name=None):
+        if docid in self.__docs_by_id:
+            return self.__docs_by_id[docid]
+        return self.__inst_doc_from_id(docid, doc_type_name)
 
     def __reload_index(self, progress_cb=dummy_progress_cb):
         query = whoosh.query.Every()
@@ -153,35 +255,23 @@ class DocSearch(object):
 
         for result in results:
             docid = result['docid']
-            doc = self.__inst_doc_from_id(docid)
+            doctype = result['doctype']
+            doc = self.__inst_doc_from_id(docid, doctype)
             if doc is None:
                 continue
-            progress_cb(progress, nb_results, self.INDEX_STEP_READING, doc)
+            progress_cb(progress, nb_results, self.INDEX_STEP_LOADING, doc)
             self.__docs_by_id[docid] = doc
             for label in doc.labels:
                 labels.add(label)
             progress += 1
+        progress_cb(1, 1, self.INDEX_STEP_LOADING)
 
-        progress_cb(1, 1, self.INDEX_STEP_READING)
-
-    def __delete_doc_from_index(self, index_writer, docid):
+    def _delete_doc_from_index(self, index_writer, docid):
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
 
-    def __update_doc_in_index(self, index_writer, doc):
+    def _update_doc_in_index(self, index_writer, doc):
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
-
-        query = whoosh.query.Term("docid", doc.docid)
-        index_docs = self.__searcher.search(query)
-        assert(len(index_docs) <= 1)
-
-        if len(index_docs) >= 1:
-            last_read = index_docs[0]['last_read']
-            if last_read == last_mod:
-                return False
-
-        print ("%s has been modified. Reindexing ..." % doc.docid)
-
         docid = unicode(doc.docid)
         txt = u""
         for page in doc.pages:
@@ -192,13 +282,14 @@ class DocSearch(object):
         txt = txt.strip()
         txt = strip_accents(txt)
         if txt == u"":
-            self.__delete_doc_from_index(index_writer, doc.docid)
+            self._delete_doc_from_index(index_writer, doc.docid)
             return True
         labels = u",".join([strip_accents(unicode(label.name))
                             for label in doc.labels])
 
         index_writer.update_document(
             docid=docid,
+            doctype=doc.doctype,
             content=txt,
             label=labels,
             last_read=last_mod
@@ -213,7 +304,7 @@ class DocSearch(object):
             page --- from which keywords must be extracted
         """
         index_writer = self.index.writer()
-        self.__update_doc_in_index(index_writer, page.doc)
+        self._update_doc_in_index(index_writer, page.doc)
         index_writer.commit()
 
     def __find_documents(self, query):
@@ -298,7 +389,7 @@ class DocSearch(object):
             self.label_list.sort()
         doc.add_label(label)
         index_writer = self.index.writer()
-        self.__update_doc_in_index(index_writer, doc)
+        self._update_doc_in_index(index_writer, doc)
         index_writer.commit()
         self.__searcher = self.index.searcher()
 
@@ -308,7 +399,7 @@ class DocSearch(object):
         """
         doc.remove_label(label)
         index_writer = self.index.writer()
-        self.__update_doc_in_index(index_writer, doc)
+        self._update_doc_in_index(index_writer, doc)
         index_writer.commit()
         self.__searcher = self.index.searcher()
 
@@ -327,7 +418,7 @@ class DocSearch(object):
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
             doc.update_label(old_label, new_label)
             if must_reindex:
-                self.__update_doc_in_index(index_writer, doc)
+                self._update_doc_in_index(index_writer, doc)
             current += 1
         self.__searcher = self.index.searcher()
 
@@ -344,7 +435,7 @@ class DocSearch(object):
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
             doc.remove_label(label)
             if must_reindex:
-                self.__update_doc_in_index(index_writer, doc)
+                self._update_doc_in_index(index_writer, doc)
             current += 1
         self.__searcher = self.index.searcher()
 

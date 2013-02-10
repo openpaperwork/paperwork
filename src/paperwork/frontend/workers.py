@@ -178,7 +178,7 @@ class Worker(BasicWorker):
         return self.name
 
 
-class IndependantWorker(BasicWorker):
+class IndependentWorker(BasicWorker):
     def __init__(self, name):
         BasicWorker.__init__(self, name)
         self.thread = None
@@ -263,7 +263,7 @@ class WorkerQueue(Worker):
 GObject.type_register(WorkerQueue)
 
 
-class WorkerProgressUpdater(IndependantWorker):
+class WorkerProgressUpdater(IndependentWorker):
     """
     Update a progress bar a predefined timing.
     """
@@ -274,7 +274,7 @@ class WorkerProgressUpdater(IndependantWorker):
 
     def __init__(self, name, progressbar):
         self.name = "Progress bar updater: %s" % (name)
-        IndependantWorker.__init__(self, self.name)
+        IndependentWorker.__init__(self, self.name)
         self.progressbar = progressbar
 
     def do(self, value_min=0.0, value_max=0.5, total_time=20.0):

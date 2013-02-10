@@ -36,6 +36,7 @@ from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.workers import IndependentWorker
 from paperwork.frontend.workers import Worker
 from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.backend import docimport
@@ -77,16 +78,16 @@ def check_scanner(main_win, config):
     return False
 
 
-class WorkerDocIndexer(Worker):
+class WorkerDocIndexLoader(Worker):
     """
-    Reindex all the documents
+    Reload the doc index
     """
 
     __gsignals__ = {
-        'indexation-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'indexation-progression' : (GObject.SignalFlags.RUN_LAST, None,
+        'index-loading-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-progression' : (GObject.SignalFlags.RUN_LAST, None,
                                     (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'indexation-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -101,29 +102,144 @@ class WorkerDocIndexer(Worker):
         Update the main progress bar
         """
         txt = None
-        if step == DocSearch.INDEX_STEP_READING:
-            txt = _('Reading ...')
-        elif step == DocSearch.INDEX_STEP_COMMIT:
-            txt = _('Updating index ...')
+        if step == DocSearch.INDEX_STEP_LOADING:
+            txt = _('Loading ...')
         else:
             assert()  # unknown progression type
             txt = ""
         if doc != None:
             txt += (" (%s)" % (doc.name))
-        self.emit('indexation-progression', float(progression) / total, txt)
+        self.emit('index-loading-progression', float(progression) / total, txt)
         if not self.can_run:
             raise StopIteration()
 
     def do(self):
-        self.emit('indexation-start')
+        self.emit('index-loading-start')
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.__main_win.docsearch = docsearch
         except StopIteration:
             print "Indexation interrupted"
-        self.emit('indexation-end')
+        self.emit('index-loading-end')
 
-GObject.type_register(WorkerDocIndexer)
+
+GObject.type_register(WorkerDocIndexLoader)
+
+
+class WorkerDocExaminer(IndependentWorker):
+    """
+    Look for modified documents
+    """
+
+    __gsignals__ = {
+        'doc-examination-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'doc-examination-progression' : (GObject.SignalFlags.RUN_LAST, None,
+                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'doc-examination-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window, config):
+        IndependentWorker.__init__(self, "Document examination")
+        self.__main_win = main_window
+        self.__config = config
+        self.new_docs = set()  # documents
+        self.docs_changed = set()  # documents
+        self.docs_missing = set()  # document ids
+
+    def __progress_cb(self, progression, total, step, doc=None):
+        """
+        Update the main progress bar
+        """
+        txt = None
+        if step == DocSearch.INDEX_STEP_CHECKING:
+            txt = _('Checking ...')
+        else:
+            assert()  # unknown progression type
+            txt = ""
+        if doc != None:
+            txt += (" (%s)" % (doc.name))
+        self.emit('doc-examination-progression', float(progression) / total, txt)
+        if not self.can_run:
+            raise StopIteration()
+
+    def do(self):
+        self.emit('doc-examination-start')
+        try:
+            doc_examiner = self.__main_win.docsearch.get_doc_examiner()
+            doc_examiner.examine_rootdir(
+                self.__on_new_doc,
+                self.__on_doc_changed,
+                self.__on_doc_missing,
+                self.__progress_cb)
+        except StopIteration:
+            print "Indexation interrupted"
+        finally:
+            self.emit('doc-examination-end')
+
+    def __on_new_doc(self, doc):
+        self.new_docs.add(doc)
+
+    def __on_doc_changed(self, doc):
+        self.docs_changed.add(doc)
+
+    def __on_doc_missing(self, docid):
+        self.docs_missing.add(docid)
+
+
+GObject.type_register(WorkerDocExaminer)
+
+class WorkerIndexUpdater(Worker):
+    """
+    Look for modified documents
+    """
+
+    __gsignals__ = {
+        'index-update-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-update-progression' : (GObject.SignalFlags.RUN_LAST, None,
+                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'index-update-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
+    can_interrupt = True
+
+    def __init__(self, main_window, config):
+        Worker.__init__(self, "Document index update")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self, new_docs, upd_docs, del_docs):
+        self.emit('index-update-start')
+        try:
+            index_updater = self.__main_win.docsearch.get_index_updater()
+
+            docs = [
+                (_("Indexing new document ..."), new_docs, index_updater.add_doc),
+                (_("Reindexing modified document ..."), upd_docs,
+                 index_updater.upd_doc),
+                (_("Removing deleted document from index ..."), del_docs,
+                 index_updater.del_doc),
+            ]
+
+            progression = float(0)
+            total = len(new_docs) + len(upd_docs) + len(del_docs)
+
+            for (op_name, doc_bunch, op) in docs:
+                for doc in doc_bunch:
+                    self.emit('index-update-progression', (progression * 0.75) / total,
+                              "%s (%s)" % (op_name, str(doc)))
+                    op(doc)
+                    progression += 1
+
+            self.emit('index-update-progression', 0.75, _("Writing index ..."))
+            index_updater.commit()
+            self.emit('index-update-progression', 1.0, "")
+        finally:
+            self.emit('index-update-end')
+
+
+GObject.type_register(WorkerIndexUpdater)
 
 
 class WorkerDocSearcher(Worker):
@@ -136,7 +252,7 @@ class WorkerDocSearcher(Worker):
         # first obj: array of documents
         # second obj: array of suggestions
         'search-result' : (GObject.SignalFlags.RUN_LAST, None,
-                        (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
     can_interrupt = True
@@ -881,7 +997,7 @@ class ActionOpenSettings(SimpleAction):
         sw.connect("need-reindex", self.__reindex_cb)
 
     def __reindex_cb(self, settings_window):
-        self.__main_win.workers['reindex'].start()
+        self.__main_win.actions['reindex'][1].do()
 
 
 class ActionSingleScan(SimpleAction):
@@ -1008,7 +1124,7 @@ class ActionDeleteDoc(SimpleAction):
         self.__main_win.doc.destroy()
         print "Deleted"
         self.__main_win.actions['new_doc'][1].do()
-        self.__main_win.workers['reindex'].start()
+        self.__main_win.actions['reindex'][1].do()
 
 
 class ActionDeletePage(SimpleAction):
@@ -1351,15 +1467,48 @@ class ActionRebuildIndex(SimpleAction):
         self.__main_win = main_window
         self.__config = config
         self.__force = force
+        self.__connect_handler_id = None
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['reindex'].stop()
+        self.__main_win.workers['index_reloader'].stop()
+        self.__main_win.workers['doc_examiner'].stop()
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
-        self.__main_win.workers['reindex'].start()
+        self.__connect_handler_id = \
+                self.__main_win.workers['index_reloader'].connect('index-loading-end',
+                                                          self.__on_index_loading_end)
+        self.__main_win.workers['index_reloader'].start()
+
+    def __on_index_loading_end(self, loader):
+        print "Index loaded. Will start refreshing it ..."
+        self.__main_win.workers['index_reloader'].disconnect(self.__connect_handler_id)
+        self.__main_win.workers['doc_examiner'].stop()
+        self.__connect_handler_id = \
+                self.__main_win.workers['doc_examiner'].connect('doc-examination-end',
+                        lambda examiner: GObject.idle_add(self.__on_doc_exam_end, examiner))
+        self.__main_win.workers['doc_examiner'].start()
+
+    def __on_doc_exam_end(self, examiner):
+        print "Document examen finished. Updating index ..."
+        examiner.disconnect(self.__connect_handler_id)
+        print "New document: %d" % len(examiner.new_docs)
+        print "Updated document: %d" % len(examiner.docs_changed)
+        print "Deleted document: %d" % len(examiner.docs_missing)
+
+        if (len(examiner.new_docs) == 0
+            and len(examiner.docs_changed) == 0
+            and len(examiner.docs_missing) == 0):
+            print "No changes"
+            return
+
+        self.__main_win.workers['index_updater'].start(
+                new_docs = examiner.new_docs,
+                upd_docs = examiner.docs_changed,
+                del_docs = examiner.docs_missing
+            )
 
 
 class MainWindow(object):
@@ -1508,7 +1657,9 @@ class MainWindow(object):
         }
 
         self.workers = {
-            'reindex' : WorkerDocIndexer(self, config),
+            'index_reloader' : WorkerDocIndexLoader(self, config),
+            'doc_examiner' : WorkerDocExaminer(self, config),
+            'index_updater' : WorkerIndexUpdater(self, config),
             'searcher' : WorkerDocSearcher(self, config),
             'page_thumbnailer' : WorkerPageThumbnailer(self),
             'doc_thumbnailer' : WorkerDocThumbnailer(self),
@@ -1777,6 +1928,10 @@ class MainWindow(object):
                 ActionRedoAllOCR(self),
             ),
             'reindex' : (
+                [],
+                ActionRebuildIndex(self, config, force=False),
+            ),
+            'reindex_from_scratch' : (
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
@@ -1851,14 +2006,14 @@ class MainWindow(object):
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.workers['reindex'].connect('indexation-start', lambda indexer: \
-            GObject.idle_add(self.__on_indexation_start_cb, indexer))
-        self.workers['reindex'].connect('indexation-progression',
-            lambda indexer, progression, txt: \
-                GObject.idle_add(self.set_progression, indexer,
+        self.workers['index_reloader'].connect('index-loading-start', lambda loader: \
+            GObject.idle_add(self.__on_index_loading_start_cb, loader))
+        self.workers['index_reloader'].connect('index-loading-progression',
+            lambda loader, progression, txt: \
+                GObject.idle_add(self.set_progression, loader,
                                  progression, txt))
-        self.workers['reindex'].connect('indexation-end', lambda indexer: \
-            GObject.idle_add(self.__on_indexation_end_cb, indexer))
+        self.workers['index_reloader'].connect('index-loading-end', lambda loader: \
+            GObject.idle_add(self.__on_index_loading_end_cb, loader))
 
         self.workers['searcher'].connect('search-result', \
             lambda searcher, documents, suggestions: \
@@ -1999,12 +2154,12 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
-    def __on_indexation_start_cb(self, src):
+    def __on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_indexation_end_cb(self, src):
+    def __on_index_loading_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
@@ -2115,8 +2270,6 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        self.workers['reindex'].stop()
-        self.workers['reindex'].start()
 
     def __on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)
@@ -2134,8 +2287,7 @@ class MainWindow(object):
         self.refresh_label_list()
         # in case the keywords were highlighted
         self.show_page(self.page)
-        self.workers['reindex'].stop()
-        self.workers['reindex'].start()
+        self.actions['reindex'][1].do()
 
     def __on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))

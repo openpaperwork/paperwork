@@ -39,6 +39,13 @@ class BasicDoc(object):
     can_edit = False
 
     def __init__(self, docpath, docid=None):
+        """
+        Basic init of common parts of doc.
+
+        Note regarding subclassing: *do not* load the document
+        content in __init__(). It would reduce in a huge performance loose
+        and thread-safety issues. Load the content on-the-fly when requested.
+        """
         if docid == None:
             self.docid = time.strftime(self.DOCNAME_FORMAT)
             self.path = os.path.join(docpath, self.docid)
@@ -68,6 +75,11 @@ class BasicDoc(object):
 
     def print_page_cb(self, print_op, print_context, page_nb):
         raise NotImplementedError()
+
+    def __get_doctype(self):
+        raise NotImplementedError()
+
+    doctype = property(__get_doctype)
 
     def __get_keywords(self):
         """

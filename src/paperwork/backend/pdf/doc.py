@@ -60,6 +60,7 @@ class PdfDocExporter(object):
 
 class PdfDoc(BasicDoc):
     can_edit = False
+    doctype = u"PDF"
 
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)

@@ -187,6 +187,7 @@ class ImgDoc(BasicDoc):
         ".png"
     ]
     can_edit = True
+    doctype = u"Img"
 
     def __init__(self, docpath, docid=None):
         """

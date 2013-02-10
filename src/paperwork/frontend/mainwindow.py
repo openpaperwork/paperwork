@@ -345,30 +345,38 @@ class WorkerDocThumbnailer(Worker):
     }
 
     can_interrupt = True
+    can_pause = True
 
     def __init__(self, main_window):
         Worker.__init__(self, "Doc thumbnailing")
         self.__main_win = main_window
 
-    def do(self, doc_indexes=None):
+    def do(self, doc_indexes=None, resume=0):
         self.emit('doc-thumbnailing-start')
 
         doclist = self.__main_win.lists['matches']['doclist']
         if doc_indexes is None:
-            doc_indexes = range(0, len(doclist))
+            doc_indexes = range(resume, len(doclist))
+        else:
+            doc_indexes = doc_index[resume:]
 
         for doc_idx in doc_indexes:
+            if self.paused:
+                return resume
+            if not self.can_run:
+                self.emit('doc-thumbnailing-end')
+                return 0
             doc = doclist[doc_idx]
             if doc.nb_pages <= 0:
+                resume += 1
                 continue
             img = doc.pages[0].get_thumbnail(150)
             img = add_img_border(img)
             pixbuf = image2pixbuf(img)
-            if not self.can_run:
-                self.emit('doc-thumbnailing-end')
-                return
             self.emit('doc-thumbnailing-doc-done', doc_idx, pixbuf)
+            resume += 1
         self.emit('doc-thumbnailing-end')
+        return 0
 
 
 GObject.type_register(WorkerDocThumbnailer)
@@ -2755,6 +2763,7 @@ class MainWindow(object):
         self.workers['img_builder'].start()
 
     def show_doc(self, doc):
+        self.workers['doc_thumbnailer'].pause()
         self.doc = doc
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
@@ -2767,6 +2776,7 @@ class MainWindow(object):
         else:
             self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
                                              Gtk.IconSize.DIALOG)
+        self.workers['doc_thumbnailer'].resume()
 
     def __on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))

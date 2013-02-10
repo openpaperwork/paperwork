@@ -73,11 +73,13 @@ def halt():
 
 class BasicWorker(GObject.GObject):
     can_interrupt = False
+    can_pause = False
 
     def __init__(self, name):
         GObject.GObject.__init__(self)
         self.name = name
         self.can_run = True
+        self.paused = False
         self.is_running = False
         self.__started_by = None
 
@@ -86,6 +88,10 @@ class BasicWorker(GObject.GObject):
         #
         # if can_interrupt = True, the child class must check self.can_run as
         # often as possible
+        #
+        # if can_pause = True, the child class must check self.paused as
+        # often as possible. do() must return if self.paused = True.
+        # do() will be called again with resume=<value it returned>
         assert()
 
     def _wrapper(self, **kwargs):
@@ -94,7 +100,7 @@ class BasicWorker(GObject.GObject):
         self.is_running = True
         print "Workers: [%s] started" % (self.name)
         try:
-            self.do(**kwargs)
+            return self.do(**kwargs)
         finally:
             self.is_running = False
             self.__started_by = None
@@ -132,10 +138,11 @@ class Worker(BasicWorker):
         self.__is_in_queue = False
         self.__must_restart = False
         self.__last_args = {}
+        self.__last_ret_value = None
 
     def _wrapper(self, **kwargs):
         try:
-            BasicWorker._wrapper(self, **kwargs)
+            self.__last_ret_value = BasicWorker._wrapper(self, **kwargs)
         finally:
             if self.__must_restart:
                 _WORKER_THREAD.queue_worker(self, self.__last_args)
@@ -151,6 +158,28 @@ class Worker(BasicWorker):
                                       str(self.is_running))
         if not self.__is_in_queue:
             _WORKER_THREAD.queue_worker(self, kwargs)
+            self.__is_in_queue = True
+        else:
+            self.__must_restart = True
+
+    def pause(self):
+        assert(self.can_pause)
+        if not self.__is_in_queue:
+            return
+        self.paused = True
+        # Sadly, it seems there is no nice way for us to wait for all
+        # the instances of our worker to end. We can only wait for
+        # all the workers to end
+        _WORKER_THREAD.wait()
+
+    def resume(self):
+        if not self.paused:
+            return
+        self.paused = False
+        if not self.__is_in_queue:
+            args = self.__last_args.copy()
+            args['resume'] = self.__last_ret_value
+            _WORKER_THREAD.queue_worker(self, args)
             self.__is_in_queue = True
         else:
             self.__must_restart = True

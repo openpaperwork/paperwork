@@ -15,7 +15,6 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from Queue import Queue
 import sys
 import threading
 import time
@@ -27,7 +26,9 @@ from gi.repository import GObject
 class _WorkerThread(object):
     def __init__(self):
         self.__must_stop = False
-        self.__todo = Queue()
+        self._todo = []
+        self._running = None
+        self._sem = threading.Semaphore(0)
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
 
@@ -35,7 +36,10 @@ class _WorkerThread(object):
         print "Workers: Worker thread started"
 
         while True:
-            (worker, kwargs) = self.__todo.get()
+            self._running = None
+            self._sem.acquire()
+            self._running = self._todo.pop()
+            (worker, kwargs) = self._running
             if worker is None:
                 print "Workers: Worker thread halting"
                 return
@@ -45,23 +49,18 @@ class _WorkerThread(object):
                 print ("Worker [%s] raised an exception: %s"
                        % (worker.name, str(exc)))
                 traceback.print_exc(file=sys.stdout)
-            self.__todo.task_done()
 
         print "Workers: Worker thread stopped"
 
     def queue_worker(self, worker, kwargs):
         print "Workers: Queueing [%s]" % (worker.name)
-        self.__todo.put((worker, kwargs))
+        self._todo.append((worker, kwargs))
+        self._sem.release()
 
     def halt(self):
         print "Workers: Requesting halt"
-        self.__todo.put((None, None))
-
-    def wait(self):
-        """
-        Wait for all the pending workers to end
-        """
-        self.__todo.join()
+        self._todo.append((None, None))
+        self._sem.release()
 
 
 _WORKER_THREAD = _WorkerThread()
@@ -139,11 +138,16 @@ class Worker(BasicWorker):
         self.__must_restart = False
         self.__last_args = {}
         self.__last_ret_value = None
+        self.__lock = threading.Lock()
 
     def _wrapper(self, **kwargs):
+        self.__lock.acquire()
         try:
+            if not self.can_run:
+                return
             self.__last_ret_value = BasicWorker._wrapper(self, **kwargs)
         finally:
+            self.__lock.release()
             if self.__must_restart:
                 _WORKER_THREAD.queue_worker(self, self.__last_args)
                 self.__must_restart = False
@@ -167,10 +171,7 @@ class Worker(BasicWorker):
         if not self.__is_in_queue:
             return
         self.paused = True
-        # Sadly, it seems there is no nice way for us to wait for all
-        # the instances of our worker to end. We can only wait for
-        # all the workers to end
-        _WORKER_THREAD.wait()
+        self.wait()
 
     def resume(self):
         if not self.paused:
@@ -185,23 +186,12 @@ class Worker(BasicWorker):
             self.__must_restart = True
 
     def stop(self):
-        global _WORKER_THREAD
         self.soft_stop()
-        # Sadly, it seems there is no nice way for us to wait for all
-        # the instances of our worker to end. We can only wait for
-        # all the workers to end
-        _WORKER_THREAD.wait()
+        self.wait()
 
     def wait(self):
-        global _WORKER_THREAD
-
-        if not self.is_running:
-            return
-
-        # Sadly, it seems there is no nice way for us to wait for all
-        # the instances of our worker to end. We can only wait for
-        # all the workers to end
-        _WORKER_THREAD.wait()
+        self.__lock.acquire()
+        self.__lock.release()
 
     def __str__(self):
         return self.name

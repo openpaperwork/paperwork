@@ -2734,6 +2734,13 @@ class MainWindow(object):
     def show_page(self, page):
         print "Showing page %s" % (str(page))
 
+        self.workers['img_builder'].soft_stop()
+        paused_doc_thumbnailer = False
+        # we must pause the doc thumbnailer to open the page
+        # however, the method show_doc() may have already done it
+        if not self.workers['doc_thumbnailer'].paused:
+            self.workers['doc_thumbnailer'].pause()
+            paused_doc_thumbnailer = True
         self.workers['img_builder'].stop()
 
         for widget in self.need_page_widgets:
@@ -2761,6 +2768,9 @@ class MainWindow(object):
         self.export['dialog'].set_visible(False)
 
         self.workers['img_builder'].start()
+
+        if paused_doc_thumbnailer:
+            self.workers['doc_thumbnailer'].resume()
 
     def show_doc(self, doc):
         self.workers['doc_thumbnailer'].pause()

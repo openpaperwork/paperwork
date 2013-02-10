@@ -154,17 +154,42 @@ class Worker(BasicWorker):
             else:
                 self.__is_in_queue = False
 
+    def __pause_all(self):
+        global _WORKER_THREAD
+        todo = _WORKER_THREAD._todo[:]
+        others = [worker for (worker, kwargs) in todo]
+        running = _WORKER_THREAD._running
+        if running is not None:
+            others.append(running[0])
+        paused = []
+        for other in others:
+            if other == self:
+                continue
+            if not other.can_pause:
+                continue
+            other.pause()
+            paused.append(other)
+        return paused
+
+    def __resume(self, workers):
+        for worker in workers:
+            worker.resume()
+
     def start(self, **kwargs):
         global _WORKER_THREAD
-        self.__last_args = kwargs
         BasicWorker.start(self)
-        print "Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
-                                      str(self.is_running))
-        if not self.__is_in_queue:
-            _WORKER_THREAD.queue_worker(self, kwargs)
-            self.__is_in_queue = True
-        else:
-            self.__must_restart = True
+        self.__last_args = kwargs
+        paused = self.__pause_all()
+        try:
+            print "Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
+                                          str(self.is_running))
+            if not self.__is_in_queue:
+                _WORKER_THREAD.queue_worker(self, kwargs)
+                self.__is_in_queue = True
+            else:
+                self.__must_restart = True
+        finally:
+            self.__resume(paused)
 
     def pause(self):
         assert(self.can_pause)

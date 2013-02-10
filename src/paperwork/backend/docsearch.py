@@ -131,7 +131,7 @@ class DocDirExaminer(GObject.GObject):
 
         # remove all documents from the index that don't exist anymore
         for old_doc in old_doc_list:
-            on_doc_delected(old_doc)
+            on_doc_deleted(old_doc)
 
         progress_cb(1, 1, DocSearch.INDEX_STEP_CHECKING)
 
@@ -240,13 +240,23 @@ class DocSearch(object):
             # if we already know the doc type name
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
                 if doc_type_name_b == doc_type_name:
-                    return doc_type(docpath, docid)
+                    try:
+                        return doc_type(docpath, docid)
+                    except Exception, exc:
+                        print ("Tried to instantiate document '%s' as %s, but"
+                               " failed: %s" % (docpath, doc_type_name,
+                                                str(exc)))
             print ("Warning: unknown doc type found in the index: %s"
                    % doc_type_name)
         # otherwise we guess the doc type
         for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
-                return doc_type(docpath, docid)
+                try:
+                    return doc_type(docpath, docid)
+                except Exception, exc:
+                    print ("Tried to instantiate document '%s' as %s, but"
+                           " failed: %s" % (docpath, doc_type_name,
+                                            str(exc)))
         print "Warning: unknown doc type for doc %s" % docid
         return None
 
@@ -321,7 +331,11 @@ class DocSearch(object):
         docs = []
         results = self.__searcher.search(query, limit=None)
         docids = [result['docid'] for result in results]
-        docs = [self.__docs_by_id[docid] for docid in docids]
+        docs = [self.__docs_by_id.get(docid) for docid in docids]
+        try:
+            docs.remove(None)
+        except ValueError:
+            pass
         return docs
 
     def __get_all_docs(self):

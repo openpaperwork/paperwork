@@ -2495,6 +2495,8 @@ class MainWindow(object):
 
     @staticmethod
     def __get_doc_txt(doc):
+        if doc is None:
+            return ""
         labels = doc.labels
         final_str = "%s" % (doc.name)
         nb_pages = doc.nb_pages

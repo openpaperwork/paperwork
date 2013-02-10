@@ -2008,6 +2008,8 @@ class MainWindow(object):
                                   popup_menu[0], popup_menu[1])
 
         self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+        self.img['eventbox'].connect("leave-notify-event",
+                                     self.__on_img_mouse_leave)
         self.img['eventbox'].connect("motion-notify-event",
                                      self.__on_img_mouse_motion)
 
@@ -2454,6 +2456,20 @@ class MainWindow(object):
             self.img['image'].queue_draw_area(position[0][0], position[0][1],
                                              position[1][0] - position[0][0],
                                              position[1][1] - position[0][1])
+
+    def __on_img_mouse_leave(self, event_box, event):
+        to_refresh = self.img['boxes']['selected']
+
+        self.img['boxes']['selected'] = []
+        self.img['image'].set_has_tooltip(False)
+
+        for box in to_refresh:
+            position = self.__get_box_position(box,
+                            window=self.img['image'], width=5)
+            self.img['image'].queue_draw_area(position[0][0], position[0][1],
+                                             position[1][0] - position[0][0],
+                                             position[1][1] - position[0][1])
+
 
     def __get_box_position(self, box, window=None, width=1):
         ((a, b), (c, d)) = box.position

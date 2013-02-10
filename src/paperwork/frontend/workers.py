@@ -97,13 +97,19 @@ class BasicWorker(GObject.GObject):
         if not self.can_run:
             return
         self.is_running = True
-        print "Workers: [%s] started" % (self.name)
+        if "resume" in kwargs:
+            print "Workers: [%s] resumed" % (self.name)
+        else:
+            print "Workers: [%s] started" % (self.name)
         try:
             return self.do(**kwargs)
         finally:
             self.is_running = False
             self.__started_by = None
-            print "Workers: [%s] ended" % (self.name)
+            if self.paused:
+                print "Workers: [%s] paused" % (self.name)
+            else:
+                print "Workers: [%s] ended" % (self.name)
 
     def start(self, **kwargs):
         if self.is_running and self.can_run:

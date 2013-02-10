@@ -2418,7 +2418,7 @@ class MainWindow(object):
         # XXX(Jflesch): This is a hack .. it may have visible side effects
         # in the GUI ...
         now = time.time()
-        if (now - self.__last_highlight_update <= 0.05):
+        if (now - self.__last_highlight_update <= 0.25):
             return
         self.__last_highlight_update = now
 

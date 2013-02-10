@@ -133,7 +133,6 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
-        self.__update_index(callback)
 
     def __inst_doc_from_id(self, docid):
         docpath = os.path.join(self.rootdir, docid)
@@ -183,57 +182,6 @@ class DocSearch(object):
             last_read=last_mod
         )
         return True
-
-    def __update_index(self, progress_cb=dummy_progress_cb):
-        has_mod = False
-
-        # getting the doc list from the index
-        query = whoosh.query.Every()
-        results = self.__searcher.search(query, limit=None)
-        old_doc_list = [result['docid'] for result in results]
-        old_doc_list = set(old_doc_list)
-
-        index_writer = self.index.writer()
-
-        self.__docs_by_id = {}
-        labels = set()
-
-        docdirs = os.listdir(self.rootdir)
-        progress = 0
-        for docdir in docdirs:
-            doc = self.__inst_doc_from_id(docdir)
-            if doc is None:
-                continue
-            if docdir in old_doc_list:
-                old_doc_list.remove(docdir)
-            self.__docs_by_id[docdir] = doc
-            progress_cb(progress*3, len(docdirs)*4, self.INDEX_STEP_READING, doc)
-            if self.__update_doc_in_index(index_writer, doc):
-                has_mod = True
-            for label in doc.labels:
-                labels.add(label)
-            progress += 1
-
-        progress_cb(3, 4, self.INDEX_STEP_COMMIT)
-
-        self.label_list = [label for label in labels]
-        self.label_list.sort()
-
-        # remove all documents that don't exist anymore from the index
-        for old_doc in old_doc_list:
-            print "%s doesn't exist anymore. Removing from the index" % old_doc
-            self.__delete_doc_from_index(index_writer, old_doc)
-            has_mod = True
-
-        if has_mod:
-            index_writer.commit()
-        else:
-            index_writer.cancel()
-
-        progress_cb(4, 4, self.INDEX_STEP_COMMIT)
-
-        self.__searcher = self.index.searcher()
-
 
     def index_page(self, page):
         """

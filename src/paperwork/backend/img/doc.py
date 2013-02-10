@@ -198,6 +198,22 @@ class ImgDoc(BasicDoc):
         """
         BasicDoc.__init__(self, docpath, docid)
 
+    def __get_last_mod(self):
+        last_mod = 0.0
+        for page in self.pages:
+            if last_mod < page.last_mod:
+                last_mod = page.last_mod
+        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        try:
+            labels_last_mod = os.stat(labels_path).st_mtime
+            if labels_last_mod > last_mod:
+                last_mod = labels_last_mod
+        except OSError, err:
+            pass
+        return last_mod
+
+    last_mod = property(__get_last_mod)
+
     def __get_nb_pages(self):
         """
         Compute the number of pages in the document. It basically counts

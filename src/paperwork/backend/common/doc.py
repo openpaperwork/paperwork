@@ -57,7 +57,7 @@ class BasicDoc(object):
         return self.docid
 
     def __get_last_mod(self):
-        return os.stat(self.path).st_mtime
+        raise NotImplementedError()
 
     last_mod = property(__get_last_mod)
 

@@ -101,6 +101,25 @@ class PdfDoc(BasicDoc):
         if docid != None:
             self._open_pdf()
 
+    def __get_last_mod(self):
+        pdfpath = os.path.join(self.path, PDF_FILENAME)
+        last_mod = os.stat(pdfpath).st_mtime
+        for page in self.pages:
+            if page.last_mod > last_mod:
+                last_mod = page.last_mod
+
+        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        try:
+            labels_last_mod = os.stat(labels_path).st_mtime
+            if labels_last_mod > last_mod:
+                last_mod = labels_last_mod
+        except OSError, err:
+            pass
+
+        return last_mod
+
+    last_mod = property(__get_last_mod)
+
     def _open_pdf(self):
         self.pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),

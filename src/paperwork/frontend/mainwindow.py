@@ -231,6 +231,10 @@ class WorkerIndexUpdater(Worker):
                               "%s (%s)" % (op_name, str(doc)))
                     op(doc)
                     progression += 1
+                    if not self.can_run:
+                        index_updater.cancel()
+                        self.emit('index-update-end')
+
 
             self.emit('index-update-progression', 0.75, _("Writing index ..."))
             index_updater.commit()

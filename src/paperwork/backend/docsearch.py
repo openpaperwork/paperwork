@@ -156,6 +156,12 @@ class DocIndexUpdater(GObject.GObject):
     def commit(self):
         print "Index: Commiting changes"
         self.writer.commit()
+        del self.writer
+
+    def cancel(self):
+        print "Index: Index update cancelled"
+        self.writer.cancel()
+        del self.writer
 
 
 class DocSearch(object):

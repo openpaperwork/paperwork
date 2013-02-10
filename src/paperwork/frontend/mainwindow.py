@@ -163,7 +163,7 @@ class WorkerDocExaminer(IndependentWorker):
             assert()  # unknown progression type
             txt = ""
         if doc != None:
-            txt += (" (%s)" % (doc.name))
+            txt += (" (%s)" % (str(doc)))
         self.emit('doc-examination-progression', float(progression) / total, txt)
         if not self.can_run:
             raise StopIteration()

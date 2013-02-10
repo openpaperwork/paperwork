@@ -133,6 +133,7 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
+        self.__reload_index(callback)
 
     def __inst_doc_from_id(self, docid):
         docpath = os.path.join(self.rootdir, docid)
@@ -141,6 +142,27 @@ class DocSearch(object):
                 return doc_type(docpath, docid)
         print "Warning: unknown doc type: %s" % docid
         return None
+
+    def __reload_index(self, progress_cb=dummy_progress_cb):
+        query = whoosh.query.Every()
+        results = self.__searcher.search(query, limit=None)
+
+        nb_results = len(results)
+        progress = 0
+        labels = set()
+
+        for result in results:
+            docid = result['docid']
+            doc = self.__inst_doc_from_id(docid)
+            if doc is None:
+                continue
+            progress_cb(progress, nb_results, self.INDEX_STEP_READING, doc)
+            self.__docs_by_id[docid] = doc
+            for label in doc.labels:
+                labels.add(label)
+            progress += 1
+
+        progress_cb(1, 1, self.INDEX_STEP_READING)
 
     def __delete_doc_from_index(self, index_writer, docid):
         query = whoosh.query.Term("docid", docid)

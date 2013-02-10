@@ -154,6 +154,10 @@ class DocIndexUpdater(GObject.GObject):
         self.docsearch._delete_doc_from_index(self.writer, docid)
 
     def commit(self):
+        """
+        You must rebuild the DocSearch object or call DocSearch.reload_index()
+        after calling this method
+        """
         print "Index: Commiting changes"
         self.writer.commit()
         del self.writer
@@ -222,7 +226,7 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
-        self.__reload_index(callback)
+        self.reload_index(callback)
 
     def get_doc_examiner(self):
         return DocDirExaminer(self)
@@ -251,7 +255,7 @@ class DocSearch(object):
             return self.__docs_by_id[docid]
         return self.__inst_doc_from_id(docid, doc_type_name)
 
-    def __reload_index(self, progress_cb=dummy_progress_cb):
+    def reload_index(self, progress_cb=dummy_progress_cb):
         query = whoosh.query.Every()
         results = self.__searcher.search(query, limit=None)
 
@@ -288,8 +292,8 @@ class DocSearch(object):
         txt = txt.strip()
         txt = strip_accents(txt)
         if txt == u"":
-            self._delete_doc_from_index(index_writer, doc.docid)
-            return True
+            # make sure the text field is not empty. Whoosh doesn't like that
+            txt = u"empty"
         labels = u",".join([strip_accents(unicode(label.name))
                             for label in doc.labels])
 

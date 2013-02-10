@@ -101,6 +101,8 @@ class WorkerDocIndexLoader(Worker):
         """
         Update the main progress bar
         """
+        if progression % 50 != 0:
+            return
         txt = None
         if step == DocSearch.INDEX_STEP_LOADING:
             txt = _('Loading ...')
@@ -152,6 +154,8 @@ class WorkerDocExaminer(IndependentWorker):
         """
         Update the main progress bar
         """
+        if progression % 10 != 0:
+            return
         txt = None
         if step == DocSearch.INDEX_STEP_CHECKING:
             txt = _('Checking ...')
@@ -1483,10 +1487,10 @@ class ActionRebuildIndex(SimpleAction):
             docsearch.destroy_index()
         self.__connect_handler_id = \
                 self.__main_win.workers['index_reloader'].connect('index-loading-end',
-                                                          self.__on_index_loading_end)
+                                                          self.__on_index_loading_end_cb)
         self.__main_win.workers['index_reloader'].start()
 
-    def __on_index_loading_end(self, loader):
+    def __on_index_loading_end_cb(self, loader):
         print "Index loaded. Will start refreshing it ..."
         self.__main_win.workers['index_reloader'].disconnect(self.__connect_handler_id)
         self.__main_win.workers['doc_examiner'].stop()
@@ -2019,6 +2023,28 @@ class MainWindow(object):
         self.workers['index_reloader'].connect('index-loading-end', lambda loader: \
             GObject.idle_add(self.__on_index_loading_end_cb, loader))
 
+        self.workers['doc_examiner'].connect('doc-examination-start',
+            lambda examiner: \
+                GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
+        self.workers['doc_examiner'].connect('doc-examination-progression',
+            lambda examiner, progression, txt: \
+                GObject.idle_add(self.set_progression, examiner,
+                                 progression, txt))
+        self.workers['doc_examiner'].connect('doc-examination-end',
+            lambda examiner: \
+                GObject.idle_add(self.__on_doc_examination_end_cb, examiner))
+
+        self.workers['index_updater'].connect('index-update-start',
+            lambda updater: \
+                GObject.idle_add(self.__on_index_update_start_cb, updater))
+        self.workers['index_updater'].connect('index-update-progression',
+            lambda updater, progression, txt: \
+                GObject.idle_add(self.set_progression, updater,
+                                 progression, txt))
+        self.workers['index_updater'].connect('index-update-end',
+            lambda updater: \
+                GObject.idle_add(self.__on_index_update_end_cb, updater))
+
         self.workers['searcher'].connect('search-result', \
             lambda searcher, documents, suggestions: \
                 GObject.idle_add(self.__on_search_result_cb, documents,
@@ -2170,6 +2196,24 @@ class MainWindow(object):
         self.refresh_doc_list()
         self.refresh_label_list()
 
+    def __on_doc_examination_start_cb(self, src):
+        self.set_progression(src, 0.0, None)
+
+    def __on_doc_examination_end_cb(self, src):
+        self.set_progression(src, 0.0, None)
+
+    def __on_index_update_start_cb(self, src):
+        self.set_progression(src, 0.0, None)
+        self.set_search_availability(False)
+        self.set_mouse_cursor("Busy")
+
+    def __on_index_update_end_cb(self, src):
+        self.workers['index_reloader'].stop()
+        self.set_progression(src, 0.0, None)
+        self.set_search_availability(True)
+        self.set_mouse_cursor("Normal")
+        self.workers['index_reloader'].start()
+
     def __on_search_result_cb(self, documents, suggestions):
         self.workers['doc_thumbnailer'].stop()
 
@@ -2216,7 +2260,6 @@ class MainWindow(object):
 
     def __on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
-        self.set_mouse_cursor("Busy")
 
     def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
         line_iter = self.lists['matches']['model'].get_iter(doc_idx)
@@ -2232,7 +2275,6 @@ class MainWindow(object):
 
     def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Normal")
 
     def __on_img_building_start(self):
         self.img['boxes']['all'] = []

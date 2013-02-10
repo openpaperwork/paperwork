@@ -178,7 +178,7 @@ class WorkerDocExaminer(IndependentWorker):
                 self.__on_doc_missing,
                 self.__progress_cb)
         except StopIteration:
-            print "Indexation interrupted"
+            print "Document examination interrupted"
         finally:
             self.emit('doc-examination-end')
 
@@ -1486,13 +1486,14 @@ class ActionRebuildIndex(SimpleAction):
         if self.__force:
             docsearch.destroy_index()
         self.__connect_handler_id = \
-                self.__main_win.workers['index_reloader'].connect('index-loading-end',
-                                                          self.__on_index_loading_end_cb)
+                self.__main_win.workers['doc_thumbnailer'].connect('doc-thumbnailing-end',
+                        lambda worker: GObject.idle_add(self.__on_thumbnailing_end_cb))
         self.__main_win.workers['index_reloader'].start()
 
-    def __on_index_loading_end_cb(self, loader):
-        print "Index loaded. Will start refreshing it ..."
-        self.__main_win.workers['index_reloader'].disconnect(self.__connect_handler_id)
+    def __on_thumbnailing_end_cb(self):
+        print ("Index loaded and thumbnailing done. Will start refreshing the"
+               " index ...")
+        self.__main_win.workers['doc_thumbnailer'].disconnect(self.__connect_handler_id)
         self.__main_win.workers['doc_examiner'].stop()
         self.__connect_handler_id = \
                 self.__main_win.workers['doc_examiner'].connect('doc-examination-end',

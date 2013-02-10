@@ -49,6 +49,7 @@ class PdfPage(BasicPage):
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
         self.pdf_page = doc.pdf.get_page(page_nb)
+        assert(self.pdf_page != None)
         size = self.pdf_page.get_size()
         self.size = (int(size[0]), int(size[1]))
         self.__boxes = None

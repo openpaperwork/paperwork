@@ -58,6 +58,37 @@ class PdfDocExporter(object):
         return 'PDF'
 
 
+class PdfPagesIterator(object):
+    def __init__(self, pdfdoc):
+        self.pdfdoc = pdfdoc
+        self.idx = 0
+        self.pages = [pdfdoc.pages[i] for i in range(0, pdfdoc.nb_pages)]
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.idx >= self.pdfdoc.nb_pages:
+            raise StopIteration()
+        page = self.pages[self.idx]
+        self.idx += 1
+        return page
+
+
+class PdfPages(object):
+    def __init__(self, pdfdoc):
+        self.pdfdoc = pdfdoc
+
+    def __getitem__(self, idx):
+        return PdfPage(self.pdfdoc, idx)
+
+    def __len__(self):
+        return self.pdfdoc.nb_pages
+
+    def __iter__(self):
+        return PdfPagesIterator(self.pdfdoc)
+
+
 class PdfDoc(BasicDoc):
     can_edit = False
     doctype = u"PDF"
@@ -65,21 +96,17 @@ class PdfDoc(BasicDoc):
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
         self.pdf = None
+        self.nb_pages = 0
         self.pages = []
         if docid != None:
-            self._open()
+            self._open_pdf()
 
-    def _open(self):
+    def _open_pdf(self):
         self.pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
              password=None)
-        self.pages = [PdfPage(self, page_idx) \
-                      for page_idx in range(0, self.pdf.get_n_pages())]
-
-    def __get_nb_pages(self):
-        return len(self.pages)
-
-    nb_pages = property(__get_nb_pages)
+        self.nb_pages = self.pdf.get_n_pages()
+        self.pages = PdfPages(self)
 
     def print_page_cb(self, print_op, print_context, page_nb):
         """

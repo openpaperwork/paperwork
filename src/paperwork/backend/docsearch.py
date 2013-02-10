@@ -236,27 +236,19 @@ class DocSearch(object):
 
     def __inst_doc_from_id(self, docid, doc_type_name=None):
         docpath = os.path.join(self.rootdir, docid)
+        if not os.path.exists(docpath):
+            return None
         if doc_type_name is not None:
             # if we already know the doc type name
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
                 if doc_type_name_b == doc_type_name:
-                    try:
-                        return doc_type(docpath, docid)
-                    except Exception, exc:
-                        print ("Tried to instantiate document '%s' as %s, but"
-                               " failed: %s" % (docpath, doc_type_name,
-                                                str(exc)))
+                    return doc_type(docpath, docid)
             print ("Warning: unknown doc type found in the index: %s"
                    % doc_type_name)
         # otherwise we guess the doc type
         for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
-                try:
-                    return doc_type(docpath, docid)
-                except Exception, exc:
-                    print ("Tried to instantiate document '%s' as %s, but"
-                           " failed: %s" % (docpath, doc_type_name,
-                                            str(exc)))
+                return doc_type(docpath, docid)
         print "Warning: unknown doc type for doc %s" % docid
         return None
 

@@ -395,6 +395,9 @@ class WorkerImgBuilder(Worker):
               GObject.TYPE_PYOBJECT,  # pixbuf
               GObject.TYPE_PYOBJECT,  # array of boxes
              )),
+        'img-building-result-clear' :
+            (GObject.SignalFlags.RUN_LAST, None,
+             ()),
         'img-building-result-stock' :
             (GObject.SignalFlags.RUN_LAST, None,
              (GObject.TYPE_STRING, )),
@@ -412,7 +415,7 @@ class WorkerImgBuilder(Worker):
         self.emit('img-building-start')
 
         if self.__main_win.page.img == None:
-            self.emit('img-building-result-stock', Gtk.STOCK_MISSING_IMAGE)
+            self.emit('img-building-result-clear')
             return
 
         # to keep the GUI smooth
@@ -421,7 +424,7 @@ class WorkerImgBuilder(Worker):
                 break
             time.sleep(0.01)
         if not self.can_run:
-            self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
+            self.emit('img-building-result-clear')
             return
 
         try:
@@ -2097,6 +2100,9 @@ class MainWindow(object):
         self.workers['img_builder'].connect('img-building-result-stock',
                 lambda builder, img: \
                     GObject.idle_add(self.__on_img_building_result_stock, img))
+        self.workers['img_builder'].connect('img-building-result-clear',
+                lambda builder: \
+                    GObject.idle_add(self.__on_img_building_result_clear))
 
         self.workers['label_updater'].connect('label-updating-start',
                 lambda updater: \
@@ -2297,6 +2303,10 @@ class MainWindow(object):
 
     def __on_img_building_result_stock(self, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
+        self.set_mouse_cursor("Normal")
+
+    def __on_img_building_result_clear(self):
+        self.img['image'].clear()
         self.set_mouse_cursor("Normal")
 
     def __on_img_building_result_pixbuf(self, builder, factor, original_width,

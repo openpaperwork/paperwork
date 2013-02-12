@@ -278,6 +278,9 @@ class DocSearch(object):
             progress += 1
         progress_cb(1, 1, self.INDEX_STEP_LOADING)
 
+        self.label_list = [label for label in labels]
+        self.label_list.sort()
+
     def _delete_doc_from_index(self, index_writer, docid):
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)

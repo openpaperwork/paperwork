@@ -358,7 +358,7 @@ class WorkerDocThumbnailer(Worker):
         if doc_indexes is None:
             doc_indexes = range(resume, len(doclist))
         else:
-            doc_indexes = doc_index[resume:]
+            doc_indexes = doc_indexes[resume:]
 
         for doc_idx in doc_indexes:
             if self.paused:

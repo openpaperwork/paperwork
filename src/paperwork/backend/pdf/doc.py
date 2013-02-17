@@ -146,7 +146,7 @@ class PdfDoc(BasicDoc):
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
-        self._open()
+        self._open_pdf()
         nb_keywords = 0
         for keyword in self.keywords:
             nb_keywords += 1

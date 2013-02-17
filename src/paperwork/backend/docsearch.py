@@ -321,6 +321,11 @@ class DocSearch(object):
         index_writer = self.index.writer()
         self._update_doc_in_index(index_writer, page.doc)
         index_writer.commit()
+        if not page.doc.docid in self.__docs_by_id:
+            print ("Adding document '%s' to the index" % page.doc.docid)
+            self.__docs_by_id[page.doc.docid] = page.doc
+        del(self.__searcher)
+        self.__searcher = self.index.searcher()
 
     def __find_documents(self, query):
         docs = []

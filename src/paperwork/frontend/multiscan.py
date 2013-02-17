@@ -21,7 +21,7 @@ from gi.repository import Gtk
 
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.workers import Worker
-from paperwork.frontend.workers import WorkerQueue
+from paperwork.frontend.workers import IndependentWorkerQueue
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.util import load_uifile
@@ -40,7 +40,7 @@ class DocScanWorker(Worker):
                        (GObject.TYPE_INT, GObject.TYPE_INT)),
         'scan-done' : (GObject.SignalFlags.RUN_LAST, None,
                         # current page / total
-                       (GObject.TYPE_INT, GObject.TYPE_INT)),
+                       (GObject.TYPE_PYOBJECT, GObject.TYPE_INT)),
     }
 
     can_interrupt = True
@@ -72,7 +72,7 @@ class DocScanWorker(Worker):
                                       self.__progress_cb)
             page = self.doc.pages[self.doc.nb_pages - 1]
             self.docsearch.index_page(page)
-            self.emit('scan-done', self.current_page, self.nb_pages)
+            self.emit('scan-done', page, self.nb_pages)
         self.current_page = None
 
 
@@ -235,6 +235,8 @@ class ActionCancel(SimpleAction):
 class MultiscanDialog(GObject.GObject):
     __gsignals__ = {
         'need-doclist-refresh' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'need-show-page' : (GObject.SignalFlags.RUN_LAST, None,
+                            (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, main_window, config):
@@ -319,7 +321,7 @@ class MultiscanDialog(GObject.GObject):
             # add a first document to the list (the user will need one anyway)
             actions['add_doc'][1].do()
 
-        self.scan_queue = WorkerQueue("Mutiple scans")
+        self.scan_queue = IndependentWorkerQueue("Mutiple scans")
         self.scan_queue.connect("queue-start", lambda queue: \
                 GObject.idle_add(self.__on_global_scan_start_cb, queue))
         self.scan_queue.connect("queue-stop", lambda queue, exc: \
@@ -361,22 +363,24 @@ class MultiscanDialog(GObject.GObject):
                 (current_page*100/total_pages)
         self.lists['docs']['model'][line_idx][4] = _("Scanning")
 
-    def __on_ocr_start_cb(self, worker, current_page, total_pages):
+    def __on_ocr_start_cb(self, worker, page, total_pages):
         line_idx = worker.line_in_treeview
         self.lists['docs']['model'][line_idx][3] = \
                 ((current_page*100+50)/total_pages)
         self.lists['docs']['model'][line_idx][4] = _("Reading")
 
-    def __on_scan_done_cb(self, worker, current_page, total_pages):
+    def __on_scan_done_cb(self, worker, page, total_pages):
         line_idx = worker.line_in_treeview
         self.lists['docs']['model'][line_idx][1] = \
-                ("%d / %d" % (current_page+1, total_pages))
+                ("%d / %d" % (page.page_nb + 1, total_pages))
         self.lists['docs']['model'][line_idx][3] = \
-                ((current_page*100+100)/total_pages)
+                ((page.page_nb*100+100)/total_pages)
         self.lists['docs']['model'][line_idx][4] = _("Done")
         self.scanned_pages += 1
+        self.emit('need-show-page', page)
 
     def __on_global_scan_end_cb(self, work_queue, exception=None):
+        self.emit('need-doclist-refresh')
         self.set_mouse_cursor("Normal")
         if exception != None:
             if isinstance(exception, StopIteration):
@@ -401,7 +405,6 @@ class MultiscanDialog(GObject.GObject):
             dialog.run()
             dialog.destroy()
         self.dialog.destroy()
-        self.emit('need-doclist-refresh')
 
     def __on_destroy(self, window=None):
         if self.scan_queue.is_running:

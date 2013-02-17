@@ -256,7 +256,7 @@ class IndependentWorker(BasicWorker):
         return self.name
 
 
-class WorkerQueue(Worker):
+class IndependentWorkerQueue(IndependentWorker):
     can_interrupt = True
 
     __gsignals__ = {
@@ -268,7 +268,7 @@ class WorkerQueue(Worker):
     local_signals = ['queue-start', 'queue-stop']
 
     def __init__(self, name):
-        Worker.__init__(self, name)
+        IndependentWorker.__init__(self, name)
         self.__queue = []
         self.__current_worker = None
         self.__signals = {}
@@ -310,7 +310,7 @@ class WorkerQueue(Worker):
             self.__current_worker.stop()
         Worker.stop(self)
 
-GObject.type_register(WorkerQueue)
+GObject.type_register(IndependentWorkerQueue)
 
 
 class WorkerProgressUpdater(IndependentWorker):

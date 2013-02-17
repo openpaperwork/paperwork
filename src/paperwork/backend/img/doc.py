@@ -162,6 +162,8 @@ class _ImgPageList(object):
         self.doc = doc
 
     def __getitem__(self, idx):
+        if (idx < 0):
+            idx = self.doc.nb_pages - idx
         return ImgPage(self.doc, idx)
 
     def __len__(self):

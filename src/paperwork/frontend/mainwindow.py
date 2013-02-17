@@ -1046,10 +1046,14 @@ class ActionMultiScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
-        ms.connect("need-doclist-refresh", self.__doclist_refresh)
+        ms.connect("need-show-page",
+            lambda ms_dialog, page: \
+                GObject.idle_add(self.__show_page, page))
 
-    def __doclist_refresh(self, multiscan_window):
+    def __show_page(self, page):
         self.__main_win.refresh_doc_list()
+        self.__main_win.refresh_page_list()
+        self.__main_win.show_page(page)
 
 
 class ActionImport(SimpleAction):

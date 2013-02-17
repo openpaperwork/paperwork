@@ -34,8 +34,10 @@ class SinglePdfImporter(object):
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
         doc = PdfDoc(config.workdir)
+        print ("Importing doc '%s' ..." % file_uri)
         doc.import_pdf(config, file_uri)
         for page in doc.pages:
+            print ("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
             docsearch.index_page(page)
         return (doc, doc.pages[0])
 
@@ -73,6 +75,7 @@ class MultiplePdfImporter(object):
         return False
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
+        print ("Importing doc '%s'" % (file_uri))
         parent = Gio.File.parse_name(file_uri)
         doc = None
 
@@ -113,6 +116,7 @@ class SingleImageImporter(object):
         return False
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
+        print ("Importing doc '%s'" % (file_uri))
         if current_doc == None:
             current_doc = ImgDoc(config.workdir)
         current_doc.import_image(file_uri, config.ocrlang)

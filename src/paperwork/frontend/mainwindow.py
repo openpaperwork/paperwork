@@ -2404,7 +2404,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
         self.workers['progress_updater'].start(
-            value_min=0.0, value_max=1.0,
+            value_min=0.0, value_max=0.75,
             total_time=self.__config.scan_time['ocr'])
         self.__scan_start = time.time()
 

@@ -328,9 +328,11 @@ class DocSearch(object):
         docids = [result['docid'] for result in results]
         docs = [self.__docs_by_id.get(docid) for docid in docids]
         try:
-            docs.remove(None)
+            while True:
+                docs.remove(None)
         except ValueError:
             pass
+        assert (not None in docs)
         return docs
 
     def __get_all_docs(self):

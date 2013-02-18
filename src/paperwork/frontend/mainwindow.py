@@ -352,6 +352,12 @@ class WorkerDocThumbnailer(Worker):
         self.__main_win = main_window
 
     def do(self, doc_indexes=None, resume=0):
+        for t in range(0, 10):
+            if not self.can_run or self.paused:
+                return 0
+            time.sleep(0.05)
+
+
         self.emit('doc-thumbnailing-start')
 
         doclist = self.__main_win.lists['matches']['doclist']

@@ -159,7 +159,7 @@ class DocIndexUpdater(GObject.GObject):
         after calling this method
         """
         print "Index: Commiting changes"
-        self.writer.commit()
+        self.writer.commit(optimize=True)
         del self.writer
 
     def cancel(self):

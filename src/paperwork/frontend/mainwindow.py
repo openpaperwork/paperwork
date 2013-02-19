@@ -357,13 +357,16 @@ class WorkerDocThumbnailer(Worker):
                 return 0
             time.sleep(0.05)
 
-
         self.emit('doc-thumbnailing-start')
 
         doclist = self.__main_win.lists['matches']['doclist']
         if doc_indexes is None:
+            if resume >= len(doclist):
+                resume = 0
             doc_indexes = range(resume, len(doclist))
         else:
+            if resume >= len(doc_indexes):
+                resume = 0
             doc_indexes = doc_indexes[resume:]
 
         for doc_idx in doc_indexes:

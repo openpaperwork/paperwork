@@ -77,6 +77,9 @@ def check_scanner(main_win, config):
     main_win.actions['open_settings'][1].do()
     return False
 
+def sort_documents_by_date(documents):
+    documents.sort()
+    documents.reverse()
 
 class WorkerDocIndexLoader(Worker):
     """
@@ -274,16 +277,29 @@ class WorkerDocSearcher(Worker):
         sentence = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
 
         self.emit('search-start')
-
         if not self.can_run:
             return
 
         documents = self.__main_win.docsearch.find_documents(sentence)
+        if not self.can_run:
+            return
+
         if sentence == u"":
+            # when no specific search has been done, the sorting is always the same
+            sort_documents_by_date(documents)
             # append a new document to the list
             documents.insert(0, ImgDoc(self.__config.workdir))
+        else:
+            for (widget, sort_func) in self.__main_win.sortings:
+                if widget.get_active():
+                    sort_func(documents)
+                    break
+        if not self.can_run:
+            return
 
         suggestions = self.__main_win.docsearch.find_suggestions(sentence)
+        if not self.can_run:
+            return
 
         self.emit('search-result', documents, suggestions)
 
@@ -765,14 +781,16 @@ class ActionUpdateSearchResults(SimpleAction):
     """
     Update search results
     """
-    def __init__(self, main_window):
+    def __init__(self, main_window, refresh_pages=True):
         SimpleAction.__init__(self, "Update search results")
         self.__main_win = main_window
+        self.__refresh_pages = refresh_pages
 
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
-        self.__main_win.refresh_page()
+        if self.__refresh_pages:
+            self.__main_win.refresh_page()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY, event=None):
         if iconpos == Gtk.EntryIconPosition.PRIMARY:
@@ -1689,6 +1707,13 @@ class MainWindow(object):
             'exporter' : None,
         }
 
+        self.sortings = [
+            (widget_tree.get_object("radiomenuitemSortByRelevance"),
+             lambda docs: None),
+            (widget_tree.get_object("radiomenuitemSortByScanDate"),
+             sort_documents_by_date),
+        ]
+
         self.workers = {
             'index_reloader' : WorkerDocIndexLoader(self, config),
             'doc_examiner' : WorkerDocExaminer(self, config),
@@ -1929,6 +1954,13 @@ class MainWindow(object):
                     self.search_field,
                 ],
                 ActionUpdateSearchResults(self),
+            ),
+            'switch_sorting' : (
+                [
+                    widget_tree.get_object("radiomenuitemSortByRelevance"),
+                    widget_tree.get_object("radiomenuitemSortByScanDate"),
+                ],
+                ActionUpdateSearchResults(self, refresh_pages=False),
             ),
             'toggle_label' : (
                 [

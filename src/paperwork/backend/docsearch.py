@@ -343,8 +343,6 @@ class DocSearch(object):
     def __get_all_docs(self):
         query = whoosh.query.Every("docid")
         docs = self.__find_documents(query)
-        docs.sort()
-        docs.reverse()
         return docs
 
     docs = property(__get_all_docs)

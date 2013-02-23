@@ -130,14 +130,6 @@ class ImgPage(BasicPage):
         return os.path.join(self.doc.path,
                 "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
 
-    def __get_txt_path(self):
-        """
-        Returns the file path of the text corresponding to this page
-        """
-        return self.__get_filepath(self.EXT_TXT)
-
-    __txt_path = property(__get_txt_path)
-
     def __get_box_path(self):
         """
         Returns the file path of the box list corresponding to this page
@@ -164,7 +156,7 @@ class ImgPage(BasicPage):
 
     def __get_last_mod(self):
         try:
-            return os.stat(self.__get_txt_path()).st_mtime
+            return os.stat(self.__get_box_path()).st_mtime
         except OSError, exc:
             return 0.0
 
@@ -174,16 +166,11 @@ class ImgPage(BasicPage):
         """
         Get the text corresponding to this page
         """
-        txtfile = self.__txt_path
-        txt = []
-        try:
-            with codecs.open(txtfile, 'r', encoding='utf-8') as file_desc:
-                for line in file_desc.readlines():
-                    line = line.strip()
-                    txt.append(line)
-        except IOError, exc:
-            print "Unable to read [%s]: %s" % (txtfile, str(exc))
-        return txt
+        boxes = self.boxes
+        txt = u""
+        for box in boxes:
+            txt += u" " + str(box)
+        return [txt]
 
     text = property(__get_text)
 
@@ -192,7 +179,6 @@ class ImgPage(BasicPage):
         Get all the word boxes of this page.
         """
         boxfile = self.__box_path
-        txt = self.text
 
         box_builder = pyocr.builders.WordBoxBuilder()
 
@@ -371,7 +357,6 @@ class ImgPage(BasicPage):
         Scan the page & do OCR
         """
         imgfile = self.__img_path
-        txtfile = self.__txt_path
         boxfile = self.__box_path
 
         outfiles = self.__save_imgs(img, scan_res, scanner_calibration,
@@ -384,10 +369,6 @@ class ImgPage(BasicPage):
         # Convert the image and save it in its final place
         img = Image.open(bmpfile)
         img.save(imgfile)
-
-        # Save the text
-        with codecs.open(txtfile, 'w', encoding='utf-8') as file_desc:
-            file_desc.write(txt)
 
         # Save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
@@ -465,14 +446,10 @@ class ImgPage(BasicPage):
         print "Redoing OCR of '%s'" % (str(self))
 
         imgfile = self.__img_path
-        txtfile = self.__txt_path
         boxfile = self.__box_path
 
         (imgfile, txt, boxes) = self.__ocr([imgfile], ocrlang,
                                            dummy_progress_cb)
-        # save the text
-        with open(txtfile, 'w') as file_desc:
-            file_desc.write(txt)
         # save the boxes
         with open(boxfile, 'w') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
@@ -485,14 +462,12 @@ class ImgPage(BasicPage):
         Will also change the page number of the current object.
         """
         src = {}
-        src["txt"] = self.__get_txt_path()
         src["box"] = self.__get_box_path()
         src["img"] = self.__get_img_path()
 
         self.page_nb += offset
 
         dst = {}
-        dst["txt"] = self.__get_txt_path()
         dst["box"] = self.__get_box_path()
         dst["img"] = self.__get_img_path()
 
@@ -510,8 +485,6 @@ class ImgPage(BasicPage):
             self.doc.destroy()
             return
         current_doc_nb_pages = self.doc.nb_pages
-        if os.access(self.__get_txt_path(), os.F_OK):
-            os.unlink(self.__get_txt_path())
         if os.access(self.__get_box_path(), os.F_OK):
             os.unlink(self.__get_box_path())
         if os.access(self.__get_img_path(), os.F_OK):

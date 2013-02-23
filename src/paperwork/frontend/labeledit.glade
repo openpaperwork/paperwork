@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkDialog" id="dialogLabelEditor">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>

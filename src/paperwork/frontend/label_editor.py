@@ -1,7 +1,10 @@
+import gettext
+
 from gi.repository import Gtk
 
 from paperwork.util import load_uifile
 
+_ = gettext.gettext
 
 class LabelEditor(object):
     """
@@ -12,6 +15,9 @@ class LabelEditor(object):
         if label_to_edit == None:
             label_to_edit = Label()
         self.label = label_to_edit
+
+        self.__ok_button = None
+
 
     def edit(self, main_window):
         """
@@ -24,11 +30,15 @@ class LabelEditor(object):
         color_chooser = widget_tree.get_object("colorselectionLabelColor")
 
         name_entry.set_text(self.label.name)
+        name_entry.connect("changed", self.__on_label_entry_changed)
         color_chooser.set_current_color(self.label.color)
 
         dialog.set_transient_for(main_window)
-        dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
-        dialog.add_button("Ok", Gtk.ResponseType.OK)
+        dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self.__ok_button = dialog.add_button(_("Ok"), Gtk.ResponseType.OK)
+
+        self.__on_label_entry_changed(name_entry)
+
         response = dialog.run()
 
         if (response == Gtk.ResponseType.OK
@@ -45,3 +55,10 @@ class LabelEditor(object):
 
         print "Label after editing: %s" % (self.label)
         return (response == Gtk.ResponseType.OK)
+
+    def __on_label_entry_changed(self, label_entry):
+        txt = unicode(label_entry.get_text()).strip()
+        ok_enabled = True
+        ok_enabled = ok_enabled and txt != u""
+        ok_enabled = ok_enabled and not u"," in txt
+        self.__ok_button.set_sensitive(ok_enabled)

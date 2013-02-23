@@ -20,8 +20,6 @@ Code to manage document labels
 
 from gi.repository import Gdk
 
-from paperwork.util import load_uifile
-
 
 class Label(object):
     """

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-21 13:04+0100\n"
+"POT-Creation-Date: 2013-02-23 18:24+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -62,6 +62,16 @@ msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 #: src/paperwork/backend/docimport.py:128
 msgid "Append the image to the current document"
 msgstr "Ajouter l'image au document actuellement ouvert"
+
+#: src/paperwork/frontend/label_editor.py:37
+#: src/paperwork/frontend/settingswindow.glade.h:13
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/paperwork/frontend/label_editor.py:38
+#: src/paperwork/frontend/settingswindow.glade.h:14
+msgid "Ok"
+msgstr "Ok"
 
 #: src/paperwork/frontend/mainwindow.py:111
 msgid "Loading ..."
@@ -161,28 +171,28 @@ msgstr "Mise à jour du label (%s) ..."
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2389
+#: src/paperwork/frontend/mainwindow.py:2390
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2393
+#: src/paperwork/frontend/mainwindow.py:2394
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2405
+#: src/paperwork/frontend/mainwindow.py:2406
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/frontend/mainwindow.py:2420
+#: src/paperwork/frontend/mainwindow.py:2421
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/paperwork/frontend/mainwindow.py:2448
+#: src/paperwork/frontend/mainwindow.py:2449
 msgid "Importing ..."
 msgstr "Import en cours ..."
 
-#: src/paperwork/frontend/mainwindow.py:2584
+#: src/paperwork/frontend/mainwindow.py:2585
 #, python-format
 msgid ""
 "\n"
@@ -191,17 +201,17 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/frontend/mainwindow.py:2750
+#: src/paperwork/frontend/mainwindow.py:2751
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/frontend/mainwindow.py:2754
+#: src/paperwork/frontend/mainwindow.py:2755
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow.py:2835
+#: src/paperwork/frontend/mainwindow.py:2836
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 
@@ -585,14 +595,6 @@ msgstr "<b>OCR</b>"
 #: src/paperwork/frontend/settingswindow.glade.h:12
 msgid "<b>Scanner calibration</b>"
 msgstr "<b>Calibration du scanner</b>"
-
-#: src/paperwork/frontend/settingswindow.glade.h:13
-msgid "Cancel"
-msgstr "Annuler"
-
-#: src/paperwork/frontend/settingswindow.glade.h:14
-msgid "Ok"
-msgstr "Ok"
 
 #~ msgid "'!' can be used as a prefix to"
 #~ msgstr "'!' peut être utilisé comme préfixe pour"

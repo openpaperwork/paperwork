@@ -324,8 +324,9 @@ class DocSearch(object):
         if not page.doc.docid in self.__docs_by_id:
             print ("Adding document '%s' to the index" % page.doc.docid)
             self.__docs_by_id[page.doc.docid] = page.doc
-        del(self.__searcher)
+        searcher = self.__searcher
         self.__searcher = self.index.searcher()
+        del(searcher)
 
     def __find_documents(self, query):
         docs = []
@@ -437,6 +438,7 @@ class DocSearch(object):
             self.label_list.sort()
         current = 0
         total = len(self.docs)
+        index_writer = self.index.writer()
         for doc in self.docs:
             must_reindex = (old_label in doc.labels)
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
@@ -444,7 +446,10 @@ class DocSearch(object):
             if must_reindex:
                 self._update_doc_in_index(index_writer, doc)
             current += 1
+        index_writer.commit()
+        searcher = self.__searcher
         self.__searcher = self.index.searcher()
+        del(searcher)
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         """
@@ -454,6 +459,7 @@ class DocSearch(object):
         current = 0
         docs = self.docs
         total = len(docs)
+        index_writer = self.index.writer()
         for doc in docs:
             must_reindex = (label in doc.labels)
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
@@ -461,7 +467,10 @@ class DocSearch(object):
             if must_reindex:
                 self._update_doc_in_index(index_writer, doc)
             current += 1
+        index_writer.commit()
+        searcher = self.__searcher
         self.__searcher = self.index.searcher()
+        del(searcher)
 
     def redo_ocr(self, ocrlang, progress_callback=dummy_progress_cb):
         """

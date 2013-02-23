@@ -34,6 +34,7 @@ import pyinsane.rawapi
 
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
+from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.workers import IndependentWorker
@@ -45,7 +46,6 @@ from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.backend.labels import LabelEditor
 from paperwork.util import add_img_border
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
@@ -2382,6 +2382,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
+        self.refresh_label_list()
 
     def __on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)

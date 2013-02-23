@@ -209,11 +209,8 @@ class Worker(BasicWorker):
             return
         self.wait()
         self.paused = False
-
         args = self.__last_args.copy()
-        print "[%s] RESUME: %s" % (self.name, str(self.__last_ret_value))
         args['resume'] = self.__last_ret_value
-
         _WORKER_THREAD.queue_worker(self, args)
         self.__is_in_queue = True
 

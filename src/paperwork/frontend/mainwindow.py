@@ -370,7 +370,7 @@ class WorkerDocThumbnailer(Worker):
     def do(self, doc_indexes=None, resume=0):
         for t in range(0, 10):
             if not self.can_run or self.paused:
-                return 0
+                return resume
             time.sleep(0.05)
 
         self.emit('doc-thumbnailing-start')
@@ -390,7 +390,7 @@ class WorkerDocThumbnailer(Worker):
                 return resume
             if not self.can_run:
                 self.emit('doc-thumbnailing-end')
-                return 0
+                return resume
             doc = doclist[doc_idx]
             if doc.nb_pages <= 0:
                 resume += 1

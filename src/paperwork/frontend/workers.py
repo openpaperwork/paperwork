@@ -207,14 +207,15 @@ class Worker(BasicWorker):
     def resume(self):
         if not self.paused:
             return
+        self.wait()
         self.paused = False
-        if not self.__is_in_queue:
-            args = self.__last_args.copy()
-            args['resume'] = self.__last_ret_value
-            _WORKER_THREAD.queue_worker(self, args)
-            self.__is_in_queue = True
-        else:
-            self.__must_restart = True
+
+        args = self.__last_args.copy()
+        print "[%s] RESUME: %s" % (self.name, str(self.__last_ret_value))
+        args['resume'] = self.__last_ret_value
+
+        _WORKER_THREAD.queue_worker(self, args)
+        self.__is_in_queue = True
 
     def stop(self):
         self.soft_stop()

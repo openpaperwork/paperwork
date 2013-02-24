@@ -101,6 +101,7 @@ class PageEditingDialog(object):
 
         self.__original_img_widgets = {
             'img' : widget_tree.get_object("imageOriginal"),
+            'scrolledwindow' : widget_tree.get_object("scrolledwindowOriginal"),
             'eventbox' : widget_tree.get_object("eventboxOriginal"),
             'viewport' : widget_tree.get_object("viewportOriginal")
         }
@@ -153,6 +154,7 @@ class PageEditingDialog(object):
                     target_size, Image.BILINEAR))
         self.__cut_grips = ImgGripHandler(
             [self.imgs['resized'], self.imgs['orig']],
+            self.__original_img_widgets['scrolledwindow'],
             self.__original_img_widgets['eventbox'],
             self.__original_img_widgets['img'])
         self.__cut_grips.visible = False

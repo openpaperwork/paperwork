@@ -594,6 +594,7 @@ class SettingsWindow(GObject.GObject):
     def __on_resize_done(self, factor, img):
         self.calibration['images'].insert(0, (factor, img))
         self.grips = ImgGripHandler(self.calibration['images'],
+                                    self.calibration['image_scrollbars'],
                                     self.calibration['image_eventbox'],
                                     self.calibration['image_gui'])
         self.grips.visible = True

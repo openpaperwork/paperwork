@@ -83,7 +83,7 @@ class ImgGripHandler(GObject.GObject):
         'grip-moved' : (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
-    def __init__(self, imgs, img_eventbox, img_widget):
+    def __init__(self, imgs, img_scrolledwindow, img_eventbox, img_widget):
         """
         Arguments:
             imgs --- [(factor, PIL img), (factor, PIL img), ...]
@@ -94,6 +94,7 @@ class ImgGripHandler(GObject.GObject):
         self.__visible = False
 
         self.imgs = imgs
+        self.img_scrolledwindow = img_scrolledwindow
         self.img_eventbox = img_eventbox
         self.img_widget = img_widget
 
@@ -119,6 +120,11 @@ class ImgGripHandler(GObject.GObject):
         img_eventbox.connect("button-release-event",
             self.__on_mouse_button_released_cb)
         img_eventbox.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+
+        img_widget.connect("size-allocate",
+            lambda widget, size: GObject.idle_add(self.__on_size_allocate_cb,
+                                                  widget, size))
+        self.__last_cursor_pos = None  # relative to the image size
 
         self.redraw()
 
@@ -178,11 +184,36 @@ class ImgGripHandler(GObject.GObject):
             self.__move_grip(event.get_coords())
             self.selected = None
         else:
+            # figure out the cursor position on the image
+            (mouse_x, mouse_y) = event.get_coords()
+            img = self.imgs[0][1]
+            bbox = img.getbbox()
+            img_w = bbox[2]
+            img_h = bbox[3]
+            self.__last_cursor_pos = (
+                float(mouse_x) / img_w,
+                float(mouse_y) / img_h
+            )
+
             # switch image
             img = self.imgs.pop()
             self.imgs.insert(0, img)
         GObject.idle_add(self.redraw)
         self.emit('grip-moved')
+
+    def __on_size_allocate_cb(self, viewport, new_size):
+        if self.__last_cursor_pos is None:
+            return
+        (x, y) = self.__last_cursor_pos
+        self.__last_cursor_pos = None
+        for (adjustment, val) in [
+                (self.img_scrolledwindow.get_hadjustment(), x),
+                (self.img_scrolledwindow.get_vadjustment(), y),
+            ]:
+            upper = adjustment.get_upper() - adjustment.get_page_size()
+            lower = adjustment.get_lower()
+            val = (val * (upper - lower) + lower)
+            adjustment.set_value(val)
 
     def __draw_grips(self, img, imgdraw, factor):
         for grip in self.__grips:

@@ -23,6 +23,7 @@ import time
 
 import Image
 import ImageColor
+import ImageDraw
 import gettext
 import cairo
 from gi.repository import Gtk
@@ -330,11 +331,17 @@ class WorkerPageThumbnailer(Worker):
         self.__main_win = main_window
 
     def do(self):
+        search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+
         self.emit('page-thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
-            img = add_img_border(img)
+            img.copy()
+            if search != u"" and search in page:
+                img = add_img_border(img, color="#009e00", width=3)
+            else:
+                img = add_img_border(img)
             pixbuf = image2pixbuf(img)
             if not self.can_run:
                 self.emit('page-thumbnailing-end')
@@ -2362,6 +2369,7 @@ class MainWindow(object):
         self.workers['index_reloader'].start()
 
     def __on_search_result_cb(self, documents, suggestions):
+        self.workers['page_thumbnailer'].soft_stop()
         self.workers['doc_thumbnailer'].stop()
 
         print "Got %d suggestions" % len(suggestions)
@@ -2388,6 +2396,8 @@ class MainWindow(object):
 
         self.__select_doc(active_idx)
 
+        self.workers['page_thumbnailer'].stop()
+        self.workers['page_thumbnailer'].start()
         self.workers['doc_thumbnailer'].start()
 
 

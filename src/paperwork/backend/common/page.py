@@ -132,7 +132,7 @@ class BasicPage(object):
         self.__text_cache = self._get_text()
         return self.__text_cache
 
-    txt = property(__get_text)
+    text = property(__get_text)
 
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()
@@ -184,6 +184,17 @@ class BasicPage(object):
             return False
         return self.doc == other.doc and self.page_nb == other.page_nb
 
+    def __contains__(self, sentence):
+        words = split_words(sentence)
+        words = [word.lower() for word in words]
+        txt = self.text
+        for line in txt:
+            line = line.lower()
+            for word in words:
+                if word in line:
+                    return True
+        return False
+
     def __get_keywords(self):
         """
         Get all the keywords related of this page
@@ -191,7 +202,8 @@ class BasicPage(object):
         Returns:
             An array of strings
         """
-        for line in self.text:
+        txt = self.text
+        for line in txt:
             for word in split_words(line):
                 yield(word)
 

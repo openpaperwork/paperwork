@@ -246,9 +246,12 @@ def sizeof_fmt(num):
             num /= 1024.0
         return STRINGS[-1] % (num)
 
-def add_img_border(img, color="#a6a5a4"):
+def add_img_border(img, color="#a6a5a4", width=1):
     img_draw = ImageDraw.Draw(img)
-    img_draw.rectangle([(0, 0), (img.size[0]-1, img.size[1]-1)], outline=color)
+    for line in range(0, width):
+        img_draw.rectangle([(line, line), (img.size[0]-1-line,
+                                           img.size[1]-1-line)],
+                           outline=color)
     del img_draw
     return img
 

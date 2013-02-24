@@ -105,7 +105,7 @@ class ImgGripHandler(GObject.GObject):
         self.selected = None  # the grip being moved
 
         self.__cursors = {
-            'default' : None,
+            'default' : Gdk.Cursor.new(Gdk.CursorType.HAND1),
             'visible': Gdk.Cursor.new(Gdk.CursorType.HAND1),
             'on_grip': Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         }
@@ -170,16 +170,15 @@ class ImgGripHandler(GObject.GObject):
         self.selected.position = (new_x, new_y)
 
     def __on_mouse_button_released_cb(self, widget, event):
-        if not self.__visible:
-            return
-
-        self.__move_grip(event.get_coords())
         if self.selected:
+            if not self.__visible:
+                return
+            self.__move_grip(event.get_coords())
             self.selected = None
         else:
             # switch image
             img = self.imgs.pop()
-            self.imgs.append(img)
+            self.imgs.insert(0, img)
         GObject.idle_add(self.redraw)
         self.emit('grip-moved')
 

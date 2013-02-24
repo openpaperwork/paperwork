@@ -148,7 +148,8 @@ class PageEditingDialog(object):
         if factor > 1.0:
             factor = 1.0
         target_size = (int(factor * img_w), int(factor * img_h))
-        self.imgs['resized'] = (factor, self.imgs['orig'][1].resize(
+        copy = self.imgs['orig'][1].copy()
+        self.imgs['resized'] = (factor, copy.resize(
                     target_size, Image.BILINEAR))
         self.__cut_grips = ImgGripHandler(
             [self.imgs['resized'], self.imgs['orig']],

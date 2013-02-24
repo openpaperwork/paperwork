@@ -691,6 +691,43 @@ class WorkerExportPreviewer(Worker):
 GObject.type_register(WorkerExportPreviewer)
 
 
+class WorkerPageEditor(Worker):
+    __gsignals__ = {
+        'page-editing-img-edit' : (GObject.SignalFlags.RUN_LAST, None,
+                                (GObject.TYPE_PYOBJECT, )),
+        'page-editing-ocr' : (GObject.SignalFlags.RUN_LAST, None,
+                                (GObject.TYPE_PYOBJECT, )),
+        'page-editing-index-upd' : (GObject.SignalFlags.RUN_LAST, None,
+                                (GObject.TYPE_PYOBJECT, )),
+        'page-editing-done' : (GObject.SignalFlags.RUN_LAST, None,
+                               (GObject.TYPE_PYOBJECT, )),
+    }
+
+    def __init__(self, main_win, config):
+        Worker.__init__(self, "Page editor")
+        self.__main_win = main_win
+        self.__config = config
+
+    def do(self, page, changes=[]):
+        self.emit('page-editing-img-edit', page)
+        try:
+            img = page.img
+            for change in changes:
+                img = change.do(img, 1.0)
+            page.img = img
+            self.emit('page-editing-ocr', page)
+            page.redo_ocr(self.__config.ocrlang)
+            self.emit('page-editing-index-upd', page)
+            index_upd = self.__main_win.docsearch.get_index_updater()
+            index_upd.upd_doc(page.doc)
+            index_upd.commit()
+        finally:
+            self.emit('page-editing-done', page)
+
+
+GObject.type_register(WorkerPageEditor)
+
+
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
@@ -1575,6 +1612,13 @@ class ActionEditPage(SimpleAction):
         SimpleAction.do(self)
         ped = PageEditingDialog(self.__main_win, self.__main_win.page)
         todo = ped.get_changes()
+        if todo == []:
+            return
+        print "Changes to do to the page %s:" % (self.__main_win.page)
+        for action in todo:
+            print "- %s" % str(action)
+        self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
+                                                     changes=todo)
 
 
 class MainWindow(object):
@@ -1738,6 +1782,7 @@ class MainWindow(object):
                 "main window progress bar", self.status['progress']),
             'ocr_redoer' : WorkerOCRRedoer(self, config),
             'export_previewer' : WorkerExportPreviewer(self),
+            'page_editor' : WorkerPageEditor(self, config),
         }
 
         self.actions = {
@@ -2073,12 +2118,11 @@ class MainWindow(object):
         )
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
-            # TODO(Jflesch): Find the correct signal
-            # This one doesn't take into account the key to access these menus
-            if popup_menu[0] is None:
-                print "MISSING POPUP MENU: %s" % popup_menu_name
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
+            # TODO(Jflesch): Find the correct signal
+            # This one doesn't take into account the key to access these menus
+            assert(not popup_menu[0] is None)
 
         self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.img['eventbox'].connect("leave-notify-event",
@@ -2228,6 +2272,23 @@ class MainWindow(object):
                 lambda worker, size, pixbuf: \
                     GObject.idle_add(self.__on_export_preview_done, size,
                                      pixbuf))
+
+        self.workers['page_editor'].connect('page-editing-img-edit',
+                lambda worker, page: \
+                    GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
+                                     worker, page))
+        self.workers['page_editor'].connect('page-editing-ocr',
+                lambda worker, page: \
+                    GObject.idle_add(self.__on_page_editing_ocr_cb,
+                                     worker, page))
+        self.workers['page_editor'].connect('page-editing-index-upd',
+                lambda worker, page: \
+                    GObject.idle_add(self.__on_page_editing_index_upd_cb,
+                                     worker, page))
+        self.workers['page_editor'].connect('page-editing-done',
+                lambda worker, page: \
+                    GObject.idle_add(self.__on_page_editing_done_cb,
+                                     worker, page))
 
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
@@ -2894,3 +2955,19 @@ class MainWindow(object):
             return
 
         self.workers['img_builder'].start()
+
+    def __on_page_editing_img_edit_start_cb(self, worker, page):
+        self.set_mouse_cursor("Busy")
+        self.set_progression(worker, 0.0, _("Updating the image ..."))
+
+    def __on_page_editing_ocr_cb(self, worker, page):
+        self.set_progression(worker, 0.25, _("Redoing OCR ..."))
+
+    def __on_page_editing_index_upd_cb(self, worker, page):
+        self.set_progression(worker, 0.75, _("Updating the index ..."))
+
+    def __on_page_editing_done_cb(self, worker, page):
+        self.set_mouse_cursor("Normal")
+        self.refresh_doc_list()
+        self.refresh_page_list()
+        self.show_page(page)

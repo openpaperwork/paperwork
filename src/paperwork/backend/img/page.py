@@ -198,7 +198,10 @@ class ImgPage(BasicPage):
         """
         return Image.open(self.__img_path)
 
-    img = property(__get_img)
+    def __set_img(self, img):
+        img.save(self.__img_path)
+
+    img = property(__get_img, __set_img)
 
     def __make_thumbnail(self, width):
         """

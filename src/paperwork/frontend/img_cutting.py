@@ -210,9 +210,6 @@ class ImgGripHandler(GObject.GObject):
 
     visible = property(__get_visible, __set_visible)
 
-    def has_coords(self):
-        return self.__grips != None
-
     def get_coords(self):
         return ((int(self.__grips[0].position[0]),
                  int(self.__grips[0].position[1])),

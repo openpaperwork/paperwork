@@ -31,7 +31,7 @@ class PageEditionAction(object):
     def __init__(self):
         pass
 
-    def do(self, img):
+    def do(self, img, img_scale):
         raise NotImplementedError()
 
     def add_to_action_queue(self, actions):
@@ -46,13 +46,16 @@ class PageRotationAction(PageEditionAction):
         PageEditionAction.__init__(self)
         self.angle = angle
 
-    def do(self, img):
-        # TODO
-        pass
+    def do(self, img, img_scale):
+        # PIL angle is counter-clockwise. Ours is clockwise
+        return img.rotate(angle=-1 * self.angle)
 
     def add_to_action_queue(self, actions):
-        # TODO
-        pass
+        for action in actions:
+            if isinstance(action, PageRotationAction):
+                self.angle += action.angle
+                actions.remove(action)
+        actions.append(self)
 
     def __str__(self):
         return _("Image rotation of %d degrees") % self.angle
@@ -62,18 +65,26 @@ class PageCuttingAction(PageEditionAction):
     def __init__(self, cut):
         """
         Arguments:
-            cut --- ((a, b), (c, d)) : a, b, c, d are float between 0.0 and 1.0
-            (1.0 being the whole image weight/height)
+            cut --- ((a, b), (c, d))
         """
         self.cut = cut
 
-    def do(self, img):
-        # TODO
-        pass
+    def do(self, img, img_scale):
+        cut = (int(float(self.cut[0][0]) * img_scale),
+               int(float(self.cut[0][1]) * img_scale),
+               int(float(self.cut[1][0]) * img_scale),
+               int(float(self.cut[1][1]) * img_scale))
+        return img.crop(cut)
 
-    def add_to_action_queue(self, action):
-        # TODO
-        pass
+    def add_to_action_queue(self, actions):
+        self.remove_from_action_queue(actions)
+        actions.insert(0, self)
+
+    @staticmethod
+    def remove_from_action_queue(actions):
+        for action in actions:
+            if isinstance(action, PageCuttingAction):
+                actions.remove(action)
 
     def __str__(self):
         return _("Image cutting: %s") % str(self.cut)
@@ -93,21 +104,37 @@ class PageEditingDialog(object):
             'eventbox' : widget_tree.get_object("eventboxOriginal"),
             'viewport' : widget_tree.get_object("viewportOriginal")
         }
-        self.cutting_button = widget_tree.get_object("togglebuttonCutting")
+        self.__result_img_widget = widget_tree.get_object("imageResult")
+        self.__buttons = {
+            'cutting' : widget_tree.get_object("togglebuttonCutting"),
+            'rotate' : {
+                'clockwise' : (widget_tree.get_object("buttonRotateClockwise"),
+                               90),
+                'counter_clockwise' : \
+                    (widget_tree.get_object("buttonRotateCounterClockwise"),
+                     -90),
+            }
+        }
 
         self.__cut_grips = None
 
         self.__original_img_widgets['viewport'].connect("size-allocate",
             lambda widget, size: GObject.idle_add(self.__on_size_allocated_cb))
-        self.cutting_button.connect("toggled",
+        self.__buttons['cutting'].connect("toggled",
             lambda widget: GObject.idle_add(self.__on_cutting_button_toggled_cb))
-
+        self.__buttons['rotate']['clockwise'][0].connect("clicked",
+            lambda widget: \
+                GObject.idle_add(self.__on_rotate_activated_cb, widget))
+        self.__buttons['rotate']['counter_clockwise'][0].connect("clicked",
+            lambda widget: \
+                GObject.idle_add(self.__on_rotate_activated_cb, widget))
 
         self.page = page
         self.imgs = {
             'orig' : (1.0, self.page.img)
         }
 
+        self.__changes = []
 
     def __on_size_allocated_cb(self):
         if not self.__cut_grips is None:
@@ -128,9 +155,40 @@ class PageEditingDialog(object):
             self.__original_img_widgets['eventbox'],
             self.__original_img_widgets['img'])
         self.__cut_grips.visible = False
+        self.__cut_grips.connect("grip-moved", self.__on_grip_moved_cb)
+
+        self.__redraw_result()
 
     def __on_cutting_button_toggled_cb(self):
-        self.__cut_grips.visible = self.cutting_button.get_active()
+        self.__cut_grips.visible = self.__buttons['cutting'].get_active()
+        if not self.__cut_grips.visible:
+            PageCuttingAction.remove_from_action_queue(self.__changes)
+            self.__redraw_result()
+        else:
+            self.__on_grip_moved_cb(self.__cut_grips)
+
+    def __on_grip_moved_cb(self, grips):
+        cut = self.__cut_grips.get_coords()
+        action = PageCuttingAction(cut)
+        action.add_to_action_queue(self.__changes)
+        self.__redraw_result()
+
+    def __on_rotate_activated_cb(self, widget):
+        for (button, angle) in self.__buttons['rotate'].values():
+            if button == widget:
+                break
+        assert(button != None)
+        print "Adding action rotation of %d degrees" % angle
+        rotation = PageRotationAction(angle)
+        rotation.add_to_action_queue(self.__changes)
+        self.__redraw_result()
+
+    def __redraw_result(self):
+        (scale, img) = self.imgs['resized']
+        for action in self.__changes:
+            img = action.do(img, scale)
+        img = image2pixbuf(img)
+        self.__result_img_widget.set_from_pixbuf(img)
 
     def get_changes(self):
         resp_id = self.__dialog.run()
@@ -138,5 +196,4 @@ class PageEditingDialog(object):
         if resp_id == 1:  # cancel
             print "Image editing cancelled by user"
             return []
-        # TODO
-        return []
+        return self.__changes

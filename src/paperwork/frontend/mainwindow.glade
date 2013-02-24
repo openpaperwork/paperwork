@@ -1003,9 +1003,9 @@
                         <property name="can_focus">False</property>
                         <property name="tooltip_text" translatable="yes">Edit page</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="label" translatable="yes">Edit page</property>
+                        <property name="label" translatable="yes">Modify</property>
                         <property name="use_underline">True</property>
-                        <property name="stock_id">gtk-edit</property>
+                        <property name="stock_id">gtk-page-setup</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>

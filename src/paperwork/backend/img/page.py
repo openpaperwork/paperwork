@@ -169,7 +169,7 @@ class ImgPage(BasicPage):
         boxes = self.boxes
         txt = u""
         for box in boxes:
-            txt += u" " + str(box)
+            txt += u" " + str(box).decode('utf-8')
         return [txt]
 
     text = property(__get_text)
@@ -454,7 +454,7 @@ class ImgPage(BasicPage):
         (imgfile, txt, boxes) = self.__ocr([imgfile], ocrlang,
                                            dummy_progress_cb)
         # save the boxes
-        with open(boxfile, 'w') as file_desc:
+        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
 
     def __ch_number(self, offset):

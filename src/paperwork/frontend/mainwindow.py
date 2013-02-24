@@ -2705,7 +2705,7 @@ class MainWindow(object):
 
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        print "Search: %s" % (sentence.encode('ascii', 'replace'))
+        print "Search: %s" % (sentence.encode('utf-8', 'replace'))
 
         doc_list = self.lists['matches']['doclist']
 

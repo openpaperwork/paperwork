@@ -2974,6 +2974,7 @@ class MainWindow(object):
     def __on_page_editing_done_cb(self, worker, page):
         self.set_progression(worker, 0.0, "")
         self.set_mouse_cursor("Normal")
-        self.refresh_doc_list()
+        if page.page_nb == 0:
+            self.refresh_doc_list()
         self.refresh_page_list()
         self.show_page(page)

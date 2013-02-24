@@ -2710,6 +2710,9 @@ class MainWindow(object):
                              path, False, 0.0, 0.0)
         else:
             self.lists['matches']['gui'].unselect_all()
+            path = Gtk.TreePath(0)
+            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
+                             path, False, 0.0, 0.0)
 
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')

@@ -137,8 +137,9 @@ class DocDirExaminer(GObject.GObject):
 
 
 class DocIndexUpdater(GObject.GObject):
-    def __init__(self, docsearch):
+    def __init__(self, docsearch, optimize):
         self.docsearch = docsearch
+        self.optimize = optimize
         self.writer = docsearch.index.writer()
 
     def add_doc(self, doc):
@@ -159,7 +160,7 @@ class DocIndexUpdater(GObject.GObject):
         after calling this method
         """
         print "Index: Commiting changes"
-        self.writer.commit(optimize=True)
+        self.writer.commit(optimize=self.optimize)
         del self.writer
 
     def cancel(self):
@@ -231,8 +232,8 @@ class DocSearch(object):
     def get_doc_examiner(self):
         return DocDirExaminer(self)
 
-    def get_index_updater(self):
-        return DocIndexUpdater(self)
+    def get_index_updater(self, optimize=True):
+        return DocIndexUpdater(self, optimize)
 
     def __inst_doc_from_id(self, docid, doc_type_name=None):
         docpath = os.path.join(self.rootdir, docid)

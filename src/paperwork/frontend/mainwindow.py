@@ -718,7 +718,8 @@ class WorkerPageEditor(Worker):
             self.emit('page-editing-ocr', page)
             page.redo_ocr(self.__config.ocrlang)
             self.emit('page-editing-index-upd', page)
-            index_upd = self.__main_win.docsearch.get_index_updater()
+            index_upd = \
+                    self.__main_win.docsearch.get_index_updater(optimize=False)
             index_upd.upd_doc(page.doc)
             index_upd.commit()
         finally:

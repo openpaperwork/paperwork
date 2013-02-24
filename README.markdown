@@ -18,10 +18,6 @@ machine do most of the work.
   <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.main_window.png" width="512" height="384" />
 </a>
 
-<a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.page_list.png">
-  <img src="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.page_list.png" width="512" height="384" />
-</a>
-
 ### Search suggestions
 
 <a href="http://jflesch.kwain.net/~jflesch/paperwork/paperwork.alpha.suggestions.png">

@@ -78,7 +78,11 @@ class ImgGrip(object):
             and y_min <= position[1] and position[1] <= y_max)
 
 
-class ImgGripHandler(object):
+class ImgGripHandler(GObject.GObject):
+    __gsignals__ = {
+        'grip-moved' : (GObject.SignalFlags.RUN_LAST, None, ())
+    }
+
     def __init__(self, imgs, img_eventbox, img_widget):
         """
         Arguments:
@@ -86,6 +90,7 @@ class ImgGripHandler(object):
             img_eventbox --- Image area eventbox
             img_widget --- Widget displaying the image
         """
+        GObject.GObject.__init__(self)
         self.__visible = False
 
         self.imgs = imgs
@@ -176,6 +181,7 @@ class ImgGripHandler(object):
             img = self.imgs.pop()
             self.imgs.append(img)
         GObject.idle_add(self.redraw)
+        self.emit('grip-moved')
 
     def __draw_grips(self, img, imgdraw, factor):
         for grip in self.__grips:
@@ -212,4 +218,6 @@ class ImgGripHandler(object):
                  int(self.__grips[0].position[1])),
                 (int(self.__grips[1].position[0]),
                  int(self.__grips[1].position[1])))
+
+GObject.type_register(ImgGripHandler)
 

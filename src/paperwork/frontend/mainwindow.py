@@ -1574,7 +1574,7 @@ class ActionEditPage(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         ped = PageEditingDialog(self.__main_win, self.__main_win.page)
-        ped.run()
+        todo = ped.get_changes()
 
 
 class MainWindow(object):

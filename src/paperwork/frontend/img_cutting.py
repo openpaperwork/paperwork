@@ -97,6 +97,8 @@ class ImgGripHandler(GObject.GObject):
         self.img_eventbox = img_eventbox
         self.img_widget = img_widget
 
+        self.img_widget.set_alignment(0.0, 0.0)
+
         bbox = imgs[0][1].getbbox()
         factor = imgs[0][0]
         self.__grips = (

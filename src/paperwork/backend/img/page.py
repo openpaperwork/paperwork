@@ -162,7 +162,7 @@ class ImgPage(BasicPage):
 
     last_mod = property(__get_last_mod)
 
-    def __get_text(self):
+    def _get_text(self):
         """
         Get the text corresponding to this page
         """
@@ -171,8 +171,6 @@ class ImgPage(BasicPage):
         for box in boxes:
             txt += u" " + str(box).decode('utf-8')
         return [txt]
-
-    text = property(__get_text)
 
     def __get_boxes(self):
         """
@@ -200,6 +198,7 @@ class ImgPage(BasicPage):
 
     def __set_img(self, img):
         img.save(self.__img_path)
+        self.drop_cache()
 
     img = property(__get_img, __set_img)
 
@@ -456,6 +455,7 @@ class ImgPage(BasicPage):
         # save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
             pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
+        self.drop_cache()
 
     def __ch_number(self, offset):
         """

@@ -93,7 +93,6 @@ class BasicPage(object):
     SCAN_STEP_SCAN = "scanning"
     SCAN_STEP_OCR = "ocr"
 
-    text = ""
     boxes = []
     img = None
 
@@ -103,7 +102,10 @@ class BasicPage(object):
         """
         self.doc = doc
         self.page_nb = page_nb
+
         self.__thumbnail_cache = (None, 0)
+        self.__text_cache = None
+
         assert(self.page_nb >= 0)
         self.__prototype_exporters = {
             'PNG' : PageExporter(self, 'PNG', 'image/png', ["png"]),
@@ -119,6 +121,18 @@ class BasicPage(object):
         thumbnail = self._get_thumbnail(width)
         self.__thumbnail_cache = (thumbnail, width)
         return thumbnail
+
+    def drop_cache(self):
+        self.__thumbnail_cache = (None, 0)
+        self.__text_cache = None
+
+    def __get_text(self):
+        if self.__text_cache is not None:
+            return self.__text_cache
+        self.__text_cache = self._get_text()
+        return self.__text_cache
+
+    txt = property(__get_text)
 
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()

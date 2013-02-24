@@ -75,7 +75,7 @@ class PdfPage(BasicPage):
 
     last_mod = property(__get_last_mod)
 
-    def __get_text(self):
+    def _get_text(self):
         txtfile = self.__get_txt_path()
 
         try:
@@ -95,8 +95,6 @@ class PdfPage(BasicPage):
             txt = self.pdf_page.get_text()
             txt = unicode(txt, encoding='utf-8')
             return txt.split(u"\n")
-
-    text = property(__get_text)
 
     def __get_boxes(self):
         """

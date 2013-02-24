@@ -45,6 +45,7 @@ then
 	xgettext -k_ -kN_ -o locale/messages.pot \
 		src/paperwork/*.py \
 		src/paperwork/backend/*.py \
+		src/paperwork/backend/common/*.py \
 		src/paperwork/frontend/*.py \
 		src/paperwork/frontend/*.glade.h \
 		> /dev/null

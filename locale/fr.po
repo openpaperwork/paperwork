@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-02-24 16:05+0100\n"
+"POT-Creation-Date: 2013-02-24 16:12+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -62,6 +62,10 @@ msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 #: src/paperwork/backend/docimport.py:128
 msgid "Append the image to the current document"
 msgstr "Ajouter l'image au document actuellement ouvert"
+
+#: src/paperwork/backend/common/doc.py:230
+msgid "New document"
+msgstr "Nouveau document"
 
 #: src/paperwork/frontend/label_editor.py:37
 #: src/paperwork/frontend/pageeditingdialog.glade.h:2

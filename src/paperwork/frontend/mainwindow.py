@@ -1930,6 +1930,7 @@ class MainWindow(object):
             'edit_page' : (
                 [
                     widget_tree.get_object("menuitemEditPage"),
+                    widget_tree.get_object("toolbuttonEditPage"),
                 ],
                 ActionEditPage(self),
             ),

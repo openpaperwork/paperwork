@@ -997,6 +997,22 @@
                       </packing>
                     </child>
                     <child>
+                      <object class="GtkToolButton" id="toolbuttonEditPage">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip_text" translatable="yes">Edit page</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Edit page</property>
+                        <property name="use_underline">True</property>
+                        <property name="stock_id">gtk-edit</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="homogeneous">True</property>
+                      </packing>
+                    </child>
+                    <child>
                       <object class="GtkMenuToolButton" id="toolbuttonPrint">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

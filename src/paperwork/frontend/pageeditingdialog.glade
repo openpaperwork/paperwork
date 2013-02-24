@@ -4,19 +4,9 @@
   <object class="GtkActionGroup" id="actiongroup1"/>
   <object class="GtkActionGroup" id="actiongroup2"/>
   <object class="GtkActionGroup" id="actiongroup3"/>
-  <object class="GtkImage" id="imageRotateClockwise">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">object-rotate-right</property>
-  </object>
-  <object class="GtkImage" id="imageRotateCounterClockwise">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="icon_name">object-rotate-left</property>
-  </object>
-  <object class="GtkDialog" id="dialog1">
+  <object class="GtkDialog" id="dialogPageEditing">
     <property name="width_request">800</property>
-    <property name="height_request">300</property>
+    <property name="height_request">350</property>
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Page editing</property>
@@ -31,10 +21,34 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="buttonCancel">
+                <property name="label" translatable="yes">Cancel</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="buttonOk">
+                <property name="label" translatable="yes">Ok</property>
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_action_appearance">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -54,6 +68,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
                 <child>
                   <object class="GtkFrame" id="frame3">
                     <property name="visible">True</property>
@@ -120,12 +135,61 @@
                   </packing>
                 </child>
                 <child>
+                  <object class="GtkFrame" id="frame4">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label_xalign">0</property>
+                    <property name="shadow_type">none</property>
+                    <child>
+                      <object class="GtkAlignment" id="alignment4">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="left_padding">12</property>
+                        <child>
+                          <object class="GtkBox" id="box5">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <child>
+                              <object class="GtkToggleButton" id="togglebuttonCutting">
+                                <property name="use_action_appearance">False</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_action_appearance">False</property>
+                                <property name="image">imageCutting</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel" id="label5">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Cutting&lt;/b&gt;</property>
+                        <property name="use_markup">True</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
                   <object class="GtkLabel" id="label3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
+                    <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">2</property>
                   </packing>
@@ -165,10 +229,16 @@
                         <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkImage" id="image1">
+                          <object class="GtkEventBox" id="eventboxOriginal">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="stock">gtk-missing-image</property>
+                            <child>
+                              <object class="GtkImage" id="imageOriginal">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-missing-image</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -177,7 +247,7 @@
                       <object class="GtkLabel" id="label2">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;b&gt;Result&lt;/b&gt;</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Original&lt;/b&gt;</property>
                         <property name="use_markup">True</property>
                       </object>
                     </child>
@@ -212,7 +282,7 @@
                         <property name="can_focus">False</property>
                         <property name="left_padding">12</property>
                         <child>
-                          <object class="GtkImage" id="image2">
+                          <object class="GtkImage" id="imageResult">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-missing-image</property>
@@ -224,7 +294,7 @@
                       <object class="GtkLabel" id="label1">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="label" translatable="yes">&lt;b&gt;Original&lt;/b&gt;</property>
+                        <property name="label" translatable="yes">&lt;b&gt;Result&lt;/b&gt;</property>
                         <property name="use_markup">True</property>
                       </object>
                     </child>
@@ -251,5 +321,24 @@
         </child>
       </object>
     </child>
+    <action-widgets>
+      <action-widget response="1">buttonCancel</action-widget>
+      <action-widget response="0">buttonOk</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkImage" id="imageCutting">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="stock">gtk-cut</property>
+  </object>
+  <object class="GtkImage" id="imageRotateClockwise">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">object-rotate-right</property>
+  </object>
+  <object class="GtkImage" id="imageRotateCounterClockwise">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="icon_name">object-rotate-left</property>
   </object>
 </interface>

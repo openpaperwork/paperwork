@@ -36,6 +36,7 @@ from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
+from paperwork.frontend.page_edit import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.workers import IndependentWorker
 from paperwork.frontend.workers import Worker
@@ -1562,6 +1563,20 @@ class ActionRebuildIndex(SimpleAction):
             )
 
 
+class ActionEditPage(SimpleAction):
+    """
+    Open the dialog to edit a page
+    """
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Edit page")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        ped = PageEditingDialog(self.__main_win, self.__main_win.page)
+        ped.run()
+
+
 class MainWindow(object):
     def __init__(self, config):
         # used by the set_mouse_cursor() function to keep track of how many
@@ -1866,6 +1881,12 @@ class MainWindow(object):
                 ],
                 ActionDeleteDoc(self),
             ),
+            'edit_page' : (
+                [
+                    widget_tree.get_object("menuitemEditPage"),
+                ],
+                ActionEditPage(self),
+            ),
             'del_page' : (
                 [
                     widget_tree.get_object("menuitemDestroyPage"),
@@ -2037,6 +2058,7 @@ class MainWindow(object):
             + self.actions['next_page'][0]
             + self.actions['last_page'][0]
             + self.actions['open_export_page_dialog'][0]
+            + self.actions['edit_page'][0]
         )
 
         self.need_label_widgets = (
@@ -2047,6 +2069,7 @@ class MainWindow(object):
         self.doc_edit_widgets = (
             self.actions['single_scan'][0]
             + self.actions['del_page'][0]
+            + self.actions['edit_page'][0]
         )
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():

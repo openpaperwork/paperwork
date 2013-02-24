@@ -2119,6 +2119,9 @@ class MainWindow(object):
             + self.actions['edit_page'][0]
         )
 
+        for widget in self.need_doc_widgets + self.need_page_widgets:
+            widget.set_sensitive(False)
+
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])

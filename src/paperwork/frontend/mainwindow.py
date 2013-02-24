@@ -1629,6 +1629,9 @@ class MainWindow(object):
         self.__busy_mouse_counter = 0
         self.__last_highlight_update = time.time()
 
+        img = Image.new("RGB", (150, 205), color="#CCCCCC")
+        self.default_thumbnail = image2pixbuf(img)
+
         widget_tree = load_uifile("mainwindow.glade")
 
         self.window = widget_tree.get_object("mainWindow")
@@ -2672,14 +2675,14 @@ class MainWindow(object):
 
     def __get_doc_model_line(self, doc):
         doc_txt = self.__get_doc_txt(doc)
-        stock = Gtk.STOCK_EXECUTE
+        thumbnail = self.default_thumbnail
         if doc.nb_pages <= 0:
-            stock = None
+            thumbnail = None
         return ([
             doc_txt,
             doc,
+            thumbnail,
             None,
-            stock,
             Gtk.IconSize.DIALOG,
         ])
 
@@ -2827,8 +2830,8 @@ class MainWindow(object):
         self.lists['pages']['model'].clear()
         for page in self.doc.pages:
             self.lists['pages']['model'].append([
-                None,  # no thumbnail
-                Gtk.STOCK_EXECUTE,
+                self.default_thumbnail,
+                None,
                 Gtk.IconSize.DIALOG,
                 _('Page %d') % (page.page_nb + 1),
                 page.page_nb

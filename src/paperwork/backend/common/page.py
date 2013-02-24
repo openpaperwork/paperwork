@@ -114,14 +114,10 @@ class BasicPage(object):
         raise NotImplementedError()
 
     def get_thumbnail(self, width):
-        # keep the thumbnail of the first pages in memory
-        # they are requested much more often
-        if (self.page_nb == 0
-            and width == self.__thumbnail_cache[1]):
+        if (width == self.__thumbnail_cache[1]):
             return self.__thumbnail_cache[0]
         thumbnail = self._get_thumbnail(width)
-        if self.page_nb == 0:
-            self.__thumbnail_cache = (thumbnail, width)
+        self.__thumbnail_cache = (thumbnail, width)
         return thumbnail
 
     def print_page_cb(self, print_op, print_context):

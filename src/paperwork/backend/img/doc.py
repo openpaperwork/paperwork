@@ -161,10 +161,19 @@ class _ImgPageList(object):
     def __init__(self, doc):
         self.doc = doc
 
+        # keep the first page in memory, its thumbnail
+        # is accessed quite often
+        self.page_0 = None
+
     def __getitem__(self, idx):
         if (idx < 0):
             idx = self.doc.nb_pages - idx
-        return ImgPage(self.doc, idx)
+        if (idx == 0 and self.page_0 is not None):
+            return self.page_0
+        page = ImgPage(self.doc, idx)
+        if idx == 0:
+            self.page_0 = page
+        return page
 
     def __len__(self):
         return self.doc.nb_pages

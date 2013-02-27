@@ -27,25 +27,33 @@ from gi.repository import Gtk
 import locale
 import gi
 
+import pyocr.pyocr
 import pyinsane.abstract_th  # Just to start the Sane thread
 
 from frontend import mainwindow
 from frontend import workers
 from backend.config import PaperworkConfig
 
-# we use the french locale as reference to know where to look for locales
-# order matters
-LOCALE_PATHS = [
-    ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
-    ('/usr/local/share/locale/fr/LC_MESSAGES/paperwork.mo',
-     '/usr/local/share/locale'),
-    ('/usr/share/locale/fr/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
-]
+def check_module_version(module_name, module_version, expected_version):
+    if module_version < expected_version:
+        raise Exception(("%s is not up-to-date."
+                " Expected version: %s. Version found: %s")
+                % (module_name, str(expected_version), str(module_version)))
 
-def main():
-    """
-    Where everything start.
-    """
+
+def check_module_versions():
+    check_module_version("pyocr", pyocr.pyocr.VERSION, (0, 1, 1))
+
+
+def set_locale():
+    # we use the french locale as reference to know where to look for locales
+    # order matters
+    LOCALE_PATHS = [
+        ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
+        ('/usr/local/share/locale/fr/LC_MESSAGES/paperwork.mo',
+         '/usr/local/share/locale'),
+        ('/usr/share/locale/fr/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
+    ]
     locale.setlocale(locale.LC_ALL, '')
 
     got_locales = False
@@ -62,6 +70,14 @@ def main():
         for module in (gettext, locale):
             module.bindtextdomain('paperwork', locales_path)
             module.textdomain('paperwork')
+
+
+def main():
+    """
+    Where everything start.
+    """
+    check_module_versions()
+    set_locale()
 
     GObject.threads_init()
 

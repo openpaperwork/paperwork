@@ -486,7 +486,7 @@ class DocSearch(object):
         """
         print "Redoing OCR of all documents ..."
 
-        dlist = os.listdir(self.rootdir)
+        dlist = self.docs
         threads = []
         remaining = dlist[:]
 
@@ -497,13 +497,11 @@ class DocSearch(object):
                 if not thread.is_alive():
                     threads.remove(thread)
             while (len(threads) < max_threads and len(remaining) > 0):
-                docid = remaining.pop()
-                docpath = os.path.join(self.rootdir, docid)
-                doc = self.get_doc(docpath, docid)
-                if doc == None:
+                doc = remaining.pop()
+                if not doc.can_edit:
                     continue
                 thread = threading.Thread(target=doc.redo_ocr,
-                                          args=[ocrlang], name=docid)
+                                          args=[ocrlang], name=doc.docid)
                 thread.start()
                 threads.append(thread)
                 progress_callback(len(dlist) - len(remaining),

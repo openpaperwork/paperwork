@@ -42,11 +42,12 @@ from paperwork.util import image2surface
 
 
 class ImgOCRThread(threading.Thread):
-    def __init__(self, ocr_tool, ocr_lang, imgpath):
+    def __init__(self, ocr_tool, ocr_lang, imgpath, compute_score=True):
         threading.Thread.__init__(self, name="OCR")
         self.ocr_tool = ocr_tool
         self.ocr_lang = ocr_lang
         self.imgpath = imgpath
+        self.compute_score = compute_score
         self.score = -1
         self.text = None
 
@@ -80,6 +81,10 @@ class ImgOCRThread(threading.Thread):
 
         print ("Running OCR on '%s'" % self.imgpath)
         self.text = self.ocr_tool.image_to_string(img, lang=self.ocr_lang)
+
+        if not self.compute_score:
+            self.score = 0
+            return
 
         for score_method in SCORE_METHODS:
             try:
@@ -303,6 +308,7 @@ class ImgPage(BasicPage):
         """
 
         files = files[:]
+        need_scores = len(files) > 1
 
         callback(0, 100, self.SCAN_STEP_OCR)
 
@@ -316,7 +322,9 @@ class ImgPage(BasicPage):
 
         max_threads = multiprocessing.cpu_count()
         threads = []
-        print "Will use %d process(es) for OCR" % (max_threads)
+
+        if len(files) > 1:
+            print "Will use %d process(es) for OCR" % (max_threads)
 
         scores = []
 
@@ -334,7 +342,8 @@ class ImgPage(BasicPage):
             # start new threads if required
             while (len(threads) < max_threads and len(files) > 0):
                 imgpath = files.pop()
-                thread = ImgOCRThread(ocr_tools[0], ocrlang, imgpath)
+                thread = ImgOCRThread(ocr_tools[0], ocrlang, imgpath,
+                                      need_scores)
                 thread.start()
                 threads.append(thread)
             time.sleep(self.OCR_THREADS_POLLING_TIME)

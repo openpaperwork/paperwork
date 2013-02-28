@@ -30,9 +30,20 @@ from paperwork.util import surface2image
 PDF_RENDER_FACTOR=2
 
 
-class PdfBox(object):
+class PdfWordBox(object):
     def __init__(self, content, rectangle, pdf_size):
         self.content = content
+        # XXX(Jflesch): Coordinates seem to come from the bottom left of the
+        # page instead of the top left !?
+        self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
+                         int((pdf_size[1] - rectangle.y2) * PDF_RENDER_FACTOR)),
+                        (int(rectangle.x2 * PDF_RENDER_FACTOR),
+                         int((pdf_size[1] - rectangle.y1) * PDF_RENDER_FACTOR)))
+
+
+class PdfLineBox(object):
+    def __init__(self, word_boxes, rectangle, pdf_size):
+        self.word_boxes = word_boxes
         # XXX(Jflesch): Coordinates seem to come from the bottom left of the
         # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
@@ -108,7 +119,7 @@ class PdfPage(BasicPage):
         try:
             os.stat(boxfile)
 
-            box_builder = pyocr.builders.WordBoxBuilder()
+            box_builder = pyocr.builders.LineBoxBuilder()
 
             try:
                 with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
@@ -121,6 +132,9 @@ class PdfPage(BasicPage):
             pass
 
         # fall back on what libpoppler tells us
+
+        # TODO: Line support !
+
         txt = self.pdf_page.get_text()
         pdf_size = self.pdf_page.get_size()
         words = set()
@@ -130,7 +144,9 @@ class PdfPage(BasicPage):
                 words.add(word)
         for word in words:
             for rect in self.pdf_page.find_text(word):
-                self.__boxes.append(PdfBox(word, rect, pdf_size))
+                word_box = PdfWordBox(word, rect, pdf_size)
+                line_box = PdfLineBox([word_box], rect, pdf_size)
+                self.__boxes.append(line_box)
         return self.__boxes
 
     boxes = property(__get_boxes)

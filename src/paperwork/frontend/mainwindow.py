@@ -2662,8 +2662,11 @@ class MainWindow(object):
         return ((int(a), int(b)), (int(c), int(d)))
 
     def __on_img_draw(self, imgwidget, cairo_context):
+        visible = []
+        for line in self.img['boxes']['visible']:
+            visible += line.word_boxes
         for ((color_r, color_b, color_g), line_width, boxes) in [
-                ((0.421875, 0.36328125, 0.81640625), 1, self.img['boxes']['visible']),
+                ((0.421875, 0.36328125, 0.81640625), 1, visible),
                 ((0.421875, 0.36328125, 0.81640625), 2,
                     self.img['boxes']['selected']),
                 ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])

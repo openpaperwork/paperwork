@@ -22,6 +22,7 @@ import errno
 import os
 import re
 import StringIO
+import threading
 import unicodedata
 
 import enchant
@@ -255,6 +256,10 @@ def add_img_border(img, color="#a6a5a4", width=1):
     del img_draw
     return img
 
+
+_ENCHANT_LOCK = threading.Lock()
+
+
 def check_spelling(ocr_lang, txt):
     """
     Check the spelling in the text, and compute a score. The score is the
@@ -265,58 +270,64 @@ def check_spelling(ocr_lang, txt):
     Returns:
         A tuple : (fixed text, score)
     """
-    # Maximum distance from the first suggestion from python-enchant
-    MAX_LEVENSHTEIN_DISTANCE = 1
-    MIN_WORD_LEN = 4
+    global _ENCHANT_LOCK
 
-    # TODO(Jflesch): We are assuming here that we can figure out the best
-    # dictionary based on the 3 letters OCR lang. This is a bad assumption
+    _ENCHANT_LOCK.acquire()
     try:
-        language = pycountry.languages.get(terminology=ocr_lang[:3])
-    except KeyError:
-        language = pycountry.languages.get(bibliographic=ocr_lang[:3])
-    spelling_lang = language.alpha2
+        # Maximum distance from the first suggestion from python-enchant
+        MAX_LEVENSHTEIN_DISTANCE = 1
+        MIN_WORD_LEN = 4
 
-    words_dict = enchant.request_dict(spelling_lang)
-    try:
-        tknzr = enchant.tokenize.get_tokenizer(spelling_lang)
-    except enchant.tokenize.TokenizerNotFoundError:
-        # Fall back to default tokenization if no match for 'lang'
-        tknzr = enchant.tokenize.get_tokenizer()
+        # TODO(Jflesch): We are assuming here that we can figure out the best
+        # dictionary based on the 3 letters OCR lang. This is a bad assumption
+        try:
+            language = pycountry.languages.get(terminology=ocr_lang[:3])
+        except KeyError:
+            language = pycountry.languages.get(bibliographic=ocr_lang[:3])
+        spelling_lang = language.alpha2
 
-    score = 0
-    offset = 0
-    for (word, word_pos) in tknzr(txt):
-        if len(word) < MIN_WORD_LEN:
-            continue
-        if words_dict.check(word):
-            # immediately correct words are a really good hint for orientation
-            score += 100
-            continue
-        suggestions = words_dict.suggest(word)
-        if (len(suggestions) <= 0):
-            # this word is useless. It may even indicates a bad orientation
-            score -= 10
-            continue
-        main_suggestion = suggestions[0]
-        lv_dist = Levenshtein.distance(word, main_suggestion)
-        if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
-            # hm, this word looks like it's in a bad shape
-            continue
+        words_dict = enchant.request_dict(spelling_lang)
+        try:
+            tknzr = enchant.tokenize.get_tokenizer(spelling_lang)
+        except enchant.tokenize.TokenizerNotFoundError:
+            # Fall back to default tokenization if no match for 'lang'
+            tknzr = enchant.tokenize.get_tokenizer()
 
-        print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
+        score = 0
+        offset = 0
+        for (word, word_pos) in tknzr(txt):
+            if len(word) < MIN_WORD_LEN:
+                continue
+            if words_dict.check(word):
+                # immediately correct words are a really good hint for orientation
+                score += 100
+                continue
+            suggestions = words_dict.suggest(word)
+            if (len(suggestions) <= 0):
+                # this word is useless. It may even indicates a bad orientation
+                score -= 10
+                continue
+            main_suggestion = suggestions[0]
+            lv_dist = Levenshtein.distance(word, main_suggestion)
+            if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
+                # hm, this word looks like it's in a bad shape
+                continue
 
-        # let's replace the word by its suggestion
+            print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
 
-        pre_txt = txt[:word_pos + offset]
-        post_txt = txt[word_pos + len(word) + offset:]
-        txt = pre_txt + main_suggestion + post_txt
-        offset += (len(main_suggestion) - len(word))
+            # let's replace the word by its suggestion
 
-        # fixed words may be a good hint for orientation
-        score += 5
+            pre_txt = txt[:word_pos + offset]
+            post_txt = txt[word_pos + len(word) + offset:]
+            txt = pre_txt + main_suggestion + post_txt
+            offset += (len(main_suggestion) - len(word))
 
-    return (txt, score)
+            # fixed words may be a good hint for orientation
+            score += 5
+
+        return (txt, score)
+    finally:
+        _ENCHANT_LOCK.release()
 
 def mkdir_p(path):
     try:

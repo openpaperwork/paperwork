@@ -2587,16 +2587,24 @@ class MainWindow(object):
         to_refresh = self.img['boxes']['selected']
         selected = None
 
-        for box in self.img['boxes']['all']:
+        for line in self.img['boxes']['all']:
             ((a, b), (c, d)) = \
-                    self.__get_box_position(box,
+                    self.__get_box_position(line,
                                             window=self.img['image'],
                                             width=0)
             if (mouse_x < a or mouse_y < b
                 or mouse_x > c or mouse_y > d):
                 continue
-            selected = box
-            break
+            for box in line.word_boxes:
+                ((a, b), (c, d)) = \
+                        self.__get_box_position(box,
+                                                window=self.img['image'],
+                                                width=0)
+                if (mouse_x < a or mouse_y < b
+                    or mouse_x > c or mouse_y > d):
+                    continue
+                selected = box
+                break
 
         if selected is not None:
             if selected in self.img['boxes']['selected']:

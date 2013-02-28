@@ -178,7 +178,7 @@ class ImgPage(BasicPage):
         """
         boxfile = self.__box_path
 
-        box_builder = pyocr.builders.WordBoxBuilder()
+        box_builder = pyocr.builders.LineBoxBuilder()
 
         try:
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
@@ -347,7 +347,7 @@ class ImgPage(BasicPage):
         print "Extracting boxes ..."
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
         boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
-                lang=ocrlang, builder=pyocr.builders.WordBoxBuilder())
+                lang=ocrlang, builder=pyocr.builders.LineBoxBuilder())
         print "Done"
 
         callback(100, 100, self.SCAN_STEP_OCR)
@@ -374,7 +374,7 @@ class ImgPage(BasicPage):
 
         # Save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
-            pyocr.builders.WordBoxBuilder().write_file(file_desc, boxes)
+            pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
 
         # delete temporary files
         for outfile in outfiles:
@@ -454,7 +454,7 @@ class ImgPage(BasicPage):
                                            dummy_progress_cb)
         # save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
-            pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
+            pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)
         self.drop_cache()
 
     def __ch_number(self, offset):

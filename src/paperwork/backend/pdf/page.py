@@ -207,12 +207,12 @@ class PdfPage(BasicPage):
 
         txt = ocr_tools[0].image_to_string(img, lang=ocrlang)
         boxes = ocr_tools[0].image_to_string(img, lang=ocrlang,
-                                             builder=pyocr.builders.WordBoxBuilder())
+                                             builder=pyocr.builders.LineBoxBuilder())
 
         # save the text
         with codecs.open(txtfile, 'w', encoding='utf-8') as file_desc:
             file_desc.write(txt)
         # save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
-            pyocr.builders.WordBoxBuilder.write_file(file_desc, boxes)
+            pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)
 

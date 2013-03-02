@@ -2,6 +2,7 @@ import gettext
 
 from gi.repository import Gtk
 
+from paperwork.backend.labels import Label
 from paperwork.util import load_uifile
 
 _ = gettext.gettext

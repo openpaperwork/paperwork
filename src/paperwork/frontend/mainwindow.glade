@@ -1275,7 +1275,7 @@
                         <property name="can_focus">False</property>
                         <property name="hexpand">True</property>
                         <property name="vexpand">False</property>
-                        <property name="spacing">30</property>
+                        <property name="spacing">15</property>
                         <child internal-child="content_area">
                           <object class="GtkBox" id="infobar-content_area1">
                             <property name="can_focus">False</property>
@@ -1366,7 +1366,7 @@
                                         </child>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
+                                        <property name="expand">True</property>
                                         <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
@@ -1394,7 +1394,7 @@
                                         <property name="can_focus">False</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">False</property>
+                                        <property name="expand">True</property>
                                         <property name="fill">False</property>
                                         <property name="position">2</property>
                                       </packing>
@@ -1413,8 +1413,8 @@
                                             <property name="text"> </property>
                                           </object>
                                           <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
                                             <property name="position">0</property>
                                           </packing>
                                         </child>
@@ -1449,8 +1449,8 @@
                                 </child>
                               </object>
                               <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>

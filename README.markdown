@@ -81,6 +81,8 @@ GPLv3. See COPYING.
 	* Debian/Ubuntu package: python-imaging
 * poppler (required)
 	* Debian/Ubuntu package: gir1.2-poppler-0.18
+* Python Cairo bindings for the GObject library (required):
+	* Debian/Ubuntu package: python-gi-cairo
 * python-enchant (required)
 	* Debian/Ubuntu package: python-enchant
 * python-levenshtein (required)

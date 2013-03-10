@@ -218,10 +218,11 @@ class WorkerIndexUpdater(Worker):
         self.__main_win = main_window
         self.__config = config
 
-    def do(self, new_docs, upd_docs, del_docs):
+    def do(self, new_docs=[], upd_docs=[], del_docs=[], optimize=True):
         self.emit('index-update-start')
         try:
-            index_updater = self.__main_win.docsearch.get_index_updater()
+            index_updater = self.__main_win.docsearch.get_index_updater(
+                optimize=optimize)
 
             docs = [
                 (_("Indexing new document ..."), new_docs, index_updater.add_doc),
@@ -3078,6 +3079,15 @@ class MainWindow(object):
                % (obj_id, target_doc.docid))
         target_doc.steal_page(obj)
 
-        drag_context.finish(True, False, time)
-        GObject.idle_add(self.refresh_docs, [obj.doc, target_doc])
+        if obj.doc.nb_pages <= 0:
+            del_docs = [obj.doc]
+            upd_docs = [target_doc]
+        else:
+            del_docs = []
+            upd_docs = [obj.doc, target_doc]
 
+        drag_context.finish(True, False, time)
+        GObject.idle_add(self.refresh_page_list)
+        # the index update will start a doc list refresh when finished
+        GObject.idle_add(lambda: self.workers['index_updater'].start(
+                         upd_docs=upd_docs, del_docs=del_docs, optimize=False))

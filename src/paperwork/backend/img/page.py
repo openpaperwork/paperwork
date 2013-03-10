@@ -495,7 +495,9 @@ class ImgPage(BasicPage):
 
         for key in src.keys():
             if os.access(src[key], os.F_OK):
-                assert(not os.access(dst[key], os.F_OK))
+                if os.access(dst[key], os.F_OK):
+                    print "Error: file already exists: %s" % dst[key]
+                    assert(0)
                 os.rename(src[key], dst[key])
 
     def change_index(self, new_index):
@@ -540,6 +542,7 @@ class ImgPage(BasicPage):
         if self.doc.nb_pages <= 1:
             self.doc.destroy()
             return
+        doc_pages = self.doc.pages[:]
         current_doc_nb_pages = self.doc.nb_pages
         paths = [
             self.__get_box_path(),
@@ -550,6 +553,36 @@ class ImgPage(BasicPage):
             if os.access(path, os.F_OK):
                 os.unlink(path)
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
-            page = self.doc.pages[page_nb]
+            page = doc_pages[page_nb]
             page.__ch_number(offset=-1)
+
+    def _steal_content(self, other_page):
+        """
+        Call ImgDoc.steal_page() instead
+        """
+        other_doc = other_page.doc
+        other_doc_pages = other_doc.pages[:]
+        other_doc_nb_pages = other_doc.nb_pages
+        other_page_nb = other_page.page_nb
+
+        to_move = [
+            (other_page.__get_box_path(), self.__get_box_path()),
+            (other_page.__get_img_path(), self.__get_img_path()),
+            (other_page.__get_thumb_path(), self.__get_thumb_path())
+        ]
+        for (src, dst) in to_move:
+            # sanity check
+            if os.access(dst, os.F_OK):
+                print "Error, file already exists: %s" % dst
+                assert(0)
+        for (src, dst) in to_move:
+            print "%s --> %s" % (src, dst)
+            os.rename(src, dst)
+
+        if (other_doc_nb_pages <= 1):
+            other_doc.destroy()
+        else:
+            for page_nb in range(other_page_nb + 1, other_doc_nb_pages):
+                page = other_doc_pages[page_nb]
+                page.__ch_number(offset=-1)
 

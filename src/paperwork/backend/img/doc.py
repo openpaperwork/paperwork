@@ -34,6 +34,7 @@ from paperwork.backend.img.page import ImgPage
 from paperwork.util import dummy_progress_cb
 from paperwork.util import surface2image
 from paperwork.util import image2surface
+from paperwork.util import mkdir_p
 
 
 class ImgToPdfDocExporter(object):
@@ -284,7 +285,6 @@ class ImgDoc(BasicDoc):
     def __get_pages(self):
         """
         Return a list of pages.
-        Pages are instantiated on-the-fly.
         """
         return _ImgPageList(self)
 
@@ -308,8 +308,15 @@ class ImgDoc(BasicDoc):
         """
         Steal a page from another document
         """
-        # TODO
-        pass
+        if page.doc == self:
+            return
+        mkdir_p(self.path)
+        other_doc = page.doc
+        other_doc_nb_pages = page.doc.nb_pages
+
+        new_page = ImgPage(self, self.nb_pages)
+        print "%s --> %s" % (str(page), str(new_page))
+        new_page._steal_content(page)
 
 def is_img_doc(docpath):
     try:

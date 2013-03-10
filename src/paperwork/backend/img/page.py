@@ -466,7 +466,7 @@ class ImgPage(BasicPage):
             pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)
         self.drop_cache()
 
-    def __ch_number(self, offset):
+    def __ch_number(self, offset=0, factor=1):
         """
         Move the page number by a given offset. Beware to not let any hole
         in the page numbers when doing this. Make sure also that the wanted
@@ -476,20 +476,60 @@ class ImgPage(BasicPage):
         src = {}
         src["box"] = self.__get_box_path()
         src["img"] = self.__get_img_path()
+        src["thumb"] = self.__get_thumb_path()
 
-        self.page_nb += offset
+        page_nb = self.page_nb
+
+        page_nb += offset
+        page_nb *= factor
+
+        print ("--> Moving page %d (+%d*%d) to index %d"
+               % (self.page_nb, offset, factor, page_nb))
+
+        self.page_nb = page_nb
 
         dst = {}
         dst["box"] = self.__get_box_path()
         dst["img"] = self.__get_img_path()
+        dst["thumb"] = self.__get_thumb_path()
 
         for key in src.keys():
             if os.access(src[key], os.F_OK):
+                assert(not os.access(dst[key], os.F_OK))
                 os.rename(src[key], dst[key])
 
-    def change_position(self, new_index):
-        # TODO
-        pass
+    def change_index(self, new_index):
+        if (new_index == self.page_nb):
+            return
+
+        print "Moving page %d to index %d" % (self.page_nb, new_index)
+
+        # we remove ourselves from the page list by turning our index into a
+        # negative number
+        page_nb = self.page_nb
+        self.__ch_number(offset=1, factor=-1)
+
+        if (page_nb < new_index):
+            move = 1
+            start = page_nb + 1
+            end = new_index + 1
+        else:
+            move = -1
+            start = page_nb - 1
+            end = new_index - 1
+
+        print "Moving the other pages: %d, %d, %d" % (start, end, move)
+        for page_idx in range(start, end, move):
+            page = self.doc.pages[page_idx]
+            page.__ch_number(offset=-1*move)
+
+        # restore our index in the positive values,
+        # and move it the final index
+        diff = new_index - page_nb
+        diff *= -1  # our index is temporarily negative
+        self.__ch_number(offset=diff+1, factor=-1)
+
+        self.page_nb = new_index
 
     def destroy(self):
         """
@@ -501,11 +541,15 @@ class ImgPage(BasicPage):
             self.doc.destroy()
             return
         current_doc_nb_pages = self.doc.nb_pages
-        if os.access(self.__get_box_path(), os.F_OK):
-            os.unlink(self.__get_box_path())
-        if os.access(self.__get_img_path(), os.F_OK):
-            os.unlink(self.__get_img_path())
+        paths = [
+            self.__get_box_path(),
+            self.__get_img_path(),
+            self.__get_thumb_path(),
+        ]
+        for path in paths:
+            if os.access(path, os.F_OK):
+                os.unlink(path)
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = self.doc.pages[page_nb]
-            page.__ch_number(-1)
+            page.__ch_number(offset=-1)
 

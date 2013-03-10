@@ -1241,6 +1241,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.page = None
         for widget in self.__main_win.need_page_widgets:
             widget.set_sensitive(False)
+        self.__main_win.refresh_docs([self.__main_win.doc])
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
 
@@ -3043,7 +3044,7 @@ class MainWindow(object):
 
         print "[page list] drag-data-received : %s -> %s" % (obj_id, target_idx)
         obj = self.docsearch.get_by_id(obj_id)
-        obj.change_position(target_idx)
+        obj.change_index(target_idx)
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)

@@ -3084,7 +3084,7 @@ class MainWindow(object):
         target_doc.steal_page(obj)
 
         if obj.doc.nb_pages <= 0:
-            del_docs = [obj.doc]
+            del_docs = [obj.doc.docid]
             upd_docs = [target_doc]
         else:
             del_docs = []

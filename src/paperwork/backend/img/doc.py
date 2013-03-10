@@ -304,6 +304,12 @@ class ImgDoc(BasicDoc):
     def build_exporter(self, file_format='pdf'):
         return ImgToPdfDocExporter(self)
 
+    def steal_page(self, page):
+        """
+        Steal a page from another document
+        """
+        # TODO
+        pass
 
 def is_img_doc(docpath):
     try:

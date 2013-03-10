@@ -487,6 +487,10 @@ class ImgPage(BasicPage):
             if os.access(src[key], os.F_OK):
                 os.rename(src[key], dst[key])
 
+    def change_position(self, new_index):
+        # TODO
+        pass
+
     def destroy(self):
         """
         Delete the page. May delete the whole document if it's actually the

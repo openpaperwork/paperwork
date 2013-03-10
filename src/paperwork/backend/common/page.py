@@ -112,6 +112,11 @@ class BasicPage(object):
             'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
         }
 
+    def __get_pageid(self):
+        return self.doc.docid + "/" + str(self.page_nb)
+
+    pageid = property(__get_pageid)
+
     def _get_thumbnail(self, width):
         raise NotImplementedError()
 

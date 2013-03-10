@@ -349,6 +349,12 @@ class DocSearch(object):
 
     docs = property(__get_all_docs)
 
+    def get_by_id(self, obj_id):
+        if "/" in obj_id:
+            (docid, page_nb) = obj_id.split("/")
+            page_nb = int(page_nb)
+            return self.__docs_by_id[docid].pages[page_nb]
+        return self.__docs_by_id[obj_id]
 
     def find_documents(self, sentence):
         """

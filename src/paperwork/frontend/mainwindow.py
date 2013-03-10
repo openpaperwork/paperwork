@@ -2145,6 +2145,20 @@ class MainWindow(object):
         self.img['eventbox'].connect("motion-notify-event",
                                      self.__on_img_mouse_motion)
 
+        for widget in [self.lists['pages']['gui'],
+                       self.lists['matches']['gui']]:
+            widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
+            widget.drag_dest_add_text_targets()
+        self.lists['pages']['gui'].enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
+        self.lists['pages']['gui'].drag_source_add_text_targets()
+
+        self.lists['pages']['gui'].connect("drag-data-get",
+                                           self.__on_page_list_drag_data_get_cb)
+        self.lists['pages']['gui'].connect("drag-data-received",
+                                           self.__on_page_list_drag_data_received_cb)
+        self.lists['matches']['gui'].connect("drag-data-received",
+                                           self.__on_match_list_drag_data_received_cb)
+
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
@@ -2835,7 +2849,7 @@ class MainWindow(object):
 
         self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
 
-    def refresh_doc_list(self, docs=[]):
+    def refresh_doc_list(self):
         """
         Update the suggestions list and the matching documents list based on
         the keywords typed by the user in the search field.
@@ -3005,3 +3019,64 @@ class MainWindow(object):
             self.refresh_doc_list()
         self.refresh_page_list()
         self.show_page(page)
+
+
+
+    def __on_page_list_drag_data_get_cb(self, widget, drag_context, selection_data,
+                                    info, time):
+        pageid = unicode(self.page.pageid)
+        print "[page list] drag-data-get : %s" % self.page.pageid
+        selection_data.set_text(pageid, -1)
+
+    def __on_page_list_drag_data_received_cb(self, widget, drag_context, x, y,
+                                             selection_data, info, time):
+        target = self.lists['pages']['gui'].get_dest_item_at_pos(x, y)
+        if target == None:
+            print "[page list] drag-data-received: no target. aborting"
+            drag_context.finish(False, False, time)
+            return
+        (target_path, position) = target
+        target_idx = self.lists['pages']['model'][target_path][4]
+        if position == Gtk.IconViewDropPosition.DROP_BELOW:
+            target_idx += 1
+        obj_id = selection_data.get_text()
+
+        print "[page list] drag-data-received : %s -> %s" % (obj_id, target_idx)
+        obj = self.docsearch.get_by_id(obj_id)
+        obj.change_position(target_idx)
+
+        drag_context.finish(True, False, time)
+        GObject.idle_add(self.refresh_page_list)
+
+    def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
+                                          selection_data, info, time):
+        obj_id = selection_data.get_text()
+        target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
+        if target == None:
+            print "[page list] drag-data-received: no target. aborting"
+            drag_context.finish(False, False, time)
+            return
+        (target_path, position) = target
+        target_doc = self.lists['matches']['model'][target_path][1]
+        obj_id = selection_data.get_text()
+        obj = self.docsearch.get_by_id(obj_id)
+
+        if not target_doc.can_edit:
+            print ("[doc list] drag-data-received: Destination document can't be"
+                   " modified")
+            drag_context.finish(False, False, time)
+            return
+
+        if target_doc == obj.doc:
+            print ("[doc list] drag-data-received: Source and destination docs"
+                   " are the same. Nothing to do")
+            drag_context.finish(False, False, time)
+            return
+
+        print ("[doc list] drag-data-received : %s -> %s"
+               % (obj_id, target_doc.docid))
+        target_doc.steal_page(obj)
+
+        drag_context.finish(True, False, time)
+        GObject.idle_add(self.refresh_docs, [obj.doc, target_doc])
+

@@ -70,7 +70,7 @@ def check_workdir(config):
         print ("Unable to stat dir '%s': %s --> mkdir"
                % (config.workdir, exc))
 
-    os.mkdir(config.workdir, 0755)
+    os.mkdir(config.workdir, 0750)
 
 
 def check_scanner(main_win, config):

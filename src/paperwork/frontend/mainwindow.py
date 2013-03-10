@@ -3045,6 +3045,8 @@ class MainWindow(object):
 
         print "[page list] drag-data-received : %s -> %s" % (obj_id, target_idx)
         obj = self.docsearch.get_by_id(obj_id)
+        # TODO(Jflesch): Instantiate an ActionXXX to do that, so
+        # this action can be cancelled later
         obj.change_index(target_idx)
 
         drag_context.finish(True, False, time)
@@ -3077,6 +3079,8 @@ class MainWindow(object):
 
         print ("[doc list] drag-data-received : %s -> %s"
                % (obj_id, target_doc.docid))
+        # TODO(Jflesch): Instantiate an ActionXXX to do that, so
+        # it can be cancelled later
         target_doc.steal_page(obj)
 
         if obj.doc.nb_pages <= 0:

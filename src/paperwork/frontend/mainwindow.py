@@ -2151,8 +2151,6 @@ class MainWindow(object):
                        self.lists['matches']['gui']]:
             widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
             widget.drag_dest_add_text_targets()
-        self.lists['pages']['gui'].enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
-        self.lists['pages']['gui'].drag_source_add_text_targets()
 
         self.lists['pages']['gui'].connect("drag-data-get",
                                            self.__on_page_list_drag_data_get_cb)
@@ -2949,6 +2947,11 @@ class MainWindow(object):
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
+        if self.doc.can_edit:
+            self.lists['pages']['gui'].enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
+            self.lists['pages']['gui'].drag_source_add_text_targets()
+        else:
+            self.lists['pages']['gui'].unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
         if self.doc.nb_pages > 0:

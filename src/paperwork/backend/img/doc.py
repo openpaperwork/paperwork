@@ -201,6 +201,11 @@ class ImgDoc(BasicDoc):
             docid --- Document Id (ie folder name). Use None for a new document
         """
         BasicDoc.__init__(self, docpath, docid)
+        self.pages = _ImgPageList(self)
+
+    def drop_cache(self):
+        BasicDoc.drop_cache(self)
+        self.pages = _ImgPageList(self)
 
     def __get_last_mod(self):
         last_mod = 0.0
@@ -218,7 +223,7 @@ class ImgDoc(BasicDoc):
 
     last_mod = property(__get_last_mod)
 
-    def __get_nb_pages(self):
+    def _get_nb_pages(self):
         """
         Compute the number of pages in the document. It basically counts
         how many JPG files there are in the document.
@@ -238,8 +243,6 @@ class ImgDoc(BasicDoc):
             print ("Exception while trying to get the number of pages of "
                    "'%s': %s" % (self.docid, exc))
             return 0
-
-    nb_pages = property(__get_nb_pages)
 
     def __add_img(self, img, ocrlang=None, resolution=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
@@ -276,19 +279,13 @@ class ImgDoc(BasicDoc):
         img = scan_src.get_img(nb_pages)
         callback(0, 100, ImgPage.SCAN_STEP_SCAN)
         self.__add_img(img, ocrlang, resolution, scanner_calibration, callback)
+        self.drop_cache()
 
     def import_image(self, file_uri, ocrlang):
         img_fp = Gio.File(file_uri).read()
         img = Image.open(img_fp)
         self.__add_img(img, ocrlang)
-
-    def __get_pages(self):
-        """
-        Return a list of pages.
-        """
-        return _ImgPageList(self)
-
-    pages = property(__get_pages)
+        self.drop_cache()
 
     def print_page_cb(self, print_op, print_context, page_nb):
         """
@@ -317,6 +314,7 @@ class ImgDoc(BasicDoc):
         new_page = ImgPage(self, self.nb_pages)
         print "%s --> %s" % (str(page), str(new_page))
         new_page._steal_content(page)
+        self.drop_cache()
 
 def is_img_doc(docpath):
     try:

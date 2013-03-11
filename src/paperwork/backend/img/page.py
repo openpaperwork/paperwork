@@ -390,6 +390,8 @@ class ImgPage(BasicPage):
             os.unlink(outfile)
 
         print "Scan done"
+        self.drop_cache()
+        self.doc.drop_cache()
 
     def print_page_cb(self, print_op, print_context):
         """
@@ -465,6 +467,7 @@ class ImgPage(BasicPage):
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
             pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)
         self.drop_cache()
+        self.doc.drop_cache()
 
     def __ch_number(self, offset=0, factor=1):
         """
@@ -555,6 +558,8 @@ class ImgPage(BasicPage):
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = doc_pages[page_nb]
             page.__ch_number(offset=-1)
+        self.drop_cache()
+        self.doc.drop_cache()
 
     def _steal_content(self, other_page):
         """

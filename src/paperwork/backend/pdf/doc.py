@@ -96,7 +96,7 @@ class PdfDoc(BasicDoc):
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
         self.pdf = None
-        self.nb_pages = 0
+        self.__nb_pages = 0
         self.pages = []
         if docid != None:
             self._open_pdf()
@@ -120,11 +120,14 @@ class PdfDoc(BasicDoc):
 
     last_mod = property(__get_last_mod)
 
+    def _get_nb_pages(self):
+        return self.__nb_pages
+
     def _open_pdf(self):
         self.pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
              password=None)
-        self.nb_pages = self.pdf.get_n_pages()
+        self.__nb_pages = self.pdf.get_n_pages()
         self.pages = PdfPages(self)
 
     def print_page_cb(self, print_op, print_context, page_nb):

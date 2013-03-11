@@ -536,6 +536,9 @@ class ImgPage(BasicPage):
 
         self.page_nb = new_index
 
+        self.drop_cache()
+        self.doc.drop_cache()
+
     def destroy(self):
         """
         Delete the page. May delete the whole document if it's actually the
@@ -590,4 +593,6 @@ class ImgPage(BasicPage):
             for page_nb in range(other_page_nb + 1, other_doc_nb_pages):
                 page = other_doc_pages[page_nb]
                 page.__ch_number(offset=-1)
+
+        self.drop_cache()
 

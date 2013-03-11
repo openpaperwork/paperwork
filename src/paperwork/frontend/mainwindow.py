@@ -3054,6 +3054,7 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
+        GObject.idle_add(self.refresh_docs, [obj.doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                           selection_data, info, time):

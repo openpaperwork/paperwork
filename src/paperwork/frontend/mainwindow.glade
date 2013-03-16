@@ -103,6 +103,16 @@
       <column type="gint"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststorePageFormat">
+    <columns>
+      <!-- column-name pageFormatStr -->
+      <column type="gchararray"/>
+      <!-- column-name x -->
+      <column type="gdouble"/>
+      <!-- column-name y -->
+      <column type="gdouble"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststoreSuggestion">
     <columns>
       <!-- column-name suggestion -->
@@ -1305,6 +1315,18 @@
                                       </packing>
                                     </child>
                                     <child>
+                                      <object class="GtkLabel" id="labelPageFormat">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="label" translatable="yes">Page format</property>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
                                       <object class="GtkLabel" id="labelExportQuality">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
@@ -1313,7 +1335,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">False</property>
-                                        <property name="position">1</property>
+                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1325,7 +1347,7 @@
                                       <packing>
                                         <property name="expand">False</property>
                                         <property name="fill">False</property>
-                                        <property name="position">2</property>
+                                        <property name="position">3</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1336,7 +1358,7 @@
                                       <packing>
                                         <property name="expand">True</property>
                                         <property name="fill">False</property>
-                                        <property name="position">3</property>
+                                        <property name="position">4</property>
                                       </packing>
                                     </child>
                                   </object>
@@ -1358,6 +1380,7 @@
                                         <property name="can_focus">False</property>
                                         <property name="model">liststoreExportFormat</property>
                                         <property name="active">0</property>
+                                        <property name="id_column">0</property>
                                         <child>
                                           <object class="GtkCellRendererText" id="cellrenderertext3"/>
                                           <attributes>
@@ -1367,8 +1390,28 @@
                                       </object>
                                       <packing>
                                         <property name="expand">True</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkComboBox" id="comboboxPageFormat">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="model">liststorePageFormat</property>
+                                        <property name="active">0</property>
+                                        <property name="id_column">0</property>
+                                        <child>
+                                          <object class="GtkCellRendererText" id="cellrenderertextPageFormatStr"/>
+                                          <attributes>
+                                            <attribute name="text">0</attribute>
+                                          </attributes>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1385,7 +1428,7 @@
                                       <packing>
                                         <property name="expand">True</property>
                                         <property name="fill">True</property>
-                                        <property name="position">1</property>
+                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1396,7 +1439,7 @@
                                       <packing>
                                         <property name="expand">True</property>
                                         <property name="fill">False</property>
-                                        <property name="position">2</property>
+                                        <property name="position">3</property>
                                       </packing>
                                     </child>
                                     <child>
@@ -1411,6 +1454,7 @@
                                             <property name="editable">False</property>
                                             <property name="invisible_char">●</property>
                                             <property name="text"> </property>
+                                            <property name="invisible_char_set">True</property>
                                           </object>
                                           <packing>
                                             <property name="expand">True</property>
@@ -1437,7 +1481,7 @@
                                       <packing>
                                         <property name="expand">True</property>
                                         <property name="fill">True</property>
-                                        <property name="position">3</property>
+                                        <property name="position">4</property>
                                       </packing>
                                     </child>
                                   </object>

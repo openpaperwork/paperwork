@@ -25,6 +25,7 @@ from paperwork.util import split_words
 
 
 class PageExporter(object):
+    can_select_format = False
     can_change_quality = True
 
     def __init__(self, page, img_format='PNG', mime='image/png',

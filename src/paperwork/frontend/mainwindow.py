@@ -1287,14 +1287,14 @@ class BasicActionOpenExportDialog(SimpleAction):
     def open_dialog(self, to_export):
         SimpleAction.do(self)
         self.main_win.export['estimated_size'].set_text("")
-        self.main_win.export['format']['store'].clear()
+        self.main_win.export['fileFormat']['model'].clear()
         nb_export_formats = 0
         for out_format in to_export.get_export_formats():
-            self.main_win.export['format']['store'].append([out_format])
+            self.main_win.export['fileFormat']['model'].append([out_format])
             nb_export_formats += 1
         self.main_win.export['buttons']['select_path'].set_sensitive(
             nb_export_formats >= 1)
-        self.main_win.export['format']['widget'].set_active(0)
+        self.main_win.export['fileFormat']['widget'].set_active(0)
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
@@ -1331,17 +1331,51 @@ class ActionSelectExportFormat(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        format_idx = self.__main_win.export['format']['widget'].get_active()
-        imgformat = self.__main_win.export['format']['store'][format_idx][0]
+        format_idx = self.__main_win.export['fileFormat']['widget'].get_active()
+        imgformat = self.__main_win.export['fileFormat']['model'][format_idx][0]
 
         exporter = self.__main_win.export['to_export'].build_exporter(imgformat)
         self.__main_win.export['exporter'] = exporter
-        self.__main_win.export['quality']['widget'].set_sensitive(
-                exporter.can_change_quality)
-        self.__main_win.export['quality']['label'].set_sensitive(
-                exporter.can_change_quality)
 
-        if exporter.can_change_quality:
+        print ("[Export] Format: %s" % (str(exporter)))
+        print ("[Export] Can change quality ? %s"
+               % str(exporter.can_change_quality))
+        print ("[Export] Can_select_format ? %s"
+               % str(exporter.can_select_format))
+
+        for (sensitive, widgets) in [
+                (exporter.can_change_quality,
+                 [
+                     self.__main_win.export['quality']['widget'],
+                     self.__main_win.export['quality']['label'],
+                 ]),
+                (exporter.can_select_format,
+                 [
+                     self.__main_win.export['pageFormat']['widget'],
+                     self.__main_win.export['pageFormat']['label'],
+                 ]),
+            ]:
+            for widget in widgets:
+                widget.set_sensitive(sensitive)
+
+        self.__main_win.export['pageFormat']['model'].clear()
+        if exporter.can_select_format:
+            idx = 0
+            default_idx = -1
+            for paper_size in Gtk.PaperSize.get_paper_sizes(True):
+                store_data = [
+                    paper_size.get_display_name(),
+                    paper_size.get_width(Gtk.Unit.POINTS),
+                    paper_size.get_height(Gtk.Unit.POINTS)
+                ]
+                self.__main_win.export['pageFormat']['model'].append(store_data)
+                if paper_size.get_name() == paper_size.get_default():
+                    default_idx = idx
+                idx += 1
+            if default_idx >= 0:
+                self.__main_win.export['pageFormat']['widget'].set_active(default_idx)
+
+        if exporter.can_change_quality or exporter.can_select_format:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
             self.__main_win.refresh_export_preview()
@@ -1751,9 +1785,14 @@ class MainWindow(object):
 
         self.export = {
             'dialog' : widget_tree.get_object("infobarExport"),
-            'format' : {
+            'fileFormat' : {
                 'widget' : widget_tree.get_object("comboboxExportFormat"),
-                'store' : widget_tree.get_object("liststoreExportFormat"),
+                'model' : widget_tree.get_object("liststoreExportFormat"),
+            },
+            'pageFormat' : {
+                'label' : widget_tree.get_object("labelPageFormat"),
+                'widget' : widget_tree.get_object("comboboxPageFormat"),
+                'model' : widget_tree.get_object("liststorePageFormat"),
             },
             'quality' : {
                 'label' : widget_tree.get_object("labelExportQuality"),

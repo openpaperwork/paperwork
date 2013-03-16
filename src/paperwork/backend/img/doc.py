@@ -39,6 +39,7 @@ from paperwork.util import mkdir_p
 
 class ImgToPdfDocExporter(object):
     can_change_quality = True
+    can_select_format = True
     valid_exts = ['pdf']
     PDF_A4_FORMAT = (595, 842)
 

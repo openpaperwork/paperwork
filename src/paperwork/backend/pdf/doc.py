@@ -30,6 +30,7 @@ PDF_IMPORT_MIN_KEYWORDS = 5
 
 
 class PdfDocExporter(object):
+    can_select_format = False
     can_change_quality = False
 
     def __init__(self, doc):

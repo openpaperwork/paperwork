@@ -1298,6 +1298,7 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
+        self.main_win.disable_boxes()
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -2486,11 +2487,13 @@ class MainWindow(object):
     def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def __on_img_building_start(self):
+    def disable_boxes(self):
         self.img['boxes']['all'] = []
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
+    def __on_img_building_start(self):
+        self.disable_boxes()
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 

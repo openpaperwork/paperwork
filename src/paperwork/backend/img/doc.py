@@ -55,7 +55,6 @@ class ImgToPdfDocExporter(object):
         return ['pdf']
 
     def __save(self, target_path, pages):
-        # TODO(Jflesch): orientation
         pdf_surface = cairo.PDFSurface(target_path,
                                        self.__page_format[0],
                                        self.__page_format[1])
@@ -65,14 +64,19 @@ class ImgToPdfDocExporter(object):
 
         for page in [self.doc.pages[x] for x in range(pages[0], pages[1])]:
             img = page.img
-            if (img.size[0] > img.size[1]):
-                img = img.rotate(90)
+            if (img.size[0] < img.size[1]):
+                (x, y) = (min(self.__page_format[0], self.__page_format[1]),
+                          max(self.__page_format[0], self.__page_format[1]))
+            else:
+                (x, y) = (max(self.__page_format[0], self.__page_format[1]),
+                          min(self.__page_format[0], self.__page_format[1]))
+            pdf_surface.set_size(x, y)
             new_size = (int(quality * img.size[0]),
                         int(quality * img.size[1]))
             img = img.resize(new_size, Image.ANTIALIAS)
 
-            scale_factor_x = float(self.__page_format[0]) / img.size[0]
-            scale_factor_y = float(self.__page_format[1]) / img.size[0]
+            scale_factor_x = x / img.size[0]
+            scale_factor_y = y / img.size[1]
             scale_factor = min(scale_factor_x, scale_factor_y)
 
             img_surface = image2surface(img)

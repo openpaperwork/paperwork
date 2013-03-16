@@ -1917,6 +1917,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemExportDoc"),
                     widget_tree.get_object("menuitemExportDoc1"),
+                    widget_tree.get_object("menuitemExportDoc2"),
                 ],
                 ActionOpenExportDocDialog(self)
             ),
@@ -1924,6 +1925,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemExportPage"),
                     widget_tree.get_object("menuitemExportPage1"),
+                    widget_tree.get_object("menuitemExportPage2"),
                 ],
                 ActionOpenExportPageDialog(self)
             ),

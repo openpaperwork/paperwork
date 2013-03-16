@@ -685,13 +685,14 @@ class WorkerExportPreviewer(Worker):
         self.__main_win = main_window
 
     def do(self):
+        exporter = self.__main_win.export['exporter']
         for i in range(0, 7):
             time.sleep(0.1)
             if not self.can_run:
                 return
         self.emit('export-preview-start')
-        size = self.__main_win.export['exporter'].estimate_size()
-        img = self.__main_win.export['exporter'].get_img()
+        size = exporter.estimate_size()
+        img = exporter.get_img()
         pixbuf = image2pixbuf(img)
         self.emit('export-preview-done', size, pixbuf)
 
@@ -1289,6 +1290,8 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['estimated_size'].set_text("")
         self.main_win.export['fileFormat']['model'].clear()
         nb_export_formats = 0
+        formats = to_export.get_export_formats()
+        print "[Export]: Supported formats: %s" % str(formats)
         for out_format in to_export.get_export_formats():
             self.main_win.export['fileFormat']['model'].append([out_format])
             nb_export_formats += 1
@@ -1300,6 +1303,22 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['export_path'].set_text("")
         self.main_win.lists['zoom_levels']['gui'].set_sensitive(False)
         self.main_win.disable_boxes()
+
+        self.main_win.export['pageFormat']['model'].clear()
+        idx = 0
+        default_idx = -1
+        for paper_size in Gtk.PaperSize.get_paper_sizes(True):
+            store_data = (
+                paper_size.get_display_name(),
+                paper_size.get_width(Gtk.Unit.POINTS),
+                paper_size.get_height(Gtk.Unit.POINTS)
+            )
+            self.main_win.export['pageFormat']['model'].append(store_data)
+            if paper_size.get_name() == paper_size.get_default():
+                default_idx = idx
+            idx += 1
+        if default_idx >= 0:
+            self.main_win.export['pageFormat']['widget'].set_active(default_idx)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -1334,6 +1353,8 @@ class ActionSelectExportFormat(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         format_idx = self.__main_win.export['fileFormat']['widget'].get_active()
+        if format_idx < 0:
+            return
         imgformat = self.__main_win.export['fileFormat']['model'][format_idx][0]
 
         exporter = self.__main_win.export['to_export'].build_exporter(imgformat)
@@ -1360,23 +1381,6 @@ class ActionSelectExportFormat(SimpleAction):
             for widget in widgets:
                 widget.set_sensitive(sensitive)
 
-        self.__main_win.export['pageFormat']['model'].clear()
-        if exporter.can_select_format:
-            idx = 0
-            default_idx = -1
-            for paper_size in Gtk.PaperSize.get_paper_sizes(True):
-                store_data = (
-                    paper_size.get_display_name(),
-                    paper_size.get_width(Gtk.Unit.POINTS),
-                    paper_size.get_height(Gtk.Unit.POINTS)
-                )
-                self.__main_win.export['pageFormat']['model'].append(store_data)
-                if paper_size.get_name() == paper_size.get_default():
-                    default_idx = idx
-                idx += 1
-            if default_idx >= 0:
-                self.__main_win.export['pageFormat']['widget'].set_active(default_idx)
-
         if exporter.can_change_quality or exporter.can_select_format:
             self.__main_win.actions['change_export_property'][1].do()
         else:
@@ -1391,13 +1395,15 @@ class ActionChangeExportProperty(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        if self.__main_win.export['exporter'].can_select_format:
+            format_idx = self.__main_win.export['pageFormat']['widget'].get_active()
+            if (format_idx < 0):
+                return
+            (name, x, y) = self.__main_win.export['pageFormat']['model'][format_idx]
+            self.__main_win.export['exporter'].set_page_format((x, y))
         if self.__main_win.export['exporter'].can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
-        if self.__main_win.export['exporter'].can_select_format:
-            format_idx = self.__main_win.export['pageFormat']['widget'].get_active()
-            (name, x, y) = self.__main_win.export['pageFormat']['model'][format_idx]
-            self.__main_win.export['exporter'].set_page_format((x, y))
         self.__main_win.refresh_export_preview()
 
 
@@ -1461,7 +1467,7 @@ class ActionExport(BasicActionEndExport):
         self.main_win = main_window
 
     def do(self):
-        filepath = self.__main_win.export['export_path'].get_text()
+        filepath = self.main_win.export['export_path'].get_text()
         self.main_win.export['exporter'].save(filepath)
         BasicActionEndExport.do(self)
 

@@ -41,12 +41,12 @@ class ImgToPdfDocExporter(object):
     can_change_quality = True
     can_select_format = True
     valid_exts = ['pdf']
-    PDF_A4_FORMAT = (595, 842)
 
     def __init__(self, doc):
         self.doc = doc
         self.__quality = 75
         self.__preview = None  # will just contain the first page
+        self.__page_format = (0, 0)
 
     def get_mime_type(self):
         return 'application/pdf'
@@ -55,10 +55,10 @@ class ImgToPdfDocExporter(object):
         return ['pdf']
 
     def __save(self, target_path, pages):
-        # TODO(Jflesch): Other formats (Letter, etc)
-        pdf_format = self.PDF_A4_FORMAT
+        # TODO(Jflesch): orientation
         pdf_surface = cairo.PDFSurface(target_path,
-                                       pdf_format[0], pdf_format[1])
+                                       self.__page_format[0],
+                                       self.__page_format[1])
         pdf_context = cairo.Context(pdf_surface)
 
         quality = float(self.__quality) / 100.0
@@ -71,8 +71,8 @@ class ImgToPdfDocExporter(object):
                         int(quality * img.size[1]))
             img = img.resize(new_size, Image.ANTIALIAS)
 
-            scale_factor_x = float(pdf_format[0]) / img.size[0]
-            scale_factor_y = float(pdf_format[1]) / img.size[0]
+            scale_factor_x = float(self.__page_format[0]) / img.size[0]
+            scale_factor_y = float(self.__page_format[1]) / img.size[0]
             scale_factor = min(scale_factor_x, scale_factor_y)
 
             img_surface = image2surface(img)
@@ -116,6 +116,10 @@ class ImgToPdfDocExporter(object):
 
     def set_quality(self, quality):
         self.__quality = quality
+        self.__preview = None
+
+    def set_page_format(self, page_format):
+        self.__page_format = page_format
         self.__preview = None
 
     def estimate_size(self):

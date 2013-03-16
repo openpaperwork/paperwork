@@ -46,9 +46,6 @@ class PdfDocExporter(object):
         shutil.copy(self.pdfpath, target_path)
         return target_path
 
-    def set_quality(self, quality):
-        raise NotImplementedError()
-
     def estimate_size(self):
         return os.path.getsize(self.pdfpath)
 

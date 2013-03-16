@@ -1365,11 +1365,11 @@ class ActionSelectExportFormat(SimpleAction):
             idx = 0
             default_idx = -1
             for paper_size in Gtk.PaperSize.get_paper_sizes(True):
-                store_data = [
+                store_data = (
                     paper_size.get_display_name(),
                     paper_size.get_width(Gtk.Unit.POINTS),
                     paper_size.get_height(Gtk.Unit.POINTS)
-                ]
+                )
                 self.__main_win.export['pageFormat']['model'].append(store_data)
                 if paper_size.get_name() == paper_size.get_default():
                     default_idx = idx
@@ -1378,17 +1378,15 @@ class ActionSelectExportFormat(SimpleAction):
                 self.__main_win.export['pageFormat']['widget'].set_active(default_idx)
 
         if exporter.can_change_quality or exporter.can_select_format:
-            quality = self.__main_win.export['quality']['model'].get_value()
-            self.__main_win.export['exporter'].set_quality(quality)
-            self.__main_win.refresh_export_preview()
+            self.__main_win.actions['change_export_property'][1].do()
         else:
             size_txt = sizeof_fmt(exporter.estimate_size())
             self.__main_win.export['estimated_size'].set_text(size_txt)
 
 
-class ActionSelectExportQuality(SimpleAction):
+class ActionChangeExportProperty(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Select export quality")
+        SimpleAction.__init__(self, "Export property changed")
         self.__main_win = main_window
 
     def do(self):
@@ -1396,7 +1394,11 @@ class ActionSelectExportQuality(SimpleAction):
         if self.__main_win.export['exporter'].can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
-            self.__main_win.refresh_export_preview()
+        if self.__main_win.export['exporter'].can_select_format:
+            format_idx = self.__main_win.export['pageFormat']['widget'].get_active()
+            (name, x, y) = self.__main_win.export['pageFormat']['model'][format_idx]
+            self.__main_win.export['exporter'].set_page_format((x, y))
+        self.__main_win.refresh_export_preview()
 
 
 class ActionSelectExportPath(SimpleAction):
@@ -1927,9 +1929,12 @@ class MainWindow(object):
                 [widget_tree.get_object("comboboxExportFormat")],
                 ActionSelectExportFormat(self),
             ),
-            'select_export_quality' : (
-                [widget_tree.get_object("scaleQuality")],
-                ActionSelectExportQuality(self),
+            'change_export_property' : (
+                [
+                    widget_tree.get_object("scaleQuality"),
+                    widget_tree.get_object("comboboxPageFormat"),
+                ],
+                ActionChangeExportProperty(self),
             ),
             'select_export_path' : (
                 [widget_tree.get_object("buttonSelectExportPath")],
@@ -3084,8 +3089,6 @@ class MainWindow(object):
             self.refresh_doc_list()
         self.refresh_page_list()
         self.show_page(page)
-
-
 
     def __on_page_list_drag_data_get_cb(self, widget, drag_context, selection_data,
                                     info, time):

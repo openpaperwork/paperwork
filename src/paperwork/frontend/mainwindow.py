@@ -1298,6 +1298,7 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
+        self.main_win.lists['zoom_levels']['gui'].set_sensitive(False)
         self.main_win.disable_boxes()
 
 
@@ -1438,27 +1439,37 @@ class ActionSelectExportPath(SimpleAction):
         self.__main_win.export['buttons']['ok'].set_sensitive(True)
 
 
-class ActionExport(SimpleAction):
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Export")
-        self.__main_win = main_window
+class BasicActionEndExport(SimpleAction):
+    def __init__(self, main_win, name):
+        SimpleAction.__init__(self, name)
+        self.main_win = main_win
 
     def do(self):
         SimpleAction.do(self)
+        self.main_win.lists['zoom_levels']['gui'].set_sensitive(True)
+        self.main_win.export['dialog'].set_visible(False)
+        self.main_win.export['exporter'] = None
+        # force refresh of the current page
+        self.main_win.show_page(self.main_win.page)
+
+
+class ActionExport(BasicActionEndExport):
+    def __init__(self, main_window):
+        BasicActionEndExport.__init__(self, main_window, "Export")
+        self.main_win = main_window
+
+    def do(self):
         filepath = self.__main_win.export['export_path'].get_text()
-        self.__main_win.export['exporter'].save(filepath)
-        SimpleAction.do(self)
-        self.__main_win.export['dialog'].set_visible(False)
+        self.main_win.export['exporter'].save(filepath)
+        BasicActionEndExport.do(self)
 
 
-class ActionCancelExport(SimpleAction):
+class ActionCancelExport(BasicActionEndExport):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Cancel export")
-        self.__main_win = main_window
+        BasicActionEndExport.__init__(self, main_window, "Cancel export")
 
     def do(self):
-        SimpleAction.do(self)
-        self.__main_win.export['dialog'].set_visible(False)
+        BasicActionEndExport.do(self)
 
 
 class ActionSetToolbarVisibility(SimpleAction):
@@ -2957,6 +2968,10 @@ class MainWindow(object):
 
         self.workers['img_builder'].stop()
 
+        if self.export['exporter'] is not None:
+            print "Canceling export"
+            self.actions['cancel_export'][1].do()
+
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
@@ -3029,6 +3044,9 @@ class MainWindow(object):
         self.workers['export_previewer'].start()
 
     def __on_img_resize_cb(self, viewport, rectangle):
+        if self.export['exporter'] is not None:
+            return
+
         old_size = self.img['viewport']['size']
         new_size = (rectangle.width, rectangle.height)
         if old_size == new_size:

@@ -187,7 +187,6 @@ class PdfPage(BasicPage):
         factor = min(factor_x, factor_y)
 
         print "Scale: %f x %f --> %f" % (factor_x, factor_y, factor)
-        factor *= 2  # TODO(Jflesch): x2 ???
 
         ctx.scale(factor, factor)
 

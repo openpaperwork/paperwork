@@ -118,8 +118,6 @@ class ImgPage(BasicPage):
 
     KEYWORD_HIGHLIGHT = 3
 
-    PRINT_RESOLUTION = 150  # dpi
-
     ORIENTATION_PORTRAIT = 0
     ORIENTATION_LANDSCAPE = 1
 
@@ -397,11 +395,7 @@ class ImgPage(BasicPage):
         """
         Called for printing operation by Gtk
         """
-        # By default, the context is using 72 dpi, which is by far not enough
-        # --> we change it to PRINT_RESOLUTION dpi
-        print_context.set_cairo_context(print_context.get_cairo_context(),
-                                        self.PRINT_RESOLUTION,
-                                        self.PRINT_RESOLUTION)
+        SCALING = 1.0
 
         img = self.img
         (width, height) = img.size
@@ -421,22 +415,9 @@ class ImgPage(BasicPage):
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
-        page_setup = print_context.get_page_setup()
-        top_margin = (int(print_context.get_height())
-                      * (page_setup.get_top_margin(Gtk.Unit.POINTS)
-                         / page_setup.get_paper_height(Gtk.Unit.POINTS)))
-        bottom_margin = (int(print_context.get_height())
-                      * (page_setup.get_bottom_margin(Gtk.Unit.POINTS)
-                         / page_setup.get_paper_height(Gtk.Unit.POINTS)))
-        left_margin = (int(print_context.get_width())
-                      * (page_setup.get_left_margin(Gtk.Unit.POINTS)
-                         / page_setup.get_paper_width(Gtk.Unit.POINTS)))
-        right_margin = (int(print_context.get_width())
-                      * (page_setup.get_right_margin(Gtk.Unit.POINTS)
-                         / page_setup.get_paper_width(Gtk.Unit.POINTS)))
+        new_w = int(SCALING * (print_context.get_width()))
+        new_h = int(SCALING * (print_context.get_height()))
 
-        new_w = int(print_context.get_width() - left_margin - right_margin)
-        new_h = int(print_context.get_height() - top_margin - bottom_margin)
         print "DPI: %fx%f" % (print_context.get_dpi_x(),
                               print_context.get_dpi_y())
         print "Scaling it down to %fx%f..." % (new_w, new_h)
@@ -446,7 +427,8 @@ class ImgPage(BasicPage):
 
         # .. and print !
         cairo_context = print_context.get_cairo_context()
-        cairo_context.set_source_surface(surface)
+        cairo_context.scale(1.0 / SCALING, 1.0 / SCALING)
+        cairo_context.set_source_surface(surface, 0, 0)
         cairo_context.paint()
 
     def redo_ocr(self, ocrlang):

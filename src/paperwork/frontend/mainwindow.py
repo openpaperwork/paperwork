@@ -1062,15 +1062,11 @@ class ActionPrintDoc(SimpleAction):
         SimpleAction.do(self)
 
         print_settings = Gtk.PrintSettings()
-        # By default, print context are using 72 dpi, but print_draw_page
-        # will change it to 300 dpi --> we have to tell PrintOperation to scale
-        print_settings.set_scale(100.0 * (72.0 / ImgPage.PRINT_RESOLUTION))
-
         print_op = Gtk.PrintOperation()
         print_op.set_print_settings(print_settings)
         print_op.set_n_pages(self.__main_win.doc.nb_pages)
         print_op.set_current_page(self.__main_win.page.page_nb)
-        print_op.set_use_full_page(True)
+        print_op.set_use_full_page(False)
         print_op.set_job_name(str(self.__main_win.doc))
         print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
         print_op.set_allow_async(True)

@@ -395,7 +395,7 @@ class ImgPage(BasicPage):
         """
         Called for printing operation by Gtk
         """
-        SCALING = 1.0
+        SCALING = 2.0
 
         img = self.img
         (width, height) = img.size

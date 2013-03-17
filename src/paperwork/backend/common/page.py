@@ -168,10 +168,14 @@ class BasicPage(object):
         for keyword in keywords:
             for line in self.boxes:
                 for box in line.word_boxes:
+                    if keyword in box.content:
+                        output.append(box)
+                        continue
                     # unfold generator output
                     words = [x for x in split_words(box.content)]
                     if keyword in words:
                         output.append(box)
+                        continue
         return output
 
     def get_export_formats(self):

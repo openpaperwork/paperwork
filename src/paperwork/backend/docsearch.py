@@ -32,6 +32,7 @@ import whoosh.index
 import whoosh.qparser
 import whoosh.query
 
+from paperwork.backend import img
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
@@ -169,6 +170,12 @@ class DocIndexUpdater(GObject.GObject):
         del self.writer
 
 
+def is_dir_empty(dirpath):
+    if not os.path.isdir(dirpath):
+        return False
+    return (len(os.listdir(dirpath)) <= 0)
+
+
 class DocSearch(object):
     """
     Index a set of documents. Can provide:
@@ -178,6 +185,7 @@ class DocSearch(object):
     """
 
     INDEX_STEP_LOADING = "loading"
+    INDEX_STEP_CLEANING = "cleaning"
     INDEX_STEP_CHECKING = "checking"
     INDEX_STEP_READING = "checking"
     INDEX_STEP_COMMIT = "commit"
@@ -227,7 +235,35 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
+        self.cleanup_rootdir(callback)
         self.reload_index(callback)
+
+    @staticmethod
+    def __browse_dir(rootdir):
+        for root, dirs, files, in os.walk(rootdir, topdown=False):
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                yield filepath
+            for dirname in dirs:
+                dirpath = os.path.join(root, dirname)
+                yield dirpath
+
+    def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
+        must_clean_cbs = [
+            is_dir_empty,
+            img.is_tmp_file,
+        ]
+        progress_cb(0, 1, self.INDEX_STEP_CLEANING)
+        for filepath in self.__browse_dir(self.rootdir):
+            must_clean = False
+            for must_clean_cb in must_clean_cbs:
+                if must_clean_cb(filepath):
+                    must_clean = True
+                    break
+            if must_clean:
+                print "Cleanup: Removing '%s'" % filepath
+                rm_rf(filepath)
+        progress_cb(1, 1, self.INDEX_STEP_CLEANING)
 
     def get_doc_examiner(self):
         return DocDirExaminer(self)

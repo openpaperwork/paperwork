@@ -110,6 +110,7 @@ class ImgPage(BasicPage):
     Represents a page. A page is a sub-element of ImgDoc.
     """
     FILE_PREFIX = "paper."
+    ROTATED_FILE_PREFIX = "rotated."
     EXT_TXT = "txt"
     EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"
@@ -275,7 +276,8 @@ class ImgPage(BasicPage):
         # rotate the image 0, 90, 180 and 270 degrees
         for rotation in range(0, 4):
             imgpath = os.path.join(self.doc.path,
-                    ("rotated.%d.%s" % (rotation, self.EXT_IMG_SCAN)))
+                    ("%s%d.%s" % (self.ROTATED_FILE_PREFIX, rotation,
+                                  self.EXT_IMG_SCAN)))
             print ("Saving scan (rotated %d degree) in '%s'"
                    % (rotation * -90, imgpath))
             img.save(imgpath)

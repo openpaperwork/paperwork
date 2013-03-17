@@ -339,13 +339,16 @@ def mkdir_p(path):
 
 
 def rm_rf(path):
-    for root, dirs, files in os.walk(path, topdown=False):
-        for filename in files:
-            filepath = os.path.join(root, filename)
-            print "Deleting file %s" % filepath
-            os.unlink(filepath)
-        for dirname in dirs:
-            dirpath = os.path.join(root, dirname)
-            print "Deleting dir %s" % dirpath
-            os.rmdir(dirpath)
-    os.rmdir(path)
+    if os.path.isfile(path):
+        os.unlink(path)
+    elif os.path.isdir(path):
+        for root, dirs, files in os.walk(path, topdown=False):
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                print "Deleting file %s" % filepath
+                os.unlink(filepath)
+            for dirname in dirs:
+                dirpath = os.path.join(root, dirname)
+                print "Deleting dir %s" % dirpath
+                os.rmdir(dirpath)
+        os.rmdir(path)

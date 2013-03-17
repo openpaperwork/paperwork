@@ -279,6 +279,11 @@ class WorkerDocSearcher(Worker):
         self.__config = config
 
     def do(self):
+        for t in range(0, 10):
+            if not self.can_run or self.paused:
+                return
+            time.sleep(0.05)
+
         sentence = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
 
         self.emit('search-start')

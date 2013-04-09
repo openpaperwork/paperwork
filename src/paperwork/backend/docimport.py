@@ -16,6 +16,7 @@
 
 import gettext
 import gi
+from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
 
@@ -61,7 +62,7 @@ class MultiplePdfImporter(object):
             try:
                 for child in self.__get_all_children(child):
                     yield child
-            except gi._glib.GError:
+            except GLib.GError:
                 yield child
 
     def can_import(self, file_uri, current_doc=None):

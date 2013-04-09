@@ -18,6 +18,7 @@ import os
 import shutil
 
 import gi
+from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
 
@@ -139,7 +140,7 @@ class PdfDoc(BasicDoc):
         try:
             dest = Gio.File.parse_name("file://%s" % self.path)
             dest.make_directory(None)
-        except gi._glib.GError:
+        except GLib.GError:
             print ("Warning: Error while trying to create '%s': %s" %
                    (self.path, str(exc)))
         f = Gio.File.parse_name(file_uri)

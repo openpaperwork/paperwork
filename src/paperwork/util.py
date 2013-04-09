@@ -33,6 +33,7 @@ import Image
 import ImageDraw
 import gettext
 import gi
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 import pycountry
@@ -136,7 +137,7 @@ def load_uifile(filename):
         ui_file = os.path.join(ui_dir, filename)
         try:
             widget_tree.add_from_file(ui_file)
-        except gi._glib.GError, exc:
+        except GLib.GError, exc:
             print "Tried to use UI file %s but failed: %s" % (ui_file, str(exc))
             continue
         has_ui_file = True

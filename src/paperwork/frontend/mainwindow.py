@@ -1568,6 +1568,17 @@ class ActionZoomSet(SimpleAction):
         self.__main_win.lists['zoom_levels']['gui'].set_active(new_idx)
 
 
+class ActionEditDoc(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Edit doc")
+        self.__main_win = main_window
+        self.__config = config
+
+    def do(self):
+        SimpleAction.do(self)
+        # TODO
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2142,6 +2153,14 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
                 ActionRebuildIndex(self, config, force=True),
+            ),
+            'edit_doc' : (
+                [
+                    widget_tree.get_object("menuitemEditDoc1"),
+                    widget_tree.get_object("toolbuttonEditDoc"),
+                    widget_tree.get_object("menuitemEditDoc")
+                ]
+                ActionEditDoc(self, config)
             ),
             'about' : (
                 [

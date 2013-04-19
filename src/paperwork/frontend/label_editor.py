@@ -47,7 +47,7 @@ class LabelEditor(object):
             response = Gtk.ResponseType.CANCEL
         if (response == Gtk.ResponseType.OK):
             print "Label validated"
-            self.label.name = unicode(name_entry.get_text())
+            self.label.name = unicode(name_entry.get_text(), encoding='utf-8')
             self.label.color = color_chooser.get_current_color()
         else:
             print "Label editing cancelled"
@@ -58,7 +58,7 @@ class LabelEditor(object):
         return (response == Gtk.ResponseType.OK)
 
     def __on_label_entry_changed(self, label_entry):
-        txt = unicode(label_entry.get_text()).strip()
+        txt = unicode(label_entry.get_text(), encoding='utf-8').strip()
         ok_enabled = True
         ok_enabled = ok_enabled and txt != u""
         ok_enabled = ok_enabled and not u"," in txt

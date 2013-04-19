@@ -71,7 +71,7 @@ class MultiplePdfImporter(object):
             for child in self.__get_all_children(parent):
                 if child.get_basename().lower().endswith(".pdf"):
                     return True
-        except gi._glib.GError:
+        except GLib.GError:
             pass
         return False
 

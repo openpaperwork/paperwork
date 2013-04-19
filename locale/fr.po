@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-03-17 16:48+0100\n"
+"POT-Creation-Date: 2013-04-19 12:46+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,48 +18,48 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/paperwork/util.py:205
+#: src/paperwork/util.py:206
 msgid "No scanner found (is your scanner turned on ?)"
 msgstr "Aucun scanner trouvé (est-ce que votre scanner est allumé ?)"
 
-#: src/paperwork/util.py:227
+#: src/paperwork/util.py:228
 msgid "Are you sure ?"
 msgstr "Êtes-vous sûr ?"
 
-#: src/paperwork/util.py:238
+#: src/paperwork/util.py:239
 #, python-format
 msgid "%3.1f bytes"
 msgstr "%3.1f octets"
 
-#: src/paperwork/util.py:239
+#: src/paperwork/util.py:240
 #, python-format
 msgid "%3.1f KB"
 msgstr "%3.1f Ko"
 
-#: src/paperwork/util.py:240
+#: src/paperwork/util.py:241
 #, python-format
 msgid "%3.1f MB"
 msgstr "%3.1f Mo"
 
-#: src/paperwork/util.py:241
+#: src/paperwork/util.py:242
 #, python-format
 msgid "%3.1f GB"
 msgstr "%3.1f Go"
 
-#: src/paperwork/util.py:242
+#: src/paperwork/util.py:243
 #, python-format
 msgid "%3.1f TB"
 msgstr "%3.1f To"
 
-#: src/paperwork/backend/docimport.py:45
+#: src/paperwork/backend/docimport.py:46
 msgid "Import PDF"
 msgstr "Importer un PDF"
 
-#: src/paperwork/backend/docimport.py:105
+#: src/paperwork/backend/docimport.py:106
 msgid "Import each PDF in the folder as a new document"
 msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 
-#: src/paperwork/backend/docimport.py:128
+#: src/paperwork/backend/docimport.py:129
 msgid "Append the image to the current document"
 msgstr "Ajouter l'image au document actuellement ouvert"
 
@@ -107,67 +107,71 @@ msgstr "Suppression de l'index d'un document effacé"
 msgid "Writing index ..."
 msgstr "Réecriture de l'index ..."
 
-#: src/paperwork/frontend/mainwindow.py:1184
+#: src/paperwork/frontend/mainwindow.py:1189
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Ne sait pas comment importer '%s'. Désolé."
 
-#: src/paperwork/frontend/mainwindow.py:1331
+#: src/paperwork/frontend/mainwindow.py:1336
 msgid "Export page"
 msgstr "Exporter la page"
 
-#: src/paperwork/frontend/mainwindow.py:1343
+#: src/paperwork/frontend/mainwindow.py:1348
 msgid "Export document"
 msgstr "Exporter le document"
 
-#: src/paperwork/frontend/mainwindow.py:1416
+#: src/paperwork/frontend/mainwindow.py:1421
 msgid "Save as"
 msgstr " Enregistrer sous"
 
-#: src/paperwork/frontend/mainwindow.py:2163
+#: src/paperwork/frontend/mainwindow.py:1751
+msgid "Search"
+msgstr "Rechercher"
+
+#: src/paperwork/frontend/mainwindow.py:2170
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/frontend/mainwindow.py:2482
 #: src/paperwork/frontend/mainwindow.py:2489
 #: src/paperwork/frontend/mainwindow.py:2496
 #: src/paperwork/frontend/mainwindow.py:2503
+#: src/paperwork/frontend/mainwindow.py:2510
 msgid "Loading thumbnails ..."
 msgstr "Chargement des vignettes ..."
 
-#: src/paperwork/frontend/mainwindow.py:2549
+#: src/paperwork/frontend/mainwindow.py:2556
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2553
+#: src/paperwork/frontend/mainwindow.py:2560
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2564
-#: src/paperwork/frontend/mainwindow.py:3087
+#: src/paperwork/frontend/mainwindow.py:2571
+#: src/paperwork/frontend/mainwindow.py:3094
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2568
+#: src/paperwork/frontend/mainwindow.py:2575
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/frontend/mainwindow.py:2580
+#: src/paperwork/frontend/mainwindow.py:2587
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/frontend/mainwindow.py:2595
+#: src/paperwork/frontend/mainwindow.py:2602
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/paperwork/frontend/mainwindow.py:2623
+#: src/paperwork/frontend/mainwindow.py:2630
 msgid "Importing ..."
 msgstr "Import en cours ..."
 
-#: src/paperwork/frontend/mainwindow.py:2770
+#: src/paperwork/frontend/mainwindow.py:2777
 #, python-format
 msgid ""
 "\n"
@@ -176,25 +180,25 @@ msgstr ""
 "\n"
 "  %d pages"
 
-#: src/paperwork/frontend/mainwindow.py:2939
+#: src/paperwork/frontend/mainwindow.py:2946
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/frontend/mainwindow.py:2943
+#: src/paperwork/frontend/mainwindow.py:2950
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow.py:3033
+#: src/paperwork/frontend/mainwindow.py:3040
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 
-#: src/paperwork/frontend/mainwindow.py:3084
+#: src/paperwork/frontend/mainwindow.py:3091
 msgid "Updating the image ..."
 msgstr "Mise à jour de l'image ..."
 
-#: src/paperwork/frontend/mainwindow.py:3090
+#: src/paperwork/frontend/mainwindow.py:3097
 msgid "Updating the index ..."
 msgstr "Mise à jour de l'index ..."
 

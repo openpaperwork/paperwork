@@ -291,8 +291,10 @@ class ImgDoc(BasicDoc):
         self.drop_cache()
 
     def import_image(self, file_uri, ocrlang):
-        img_fp = Gio.File(file_uri).read()
-        img = Image.open(img_fp)
+        # TODO(Jflesch): Use Gio
+        if file_uri.startswith("file://"):
+            file_uri = file_uri[len("file://"):]
+        img = Image.open(file_uri)
         self.__add_img(img, ocrlang)
         self.drop_cache()
 

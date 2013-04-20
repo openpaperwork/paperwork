@@ -1747,6 +1747,8 @@ class MainWindow(object):
         }
 
         self.search_field = widget_tree.get_object("entrySearch")
+        # done here instead of mainwindow.glade so it can be translated
+        self.search_field.set_placeholder_text(_("Search"))
 
         self.doc_browsing = {
             'matches' : widget_tree.get_object("iconviewMatch"),

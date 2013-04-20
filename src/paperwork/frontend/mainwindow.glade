@@ -719,7 +719,7 @@
                     <property name="invisible_char_set">True</property>
                     <property name="primary_icon_stock">gtk-find</property>
                     <property name="secondary_icon_stock">gtk-clear</property>
-                    <property name="placeholder_text">Search</property>
+                    <property name="placeholder_text"></property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

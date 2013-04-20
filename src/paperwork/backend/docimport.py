@@ -99,7 +99,7 @@ class MultiplePdfImporter(object):
                 docsearch.index_page(page)
             idx += 1
 
-        assert(doc != None)
+        assert(doc is not None)
         return (doc, doc.pages[0])
 
     def __str__(self):
@@ -118,7 +118,7 @@ class SingleImageImporter(object):
 
     def import_doc(self, file_uri, config, docsearch, current_doc=None):
         print ("Importing doc '%s'" % (file_uri))
-        if current_doc == None:
+        if current_doc is None:
             current_doc = ImgDoc(config.workdir)
         current_doc.import_image(file_uri, config.ocrlang)
         page = current_doc.pages[current_doc.nb_pages-1]

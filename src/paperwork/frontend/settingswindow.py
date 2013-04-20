@@ -190,6 +190,14 @@ class WorkerCalibrationScan(Worker):
         except pyinsane.rawapi.SaneException:
             print ("Warning: Unable to set scanner resolution to %d: %s" %
                    (PaperworkConfig.CALIBRATION_RESOLUTION, str(exc)))
+        if "Color" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Color"
+            print "Scanner mode set to 'Color'"
+        elif "Gray" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Gray"
+            print "Scanner mode set to 'Gray'"
+        else:
+            print "WARNING: Unable to set scanner mode ! May be 'Lineart'"
 
         scan_inst = dev.scan(multiple=False)
         try:

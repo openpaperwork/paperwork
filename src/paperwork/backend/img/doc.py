@@ -140,7 +140,7 @@ class ImgToPdfDocExporter(object):
         return 'PDF'
 
 
-class _ImgPageListIterator(object):
+class _ImgPagesIterator(object):
     """
     Iterates on a page list
     """
@@ -163,7 +163,7 @@ class _ImgPageListIterator(object):
         return page
 
 
-class _ImgPageList(object):
+class _ImgPages(object):
     """
     Page list. Page are accessed using [] operator.
     """
@@ -187,7 +187,7 @@ class _ImgPageList(object):
         return (self.doc == other.doc)
 
     def __iter__(self):
-        return _ImgPageListIterator(self)
+        return _ImgPagesIterator(self)
 
 
 class ImgDoc(BasicDoc):
@@ -210,11 +210,7 @@ class ImgDoc(BasicDoc):
             docid --- Document Id (ie folder name). Use None for a new document
         """
         BasicDoc.__init__(self, docpath, docid)
-        self.pages = _ImgPageList(self)
-
-    def drop_cache(self):
-        BasicDoc.drop_cache(self)
-        self.pages = _ImgPageList(self)
+        self.__pages = None
 
     def __get_last_mod(self):
         last_mod = 0.0
@@ -238,6 +234,13 @@ class ImgDoc(BasicDoc):
         return last_mod
 
     last_mod = property(__get_last_mod)
+
+    def __get_pages(self):
+        if self.__pages is None:
+            self.__pages = _ImgPages(self)
+        return self.__pages
+
+    pages = property(__get_pages)
 
     def _get_nb_pages(self):
         """
@@ -333,6 +336,11 @@ class ImgDoc(BasicDoc):
         print "%s --> %s" % (str(page), str(new_page))
         new_page._steal_content(page)
         self.drop_cache()
+
+    def drop_cache(self):
+        BasicDoc.drop_cache(self)
+        del(self.__pages)
+        self.__pages = None
 
 def is_img_doc(docpath):
     try:

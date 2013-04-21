@@ -94,11 +94,9 @@ class PdfDoc(BasicDoc):
 
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
-        self.pdf = None
+        self.__pdf = None
         self.__nb_pages = 0
-        self.pages = []
-        if docid != None:
-            self._open_pdf()
+        self.__pages = None
 
     def __get_last_mod(self):
         pdfpath = os.path.join(self.path, PDF_FILENAME)
@@ -125,15 +123,31 @@ class PdfDoc(BasicDoc):
 
     last_mod = property(__get_last_mod)
 
-    def _get_nb_pages(self):
-        return self.__nb_pages
-
     def _open_pdf(self):
-        self.pdf = Poppler.Document.new_from_file(
+        self.__pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),
              password=None)
         self.__nb_pages = self.pdf.get_n_pages()
-        self.pages = PdfPages(self)
+        self.__pages = PdfPages(self)
+
+    def __get_pdf(self):
+        if self.__pdf is None:
+            self._open_pdf()
+        return self.__pdf
+
+    pdf = property(__get_pdf)
+
+    def __get_pages(self):
+        if self.__pdf is None:
+            self._open_pdf()
+        return self.__pages
+
+    pages = property(__get_pages)
+
+    def _get_nb_pages(self):
+        if self.__pdf is None:
+            self._open_pdf()
+        return self.__nb_pages
 
     def print_page_cb(self, print_op, print_context, page_nb):
         """
@@ -170,12 +184,12 @@ class PdfDoc(BasicDoc):
     def build_exporter(self, file_format='pdf'):
         return PdfDocExporter(self)
 
-    def free(self):
-        BasicDoc.free(self)
-        del(self.pdf)
-        self.pdf = None
-        del(self.pages)
-        self.pages = None
+    def drop_cache(self):
+        BasicDoc.drop_cache(self)
+        del(self.__pdf)
+        self.__pdf = None
+        del(self.__pages)
+        self.__pages = None
 
 
 def is_pdf_doc(docpath):

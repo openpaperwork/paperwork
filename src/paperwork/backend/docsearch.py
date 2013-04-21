@@ -300,10 +300,11 @@ class DocSearch(object):
         return self.__inst_doc_from_id(docid, doc_type_name)
 
     def reload_index(self, progress_cb=dummy_progress_cb):
-        for doc in self.__docs_by_id.values():
-            doc.free()
-        del self.__docs_by_id
+        docs_by_id = self.__docs_by_id
         self.__docs_by_id = {}
+        for doc in docs_by_id.values():
+            doc.drop_cache()
+        del docs_by_id
 
         query = whoosh.query.Every()
         results = self.__searcher.search(query, limit=None)

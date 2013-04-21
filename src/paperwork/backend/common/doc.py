@@ -46,10 +46,10 @@ class BasicDoc(object):
         and thread-safety issues. Load the content on-the-fly when requested.
         """
         if docid == None:
-            self.docid = time.strftime(self.DOCNAME_FORMAT)
-            self.path = os.path.join(docpath, self.docid)
+            self.__docid = time.strftime(self.DOCNAME_FORMAT)
+            self.path = os.path.join(docpath, self.__docid)
         else:
-            self.docid = docid
+            self.__docid = docid
             self.path = docpath
         self.__cache = {}
 
@@ -57,7 +57,7 @@ class BasicDoc(object):
         self.__cache = {}
 
     def __str__(self):
-        return self.docid
+        return self.__docid
 
     def __get_last_mod(self):
         raise NotImplementedError()
@@ -205,7 +205,7 @@ class BasicDoc(object):
         """
         if other == None:
             return -1
-        return cmp(self.docid, other.docid)
+        return cmp(self.__docid, other.__docid)
 
     def __lt__(self, other):
         return self.__doc_cmp(other) < 0
@@ -226,7 +226,7 @@ class BasicDoc(object):
         return self.__doc_cmp(other) != 0
 
     def __hash__(self):
-        return hash(self.docid)
+        return hash(self.__docid)
 
     def __is_new(self):
         try:
@@ -245,7 +245,7 @@ class BasicDoc(object):
         if self.is_new:
             return _("New document")
         try:
-            split = self.docid.split("_")
+            split = self.__docid.split("_")
             short_docid = "_".join(split[:3])
             datetime_obj = datetime.datetime.strptime(
                     short_docid, self.DOCNAME_FORMAT)
@@ -258,3 +258,42 @@ class BasicDoc(object):
 
     name = property(__get_name)
 
+    def __get_docid(self):
+        return self.__docid
+
+    def __set_docid(self, new_base_docid):
+        workdir = os.path.dirname(self.path)
+        new_docid = new_base_docid
+        new_docpath = os.path.join(workdir, new_docid)
+        idx = 0
+
+        while os.path.exists(new_docpath):
+            idx += 1
+            new_docid = new_base_docid + ("_%02d" % idx)
+            new_docpath = os.path.join(workdir, new_docid)
+
+        print ("Changing docid: %s -> %s" 
+               % (self.path, new_docpath))
+        os.rename(self.path, new_docpath)
+        self.__docid = new_docid
+        self.path = new_docpath
+
+    docid = property(__get_docid, __set_docid)
+
+    def __get_date(self):
+        try:
+            split = self.__docid.split("_")[0]
+            return (int(split[0:4]),
+                    int(split[4:6]),
+                    int(split[6:8]))
+        except (IndexError, ValueError):
+            return (1985, 12, 19)
+
+    def __set_date(self, new_date):
+        new_id = ("%d%d%d_0000_01"
+                  % (new_date[0],
+                     new_date[1],
+                     new_date[2]))
+        self.docid = new_id
+
+    date = property(__get_date, __set_date)

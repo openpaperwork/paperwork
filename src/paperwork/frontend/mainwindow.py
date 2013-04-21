@@ -35,6 +35,7 @@ import pyinsane.rawapi
 
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
+from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.page_edit import PageEditingDialog
@@ -1577,7 +1578,7 @@ class ActionEditDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        # TODO
+        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
 
 
 class ActionAbout(SimpleAction):
@@ -2198,6 +2199,7 @@ class MainWindow(object):
             + self.actions['toggle_label'][0]
             + self.actions['redo_ocr_doc'][0]
             + self.actions['open_export_doc_dialog'][0]
+            + self.actions['edit_doc'][0]
         )
 
         self.need_page_widgets = (
@@ -3039,8 +3041,9 @@ class MainWindow(object):
 
     def show_doc(self, doc):
         self.doc = doc
+        is_new = self.doc.is_new
         for widget in self.need_doc_widgets:
-            widget.set_sensitive(True)
+            widget.set_sensitive(not is_new)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
         if self.doc.can_edit:

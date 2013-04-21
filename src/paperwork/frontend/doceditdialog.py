@@ -1,6 +1,7 @@
 import datetime
 
 import gettext
+import locale
 from gi.repository import Gtk
 
 from paperwork.util import load_uifile
@@ -27,28 +28,71 @@ class DocEditDialog(object):
                 'view' : widget_tree.get_object("spinbuttonDay"),
                 'model' : widget_tree.get_object("adjustmentDay"),
             },
+            'box' : widget_tree.get_object("boxDate")
         }
 
-        # TODO(Jflesch): Reorder the widget according the to the locale
+        self.__change_widget_order_according_to_locale()
 
         self.refresh_date()
 
         self.dialog = widget_tree.get_object("dialogDocEdit")
         self.dialog.set_transient_for(self.__main_win.window)
 
-        must_run = True
         try:
-            while must_run:
+            while True:
                 ret = self.dialog.run()
                 if ret != 0:
-                    must_run = False
+                    break
                 else:
                     try:
                         self.set_date()
                     except ValueError:
                         self.__show_error(_("Invalid date"))
+                        continue
+                    break
         finally:
             self.dialog.destroy()
+
+    def __change_widget_order_according_to_locale(self):
+        widgets = {
+            "year" : self.date['year']['view'],
+            "month" : self.date['month']['view'],
+            "day" : self.date['day']['view']
+        }
+        char_to_widget = {
+            'B' : "month",
+            'd' : "day",
+            'm' : "month",
+            'y' : "year",
+            'Y' : "year",
+        }
+        new_order = []
+
+        date_format = locale.nl_langinfo(locale.D_FMT)
+        split = date_format.split("%")
+        for element in split:
+            if len(element) <= 0:
+                continue
+            char = element[0]
+            if not char in char_to_widget:
+                continue
+            widget_name = char_to_widget[char]
+            if not widget_name in widgets:
+                # already placed
+                continue
+            widget = widgets.pop(widget_name)
+            new_order.append(widget)
+        if len(widgets) > 0:
+            print ("WARNING: Failed to figure out the correct order"
+                   " for the date widget")
+            print "Will use ISO order"
+            return
+
+        for widget in self.date['box'].get_children():
+            self.date['box'].remove(widget)
+        for widget in new_order:
+            self.date['box'].add(widget)
+        self.date['box'].add(Gtk.Label(""))
 
     def __show_error(self, msg):
         dialog = \
@@ -63,6 +107,7 @@ class DocEditDialog(object):
 
     def refresh_date(self):
         date = self.doc.date
+        print "Doc date: %s" % str(date)
         self.date['year']['model'].set_value(date[0])
         self.date['month']['model'].set_value(date[1])
         self.date['day']['model'].set_value(date[2])

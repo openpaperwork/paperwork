@@ -290,7 +290,7 @@ class BasicDoc(object):
             return (1985, 12, 19)
 
     def __set_date(self, new_date):
-        new_id = ("%d%d%d_0000_01"
+        new_id = ("%02d%02d%02d_0000_01"
                   % (new_date[0],
                      new_date[1],
                      new_date[2]))

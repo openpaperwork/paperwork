@@ -345,7 +345,7 @@ class WorkerPageThumbnailer(Worker):
         self.emit('page-thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
-            img = page.get_thumbnail(150)
+            img = page.get_thumbnail(WorkerDocThumbnailer.THUMB_WIDTH)
             img = img.copy()
             if search != u"" and search in page:
                 img = add_img_border(img, color="#009e00", width=3)
@@ -366,6 +366,9 @@ class WorkerDocThumbnailer(Worker):
     """
     Generate doc list thumbnails
     """
+
+    THUMB_WIDTH = 150
+    THUMB_HEIGHT = 220
 
     __gsignals__ = {
         'doc-thumbnailing-start' :
@@ -413,6 +416,20 @@ class WorkerDocThumbnailer(Worker):
                 resume += 1
                 continue
             img = doc.pages[0].get_thumbnail(150)
+
+            (width, height) = img.size
+            # always make sure the thumbnail has a specific height
+            # otherwise the scrollbar keep moving while loading
+            if height > self.THUMB_HEIGHT:
+                img = img.crop((0, 0, width, self.THUMB_HEIGHT))
+                img = img.copy()
+            else:
+                new_img = Image.new('RGBA', (width, self.THUMB_HEIGHT),
+                                    '#FFFFFF')
+                h = (self.THUMB_HEIGHT - height) / 2
+                new_img.paste(img, (0, h, width, h+height))
+                img = new_img
+
             img = add_img_border(img)
             pixbuf = image2pixbuf(img)
             self.emit('doc-thumbnailing-doc-done', doc_idx, pixbuf)
@@ -1709,7 +1726,10 @@ class MainWindow(object):
         self.__busy_mouse_counter = 0
         self.__last_highlight_update = time.time()
 
-        img = Image.new("RGB", (150, 205), color="#CCCCCC")
+        img = Image.new("RGB", (
+                WorkerDocThumbnailer.THUMB_WIDTH,
+                WorkerDocThumbnailer.THUMB_HEIGHT
+            ), color="#CCCCCC")
         self.default_thumbnail = image2pixbuf(img)
 
         widget_tree = load_uifile("mainwindow.glade")

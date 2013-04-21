@@ -346,7 +346,7 @@ class WorkerPageThumbnailer(Worker):
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
             img = page.get_thumbnail(150)
-            img.copy()
+            img = img.copy()
             if search != u"" and search in page:
                 img = add_img_border(img, color="#009e00", width=3)
             else:

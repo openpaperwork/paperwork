@@ -163,6 +163,7 @@ class DocIndexUpdater(GObject.GObject):
         print "Index: Commiting changes"
         self.writer.commit(optimize=self.optimize)
         del self.writer
+        self.docsearch.reload_searcher()
 
     def cancel(self):
         print "Index: Index update cancelled"
@@ -232,9 +233,9 @@ class DocSearch(object):
             self.index = whoosh.index.create_in(self.indexdir, schema)
             print ("Index '%s' created" % self.indexdir)
 
-        self.__searcher = self.index.searcher()
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
+        self.__searcher = self.index.searcher()
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
@@ -357,6 +358,8 @@ class DocSearch(object):
 
         Arguments:
             page --- from which keywords must be extracted
+
+        Obsolete. To remove. Use get_index_updater() instead
         """
         index_writer = self.index.writer()
         self._update_doc_in_index(index_writer, page.doc)
@@ -364,9 +367,7 @@ class DocSearch(object):
         if not page.doc.docid in self.__docs_by_id:
             print ("Adding document '%s' to the index" % page.doc.docid)
             self.__docs_by_id[page.doc.docid] = page.doc
-        searcher = self.__searcher
-        self.__searcher = self.index.searcher()
-        del(searcher)
+        self.reload_searcher()
 
     def __find_documents(self, query):
         docs = []
@@ -462,7 +463,7 @@ class DocSearch(object):
         index_writer = self.index.writer()
         self._update_doc_in_index(index_writer, doc)
         index_writer.commit()
-        self.__searcher = self.index.searcher()
+        self.reload_searcher()
 
     def remove_label(self, doc, label):
         """
@@ -472,7 +473,7 @@ class DocSearch(object):
         index_writer = self.index.writer()
         self._update_doc_in_index(index_writer, doc)
         index_writer.commit()
-        self.__searcher = self.index.searcher()
+        self.reload_searcher()
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """
@@ -493,9 +494,7 @@ class DocSearch(object):
                 self._update_doc_in_index(index_writer, doc)
             current += 1
         index_writer.commit()
-        searcher = self.__searcher
-        self.__searcher = self.index.searcher()
-        del(searcher)
+        self.reload_searcher()
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         """
@@ -514,6 +513,9 @@ class DocSearch(object):
                 self._update_doc_in_index(index_writer, doc)
             current += 1
         index_writer.commit()
+        self.reload_searcher()
+
+    def reload_searcher(self):
         searcher = self.__searcher
         self.__searcher = self.index.searcher()
         del(searcher)

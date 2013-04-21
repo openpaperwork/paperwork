@@ -247,12 +247,9 @@ class BasicDoc(object):
         try:
             split = self.docid.split("_")
             short_docid = "_".join(split[:3])
-            extra = " ".join(split[3:])
             datetime_obj = datetime.datetime.strptime(
                     short_docid, self.DOCNAME_FORMAT)
-            final = datetime_obj.strftime("%x %X")
-            if extra != "":
-                final += (" (%s)" % (extra))
+            final = datetime_obj.strftime("%x")
             return final
         except Exception, exc:
             print ("Unable to parse document id [%s]: %s"

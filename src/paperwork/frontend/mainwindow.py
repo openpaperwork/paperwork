@@ -1498,6 +1498,7 @@ class ActionSetToolbarVisibility(SimpleAction):
         for toolbar in self.__main_win.toolbars:
             toolbar.set_visible(visible)
 
+
 class ActionZoomChange(SimpleAction):
     def __init__(self, main_window, offset):
         SimpleAction.__init__(self, "Zoom += %d" % offset)
@@ -2161,8 +2162,8 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemEditDoc1"),
                     widget_tree.get_object("toolbuttonEditDoc"),
                     widget_tree.get_object("menuitemEditDoc")
-                ]
-                ActionEditDoc(self, config)
+                ],
+                ActionEditDoc(self, config),
             ),
             'about' : (
                 [
@@ -2480,7 +2481,7 @@ class MainWindow(object):
         for suggestion in suggestions:
             self.lists['suggestions']['model'].append([suggestion])
 
-        print "Git %d documents" % len(documents)
+        print "Got %d documents" % len(documents)
         self.lists['matches']['model'].clear()
         active_idx = -1
         idx = 0
@@ -2793,7 +2794,7 @@ class MainWindow(object):
         final_str = "%s" % (doc.name)
         nb_pages = doc.nb_pages
         if nb_pages > 1:
-            final_str += (_("\n  %d pages") % (doc.nb_pages))
+            final_str += (_(" (%d pages)") % (doc.nb_pages))
         if len(labels) > 0:
             final_str += ("\n  "
                     + "\n  ".join([x.get_html() for x in labels]))

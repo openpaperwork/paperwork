@@ -26,6 +26,7 @@ setup(name="Paperwork",
       data_files=[
           ('share/paperwork', [
             'src/paperwork/frontend/aboutdialog.glade',
+            'src/paperwork/frontend/doceditdialog.glade',
             'src/paperwork/frontend/import.glade',
             'src/paperwork/frontend/import_select.glade',
             'src/paperwork/frontend/mainwindow.glade',

@@ -97,7 +97,7 @@ GPLv3. See COPYING.
 		* sudo python ./setup.py install
 * OCR (optional for document searching ; required for scanning)
 	* Tesseract (>= v3.01) (recommended)
-		* Debian/Ubuntu package: tesseract-ocr tesseract-ocr-<your language>
+		* Debian/Ubuntu package: tesseract-ocr tesseract-ocr-&lt;your language&gt;
 	* **Or** Cuneiform (>= v1.1)
     	* Debian/Ubuntu package: cuneiform
 * pyocr (required)

@@ -20,6 +20,7 @@ Contains all the code relative to keyword and document list management list.
 
 import copy
 import datetime
+import gc
 import multiprocessing
 import os
 import os.path
@@ -299,6 +300,11 @@ class DocSearch(object):
         return self.__inst_doc_from_id(docid, doc_type_name)
 
     def reload_index(self, progress_cb=dummy_progress_cb):
+        for doc in self.__docs_by_id.values():
+            doc.free()
+        del self.__docs_by_id
+        self.__docs_by_id = {}
+
         query = whoosh.query.Every()
         results = self.__searcher.search(query, limit=None)
 
@@ -321,6 +327,8 @@ class DocSearch(object):
 
         self.label_list = [label for label in labels]
         self.label_list.sort()
+
+        print "GC: %d" % len(gc.garbage)
 
     def _delete_doc_from_index(self, index_writer, docid):
         query = whoosh.query.Term("docid", docid)

@@ -170,6 +170,13 @@ class PdfDoc(BasicDoc):
     def build_exporter(self, file_format='pdf'):
         return PdfDocExporter(self)
 
+    def free(self):
+        BasicDoc.free(self)
+        del(self.pdf)
+        self.pdf = None
+        del(self.pages)
+        self.pages = None
+
 
 def is_pdf_doc(docpath):
     try:

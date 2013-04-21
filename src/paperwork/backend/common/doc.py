@@ -318,3 +318,6 @@ class BasicDoc(object):
                 file_desc.write(txt)
 
     extra_text = property(__get_extra_text, __set_extra_text)
+
+    def free(self):
+        pass

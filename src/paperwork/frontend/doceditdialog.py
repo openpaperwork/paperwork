@@ -1,5 +1,11 @@
+import datetime
+
+import gettext
+from gi.repository import Gtk
+
 from paperwork.util import load_uifile
 
+_ = gettext.gettext
 
 class DocEditDialog(object):
     def __init__(self, main_window, config, doc):
@@ -23,19 +29,37 @@ class DocEditDialog(object):
             },
         }
 
-        # TODO(Jflesch): Reoder the widget according the to the locale
+        # TODO(Jflesch): Reorder the widget according the to the locale
 
         self.refresh_date()
 
         self.dialog = widget_tree.get_object("dialogDocEdit")
         self.dialog.set_transient_for(self.__main_win.window)
 
-        ret = self.dialog.run()
+        must_run = True
         try:
-            if ret == 0:
-                self.set_date()
+            while must_run:
+                ret = self.dialog.run()
+                if ret != 0:
+                    must_run = False
+                else:
+                    try:
+                        self.set_date()
+                    except ValueError:
+                        self.__show_error(_("Invalid date"))
         finally:
             self.dialog.destroy()
+
+    def __show_error(self, msg):
+        dialog = \
+                Gtk.MessageDialog(parent=self.dialog,
+                                  flags=(Gtk.DialogFlags.MODAL
+                                         |Gtk.DialogFlags.DESTROY_WITH_PARENT),
+                                  type=Gtk.MessageType.ERROR,
+                                  buttons=Gtk.ButtonsType.OK,
+                                  message_format=msg)
+        dialog.run()
+        dialog.destroy()
 
     def refresh_date(self):
         date = self.doc.date
@@ -43,14 +67,23 @@ class DocEditDialog(object):
         self.date['month']['model'].set_value(date[1])
         self.date['day']['model'].set_value(date[2])
 
+    def __check_date(self, date):
+        datetime.datetime(year=date[0],
+                          month=date[1],
+                          day=date[2])
+
     def set_date(self):
+        date = (int(self.date['year']['model'].get_value()),
+                int(self.date['month']['model'].get_value()),
+                int(self.date['day']['model'].get_value()))
+        self.__check_date(date)
+
         docsearch = self.__main_win.docsearch
         doc_index_updater = docsearch.get_index_updater(optimize=False)
-
         doc_index_updater.del_doc(self.doc.docid)
-        self.doc.date = (self.date['year']['model'].get_value(),
-                         self.date['month']['model'].get_value(),
-                         self.date['day']['model'].get_value())
+
+        self.doc.date = date
+
         doc_index_updater.add_doc(self.doc)
         doc_index_updater.commit()
 

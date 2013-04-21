@@ -30,10 +30,15 @@ class DocEditDialog(object):
             },
             'box' : widget_tree.get_object("boxDate")
         }
+        self.text = {
+            'view' : widget_tree.get_object("textviewText"),
+            'model' : widget_tree.get_object("textbufferText"),
+        }
 
         self.__change_widget_order_according_to_locale()
 
         self.refresh_date()
+        self.refresh_text()
 
         self.dialog = widget_tree.get_object("dialogDocEdit")
         self.dialog.set_transient_for(self.__main_win.window)
@@ -46,12 +51,8 @@ class DocEditDialog(object):
                     break
                 else:
                     print "Doc edit: Applying changes"
-                    try:
-                        self.set_date()
-                    except ValueError:
-                        self.__show_error(_("Invalid date"))
-                        continue
-                    break
+                    if self.apply_changes():
+                        break
         finally:
             self.dialog.destroy()
 
@@ -96,6 +97,48 @@ class DocEditDialog(object):
             self.date['box'].add(widget)
         self.date['box'].add(Gtk.Label(""))
 
+    def refresh_date(self):
+        date = self.doc.date
+        print "Doc date: %s" % str(date)
+        self.date['year']['model'].set_value(date[0])
+        self.date['month']['model'].set_value(date[1])
+        self.date['day']['model'].set_value(date[2])
+
+    def refresh_text(self):
+        self.text['model'].set_text(self.doc.extra_text)
+
+    def __check_date(self, date):
+        datetime.datetime(year=date[0],
+                          month=date[1],
+                          day=date[2])
+
+    def set_date(self):
+
+        date = (int(self.date['year']['model'].get_value()),
+                int(self.date['month']['model'].get_value()),
+                int(self.date['day']['model'].get_value()))
+        if date == self.doc.date:
+            print "Date unchanged"
+            return False
+        print "Date changed"
+
+        self.__check_date(date)
+        self.doc.date = date
+
+        self.__main_win.refresh_doc_list()
+        return True
+
+    def set_text(self):
+        start = self.text['model'].get_iter_at_offset(0)
+        end = self.text['model'].get_iter_at_offset(-1)
+        txt = unicode(self.text['model'].get_text(start, end, False), encoding='utf-8')
+        if self.doc.extra_text == txt:
+            print "Extra text unchanged"
+            return False
+        print "Extra text changed"
+        self.doc.extra_text = txt
+        return True
+
     def __show_error(self, msg):
         dialog = \
                 Gtk.MessageDialog(parent=self.dialog,
@@ -107,35 +150,23 @@ class DocEditDialog(object):
         dialog.run()
         dialog.destroy()
 
-    def refresh_date(self):
-        date = self.doc.date
-        print "Doc date: %s" % str(date)
-        self.date['year']['model'].set_value(date[0])
-        self.date['month']['model'].set_value(date[1])
-        self.date['day']['model'].set_value(date[2])
-
-    def __check_date(self, date):
-        datetime.datetime(year=date[0],
-                          month=date[1],
-                          day=date[2])
-
-    def set_date(self):
-        date = (int(self.date['year']['model'].get_value()),
-                int(self.date['month']['model'].get_value()),
-                int(self.date['day']['model'].get_value()))
-        if date == self.doc.date:
-            print "Date unchanged"
-            return
-
-        self.__check_date(date)
-
+    def apply_changes(self):
         docsearch = self.__main_win.docsearch
         doc_index_updater = docsearch.get_index_updater(optimize=False)
         doc_index_updater.del_doc(self.doc.docid)
 
-        self.doc.date = date
+        changed = False
 
-        doc_index_updater.add_doc(self.doc)
-        doc_index_updater.commit()
+        try:
+            changed = self.set_date() or changed
+        except ValueError:
+            self.__show_error(_("Invalid date"))
+            return False
+        changed = self.set_text() or changed
 
-        self.__main_win.refresh_doc_list()
+        if changed:
+            doc_index_updater.add_doc(self.doc)
+            doc_index_updater.commit()
+        else:
+            doc_index_updater.cancel()
+        return True

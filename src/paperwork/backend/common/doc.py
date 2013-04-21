@@ -33,6 +33,7 @@ _ = gettext.gettext
 class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
+    EXTRA_TEXT_FILE = "extra.txt"
 
     pages = []
     can_edit = False
@@ -297,3 +298,23 @@ class BasicDoc(object):
         self.docid = new_id
 
     date = property(__get_date, __set_date)
+
+    def __get_extra_text(self):
+        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+        if not os.access(extra_txt_file, os.R_OK):
+            return u""
+        with codecs.open(extra_txt_file, 'r', encoding='utf-8') as file_desc:
+            text = file_desc.read()
+            return text
+
+    def __set_extra_text(self, txt):
+        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+
+        txt = txt.strip()
+        if txt == u"":
+            os.unlink(extra_txt_file)
+        else:
+            with codecs.open(extra_txt_file, 'w', encoding='utf-8') as file_desc:
+                file_desc.write(txt)
+
+    extra_text = property(__get_extra_text, __set_extra_text)

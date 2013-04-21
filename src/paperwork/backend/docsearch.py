@@ -329,6 +329,9 @@ class DocSearch(object):
         for page in doc.pages:
             for line in page.text:
                 txt += unicode(line) + u"\n"
+        extra_txt = doc.extra_text
+        if extra_txt != u"":
+            txt += extra_txt + u"\n"
         for label in doc.labels:
             txt += u" " + unicode(label.name)
         txt = txt.strip()

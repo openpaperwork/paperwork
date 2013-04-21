@@ -138,14 +138,17 @@ class DocDirExaminer(GObject.GObject):
 
 
 class DocIndexUpdater(GObject.GObject):
-    def __init__(self, docsearch, optimize):
+    def __init__(self, docsearch, optimize, progress_cb=dummy_progress_cb):
         self.docsearch = docsearch
         self.optimize = optimize
         self.writer = docsearch.index.writer()
+        self.progress_cb = progress_cb
+        self.__need_reload = False
 
     def add_doc(self, doc):
         print "Indexing new doc: %s" % (str(doc))
         self.docsearch._update_doc_in_index(self.writer, doc)
+        self.__need_reload = True
 
     def upd_doc(self, doc):
         print "Updating modified doc: %s" % (str(doc))
@@ -154,16 +157,16 @@ class DocIndexUpdater(GObject.GObject):
     def del_doc(self, docid):
         print "Removing doc from the index: %s" % (docid)
         self.docsearch._delete_doc_from_index(self.writer, docid)
+        self.__need_reload = True
 
     def commit(self):
-        """
-        You must rebuild the DocSearch object or call DocSearch.reload_index()
-        after calling this method
-        """
         print "Index: Commiting changes"
         self.writer.commit(optimize=self.optimize)
         del self.writer
         self.docsearch.reload_searcher()
+        if self.__need_reload:
+            print "Index: Reloading ..."
+            self.docsearch.reload_index(progress_cb=self.progress_cb)
 
     def cancel(self):
         print "Index: Index update cancelled"

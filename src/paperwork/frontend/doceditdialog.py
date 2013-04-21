@@ -123,6 +123,10 @@ class DocEditDialog(object):
         date = (int(self.date['year']['model'].get_value()),
                 int(self.date['month']['model'].get_value()),
                 int(self.date['day']['model'].get_value()))
+        if date == self.doc.date:
+            print "Date unchanged"
+            return
+
         self.__check_date(date)
 
         docsearch = self.__main_win.docsearch

@@ -42,8 +42,10 @@ class DocEditDialog(object):
             while True:
                 ret = self.dialog.run()
                 if ret != 0:
+                    print "Doc edit: Cancelling changes"
                     break
                 else:
+                    print "Doc edit: Applying changes"
                     try:
                         self.set_date()
                     except ValueError:

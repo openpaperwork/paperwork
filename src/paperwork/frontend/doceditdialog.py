@@ -167,7 +167,7 @@ class DocEditDialog(object):
         if changed:
             doc_index_updater.add_doc(self.doc)
             doc_index_updater.commit()
-            self.main_win.refresh_doc_list()
+            self.__main_win.refresh_doc_list()
         else:
             doc_index_updater.cancel()
         return True

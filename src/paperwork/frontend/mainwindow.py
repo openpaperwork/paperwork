@@ -2551,10 +2551,6 @@ class MainWindow(object):
                                    len(self.lists['matches']['doclist'])),
                              _("Loading thumbnails ..."))
         active_doc_idx = self.lists['matches']['active_idx']
-        if active_doc_idx == doc_idx:
-            path = Gtk.TreePath(active_doc_idx)
-            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             path, False, 0.0, 0.0)
 
     def __on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)

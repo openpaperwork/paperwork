@@ -297,7 +297,8 @@ class DocSearch(object):
     def get_doc_from_docid(self, docid, doc_type_name=None):
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
-        return self.__inst_doc_from_id(docid, doc_type_name)
+        self.__docs_by_id[docid] = self.__inst_doc_from_id(docid, doc_type_name)
+        return self.__docs_by_id[docid]
 
     def reload_index(self, progress_cb=dummy_progress_cb):
         docs_by_id = self.__docs_by_id
@@ -395,9 +396,7 @@ class DocSearch(object):
         return docs
 
     def __get_all_docs(self):
-        query = whoosh.query.Every("docid")
-        docs = self.__find_documents(query)
-        return docs
+        return self.__docs_by_id.values()
 
     docs = property(__get_all_docs)
 

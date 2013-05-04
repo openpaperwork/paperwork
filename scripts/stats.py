@@ -19,6 +19,10 @@ def main():
     total_word_len = 0
     max_word_len = 0
 
+    words = set()
+    total_nb_unique_words = 0
+    total_nb_unique_words_per_doc = 0
+
     print ""
     print "Analysis"
     print "========"
@@ -26,6 +30,8 @@ def main():
     for doc in dsearch.docs:
         sys.stdout.write(str(doc) + ": ")
         sys.stdout.flush()
+
+        doc_words = set()
 
         for page in doc.pages:
             sys.stdout.write("%d " % (page.page_nb + 1))
@@ -37,6 +43,13 @@ def main():
                     # ignore words too short to be useful
                     if (len(word) < 4):
                         continue
+                    if not word in words:
+                        words.add(word)
+                        total_nb_unique_words += 1
+                    if not word in doc_words:
+                        doc_words.add(word)
+                        total_nb_unique_words_per_doc += 1
+
                     nb_words += 1
                     total_word_len += len(word)
                     if max_word_len < len(word):
@@ -50,6 +63,7 @@ def main():
     print "Total number of documents: %d" % nb_docs
     print "Total number of pages: %d" % nb_pages
     print "Total number of words: %d" % total_word_len
+    print "Total number of unique words: %d" % total_nb_unique_words
     print "==="
     print "Maximum word length: %d" % max_word_len
     print "Average word length: %f" % (float(total_word_len) / float(nb_words))
@@ -59,6 +73,8 @@ def main():
            % (float(nb_words) / float(nb_docs)))
     print ("Average number of pages per document: %f"
            % (float(nb_pages) / float(nb_docs)))
+    print ("Average number of unique words per document: %f"
+           % (float(total_nb_unique_words_per_doc) / float(nb_docs)))
 
 if __name__ == "__main__":
     main()

@@ -41,7 +41,7 @@ class _ScanTimes(object):
         try:
             return float(self.__config._configparser.get(
                 cfg[0], cfg[1]))
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return 30.0
 
     def __setitem__(self, item, value):
@@ -116,7 +116,7 @@ class PaperworkConfig(object):
         """
         try:
             return self._configparser.get("Global", "WorkDirectory")
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return os.path.expanduser("~/papers")
 
     def __set_workdir(self, work_dir_str):
@@ -140,7 +140,7 @@ class PaperworkConfig(object):
             if ocrlang == "None":
                 return None
             return ocrlang
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             pass
 
         # Try to guess based on the system locale what would be
@@ -184,7 +184,7 @@ class PaperworkConfig(object):
         """
         try:
             return self._configparser.get("Scanner", "Device")
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return None
 
     def __set_scanner_devid(self, devid):
@@ -203,7 +203,7 @@ class PaperworkConfig(object):
         """
         try:
             return int(self._configparser.get("Scanner", "Resolution"))
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return self.RECOMMENDED_RESOLUTION
 
     def __set_scanner_resolution(self, resolution):
@@ -235,7 +235,7 @@ class PaperworkConfig(object):
             if (pt_a_y > pt_b_y):
                 (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
             return ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y))
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             # no calibration -> no cropping -> we have to keep the whole image
             # each time
             return None
@@ -265,7 +265,7 @@ class PaperworkConfig(object):
         try:
             str_list = self._configparser.get("Scanner", "Sources")
             return str_list.split(",")
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return []
 
     def __set_scanner_sources(self, sources):
@@ -303,7 +303,7 @@ class PaperworkConfig(object):
             if val == 0:
                 return False
             return True
-        except ConfigParser.NoOptionError:
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return True
 
     def __set_toolbar_visible(self, visible):

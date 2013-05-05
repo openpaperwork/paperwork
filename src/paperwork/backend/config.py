@@ -27,6 +27,9 @@ import pyocr.pyocr
 
 
 class _ScanTimes(object):
+    """
+    Helper to find, load and rewrite the scan times stored in the configuration
+    """
     __ITEM_2_CONFIG = {
         'calibration': ('Scanner', 'ScanTimeCalibration'),
         'normal': ('Scanner', 'ScanTime'),
@@ -213,6 +216,9 @@ class PaperworkConfig(object):
     spelling_lang = property(__get_spelling_lang, __set_spelling_lang)
 
     def __get_langs(self):
+        """
+        Convenience property. Gives all the languages used as one dictionary
+        """
         return {'ocr': self.ocr_lang, 'spelling': self.spelling_lang}
 
     langs = property(__get_langs)
@@ -321,6 +327,10 @@ class PaperworkConfig(object):
     scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
 
     def get_scanner_inst(self):
+        """
+        Instantiate a pyinsance scanner and preconfigure it according to the
+        configuration
+        """
         scanner = pyinsane.Scanner(self.scanner_devid)
         scanner.options['resolution'].value = self.scanner_resolution
         if "Color" in scanner.options['mode'].constraint:

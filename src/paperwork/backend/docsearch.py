@@ -16,11 +16,12 @@
 
 """
 Contains all the code relative to keyword and document list management list.
+Also everything related to indexation and searching in the documents (+
+suggestions)
 """
 
 import copy
 import datetime
-import gc
 import multiprocessing
 import os
 import os.path
@@ -42,7 +43,6 @@ from paperwork.util import dummy_progress_cb
 from paperwork.util import MIN_KEYWORD_LEN
 from paperwork.util import mkdir_p
 from paperwork.util import rm_rf
-from paperwork.util import split_words
 from paperwork.util import strip_accents
 
 
@@ -53,41 +53,82 @@ DOC_TYPE_LIST = [
 
 
 class DummyDocSearch(object):
+    """
+    Dummy doc search object.
+
+    Instantiating a DocSearch object takes time (the time to rereard the index).
+    So you can use this object instead during this time as a placeholder
+    """
     docs = []
     label_list = []
 
     def __init__(self):
         pass
 
-    def get_doc_examiner(self):
+    @staticmethod
+    def get_doc_examiner():
+        """ Do nothing """
         assert()
 
-    def get_index_updater(self):
+    @staticmethod
+    def get_index_updater():
+        """ Do nothing """
         assert()
 
-    def find_suggestions(self, sentence):
+    @staticmethod
+    def find_suggestions(sentence):
+        """ Do nothing """
+        sentence = sentence  # to make pylint happy
         return []
 
-    def find_documents(self, sentence):
+    @staticmethod
+    def find_documents(sentence):
+        """ Do nothing """
+        sentence = sentence  # to make pylint happy
         return []
 
-    def add_label(self, label):
+    @staticmethod
+    def add_label(label):
+        """ Do nothing """
+        label = label  # to make pylint happy
         assert()
 
-    def redo_ocr(self, langs, progress_callback):
+    @staticmethod
+    def redo_ocr(langs, progress_callback):
+        """ Do nothing """
+        # to make pylint happy
+        langs = langs
+        progress_callback = progress_callback
         assert()
 
-    def update_label(self, old_label, new_label, cb_progress=None):
+    @staticmethod
+    def update_label(old_label, new_label, cb_progress=None):
+        """ Do nothing """
+        # to make pylint happy
+        old_label = old_label
+        new_label = new_label
+        cb_progress = cb_progress
         assert()
 
-    def destroy_label(self, label, cb_progress=None):
+    @staticmethod
+    def destroy_label(label, cb_progress=None):
+        """ Do nothing """
+        # to make pylint happy
+        label = label
+        cb_progress = cb_progress
         assert()
 
-    def destroy_index(self):
+    @staticmethod
+    def destroy_index():
+        """ Do nothing """
         assert()
 
 
 class DocDirExaminer(GObject.GObject):
+    """
+    Examine a directory containing documents. It looks for new documents,
+    modified documents, or deleted documents.
+    """
     def __init__(self, docsearch):
         GObject.GObject.__init__(self)
         self.docsearch = docsearch
@@ -100,6 +141,11 @@ class DocDirExaminer(GObject.GObject):
                         on_doc_modified,
                         on_doc_deleted,
                         progress_cb=dummy_progress_cb):
+        """
+        Examine the rootdir.
+        Calls on_new_doc(doc), on_doc_modified(doc), on_doc_deleted(docid)
+        every time a new, modified, or deleted document is found
+        """
         # getting the doc list from the index
         query = whoosh.query.Every()
         results = self.__searcher.search(query, limit=None)
@@ -141,6 +187,10 @@ class DocDirExaminer(GObject.GObject):
 
 
 class DocIndexUpdater(GObject.GObject):
+    """
+    Update the index content.
+    Don't forget to call commit() to apply the changes
+    """
     def __init__(self, docsearch, optimize, progress_cb=dummy_progress_cb):
         self.docsearch = docsearch
         self.optimize = optimize
@@ -148,21 +198,74 @@ class DocIndexUpdater(GObject.GObject):
         self.progress_cb = progress_cb
         self.__need_reload = False
 
+    @staticmethod
+    def _update_doc_in_index(index_writer, doc):
+        """
+        Add/Update a document in the index
+        """
+        last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
+        docid = unicode(doc.docid)
+        txt = u""
+        for page in doc.pages:
+            for line in page.text:
+                txt += unicode(line) + u"\n"
+        extra_txt = doc.extra_text
+        if extra_txt != u"":
+            txt += extra_txt + u"\n"
+        for label in doc.labels:
+            txt += u" " + unicode(label.name)
+        txt = txt.strip()
+        txt = strip_accents(txt)
+        if txt == u"":
+            # make sure the text field is not empty. Whoosh doesn't like that
+            txt = u"empty"
+        labels = u",".join([strip_accents(unicode(label.name))
+                            for label in doc.labels])
+
+        index_writer.update_document(
+            docid=docid,
+            doctype=doc.doctype,
+            content=txt,
+            label=labels,
+            last_read=last_mod
+        )
+        return True
+
+    @staticmethod
+    def _delete_doc_from_index(index_writer, docid):
+        """
+        Remove a document from the index
+        """
+        query = whoosh.query.Term("docid", docid)
+        index_writer.delete_by_query(query)
+
     def add_doc(self, doc):
+        """
+        Add a document to the index
+        """
         print "Indexing new doc: %s" % (str(doc))
-        self.docsearch._update_doc_in_index(self.writer, doc)
+        self._update_doc_in_index(self.writer, doc)
         self.__need_reload = True
 
     def upd_doc(self, doc):
+        """
+        Update a document in the index
+        """
         print "Updating modified doc: %s" % (str(doc))
-        self.docsearch._update_doc_in_index(self.writer, doc)
+        self._update_doc_in_index(self.writer, doc)
 
     def del_doc(self, docid):
+        """
+        Delete a document
+        """
         print "Removing doc from the index: %s" % (docid)
-        self.docsearch._delete_doc_from_index(self.writer, docid)
+        self._delete_doc_from_index(self.writer, docid)
         self.__need_reload = True
 
     def commit(self):
+        """
+        Apply the changes to the index
+        """
         print "Index: Commiting changes"
         self.writer.commit(optimize=self.optimize)
         del self.writer
@@ -172,12 +275,18 @@ class DocIndexUpdater(GObject.GObject):
             self.docsearch.reload_index(progress_cb=self.progress_cb)
 
     def cancel(self):
+        """
+        Forget about the changes
+        """
         print "Index: Index update cancelled"
         self.writer.cancel()
         del self.writer
 
 
 def is_dir_empty(dirpath):
+    """
+    Check if the specified directory is empty or not
+    """
     if not os.path.isdir(dirpath):
         return False
     return (len(os.listdir(dirpath)) <= 0)
@@ -227,6 +336,7 @@ class DocSearch(object):
             self.index = whoosh.index.open_dir(self.indexdir)
         except whoosh.index.EmptyIndexError, exc:
             print ("Failed to open index '%s'" % self.indexdir)
+            print ("Exception was: %s" % str(exc))
             print ("Will try to create a new one")
             schema = whoosh.fields.Schema(
                 docid=whoosh.fields.ID(stored=True, unique=True),
@@ -247,6 +357,9 @@ class DocSearch(object):
 
     @staticmethod
     def __browse_dir(rootdir):
+        """
+        Yield the paths to all the subdirectories and subfiles of rootdir
+        """
         for root, dirs, files, in os.walk(rootdir, topdown=False):
             for filename in files:
                 filepath = os.path.join(root, filename)
@@ -256,6 +369,10 @@ class DocSearch(object):
                 yield dirpath
 
     def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
+        """
+        Remove all the crap from the work dir (temporary files, empty
+        directories, etc)
+        """
         must_clean_cbs = [
             is_dir_empty,
             img.is_tmp_file,
@@ -273,12 +390,26 @@ class DocSearch(object):
         progress_cb(1, 1, self.INDEX_STEP_CLEANING)
 
     def get_doc_examiner(self):
+        """
+        Return an object useful to find added/modified/removed documents
+        """
         return DocDirExaminer(self)
 
     def get_index_updater(self, optimize=True):
+        """
+        Return an object useful to update the content of the index
+
+        Note that this object is only about modifying the index. It is not
+        made to modify the documents themselves.
+        Some helper methods, with more specific goals, may be available for
+        what you want to do.
+        """
         return DocIndexUpdater(self, optimize)
 
     def __inst_doc_from_id(self, docid, doc_type_name=None):
+        """
+        Instantiate a document based on its document id.
+        """
         docpath = os.path.join(self.rootdir, docid)
         if not os.path.exists(docpath):
             return None
@@ -297,6 +428,10 @@ class DocSearch(object):
         return None
 
     def get_doc_from_docid(self, docid, doc_type_name=None):
+        """
+        Try to find a document based on its document id. If it hasn't been
+        instantiated yet, it will be.
+        """
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
         self.__docs_by_id[docid] = self.__inst_doc_from_id(docid,
@@ -304,6 +439,9 @@ class DocSearch(object):
         return self.__docs_by_id[docid]
 
     def reload_index(self, progress_cb=dummy_progress_cb):
+        """
+        Read the index, and load the document list from it
+        """
         docs_by_id = self.__docs_by_id
         self.__docs_by_id = {}
         for doc in docs_by_id.values():
@@ -333,39 +471,6 @@ class DocSearch(object):
         self.label_list = [label for label in labels]
         self.label_list.sort()
 
-    def _delete_doc_from_index(self, index_writer, docid):
-        query = whoosh.query.Term("docid", docid)
-        index_writer.delete_by_query(query)
-
-    def _update_doc_in_index(self, index_writer, doc):
-        last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
-        docid = unicode(doc.docid)
-        txt = u""
-        for page in doc.pages:
-            for line in page.text:
-                txt += unicode(line) + u"\n"
-        extra_txt = doc.extra_text
-        if extra_txt != u"":
-            txt += extra_txt + u"\n"
-        for label in doc.labels:
-            txt += u" " + unicode(label.name)
-        txt = txt.strip()
-        txt = strip_accents(txt)
-        if txt == u"":
-            # make sure the text field is not empty. Whoosh doesn't like that
-            txt = u"empty"
-        labels = u",".join([strip_accents(unicode(label.name))
-                            for label in doc.labels])
-
-        index_writer.update_document(
-            docid=docid,
-            doctype=doc.doctype,
-            content=txt,
-            label=labels,
-            last_read=last_mod
-        )
-        return True
-
     def index_page(self, page):
         """
         Extract all the keywords from the given page
@@ -375,15 +480,17 @@ class DocSearch(object):
 
         Obsolete. To remove. Use get_index_updater() instead
         """
-        index_writer = self.index.writer()
-        self._update_doc_in_index(index_writer, page.doc)
-        index_writer.commit()
+        updater = self.get_index_updater(optimize=False)
+        updater.upd_doc(page.doc)
+        updater.commit()
         if not page.doc.docid in self.__docs_by_id:
             print ("Adding document '%s' to the index" % page.doc.docid)
             self.__docs_by_id[page.doc.docid] = page.doc
-        self.reload_searcher()
 
     def __find_documents(self, query):
+        """
+        Find a list of documents based on a whoosh query
+        """
         docs = []
         results = self.__searcher.search(query, limit=None)
         docids = [result['docid'] for result in results]
@@ -397,11 +504,18 @@ class DocSearch(object):
         return docs
 
     def __get_all_docs(self):
+        """
+        Return all the documents. Beware, they are unsorted.
+        """
         return self.__docs_by_id.values()
 
     docs = property(__get_all_docs)
 
     def get_by_id(self, obj_id):
+        """
+        Get a document or a page using its ID
+        Won't instantiate them if they are not yet available
+        """
         if "/" in obj_id:
             (docid, page_nb) = obj_id.split("/")
             page_nb = int(page_nb)
@@ -472,24 +586,23 @@ class DocSearch(object):
             self.label_list.append(label)
             self.label_list.sort()
         doc.add_label(label)
-        index_writer = self.index.writer()
-        self._update_doc_in_index(index_writer, doc)
-        index_writer.commit()
-        self.reload_searcher()
+        updater = self.get_index_updater(optimize=False)
+        updater.upd_doc(doc)
+        updater.commit()
 
     def remove_label(self, doc, label):
         """
-        Remove a label from a doc
+        Remove a label from a doc. Takes care of updating the index
         """
         doc.remove_label(label)
-        index_writer = self.index.writer()
-        self._update_doc_in_index(index_writer, doc)
-        index_writer.commit()
-        self.reload_searcher()
+        updater = self.get_index_updater(optimize=False)
+        updater.upd_doc(doc)
+        updater.commit()
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """
-        Replace 'old_label' by 'new_label' on all the documents
+        Replace 'old_label' by 'new_label' on all the documents. Takes care of
+        updating the index.
         """
         self.label_list.remove(old_label)
         if new_label not in self.label_list:
@@ -497,37 +610,42 @@ class DocSearch(object):
             self.label_list.sort()
         current = 0
         total = len(self.docs)
-        index_writer = self.index.writer()
+        updater = self.get_index_updater(optimize=False)
         for doc in self.docs:
             must_reindex = (old_label in doc.labels)
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
             doc.update_label(old_label, new_label)
             if must_reindex:
-                self._update_doc_in_index(index_writer, doc)
+                updater.upd_doc(doc)
             current += 1
-        index_writer.commit()
-        self.reload_searcher()
+        updater.commit()
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         """
-        Remove the label 'label' from all the documents
+        Remove the label 'label' from all the documents. Takes care of updating
+        the index.
         """
         self.label_list.remove(label)
         current = 0
         docs = self.docs
         total = len(docs)
-        index_writer = self.index.writer()
+        updater = self.get_index_updater(optimize=False)
         for doc in docs:
             must_reindex = (label in doc.labels)
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
             doc.remove_label(label)
             if must_reindex:
-                self._update_doc_in_index(index_writer, doc)
+                updater.upd_doc(doc)
             current += 1
-        index_writer.commit()
-        self.reload_searcher()
+        updater.commit()
 
     def reload_searcher(self):
+        """
+        When the index has been updated, it's safer to re-instantiate the Whoosh
+        Searcher object used to browse it.
+
+        You shouldn't have to call this method yourself.
+        """
         searcher = self.__searcher
         self.__searcher = self.index.searcher()
         del(searcher)

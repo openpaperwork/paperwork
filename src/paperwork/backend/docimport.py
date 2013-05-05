@@ -14,8 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Document import (PDF, images, etc)
+"""
+
 import gettext
-import gi
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
@@ -27,13 +30,24 @@ _ = gettext.gettext
 
 
 class SinglePdfImporter(object):
+    """
+    Import a single PDF file as a document
+    """
     def __init__(self):
         pass
 
-    def can_import(self, file_uri, current_doc=None):
+    @staticmethod
+    def can_import(file_uri, current_doc=None):
+        """
+        Check that the specified file looks like a PDF
+        """
         return file_uri.lower().endswith(".pdf")
 
-    def import_doc(self, file_uri, config, docsearch, current_doc=None):
+    @staticmethod
+    def import_doc(file_uri, config, docsearch, current_doc=None):
+        """
+        Import the specified PDF file
+        """
         doc = PdfDoc(config.workdir)
         print ("Importing doc '%s' ..." % file_uri)
         doc.import_pdf(config, file_uri)
@@ -47,10 +61,17 @@ class SinglePdfImporter(object):
 
 
 class MultiplePdfImporter(object):
+    """
+    Import many PDF files as many documents
+    """
     def __init__(self):
         pass
 
-    def __get_all_children(self, parent):
+    @staticmethod
+    def __get_all_children(parent):
+        """
+        Find all the children files from parent
+        """
         children = parent.enumerate_children(
             Gio.FILE_ATTRIBUTE_STANDARD_NAME,
             Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
@@ -60,29 +81,38 @@ class MultiplePdfImporter(object):
                 Gio.FILE_ATTRIBUTE_STANDARD_NAME)
             child = parent.get_child(name)
             try:
-                for child in self.__get_all_children(child):
+                for child in MultiplePdfImporter.__get_all_children(child):
                     yield child
             except GLib.GError:
                 yield child
 
-    def can_import(self, file_uri, current_doc=None):
+    @staticmethod
+    def can_import(file_uri, current_doc=None):
+        """
+        Check that the specified file looks like a directory containing many pdf
+        files
+        """
         try:
             parent = Gio.File.parse_name(file_uri)
-            for child in self.__get_all_children(parent):
+            for child in MultiplePdfImporter.__get_all_children(parent):
                 if child.get_basename().lower().endswith(".pdf"):
                     return True
         except GLib.GError:
             pass
         return False
 
-    def import_doc(self, file_uri, config, docsearch, current_doc=None):
-        print ("Importing doc '%s'" % (file_uri))
+    @staticmethod
+    def import_doc(file_uri, config, docsearch, current_doc=None):
+        """
+        Import the specified PDF files
+        """
+        print ("Importing PDF from '%s'" % (file_uri))
         parent = Gio.File.parse_name(file_uri)
         doc = None
 
         idx = 0
 
-        for child in self.__get_all_children(parent):
+        for child in MultiplePdfImporter.__get_all_children(parent):
             if not child.get_basename().lower().endswith(".pdf"):
                 continue
             try:
@@ -107,16 +137,29 @@ class MultiplePdfImporter(object):
 
 
 class SingleImageImporter(object):
+    """
+    Import a single image file (in a format supported by PIL). It is either
+    added to a document (if one is specified) or as a new document (--> with a
+    single page)
+    """
     def __init__(self):
         pass
 
-    def can_import(self, file_uri, current_doc=None):
+    @staticmethod
+    def can_import(file_uri, current_doc=None):
+        """
+        Check that the specified file looks like an image supported by PIL
+        """
         for ext in ImgDoc.IMPORT_IMG_EXTENSIONS:
             if file_uri.lower().endswith(ext):
                 return True
         return False
 
-    def import_doc(self, file_uri, config, docsearch, current_doc=None):
+    @staticmethod
+    def import_doc(file_uri, config, docsearch, current_doc=None):
+        """
+        Import the specified image
+        """
         print ("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(config.workdir)
@@ -137,6 +180,11 @@ IMPORTERS = [
 
 
 def get_possible_importers(file_uri, current_doc=None):
+    """
+    Return all the importer objects that can handle the specified file.
+
+    Possible imports may vary depending on the currently active document
+    """
     importers = []
     for importer in IMPORTERS:
         if importer.can_import(file_uri, current_doc):

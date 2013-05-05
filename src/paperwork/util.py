@@ -17,7 +17,6 @@
 Various tiny functions that didn't fit anywhere else.
 """
 
-import array
 import errno
 import os
 import re
@@ -32,11 +31,9 @@ import cairo
 import Image
 import ImageDraw
 import gettext
-import gi
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
-import pycountry
 
 _ = gettext.gettext
 
@@ -150,6 +147,9 @@ def load_uifile(filename):
 
 
 def image2surface(img):
+    """
+    Convert a PIL image into a Cairo surface
+    """
     if img is None:
         return None
     file_desc = StringIO.StringIO()
@@ -203,6 +203,10 @@ def dummy_progress_cb(progression, total, step=None, doc=None):
 
 
 def popup_no_scanner_found(parent):
+    """
+    Show a popup to the user to tell them no scanner has been found
+    """
+    # TODO(Jflesch): should be in paperwork.frontend
     # Pyinsane doesn't return any specific exception :(
     print "Showing popup !"
     msg = _("No scanner found (is your scanner turned on ?)")
@@ -237,22 +241,30 @@ def ask_confirmation(parent):
     return True
 
 
+_SIZEOF_FMT_STRINGS = [
+    _('%3.1f bytes'),
+    _('%3.1f KB'),
+    _('%3.1f MB'),
+    _('%3.1f GB'),
+    _('%3.1f TB'),
+]
+
+
 def sizeof_fmt(num):
-        STRINGS = [
-            _('%3.1f bytes'),
-            _('%3.1f KB'),
-            _('%3.1f MB'),
-            _('%3.1f GB'),
-            _('%3.1f TB'),
-        ]
-        for string in STRINGS:
-            if num < 1024.0:
-                return string % (num)
-            num /= 1024.0
-        return STRINGS[-1] % (num)
+    """
+    Format a number of bytes in a human readable way
+    """
+    for string in _SIZEOF_FMT_STRINGS:
+        if num < 1024.0:
+            return string % (num)
+        num /= 1024.0
+    return _SIZEOF_FMT_STRINGS[-1] % (num)
 
 
 def add_img_border(img, color="#a6a5a4", width=1):
+    """
+    Add a border of the specified color and width around a PIL image
+    """
     img_draw = ImageDraw.Draw(img)
     for line in range(0, width):
         img_draw.rectangle([(line, line), (img.size[0]-1-line,
@@ -263,6 +275,8 @@ def add_img_border(img, color="#a6a5a4", width=1):
 
 
 _ENCHANT_LOCK = threading.Lock()
+_MAX_LEVENSHTEIN_DISTANCE = 1
+_MIN_WORD_LEN = 4
 
 
 def check_spelling(spelling_lang, txt):
@@ -275,13 +289,9 @@ def check_spelling(spelling_lang, txt):
     Returns:
         A tuple : (fixed text, score)
     """
-    global _ENCHANT_LOCK
-
     _ENCHANT_LOCK.acquire()
     try:
         # Maximum distance from the first suggestion from python-enchant
-        MAX_LEVENSHTEIN_DISTANCE = 1
-        MIN_WORD_LEN = 4
 
         words_dict = enchant.request_dict(spelling_lang)
         try:
@@ -293,7 +303,7 @@ def check_spelling(spelling_lang, txt):
         score = 0
         offset = 0
         for (word, word_pos) in tknzr(txt):
-            if len(word) < MIN_WORD_LEN:
+            if len(word) < _MIN_WORD_LEN:
                 continue
             if words_dict.check(word):
                 # immediately correct words are a really good hint for
@@ -307,7 +317,7 @@ def check_spelling(spelling_lang, txt):
                 continue
             main_suggestion = suggestions[0]
             lv_dist = Levenshtein.distance(word, main_suggestion)
-            if (lv_dist > MAX_LEVENSHTEIN_DISTANCE):
+            if (lv_dist > _MAX_LEVENSHTEIN_DISTANCE):
                 # hm, this word looks like it's in a bad shape
                 continue
 
@@ -330,6 +340,9 @@ def check_spelling(spelling_lang, txt):
 
 
 def mkdir_p(path):
+    """
+    Act as 'mkdir -p' in the shell
+    """
     try:
         os.makedirs(path)
     except OSError, exc:
@@ -340,6 +353,9 @@ def mkdir_p(path):
 
 
 def rm_rf(path):
+    """
+    Act as 'rm -rf' in the shell
+    """
     if os.path.isfile(path):
         os.unlink(path)
     elif os.path.isdir(path):

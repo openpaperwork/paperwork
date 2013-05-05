@@ -46,7 +46,7 @@ class BasicDoc(object):
         content in __init__(). It would reduce in a huge performance loose
         and thread-safety issues. Load the content on-the-fly when requested.
         """
-        if docid == None:
+        if docid is None:
             self.__docid = time.strftime(self.DOCNAME_FORMAT)
             self.path = os.path.join(docpath, self.__docid)
         else:
@@ -118,7 +118,7 @@ class BasicDoc(object):
         if label in self.labels:
             return
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'a',
-                        encoding='utf-8') as file_desc:
+                         encoding='utf-8') as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
         self.drop_cache()
 
@@ -131,7 +131,7 @@ class BasicDoc(object):
         labels = self.labels
         labels.remove(to_remove)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                        encoding='utf-8') as file_desc:
+                         encoding='utf-8') as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -152,7 +152,8 @@ class BasicDoc(object):
                     for line in file_desc.readlines():
                         line = line.strip()
                         (label_name, label_color) = line.split(",")
-                        labels.append(Label(name=label_name, color=label_color))
+                        labels.append(Label(name=label_name,
+                                            color=label_color))
             except IOError:
                 pass
             self.__cache['labels'] = labels
@@ -176,7 +177,7 @@ class BasicDoc(object):
             return
         labels.append(new_label)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                        encoding='utf-8') as file_desc:
+                         encoding='utf-8') as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -204,7 +205,7 @@ class BasicDoc(object):
         """
         Comparison function. Can be used to sort docs alphabetically.
         """
-        if other == None:
+        if other is None:
             return -1
         return cmp(self.__docid, other.__docid)
 
@@ -249,7 +250,7 @@ class BasicDoc(object):
             split = self.__docid.split("_")
             short_docid = "_".join(split[:3])
             datetime_obj = datetime.datetime.strptime(
-                    short_docid, self.DOCNAME_FORMAT)
+                short_docid, self.DOCNAME_FORMAT)
             final = datetime_obj.strftime("%x")
             return final
         except Exception, exc:
@@ -273,7 +274,7 @@ class BasicDoc(object):
             new_docid = new_base_docid + ("_%02d" % idx)
             new_docpath = os.path.join(workdir, new_docid)
 
-        print ("Changing docid: %s -> %s" 
+        print ("Changing docid: %s -> %s"
                % (self.path, new_docpath))
         os.rename(self.path, new_docpath)
         self.__docid = new_docid
@@ -314,7 +315,8 @@ class BasicDoc(object):
         if txt == u"":
             os.unlink(extra_txt_file)
         else:
-            with codecs.open(extra_txt_file, 'w', encoding='utf-8') as file_desc:
+            with codecs.open(extra_txt_file, 'w',
+                             encoding='utf-8') as file_desc:
                 file_desc.write(txt)
 
     extra_text = property(__get_extra_text, __set_extra_text)

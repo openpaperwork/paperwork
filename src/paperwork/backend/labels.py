@@ -45,7 +45,7 @@ class Label(object):
         """
         Comparaison function. Can be used to sort labels alphabetically.
         """
-        if other == None:
+        if other is None:
             return -1
         cmp_r = cmp(self.name, other.name)
         if cmp_r != 0:
@@ -97,4 +97,3 @@ class Label(object):
         return ("Color: %s ; Text: %s"
                 % (self.get_html_color(),
                    self.name.encode('utf-8', 'replace')))
-

@@ -73,12 +73,12 @@ class PageExporter(object):
         self.__img = None
 
     def estimate_size(self):
-        if self.__img == None:
+        if self.__img is None:
             self.refresh()
         return os.path.getsize(self.__img[0])
 
     def get_img(self):
-        if self.__img == None:
+        if self.__img is None:
             self.refresh()
         return self.__img[1]
 
@@ -87,7 +87,7 @@ class PageExporter(object):
 
     def __copy__(self):
         return PageExporter(self.page, self.img_format, self.mime,
-                           self.valid_exts)
+                            self.valid_exts)
 
 
 class BasicPage(object):
@@ -109,8 +109,8 @@ class BasicPage(object):
 
         assert(self.page_nb >= 0)
         self.__prototype_exporters = {
-            'PNG' : PageExporter(self, 'PNG', 'image/png', ["png"]),
-            'JPEG' : PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
+            'PNG': PageExporter(self, 'PNG', 'image/png', ["png"]),
+            'JPEG': PageExporter(self, 'JPEG', 'image/jpeg', ["jpeg", "jpg"]),
         }
 
     def __get_pageid(self):
@@ -154,7 +154,8 @@ class BasicPage(object):
         Get all the boxes corresponding the given sentence
 
         Arguments:
-            sentence --- can be string (will be splited), or an array of strings
+            sentence --- can be string (will be splited), or an array of
+                strings
         Returns:
             an array of boxes (see pyocr boxes)
         """

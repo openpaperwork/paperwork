@@ -76,8 +76,8 @@ def split_words(sentence):
     - Drop keywords that are too short
     - Drop the accents
     - Make everything lower case
-    - Try to separate the words as much as possible (using 2 list of separators,
-    one being more complete than the others)
+    - Try to separate the words as much as possible (using 2 list of
+      separators, one being more complete than the others)
     """
     if (sentence == "*"):
         yield sentence
@@ -138,7 +138,8 @@ def load_uifile(filename):
         try:
             widget_tree.add_from_file(ui_file)
         except GLib.GError, exc:
-            print "Tried to use UI file %s but failed: %s" % (ui_file, str(exc))
+            print ("Tried to use UI file %s but failed: %s"
+                   % (ui_file, str(exc)))
             continue
         has_ui_file = True
         print "UI file used: " + ui_file
@@ -149,7 +150,7 @@ def load_uifile(filename):
 
 
 def image2surface(img):
-    if img == None:
+    if img is None:
         return None
     file_desc = StringIO.StringIO()
     img.save(file_desc, format="PNG")
@@ -162,14 +163,14 @@ def surface2image(surface):
     """
     Convert a cairo surface into a PIL image
     """
-    if surface == None:
+    if surface is None:
         return None
-    img = Image.frombuffer("RGBA",
-            (surface.get_width(), surface.get_height()),
-            surface.get_data(), "raw", "BGRA", 0, 1)
+    dimension = (surface.get_width(), surface.get_height())
+    img = Image.frombuffer("RGBA", dimension,
+                           surface.get_data(), "raw", "BGRA", 0, 1)
 
     background = Image.new("RGB", img.size, (255, 255, 255))
-    background.paste(img, mask=img.split()[3]) # 3 is the alpha channel
+    background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
     return background
 
 
@@ -177,7 +178,7 @@ def image2pixbuf(img):
     """
     Convert an image object to a gdk pixbuf
     """
-    if img == None:
+    if img is None:
         return None
     file_desc = StringIO.StringIO()
     try:
@@ -199,6 +200,7 @@ def dummy_progress_cb(progression, total, step=None, doc=None):
     Dummy progression callback. Do nothing.
     """
     pass
+
 
 def popup_no_scanner_found(parent):
     # Pyinsane doesn't return any specific exception :(
@@ -222,7 +224,8 @@ def ask_confirmation(parent):
         False --- if they aren't
     """
     confirm = Gtk.MessageDialog(parent=parent,
-                                flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                flags=Gtk.DialogFlags.MODAL
+                                | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                 type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
                                 message_format=_('Are you sure ?'))
@@ -248,6 +251,7 @@ def sizeof_fmt(num):
             num /= 1024.0
         return STRINGS[-1] % (num)
 
+
 def add_img_border(img, color="#a6a5a4", width=1):
     img_draw = ImageDraw.Draw(img)
     for line in range(0, width):
@@ -264,9 +268,9 @@ _ENCHANT_LOCK = threading.Lock()
 def check_spelling(spelling_lang, txt):
     """
     Check the spelling in the text, and compute a score. The score is the
-    number of words correctly (or almost correctly) spelled, minus the number of
-    mispelled words. Words "almost" correct remains neutral (-> are not included
-    in the score)
+    number of words correctly (or almost correctly) spelled, minus the number
+    of mispelled words. Words "almost" correct remains neutral (-> are not
+    included in the score)
 
     Returns:
         A tuple : (fixed text, score)
@@ -292,7 +296,8 @@ def check_spelling(spelling_lang, txt):
             if len(word) < MIN_WORD_LEN:
                 continue
             if words_dict.check(word):
-                # immediately correct words are a really good hint for orientation
+                # immediately correct words are a really good hint for
+                # orientation
                 score += 100
                 continue
             suggestions = words_dict.suggest(word)
@@ -306,7 +311,8 @@ def check_spelling(spelling_lang, txt):
                 # hm, this word looks like it's in a bad shape
                 continue
 
-            print "Spell checking: Replacing: %s -> %s" % (word, main_suggestion)
+            print ("Spell checking: Replacing: %s -> %s"
+                   % (word, main_suggestion))
 
             # let's replace the word by its suggestion
 
@@ -322,13 +328,15 @@ def check_spelling(spelling_lang, txt):
     finally:
         _ENCHANT_LOCK.release()
 
+
 def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError, exc:
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
-        else: raise
+        else:
+            raise
 
 
 def rm_rf(path):

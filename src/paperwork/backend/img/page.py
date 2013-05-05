@@ -132,7 +132,8 @@ class ImgPage(BasicPage):
         Returns a file path relative to this page
         """
         return os.path.join(self.doc.path,
-                "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+                            "%s%d.%s" % (self.FILE_PREFIX,
+                                         self.page_nb + 1, ext))
 
     def __get_box_path(self):
         """
@@ -250,7 +251,7 @@ class ImgPage(BasicPage):
         print "Scanner calibration: %s" % (str(scanner_calibration))
         print ("Calibration resolution: %d" %
                (PaperworkConfig.CALIBRATION_RESOLUTION))
-        if scan_res != 0 and scanner_calibration != None:
+        if scan_res != 0 and scanner_calibration is not None:
             cropping = (scanner_calibration[0][0]
                         * scan_res
                         / PaperworkConfig.CALIBRATION_RESOLUTION,
@@ -275,9 +276,9 @@ class ImgPage(BasicPage):
         outfiles = []
         # rotate the image 0, 90, 180 and 270 degrees
         for rotation in range(0, 4):
-            imgpath = os.path.join(self.doc.path,
-                    ("%s%d.%s" % (self.ROTATED_FILE_PREFIX, rotation,
-                                  self.EXT_IMG_SCAN)))
+            filename = ("%s%d.%s" % (self.ROTATED_FILE_PREFIX, rotation,
+                                     self.EXT_IMG_SCAN))
+            imgpath = os.path.join(self.doc.path, filename)
             print ("Saving scan (rotated %d degree) in '%s'"
                    % (rotation * -90, imgpath))
             img.save(imgpath)
@@ -355,15 +356,17 @@ class ImgPage(BasicPage):
 
         print "Extracting boxes ..."
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
+        builder = pyocr.builders.LineBoxBuilder()
         boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
-                lang=langs['ocr'], builder=pyocr.builders.LineBoxBuilder())
+                                             lang=langs['ocr'],
+                                             builder=builder)
         print "Done"
 
         callback(100, 100, self.SCAN_STEP_OCR)
         return (scores[0][1], scores[0][2], boxes)
 
     def make(self, img, langs=None, scan_res=0, scanner_calibration=None,
-                  callback=dummy_progress_cb):
+             callback=dummy_progress_cb):
         """
         Scan the page & do OCR
         """
@@ -579,4 +582,3 @@ class ImgPage(BasicPage):
                 page.__ch_number(offset=-1)
 
         self.drop_cache()
-

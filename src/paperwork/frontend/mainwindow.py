@@ -75,14 +75,16 @@ def check_workdir(config):
 
 
 def check_scanner(main_win, config):
-    if config.scanner_devid != None:
+    if config.scanner_devid is not None:
         return True
     main_win.actions['open_settings'][1].do()
     return False
 
+
 def sort_documents_by_date(documents):
     documents.sort()
     documents.reverse()
+
 
 class WorkerDocIndexLoader(Worker):
     """
@@ -90,10 +92,11 @@ class WorkerDocIndexLoader(Worker):
     """
 
     __gsignals__ = {
-        'index-loading-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'index-loading-progression' : (GObject.SignalFlags.RUN_LAST, None,
-                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'index-loading-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-progression': (GObject.SignalFlags.RUN_LAST, None,
+                                      (GObject.TYPE_FLOAT,
+                                       GObject.TYPE_STRING)),
+        'index-loading-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -117,7 +120,7 @@ class WorkerDocIndexLoader(Worker):
         else:
             assert()  # unknown progression type
             txt = ""
-        if doc != None:
+        if doc is not None:
             txt += (" (%s)" % (doc.name))
         self.emit('index-loading-progression', float(progression) / total, txt)
         if not self.can_run:
@@ -142,10 +145,11 @@ class WorkerDocExaminer(IndependentWorker):
     """
 
     __gsignals__ = {
-        'doc-examination-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'doc-examination-progression' : (GObject.SignalFlags.RUN_LAST, None,
-                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'doc-examination-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'doc-examination-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'doc-examination-progression': (GObject.SignalFlags.RUN_LAST, None,
+                                        (GObject.TYPE_FLOAT,
+                                         GObject.TYPE_STRING)),
+        'doc-examination-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -170,9 +174,10 @@ class WorkerDocExaminer(IndependentWorker):
         else:
             assert()  # unknown progression type
             txt = ""
-        if doc != None:
+        if doc is not None:
             txt += (" (%s)" % (str(doc)))
-        self.emit('doc-examination-progression', float(progression) / total, txt)
+        self.emit('doc-examination-progression',
+                  float(progression) / total, txt)
         if not self.can_run:
             raise StopIteration()
 
@@ -202,16 +207,18 @@ class WorkerDocExaminer(IndependentWorker):
 
 GObject.type_register(WorkerDocExaminer)
 
+
 class WorkerIndexUpdater(Worker):
     """
     Look for modified documents
     """
 
     __gsignals__ = {
-        'index-update-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'index-update-progression' : (GObject.SignalFlags.RUN_LAST, None,
-                                    (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'index-update-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-update-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-update-progression': (GObject.SignalFlags.RUN_LAST, None,
+                                     (GObject.TYPE_FLOAT,
+                                      GObject.TYPE_STRING)),
+        'index-update-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -228,7 +235,8 @@ class WorkerIndexUpdater(Worker):
                 optimize=optimize)
 
             docs = [
-                (_("Indexing new document ..."), new_docs, index_updater.add_doc),
+                (_("Indexing new document ..."), new_docs,
+                 index_updater.add_doc),
                 (_("Reindexing modified document ..."), upd_docs,
                  index_updater.upd_doc),
                 (_("Removing deleted document from index ..."), del_docs,
@@ -240,7 +248,8 @@ class WorkerIndexUpdater(Worker):
 
             for (op_name, doc_bunch, op) in docs:
                 for doc in doc_bunch:
-                    self.emit('index-update-progression', (progression * 0.75) / total,
+                    self.emit('index-update-progression',
+                              (progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
                     op(doc)
                     progression += 1
@@ -248,8 +257,8 @@ class WorkerIndexUpdater(Worker):
                         index_updater.cancel()
                         self.emit('index-update-end')
 
-
-            self.emit('index-update-progression', 0.75, _("Writing index ..."))
+            self.emit('index-update-progression', 0.75,
+                      _("Writing index ..."))
             index_updater.commit()
             self.emit('index-update-progression', 1.0, "")
         finally:
@@ -265,11 +274,11 @@ class WorkerDocSearcher(Worker):
     """
 
     __gsignals__ = {
-        'search-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         # first obj: array of documents
         # second obj: array of suggestions
-        'search-result' : (GObject.SignalFlags.RUN_LAST, None,
-                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+        'search-result': (GObject.SignalFlags.RUN_LAST, None,
+                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
     can_interrupt = True
@@ -285,7 +294,8 @@ class WorkerDocSearcher(Worker):
                 return
             time.sleep(0.05)
 
-        sentence = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+        sentence = unicode(self.__main_win.search_field.get_text(),
+                           encoding='utf-8')
 
         self.emit('search-start')
         if not self.can_run:
@@ -296,7 +306,8 @@ class WorkerDocSearcher(Worker):
             return
 
         if sentence == u"":
-            # when no specific search has been done, the sorting is always the same
+            # when no specific search has been done, the sorting is always
+            # the same
             sort_documents_by_date(documents)
             # append a new document to the list
             documents.insert(0, ImgDoc(self.__config.workdir))
@@ -324,13 +335,11 @@ class WorkerPageThumbnailer(Worker):
     """
 
     __gsignals__ = {
-        'page-thumbnailing-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'page-thumbnailing-page-done':
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_INT, GObject.TYPE_PYOBJECT)),
-        'page-thumbnailing-end' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
+        'page-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'page-thumbnailing-page-done': (GObject.SignalFlags.RUN_LAST, None,
+                                        (GObject.TYPE_INT,
+                                         GObject.TYPE_PYOBJECT)),
+        'page-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -340,7 +349,8 @@ class WorkerPageThumbnailer(Worker):
         self.__main_win = main_window
 
     def do(self):
-        search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+        search = unicode(self.__main_win.search_field.get_text(),
+                         encoding='utf-8')
 
         self.emit('page-thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
@@ -371,13 +381,11 @@ class WorkerDocThumbnailer(Worker):
     THUMB_HEIGHT = 220
 
     __gsignals__ = {
-        'doc-thumbnailing-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'doc-thumbnailing-doc-done':
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_INT, GObject.TYPE_PYOBJECT)),
-        'doc-thumbnailing-end' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
+        'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'doc-thumbnailing-doc-done': (GObject.SignalFlags.RUN_LAST, None,
+                                      (GObject.TYPE_INT,
+                                       GObject.TYPE_PYOBJECT)),
+        'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = True
@@ -446,20 +454,16 @@ class WorkerImgBuilder(Worker):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'img-building-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'img-building-result-pixbuf' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_FLOAT, GObject.TYPE_INT,
-              GObject.TYPE_PYOBJECT,  # pixbuf
-              GObject.TYPE_PYOBJECT,  # array of boxes
-             )),
-        'img-building-result-clear' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             ()),
-        'img-building-result-stock' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_STRING, )),
+        'img-building-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'img-building-result-pixbuf': (GObject.SignalFlags.RUN_LAST, None,
+                                       (GObject.TYPE_FLOAT, GObject.TYPE_INT,
+                                        GObject.TYPE_PYOBJECT,  # pixbuf
+                                        # array of boxes
+                                        GObject.TYPE_PYOBJECT,
+                                        )),
+        'img-building-result-clear': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'img-building-result-stock': (GObject.SignalFlags.RUN_LAST, None,
+                                      (GObject.TYPE_STRING, )),
     }
 
     # even if it's not true, this process is not really long, so it doesn't
@@ -473,7 +477,7 @@ class WorkerImgBuilder(Worker):
     def do(self):
         self.emit('img-building-start')
 
-        if self.__main_win.page.img == None:
+        if self.__main_win.page.img is None:
             self.emit('img-building-result-clear')
             return
 
@@ -515,12 +519,11 @@ class WorkerLabelUpdater(Worker):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'label-updating-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'label-updating-doc-updated' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'label-updating-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'label-updating-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
+                                       (GObject.TYPE_FLOAT,
+                                        GObject.TYPE_STRING)),
+        'label-updating-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -550,12 +553,11 @@ class WorkerLabelDeleter(Worker):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'label-deletion-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'label-deletion-doc-updated' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'label-deletion-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'label-deletion-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'label-deletion-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
+                                       (GObject.TYPE_FLOAT,
+                                        GObject.TYPE_STRING)),
+        'label-deletion-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -584,12 +586,10 @@ class WorkerOCRRedoer(Worker):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'redo-ocr-start' :
-            (GObject.SignalFlags.RUN_LAST, None, ()),
-        'redo-ocr-doc-updated' :
-            (GObject.SignalFlags.RUN_LAST, None,
-             (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'redo-ocr-end' : (GObject.SignalFlags.RUN_LAST, None, ()),
+        'redo-ocr-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'redo-ocr-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
+                                 (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
+        'redo-ocr-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_interrupt = False
@@ -616,11 +616,10 @@ GObject.type_register(WorkerOCRRedoer)
 
 class WorkerSingleScan(Worker):
     __gsignals__ = {
-        'single-scan-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'single-scan-ocr' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'single-scan-done' : (GObject.SignalFlags.RUN_LAST, None,
-                              (GObject.TYPE_PYOBJECT,) # ImgPage
-                             ),
+        'single-scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'single-scan-ocr': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'single-scan-done': (GObject.SignalFlags.RUN_LAST, None,
+                             (GObject.TYPE_PYOBJECT,)),  # ImgPage
     }
 
     can_interrupt = True
@@ -670,11 +669,10 @@ GObject.type_register(WorkerSingleScan)
 
 class WorkerImporter(Worker):
     __gsignals__ = {
-        'import-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'import-done' : (GObject.SignalFlags.RUN_LAST, None,
-                         (GObject.TYPE_PYOBJECT,  # Doc
-                          GObject.TYPE_PYOBJECT),  # Page
-                        ),
+        'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'import-done': (GObject.SignalFlags.RUN_LAST, None,
+                        (GObject.TYPE_PYOBJECT,  # Doc
+                         GObject.TYPE_PYOBJECT),),  # Page
     }
 
     can_interrupt = True
@@ -687,8 +685,8 @@ class WorkerImporter(Worker):
     def do(self, importer, file_uri):
         self.emit('import-start')
         (doc, page) = importer.import_doc(file_uri, self.__config,
-                                  self.__main_win.docsearch,
-                                  self.__main_win.doc)
+                                          self.__main_win.docsearch,
+                                          self.__main_win.doc)
         self.emit('import-done', doc, page)
 
 
@@ -697,10 +695,9 @@ GObject.type_register(WorkerImporter)
 
 class WorkerExportPreviewer(Worker):
     __gsignals__ = {
-        'export-preview-start' : (GObject.SignalFlags.RUN_LAST, None,
-                                 ()),
-        'export-preview-done' : (GObject.SignalFlags.RUN_LAST, None,
-                                 (GObject.TYPE_INT, GObject.TYPE_PYOBJECT,)),
+        'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-preview-done': (GObject.SignalFlags.RUN_LAST, None,
+                                (GObject.TYPE_INT, GObject.TYPE_PYOBJECT,)),
     }
 
     can_interrupt = True
@@ -727,14 +724,14 @@ GObject.type_register(WorkerExportPreviewer)
 
 class WorkerPageEditor(Worker):
     __gsignals__ = {
-        'page-editing-img-edit' : (GObject.SignalFlags.RUN_LAST, None,
-                                (GObject.TYPE_PYOBJECT, )),
-        'page-editing-ocr' : (GObject.SignalFlags.RUN_LAST, None,
-                                (GObject.TYPE_PYOBJECT, )),
-        'page-editing-index-upd' : (GObject.SignalFlags.RUN_LAST, None,
-                                (GObject.TYPE_PYOBJECT, )),
-        'page-editing-done' : (GObject.SignalFlags.RUN_LAST, None,
-                               (GObject.TYPE_PYOBJECT, )),
+        'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
+                                  (GObject.TYPE_PYOBJECT, )),
+        'page-editing-ocr': (GObject.SignalFlags.RUN_LAST, None,
+                             (GObject.TYPE_PYOBJECT, )),
+        'page-editing-index-upd': (GObject.SignalFlags.RUN_LAST, None,
+                                   (GObject.TYPE_PYOBJECT, )),
+        'page-editing-done': (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_PYOBJECT, )),
     }
 
     def __init__(self, main_win, config):
@@ -752,8 +749,8 @@ class WorkerPageEditor(Worker):
             self.emit('page-editing-ocr', page)
             page.redo_ocr(self.__config.langs)
             self.emit('page-editing-index-upd', page)
-            index_upd = \
-                    self.__main_win.docsearch.get_index_updater(optimize=False)
+            docsearch = self.__main_win.docsearch
+            index_upd = docsearch.get_index_updater(optimize=False)
             index_upd.upd_doc(page.doc)
             index_upd.commit()
         finally:
@@ -813,8 +810,8 @@ class ActionOpenSelectedDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        selection_path = \
-                self.__main_win.lists['matches']['gui'].get_selected_items()
+        match_list = self.__main_win.lists['matches']['gui']
+        selection_path = match_list.get_selected_items()
         if len(selection_path) <= 0:
             print "No document selected. Can't open"
             return
@@ -865,7 +862,8 @@ class ActionUpdateSearchResults(SimpleAction):
         if self.__refresh_pages:
             self.__main_win.refresh_page()
 
-    def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY, event=None):
+    def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
+                         event=None):
         if iconpos == Gtk.EntryIconPosition.PRIMARY:
             entry.grab_focus()
         else:
@@ -875,12 +873,14 @@ class ActionUpdateSearchResults(SimpleAction):
 class ActionOpenPageSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self,
-                "Show a page (selected from the page thumbnail list)")
+                              "Show a page (selected from the page"
+                              " thumbnail list)")
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
-        selection_path = self.__main_win.lists['pages']['gui'].get_selected_items()
+        gui_list = self.__main_win.lists['pages']['gui']
+        selection_path = gui_list.get_selected_items()
         if len(selection_path) <= 0:
             self.__main_win.show_page(DummyPage(self.__main_win.doc))
             return
@@ -1023,9 +1023,9 @@ class ActionEditLabel(SimpleAction):
 
         SimpleAction.do(self)
 
-        selection_path = self.__main_win.lists['labels']['gui'] \
-                .get_selection().get_selected()
-        if selection_path[1] == None:
+        label_list = self.__main_win.lists['labels']['gui']
+        selection_path = label_list.get_selection().get_selected()
+        if selection_path[1] is None:
             print "No label selected"
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
@@ -1056,9 +1056,9 @@ class ActionDeleteLabel(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
 
-        selection_path = self.__main_win.lists['labels']['gui'] \
-                .get_selection().get_selected()
-        if selection_path[1] == None:
+        label_list = self.__main_win.lists['labels']['gui']
+        selection_path = label_list.get_selection().get_selected()
+        if selection_path[1] is None:
             print "No label selected"
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
@@ -1127,8 +1127,8 @@ class ActionSingleScan(SimpleAction):
         check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
-        self.__main_win.workers['single_scan'].start(
-                doc=self.__main_win.doc)
+        doc = self.__main_win.doc
+        self.__main_win.workers['single_scan'].start(doc=doc)
 
 
 class ActionMultiScan(SimpleAction):
@@ -1144,8 +1144,8 @@ class ActionMultiScan(SimpleAction):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
         ms.connect("need-show-page",
-            lambda ms_dialog, page: \
-                GObject.idle_add(self.__show_page, page))
+                   lambda ms_dialog, page:
+                   GObject.idle_add(self.__show_page, page))
 
     def __show_page(self, page):
         self.__main_win.refresh_doc_list()
@@ -1198,7 +1198,7 @@ class ActionImport(SimpleAction):
         check_workdir(self.__config)
 
         file_uri = self.__select_file()
-        if file_uri == None:
+        if file_uri is None:
             return
 
         importers = docimport.get_possible_importers(file_uri,
@@ -1206,13 +1206,13 @@ class ActionImport(SimpleAction):
         if len(importers) <= 0:
             msg = (_("Don't know how to import '%s'. Sorry.") %
                    (os.path.basename(file_uri)))
-            dialog = \
-                Gtk.MessageDialog(parent=self.__main_win.window,
-                                  flags=(Gtk.DialogFlags.MODAL
-                                         |Gtk.DialogFlags.DESTROY_WITH_PARENT),
-                                  type=Gtk.MessageType.ERROR,
-                                  buttons=Gtk.ButtonsType.OK,
-                                  message_format=msg)
+            flags = (Gtk.DialogFlags.MODAL
+                     | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+            dialog = Gtk.MessageDialog(parent=self.__main_win.window,
+                                       flags=flags,
+                                       type=Gtk.MessageType.ERROR,
+                                       buttons=Gtk.ButtonsType.OK,
+                                       message_format=msg)
             dialog.run()
             dialog.destroy()
             return
@@ -1225,7 +1225,7 @@ class ActionImport(SimpleAction):
         Gtk.RecentManager().add_item(file_uri)
 
         self.__main_win.workers['importer'].start(
-            importer=importer, file_uri = file_uri)
+            importer=importer, file_uri=file_uri)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1282,8 +1282,8 @@ class ActionRedoDocOCR(SimpleAction):
 
         if self.__main_win.workers['ocr_redoer'].is_running:
             return
-
-        self.__main_win.workers['ocr_redoer'].start(doc_target=self.__main_win.doc)
+        doc = self.__main_win.doc
+        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
 
 
 class ActionRedoAllOCR(SimpleAction):
@@ -1298,8 +1298,8 @@ class ActionRedoAllOCR(SimpleAction):
 
         if self.__main_win.workers['ocr_redoer'].is_running:
             return
-
-        self.__main_win.workers['ocr_redoer'].start(doc_target=self.__main_win.docsearch)
+        doc = self.__main_win.docsearch
+        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -1340,7 +1340,8 @@ class BasicActionOpenExportDialog(SimpleAction):
                 default_idx = idx
             idx += 1
         if default_idx >= 0:
-            self.main_win.export['pageFormat']['widget'].set_active(default_idx)
+            widget = self.main_win.export['pageFormat']['widget']
+            widget.set_active(default_idx)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -1358,7 +1359,7 @@ class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
 class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
     def __init__(self, main_window):
         BasicActionOpenExportDialog.__init__(self, main_window,
-                                   "Displaying page export dialog")
+                                             "Displaying page export dialog")
 
     def do(self):
         SimpleAction.do(self)
@@ -1374,12 +1375,15 @@ class ActionSelectExportFormat(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        format_idx = self.__main_win.export['fileFormat']['widget'].get_active()
+        file_format_widget = self.__main_win.export['fileFormat']['widget']
+        format_idx = file_format_widget.get_active()
         if format_idx < 0:
             return
-        imgformat = self.__main_win.export['fileFormat']['model'][format_idx][0]
+        file_format_model = self.__main_win.export['fileFormat']['model']
+        imgformat = file_format_model[format_idx][0]
 
-        exporter = self.__main_win.export['to_export'].build_exporter(imgformat)
+        target = self.__main_win.export['to_export']
+        exporter = target.build_exporter(imgformat)
         self.__main_win.export['exporter'] = exporter
 
         print ("[Export] Format: %s" % (str(exporter)))
@@ -1388,18 +1392,19 @@ class ActionSelectExportFormat(SimpleAction):
         print ("[Export] Can_select_format ? %s"
                % str(exporter.can_select_format))
 
-        for (sensitive, widgets) in [
-                (exporter.can_change_quality,
-                 [
-                     self.__main_win.export['quality']['widget'],
-                     self.__main_win.export['quality']['label'],
-                 ]),
-                (exporter.can_select_format,
-                 [
-                     self.__main_win.export['pageFormat']['widget'],
-                     self.__main_win.export['pageFormat']['label'],
-                 ]),
-            ]:
+        widgets = [
+            (exporter.can_change_quality,
+             [
+                 self.__main_win.export['quality']['widget'],
+                 self.__main_win.export['quality']['label'],
+             ]),
+            (exporter.can_select_format,
+             [
+                 self.__main_win.export['pageFormat']['widget'],
+                 self.__main_win.export['pageFormat']['label'],
+             ]),
+        ]
+        for (sensitive, widgets) in widgets:
             for widget in widgets:
                 widget.set_sensitive(sensitive)
 
@@ -1418,10 +1423,12 @@ class ActionChangeExportProperty(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         if self.__main_win.export['exporter'].can_select_format:
-            format_idx = self.__main_win.export['pageFormat']['widget'].get_active()
+            page_format_widget = self.__main_win.export['pageFormat']['widget']
+            format_idx = page_format_widget.get_active()
             if (format_idx < 0):
                 return
-            (name, x, y) = self.__main_win.export['pageFormat']['model'][format_idx]
+            page_format_model = self.__main_win.export['pageFormat']['model']
+            (name, x, y) = page_format_model[format_idx]
             self.__main_win.export['exporter'].set_page_format((x, y))
         if self.__main_win.export['exporter'].can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
@@ -1445,8 +1452,8 @@ class ActionSelectExportPath(SimpleAction):
                                                  Gtk.ResponseType.OK))
         file_filter = Gtk.FileFilter()
         file_filter.set_name(str(self.__main_win.export['exporter']))
-        file_filter.add_mime_type(
-                self.__main_win.export['exporter'].get_mime_type())
+        mime = self.__main_win.export['exporter'].get_mime_type()
+        file_filter.add_mime_type(mime)
         chooser.add_filter(file_filter)
 
         response = chooser.run()
@@ -1544,10 +1551,10 @@ class ActionZoomChange(SimpleAction):
             if (zoom_list[zoom_list_idx][0] == 0.0):
                 continue
             print ("%f <= %f < %f ?" % (zoom_list[zoom_list_idx][0],
-                                       current_zoom,
-                                       zoom_list[zoom_list_idx+1][0]))
+                                        current_zoom,
+                                        zoom_list[zoom_list_idx+1][0]))
             if (zoom_list[zoom_list_idx][0] <= current_zoom
-                and current_zoom < zoom_list[zoom_list_idx+1][0]):
+                    and current_zoom < zoom_list[zoom_list_idx+1][0]):
                 current_idx = zoom_list_idx
                 break
 
@@ -1563,7 +1570,7 @@ class ActionZoomChange(SimpleAction):
             return
 
         self.__main_win.lists['zoom_levels']['gui'].set_active(
-                zoom_list[current_idx][1])
+            zoom_list[current_idx][1])
 
 
 class ActionZoomSet(SimpleAction):
@@ -1663,20 +1670,28 @@ class ActionRebuildIndex(SimpleAction):
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
-        self.__connect_handler_id = \
-                self.__main_win.workers['doc_thumbnailer'].connect('doc-thumbnailing-end',
-                        lambda worker: GObject.idle_add(self.__on_thumbnailing_end_cb))
+
+        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
+        lbd_func = lambda worker: GObject.idle_add(
+            self.__on_thumbnailing_end_cb)
+        self.__connect_handler_id = doc_thumbnailer.connect(
+            'doc-thumbnailing-end', lbd_func)
+
         self.__main_win.workers['index_reloader'].start()
 
     def __on_thumbnailing_end_cb(self):
         print ("Index loaded and thumbnailing done. Will start refreshing the"
                " index ...")
-        self.__main_win.workers['doc_thumbnailer'].disconnect(self.__connect_handler_id)
+        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
+        doc_thumbnailer.disconnect(self.__connect_handler_id)
         self.__main_win.workers['doc_examiner'].stop()
-        self.__connect_handler_id = \
-                self.__main_win.workers['doc_examiner'].connect('doc-examination-end',
-                        lambda examiner: GObject.idle_add(self.__on_doc_exam_end, examiner))
-        self.__main_win.workers['doc_examiner'].start()
+
+        doc_examiner = self.__main_win.workers['doc_examiner']
+        lbd_func = lambda examiner: GObject.idle_add(
+            self.__on_doc_exam_end, examiner)
+        self.__connect_handler_id = doc_examiner.connect(
+            'doc-examination-end', lbd_func)
+        doc_examiner.start()
 
     def __on_doc_exam_end(self, examiner):
         print "Document examen finished. Updating index ..."
@@ -1686,16 +1701,16 @@ class ActionRebuildIndex(SimpleAction):
         print "Deleted document: %d" % len(examiner.docs_missing)
 
         if (len(examiner.new_docs) == 0
-            and len(examiner.docs_changed) == 0
-            and len(examiner.docs_missing) == 0):
+                and len(examiner.docs_changed) == 0
+                and len(examiner.docs_missing) == 0):
             print "No changes"
             return
 
         self.__main_win.workers['index_updater'].start(
-                new_docs = examiner.new_docs,
-                upd_docs = examiner.docs_changed,
-                del_docs = examiner.docs_missing
-            )
+            new_docs=examiner.new_docs,
+            upd_docs=examiner.docs_changed,
+            del_docs=examiner.docs_missing
+        )
 
 
 class ActionEditPage(SimpleAction):
@@ -1727,9 +1742,9 @@ class MainWindow(object):
         self.__last_highlight_update = time.time()
 
         img = Image.new("RGB", (
-                WorkerDocThumbnailer.THUMB_WIDTH,
-                WorkerDocThumbnailer.THUMB_HEIGHT
-            ), color="#CCCCCC")
+            WorkerDocThumbnailer.THUMB_WIDTH,
+            WorkerDocThumbnailer.THUMB_HEIGHT
+        ), color="#CCCCCC")
         self.default_thumbnail = image2pixbuf(img)
 
         widget_tree = load_uifile("mainwindow.glade")
@@ -1744,27 +1759,27 @@ class MainWindow(object):
         self.page = DummyPage(self.doc)
 
         self.lists = {
-            'suggestions' : {
-                'gui' : widget_tree.get_object("entrySearch"),
-                'model' : widget_tree.get_object("liststoreSuggestion")
+            'suggestions': {
+                'gui': widget_tree.get_object("entrySearch"),
+                'model': widget_tree.get_object("liststoreSuggestion")
             },
-            'matches' : {
-                'gui' : widget_tree.get_object("iconviewMatch"),
-                'model' : widget_tree.get_object("liststoreMatch"),
-                'doclist' : [],
-                'active_idx' : -1,
+            'matches': {
+                'gui': widget_tree.get_object("iconviewMatch"),
+                'model': widget_tree.get_object("liststoreMatch"),
+                'doclist': [],
+                'active_idx': -1,
             },
-            'pages' : {
-                'gui' : widget_tree.get_object("iconviewPage"),
-                'model' : widget_tree.get_object("liststorePage"),
+            'pages': {
+                'gui': widget_tree.get_object("iconviewPage"),
+                'model': widget_tree.get_object("liststorePage"),
             },
-            'labels' : {
-                'gui' : widget_tree.get_object("treeviewLabel"),
-                'model' : widget_tree.get_object("liststoreLabel"),
+            'labels': {
+                'gui': widget_tree.get_object("treeviewLabel"),
+                'model': widget_tree.get_object("liststoreLabel"),
             },
-            'zoom_levels' : {
-                'gui' : widget_tree.get_object("comboboxZoom"),
-                'model' : widget_tree.get_object("liststoreZoom"),
+            'zoom_levels': {
+                'gui': widget_tree.get_object("comboboxZoom"),
+                'model': widget_tree.get_object("liststoreZoom"),
             },
         }
 
@@ -1775,8 +1790,8 @@ class MainWindow(object):
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.indicators = {
-            'current_page' : widget_tree.get_object("entryPageNb"),
-            'total_pages' : widget_tree.get_object("labelTotalPages"),
+            'current_page': widget_tree.get_object("entryPageNb"),
+            'total_pages': widget_tree.get_object("labelTotalPages"),
         }
 
         self.search_field = widget_tree.get_object("entrySearch")
@@ -1784,50 +1799,50 @@ class MainWindow(object):
         self.search_field.set_placeholder_text(_("Search"))
 
         self.doc_browsing = {
-            'matches' : widget_tree.get_object("iconviewMatch"),
-            'pages' : widget_tree.get_object("iconviewPage"),
-            'labels' : widget_tree.get_object("treeviewLabel"),
-            'search' : self.search_field,
+            'matches': widget_tree.get_object("iconviewMatch"),
+            'pages': widget_tree.get_object("iconviewPage"),
+            'labels': widget_tree.get_object("treeviewLabel"),
+            'search': self.search_field,
         }
 
         self.img = {
-            "image" : widget_tree.get_object("imagePageImg"),
-            "scrollbar" : widget_tree.get_object("scrolledwindowPageImg"),
-            "viewport" : {
-                "widget" : widget_tree.get_object("viewportImg"),
-                "size" : (0, 0),
+            "image": widget_tree.get_object("imagePageImg"),
+            "scrollbar": widget_tree.get_object("scrolledwindowPageImg"),
+            "viewport": {
+                "widget": widget_tree.get_object("viewportImg"),
+                "size": (0, 0),
             },
-            "eventbox" : widget_tree.get_object("eventboxImg"),
-            "pixbuf" : None,
-            "factor" : 1.0,
-            "original_width" : 1,
-            "boxes" : {
-                'all' : [],
-                'visible' : [],
-                'highlighted' : [],
-                'selected' : [],
+            "eventbox": widget_tree.get_object("eventboxImg"),
+            "pixbuf": None,
+            "factor": 1.0,
+            "original_width": 1,
+            "boxes": {
+                'all': [],
+                'visible': [],
+                'highlighted': [],
+                'selected': [],
             }
         }
 
         self.status = {
-            'progress' : widget_tree.get_object("progressbar"),
-            'text' : widget_tree.get_object("statusbar"),
+            'progress': widget_tree.get_object("progressbar"),
+            'text': widget_tree.get_object("statusbar"),
         }
 
         self.popup_menus = {
-            'labels' : (
+            'labels': (
                 widget_tree.get_object("treeviewLabel"),
                 widget_tree.get_object("popupmenuLabels")
             ),
-            'matches' : (
+            'matches': (
                 widget_tree.get_object("iconviewMatch"),
                 widget_tree.get_object("popupmenuMatchs")
             ),
-            'pages' : (
+            'pages': (
                 widget_tree.get_object("iconviewPage"),
                 widget_tree.get_object("popupmenuPages")
             ),
-            'page' : (
+            'page': (
                 widget_tree.get_object("eventboxImg"),
                 widget_tree.get_object("popupmenuPage")
             ),
@@ -1847,31 +1862,32 @@ class MainWindow(object):
             toolbar.set_visible(config.toolbar_visible)
 
         self.export = {
-            'dialog' : widget_tree.get_object("infobarExport"),
-            'fileFormat' : {
-                'widget' : widget_tree.get_object("comboboxExportFormat"),
-                'model' : widget_tree.get_object("liststoreExportFormat"),
+            'dialog': widget_tree.get_object("infobarExport"),
+            'fileFormat': {
+                'widget': widget_tree.get_object("comboboxExportFormat"),
+                'model': widget_tree.get_object("liststoreExportFormat"),
             },
-            'pageFormat' : {
-                'label' : widget_tree.get_object("labelPageFormat"),
-                'widget' : widget_tree.get_object("comboboxPageFormat"),
-                'model' : widget_tree.get_object("liststorePageFormat"),
+            'pageFormat': {
+                'label': widget_tree.get_object("labelPageFormat"),
+                'widget': widget_tree.get_object("comboboxPageFormat"),
+                'model': widget_tree.get_object("liststorePageFormat"),
             },
-            'quality' : {
-                'label' : widget_tree.get_object("labelExportQuality"),
-                'widget' : widget_tree.get_object("scaleQuality"),
-                'model' : widget_tree.get_object("adjustmentQuality"),
+            'quality': {
+                'label': widget_tree.get_object("labelExportQuality"),
+                'widget': widget_tree.get_object("scaleQuality"),
+                'model': widget_tree.get_object("adjustmentQuality"),
             },
-            'estimated_size' : \
-                widget_tree.get_object("labelEstimatedExportSize"),
-            'export_path' : widget_tree.get_object("entryExportPath"),
-            'buttons' : {
-                'select_path' : widget_tree.get_object("buttonSelectExportPath"),
-                'ok' : widget_tree.get_object("buttonExport"),
-                'cancel' : widget_tree.get_object("buttonCancelExport"),
+            'estimated_size':
+            widget_tree.get_object("labelEstimatedExportSize"),
+            'export_path': widget_tree.get_object("entryExportPath"),
+            'buttons': {
+                'select_path':
+                widget_tree.get_object("buttonSelectExportPath"),
+                'ok': widget_tree.get_object("buttonExport"),
+                'cancel': widget_tree.get_object("buttonCancelExport"),
             },
-            'to_export' : None,  # usually self.page or self.doc
-            'exporter' : None,
+            'to_export': None,  # usually self.page or self.doc
+            'exporter': None,
         }
 
         self.sortings = [
@@ -1882,51 +1898,51 @@ class MainWindow(object):
         ]
 
         self.workers = {
-            'index_reloader' : WorkerDocIndexLoader(self, config),
-            'doc_examiner' : WorkerDocExaminer(self, config),
-            'index_updater' : WorkerIndexUpdater(self, config),
-            'searcher' : WorkerDocSearcher(self, config),
-            'page_thumbnailer' : WorkerPageThumbnailer(self),
-            'doc_thumbnailer' : WorkerDocThumbnailer(self),
-            'img_builder' : WorkerImgBuilder(self),
-            'label_updater' : WorkerLabelUpdater(self),
-            'label_deleter' : WorkerLabelDeleter(self),
-            'single_scan' : WorkerSingleScan(self, config),
-            'importer' : WorkerImporter(self, config),
-            'progress_updater' : WorkerProgressUpdater(
+            'index_reloader': WorkerDocIndexLoader(self, config),
+            'doc_examiner': WorkerDocExaminer(self, config),
+            'index_updater': WorkerIndexUpdater(self, config),
+            'searcher': WorkerDocSearcher(self, config),
+            'page_thumbnailer': WorkerPageThumbnailer(self),
+            'doc_thumbnailer': WorkerDocThumbnailer(self),
+            'img_builder': WorkerImgBuilder(self),
+            'label_updater': WorkerLabelUpdater(self),
+            'label_deleter': WorkerLabelDeleter(self),
+            'single_scan': WorkerSingleScan(self, config),
+            'importer': WorkerImporter(self, config),
+            'progress_updater': WorkerProgressUpdater(
                 "main window progress bar", self.status['progress']),
-            'ocr_redoer' : WorkerOCRRedoer(self, config),
-            'export_previewer' : WorkerExportPreviewer(self),
-            'page_editor' : WorkerPageEditor(self, config),
+            'ocr_redoer': WorkerOCRRedoer(self, config),
+            'export_previewer': WorkerExportPreviewer(self),
+            'page_editor': WorkerPageEditor(self, config),
         }
 
         self.actions = {
-            'new_doc' : (
+            'new_doc': (
                 [
                     widget_tree.get_object("menuitemNew"),
                     widget_tree.get_object("toolbuttonNew"),
                 ],
                 ActionNewDocument(self, config),
             ),
-            'open_doc' : (
+            'open_doc': (
                 [
                     widget_tree.get_object("iconviewMatch"),
                 ],
                 ActionOpenSelectedDocument(self)
             ),
-            'open_page' : (
+            'open_page': (
                 [
                     widget_tree.get_object("iconviewPage"),
                 ],
                 ActionOpenPageSelected(self)
             ),
-            'select_label' : (
+            'select_label': (
                 [
                     widget_tree.get_object("treeviewLabel"),
                 ],
                 ActionLabelSelected(self)
             ),
-            'single_scan' : (
+            'single_scan': (
                 [
                     widget_tree.get_object("imagemenuitemScanSingle"),
                     widget_tree.get_object("toolbuttonScan"),
@@ -1934,21 +1950,21 @@ class MainWindow(object):
                 ],
                 ActionSingleScan(self, config)
             ),
-            'multi_scan' : (
+            'multi_scan': (
                 [
                     widget_tree.get_object("imagemenuitemScanFeeder"),
                     widget_tree.get_object("menuitemScanFeeder"),
                 ],
                 ActionMultiScan(self, config)
             ),
-            'import' : (
+            'import': (
                 [
                     widget_tree.get_object("menuitemImport"),
                     widget_tree.get_object("menuitemImport1"),
                 ],
                 ActionImport(self, config)
             ),
-            'print' : (
+            'print': (
                 [
                     widget_tree.get_object("menuitemPrint"),
                     widget_tree.get_object("menuitemPrint1"),
@@ -1956,7 +1972,7 @@ class MainWindow(object):
                 ],
                 ActionPrintDoc(self)
             ),
-            'open_export_doc_dialog' : (
+            'open_export_doc_dialog': (
                 [
                     widget_tree.get_object("menuitemExportDoc"),
                     widget_tree.get_object("menuitemExportDoc1"),
@@ -1964,7 +1980,7 @@ class MainWindow(object):
                 ],
                 ActionOpenExportDocDialog(self)
             ),
-            'open_export_page_dialog' : (
+            'open_export_page_dialog': (
                 [
                     widget_tree.get_object("menuitemExportPage"),
                     widget_tree.get_object("menuitemExportPage1"),
@@ -1973,65 +1989,65 @@ class MainWindow(object):
                 ],
                 ActionOpenExportPageDialog(self)
             ),
-            'cancel_export' : (
+            'cancel_export': (
                 [widget_tree.get_object("buttonCancelExport")],
                 ActionCancelExport(self),
             ),
-            'select_export_format' : (
+            'select_export_format': (
                 [widget_tree.get_object("comboboxExportFormat")],
                 ActionSelectExportFormat(self),
             ),
-            'change_export_property' : (
+            'change_export_property': (
                 [
                     widget_tree.get_object("scaleQuality"),
                     widget_tree.get_object("comboboxPageFormat"),
                 ],
                 ActionChangeExportProperty(self),
             ),
-            'select_export_path' : (
+            'select_export_path': (
                 [widget_tree.get_object("buttonSelectExportPath")],
                 ActionSelectExportPath(self),
             ),
-            'export' : (
+            'export': (
                 [widget_tree.get_object("buttonExport")],
                 ActionExport(self),
             ),
-            'open_settings' : (
+            'open_settings': (
                 [
                     widget_tree.get_object("menuitemSettings"),
                     widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)
             ),
-            'quit' : (
+            'quit': (
                 [
                     widget_tree.get_object("menuitemQuit"),
                     widget_tree.get_object("toolbuttonQuit"),
                 ],
                 ActionQuit(self, config),
             ),
-            'create_label' : (
+            'create_label': (
                 [
                     widget_tree.get_object("buttonAddLabel"),
                     widget_tree.get_object("menuitemAddLabel"),
                 ],
                 ActionCreateLabel(self),
             ),
-            'edit_label' : (
+            'edit_label': (
                 [
                     widget_tree.get_object("menuitemEditLabel"),
                     widget_tree.get_object("buttonEditLabel"),
                 ],
                 ActionEditLabel(self),
             ),
-            'del_label' : (
+            'del_label': (
                 [
                     widget_tree.get_object("menuitemDestroyLabel"),
                     widget_tree.get_object("buttonDelLabel"),
                 ],
                 ActionDeleteLabel(self),
             ),
-            'open_doc_dir' : (
+            'open_doc_dir': (
                 [
                     widget_tree.get_object("menuitemOpenParentDir"),
                     widget_tree.get_object("menuitemOpenDocDir"),
@@ -2039,7 +2055,7 @@ class MainWindow(object):
                 ],
                 ActionOpenDocDir(self),
             ),
-            'del_doc' : (
+            'del_doc': (
                 [
                     widget_tree.get_object("menuitemDestroyDoc"),
                     widget_tree.get_object("menuitemDestroyDoc2"),
@@ -2047,7 +2063,7 @@ class MainWindow(object):
                 ],
                 ActionDeleteDoc(self),
             ),
-            'edit_page' : (
+            'edit_page': (
                 [
                     widget_tree.get_object("menuitemEditPage"),
                     widget_tree.get_object("menuitemEditPage1"),
@@ -2056,7 +2072,7 @@ class MainWindow(object):
                 ],
                 ActionEditPage(self),
             ),
-            'del_page' : (
+            'del_page': (
                 [
                     widget_tree.get_object("menuitemDestroyPage"),
                     widget_tree.get_object("menuitemDestroyPage1"),
@@ -2065,100 +2081,100 @@ class MainWindow(object):
                 ],
                 ActionDeletePage(self),
             ),
-            'first_page' : (
+            'first_page': (
                 [
                     widget_tree.get_object("menuitemFirstPage"),
                 ],
                 ActionMovePageIndex(self, False, 0),
             ),
-            'prev_page' : (
+            'prev_page': (
                 [
                     widget_tree.get_object("menuitemPrevPage"),
                     widget_tree.get_object("toolbuttonPrevPage"),
                 ],
                 ActionMovePageIndex(self, True, -1),
             ),
-            'next_page' : (
+            'next_page': (
                 [
                     widget_tree.get_object("menuitemNextPage"),
                     widget_tree.get_object("toolbuttonNextPage"),
                 ],
                 ActionMovePageIndex(self, True, 1),
             ),
-            'last_page' : (
+            'last_page': (
                 [
                     widget_tree.get_object("menuitemLastPage"),
                 ],
                 ActionMovePageIndex(self, False, -1),
             ),
-            'set_current_page' : (
+            'set_current_page': (
                 [
                     widget_tree.get_object("entryPageNb"),
                 ],
                 ActionOpenPageNb(self),
             ),
-            'zoom_levels' : (
+            'zoom_levels': (
                 [
                     widget_tree.get_object("comboboxZoom"),
                 ],
                 ActionRebuildPage(self)
             ),
-            'zoom_in' : (
+            'zoom_in': (
                 [
                     widget_tree.get_object("menuitemZoomIn"),
                 ],
                 ActionZoomChange(self, 1)
             ),
-            'zoom_out' : (
+            'zoom_out': (
                 [
                     widget_tree.get_object("menuitemZoomOut"),
                 ],
                 ActionZoomChange(self, -1)
             ),
-            'zoom_best_fit' : (
+            'zoom_best_fit': (
                 [
                     widget_tree.get_object("menuitemZoomBestFit"),
                 ],
                 ActionZoomSet(self, 0.0)
             ),
-            'zoom_normal' : (
+            'zoom_normal': (
                 [
                     widget_tree.get_object("menuitemZoomNormal"),
                 ],
                 ActionZoomSet(self, 1.0)
             ),
-            'start_search' : (
+            'start_search': (
                 [
                     widget_tree.get_object("menuitemFindTxt"),
                 ],
                 ActionStartSearch(self)
             ),
-            'search' : (
+            'search': (
                 [
                     self.search_field,
                 ],
                 ActionUpdateSearchResults(self),
             ),
-            'switch_sorting' : (
+            'switch_sorting': (
                 [
                     widget_tree.get_object("radiomenuitemSortByRelevance"),
                     widget_tree.get_object("radiomenuitemSortByScanDate"),
                 ],
                 ActionUpdateSearchResults(self, refresh_pages=False),
             ),
-            'toggle_label' : (
+            'toggle_label': (
                 [
                     widget_tree.get_object("cellrenderertoggleLabel"),
                 ],
                 ActionToggleLabel(self),
             ),
-            'show_all_boxes' : (
+            'show_all_boxes': (
                 [
                     self.show_all_boxes
                 ],
                 ActionRefreshPage(self)
             ),
-            'show_toolbar' : (
+            'show_toolbar': (
                 [
                     self.show_toolbar,
                 ],
@@ -2170,23 +2186,23 @@ class MainWindow(object):
                 ],
                 ActionRedoDocOCR(self),
             ),
-            'redo_ocr_all' : (
+            'redo_ocr_all': (
                 [
                     widget_tree.get_object("menuitemReOcrAll"),
                 ],
                 ActionRedoAllOCR(self),
             ),
-            'reindex' : (
+            'reindex': (
                 [],
                 ActionRebuildIndex(self, config, force=False),
             ),
-            'reindex_from_scratch' : (
+            'reindex_from_scratch': (
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
                 ActionRebuildIndex(self, config, force=True),
             ),
-            'edit_doc' : (
+            'edit_doc': (
                 [
                     widget_tree.get_object("menuitemEditDoc1"),
                     widget_tree.get_object("toolbuttonEditDoc"),
@@ -2194,7 +2210,7 @@ class MainWindow(object):
                 ],
                 ActionEditDoc(self, config),
             ),
-            'about' : (
+            'about': (
                 [
                     widget_tree.get_object("menuitemAbout"),
                 ],
@@ -2273,172 +2289,212 @@ class MainWindow(object):
             widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
             widget.drag_dest_add_text_targets()
 
-        self.lists['pages']['gui'].connect("drag-data-get",
-                                           self.__on_page_list_drag_data_get_cb)
-        self.lists['pages']['gui'].connect("drag-data-received",
-                                           self.__on_page_list_drag_data_received_cb)
-        self.lists['matches']['gui'].connect("drag-data-received",
-                                           self.__on_match_list_drag_data_received_cb)
+        self.lists['pages']['gui'].connect(
+            "drag-data-get", self.__on_page_list_drag_data_get_cb)
+        self.lists['pages']['gui'].connect(
+            "drag-data-received", self.__on_page_list_drag_data_received_cb)
+        self.lists['matches']['gui'].connect(
+            "drag-data-received", self.__on_match_list_drag_data_received_cb)
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.workers['index_reloader'].connect('index-loading-start', lambda loader: \
-            GObject.idle_add(self.__on_index_loading_start_cb, loader))
-        self.workers['index_reloader'].connect('index-loading-progression',
-            lambda loader, progression, txt: \
-                GObject.idle_add(self.set_progression, loader,
-                                 progression, txt))
-        self.workers['index_reloader'].connect('index-loading-end', lambda loader: \
+        self.workers['index_reloader'].connect(
+            'index-loading-start',
+            lambda loader: GObject.idle_add(self.__on_index_loading_start_cb,
+                                            loader))
+        self.workers['index_reloader'].connect(
+            'index-loading-progression',
+            lambda loader, progression, txt:
+            GObject.idle_add(self.set_progression, loader,
+                             progression, txt))
+        self.workers['index_reloader'].connect(
+            'index-loading-end',
+            lambda loader:
             GObject.idle_add(self.__on_index_loading_end_cb, loader))
 
-        self.workers['doc_examiner'].connect('doc-examination-start',
-            lambda examiner: \
-                GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
-        self.workers['doc_examiner'].connect('doc-examination-progression',
-            lambda examiner, progression, txt: \
-                GObject.idle_add(self.set_progression, examiner,
-                                 progression, txt))
-        self.workers['doc_examiner'].connect('doc-examination-end',
-            lambda examiner: \
-                GObject.idle_add(self.__on_doc_examination_end_cb, examiner))
+        self.workers['doc_examiner'].connect(
+            'doc-examination-start',
+            lambda examiner:
+            GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
+        self.workers['doc_examiner'].connect(
+            'doc-examination-progression',
+            lambda examiner, progression, txt:
+            GObject.idle_add(self.set_progression, examiner,
+                             progression, txt))
+        self.workers['doc_examiner'].connect(
+            'doc-examination-end',
+            lambda examiner: GObject.idle_add(
+                self.__on_doc_examination_end_cb, examiner))
 
-        self.workers['index_updater'].connect('index-update-start',
-            lambda updater: \
-                GObject.idle_add(self.__on_index_update_start_cb, updater))
-        self.workers['index_updater'].connect('index-update-progression',
-            lambda updater, progression, txt: \
-                GObject.idle_add(self.set_progression, updater,
-                                 progression, txt))
-        self.workers['index_updater'].connect('index-update-end',
-            lambda updater: \
-                GObject.idle_add(self.__on_index_update_end_cb, updater))
+        self.workers['index_updater'].connect(
+            'index-update-start',
+            lambda updater:
+            GObject.idle_add(self.__on_index_update_start_cb, updater))
+        self.workers['index_updater'].connect(
+            'index-update-progression',
+            lambda updater, progression, txt:
+            GObject.idle_add(self.set_progression, updater, progression, txt))
+        self.workers['index_updater'].connect(
+            'index-update-end',
+            lambda updater:
+            GObject.idle_add(self.__on_index_update_end_cb, updater))
+        self.workers['searcher'].connect(
+            'search-result',
+            lambda searcher, documents, suggestions:
+            GObject.idle_add(self.__on_search_result_cb, documents,
+                             suggestions))
 
-        self.workers['searcher'].connect('search-result', \
-            lambda searcher, documents, suggestions: \
-                GObject.idle_add(self.__on_search_result_cb, documents,
-                                 suggestions))
+        self.workers['page_thumbnailer'].connect(
+            'page-thumbnailing-start',
+            lambda thumbnailer:
+            GObject.idle_add(self.__on_page_thumbnailing_start_cb,
+                             thumbnailer))
+        self.workers['page_thumbnailer'].connect(
+            'page-thumbnailing-page-done',
+            lambda thumbnailer, page_idx, thumbnail:
+            GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
+                             thumbnailer, page_idx, thumbnail))
+        self.workers['page_thumbnailer'].connect(
+            'page-thumbnailing-end',
+            lambda thumbnailer:
+            GObject.idle_add(self.__on_page_thumbnailing_end_cb,
+                             thumbnailer))
 
-        self.workers['page_thumbnailer'].connect('page-thumbnailing-start',
-                lambda thumbnailer: \
-                    GObject.idle_add(self.__on_page_thumbnailing_start_cb,
-                                     thumbnailer))
-        self.workers['page_thumbnailer'].connect('page-thumbnailing-page-done',
-                lambda thumbnailer, page_idx, thumbnail: \
-                    GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
-                                     thumbnailer, page_idx, thumbnail))
-        self.workers['page_thumbnailer'].connect('page-thumbnailing-end',
-                lambda thumbnailer: \
-                    GObject.idle_add(self.__on_page_thumbnailing_end_cb,
-                                     thumbnailer))
+        self.workers['doc_thumbnailer'].connect(
+            'doc-thumbnailing-start',
+            lambda thumbnailer:
+            GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
+                             thumbnailer))
+        self.workers['doc_thumbnailer'].connect(
+            'doc-thumbnailing-doc-done',
+            lambda thumbnailer, doc_idx, thumbnail:
+            GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
+                             thumbnailer, doc_idx, thumbnail))
+        self.workers['doc_thumbnailer'].connect(
+            'doc-thumbnailing-end',
+            lambda thumbnailer:
+            GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
+                             thumbnailer))
 
-        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-start',
-                lambda thumbnailer: \
-                    GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
-                                     thumbnailer))
-        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-doc-done',
-                lambda thumbnailer, doc_idx, thumbnail: \
-                    GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
-                                     thumbnailer, doc_idx, thumbnail))
-        self.workers['doc_thumbnailer'].connect('doc-thumbnailing-end',
-                lambda thumbnailer: \
-                    GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
-                                     thumbnailer))
+        self.workers['img_builder'].connect(
+            'img-building-start',
+            lambda builder:
+            GObject.idle_add(self.__on_img_building_start))
+        self.workers['img_builder'].connect(
+            'img-building-result-pixbuf',
+            lambda builder, factor, original_width, img, boxes:
+            GObject.idle_add(self.__on_img_building_result_pixbuf,
+                             builder, factor, original_width, img, boxes))
+        self.workers['img_builder'].connect(
+            'img-building-result-stock',
+            lambda builder, img:
+            GObject.idle_add(self.__on_img_building_result_stock, img))
+        self.workers['img_builder'].connect(
+            'img-building-result-clear',
+            lambda builder:
+            GObject.idle_add(self.__on_img_building_result_clear))
 
-        self.workers['img_builder'].connect('img-building-start',
-                lambda builder: \
-                    GObject.idle_add(self.__on_img_building_start))
-        self.workers['img_builder'].connect('img-building-result-pixbuf',
-                lambda builder, factor, original_width, img, boxes: \
-                    GObject.idle_add(self.__on_img_building_result_pixbuf,
-                                     builder, factor, original_width, img, boxes))
-        self.workers['img_builder'].connect('img-building-result-stock',
-                lambda builder, img: \
-                    GObject.idle_add(self.__on_img_building_result_stock, img))
-        self.workers['img_builder'].connect('img-building-result-clear',
-                lambda builder: \
-                    GObject.idle_add(self.__on_img_building_result_clear))
+        self.workers['label_updater'].connect(
+            'label-updating-start',
+            lambda updater:
+            GObject.idle_add(self.__on_label_updating_start_cb,
+                             updater))
+        self.workers['label_updater'].connect(
+            'label-updating-doc-updated',
+            lambda updater, progression, doc_name:
+            GObject.idle_add(self.__on_label_updating_doc_updated_cb,
+                             updater, progression, doc_name))
+        self.workers['label_updater'].connect(
+            'label-updating-end',
+            lambda updater:
+            GObject.idle_add(self.__on_label_updating_end_cb,
+                             updater))
 
-        self.workers['label_updater'].connect('label-updating-start',
-                lambda updater: \
-                    GObject.idle_add(self.__on_label_updating_start_cb,
-                                     updater))
-        self.workers['label_updater'].connect('label-updating-doc-updated',
-                lambda updater, progression, doc_name: \
-                    GObject.idle_add(self.__on_label_updating_doc_updated_cb,
-                                     updater, progression, doc_name))
-        self.workers['label_updater'].connect('label-updating-end',
-                lambda updater: \
-                    GObject.idle_add(self.__on_label_updating_end_cb,
-                                     updater))
+        self.workers['label_deleter'].connect(
+            'label-deletion-start',
+            lambda deleter:
+            GObject.idle_add(self.__on_label_updating_start_cb,
+                             deleter))
+        self.workers['label_deleter'].connect(
+            'label-deletion-doc-updated',
+            lambda deleter, progression, doc_name:
+            GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
+                             deleter, progression, doc_name))
+        self.workers['label_deleter'].connect(
+            'label-deletion-end',
+            lambda deleter:
+            GObject.idle_add(self.__on_label_updating_end_cb,
+                             deleter))
 
-        self.workers['label_deleter'].connect('label-deletion-start',
-                lambda deleter: \
-                    GObject.idle_add(self.__on_label_updating_start_cb,
-                                     deleter))
-        self.workers['label_deleter'].connect('label-deletion-doc-updated',
-                lambda deleter, progression, doc_name: \
-                    GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
-                                     deleter, progression, doc_name))
-        self.workers['label_deleter'].connect('label-deletion-end',
-                lambda deleter: \
-                    GObject.idle_add(self.__on_label_updating_end_cb,
-                                     deleter))
+        self.workers['ocr_redoer'].connect(
+            'redo-ocr-start',
+            lambda ocr_redoer:
+            GObject.idle_add(self.__on_redo_ocr_start_cb,
+                             ocr_redoer))
+        self.workers['ocr_redoer'].connect(
+            'redo-ocr-doc-updated',
+            lambda ocr_redoer, progression, doc_name:
+            GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
+                             ocr_redoer, progression, doc_name))
+        self.workers['ocr_redoer'].connect(
+            'redo-ocr-end',
+            lambda ocr_redoer:
+            GObject.idle_add(self.__on_redo_ocr_end_cb,
+                             ocr_redoer))
 
-        self.workers['ocr_redoer'].connect('redo-ocr-start',
-                lambda ocr_redoer: \
-                    GObject.idle_add(self.__on_redo_ocr_start_cb,
-                                     ocr_redoer))
-        self.workers['ocr_redoer'].connect('redo-ocr-doc-updated',
-                lambda ocr_redoer, progression, doc_name: \
-                    GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
-                                     ocr_redoer, progression, doc_name))
-        self.workers['ocr_redoer'].connect('redo-ocr-end',
-                lambda ocr_redoer: \
-                    GObject.idle_add(self.__on_redo_ocr_end_cb,
-                                     ocr_redoer))
+        self.workers['single_scan'].connect(
+            'single-scan-start',
+            lambda worker:
+            GObject.idle_add(self.__on_single_scan_start, worker))
+        self.workers['single_scan'].connect(
+            'single-scan-ocr',
+            lambda worker:
+            GObject.idle_add(self.__on_single_scan_ocr, worker))
+        self.workers['single_scan'].connect(
+            'single-scan-done',
+            lambda worker, page:
+            GObject.idle_add(self.__on_single_scan_done, worker, page))
 
-        self.workers['single_scan'].connect('single-scan-start',
-                lambda worker: \
-                    GObject.idle_add(self.__on_single_scan_start, worker))
-        self.workers['single_scan'].connect('single-scan-ocr',
-                lambda worker: \
-                    GObject.idle_add(self.__on_single_scan_ocr, worker))
-        self.workers['single_scan'].connect('single-scan-done',
-                lambda worker, page: \
-                    GObject.idle_add(self.__on_single_scan_done, worker, page))
+        self.workers['importer'].connect(
+            'import-start',
+            lambda worker:
+            GObject.idle_add(self.__on_import_start, worker))
+        self.workers['importer'].connect(
+            'import-done',
+            lambda worker, doc, page:
+            GObject.idle_add(self.__on_import_done, worker, doc, page))
 
-        self.workers['importer'].connect('import-start',
-                lambda worker: \
-                    GObject.idle_add(self.__on_import_start, worker))
-        self.workers['importer'].connect('import-done',
-                lambda worker, doc, page: \
-                    GObject.idle_add(self.__on_import_done, worker, doc, page))
+        self.workers['export_previewer'].connect(
+            'export-preview-start',
+            lambda worker:
+            GObject.idle_add(self.__on_export_preview_start))
+        self.workers['export_previewer'].connect(
+            'export-preview-done',
+            lambda worker, size, pixbuf:
+            GObject.idle_add(self.__on_export_preview_done, size,
+                             pixbuf))
 
-        self.workers['export_previewer'].connect('export-preview-start',
-                lambda worker: \
-                    GObject.idle_add(self.__on_export_preview_start))
-        self.workers['export_previewer'].connect('export-preview-done',
-                lambda worker, size, pixbuf: \
-                    GObject.idle_add(self.__on_export_preview_done, size,
-                                     pixbuf))
-
-        self.workers['page_editor'].connect('page-editing-img-edit',
-                lambda worker, page: \
-                    GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
-                                     worker, page))
-        self.workers['page_editor'].connect('page-editing-ocr',
-                lambda worker, page: \
-                    GObject.idle_add(self.__on_page_editing_ocr_cb,
-                                     worker, page))
-        self.workers['page_editor'].connect('page-editing-index-upd',
-                lambda worker, page: \
-                    GObject.idle_add(self.__on_page_editing_index_upd_cb,
-                                     worker, page))
-        self.workers['page_editor'].connect('page-editing-done',
-                lambda worker, page: \
-                    GObject.idle_add(self.__on_page_editing_done_cb,
-                                     worker, page))
+        self.workers['page_editor'].connect(
+            'page-editing-img-edit',
+            lambda worker, page:
+            GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
+                             worker, page))
+        self.workers['page_editor'].connect(
+            'page-editing-ocr',
+            lambda worker, page:
+            GObject.idle_add(self.__on_page_editing_ocr_cb,
+                             worker, page))
+        self.workers['page_editor'].connect(
+            'page-editing-index-upd',
+            lambda worker, page:
+            GObject.idle_add(self.__on_page_editing_index_upd_cb,
+                             worker, page))
+        self.workers['page_editor'].connect(
+            'page-editing-done',
+            lambda worker, page:
+            GObject.idle_add(self.__on_page_editing_done_cb,
+                             worker, page))
 
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
@@ -2453,8 +2509,8 @@ class MainWindow(object):
 
     def set_mouse_cursor(self, cursor):
         offset = {
-            "Normal" : -1,
-            "Busy" : 1
+            "Normal": -1,
+            "Busy": 1
         }[cursor]
 
         self.__busy_mouse_counter += offset
@@ -2469,7 +2525,7 @@ class MainWindow(object):
     def set_progression(self, src, progression, text):
         context_id = self.status['text'].get_context_id(str(src))
         self.status['text'].pop(context_id)
-        if (text != None and text != ""):
+        if (text is not None and text != ""):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
@@ -2535,7 +2591,6 @@ class MainWindow(object):
         self.workers['page_thumbnailer'].start()
         self.workers['doc_thumbnailer'].start()
 
-
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
@@ -2572,7 +2627,8 @@ class MainWindow(object):
     def __on_img_building_start(self):
         self.disable_boxes()
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
+                                         Gtk.IconSize.DIALOG)
 
     def __on_img_building_result_stock(self, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
@@ -2633,7 +2689,8 @@ class MainWindow(object):
     def __on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
+                                         Gtk.IconSize.DIALOG)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(False)
         self.__scan_start = time.time()
@@ -2665,7 +2722,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
-    
+
         assert(page is not None)
         self.show_page(page)
 
@@ -2676,7 +2733,8 @@ class MainWindow(object):
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
+                                         Gtk.IconSize.DIALOG)
         self.workers['progress_updater'].start(
             value_min=0.0, value_max=0.75,
             total_time=self.__config.scan_time['ocr'])
@@ -2685,7 +2743,7 @@ class MainWindow(object):
     def __on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
         self.workers['progress_updater'].stop()
-        # Note: don't update scan time here : OCR is not required for all
+        # Note: don't update scan time here: OCR is not required for all
         # imports
 
         for widget in self.need_doc_widgets:
@@ -2697,7 +2755,7 @@ class MainWindow(object):
         # Many documents may have been imported actually. So we still
         # refresh the whole list
         self.refresh_doc_list()
-        if page != None:
+        if page is not None:
             self.show_page(page)
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
@@ -2721,20 +2779,20 @@ class MainWindow(object):
         selected = None
 
         for line in self.img['boxes']['all']:
-            ((a, b), (c, d)) = \
-                    self.__get_box_position(line,
-                                            window=self.img['image'],
-                                            width=0)
+            pos = self.__get_box_position(line,
+                                          window=self.img['image'],
+                                          width=0)
+            ((a, b), (c, d)) = pos
             if (mouse_x < a or mouse_y < b
-                or mouse_x > c or mouse_y > d):
+                    or mouse_x > c or mouse_y > d):
                 continue
             for box in line.word_boxes:
-                ((a, b), (c, d)) = \
-                        self.__get_box_position(box,
-                                                window=self.img['image'],
-                                                width=0)
+                pos = self.__get_box_position(box,
+                                              window=self.img['image'],
+                                              width=0)
+                ((a, b), (c, d)) = pos
                 if (mouse_x < a or mouse_y < b
-                    or mouse_x > c or mouse_y > d):
+                        or mouse_x > c or mouse_y > d):
                     continue
                 selected = box
                 break
@@ -2752,11 +2810,11 @@ class MainWindow(object):
             self.img['image'].set_has_tooltip(False)
 
         for box in to_refresh:
-            position = self.__get_box_position(box,
-                            window=self.img['image'], width=5)
+            position = self.__get_box_position(
+                box, window=self.img['image'], width=5)
             self.img['image'].queue_draw_area(position[0][0], position[0][1],
-                                             position[1][0] - position[0][0],
-                                             position[1][1] - position[0][1])
+                                              position[1][0] - position[0][0],
+                                              position[1][1] - position[0][1])
 
     def __on_img_mouse_leave(self, event_box, event):
         to_refresh = self.img['boxes']['selected']
@@ -2765,12 +2823,11 @@ class MainWindow(object):
         self.img['image'].set_has_tooltip(False)
 
         for box in to_refresh:
-            position = self.__get_box_position(box,
-                            window=self.img['image'], width=5)
+            position = self.__get_box_position(
+                box, window=self.img['image'], width=5)
             self.img['image'].queue_draw_area(position[0][0], position[0][1],
-                                             position[1][0] - position[0][0],
-                                             position[1][1] - position[0][1])
-
+                                              position[1][0] - position[0][0],
+                                              position[1][1] - position[0][1])
 
     def __get_box_position(self, box, window=None, width=1):
         ((a, b), (c, d)) = box.position
@@ -2798,12 +2855,13 @@ class MainWindow(object):
         visible = []
         for line in self.img['boxes']['visible']:
             visible += line.word_boxes
-        for ((color_r, color_b, color_g), line_width, boxes) in [
-                ((0.421875, 0.36328125, 0.81640625), 1, visible),
-                ((0.421875, 0.36328125, 0.81640625), 2,
-                    self.img['boxes']['selected']),
-                ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])
-            ]:
+        colors = [
+            ((0.421875, 0.36328125, 0.81640625), 1, visible),
+            ((0.421875, 0.36328125, 0.81640625), 2,
+             self.img['boxes']['selected']),
+            ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])
+        ]
+        for ((color_r, color_b, color_g), line_width, boxes) in colors:
             cairo_context.set_source_rgb(color_r, color_b, color_g)
             cairo_context.set_line_width(line_width)
 
@@ -2823,8 +2881,8 @@ class MainWindow(object):
         if nb_pages > 1:
             final_str += (_(" (%d pages)") % (doc.nb_pages))
         if len(labels) > 0:
-            final_str += ("\n  "
-                    + "\n  ".join([x.get_html() for x in labels]))
+            final_str += "\n  "
+            final_str += "\n  ".join([x.get_html() for x in labels])
         return final_str
 
     def __get_doc_model_line(self, doc):
@@ -2857,8 +2915,8 @@ class MainWindow(object):
             # document list model and remade it from scratch. For some reason,
             # it seems that  Gtk will then always consider that the cell is
             # not visible and move the scrollbar.
-            # --> we use idle_add to move the scrollbar only once everything has
-            # been displayed
+            # --> we use idle_add to move the scrollbar only once everything
+            # has been displayed
             path = Gtk.TreePath(doc_idx)
             GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
                              path, False, 0.0, 0.0)
@@ -2896,7 +2954,7 @@ class MainWindow(object):
         model = self.lists['matches']['model']
 
         if (len(doc_list) > 0
-            and (doc_list[0] in docs or doc_list[0].is_new)):
+                and (doc_list[0] in docs or doc_list[0].is_new)):
             # Remove temporarily "New document" from the list
             doc_list.pop(0)
             model.remove(model[0].iter)
@@ -2994,7 +3052,7 @@ class MainWindow(object):
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
-                _("/ %d") % (self.doc.nb_pages))
+            _("/ %d") % (self.doc.nb_pages))
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
         for widget in self.need_page_widgets:
@@ -3071,11 +3129,12 @@ class MainWindow(object):
             widget.set_sensitive(not is_new)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
+        pages_gui = self.lists['pages']['gui']
         if self.doc.can_edit:
-            self.lists['pages']['gui'].enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
-            self.lists['pages']['gui'].drag_source_add_text_targets()
+            pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
+            pages_gui.drag_source_add_text_targets()
         else:
-            self.lists['pages']['gui'].unset_model_drag_source()
+            pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
         if self.doc.nb_pages > 0:
@@ -3101,12 +3160,13 @@ class MainWindow(object):
         if factor != 0.0:
             return factor
         wanted_width = self.__get_img_area_width()
-        if pixbuf_width == None:
+        if pixbuf_width is None:
             pixbuf_width = self.img['original_width']
         return float(wanted_width) / pixbuf_width
 
     def refresh_export_preview(self):
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
+                                         Gtk.IconSize.DIALOG)
         self.workers['export_previewer'].stop()
         self.workers['export_previewer'].start()
 
@@ -3123,7 +3183,7 @@ class MainWindow(object):
         self.img['viewport']['size'] = new_size
         print ("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
-        
+
         # check if zoom level is set to adjusted, if yes,
         # we must resize the image
         el_idx = self.lists['zoom_levels']['gui'].get_active()
@@ -3152,16 +3212,16 @@ class MainWindow(object):
         self.refresh_page_list()
         self.show_page(page)
 
-    def __on_page_list_drag_data_get_cb(self, widget, drag_context, selection_data,
-                                    info, time):
+    def __on_page_list_drag_data_get_cb(self, widget, drag_context,
+                                        selection_data, info, time):
         pageid = unicode(self.page.pageid)
-        print "[page list] drag-data-get : %s" % self.page.pageid
+        print "[page list] drag-data-get: %s" % self.page.pageid
         selection_data.set_text(pageid, -1)
 
     def __on_page_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                              selection_data, info, time):
         target = self.lists['pages']['gui'].get_dest_item_at_pos(x, y)
-        if target == None:
+        if target is None:
             print "[page list] drag-data-received: no target. aborting"
             drag_context.finish(False, False, time)
             return
@@ -3171,7 +3231,7 @@ class MainWindow(object):
             target_idx += 1
         obj_id = selection_data.get_text()
 
-        print "[page list] drag-data-received : %s -> %s" % (obj_id, target_idx)
+        print "[page list] drag-data-received: %s -> %s" % (obj_id, target_idx)
         obj = self.docsearch.get_by_id(obj_id)
         # TODO(Jflesch): Instantiate an ActionXXX to do that, so
         # this action can be cancelled later
@@ -3182,10 +3242,10 @@ class MainWindow(object):
         GObject.idle_add(self.refresh_docs, [obj.doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
-                                          selection_data, info, time):
+                                              selection_data, info, time):
         obj_id = selection_data.get_text()
         target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
-        if target == None:
+        if target is None:
             print "[page list] drag-data-received: no target. aborting"
             drag_context.finish(False, False, time)
             return
@@ -3195,8 +3255,8 @@ class MainWindow(object):
         obj = self.docsearch.get_by_id(obj_id)
 
         if not target_doc.can_edit:
-            print ("[doc list] drag-data-received: Destination document can't be"
-                   " modified")
+            print ("[doc list] drag-data-received: Destination document"
+                   " can't be modified")
             drag_context.finish(False, False, time)
             return
 
@@ -3206,7 +3266,7 @@ class MainWindow(object):
             drag_context.finish(False, False, time)
             return
 
-        print ("[doc list] drag-data-received : %s -> %s"
+        print ("[doc list] drag-data-received: %s -> %s"
                % (obj_id, target_doc.docid))
         # TODO(Jflesch): Instantiate an ActionXXX to do that, so
         # it can be cancelled later

@@ -16,6 +16,7 @@
 
 from gi.repository import Gtk
 
+
 class SimpleAction(object):
     """
     Template for all the actions started by buttons
@@ -79,14 +80,14 @@ class SimpleAction(object):
 
     def connect(self, buttons):
         for button in buttons:
-            assert(button != None)
+            assert(button is not None)
             handled = False
             for handler_idx in range(0, len(self.__signal_handlers)):
                 (obj_class, signal, handler, handler_id) = \
-                        self.__signal_handlers[handler_idx]
+                    self.__signal_handlers[handler_idx]
                 if isinstance(button, obj_class):
                     handler_id = button.connect(signal, handler)
                     handled = True
                 self.__signal_handlers[handler_idx] = \
-                        (obj_class, signal, handler, handler_id)
+                    (obj_class, signal, handler, handler_id)
             assert(handled)

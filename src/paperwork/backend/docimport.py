@@ -52,12 +52,12 @@ class MultiplePdfImporter(object):
 
     def __get_all_children(self, parent):
         children = parent.enumerate_children(
-                Gio.FILE_ATTRIBUTE_STANDARD_NAME,
-                Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-                None)
+            Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+            Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+            None)
         for child in children:
             name = child.get_attribute_as_string(
-                    Gio.FILE_ATTRIBUTE_STANDARD_NAME)
+                Gio.FILE_ATTRIBUTE_STANDARD_NAME)
             child = parent.get_child(name)
             try:
                 for child in self.__get_all_children(child):
@@ -134,6 +134,7 @@ IMPORTERS = [
     SingleImageImporter(),
     MultiplePdfImporter(),
 ]
+
 
 def get_possible_importers(file_uri, current_doc=None):
     importers = []

@@ -27,7 +27,7 @@ from paperwork.util import surface2image
 
 # By default, PDF are too small for a good image rendering
 # so we increase their size
-PDF_RENDER_FACTOR=2
+PDF_RENDER_FACTOR = 2
 
 
 class PdfWordBox(object):
@@ -36,9 +36,11 @@ class PdfWordBox(object):
         # XXX(Jflesch): Coordinates seem to come from the bottom left of the
         # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y2) * PDF_RENDER_FACTOR)),
+                         int((pdf_size[1] - rectangle.y2)
+                             * PDF_RENDER_FACTOR)),
                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y1) * PDF_RENDER_FACTOR)))
+                         int((pdf_size[1] - rectangle.y1)
+                             * PDF_RENDER_FACTOR)))
 
 
 class PdfLineBox(object):
@@ -47,9 +49,11 @@ class PdfLineBox(object):
         # XXX(Jflesch): Coordinates seem to come from the bottom left of the
         # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y2) * PDF_RENDER_FACTOR)),
+                         int((pdf_size[1] - rectangle.y2)
+                             * PDF_RENDER_FACTOR)),
                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y1) * PDF_RENDER_FACTOR)))
+                         int((pdf_size[1] - rectangle.y1)
+                             * PDF_RENDER_FACTOR)))
 
 
 class PdfPage(BasicPage):
@@ -60,7 +64,7 @@ class PdfPage(BasicPage):
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
         self.pdf_page = doc.pdf.get_page(page_nb)
-        assert(self.pdf_page != None)
+        assert(self.pdf_page is not None)
         size = self.pdf_page.get_size()
         self.size = (int(size[0]), int(size[1]))
         self.__boxes = None
@@ -69,8 +73,8 @@ class PdfPage(BasicPage):
         """
         Returns a file path relative to this page
         """
-        return os.path.join(self.doc.path,
-                "%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+        filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+        return os.path.join(self.doc.path, filename)
 
     def __get_txt_path(self):
         return self.__get_filepath(self.EXT_TXT)
@@ -126,7 +130,8 @@ class PdfPage(BasicPage):
                     self.__boxes = box_builder.read_file(file_desc)
                 return self.__boxes
             except IOError, exc:
-                print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
+                print ("Unable to get boxes for '%s': %s"
+                       % (self.doc.docid, exc))
                 # will fall back on pdf boxes
         except OSError, exc:  # os.stat() failed
             pass
@@ -151,11 +156,10 @@ class PdfPage(BasicPage):
 
     boxes = property(__get_boxes)
 
-
     def __render_img(self, factor):
         # TODO(Jflesch): In a perfect world, we shouldn't use ImageSurface.
-        # we should draw directly on the GtkImage.window.cairo_create() context.
-        # It would be much more efficient.
+        # we should draw directly on the GtkImage.window.cairo_create()
+        # context. It would be much more efficient.
 
         width = int(factor * self.size[0])
         height = int(factor * self.size[1])
@@ -205,8 +209,9 @@ class PdfPage(BasicPage):
             raise Exception("No OCR tool available")
 
         txt = ocr_tools[0].image_to_string(img, lang=langs['ocr'])
+        builder = pyocr.builders.LineBoxBuilder()
         boxes = ocr_tools[0].image_to_string(img, lang=langs['ocr'],
-                                             builder=pyocr.builders.LineBoxBuilder())
+                                             builder=builder)
 
         # save the text
         with codecs.open(txtfile, 'w', encoding='utf-8') as file_desc:
@@ -214,4 +219,3 @@ class PdfPage(BasicPage):
         # save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
             pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)
-

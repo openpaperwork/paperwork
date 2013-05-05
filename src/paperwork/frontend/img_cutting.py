@@ -21,6 +21,7 @@ from gi.repository import GObject
 
 from paperwork.util import image2pixbuf
 
+
 class ImgGrip(object):
     """
     Represents one of the grip that user can move to cut an image.
@@ -75,12 +76,12 @@ class ImgGrip(object):
         x_max = int(ratio * self.position[0]) + self.GRIP_SIZE
         y_max = int(ratio * self.position[1]) + self.GRIP_SIZE
         return (x_min <= position[0] and position[0] <= x_max
-            and y_min <= position[1] and position[1] <= y_max)
+                and y_min <= position[1] and position[1] <= y_max)
 
 
 class ImgGripHandler(GObject.GObject):
     __gsignals__ = {
-        'grip-moved' : (GObject.SignalFlags.RUN_LAST, None, ())
+        'grip-moved': (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
     def __init__(self, imgs, img_scrolledwindow, img_eventbox, img_widget):
@@ -108,22 +109,23 @@ class ImgGripHandler(GObject.GObject):
         self.selected = None  # the grip being moved
 
         self.__cursors = {
-            'default' : Gdk.Cursor.new(Gdk.CursorType.HAND1),
+            'default': Gdk.Cursor.new(Gdk.CursorType.HAND1),
             'visible': Gdk.Cursor.new(Gdk.CursorType.HAND1),
             'on_grip': Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         }
 
         img_eventbox.connect("button-press-event",
-            self.__on_mouse_button_pressed_cb)
+                             self.__on_mouse_button_pressed_cb)
         img_eventbox.connect("motion-notify-event",
-            self.__on_mouse_motion_cb)
+                             self.__on_mouse_motion_cb)
         img_eventbox.connect("button-release-event",
-            self.__on_mouse_button_released_cb)
+                             self.__on_mouse_button_released_cb)
         img_eventbox.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
 
         img_widget.connect("size-allocate",
-            lambda widget, size: GObject.idle_add(self.__on_size_allocate_cb,
-                                                  widget, size))
+                           lambda widget, size:
+                           GObject.idle_add(self.__on_size_allocate_cb,
+                                            widget, size))
         self.__last_cursor_pos = None  # relative to the image size
 
         self.redraw()
@@ -206,10 +208,11 @@ class ImgGripHandler(GObject.GObject):
             return
         (x, y) = self.__last_cursor_pos
         self.__last_cursor_pos = None
-        for (adjustment, val) in [
-                (self.img_scrolledwindow.get_hadjustment(), x),
-                (self.img_scrolledwindow.get_vadjustment(), y),
-            ]:
+        adjustements = [
+            (self.img_scrolledwindow.get_hadjustment(), x),
+            (self.img_scrolledwindow.get_vadjustment(), y),
+        ]
+        for (adjustment, val) in adjustements:
             upper = adjustment.get_upper() - adjustment.get_page_size()
             lower = adjustment.get_lower()
             val = (val * (upper - lower) + lower)
@@ -248,5 +251,5 @@ class ImgGripHandler(GObject.GObject):
                 (int(self.__grips[1].position[0]),
                  int(self.__grips[1].position[1])))
 
-GObject.type_register(ImgGripHandler)
 
+GObject.type_register(ImgGripHandler)

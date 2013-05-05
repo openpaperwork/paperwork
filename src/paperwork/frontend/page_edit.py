@@ -100,39 +100,43 @@ class PageEditingDialog(object):
         self.__dialog.set_transient_for(main_window.window)
 
         self.__original_img_widgets = {
-            'img' : widget_tree.get_object("imageOriginal"),
-            'scrolledwindow' : widget_tree.get_object("scrolledwindowOriginal"),
-            'eventbox' : widget_tree.get_object("eventboxOriginal"),
-            'viewport' : widget_tree.get_object("viewportOriginal")
+            'img': widget_tree.get_object("imageOriginal"),
+            'scrolledwindow': widget_tree.get_object("scrolledwindowOriginal"),
+            'eventbox': widget_tree.get_object("eventboxOriginal"),
+            'viewport': widget_tree.get_object("viewportOriginal")
         }
         self.__result_img_widget = widget_tree.get_object("imageResult")
         self.__buttons = {
-            'cutting' : widget_tree.get_object("togglebuttonCutting"),
-            'rotate' : {
-                'clockwise' : (widget_tree.get_object("buttonRotateClockwise"),
-                               90),
-                'counter_clockwise' : \
-                    (widget_tree.get_object("buttonRotateCounterClockwise"),
-                     -90),
+            'cutting': widget_tree.get_object("togglebuttonCutting"),
+            'rotate': {
+                'clockwise': (widget_tree.get_object("buttonRotateClockwise"),
+                              90),
+                'counter_clockwise':
+                (widget_tree.get_object("buttonRotateCounterClockwise"), -90),
             }
         }
 
         self.__cut_grips = None
 
-        self.__original_img_widgets['viewport'].connect("size-allocate",
+        self.__original_img_widgets['viewport'].connect(
+            "size-allocate",
             lambda widget, size: GObject.idle_add(self.__on_size_allocated_cb))
-        self.__buttons['cutting'].connect("toggled",
-            lambda widget: GObject.idle_add(self.__on_cutting_button_toggled_cb))
-        self.__buttons['rotate']['clockwise'][0].connect("clicked",
-            lambda widget: \
-                GObject.idle_add(self.__on_rotate_activated_cb, widget))
-        self.__buttons['rotate']['counter_clockwise'][0].connect("clicked",
-            lambda widget: \
-                GObject.idle_add(self.__on_rotate_activated_cb, widget))
+        self.__buttons['cutting'].connect(
+            "toggled",
+            lambda widget: GObject.idle_add(
+                self.__on_cutting_button_toggled_cb))
+        self.__buttons['rotate']['clockwise'][0].connect(
+            "clicked",
+            lambda widget:
+            GObject.idle_add(self.__on_rotate_activated_cb, widget))
+        self.__buttons['rotate']['counter_clockwise'][0].connect(
+            "clicked",
+            lambda widget:
+            GObject.idle_add(self.__on_rotate_activated_cb, widget))
 
         self.page = page
         self.imgs = {
-            'orig' : (1.0, self.page.img)
+            'orig': (1.0, self.page.img)
         }
 
         self.__changes = []
@@ -150,8 +154,8 @@ class PageEditingDialog(object):
             factor = 1.0
         target_size = (int(factor * img_w), int(factor * img_h))
         copy = self.imgs['orig'][1].copy()
-        self.imgs['resized'] = (factor, copy.resize(
-                    target_size, Image.BILINEAR))
+        self.imgs['resized'] = (factor,
+                                copy.resize(target_size, Image.BILINEAR))
         self.__cut_grips = ImgGripHandler(
             [self.imgs['resized'], self.imgs['orig']],
             self.__original_img_widgets['scrolledwindow'],
@@ -180,7 +184,7 @@ class PageEditingDialog(object):
         for (button, angle) in self.__buttons['rotate'].values():
             if button == widget:
                 break
-        assert(button != None)
+        assert(button is not None)
         print "Adding action rotation of %d degrees" % angle
         rotation = PageRotationAction(angle)
         rotation.add_to_action_queue(self.__changes)

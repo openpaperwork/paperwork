@@ -28,9 +28,9 @@ import pyocr.pyocr
 
 class _ScanTimes(object):
     __ITEM_2_CONFIG = {
-        'calibration' : ('Scanner', 'ScanTimeCalibration'),
-        'normal' : ('Scanner', 'ScanTime'),
-        'ocr' : ('OCR', 'OCRTime'),
+        'calibration': ('Scanner', 'ScanTimeCalibration'),
+        'normal': ('Scanner', 'ScanTime'),
+        'ocr': ('OCR', 'OCRTime'),
     }
 
     def __init__(self, config):
@@ -63,8 +63,8 @@ class PaperworkConfig(object):
         self._configparser = ConfigParser.SafeConfigParser()
         self.scan_time = _ScanTimes(self)
 
-        # Possible config files are evaluated in the order they are in the array.
-        # The last one of the list is the default one.
+        # Possible config files are evaluated in the order they are in the
+        # array. The last one of the list is the default one.
         configfiles = [
             "./paperwork.conf",
             os.path.expanduser("~/.paperwork.conf"),
@@ -172,7 +172,7 @@ class PaperworkConfig(object):
         """
         Set the OCR lang
         """
-        if lang == None:
+        if lang is None:
             lang = "None"
         self._configparser.set("OCR", "Lang", lang)
 
@@ -206,14 +206,14 @@ class PaperworkConfig(object):
         """
         Set the spell checking language
         """
-        if lang == None:
+        if lang is None:
             lang = "None"
         self._configparser.set("SpellChecking", "Lang", lang)
 
     spelling_lang = property(__get_spelling_lang, __set_spelling_lang)
 
     def __get_langs(self):
-        return { 'ocr' : self.ocr_lang, 'spelling' : self.spelling_lang }
+        return {'ocr': self.ocr_lang, 'spelling': self.spelling_lang}
 
     langs = property(__get_langs)
 
@@ -286,13 +286,13 @@ class PaperworkConfig(object):
         Set the scanner resolution used for normal scans.
         """
         self._configparser.set("Scanner", "Calibration_Pt_A_X",
-                                str(calibration[0][0]))
+                               str(calibration[0][0]))
         self._configparser.set("Scanner", "Calibration_Pt_A_Y",
-                                str(calibration[0][1]))
+                               str(calibration[0][1]))
         self._configparser.set("Scanner", "Calibration_Pt_B_X",
-                                str(calibration[1][0]))
+                               str(calibration[1][0]))
         self._configparser.set("Scanner", "Calibration_Pt_B_Y",
-                                str(calibration[1][1]))
+                               str(calibration[1][1]))
 
     scanner_calibration = property(__get_scanner_calibration,
                                    __set_scanner_calibration)
@@ -354,7 +354,6 @@ class PaperworkConfig(object):
         self._configparser.set("GUI", "ToolbarVisible", str(int(visible)))
 
     toolbar_visible = property(__get_toolbar_visible, __set_toolbar_visible)
-
 
     def write(self):
         """

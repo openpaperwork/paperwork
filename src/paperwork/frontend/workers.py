@@ -118,7 +118,7 @@ class BasicWorker(GObject.GObject):
             print "Thread '%s' was already started by:" % (self.name)
             idx = 0
             for stack_el in self.__started_by:
-                print ("%2d : %20s : L%5d : %s"
+                print ("%2d: %20s: L%5d: %s"
                        % (idx, os.path.basename(stack_el[0]),
                           stack_el[1], stack_el[2]))
                 idx += 1
@@ -259,10 +259,10 @@ class IndependentWorkerQueue(IndependentWorker):
     can_interrupt = True
 
     __gsignals__ = {
-        'queue-start' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'queue-stop' : (GObject.SignalFlags.RUN_LAST, None,
-                        # Arg: Exception raised by a worker, None if none
-                        (GObject.TYPE_PYOBJECT, )),
+        'queue-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'queue-stop': (GObject.SignalFlags.RUN_LAST, None,
+                       # Arg: Exception raised by a worker, None if none
+                       (GObject.TYPE_PYOBJECT, )),
     }
     local_signals = ['queue-start', 'queue-stop']
 
@@ -305,7 +305,7 @@ class IndependentWorkerQueue(IndependentWorker):
             worker.connect(signal, handler, *kargs)
 
     def stop(self):
-        if self.__current_worker != None:
+        if self.__current_worker is not None:
             self.__current_worker.stop()
         Worker.stop(self)
 

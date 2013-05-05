@@ -5,7 +5,9 @@ from gi.repository import Gtk
 from paperwork.backend.labels import Label
 from paperwork.util import load_uifile
 
+
 _ = gettext.gettext
+
 
 class LabelEditor(object):
     """
@@ -13,12 +15,11 @@ class LabelEditor(object):
     """
 
     def __init__(self, label_to_edit=None):
-        if label_to_edit == None:
+        if label_to_edit is None:
             label_to_edit = Label()
         self.label = label_to_edit
 
         self.__ok_button = None
-
 
     def edit(self, main_window):
         """
@@ -43,8 +44,9 @@ class LabelEditor(object):
         response = dialog.run()
 
         if (response == Gtk.ResponseType.OK
-            and name_entry.get_text().strip() == ""):
+                and name_entry.get_text().strip() == ""):
             response = Gtk.ResponseType.CANCEL
+
         if (response == Gtk.ResponseType.OK):
             print "Label validated"
             self.label.name = unicode(name_entry.get_text(), encoding='utf-8')

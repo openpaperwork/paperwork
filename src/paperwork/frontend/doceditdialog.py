@@ -8,6 +8,7 @@ from paperwork.util import load_uifile
 
 _ = gettext.gettext
 
+
 class DocEditDialog(object):
     def __init__(self, main_window, config, doc):
         self.__main_win = main_window
@@ -16,23 +17,23 @@ class DocEditDialog(object):
 
         widget_tree = load_uifile("doceditdialog.glade")
         self.date = {
-            'year' : {
-                'view' : widget_tree.get_object("spinbuttonYear"),
-                'model' : widget_tree.get_object("adjustmentYear"),
+            'year': {
+                'view': widget_tree.get_object("spinbuttonYear"),
+                'model': widget_tree.get_object("adjustmentYear"),
             },
-            'month' : {
-                'view' : widget_tree.get_object("spinbuttonMonth"),
-                'model' : widget_tree.get_object("adjustmentMonth"),
+            'month': {
+                'view': widget_tree.get_object("spinbuttonMonth"),
+                'model': widget_tree.get_object("adjustmentMonth"),
             },
-            'day' : {
-                'view' : widget_tree.get_object("spinbuttonDay"),
-                'model' : widget_tree.get_object("adjustmentDay"),
+            'day': {
+                'view': widget_tree.get_object("spinbuttonDay"),
+                'model': widget_tree.get_object("adjustmentDay"),
             },
-            'box' : widget_tree.get_object("boxDate")
+            'box': widget_tree.get_object("boxDate")
         }
         self.text = {
-            'view' : widget_tree.get_object("textviewText"),
-            'model' : widget_tree.get_object("textbufferText"),
+            'view': widget_tree.get_object("textviewText"),
+            'model': widget_tree.get_object("textbufferText"),
         }
 
         self.__change_widget_order_according_to_locale()
@@ -58,16 +59,16 @@ class DocEditDialog(object):
 
     def __change_widget_order_according_to_locale(self):
         widgets = {
-            "year" : self.date['year']['view'],
-            "month" : self.date['month']['view'],
-            "day" : self.date['day']['view']
+            "year": self.date['year']['view'],
+            "month": self.date['month']['view'],
+            "day": self.date['day']['view']
         }
         char_to_widget = {
-            'B' : "month",
-            'd' : "day",
-            'm' : "month",
-            'y' : "year",
-            'Y' : "year",
+            'B': "month",
+            'd': "day",
+            'm': "month",
+            'y': "year",
+            'Y': "year",
         }
         new_order = []
 
@@ -131,7 +132,8 @@ class DocEditDialog(object):
     def set_text(self):
         start = self.text['model'].get_iter_at_offset(0)
         end = self.text['model'].get_iter_at_offset(-1)
-        txt = unicode(self.text['model'].get_text(start, end, False), encoding='utf-8')
+        txt = unicode(self.text['model'].get_text(start, end, False),
+                      encoding='utf-8')
         if self.doc.extra_text == txt:
             print "Extra text unchanged"
             return False
@@ -140,13 +142,13 @@ class DocEditDialog(object):
         return True
 
     def __show_error(self, msg):
-        dialog = \
-                Gtk.MessageDialog(parent=self.dialog,
-                                  flags=(Gtk.DialogFlags.MODAL
-                                         |Gtk.DialogFlags.DESTROY_WITH_PARENT),
-                                  type=Gtk.MessageType.ERROR,
-                                  buttons=Gtk.ButtonsType.OK,
-                                  message_format=msg)
+        flags = (Gtk.DialogFlags.MODAL
+                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(parent=self.dialog,
+                                   flags=flags,
+                                   type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   message_format=msg)
         dialog.run()
         dialog.destroy()
 

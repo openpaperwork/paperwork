@@ -34,11 +34,13 @@ from frontend import mainwindow
 from frontend import workers
 from backend.config import PaperworkConfig
 
+
 def check_module_version(module_name, module_version, expected_version):
     if module_version < expected_version:
         raise Exception(("%s is not up-to-date."
-                " Expected version: %s. Version found: %s")
-                % (module_name, str(expected_version), str(module_version)))
+                         " Expected version: %s. Version found: %s")
+                        % (module_name, str(expected_version),
+                           str(module_version)))
 
 
 def check_module_versions():

@@ -32,21 +32,24 @@ _ = gettext.gettext
 
 class DocScanWorker(Worker):
     __gsignals__ = {
-        'scan-start' : (GObject.SignalFlags.RUN_LAST, None,
-                        # current page / total
-                        (GObject.TYPE_INT, GObject.TYPE_INT)),
-        'ocr-start' : (GObject.SignalFlags.RUN_LAST, None,
-                        # current page / total
+        'scan-start': (GObject.SignalFlags.RUN_LAST, None,
+                       # current page / total
                        (GObject.TYPE_INT, GObject.TYPE_INT)),
-        'scan-done' : (GObject.SignalFlags.RUN_LAST, None,
-                        # current page / total
-                       (GObject.TYPE_PYOBJECT, GObject.TYPE_INT)),
+        'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
+                      # current page / total
+                      (GObject.TYPE_INT, GObject.TYPE_INT)),
+        'scan-done': (GObject.SignalFlags.RUN_LAST, None,
+                      # current page / total
+                      (GObject.TYPE_PYOBJECT, GObject.TYPE_INT)),
     }
 
     can_interrupt = True
 
-    def __init__(self, config, nb_pages, line_in_treeview, docsearch, doc=None):
-        Worker.__init__(self, "Document scanner (doc %d)" % (line_in_treeview))
+    def __init__(self, config, nb_pages, line_in_treeview, docsearch,
+                 doc=None):
+        Worker.__init__(self,
+                        "Document scanner (doc %d)"
+                        % (line_in_treeview))
         self.__config = config
         self.docsearch = docsearch
         self.doc = doc
@@ -61,7 +64,7 @@ class DocScanWorker(Worker):
             self.emit('ocr-start', self.current_page, self.nb_pages)
 
     def do(self, scan_src):
-        if self.doc == None:
+        if self.doc is None:
             self.doc = ImgDoc(self.__config.workdir)
         for self.current_page in range(0, self.nb_pages):
             self.emit('scan-start', self.current_page, self.nb_pages)
@@ -97,11 +100,11 @@ class ActionAddDoc(SimpleAction):
         self.__dialog.lists['docs']['model'].append(
             [
                 _("Document %d") % docidx,
-                "1", # nb_pages
-                True, # can_edit (nb_pages)
-                0, # scan_progress_int
-                "", # scan_progress_txt
-                True # can_delete
+                "1",  # nb_pages
+                True,  # can_edit (nb_pages)
+                0,  # scan_progress_int
+                "",  # scan_progress_txt
+                True  # can_delete
             ])
 
 
@@ -112,13 +115,12 @@ class ActionSelectDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        selection = self.__dialog.lists['docs']['gui'] \
-                .get_selection()
-        if selection == None:
+        selection = self.__dialog.lists['docs']['gui'].get_selection()
+        if selection is None:
             print "No doc selected"
             return
         (model, selection_iter) = selection.get_selected()
-        if selection_iter == None:
+        if selection_iter is None:
             print "No doc selected"
             return
         val = model.get_value(selection_iter, 5)
@@ -132,9 +134,9 @@ class ActionRemoveDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        (model, selection_iter) = self.__dialog.lists['docs']['gui'] \
-                .get_selection().get_selected()
-        if selection_iter == None:
+        docs_gui = self.__dialog.lists['docs']['gui']
+        (model, selection_iter) = docs_gui.get_selection().get_selected()
+        if selection_iter is None:
             print "No doc selected"
             return
         model.remove(selection_iter)
@@ -153,9 +155,9 @@ class ActionStartEditDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        (model, selection_iter) = self.__dialog.lists['docs']['gui'] \
-                .get_selection().get_selected()
-        if selection_iter == None:
+        docs_gui = self.__dialog.lists['docs']['gui']
+        (model, selection_iter) = docs_gui.get_selection().get_selected()
+        if selection_iter is None:
             print "No doc selected"
             return
         self.__dialog.lists['docs']['gui'].set_cursor(
@@ -172,9 +174,9 @@ class ActionEndEditDoc(SimpleAction):
     def do(self, new_text):
         SimpleAction.do(self, new_text=new_text)
         new_text = str(int(new_text))  # make sure it's a valid number
-        (model, selection_iter) = self.__dialog.lists['docs']['gui'] \
-                .get_selection().get_selected()
-        if selection_iter == None:
+        docs_gui = self.__dialog.lists['docs']['gui']
+        (model, selection_iter) = docs_gui.get_selection().get_selected()
+        if selection_iter is None:
             print "No doc selected"
             return
         line = model[selection_iter]
@@ -238,9 +240,9 @@ class ActionCancel(SimpleAction):
 
 class MultiscanDialog(GObject.GObject):
     __gsignals__ = {
-        'need-doclist-refresh' : (GObject.SignalFlags.RUN_LAST, None, ()),
-        'need-show-page' : (GObject.SignalFlags.RUN_LAST, None,
-                            (GObject.TYPE_PYOBJECT,)),
+        'need-doclist-refresh': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'need-show-page': (GObject.SignalFlags.RUN_LAST, None,
+                           (GObject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, main_window, config):
@@ -253,12 +255,12 @@ class MultiscanDialog(GObject.GObject):
         widget_tree = load_uifile("multiscan.glade")
 
         self.lists = {
-            'docs' : {
+            'docs': {
                 'gui': widget_tree.get_object("treeviewScanList"),
                 'model': widget_tree.get_object("liststoreScanList"),
-                'columns' : {
-                    'nb_pages' : \
-                        widget_tree.get_object("treeviewcolumnNbPages"),
+                'columns': {
+                    'nb_pages':
+                    widget_tree.get_object("treeviewcolumnNbPages"),
                 },
                 'include_current_doc': False,
             },
@@ -268,33 +270,34 @@ class MultiscanDialog(GObject.GObject):
         self.removeDocButton.set_sensitive(False)
 
         actions = {
-            'add_doc' : (
+            'add_doc': (
                 [widget_tree.get_object("buttonAddDoc")],
                 ActionAddDoc(self, config),
             ),
-            'select_doc' : (
+            'select_doc': (
                 [widget_tree.get_object("treeviewScanList")],
                 ActionSelectDoc(self),
             ),
-            'start_edit_doc' : (
+            'start_edit_doc': (
                 [widget_tree.get_object("buttonEditDoc")],
                 ActionStartEditDoc(self),
             ),
-            'end_edit_doc' : (
+            'end_edit_doc': (
                 [widget_tree.get_object("cellrenderertextNbPages")],
                 ActionEndEditDoc(self),
             ),
-            'del_doc' : (
+            'del_doc': (
                 [self.removeDocButton],
                 ActionRemoveDoc(self),
             ),
-            'cancel' : (
+            'cancel': (
                 [widget_tree.get_object("buttonCancel")],
                 ActionCancel(self)
             ),
-            'scan' : (
+            'scan': (
                 [widget_tree.get_object("buttonOk")],
-                ActionScan(self, config, main_window.docsearch, main_window.doc),
+                ActionScan(self, config, main_window.docsearch,
+                           main_window.doc),
             ),
         }
 
@@ -326,28 +329,35 @@ class MultiscanDialog(GObject.GObject):
             actions['add_doc'][1].do()
 
         self.scan_queue = IndependentWorkerQueue("Mutiple scans")
-        self.scan_queue.connect("queue-start", lambda queue: \
-                GObject.idle_add(self.__on_global_scan_start_cb, queue))
-        self.scan_queue.connect("queue-stop", lambda queue, exc: \
-                GObject.idle_add(self.__on_global_scan_end_cb, queue, exc))
-        self.scan_queue.connect("scan-start", lambda worker, page, total: \
-                GObject.idle_add(self.__on_scan_start_cb, worker, page, total))
-        self.scan_queue.connect("ocr-start", lambda worker, page, total: \
-                GObject.idle_add(self.__on_ocr_start_cb, worker, page, total))
-        self.scan_queue.connect("scan-done", lambda worker, page, total: \
-                GObject.idle_add(self.__on_scan_done_cb, worker, page, total))
+        self.scan_queue.connect(
+            "queue-start",
+            lambda queue: GObject.idle_add(self.__on_global_scan_start_cb,
+                                           queue))
+        self.scan_queue.connect(
+            "queue-stop",
+            lambda queue, exc:
+            GObject.idle_add(self.__on_global_scan_end_cb, queue, exc))
+        self.scan_queue.connect(
+            "scan-start",
+            lambda worker, page, total:
+            GObject.idle_add(self.__on_scan_start_cb, worker, page, total))
+        self.scan_queue.connect(
+            "ocr-start", lambda worker, page, total:
+            GObject.idle_add(self.__on_ocr_start_cb, worker, page, total))
+        self.scan_queue.connect(
+            "scan-done", lambda worker, page, total:
+            GObject.idle_add(self.__on_scan_done_cb, worker, page, total))
 
         self.dialog = widget_tree.get_object("dialogMultiscan")
         self.dialog.connect("destroy", self.__on_destroy)
-
 
         self.dialog.set_transient_for(main_window.window)
         self.dialog.set_visible(True)
 
     def set_mouse_cursor(self, cursor):
         self.dialog.get_window().set_cursor({
-            "Normal" : None,
-            "Busy" : Gdk.Cursor.new(Gdk.CursorType.WATCH),
+            "Normal": None,
+            "Busy": Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
         pass
 
@@ -361,24 +371,24 @@ class MultiscanDialog(GObject.GObject):
 
     def __on_scan_start_cb(self, worker, current_page, total_pages):
         line_idx = worker.line_in_treeview
-        self.lists['docs']['model'][line_idx][1] = \
-                ("%d / %d" % (current_page, total_pages))
-        self.lists['docs']['model'][line_idx][3] = \
-                (current_page*100/total_pages)
+        progression = ("%d / %d" % (current_page, total_pages))
+        self.lists['docs']['model'][line_idx][1] = progression
+        progression = (current_page*100/total_pages)
+        self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Scanning")
 
     def __on_ocr_start_cb(self, worker, current_page, total_pages):
         line_idx = worker.line_in_treeview
-        self.lists['docs']['model'][line_idx][3] = \
-                ((current_page*100+50)/total_pages)
+        progression = ((current_page*100+50)/total_pages)
+        self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Reading")
 
     def __on_scan_done_cb(self, worker, page, total_pages):
         line_idx = worker.line_in_treeview
-        self.lists['docs']['model'][line_idx][1] = \
-                ("%d / %d" % (page.page_nb + 1, total_pages))
-        self.lists['docs']['model'][line_idx][3] = \
-                ((page.page_nb*100+100)/total_pages)
+        progression = ("%d / %d" % (page.page_nb + 1, total_pages))
+        self.lists['docs']['model'][line_idx][1] = progression
+        progression = ((page.page_nb*100+100)/total_pages)
+        self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Done")
         self.scanned_pages += 1
         self.emit('need-show-page', page)
@@ -386,7 +396,7 @@ class MultiscanDialog(GObject.GObject):
     def __on_global_scan_end_cb(self, work_queue, exception=None):
         self.emit('need-doclist-refresh')
         self.set_mouse_cursor("Normal")
-        if exception != None:
+        if exception is not None:
             if isinstance(exception, StopIteration):
                 msg = _("Less pages than expected have been Img"
                         " (got %d pages)") % (self.scanned_pages)

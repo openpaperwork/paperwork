@@ -128,12 +128,12 @@ class ImgToPdfDocExporter(object):
         self.__preview = None
 
     def estimate_size(self):
-        if self.__preview == None:
+        if self.__preview is None:
             self.refresh()
         return os.path.getsize(self.__preview[0]) * self.doc.nb_pages
 
     def get_img(self):
-        if self.__preview == None:
+        if self.__preview is None:
             self.refresh()
         return self.__preview[1]
 
@@ -266,7 +266,8 @@ class ImgDoc(BasicDoc):
                 raise
             return 0
 
-    def __add_img(self, img, langs=None, resolution=0, scanner_calibration=None,
+    def __add_img(self, img, langs=None, resolution=0,
+                  scanner_calibration=None,
                   callback=dummy_progress_cb):
         try:
             os.makedirs(self.path)
@@ -345,6 +346,7 @@ class ImgDoc(BasicDoc):
         BasicDoc.drop_cache(self)
         del(self.__pages)
         self.__pages = None
+
 
 def is_img_doc(docpath):
     try:

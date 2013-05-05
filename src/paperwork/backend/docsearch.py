@@ -91,7 +91,8 @@ class DocDirExaminer(GObject.GObject):
     def __init__(self, docsearch):
         GObject.GObject.__init__(self)
         self.docsearch = docsearch
-        # we may be run in an independent thread --> use an independent searcher
+        # we may be run in an independent thread --> use an independent
+        # searcher
         self.__searcher = docsearch.index.searcher()
 
     def examine_rootdir(self,
@@ -128,7 +129,8 @@ class DocDirExaminer(GObject.GObject):
                     on_doc_modified(doc)
             else:
                 on_new_doc(doc)
-            progress_cb(progress, len(docdirs), DocSearch.INDEX_STEP_CHECKING, doc)
+            progress_cb(progress, len(docdirs),
+                        DocSearch.INDEX_STEP_CHECKING, doc)
             progress += 1
 
         # remove all documents from the index that don't exist anymore
@@ -231,7 +233,7 @@ class DocSearch(object):
                 doctype=whoosh.fields.ID(stored=True, unique=False),
                 content=whoosh.fields.TEXT(spelling=True),
                 label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                             spelling=True, scorable=True),
+                                            spelling=True, scorable=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
             self.index = whoosh.index.create_in(self.indexdir, schema)
@@ -297,7 +299,8 @@ class DocSearch(object):
     def get_doc_from_docid(self, docid, doc_type_name=None):
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
-        self.__docs_by_id[docid] = self.__inst_doc_from_id(docid, doc_type_name)
+        self.__docs_by_id[docid] = self.__inst_doc_from_id(docid,
+                                                           doc_type_name)
         return self.__docs_by_id[docid]
 
     def reload_index(self, progress_cb=dummy_progress_cb):

@@ -1826,7 +1826,11 @@ class MainWindow(object):
             'pages' : (
                 widget_tree.get_object("iconviewPage"),
                 widget_tree.get_object("popupmenuPages")
-            )
+            ),
+            'page' : (
+                widget_tree.get_object("eventboxImg"),
+                widget_tree.get_object("popupmenuPage")
+            ),
         }
 
         self.show_all_boxes = \
@@ -1965,6 +1969,7 @@ class MainWindow(object):
                     widget_tree.get_object("menuitemExportPage"),
                     widget_tree.get_object("menuitemExportPage1"),
                     widget_tree.get_object("menuitemExportPage2"),
+                    widget_tree.get_object("menuitemExportPage3"),
                 ],
                 ActionOpenExportPageDialog(self)
             ),
@@ -2046,6 +2051,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemEditPage"),
                     widget_tree.get_object("menuitemEditPage1"),
+                    widget_tree.get_object("menuitemEditPage2"),
                     widget_tree.get_object("toolbuttonEditPage"),
                 ],
                 ActionEditPage(self),
@@ -2053,6 +2059,7 @@ class MainWindow(object):
             'del_page' : (
                 [
                     widget_tree.get_object("menuitemDestroyPage"),
+                    widget_tree.get_object("menuitemDestroyPage1"),
                     widget_tree.get_object("menuitemDestroyPage2"),
                     widget_tree.get_object("buttonDeletePage"),
                 ],
@@ -2248,11 +2255,12 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
-            popup_menu[0].connect("button_press_event", self.__popup_menu_cb,
-                                  popup_menu[0], popup_menu[1])
+            assert(not popup_menu[0] is None)
+            assert(not popup_menu[1] is None)
             # TODO(Jflesch): Find the correct signal
             # This one doesn't take into account the key to access these menus
-            assert(not popup_menu[0] is None)
+            popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
+                                  popup_menu[0], popup_menu[1])
 
         self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.img['eventbox'].connect("leave-notify-event",

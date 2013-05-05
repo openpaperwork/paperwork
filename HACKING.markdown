@@ -31,8 +31,8 @@ Paperwork.
 
 The basic idea is to have 2 main threads: One where the gobject main loop is
 running, and one doing pretty much any non-GUI-related tasks, called
-"WorkerThread". This WorkerQueue keep running a job queue. Each task or job
-we want to do outside of the gobject main loop is handled by a Worker.
+"WorkerThread". This WorkerThread keep running jobs from a queue. Each task
+or job we want to do outside of the gobject main loop is handled by a Worker.
 When started, the Worker will actually register itself in the WorkerThread.
 The WorkerThread will then run the do() method of each registered Worker().
 

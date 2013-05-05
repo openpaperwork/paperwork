@@ -30,10 +30,16 @@ In every folder you have:
     [hOCR](https://docs.google.com/document/d/1QQnIQtvdAC_8n92-LhwPcjtAUFwBlzE8EWnKAxlgVf0/preview)
 	file, containing all the words found on the page using the OCR.
   * paper.&lt;X&gt;.thumb.jpg (optional) : A thumbnail version of the page (faster to load)
-  * labels : a text file containing the labels applied on this document
+  * labels (optional) : a text file containing the labels applied on this document
+  * extra.txt (optional) : extra keywords added by the user
 * For PDF documents:
   * doc.pdf : the document
-  * labels : a text file containing the labels applied on this document
+  * labels (optional) : a text file containing the labels applied on this document
+  * extra.txt (optional) : extra keywords added by the user
+  * paper.&lt;X&gt;.words (optional) : A
+    [hOCR](https://docs.google.com/document/d/1QQnIQtvdAC_8n92-LhwPcjtAUFwBlzE8EWnKAxlgVf0/preview)
+	file, containing all the words found on the page using the OCR. Some PDF contains crap instead
+	of the real text, so running the OCR on them can sometimes be useful.
 
 With Tesseract, the hOCR file can be obtained with following command:
 
@@ -43,12 +49,45 @@ For example:
 
 	tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 
+Here is an example a work directory organisation:
+
+	$ find ~/papers
+	/home/jflesch/papers
+	/home/jflesch/papers/20130505_1518_00
+	/home/jflesch/papers/20130505_1518_00/paper.1.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.1.words
+	/home/jflesch/papers/20130505_1518_00/paper.2.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.2.words
+	/home/jflesch/papers/20130505_1518_00/paper.3.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
+	/home/jflesch/papers/20130505_1518_00/paper.3.words
+	/home/jflesch/papers/20130505_1518_00/labels
+	/home/jflesch/papers/20110726_0000_01
+	/home/jflesch/papers/20110726_0000_01/paper.1.jpg
+	/home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
+	/home/jflesch/papers/20110726_0000_01/paper.1.words
+	/home/jflesch/papers/20110726_0000_01/paper.2.jpg
+	/home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
+	/home/jflesch/papers/20110726_0000_01/paper.2.words
+	/home/jflesch/papers/20110726_0000_01/extra.txt
+	/home/jflesch/papers/20130106_1309_44
+	/home/jflesch/papers/20130106_1309_44/doc.pdf
+	/home/jflesch/papers/20130106_1309_44/paper.1.words
+	/home/jflesch/papers/20130106_1309_44/paper.2.words
+	/home/jflesch/papers/20130106_1309_44/labels
+	/home/jflesch/papers/20130106_1309_44/extra.txt
+
 
 ## Indexation & Search
 
-The code relative to the indexation and the search is mostly in [src/paperwork/backend/docsearch.py](src/paperwork/backend/docsearch.py).
+The code relative to the indexation and the search is mostly in
+[src/paperwork/backend/docsearch.py](src/paperwork/backend/docsearch.py).
+Python-Whoosh is used for that and do most of the work.
 
-When starting, Paperwork examine the work directory, and look for new/modified/deleted documents. It then update the index.
+When starting, Paperwork examine the work directory, and look for
+new/modified/deleted documents. It then update automatically its index.
 
 The index is stored in ~/.local/share/paperwork/index.
 

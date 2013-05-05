@@ -12,6 +12,47 @@ I don't always do it. Because sometimes I forget the rules or because
 sometimes I don't care. Anyway, do as I say, not as I do :)
 
 
+## Documents organisation
+
+workdir|rootdir = ~/papers
+
+In the work directory, you have folders, one per document.
+
+The folder names are (usually) the scan/import date of the document:
+YYYYMMDD\_hhmm\_ss[\_&lt;idx&gt;]. The suffix 'idx' is optional and is just
+a number added in case of name collision.
+
+In every folder you have:
+
+* For image documents:
+  * paper.&lt;X&gt;.jpg : A page in JPG format (X starts at 1)
+  * paper.&lt;X&gt;.words : A
+    [hOCR](https://docs.google.com/document/d/1QQnIQtvdAC_8n92-LhwPcjtAUFwBlzE8EWnKAxlgVf0/preview)
+	file, containing all the words found on the page using the OCR.
+  * paper.&lt;X&gt;.thumb.jpg (optional) : A thumbnail version of the page (faster to load)
+  * labels : a text file containing the labels applied on this document
+* For PDF documents:
+  * doc.pdf : the document
+  * labels : a text file containing the labels applied on this document
+
+With Tesseract, the hOCR file can be obtained with following command:
+
+	tesseract paper.&lt;X&gt;.jpg paper.&lt;X&gt; -l &lt;lang&gt; hocr && mv paper.&lt;X&gt;.html paper.&lt;X&gt;.words
+
+For example:
+
+	tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
+
+
+## Indexation & Search
+
+The code relative to the indexation and the search is mostly in [src/paperwork/backend/docsearch.py](src/paperwork/backend/docsearch.py).
+
+When starting, Paperwork examine the work directory, and look for new/modified/deleted documents. It then update the index.
+
+The index is stored in ~/.local/share/paperwork/index.
+
+
 ## Code organisation
 
 The code is splited in two pieces:

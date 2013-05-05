@@ -20,6 +20,7 @@ Code for managing documents (not page individually ! see page.py for that)
 
 import codecs
 import datetime
+import errno
 import os
 import os.path
 import time
@@ -259,8 +260,10 @@ class ImgDoc(BasicDoc):
                 count += 1
             return count
         except OSError, exc:
-            print ("Exception while trying to get the number of pages of "
-                   "'%s': %s" % (self.docid, exc))
+            if exc.errno != errno.ENOENT:
+                print ("Exception while trying to get the number of pages of "
+                       "'%s': %s" % (self.docid, exc))
+                raise
             return 0
 
     def __add_img(self, img, ocrlang=None, resolution=0, scanner_calibration=None,

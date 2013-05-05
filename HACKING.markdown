@@ -37,7 +37,7 @@ In every folder you have:
 
 With Tesseract, the hOCR file can be obtained with following command:
 
-	tesseract paper.&lt;X&gt;.jpg paper.&lt;X&gt; -l &lt;lang&gt; hocr && mv paper.&lt;X&gt;.html paper.&lt;X&gt;.words
+	tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
 
 For example:
 

@@ -193,7 +193,7 @@ class PdfPage(BasicPage):
         self.pdf_page.render_for_printing(ctx)
         return None
 
-    def redo_ocr(self, ocrlang):
+    def redo_ocr(self, langs):
         img = self.img
         txtfile = self.__get_txt_path()
         boxfile = self.__get_box_path()
@@ -204,8 +204,8 @@ class PdfPage(BasicPage):
             # in that case
             raise Exception("No OCR tool available")
 
-        txt = ocr_tools[0].image_to_string(img, lang=ocrlang)
-        boxes = ocr_tools[0].image_to_string(img, lang=ocrlang,
+        txt = ocr_tools[0].image_to_string(img, lang=langs['ocr'])
+        boxes = ocr_tools[0].image_to_string(img, lang=langs['ocr'],
                                              builder=pyocr.builders.LineBoxBuilder())
 
         # save the text

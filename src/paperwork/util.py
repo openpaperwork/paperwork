@@ -261,7 +261,7 @@ def add_img_border(img, color="#a6a5a4", width=1):
 _ENCHANT_LOCK = threading.Lock()
 
 
-def check_spelling(ocr_lang, txt):
+def check_spelling(spelling_lang, txt):
     """
     Check the spelling in the text, and compute a score. The score is the
     number of words correctly (or almost correctly) spelled, minus the number of
@@ -278,14 +278,6 @@ def check_spelling(ocr_lang, txt):
         # Maximum distance from the first suggestion from python-enchant
         MAX_LEVENSHTEIN_DISTANCE = 1
         MIN_WORD_LEN = 4
-
-        # TODO(Jflesch): We are assuming here that we can figure out the best
-        # dictionary based on the 3 letters OCR lang. This is a bad assumption
-        try:
-            language = pycountry.languages.get(terminology=ocr_lang[:3])
-        except KeyError:
-            language = pycountry.languages.get(bibliographic=ocr_lang[:3])
-        spelling_lang = language.alpha2
 
         words_dict = enchant.request_dict(spelling_lang)
         try:

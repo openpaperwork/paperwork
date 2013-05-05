@@ -42,17 +42,17 @@ from paperwork.util import image2surface
 
 
 class ImgOCRThread(threading.Thread):
-    def __init__(self, ocr_tool, ocr_lang, imgpath, compute_score=True):
+    def __init__(self, ocr_tool, langs, imgpath, compute_score=True):
         threading.Thread.__init__(self, name="OCR")
         self.ocr_tool = ocr_tool
-        self.ocr_lang = ocr_lang
+        self.langs = langs
         self.imgpath = imgpath
         self.compute_score = compute_score
         self.score = -1
         self.text = None
 
     def __compute_ocr_score_with_spell_checking(self, txt):
-        return check_spelling(self.ocr_lang, txt)
+        return check_spelling(self.langs['spelling'], txt)
 
     @staticmethod
     def __compute_ocr_score_without_spell_checking(txt):
@@ -80,7 +80,7 @@ class ImgOCRThread(threading.Thread):
         img = Image.open(self.imgpath)
 
         print ("Running OCR on '%s'" % self.imgpath)
-        self.text = self.ocr_tool.image_to_string(img, lang=self.ocr_lang)
+        self.text = self.ocr_tool.image_to_string(img, lang=self.langs['ocr'])
 
         if not self.compute_score:
             self.score = 0
@@ -302,7 +302,7 @@ class ImgPage(BasicPage):
         else:
             return 0
 
-    def __ocr(self, files, ocrlang, callback=dummy_progress_cb):
+    def __ocr(self, files, langs, callback=dummy_progress_cb):
         """
         Do the OCR on the page
         """
@@ -342,7 +342,7 @@ class ImgPage(BasicPage):
             # start new threads if required
             while (len(threads) < max_threads and len(files) > 0):
                 imgpath = files.pop()
-                thread = ImgOCRThread(ocr_tools[0], ocrlang, imgpath,
+                thread = ImgOCRThread(ocr_tools[0], langs, imgpath,
                                       need_scores)
                 thread.start()
                 threads.append(thread)
@@ -356,13 +356,13 @@ class ImgPage(BasicPage):
         print "Extracting boxes ..."
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
         boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
-                lang=ocrlang, builder=pyocr.builders.LineBoxBuilder())
+                lang=langs['ocr'], builder=pyocr.builders.LineBoxBuilder())
         print "Done"
 
         callback(100, 100, self.SCAN_STEP_OCR)
         return (scores[0][1], scores[0][2], boxes)
 
-    def make(self, img, ocrlang=None, scan_res=0, scanner_calibration=None,
+    def make(self, img, langs=None, scan_res=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
         """
         Scan the page & do OCR
@@ -372,10 +372,10 @@ class ImgPage(BasicPage):
 
         outfiles = self.__save_imgs(img, scan_res, scanner_calibration,
                                     callback)
-        if ocrlang is None:
+        if langs is None:
             (bmpfile, txt, boxes) = (outfiles[0], "", [])
         else:
-            (bmpfile, txt, boxes) = self.__ocr(outfiles, ocrlang, callback)
+            (bmpfile, txt, boxes) = self.__ocr(outfiles, langs, callback)
 
         # Convert the image and save it in its final place
         img = Image.open(bmpfile)
@@ -433,19 +433,19 @@ class ImgPage(BasicPage):
         cairo_context.set_source_surface(surface, 0, 0)
         cairo_context.paint()
 
-    def redo_ocr(self, ocrlang):
+    def redo_ocr(self, langs):
         """
         Rerun the OCR on the document
 
         Arguments:
-            ocrlang --- lang to specify to the OCR tool
+            langs --- languages to use with the OCR tool and the spell checker
         """
         print "Redoing OCR of '%s'" % (str(self))
 
         imgfile = self.__img_path
         boxfile = self.__box_path
 
-        (imgfile, txt, boxes) = self.__ocr([imgfile], ocrlang,
+        (imgfile, txt, boxes) = self.__ocr([imgfile], langs,
                                            dummy_progress_cb)
         # save the boxes
         with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:

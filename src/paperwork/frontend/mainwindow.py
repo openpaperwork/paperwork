@@ -606,7 +606,7 @@ class WorkerOCRRedoer(Worker):
     def do(self, doc_target):
         self.emit('redo-ocr-start')
         try:
-            doc_target.redo_ocr(self.__config.ocrlang, self.__progress_cb)
+            doc_target.redo_ocr(self.__config.langs, self.__progress_cb)
         finally:
             self.emit('redo-ocr-end')
 
@@ -657,7 +657,7 @@ class WorkerSingleScan(Worker):
             raise
         doc.scan_single_page(scan_src, scanner.options['resolution'].value,
                              self.__config.scanner_calibration,
-                             self.__config.ocrlang,
+                             self.__config.langs,
                              self.__scan_progress_cb)
         page = doc.pages[doc.nb_pages - 1]
         self.__main_win.docsearch.index_page(page)
@@ -750,7 +750,7 @@ class WorkerPageEditor(Worker):
                 img = change.do(img, 1.0)
             page.img = img
             self.emit('page-editing-ocr', page)
-            page.redo_ocr(self.__config.ocrlang)
+            page.redo_ocr(self.__config.langs)
             self.emit('page-editing-index-upd', page)
             index_upd = \
                     self.__main_win.docsearch.get_index_updater(optimize=False)

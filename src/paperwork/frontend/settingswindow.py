@@ -292,7 +292,7 @@ class ActionApplySettings(SimpleAction):
         idx = setting['gui'].get_active()
         if idx >= 0:
             lang = setting['store'][idx][1]
-            self.__config.ocrlang = lang
+            self.__config.ocr_lang = lang
 
         if self.__settings_win.grips != None:
             self.__config.scanner_calibration = \
@@ -567,7 +567,7 @@ class SettingsWindow(GObject.GObject):
         settings['nb_elements'] += 1
 
     def __on_finding_end_cb(self, settings):
-        settings['gui'].set_sensitive(True)
+        settings['gui'].set_sensitive(len(settings['stores']['loaded']) > 0)
         settings['gui'].set_model(settings['stores']['loaded'])
         if settings['active_idx'] >= 0:
             settings['gui'].set_active(settings['active_idx'])
@@ -612,8 +612,9 @@ class SettingsWindow(GObject.GObject):
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)
         idx = 0
+        current_ocr_lang = config.ocr_lang
         for (long_lang, short_lang) in self.ocr_settings['lang']['store']:
-            if short_lang == config.ocrlang:
+            if short_lang == current_ocr_lang:
                 self.ocr_settings['lang']['gui'].set_active(idx)
             idx += 1
 

@@ -143,7 +143,7 @@ class BasicPage(object):
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()
 
-    def redo_ocr(self, ocrlang):
+    def redo_ocr(self, langs):
         raise NotImplementedError()
 
     def destroy(self):
@@ -237,7 +237,7 @@ class DummyPage(object):
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()
 
-    def redo_ocr(self, ocrlang):
+    def redo_ocr(self, langs):
         pass
 
     def destroy(self):

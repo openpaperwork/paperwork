@@ -72,7 +72,7 @@ class BasicDoc(object):
 
     nb_pages = property(__get_nb_pages)
 
-    def redo_ocr(self, ocrlang, callback=dummy_progress_cb):
+    def redo_ocr(self, langs, callback=dummy_progress_cb):
         """
         Run the OCR again on all the pages of the document
 
@@ -82,7 +82,7 @@ class BasicDoc(object):
         for i in range(0, nb_pages):
             callback(i, nb_pages, BasicPage.SCAN_STEP_OCR, self)
             page = self.pages[i]
-            page.redo_ocr(ocrlang)
+            page.redo_ocr(langs)
 
     def print_page_cb(self, print_op, print_context, page_nb):
         raise NotImplementedError()

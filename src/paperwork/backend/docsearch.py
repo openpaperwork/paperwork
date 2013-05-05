@@ -74,7 +74,7 @@ class DummyDocSearch(object):
     def add_label(self, label):
         assert()
 
-    def redo_ocr(self, ocrlang, progress_callback):
+    def redo_ocr(self, langs, progress_callback):
         assert()
 
     def update_label(self, old_label, new_label, cb_progress=None):
@@ -529,7 +529,7 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         del(searcher)
 
-    def redo_ocr(self, ocrlang, progress_callback=dummy_progress_cb):
+    def redo_ocr(self, langs, progress_callback=dummy_progress_cb):
         """
         Rerun the OCR on *all* the documents. Can be a *really* long process,
         which is why progress_callback is a mandatory argument.
@@ -537,8 +537,8 @@ class DocSearch(object):
         Arguments:
             progress_callback --- See util.dummy_progress_cb for a
                 prototype. The only step returned is "INDEX_STEP_READING"
-            ocrlang --- Language to specify to the OCR tool (see
-                config.PaperworkConfig.ocrlang)
+            langs --- Languages to use with the spell checker and the OCR tool
+                ( { 'ocr' : 'fra', 'spelling' : 'fr' } )
         """
         print "Redoing OCR of all documents ..."
 
@@ -557,7 +557,7 @@ class DocSearch(object):
                 if not doc.can_edit:
                     continue
                 thread = threading.Thread(target=doc.redo_ocr,
-                                          args=[ocrlang], name=doc.docid)
+                                          args=[langs], name=doc.docid)
                 thread.start()
                 threads.append(thread)
                 progress_callback(len(dlist) - len(remaining),

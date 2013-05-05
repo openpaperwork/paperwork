@@ -65,14 +65,18 @@ class DocScanWorker(Worker):
             self.doc = ImgDoc(self.__config.workdir)
         for self.current_page in range(0, self.nb_pages):
             self.emit('scan-start', self.current_page, self.nb_pages)
-            self.doc.scan_single_page(scan_src,
-                                      self.__config.scanner_resolution,
-                                      self.__config.scanner_calibration,
-                                      self.__config.ocrlang,
-                                      self.__progress_cb)
-            page = self.doc.pages[self.doc.nb_pages - 1]
-            self.docsearch.index_page(page)
-            self.emit('scan-done', page, self.nb_pages)
+            try:
+                self.doc.scan_single_page(scan_src,
+                                          self.__config.scanner_resolution,
+                                          self.__config.scanner_calibration,
+                                          self.__config.langs,
+                                          self.__progress_cb)
+                page = self.doc.pages[self.doc.nb_pages - 1]
+                self.docsearch.index_page(page)
+                self.emit('scan-done', page, self.nb_pages)
+            except StopIteration:
+                print ("Warning: Feeder appears to be empty and we haven't"
+                       " scanned all the pages yet !")
         self.current_page = None
 
 
@@ -363,7 +367,7 @@ class MultiscanDialog(GObject.GObject):
                 (current_page*100/total_pages)
         self.lists['docs']['model'][line_idx][4] = _("Scanning")
 
-    def __on_ocr_start_cb(self, worker, page, total_pages):
+    def __on_ocr_start_cb(self, worker, current_page, total_pages):
         line_idx = worker.line_in_treeview
         self.lists['docs']['model'][line_idx][3] = \
                 ((current_page*100+50)/total_pages)

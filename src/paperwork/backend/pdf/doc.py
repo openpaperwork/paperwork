@@ -175,7 +175,7 @@ class PdfDoc(BasicDoc):
             if nb_keywords >= PDF_IMPORT_MIN_KEYWORDS:
                 break
         if nb_keywords < PDF_IMPORT_MIN_KEYWORDS:
-            self.redo_ocr(config.ocrlang)
+            self.redo_ocr(config.langs)
 
     @staticmethod
     def get_export_formats():

@@ -103,6 +103,8 @@ class PaperworkConfig(object):
             self._configparser.add_section("Scanner")
         if not self._configparser.has_section("GUI"):
             self._configparser.add_section("GUI")
+        if not self._configparser.has_section("SpellChecking"):
+            self._configparser.add_section("SpellChecking")
 
     def __get_workdir(self):
         """
@@ -127,7 +129,7 @@ class PaperworkConfig(object):
 
     workdir = property(__get_workdir, __set_workdir)
 
-    def __get_ocrlang(self):
+    def __get_ocr_lang(self):
         """
         OCR lang. This the lang specified to the OCR. The string here in the
         configuration is identical to the one passed to the OCR tool on the
@@ -136,10 +138,10 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            ocrlang = self._configparser.get("OCR", "Lang")
-            if ocrlang == "None":
+            ocr_lang = self._configparser.get("OCR", "Lang")
+            if ocr_lang == "None":
                 return None
-            return ocrlang
+            return ocr_lang
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             pass
 
@@ -166,7 +168,7 @@ class PaperworkConfig(object):
             print "Exception was: %s" % str(exc)
         return self.DEFAULT_OCR_LANG
 
-    def __set_ocrlang(self, lang):
+    def __set_ocr_lang(self, lang):
         """
         Set the OCR lang
         """
@@ -174,7 +176,46 @@ class PaperworkConfig(object):
             lang = "None"
         self._configparser.set("OCR", "Lang", lang)
 
-    ocrlang = property(__get_ocrlang, __set_ocrlang)
+    ocr_lang = property(__get_ocr_lang, __set_ocr_lang)
+
+    def __get_spelling_lang(self):
+        """
+        Spell checking language.
+        This is the language used for spell checking documents.
+
+        String.
+        """
+        try:
+            lang = self._configparser.get("SpellChecking", "Lang")
+            if lang == "None":
+                return None
+            return lang
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            pass
+
+        # Try to guess the lang based on the ocr lang
+        ocr_lang = self.ocr_lang
+        try:
+            language = pycountry.languages.get(terminology=ocr_lang[:3])
+        except KeyError:
+            language = pycountry.languages.get(bibliographic=ocr_lang[:3])
+        spelling_lang = language.alpha2
+        return spelling_lang
+
+    def __set_spelling_lang(self, lang):
+        """
+        Set the spell checking language
+        """
+        if lang == None:
+            lang = "None"
+        self._configparser.set("SpellChecking", "Lang", lang)
+
+    spelling_lang = property(__get_spelling_lang, __set_spelling_lang)
+
+    def __get_langs(self):
+        return { 'ocr' : self.ocr_lang, 'spelling' : self.spelling_lang }
+
+    langs = property(__get_langs)
 
     def __get_scanner_devid(self):
         """

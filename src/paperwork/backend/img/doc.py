@@ -266,7 +266,7 @@ class ImgDoc(BasicDoc):
                 raise
             return 0
 
-    def __add_img(self, img, ocrlang=None, resolution=0, scanner_calibration=None,
+    def __add_img(self, img, langs=None, resolution=0, scanner_calibration=None,
                   callback=dummy_progress_cb):
         try:
             os.makedirs(self.path)
@@ -275,18 +275,19 @@ class ImgDoc(BasicDoc):
 
         page_nb = self.nb_pages
         page = ImgPage(self, page_nb)
-        page.make(img, ocrlang, resolution,
+        page.make(img, langs, resolution,
                   scanner_calibration, callback)
 
     def scan_single_page(self, scan_src, resolution,
-                         scanner_calibration, ocrlang=None,
+                         scanner_calibration, langs=None,
                          callback=dummy_progress_cb):
         """
         Scan a new page and append it as the last page of the document
 
         Arguments:
             scan_src --- see pyinsane.abstract_th.Scanner
-            ocrlang --- Language to specify to the OCR tool
+            langs --- Languages to specify to the OCR tool and the
+                spellchecker: { 'ocr' : 'fra', 'spelling' : 'fr' }
             callback -- Progression indication callback (see
                 util.dummy_progress_cb for the arguments to expected)
         """
@@ -300,15 +301,15 @@ class ImgDoc(BasicDoc):
             pass
         img = scan_src.get_img(nb_pages)
         callback(0, 100, ImgPage.SCAN_STEP_SCAN)
-        self.__add_img(img, ocrlang, resolution, scanner_calibration, callback)
+        self.__add_img(img, langs, resolution, scanner_calibration, callback)
         self.drop_cache()
 
-    def import_image(self, file_uri, ocrlang):
+    def import_image(self, file_uri, langs):
         # TODO(Jflesch): Use Gio
         if file_uri.startswith("file://"):
             file_uri = file_uri[len("file://"):]
         img = Image.open(file_uri)
-        self.__add_img(img, ocrlang)
+        self.__add_img(img, langs)
         self.drop_cache()
 
     def print_page_cb(self, print_op, print_context, page_nb):

@@ -120,7 +120,7 @@ class SingleImageImporter(object):
         print ("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(config.workdir)
-        current_doc.import_image(file_uri, config.ocrlang)
+        current_doc.import_image(file_uri, config.langs)
         page = current_doc.pages[current_doc.nb_pages-1]
         docsearch.index_page(page)
         return (current_doc, page)

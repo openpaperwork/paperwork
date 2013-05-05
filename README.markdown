@@ -126,29 +126,4 @@ Enjoy :-)
 
 ## Development
 
-### Rules
-
-Try to stick to PEP-8 as much as possible. Mainly:
-
-1. Lines are at most 80 characters long
-2. Indentation is done using 4 spaces
-
-### Code organisation
-
-The code is splited in two pieces:
-* backend : Everything related to document management. May depend on various things but *not* Gtk
-* frontend : The GUI. Entirely dependant on Gtk
-
-### Tips
-
-If you want to make changes, here are few things that can help you:
-
-1. You don't need to install paperwork to run it. Just run 'src/paperwork.py' (do not run 'cd src ; ./paperwork.py' ! Otherwise Paperwork won't use the correct glade files).
-2. Paperwork looks for a 'paperwork.conf' in the current work directory before
-   looking for a '.paperwork.conf' in your home directory. So if you want to
-   use a different config and/or a different set of documents for development
-   than for your real-life work, just copy your '~/.paperwork.conf' to
-   './paperwork.conf'. Note that the settings dialog will also take care of
-   updating './paperwork.conf' instead of '~/.paperwork.conf'.
-3. "pep8" is your friend
-4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc \*
+See [the hacking guide](HACKING.markdown#HACKING)

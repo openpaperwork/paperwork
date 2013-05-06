@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name="Paperwork",
-      version="0.1",
+      version="0.2-git",
       description="Grep for dead trees",
       author="Jerome Flesch",
       author_email="jflesch@gmail.com",

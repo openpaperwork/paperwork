@@ -177,7 +177,7 @@ class WorkerCalibrationScan(Worker):
         dev = pyinsane.Scanner(name=devid)
         try:
             dev.options['source'].value = "Auto"
-        except pyinsane.rawapi.SaneException, exc:
+        except (KeyError, pyinsane.rawapi.SaneException), exc:
             print ("Warning: Unable to set scanner source to 'Auto': %s" %
                    (str(exc)))
         try:

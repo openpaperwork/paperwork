@@ -645,7 +645,7 @@ class WorkerSingleScan(Worker):
             scanner = self.__config.get_scanner_inst()
             try:
                 scanner.options['source'].value = "Auto"
-            except pyinsane.rawapi.SaneException, exc:
+            except (KeyError, pyinsane.rawapi.SaneException), exc:
                 print ("Warning: Unable to set scanner source to 'Auto': %s" %
                        (str(exc)))
             scan_src = scanner.scan(multiple=False)

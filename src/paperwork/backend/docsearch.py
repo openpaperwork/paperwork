@@ -352,7 +352,8 @@ class DocSearch(object):
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
         self.__searcher = self.index.searcher()
-        self.cleanup_rootdir(callback)
+        # TODO(Jflesch): Too dangerous
+        #self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
     @staticmethod

@@ -119,7 +119,7 @@ GPLv3. See COPYING.
 		* Gentoo package : app-text/tesseract
 	* **Or** Cuneiform (>= v1.1)
     	* Debian/Ubuntu package: cuneiform
-	* Gentoo package : app-text/cuneiform but presently =app-text/cuneiform-1.1.0-r1 is masked
+		* Gentoo package : app-text/cuneiform but presently =app-text/cuneiform-1.1.0-r1 is masked
 * pyocr (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

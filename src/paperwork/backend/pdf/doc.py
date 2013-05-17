@@ -77,9 +77,12 @@ class PdfPagesIterator(object):
 class PdfPages(object):
     def __init__(self, pdfdoc):
         self.pdfdoc = pdfdoc
+        self.page = {}
 
     def __getitem__(self, idx):
-        return PdfPage(self.pdfdoc, idx)
+        if idx not in self.page:
+            self.page[idx] = PdfPage(self.pdfdoc, idx)
+        return self.page[idx]
 
     def __len__(self):
         return self.pdfdoc.nb_pages

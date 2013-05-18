@@ -274,11 +274,12 @@ class BasicDoc(object):
             new_docid = new_base_docid + ("_%02d" % idx)
             new_docpath = os.path.join(workdir, new_docid)
 
-        print ("Changing docid: %s -> %s"
-               % (self.path, new_docpath))
-        os.rename(self.path, new_docpath)
         self.__docid = new_docid
-        self.path = new_docpath
+        if self.path != new_docpath:
+            print ("Changing docid: %s -> %s"
+                   % (self.path, new_docpath))
+            os.rename(self.path, new_docpath)
+            self.path = new_docpath
 
     docid = property(__get_docid, __set_docid)
 

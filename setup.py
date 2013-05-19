@@ -188,8 +188,10 @@ for module in modules:
 # Pyocr may have been freshly installed, so import pyocr will fail
 pyocr = __import__('pyocr.pyocr')
 
+print("Looking for OCR tool ...")
 ocr_tools = pyocr.pyocr.get_available_tools()
 if len(ocr_tools) > 0:
+    print ("Looking for OCR language data ...")
     langs = ocr_tools[0].get_available_languages()
 else:
     langs = []

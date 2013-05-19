@@ -60,7 +60,7 @@ contain useful keywords, Paperwork allows also to put labels on each document.
 
 ## Licence
 
-GPLv3. See COPYING.
+GPLv3 or later. See COPYING.
 
 
 ## Manual Installation

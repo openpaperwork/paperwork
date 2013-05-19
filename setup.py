@@ -217,7 +217,7 @@ if (len(langs) <= 0):
 
 
 print("")
-if len(missing_modules) >= 0:
+if len(missing_modules) <= 0:
     print("All dependencies have been found.")
 else:
     print("WARNING: Missing dependencies:")

@@ -117,93 +117,79 @@ Let the machine do most of the work.
 
 # look for dependency that setuptools cannot check
 
-installed_modules = []
+print("")
+
 # missing_modules is an array of
 # (common_name, python_name, { "distrib": "package" })
 missing_modules = []
-try:
-    import gi
-    installed_modules.append("Python GObject introspection")
-except ImportError:
-    missing_modules.append(
-        ('Python GObject Introspection', 'gi',
-         {
-             'debian': 'python-gi',
-             'fedora': 'pygobject3',
-             'gentoo': 'dev-python/pygobject',
-             'ubuntu': 'python-gi',
-         },
-        )
-    )
 
-try:
-    from gi.repository import Gtk
-    installed_modules.append("Gtk")
-except ImportError:
-    missing_modules.append(
-        ('Gtk', 'gi.repository.Gtk',
-         {
-             'debian': 'gir1.2-gtk-3.0',
-             'fedora': 'gtk3',
-             'gentoo': 'x11-libs/gtk+',
-             'ubuntu': 'gir1.2-gtk-3.0',
-         },
-        )
-    )
+modules = [
+    ('Python GObject Introspection', 'gi',
+     {
+         'debian': 'python-gi',
+         'fedora': 'pygobject3',
+         'gentoo': 'dev-python/pygobject',
+         'ubuntu': 'python-gi',
+     },
+    ),
+    ('Gtk', 'gi.repository.Gtk',
+     {
+         'debian': 'gir1.2-gtk-3.0',
+         'fedora': 'gtk3',
+         'gentoo': 'x11-libs/gtk+',
+         'ubuntu': 'gir1.2-gtk-3.0',
+     },
+    ),
 
-# TODO(Jflesch): check for gladeui ?
-#
-# use_env_var += [ 'introspection' ]  # gentoo
-# missing_modules.append(
-#        ('Glade UI', '???',
-#         {
-#             'debian': 'gir1.2-gladeui-2.0',
-#             'fedora': 'glade3-libgladeui',
-#             'gentoo': 'dev-util/glade',
-#             'ubuntu': 'gir1.2-gladeui-2.0',
-#         },
-#        )
-#    )
+    # TODO(Jflesch): check for gladeui ?
+    #
+    # use_env_var += [ 'introspection' ]  # gentoo
+    # missing_modules.append(
+    #        ('Glade UI', '???',
+    #         {
+    #             'debian': 'gir1.2-gladeui-2.0',
+    #             'fedora': 'glade3-libgladeui',
+    #             'gentoo': 'dev-util/glade',
+    #             'ubuntu': 'gir1.2-gladeui-2.0',
+    #         },
+    #        )
+    #    )
 
-# TODO(Jflesch): check for jpeg support in PIL
+    # TODO(Jflesch): check for jpeg support in PIL
 
-try:
-    from gi.repository import Poppler
-    installed_modules.append("Poppler")
-except ImportError:
-    missing_modules.append(
-        ('Poppler', 'gi.repository.Poppler',
-         {
-             'debian': 'gir1.2-poppler-0.18',
-             'fedora': 'poppler-glib',
-             'gentoo': 'app-text/poppler',
-             'ubuntu': 'gir1.2-poppler-0.18',
-         },
-        )
-    )
+    ('Poppler', 'gi.repository.Poppler',
+     {
+         'debian': 'gir1.2-poppler-0.18',
+         'fedora': 'poppler-glib',
+         'gentoo': 'app-text/poppler',
+         'ubuntu': 'gir1.2-poppler-0.18',
+     },
+    ),
+    ('Cairo', 'cairo',
+     {
+         'debian': 'python-gi-cairo',
+         'fedora': 'pycairo',
+         'gentoo': 'dev-python/pycairo',
+         'ubuntu': 'python-gi-cairo',
+     },
+    ),
+]
 
-try:
-    import cairo
-    installed_modules.append("Cairo")
-except ImportError:
-    missing_modules.append(
-        ('Cairo', 'cairo',
-         {
-             'debian': 'python-gi-cairo',
-             'fedora': 'pycairo',
-             'gentoo': 'dev-python/pycairo',
-             'ubuntu': 'python-gi-cairo',
-         },
-        )
-    )
+for module in modules:
+    print("Looking for %s ..." % module[0])
+    try:
+        __import__(module[1])
+    except ImportError:
+        print ("Missing !")
+        missing_modules.append(module)
 
 # TODO(Jflesch): check for sane ?
 
-from pyocr import pyocr
+# Pyocr may have been freshly installed, so import pyocr will fail
+pyocr = __import__('pyocr.pyocr')
 
-ocr_tools = pyocr.get_available_tools()
+ocr_tools = pyocr.pyocr.get_available_tools()
 if len(ocr_tools) > 0:
-    installed_modules.append("OCR")
     langs = ocr_tools[0].get_available_languages()
 else:
     langs = []
@@ -218,9 +204,7 @@ else:
         )
     )
 
-if (len(langs) > 0):
-    installed_modules.append("OCR language data")
-else:
+if (len(langs) <= 0):
     missing_modules.append(
         ('Tesseract language data' , '(none)',
          {
@@ -233,11 +217,9 @@ else:
 
 
 print("")
-print("Additionnal dependencies found:")
-print("  - " + "\n  - ".join(installed_modules))
-print("")
-
-if len(missing_modules) > 0:
+if len(missing_modules) >= 0:
+    print("All dependencies have been found.")
+else:
     print("WARNING: Missing dependencies:")
     pkgs = []
     for dep in missing_modules:

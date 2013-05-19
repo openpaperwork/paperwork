@@ -89,7 +89,8 @@ depending of your GNU/Linux distribution.
 
 	$ sudo pip install "git+git://github.com/jflesch/paperwork.git#egg=paperwork"
 	# This command will install Paperwork and tell you if some extra dependencies
-	# are required
+	# are required. (note that the dependencies list may be drown in the
+	# output ... :/)
 	<install the extra dependencies>
 
 To (re)start paperwork:

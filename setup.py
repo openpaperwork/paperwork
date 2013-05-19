@@ -225,6 +225,8 @@ print("")
 if len(missing_modules) <= 0:
     print("All dependencies have been found.")
 else:
+    print("")
+    print("==============================")
     print("WARNING: Missing dependencies:")
     pkgs = []
     for dep in missing_modules:
@@ -237,7 +239,10 @@ else:
                   % (dep[0], dep[1]))
     if len(pkgs) > 0:
         print("")
+        print("==============================")
         print("Suggested command:")
         print("  sudo %s %s"
               % (PACKAGE_TOOLS[distribution],
                  " ".join(pkgs)))
+        print("==============================")
+    print("")

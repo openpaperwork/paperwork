@@ -13,6 +13,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
+from whoosh.query import Term
 
 """
 Contains all the code relative to keyword and document list management list.
@@ -123,6 +124,10 @@ class DummyDocSearch(object):
         """ Do nothing """
         assert()
 
+    @staticmethod
+    def is_hash_in_index(filehash=None):
+        """ Do nothing """
+        assert()
 
 class DocDirExaminer(GObject.GObject):
     """
@@ -472,6 +477,7 @@ class DocSearch(object):
             self.__docs_by_id[docid] = doc
             for label in doc.labels:
                 labels.add(label)
+
             progress += 1
         progress_cb(1, 1, self.INDEX_STEP_LOADING)
 
@@ -702,3 +708,10 @@ class DocSearch(object):
         print "Destroying the index ..."
         rm_rf(self.indexdir)
         print "Done"
+
+    def is_hash_in_index(self, filehash):
+        """
+        Check if there is a document using this file hash
+        """
+        results = self.__searcher.search(Term('docfilehash',unicode(filehash, "utf-8")))
+        return results

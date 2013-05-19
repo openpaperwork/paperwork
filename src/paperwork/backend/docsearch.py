@@ -225,6 +225,7 @@ class DocIndexUpdater(GObject.GObject):
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
+            docfilehash=unicode(doc.get_docfilehash(), "utf-8"),
             content=txt,
             label=labels,
             last_read=last_mod
@@ -308,6 +309,15 @@ class DocSearch(object):
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
     OCR_THREADS_POLLING_TIME = 0.5
+    WHOOSH_SCHEMA = whoosh.fields.Schema( #static up to date schema
+                docid=whoosh.fields.ID(stored=True, unique=True),
+                doctype=whoosh.fields.ID(stored=True, unique=False),
+                docfilehash=whoosh.fields.ID(stored=True),
+                content=whoosh.fields.TEXT(spelling=True),
+                label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                            spelling=True, scorable=True),
+                last_read=whoosh.fields.DATETIME(stored=True),
+            )
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -334,19 +344,15 @@ class DocSearch(object):
         try:
             print ("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
-        except whoosh.index.EmptyIndexError, exc:
-            print ("Failed to open index '%s'" % self.indexdir)
+            #check that schema in up to date
+            if str(self.index.schema) != str(self.WHOOSH_SCHEMA): #TODO : find a better way to compare schema
+                raise IndexError('Schema is not up to date')
+
+        except (whoosh.index.EmptyIndexError, IndexError), exc:
+            print ("Failed to open index or bad index '%s'" % self.indexdir)
             print ("Exception was: %s" % str(exc))
             print ("Will try to create a new one")
-            schema = whoosh.fields.Schema(
-                docid=whoosh.fields.ID(stored=True, unique=True),
-                doctype=whoosh.fields.ID(stored=True, unique=False),
-                content=whoosh.fields.TEXT(spelling=True),
-                label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                            spelling=True, scorable=True),
-                last_read=whoosh.fields.DATETIME(stored=True),
-            )
-            self.index = whoosh.index.create_in(self.indexdir, schema)
+            self.index = whoosh.index.create_in(self.indexdir, self.WHOOSH_SCHEMA)
             print ("Index '%s' created" % self.indexdir)
 
         self.__qparser = whoosh.qparser.QueryParser("content",

@@ -347,6 +347,14 @@ class ImgDoc(BasicDoc):
         del(self.__pages)
         self.__pages = None
 
+    def get_docfilehash(self):
+        if self._get_nb_pages() == 0:
+            hash = None
+        else :
+            hash = '0'
+            for page in self.__get_pages():
+                hash += format(int(hash, 16) ^ int(page.get_docfilehash(), 16),"x")
+        return hash
 
 def is_img_doc(docpath):
     try:

@@ -20,6 +20,7 @@ import gettext
 import os
 import os.path
 import time
+import hashlib
 
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
@@ -88,6 +89,9 @@ class BasicDoc(object):
         raise NotImplementedError()
 
     def __get_doctype(self):
+        raise NotImplementedError()
+
+    def get_docfilehash(self):
         raise NotImplementedError()
 
     doctype = property(__get_doctype)
@@ -321,3 +325,7 @@ class BasicDoc(object):
                 file_desc.write(txt)
 
     extra_text = property(__get_extra_text, __set_extra_text)
+
+    @staticmethod
+    def hash_file(path):
+        return hashlib.sha256(open(path, 'rb').read()).hexdigest()

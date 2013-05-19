@@ -582,3 +582,6 @@ class ImgPage(BasicPage):
                 page.__ch_number(offset=-1)
 
         self.drop_cache()
+
+    def get_docfilehash(self):
+        return self.doc.hash_file(self.__get_img_path())

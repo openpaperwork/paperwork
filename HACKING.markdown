@@ -132,12 +132,11 @@ Note that there is another thread running: The thread of
 
 If you want to make changes, here are few things that can help you:
 
-1. You don't need to install paperwork to run it. Just run 'src/paperwork.py' (do not run 'cd src ; ./paperwork.py' ! Otherwise Paperwork won't use the correct glade files).
-2. Paperwork looks for a 'paperwork.conf' in the current work directory before
+1. Paperwork looks for a 'paperwork.conf' in the current work directory before
    looking for a '.paperwork.conf' in your home directory. So if you want to
    use a different config and/or a different set of documents for development
    than for your real-life work, just copy your '~/.paperwork.conf' to
    './paperwork.conf'. Note that the settings dialog will also take care of
    updating './paperwork.conf' instead of '~/.paperwork.conf'.
-3. "pep8" is your friend
-4. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc \*
+2. "pep8" is your friend
+3. "pylint" is your friend: $ cd src ; pylint --rcfile=../pylintrc \*

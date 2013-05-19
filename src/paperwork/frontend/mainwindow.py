@@ -21,9 +21,7 @@ import sys
 import threading
 import time
 
-import Image
-import ImageColor
-import ImageDraw
+import PIL.Image
 import gettext
 import cairo
 from gi.repository import Gtk
@@ -432,7 +430,7 @@ class WorkerDocThumbnailer(Worker):
                 img = img.crop((0, 0, width, self.THUMB_HEIGHT))
                 img = img.copy()
             else:
-                new_img = Image.new('RGBA', (width, self.THUMB_HEIGHT),
+                new_img = PIL.Image.new('RGBA', (width, self.THUMB_HEIGHT),
                                     '#FFFFFF')
                 h = (self.THUMB_HEIGHT - height) / 2
                 new_img.paste(img, (0, h, width, h+height))
@@ -1741,7 +1739,7 @@ class MainWindow(object):
         self.__busy_mouse_counter = 0
         self.__last_highlight_update = time.time()
 
-        img = Image.new("RGB", (
+        img = PIL.Image.new("RGB", (
             WorkerDocThumbnailer.THUMB_WIDTH,
             WorkerDocThumbnailer.THUMB_HEIGHT
         ), color="#CCCCCC")

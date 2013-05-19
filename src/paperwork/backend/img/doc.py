@@ -27,7 +27,7 @@ import time
 
 import cairo
 from gi.repository import Gio
-import Image
+import PIL.Image
 from gi.repository import Poppler
 
 from paperwork.backend.common.doc import BasicDoc
@@ -74,7 +74,7 @@ class ImgToPdfDocExporter(object):
             pdf_surface.set_size(x, y)
             new_size = (int(quality * img.size[0]),
                         int(quality * img.size[1]))
-            img = img.resize(new_size, Image.ANTIALIAS)
+            img = img.resize(new_size, PIL.Image.ANTIALIAS)
 
             scale_factor_x = x / img.size[0]
             scale_factor_y = y / img.size[1]
@@ -309,7 +309,7 @@ class ImgDoc(BasicDoc):
         # TODO(Jflesch): Use Gio
         if file_uri.startswith("file://"):
             file_uri = file_uri[len("file://"):]
-        img = Image.open(file_uri)
+        img = PIL.Image.open(file_uri)
         self.__add_img(img, langs)
         self.drop_cache()
 

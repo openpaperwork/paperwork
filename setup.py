@@ -97,7 +97,7 @@ Let the machine do most of the work.
       ],
       scripts=['scripts/paperwork'],
       install_requires=[
-          "PIL",
+          "Pillow",
           "pycountry",
           # "pycairo",  # doesn't work ?
           "pyenchant",

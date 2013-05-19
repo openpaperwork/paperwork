@@ -16,7 +16,7 @@
 
 import codecs
 from copy import copy
-import Image
+import PIL.Image
 import os
 import os.path
 import re
@@ -54,7 +54,7 @@ class PageExporter(object):
 
         new_size = (int(resize_factor * img.size[0]),
                     int(resize_factor * img.size[1]))
-        img = img.resize(new_size, Image.ANTIALIAS)
+        img = img.resize(new_size, PIL.Image.ANTIALIAS)
 
         img.save(target_path, self.img_format, quality=quality)
         return target_path
@@ -63,7 +63,7 @@ class PageExporter(object):
         tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
                          self.valid_exts[0])
         path = self.save(tmp)
-        img = Image.open(path)
+        img = PIL.Image.open(path)
         img.load()
 
         self.__img = (path, img)

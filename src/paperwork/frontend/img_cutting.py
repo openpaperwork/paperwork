@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import ImageDraw
+import PIL.ImageDraw
 
 from gi.repository import Gdk
 from gi.repository import GObject
@@ -231,7 +231,7 @@ class ImgGripHandler(GObject.GObject):
         (factor, img) = self.imgs[0]
         if self.__visible:
             img = img.copy()
-            self.__draw_grips(img, ImageDraw.Draw(img), factor)
+            self.__draw_grips(img, PIL.ImageDraw.Draw(img), factor)
         img = image2pixbuf(img)
         self.img_widget.set_from_pixbuf(img)
 

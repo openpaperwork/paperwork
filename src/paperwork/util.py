@@ -28,8 +28,8 @@ import enchant
 import enchant.tokenize
 import Levenshtein
 import cairo
-import Image
-import ImageDraw
+import PIL.Image
+import PIL.ImageDraw
 import gettext
 from gi.repository import GLib
 from gi.repository import Gtk
@@ -166,10 +166,10 @@ def surface2image(surface):
     if surface is None:
         return None
     dimension = (surface.get_width(), surface.get_height())
-    img = Image.frombuffer("RGBA", dimension,
+    img = PIL.Image.frombuffer("RGBA", dimension,
                            surface.get_data(), "raw", "BGRA", 0, 1)
 
-    background = Image.new("RGB", img.size, (255, 255, 255))
+    background = PIL.Image.new("RGB", img.size, (255, 255, 255))
     background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
     return background
 
@@ -265,7 +265,7 @@ def add_img_border(img, color="#a6a5a4", width=1):
     """
     Add a border of the specified color and width around a PIL image
     """
-    img_draw = ImageDraw.Draw(img)
+    img_draw = PIL.ImageDraw.Draw(img)
     for line in range(0, width):
         img_draw.rectangle([(line, line), (img.size[0]-1-line,
                                            img.size[1]-1-line)],

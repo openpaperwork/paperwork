@@ -88,18 +88,13 @@ If a package is not available in your distribution, you can install the Pypi pac
 	* Gentoo package : dev-python/pycountry
 	* Fedora package : None
 	* Pypi package : pycountry
-* python-imaging (aka PIL) (required)
-	* Debian/Ubuntu package: python-imaging
-	* Gentoo package : dev-python/imaging (in future dev-python/pillow, /!\ conflict between the both packages)
-	* Fedora :
-		* JPEG support is missing in the Fedora package
-		* You must install libjpeg-turbo-devel first
-		* If you're running on a x86_64:
-			* sudo ln -s /usr/lib64/libjpeg.so /usr/lib
-			* sudo ln -s /usr/lib64/libjpeg.so.62 /usr/lib
-			* sudo ln -s /usr/lib64/libjpeg.so.62.1.0 /usr/lib
-		* sudo python-pip install PIL
-	* Pypi package : PIL (you must install libjpeg-devel / libjpeg-turbo-devel first !)
+* Pillow (required)
+	* Debian/Ubuntu package: None
+	* Gentoo package : dev-python/pillow
+	* Fedora : None
+	* Manual installation:
+		* You must install libjpeg-dev first
+		* sudo python-pip install Pillow
 * poppler (required)
 	* Debian/Ubuntu package: gir1.2-poppler-0.18
 	* Gentoo package : app-text/poppler

@@ -63,100 +63,88 @@ contain useful keywords, Paperwork allows also to put labels on each document.
 GPLv3. See COPYING.
 
 
-## Dependencies
+## Manual Installation
 
-If a package is not available in your distribution, you can install the Pypi package.
+If you want to install a stable version of Paperwork, please first check that your Linux
+distribution doesn't already have a package for it.
 
-* python v2.7<br/>
-  Paperwork is written for Python **2.7**.
-  So depending of your Linux distribution, you may have to invoke "python2"
-  instead of "python" (for instance with Arch Linux)
-* pygi (required):
-	* Debian/Ubuntu package: python-gi
-	* Gentoo package : dev-python/pygobject
-	* Fedora package : pygobject3
-* gtk v3 (required)
-	* Debian/Ubuntu package: gir1.2-gtk-3.0
-	* Gentoo package : x11-libs/gtk+
-	* Fedora package : gtk3
-* gladeui (required)
-	* Debian/Ubuntu package: gir1.2-gladeui-2.0
-	* Gentoo package : dev-util/glade (USE=+introspection)
-	* Fedora package : glade3-libgladeui
-* pycountry (required)
-	* Debian/Ubuntu package: python-pycountry
-	* Gentoo package : dev-python/pycountry
-	* Fedora package : None
-	* Pypi package : pycountry
-* python-imaging (aka PIL) (required)
-	* Debian/Ubuntu package: python-imaging
-	* Gentoo package : dev-python/imaging (in future dev-python/pillow, /!\ conflict between the both packages)
-	* Fedora :
-		* JPEG support is missing in the Fedora package
-		* You must install libjpeg-turbo-devel first
-		* If you're running on a x86_64:
-			* sudo ln -s /usr/lib64/libjpeg.so /usr/lib
-			* sudo ln -s /usr/lib64/libjpeg.so.62 /usr/lib
-			* sudo ln -s /usr/lib64/libjpeg.so.62.1.0 /usr/lib
-		* sudo python-pip install PIL
-	* Pypi package : PIL (you must install libjpeg-devel / libjpeg-turbo-devel first !)
-* poppler (required)
-	* Debian/Ubuntu package: gir1.2-poppler-0.18
-	* Gentoo package : app-text/poppler
-	* Fedora package : poppler-glib
-* Python Cairo bindings for the GObject library (required):
-	* Debian/Ubuntu package: python-gi-cairo
-	* Gentoo package : dev-python/pycairo
-	* Fedora package : pycairo
-* python-enchant (required)
-	* Debian/Ubuntu package: python-enchant
-	* Gentoo package : dev-python/pyenchant
-	* Fedora package : python-enchant
-* python-levenshtein (required)
-	* Debian/Ubuntu package: python-levenshtein
-	* Gentoo package : dev-python/python-levenshtein
-	* Fedora package : python-Levenshtein
-* python-whoosh (required)
-	* Debian/Ubuntu package: python-whoosh
-	* Gentoo package : dev-python/whoosh
-	* Fedora : python-pip install Whoosh
-* sane (required by pyinsane):
-	* Debian/Ubuntu packages : libsane libsane-extras (+ libsane-hpaio for HP printers)
-	* Gentoo packages : sane-backends sane-frontends xsane
-	* Fedora package : sane-backends sane-backends-drivers-scanners sane-backends-libs
-* pyinsane (required)
-	* Debian/Ubuntu package: none at the moment
-	* Gentoo package : none at the moment
-	* Fedora package : none at the moment
-	* Manual installation:
-		* git clone git://github.com/jflesch/pyinsane.git
-		* cd pyinsane
-		* sudo python ./setup.py install
-* OCR (optional for document searching ; required for scanning)
-	* Tesseract (>= v3.01) (recommended)
-		* Debian/Ubuntu package: tesseract-ocr tesseract-ocr-&lt;your language&gt;
-		* Gentoo package : app-text/tesseract
-		* Fedora package : tesseract tesseract-langpack-&lt;your language&gt;
-	* **Or** Cuneiform (>= v1.1)
-    	* Debian/Ubuntu package: cuneiform
-		* Gentoo package : app-text/cuneiform but presently =app-text/cuneiform-1.1.0-r1 is masked
-		* Fedora package : cuneiform
-* pyocr (required)
-	* Debian/Ubuntu package: none at the moment
-	* Manual installation:
-		* git clone git://github.com/jflesch/pyocr.git
-		* cd pyocr
-		* sudo python ./setup.py install
+### Build dependencies
+
+If you're installing Paperwork yourself, you will probably need to install first some build dependencies:
+
+* python-setuptools (required by the setup.py script of Paperwork)
+* python-dev (required to build some dependencies)
+* libjpeg-dev (required to have JPEG support built in the Pillow library)
 
 
-## Installation
+### Installation in a virtualenv
+
+This is the safest way to install Paperwork manually.
+This is not the most convenient way to install Paperwork manually.
+
+Virtualenv allows to run Paperwork in a specific environment, with the latest
+versions of most of its dependencies. It also make it easier to remove it (you
+just have to delete the directory containing the virtualenv). However the user
+that did the installation will be the only one able to run Paperwork. No
+shortcut will be installed in the menus of your window manager. Paperwork
+won't be available directly on your PATH.
+
+You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtualenv).
+
+	$ virtualenv --system-site-packages paperwork-virtualenv
+	$ cd paperwork-virtualenv
+	$ source bin/activate
+	# you're now in a virtualenv
+	$ git clone git://github.com/jflesch/paperwork.git
+	$ cd paperwork
+	$ python ./setup.py install
+	# This script will install Paperwork and tell you if some extra dependencies
+	# are required
+	$ <install the extra dependencies>
+	$ src/paperwork.py
+
+To restart paperwork:
+
+	$ cd paperwork-virtualenv
+	$ source bin/activate
+	$ cd paperwork
+	$ src/paperwork.py
+
+Enjoy :-)
+
+
+### System-wide installation
+
+This is not the safest way to install Paperwork manually.
+This is the most convenient way to install Paperwork manually.
+
+Note that Paperwork depends on [Pillow](https://pypi.python.org/pypi/Pillow/).
+Pillow may conflict with python-imaging (aka PIL).
 
 	$ git clone git://github.com/jflesch/paperwork.git
 	$ cd paperwork
 	$ sudo python ./setup.py install
+	# This script will install Paperwork and tell you if some extra dependencies
+	# are required
+	$ <install the extra dependencies>
 	$ paperwork
 
+To restart paperwork:
+
+	$ paperwork
+
+A shortcut should also be available in the menus of your window manager (you
+may have to log out first).
+
 Enjoy :-)
+
+
+### Note regarding the extra dependencies
+
+Many dependencies can't be installed from Pypi or in a virtualenv. For
+instance, all the libraries accessed through GObject introspection have
+no package on Pypi. This is why they can only be installed in a system-wide
+manner.
 
 
 ## Contact

@@ -21,7 +21,7 @@ Code relative to page handling.
 
 import codecs
 from copy import copy
-import Image
+import PIL.Image
 import multiprocessing
 import os
 import os.path
@@ -77,7 +77,7 @@ class ImgOCRThread(threading.Thread):
             ("no_score", lambda txt: (txt, 0))
         ]
 
-        img = Image.open(self.imgpath)
+        img = PIL.Image.open(self.imgpath)
 
         print ("Running OCR on '%s'" % self.imgpath)
         self.text = self.ocr_tool.image_to_string(img, lang=self.langs['ocr'])
@@ -199,7 +199,7 @@ class ImgPage(BasicPage):
         """
         Returns an image object corresponding to the page
         """
-        return Image.open(self.__img_path)
+        return PIL.Image.open(self.__img_path)
 
     def __set_img(self, img):
         img.save(self.__img_path)
@@ -216,7 +216,7 @@ class ImgPage(BasicPage):
         factor = (float(w) / width)
         w = width
         h /= factor
-        img = img.resize((int(w), int(h)), Image.ANTIALIAS)
+        img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
         img.save(self.__thumb_path)
         return img
 
@@ -224,7 +224,7 @@ class ImgPage(BasicPage):
         """
         Returns an image object corresponding to the last saved thumbnail
         """
-        return Image.open(self.__thumb_path)
+        return PIL.Image.open(self.__thumb_path)
 
     def _get_thumbnail(self, width):
         """
@@ -271,7 +271,7 @@ class ImgPage(BasicPage):
 
         # strip the alpha channel if there is one
         color_channels = img.split()
-        img = Image.merge("RGB", color_channels[:3])
+        img = PIL.Image.merge("RGB", color_channels[:3])
 
         outfiles = []
         # rotate the image 0, 90, 180 and 270 degrees
@@ -357,7 +357,7 @@ class ImgPage(BasicPage):
         print "Extracting boxes ..."
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
         builder = pyocr.builders.LineBoxBuilder()
-        boxes = ocr_tools[0].image_to_string(Image.open(scores[0][1]),
+        boxes = ocr_tools[0].image_to_string(PIL.Image.open(scores[0][1]),
                                              lang=langs['ocr'],
                                              builder=builder)
         print "Done"
@@ -381,7 +381,7 @@ class ImgPage(BasicPage):
             (bmpfile, txt, boxes) = self.__ocr(outfiles, langs, callback)
 
         # Convert the image and save it in its final place
-        img = Image.open(bmpfile)
+        img = PIL.Image.open(bmpfile)
         img.save(imgfile)
 
         # Save the boxes
@@ -426,7 +426,7 @@ class ImgPage(BasicPage):
         print "DPI: %fx%f" % (print_context.get_dpi_x(),
                               print_context.get_dpi_y())
         print "Scaling it down to %fx%f..." % (new_w, new_h)
-        img = img.resize((new_w, new_h), Image.ANTIALIAS)
+        img = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
 
         surface = image2surface(img)
 

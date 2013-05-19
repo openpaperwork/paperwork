@@ -17,8 +17,7 @@
 Settings window.
 """
 
-import Image
-import ImageDraw
+import PIL.Image
 import os
 import sys
 import time
@@ -158,10 +157,10 @@ class WorkerCalibrationScan(Worker):
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
         'calibration-scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                                  (GObject.TYPE_PYOBJECT, )),  # PIL image
+                                  (GObject.TYPE_PYOBJECT, )),  # Pillow image
         'calibration-resize-done': (GObject.SignalFlags.RUN_LAST, None,
                                     (GObject.TYPE_FLOAT,  # resize factor
-                                     GObject.TYPE_PYOBJECT, )),  # PIL image
+                                     GObject.TYPE_PYOBJECT, )),  # Pillow image
     }
 
     can_interrupt = True
@@ -229,7 +228,7 @@ class WorkerCalibrationScan(Worker):
         print ("Calibration: Will resize it to: (%s) (ratio: %f)"
                % (str(target), factor))
 
-        resized_img = orig_img.resize(target, Image.BILINEAR)
+        resized_img = orig_img.resize(target, PIL.Image.BILINEAR)
         self.emit('calibration-resize-done', factor, resized_img)
 
 

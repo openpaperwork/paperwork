@@ -2751,12 +2751,22 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.show_doc(doc)  # will refresh the page list
-        # Many documents may have been imported actually. So we still
-        # refresh the whole list
-        self.refresh_doc_list()
-        if page is not None:
-            self.show_page(page)
+        if doc is not None:
+            self.show_doc(doc)  # will refresh the page list
+            self.refresh_doc_list()
+            if page is not None:
+                self.show_page(page)
+        else:
+            msg = _("No new document to import found")
+            flags = (Gtk.DialogFlags.MODAL
+                     | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+            dialog = Gtk.MessageDialog(parent=self.window,
+                                       flags=flags,
+                                       type=Gtk.MessageType.WARNING,
+                                       buttons=Gtk.ButtonsType.OK,
+                                       message_format=msg)
+            dialog.run()
+            dialog.destroy()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

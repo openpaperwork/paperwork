@@ -115,6 +115,9 @@ class MultiplePdfImporter(object):
         for child in MultiplePdfImporter.__get_all_children(parent):
             if not child.get_basename().lower().endswith(".pdf"):
                 continue
+            if docsearch.is_hash_in_index(PdfDoc.HashFile(child.get_path())):
+                print ("Document %s already found in the index. Skipped" % (child.get_path()))
+                continue
             try:
                 # make sure we can import it
                 Poppler.Document.new_from_file(child.get_uri(),
@@ -128,9 +131,10 @@ class MultiplePdfImporter(object):
             for page in doc.pages:
                 docsearch.index_page(page)
             idx += 1
-
-        assert(doc is not None)
-        return (doc, doc.pages[0])
+        if doc is None:
+            return (None, None)
+        else :
+            return (doc, doc.pages[0])
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")

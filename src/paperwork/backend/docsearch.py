@@ -13,6 +13,7 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
+from whoosh.query import Term
 
 """
 Contains all the code relative to keyword and document list management list.
@@ -123,6 +124,10 @@ class DummyDocSearch(object):
         """ Do nothing """
         assert()
 
+    @staticmethod
+    def is_hash_in_index(filehash=None):
+        """ Do nothing """
+        assert()
 
 class DocDirExaminer(GObject.GObject):
     """
@@ -225,6 +230,7 @@ class DocIndexUpdater(GObject.GObject):
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
+            docfilehash=unicode(doc.get_docfilehash(), "utf-8"),
             content=txt,
             label=labels,
             last_read=last_mod
@@ -308,6 +314,15 @@ class DocSearch(object):
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
     OCR_THREADS_POLLING_TIME = 0.5
+    WHOOSH_SCHEMA = whoosh.fields.Schema( #static up to date schema
+                docid=whoosh.fields.ID(stored=True, unique=True),
+                doctype=whoosh.fields.ID(stored=True, unique=False),
+                docfilehash=whoosh.fields.ID(stored=True),
+                content=whoosh.fields.TEXT(spelling=True),
+                label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                            spelling=True, scorable=True),
+                last_read=whoosh.fields.DATETIME(stored=True),
+            )
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -334,19 +349,15 @@ class DocSearch(object):
         try:
             print ("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
-        except whoosh.index.EmptyIndexError, exc:
-            print ("Failed to open index '%s'" % self.indexdir)
+            #check that schema in up to date
+            if str(self.index.schema) != str(self.WHOOSH_SCHEMA): #TODO : find a better way to compare schema
+                raise IndexError('Schema is not up to date')
+
+        except (whoosh.index.EmptyIndexError, IndexError), exc:
+            print ("Failed to open index or bad index '%s'" % self.indexdir)
             print ("Exception was: %s" % str(exc))
             print ("Will try to create a new one")
-            schema = whoosh.fields.Schema(
-                docid=whoosh.fields.ID(stored=True, unique=True),
-                doctype=whoosh.fields.ID(stored=True, unique=False),
-                content=whoosh.fields.TEXT(spelling=True),
-                label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                            spelling=True, scorable=True),
-                last_read=whoosh.fields.DATETIME(stored=True),
-            )
-            self.index = whoosh.index.create_in(self.indexdir, schema)
+            self.index = whoosh.index.create_in(self.indexdir, self.WHOOSH_SCHEMA)
             print ("Index '%s' created" % self.indexdir)
 
         self.__qparser = whoosh.qparser.QueryParser("content",
@@ -466,6 +477,7 @@ class DocSearch(object):
             self.__docs_by_id[docid] = doc
             for label in doc.labels:
                 labels.add(label)
+
             progress += 1
         progress_cb(1, 1, self.INDEX_STEP_LOADING)
 
@@ -696,3 +708,10 @@ class DocSearch(object):
         print "Destroying the index ..."
         rm_rf(self.indexdir)
         print "Done"
+
+    def is_hash_in_index(self, filehash):
+        """
+        Check if there is a document using this file hash
+        """
+        results = self.__searcher.search(Term('docfilehash',unicode(filehash, "utf-8")))
+        return results

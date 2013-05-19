@@ -194,6 +194,9 @@ class PdfDoc(BasicDoc):
         del(self.__pages)
         self.__pages = None
 
+    def get_docfilehash(self):
+        return BasicDoc.hash_file("%s/%s" % (self.path, PDF_FILENAME))
+
 
 def is_pdf_doc(docpath):
     try:

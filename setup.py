@@ -1,6 +1,35 @@
 #!/usr/bin/env python
 
+import platform
+import sys
+
 from setuptools import setup
+
+# Some modules/libraries required by Paperwork cannot be installed with pip or
+# easy_install. So we will just help the user detecting what is missing and what
+# must be installed
+
+PACKAGE_TOOLS = {
+    'debian': 'apt-get install',
+    'fedora': 'yum install',
+    'gentoo': 'emerge',
+    'ubuntu': 'apt-get install',
+}
+
+distribution = platform.dist()
+print("Detected system: %s" % " ".join(distribution))
+distribution = distribution[0].lower()
+if not distribution in PACKAGE_TOOLS:
+    print("Warning: Unknown distribution. Can't suggest packages to install")
+
+
+python_ver = [str(x) for x in sys.version_info]
+print("Detected python version: %s" % ".".join(python_ver))
+if python_ver[0] != "2" or python_ver[1] != "7":
+    print("ERROR: Expected python 2.7 ! Got python %s"
+         % ".".join(python_ver))
+    sys.exit(1)
+
 
 setup(name="Paperwork",
       version="0.1-testing",
@@ -69,7 +98,7 @@ Let the machine do most of the work.
       install_requires=[
           "PIL",
           "pycountry",
-          "pycairo",
+          # "pycairo",  # doesn't work ?
           "pyenchant",
           "python-Levenshtein",
           "Whoosh",
@@ -86,3 +115,141 @@ Let the machine do most of the work.
       ],
      )
 
+# look for dependency that setuptools cannot check
+
+installed_modules = []
+# missing_modules is an array of
+# (common_name, python_name, { "distrib": "package" })
+missing_modules = []
+try:
+    import gi
+    installed_modules.append("Python GObject introspection")
+except ImportError:
+    missing_modules.append(
+        ('Python GObject Introspection', 'gi',
+         {
+             'debian': 'python-gi',
+             'fedora': 'pygobject3',
+             'gentoo': 'dev-python/pygobject',
+             'ubuntu': 'python-gi',
+         },
+        )
+    )
+
+try:
+    from gi.repository import Gtk
+    installed_modules.append("Gtk")
+except ImportError:
+    missing_modules.append(
+        ('Gtk', 'gi.repository.Gtk',
+         {
+             'debian': 'gir1.2-gtk-3.0',
+             'fedora': 'gtk3',
+             'gentoo': 'x11-libs/gtk+',
+             'ubuntu': 'gir1.2-gtk-3.0',
+         },
+        )
+    )
+
+# TODO(Jflesch): check for gladeui ?
+#
+# use_env_var += [ 'introspection' ]  # gentoo
+# missing_modules.append(
+#        ('Glade UI', '???',
+#         {
+#             'debian': 'gir1.2-gladeui-2.0',
+#             'fedora': 'glade3-libgladeui',
+#             'gentoo': 'dev-util/glade',
+#             'ubuntu': 'gir1.2-gladeui-2.0',
+#         },
+#        )
+#    )
+
+# TODO(Jflesch): check for jpeg support in PIL
+
+try:
+    from gi.repository import Poppler
+    installed_modules.append("Poppler")
+except ImportError:
+    missing_modules.append(
+        ('Poppler', 'gi.repository.Poppler',
+         {
+             'debian': 'gir1.2-poppler-0.18',
+             'fedora': 'poppler-glib',
+             'gentoo': 'app-text/poppler',
+             'ubuntu': 'gir1.2-poppler-0.18',
+         },
+        )
+    )
+
+try:
+    import cairo
+    installed_modules.append("Cairo")
+except ImportError:
+    missing_modules.append(
+        ('Cairo', 'cairo',
+         {
+             'debian': 'python-gi-cairo',
+             'fedora': 'pycairo',
+             'gentoo': 'dev-python/pycairo',
+             'ubuntu': 'python-gi-cairo',
+         },
+        )
+    )
+
+# TODO(Jflesch): check for sane ?
+
+from pyocr import pyocr
+
+ocr_tools = pyocr.get_available_tools()
+if len(ocr_tools) > 0:
+    installed_modules.append("OCR")
+    langs = ocr_tools[0].get_available_languages()
+else:
+    langs = []
+    missing_modules.append(
+        ('Tesseract', '(none)',
+         {
+             'debian': 'tesseract-ocr',
+             'fedora': 'tesseract',
+             'gentoo': 'app-text/tesseract',
+             'ubuntu': 'tesseract-ocr',
+         },
+        )
+    )
+
+if (len(langs) > 0):
+    installed_modules.append("OCR language data")
+else:
+    missing_modules.append(
+        ('Tesseract language data' , '(none)',
+         {
+             'debian': 'tesseract-ocr-<your language>',
+             'fedora': 'tesseract-langpack-<your language>',
+             'ubuntu': 'tesseract-ocr-<your language>',
+         },
+        )
+    )
+
+
+print("")
+print("Additionnal dependencies found:")
+print("  - " + "\n  - ".join(installed_modules))
+print("")
+
+if len(missing_modules) > 0:
+    print("WARNING: Missing dependencies:")
+    pkgs = []
+    for dep in missing_modules:
+        if distribution in dep[2]:
+            print("  - %s (python module: %s ; %s package : %s)"
+                  % (dep[0], dep[1], distribution, dep[2][distribution]))
+            pkgs.append(dep[2][distribution])
+        else:
+            print("  - %s (python module: %s)"
+                  % (dep[0], dep[1]))
+    if len(pkgs) > 0:
+        print("Suggested command:")
+        print("  sudo %s %s"
+              % (PACKAGE_TOOLS[distribution],
+                 " ".join(pkgs)))

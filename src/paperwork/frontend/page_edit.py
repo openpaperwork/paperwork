@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import Image
+import PIL.Image
 import gettext
 
 from gi.repository import GObject
@@ -155,7 +155,7 @@ class PageEditingDialog(object):
         target_size = (int(factor * img_w), int(factor * img_h))
         copy = self.imgs['orig'][1].copy()
         self.imgs['resized'] = (factor,
-                                copy.resize(target_size, Image.BILINEAR))
+                                copy.resize(target_size, PIL.Image.BILINEAR))
         self.__cut_grips = ImgGripHandler(
             [self.imgs['resized'], self.imgs['orig']],
             self.__original_img_widgets['scrolledwindow'],

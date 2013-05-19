@@ -1,10 +1,63 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+import imp
+import platform
+import sys
+
+from setuptools import setup
+
+# Some modules/libraries required by Paperwork cannot be installed with pip or
+# easy_install. So we will just help the user detecting what is missing and what
+# must be installed
+
+PACKAGE_TOOLS = {
+    'debian': 'apt-get install',
+    'fedora': 'yum install',
+    'gentoo': 'emerge',
+    'ubuntu': 'apt-get install',
+}
+
+distribution = platform.dist()
+print("Detected system: %s" % " ".join(distribution))
+distribution = distribution[0].lower()
+if not distribution in PACKAGE_TOOLS:
+    print("Warning: Unknown distribution. Can't suggest packages to install")
+
+
+python_ver = [str(x) for x in sys.version_info]
+print("Detected python version: %s" % ".".join(python_ver))
+if python_ver[0] != "2" or python_ver[1] != "7":
+    print("ERROR: Expected python 2.7 ! Got python %s"
+         % ".".join(python_ver))
+    sys.exit(1)
+
 
 setup(name="Paperwork",
-      version="0.1",
+      version="0.1-testing",
       description="Grep for dead trees",
+      long_description="""
+Paperwork is a tool to make papers searchable.
+
+The basic idea behind Paperwork is "scan & forget" : You should be able to
+just scan a new document and forget about it until the day you need it again.
+Let the machine do most of the work.
+""",
+      keywords="scanner ocr gui",
+      url="https://github.com/jflesch/paperwork",
+      download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Environment :: X11 Applications :: GTK",
+          "Intended Audience :: End Users/Desktop",
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python :: 2.7",
+          "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
+          "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+          "Topic :: Scientific/Engineering :: Image Recognition",
+          "Topic :: Text Processing :: Indexing",
+      ],
+      licenses="GPLv3+",
       author="Jerome Flesch",
       author_email="jflesch@gmail.com",
       packages=[
@@ -43,5 +96,148 @@ setup(name="Paperwork",
            ['data/paperwork.svg']),
       ],
       scripts=['scripts/paperwork'],
+      install_requires=[
+          "Pillow",
+          "pycountry",
+          # "pycairo",  # doesn't work ?
+          "pyenchant",
+          "python-Levenshtein",
+          "Whoosh",
+          "pyinsane >= 1.0.2",
+          "pyocr",
+          # "PyGObject",  # doesn't work with virtualenv
+          # Missing due to the use of gobject introspection:
+          # - gtk
+          # - glade
+          # - poppler
+          # Missing because non-python libraries:
+          # - sane
+          # - tesseract/cuneiform
+      ],
      )
 
+# look for dependency that setuptools cannot check
+
+print("")
+
+# missing_modules is an array of
+# (common_name, python_name, { "distrib": "package" })
+missing_modules = []
+
+modules = [
+    ('Python GObject Introspection', 'gi',
+     {
+         'debian': 'python-gi',
+         'fedora': 'pygobject3',
+         'gentoo': 'dev-python/pygobject',
+         'ubuntu': 'python-gi',
+     },
+    ),
+    ('Gtk', 'gi.repository.Gtk',
+     {
+         'debian': 'gir1.2-gtk-3.0',
+         'fedora': 'gtk3',
+         'gentoo': 'x11-libs/gtk+',
+         'ubuntu': 'gir1.2-gtk-3.0',
+     },
+    ),
+
+    # TODO(Jflesch): check for gladeui ?
+    #
+    # use_env_var += [ 'introspection' ]  # gentoo
+    # missing_modules.append(
+    #        ('Glade UI', '???',
+    #         {
+    #             'debian': 'gir1.2-gladeui-2.0',
+    #             'fedora': 'glade3-libgladeui',
+    #             'gentoo': 'dev-util/glade',
+    #             'ubuntu': 'gir1.2-gladeui-2.0',
+    #         },
+    #        )
+    #    )
+
+    # TODO(Jflesch): check for jpeg support in PIL
+
+    ('Poppler', 'gi.repository.Poppler',
+     {
+         'debian': 'gir1.2-poppler-0.18',
+         'fedora': 'poppler-glib',
+         'gentoo': 'app-text/poppler',
+         'ubuntu': 'gir1.2-poppler-0.18',
+     },
+    ),
+    ('Cairo', 'cairo',
+     {
+         'debian': 'python-gi-cairo',
+         'fedora': 'pycairo',
+         'gentoo': 'dev-python/pycairo',
+         'ubuntu': 'python-gi-cairo',
+     },
+    ),
+]
+
+for module in modules:
+    print("Looking for %s ..." % module[0])
+    try:
+        __import__(module[1])
+    except ImportError:
+        print ("Missing !")
+        missing_modules.append(module)
+
+# TODO(Jflesch): check for sane ?
+
+try:
+    from pyocr import pyocr
+    print("Looking for OCR tool ...")
+    ocr_tools = pyocr.get_available_tools()
+except ImportError:
+    print "Couldn't import Pyocr. Will assume OCR tool is not installed yet"
+    ocr_tools = []
+if len(ocr_tools) > 0:
+    print ("Looking for OCR language data ...")
+    langs = ocr_tools[0].get_available_languages()
+else:
+    langs = []
+    missing_modules.append(
+        ('Tesseract', '(none)',
+         {
+             'debian': 'tesseract-ocr',
+             'fedora': 'tesseract',
+             'gentoo': 'app-text/tesseract',
+             'ubuntu': 'tesseract-ocr',
+         },
+        )
+    )
+
+if (len(langs) <= 0):
+    missing_modules.append(
+        ('Tesseract language data' , '(none)',
+         {
+             'debian': 'tesseract-ocr-<your language>',
+             'fedora': 'tesseract-langpack-<your language>',
+             'ubuntu': 'tesseract-ocr-<your language>',
+         },
+        )
+    )
+
+
+print("")
+if len(missing_modules) <= 0:
+    print("All dependencies have been found.")
+else:
+    print("WARNING: Missing dependencies:")
+    pkgs = []
+    for dep in missing_modules:
+        if distribution in dep[2]:
+            print("  - %s (python module: %s ; %s package : %s)"
+                  % (dep[0], dep[1], distribution, dep[2][distribution]))
+            pkgs.append(dep[2][distribution])
+        else:
+            print("  - %s (python module: %s)"
+                  % (dep[0], dep[1]))
+    if len(pkgs) > 0:
+        print("")
+        print("Suggested command:")
+        print("  sudo %s %s"
+              % (PACKAGE_TOOLS[distribution],
+                 " ".join(pkgs)))

@@ -236,6 +236,7 @@ else:
             print("  - %s (python module: %s)"
                   % (dep[0], dep[1]))
     if len(pkgs) > 0:
+        print("")
         print("Suggested command:")
         print("  sudo %s %s"
               % (PACKAGE_TOOLS[distribution],

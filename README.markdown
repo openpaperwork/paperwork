@@ -87,7 +87,7 @@ Pillow may conflict with python-imaging (aka PIL).
 You will need python-pip. Python-pip is invoked with 'pip' or 'python-pip',
 depending of your GNU/Linux distribution.
 
-	$ sudo pip install -e "git+git://github.com/jflesch/paperwork.git#egg=paperwork"
+	$ sudo pip install "git+git://github.com/jflesch/paperwork.git#egg=paperwork"
 	# This command will install Paperwork and tell you if some extra dependencies
 	# are required
 	<install the extra dependencies>

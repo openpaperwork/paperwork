@@ -65,6 +65,8 @@ GPLv3. See COPYING.
 
 ## Dependencies
 
+If a package is not available in your distribution, you can install the Pypi package.
+
 * python v2.7<br/>
   Paperwork is written for Python **2.7**.
   So depending of your Linux distribution, you may have to invoke "python2"
@@ -72,43 +74,60 @@ GPLv3. See COPYING.
 * pygi (required):
 	* Debian/Ubuntu package: python-gi
 	* Gentoo package : dev-python/pygobject
+	* Fedora package : pygobject3
 * gtk v3 (required)
 	* Debian/Ubuntu package: gir1.2-gtk-3.0
 	* Gentoo package : x11-libs/gtk+
+	* Fedora package : gtk3
 * gladeui (required)
 	* Debian/Ubuntu package: gir1.2-gladeui-2.0
 	* Gentoo package : dev-util/glade (USE=+introspection)
+	* Fedora package : glade3-libgladeui
 * pycountry (required)
 	* Debian/Ubuntu package: python-pycountry
 	* Gentoo package : dev-python/pycountry
+	* Fedora package : None
+	* Pypi package : pycountry
 * python-imaging (aka PIL) (required)
 	* Debian/Ubuntu package: python-imaging
 	* Gentoo package : dev-python/imaging (in future dev-python/pillow, /!\ conflict between the both packages)
-	* Manual installation :
-		* wget http://effbot.org/downloads/Imaging-1.1.7.tar.gz
-		* tar xvzf Imaging-1.1.7.tar.gz
-		* cd Imaging-1.1.7
-		* sudo python ./setup.py install
+	* Fedora :
+		* JPEG support is missing in the Fedora package
+		* You must install libjpeg-turbo-devel first
+		* If you're running on a x86_64:
+			* sudo ln -s /usr/lib64/libjpeg.so /usr/lib
+			* sudo ln -s /usr/lib64/libjpeg.so.62 /usr/lib
+			* sudo ln -s /usr/lib64/libjpeg.so.62.1.0 /usr/lib
+		* sudo python-pip install PIL
+	* Pypi package : PIL (you must install libjpeg-devel / libjpeg-turbo-devel first !)
 * poppler (required)
 	* Debian/Ubuntu package: gir1.2-poppler-0.18
 	* Gentoo package : app-text/poppler
+	* Fedora package : poppler-glib
 * Python Cairo bindings for the GObject library (required):
 	* Debian/Ubuntu package: python-gi-cairo
 	* Gentoo package : dev-python/pycairo
+	* Fedora package : pycairo
 * python-enchant (required)
 	* Debian/Ubuntu package: python-enchant
 	* Gentoo package : dev-python/pyenchant
+	* Fedora package : python-enchant
 * python-levenshtein (required)
 	* Debian/Ubuntu package: python-levenshtein
 	* Gentoo package : dev-python/python-levenshtein
+	* Fedora package : python-Levenshtein
 * python-whoosh (required)
 	* Debian/Ubuntu package: python-whoosh
 	* Gentoo package : dev-python/whoosh
-* sane (required by pyinsane)
+	* Fedora : python-pip install Whoosh
+* sane (required by pyinsane):
+	* Debian/Ubuntu packages : libsane libsane-extras (+ libsane-hpaio for HP printers)
 	* Gentoo packages : sane-backends sane-frontends xsane
+	* Fedora package : sane-backends sane-backends-drivers-scanners sane-backends-libs
 * pyinsane (required)
 	* Debian/Ubuntu package: none at the moment
-	* Gentoo package : none at the moment, see below manual installation
+	* Gentoo package : none at the moment
+	* Fedora package : none at the moment
 	* Manual installation:
 		* git clone git://github.com/jflesch/pyinsane.git
 		* cd pyinsane
@@ -117,9 +136,11 @@ GPLv3. See COPYING.
 	* Tesseract (>= v3.01) (recommended)
 		* Debian/Ubuntu package: tesseract-ocr tesseract-ocr-&lt;your language&gt;
 		* Gentoo package : app-text/tesseract
+		* Fedora package : tesseract tesseract-langpack-&lt;your language&gt;
 	* **Or** Cuneiform (>= v1.1)
     	* Debian/Ubuntu package: cuneiform
 		* Gentoo package : app-text/cuneiform but presently =app-text/cuneiform-1.1.0-r1 is masked
+		* Fedora package : cuneiform
 * pyocr (required)
 	* Debian/Ubuntu package: none at the moment
 	* Manual installation:

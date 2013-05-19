@@ -3,8 +3,31 @@
 from setuptools import setup
 
 setup(name="Paperwork",
-      version="0.1",
+      version="0.1-testing",
       description="Grep for dead trees",
+      long_description="""
+Paperwork is a tool to make papers searchable.
+
+The basic idea behind Paperwork is "scan & forget" : You should be able to
+just scan a new document and forget about it until the day you need it again.
+Let the machine do most of the work.
+""",
+      keywords="scanner ocr gui",
+      url="https://github.com/jflesch/paperwork",
+      download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Environment :: X11 Applications :: GTK",
+          "Intended Audience :: End Users/Desktop",
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python :: 2.7",
+          "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
+          "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+          "Topic :: Scientific/Engineering :: Image Recognition",
+          "Topic :: Text Processing :: Indexing",
+      ],
+      licenses="GPLv3+",
       author="Jerome Flesch",
       author_email="jflesch@gmail.com",
       packages=[
@@ -43,5 +66,23 @@ setup(name="Paperwork",
            ['data/paperwork.svg']),
       ],
       scripts=['scripts/paperwork'],
+      install_requires=[
+          "PIL",
+          "pycountry",
+          "pycairo",
+          "pyenchant",
+          "python-Levenshtein",
+          "Whoosh",
+          "pyinsane",
+          "pyocr",
+          # "PyGObject",  # doesn't work with virtualenv
+          # Missing due to the use of gobject introspection:
+          # - gtk
+          # - glade
+          # - poppler
+          # Missing because non-python libraries:
+          # - sane
+          # - tesseract/cuneiform
+      ],
      )
 

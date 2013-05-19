@@ -423,7 +423,7 @@ class WorkerDocThumbnailer(Worker):
             if doc.nb_pages <= 0:
                 resume += 1
                 continue
-            img = doc.pages[0].get_thumbnail(150)
+            img = doc.pages[0].get_thumbnail(self.THUMB_WIDTH)
 
             (width, height) = img.size
             # always make sure the thumbnail has a specific height

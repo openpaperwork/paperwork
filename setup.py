@@ -103,7 +103,7 @@ Let the machine do most of the work.
           "pyenchant",
           "python-Levenshtein",
           "Whoosh",
-          "pyinsane",
+          "pyinsane >= 1.0.2",
           "pyocr",
           # "PyGObject",  # doesn't work with virtualenv
           # Missing due to the use of gobject introspection:

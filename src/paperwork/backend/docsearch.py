@@ -360,9 +360,23 @@ class DocSearch(object):
             self.index = whoosh.index.create_in(self.indexdir, self.WHOOSH_SCHEMA)
             print ("Index '%s' created" % self.indexdir)
 
-        self.__qparser = whoosh.qparser.QueryParser("content",
-                                                    self.index.schema)
         self.__searcher = self.index.searcher()
+
+        self.query_parser_list = []
+
+        class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
+            def __init__(self, fieldname, text, boost=1.0, maxdist=1,
+                 prefixlength=0, constantscore=True):
+                whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
+                 prefixlength, constantscore=True)
+
+        self.query_parser_list.append(whoosh.qparser.QueryParser("content",
+                                            schema=self.index.schema,
+                                            termclass=CustomFuzzy))
+        self.query_parser_list.append(whoosh.qparser.QueryParser("content",
+                                            schema=self.index.schema,
+                                            termclass=whoosh.qparser.query.Prefix))
+
         # TODO(Jflesch): Too dangerous
         #self.cleanup_rootdir(callback)
         self.reload_index(callback)
@@ -500,22 +514,6 @@ class DocSearch(object):
             print ("Adding document '%s' to the index" % page.doc.docid)
             self.__docs_by_id[page.doc.docid] = page.doc
 
-    def __find_documents(self, query):
-        """
-        Find a list of documents based on a whoosh query
-        """
-        docs = []
-        results = self.__searcher.search(query, limit=None)
-        docids = [result['docid'] for result in results]
-        docs = [self.__docs_by_id.get(docid) for docid in docids]
-        try:
-            while True:
-                docs.remove(None)
-        except ValueError:
-            pass
-        assert (not None in docs)
-        return docs
-
     def __get_all_docs(self):
         """
         Return all the documents. Beware, they are unsorted.
@@ -540,10 +538,9 @@ class DocSearch(object):
         Returns all the documents matching the given keywords
 
         Arguments:
-            keywords --- keywords (single string)
-
+            sentence --- a sentenced query
         Returns:
-            An array of document id (strings)
+            An array of document (doc objects)
         """
         sentence = sentence.strip()
 
@@ -552,8 +549,24 @@ class DocSearch(object):
 
         sentence = strip_accents(sentence)
 
-        query = self.__qparser.parse(sentence)
-        return self.__find_documents(query)
+        result_list_list=[]
+        for query_parser in self.query_parser_list:
+            query = query_parser.parse(sentence)
+            result_list_list.append(self.__searcher.search(query, limit=None))
+
+        # merging results
+        results =  result_list_list.pop()
+        for result_intermediate in result_list_list:
+            results.upgrade_and_extend(result_intermediate)
+
+        docs = [self.__docs_by_id.get(result['docid']) for result in results]
+        try:
+            while True:
+                docs.remove(None)
+        except ValueError:
+            pass
+        assert (not None in docs)
+        return docs
 
     def find_suggestions(self, sentence):
         """

@@ -77,10 +77,35 @@ If you're installing Paperwork yourself, you will probably need to install first
 * libjpeg-dev (required to have JPEG support built in the Pillow library)
 
 
+### System-wide installation
+
+This is the most convenient way to install Paperwork manually.
+
+Note that Paperwork depends on [Pillow](https://pypi.python.org/pypi/Pillow/).
+Pillow may conflict with python-imaging (aka PIL).
+
+You will need python-pip. Python-pip is invoked with 'pip' or 'python-pip',
+depending of your GNU/Linux distribution.
+
+	$ sudo pip install -e "git+git://github.com/jflesch/paperwork.git#egg=paperwork"
+	# This command will install Paperwork and tell you if some extra dependencies
+	# are required
+	<install the extra dependencies>
+
+To (re)start paperwork:
+
+	$ paperwork
+
+A shortcut should also be available in the menus of your window manager (you
+may have to log out first).
+
+Enjoy :-)
+
+
 ### Installation in a virtualenv
 
-This is the safest way to install Paperwork manually.
-This is not the most convenient way to install Paperwork manually.
+If you intend to work on Paperwork, this is probably the most convenient way
+to install a development version of Paperwork.
 
 Virtualenv allows to run Paperwork in a specific environment, with the latest
 versions of most of its dependencies. It also make it easier to remove it (you
@@ -100,7 +125,7 @@ You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtua
 	$ python ./setup.py install
 	# This script will install Paperwork and tell you if some extra dependencies
 	# are required
-	$ <install the extra dependencies>
+	<install the extra dependencies>
 	$ src/paperwork.py
 
 To restart paperwork:
@@ -109,32 +134,6 @@ To restart paperwork:
 	$ source bin/activate
 	$ cd paperwork
 	$ src/paperwork.py
-
-Enjoy :-)
-
-
-### System-wide installation
-
-This is not the safest way to install Paperwork manually.
-This is the most convenient way to install Paperwork manually.
-
-Note that Paperwork depends on [Pillow](https://pypi.python.org/pypi/Pillow/).
-Pillow may conflict with python-imaging (aka PIL).
-
-	$ git clone git://github.com/jflesch/paperwork.git
-	$ cd paperwork
-	$ sudo python ./setup.py install
-	# This script will install Paperwork and tell you if some extra dependencies
-	# are required
-	$ <install the extra dependencies>
-	$ paperwork
-
-To restart paperwork:
-
-	$ paperwork
-
-A shortcut should also be available in the menus of your window manager (you
-may have to log out first).
 
 Enjoy :-)
 

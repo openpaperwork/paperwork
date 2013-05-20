@@ -41,11 +41,13 @@ FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 MIN_KEYWORD_LEN = 3
 
+PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
+
 UI_FILES_DIRS = [
+    PREFIX + "/share/paperwork",
+    PREFIX + "/local/share/paperwork",
     ".",
     "src/paperwork/frontend",
-    "/usr/local/share/paperwork",
-    "/usr/share/paperwork",
 ]
 
 

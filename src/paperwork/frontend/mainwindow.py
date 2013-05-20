@@ -2681,7 +2681,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
         # in case the keywords were highlighted
-        self.show_page(self.page)
+        self.show_page(self.page, refresh=True)
         self.actions['reindex'][1].do()
 
     def __on_single_scan_start(self, src):

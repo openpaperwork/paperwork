@@ -127,14 +127,14 @@ You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtua
 	# This script will install Paperwork and tell you if some extra dependencies
 	# are required
 	<install the extra dependencies>
-	$ src/paperwork.py
+	$ src/launcher.py
 
 To restart paperwork:
 
 	$ cd paperwork-virtualenv
 	$ source bin/activate
 	$ cd paperwork
-	$ src/paperwork.py
+	$ src/launcher.py
 
 Enjoy :-)
 

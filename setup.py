@@ -57,7 +57,7 @@ Let the machine do most of the work.
           "Topic :: Scientific/Engineering :: Image Recognition",
           "Topic :: Text Processing :: Indexing",
       ],
-      licenses="GPLv3+",
+      license="GPLv3+",
       author="Jerome Flesch",
       author_email="jflesch@gmail.com",
       packages=[

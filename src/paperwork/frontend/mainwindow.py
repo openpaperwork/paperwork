@@ -3095,7 +3095,9 @@ class MainWindow(object):
         self.__reload_boxes()
         self.img['image'].queue_draw()
 
-    def show_page(self, page):
+    def show_page(self, page, refresh=False):
+        if page is self.page and not refresh:
+            return
         print "Showing page %s" % (str(page))
 
         self.workers['img_builder'].stop()
@@ -3130,7 +3132,9 @@ class MainWindow(object):
 
         self.workers['img_builder'].start()
 
-    def show_doc(self, doc):
+    def show_doc(self, doc, refresh=False):
+        if doc is self.doc and not refresh:
+            return
         self.doc = doc
         is_new = self.doc.is_new
         for widget in self.need_doc_widgets:

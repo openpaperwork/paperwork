@@ -68,6 +68,7 @@ class PdfPage(BasicPage):
         size = self.pdf_page.get_size()
         self.size = (int(size[0]), int(size[1]))
         self.__boxes = None
+        self.__img_cache = {}
 
     def __get_filepath(self, ext):
         """
@@ -161,14 +162,17 @@ class PdfPage(BasicPage):
         # we should draw directly on the GtkImage.window.cairo_create()
         # context. It would be much more efficient.
 
-        width = int(factor * self.size[0])
-        height = int(factor * self.size[1])
+        if factor not in self.__img_cache:
+            print 'PdfPage : building img from pdf with factor : %s' % factor
+            width = int(factor * self.size[0])
+            height = int(factor * self.size[1])
 
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-        ctx = cairo.Context(surface)
-        ctx.scale(factor, factor)
-        self.pdf_page.render(ctx)
-        return surface2image(surface)
+            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+            ctx = cairo.Context(surface)
+            ctx.scale(factor, factor)
+            self.pdf_page.render(ctx)
+            self.__img_cache[factor] = surface2image(surface)
+        return self.__img_cache[factor]
 
     def __get_img(self):
         return self.__render_img(PDF_RENDER_FACTOR)

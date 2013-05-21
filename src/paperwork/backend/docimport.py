@@ -115,7 +115,7 @@ class MultiplePdfImporter(object):
         for child in MultiplePdfImporter.__get_all_children(parent):
             if not child.get_basename().lower().endswith(".pdf"):
                 continue
-            if docsearch.is_hash_in_index(PdfDoc.HashFile(child.get_path())):
+            if docsearch.is_hash_in_index(PdfDoc.hash_file(child.get_path())):
                 print ("Document %s already found in the index. Skipped" % (child.get_path()))
                 continue
             try:

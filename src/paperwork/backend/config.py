@@ -22,8 +22,11 @@ import locale
 import os
 import pycountry
 
+import logging
 import pyinsane.abstract_th as pyinsane
 import pyocr.pyocr
+
+logger = logging.getLogger(__name__)
 
 
 class _ScanTimes(object):
@@ -80,10 +83,11 @@ class PaperworkConfig(object):
         for self.__configfile in configfiles:
             if os.access(self.__configfile, os.R_OK):
                 configfile_found = True
-                print "Config file found: %s" % self.__configfile
+                logger.info("Config file found: %s" % self.__configfile)
                 break
         if not configfile_found:
-            print "Config file not found. Will use '%s'" % self.__configfile
+            logger.info("Config file not found. Will use '%s'"
+					% self.__configfile)
 
     def read(self):
         """
@@ -165,10 +169,9 @@ class PaperworkConfig(object):
                 if ocr_lang in ocr_langs:
                     return ocr_lang
         except Exception, exc:
-            print ("Warning: Failed to figure out system language"
+            logger.exception("Warning: Failed to figure out system language"
                    " (locale is [%s]). Will default to %s"
                    % (default_locale_long, default_locale_long))
-            print "Exception was: %s" % str(exc)
         return self.DEFAULT_OCR_LANG
 
     def __set_ocr_lang(self, lang):
@@ -335,12 +338,13 @@ class PaperworkConfig(object):
         scanner.options['resolution'].value = self.scanner_resolution
         if "Color" in scanner.options['mode'].constraint:
             scanner.options['mode'].value = "Color"
-            print "Scanner mode set to 'Color'"
+            logger.info("Scanner mode set to 'Color'")
         elif "Gray" in scanner.options['mode'].constraint:
             scanner.options['mode'].value = "Gray"
-            print "Scanner mode set to 'Gray'"
+            logger.info("Scanner mode set to 'Gray'")
         else:
-            print "WARNING: Unable to set scanner mode ! May be 'Lineart'"
+            logger.warn("WARNING: "
+					"Unable to set scanner mode ! May be 'Lineart'")
         return scanner
 
     def __get_toolbar_visible(self):
@@ -371,7 +375,7 @@ class PaperworkConfig(object):
         PaperworkConfig.read() read.
         """
         file_path = self.__configfile
-        print "Writing %s ... " % file_path
+        logger.info("Writing %s ... " % file_path)
         with open(file_path, 'wb') as file_descriptor:
             self._configparser.write(file_descriptor)
-        print "Done"
+        logger.info("Done")

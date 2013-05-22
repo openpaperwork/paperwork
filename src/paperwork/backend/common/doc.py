@@ -17,6 +17,7 @@
 import codecs
 import datetime
 import gettext
+import logging
 import os
 import os.path
 import time
@@ -29,6 +30,7 @@ from paperwork.util import rm_rf
 
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class BasicDoc(object):
@@ -110,9 +112,9 @@ class BasicDoc(object):
         """
         Delete the document. The *whole* document. There will be no survivors.
         """
-        print "Destroying doc: %s" % self.path
+        logger.info("Destroying doc: %s" % self.path)
         rm_rf(self.path)
-        print "Done"
+        logger.info("Done")
         self.drop_cache()
 
     def add_label(self, label):
@@ -171,7 +173,7 @@ class BasicDoc(object):
 
         Will go on each document, and replace 'old_label' by 'new_label'
         """
-        print ("%s : Updating label ([%s] -> [%s])"
+        logger.info("%s : Updating label ([%s] -> [%s])"
                % (str(self), str(old_label), str(new_label)))
         labels = self.labels
         try:
@@ -258,8 +260,7 @@ class BasicDoc(object):
             final = datetime_obj.strftime("%x")
             return final
         except Exception, exc:
-            print ("Unable to parse document id [%s]: %s"
-                   % (self.docid, str(exc)))
+            logger.exception("Unable to parse document id [%s]:" % self.docid)
             return self.docid
 
     name = property(__get_name)
@@ -280,8 +281,7 @@ class BasicDoc(object):
 
         self.__docid = new_docid
         if self.path != new_docpath:
-            print ("Changing docid: %s -> %s"
-                   % (self.path, new_docpath))
+            logger.info("Changing docid: %s -> %s" % (self.path, new_docpath))
             os.rename(self.path, new_docpath)
             self.path = new_docpath
 

@@ -1,12 +1,14 @@
 import datetime
 
 import gettext
+import logging
 import locale
 from gi.repository import Gtk
 
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class DocEditDialog(object):
@@ -48,10 +50,10 @@ class DocEditDialog(object):
             while True:
                 ret = self.dialog.run()
                 if ret != 0:
-                    print "Doc edit: Cancelling changes"
+                    logger.info("Doc edit: Cancelling changes")
                     break
                 else:
-                    print "Doc edit: Applying changes"
+                    logger.info("Doc edit: Applying changes")
                     if self.apply_changes():
                         break
         finally:
@@ -87,9 +89,9 @@ class DocEditDialog(object):
             widget = widgets.pop(widget_name)
             new_order.append(widget)
         if len(widgets) > 0:
-            print ("WARNING: Failed to figure out the correct order"
+            logger.warn("WARNING: Failed to figure out the correct order"
                    " for the date widget")
-            print "Will use ISO order"
+            logger.info("Will use ISO order")
             return
 
         for widget in self.date['box'].get_children():
@@ -100,7 +102,7 @@ class DocEditDialog(object):
 
     def refresh_date(self):
         date = self.doc.date
-        print "Doc date: %s" % str(date)
+        logger.info("Doc date: %s" % date)
         self.date['year']['model'].set_value(date[0])
         self.date['month']['model'].set_value(date[1])
         self.date['day']['model'].set_value(date[2])
@@ -119,9 +121,9 @@ class DocEditDialog(object):
                 int(self.date['month']['model'].get_value()),
                 int(self.date['day']['model'].get_value()))
         if date == self.doc.date:
-            print "Date unchanged"
+            logger.info("Date unchanged")
             return False
-        print "Date changed"
+        logger.info("Date changed")
 
         self.__check_date(date)
         self.doc.date = date
@@ -135,9 +137,9 @@ class DocEditDialog(object):
         txt = unicode(self.text['model'].get_text(start, end, False),
                       encoding='utf-8')
         if self.doc.extra_text == txt:
-            print "Extra text unchanged"
+            logger.info("Extra text unchanged")
             return False
-        print "Extra text changed"
+        logger.info("Extra text changed")
         self.doc.extra_text = txt
         return True
 

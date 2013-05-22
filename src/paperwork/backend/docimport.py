@@ -19,6 +19,7 @@ Document import (PDF, images, etc)
 """
 
 import gettext
+import logging
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
@@ -27,6 +28,7 @@ from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.img.doc import ImgDoc
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class SinglePdfImporter(object):
@@ -49,10 +51,10 @@ class SinglePdfImporter(object):
         Import the specified PDF file
         """
         doc = PdfDoc(config.workdir)
-        print ("Importing doc '%s' ..." % file_uri)
+        logger.info("Importing doc '%s' ..." % file_uri)
         doc.import_pdf(config, file_uri)
         for page in doc.pages:
-            print ("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
+            logger.info("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
             docsearch.index_page(page)
         return (doc, doc.pages[0])
 
@@ -106,7 +108,7 @@ class MultiplePdfImporter(object):
         """
         Import the specified PDF files
         """
-        print ("Importing PDF from '%s'" % (file_uri))
+        logger.info("Importing PDF from '%s'" % (file_uri))
         parent = Gio.File.parse_name(file_uri)
         doc = None
 
@@ -116,7 +118,8 @@ class MultiplePdfImporter(object):
             if not child.get_basename().lower().endswith(".pdf"):
                 continue
             if docsearch.is_hash_in_index(PdfDoc.hash_file(child.get_path())):
-                print ("Document %s already found in the index. Skipped" % (child.get_path()))
+                logger.info("Document %s already found in the index. Skipped"
+						% (child.get_path()))
                 continue
             try:
                 # make sure we can import it
@@ -164,7 +167,7 @@ class SingleImageImporter(object):
         """
         Import the specified image
         """
-        print ("Importing doc '%s'" % (file_uri))
+        logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(config.workdir)
         current_doc.import_image(file_uri, config.langs)

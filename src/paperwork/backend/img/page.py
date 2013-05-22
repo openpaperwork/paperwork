@@ -29,6 +29,7 @@ import re
 import threading
 import time
 
+import logging
 from gi.repository import Gtk
 import pyocr.builders
 import pyocr.pyocr
@@ -39,6 +40,8 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.util import check_spelling
 from paperwork.util import dummy_progress_cb
 from paperwork.util import image2surface
+
+logger = logging.getLogger(__name__)
 
 
 class ImgOCRThread(threading.Thread):
@@ -79,7 +82,7 @@ class ImgOCRThread(threading.Thread):
 
         img = PIL.Image.open(self.imgpath)
 
-        print ("Running OCR on '%s'" % self.imgpath)
+        logger.info("Running OCR on '%s'" % self.imgpath)
         self.text = self.ocr_tool.image_to_string(img, lang=self.langs['ocr'])
 
         if not self.compute_score:
@@ -88,7 +91,7 @@ class ImgOCRThread(threading.Thread):
 
         for score_method in SCORE_METHODS:
             try:
-                print ("Evaluating score of this page orientation (%s)"
+                logging.info("Evaluating score of this page orientation (%s)"
                        " using method '%s' ..."
                        % (self.imgpath, score_method[0]))
                 (fixed_text, self.score) = score_method[1](self.text)
@@ -97,12 +100,12 @@ class ImgOCRThread(threading.Thread):
                 # checking could make them disappear
                 # However, it would be best if we could keep both versions
                 # without increasing too much indexation time
-                print "Page orientation score: %d" % self.score
+                logging.info("Page orientation score: %d" % self.score)
                 return
             except Exception, exc:
-                print ("**WARNING** Scoring method '%s' failed !"
+                logging.error("**WARNING** Scoring method '%s' failed !"
                        % score_method[0])
-                print ("Reason: %s" % (str(exc)))
+                logging.exception("Reason:")
 
 
 class ImgPage(BasicPage):
@@ -190,7 +193,8 @@ class ImgPage(BasicPage):
                 boxes = box_builder.read_file(file_desc)
             return boxes
         except IOError, exc:
-            print "Unable to get boxes for '%s': %s" % (self.doc.docid, exc)
+            logger.error("Unable to get boxes for '%s': %s"
+					% (self.doc.docid, exc))
             return []
 
     boxes = property(__get_boxes)
@@ -247,10 +251,10 @@ class ImgPage(BasicPage):
             <docid>/paper.rotated.1.bmp: original output at 90 degrees
         OCR will have to decide which is the best
         """
-        print "Scanner resolution: %d" % (scan_res)
-        print "Scanner calibration: %s" % (str(scanner_calibration))
-        print ("Calibration resolution: %d" %
-               (PaperworkConfig.CALIBRATION_RESOLUTION))
+        logger.info("Scanner resolution: %d" % (scan_res))
+        logger.info("Scanner calibration: %s" % scanner_calibration)
+        logger.info("Calibration resolution: %d"
+               % PaperworkConfig.CALIBRATION_RESOLUTION)
         if scan_res != 0 and scanner_calibration is not None:
             cropping = (scanner_calibration[0][0]
                         * scan_res
@@ -264,7 +268,7 @@ class ImgPage(BasicPage):
                         scanner_calibration[1][1]
                         * scan_res
                         / PaperworkConfig.CALIBRATION_RESOLUTION)
-            print "Cropping: %s" % (str(cropping))
+            logging.info("Cropping: %s" % cropping)
             img = img.crop(cropping)
 
         img.load()  # WORKAROUND: For PIL on ArchLinux
@@ -279,7 +283,7 @@ class ImgPage(BasicPage):
             filename = ("%s%d.%s" % (self.ROTATED_FILE_PREFIX, rotation,
                                      self.EXT_IMG_SCAN))
             imgpath = os.path.join(self.doc.path, filename)
-            print ("Saving scan (rotated %d degree) in '%s'"
+            logging.info("Saving scan (rotated %d degree) in '%s'"
                    % (rotation * -90, imgpath))
             img.save(imgpath)
             outfiles.append(imgpath)
@@ -319,13 +323,13 @@ class ImgPage(BasicPage):
             # in that case
             callback(0, 100, self.SCAN_STEP_OCR)
             raise Exception("No OCR tool available")
-        print "Using %s for OCR" % (ocr_tools[0].get_name())
+        logger.info("Using %s for OCR" % ocr_tools[0].get_name())
 
         max_threads = multiprocessing.cpu_count()
         threads = []
 
         if len(files) > 1:
-            print "Will use %d process(es) for OCR" % (max_threads)
+            logger.debug("Will use %d process(es) for OCR" % (max_threads))
 
         scores = []
 
@@ -352,15 +356,15 @@ class ImgPage(BasicPage):
         # We want the higher score first
         scores.sort(cmp=lambda x, y: self.__compare_score(y[0], x[0]))
 
-        print "Best: %f -> %s" % (scores[0][0], scores[0][1])
+        logger.info("Best: %f -> %s" % (scores[0][0], scores[0][1]))
 
-        print "Extracting boxes ..."
+        logger.info("Extracting boxes ...")
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)
         builder = pyocr.builders.LineBoxBuilder()
         boxes = ocr_tools[0].image_to_string(PIL.Image.open(scores[0][1]),
                                              lang=langs['ocr'],
                                              builder=builder)
-        print "Done"
+        logger.info("Done")
 
         callback(100, 100, self.SCAN_STEP_OCR)
         return (scores[0][1], scores[0][2], boxes)
@@ -392,7 +396,7 @@ class ImgPage(BasicPage):
         for outfile in outfiles:
             os.unlink(outfile)
 
-        print "Scan done"
+        logger.info("Scan done")
         self.drop_cache()
         self.doc.drop_cache()
 
@@ -415,7 +419,7 @@ class ImgPage(BasicPage):
         else:
             img_orientation = self.ORIENTATION_LANDSCAPE
         if print_orientation != img_orientation:
-            print "Rotating the page ..."
+            logger.info("Rotating the page ...")
             img = img.rotate(90)
 
         # scale the image down
@@ -423,9 +427,9 @@ class ImgPage(BasicPage):
         new_w = int(SCALING * (print_context.get_width()))
         new_h = int(SCALING * (print_context.get_height()))
 
-        print "DPI: %fx%f" % (print_context.get_dpi_x(),
-                              print_context.get_dpi_y())
-        print "Scaling it down to %fx%f..." % (new_w, new_h)
+        logger.info("DPI: %fx%f" % (print_context.get_dpi_x(),
+                              print_context.get_dpi_y()))
+        logger.info("Scaling it down to %fx%f..." % (new_w, new_h))
         img = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
 
         surface = image2surface(img)
@@ -443,7 +447,7 @@ class ImgPage(BasicPage):
         Arguments:
             langs --- languages to use with the OCR tool and the spell checker
         """
-        print "Redoing OCR of '%s'" % (str(self))
+        logger.info("Redoing OCR of '%s'" % self)
 
         imgfile = self.__img_path
         boxfile = self.__box_path
@@ -473,7 +477,7 @@ class ImgPage(BasicPage):
         page_nb += offset
         page_nb *= factor
 
-        print ("--> Moving page %d (+%d*%d) to index %d"
+        logger.info("--> Moving page %d (+%d*%d) to index %d"
                % (self.page_nb, offset, factor, page_nb))
 
         self.page_nb = page_nb
@@ -486,7 +490,7 @@ class ImgPage(BasicPage):
         for key in src.keys():
             if os.access(src[key], os.F_OK):
                 if os.access(dst[key], os.F_OK):
-                    print "Error: file already exists: %s" % dst[key]
+                    logger.error("Error: file already exists: %s" % dst[key])
                     assert(0)
                 os.rename(src[key], dst[key])
 
@@ -494,7 +498,7 @@ class ImgPage(BasicPage):
         if (new_index == self.page_nb):
             return
 
-        print "Moving page %d to index %d" % (self.page_nb, new_index)
+        logger.info("Moving page %d to index %d" % (self.page_nb, new_index))
 
         # we remove ourselves from the page list by turning our index into a
         # negative number
@@ -510,7 +514,7 @@ class ImgPage(BasicPage):
             start = page_nb - 1
             end = new_index - 1
 
-        print "Moving the other pages: %d, %d, %d" % (start, end, move)
+        logger.info("Moving the other pages: %d, %d, %d" % (start, end, move))
         for page_idx in range(start, end, move):
             page = self.doc.pages[page_idx]
             page.__ch_number(offset=-1*move)
@@ -531,7 +535,7 @@ class ImgPage(BasicPage):
         Delete the page. May delete the whole document if it's actually the
         last page.
         """
-        print "Destroying page: %s" % self
+        logger.info("Destroying page: %s" % self)
         if self.doc.nb_pages <= 1:
             self.doc.destroy()
             return
@@ -568,10 +572,10 @@ class ImgPage(BasicPage):
         for (src, dst) in to_move:
             # sanity check
             if os.access(dst, os.F_OK):
-                print "Error, file already exists: %s" % dst
+                logger.error("Error, file already exists: %s" % dst)
                 assert(0)
         for (src, dst) in to_move:
-            print "%s --> %s" % (src, dst)
+            logger.info("%s --> %s" % (src, dst))
             os.rename(src, dst)
 
         if (other_doc_nb_pages <= 1):

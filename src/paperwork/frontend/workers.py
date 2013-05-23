@@ -51,7 +51,6 @@ class _WorkerThread(object):
             except Exception, exc:
                 logger.exception("Worker [%s] raised an exception:"
                         % worker.name)
-                #traceback.print_exc(file=sys.stdout)
 
         logger.info("Workers: Worker thread stopped")
 

@@ -165,9 +165,9 @@ class PdfDoc(BasicDoc):
         try:
             dest = Gio.File.parse_name("file://%s" % self.path)
             dest.make_directory(None)
-        except GLib.GError:
-            logger.exception("Warning: Error while trying to create '%s':"
-                    % self.path)
+        except GLib.GError, exc:
+            logger.exception("Warning: Error while trying to create '%s': %s"
+                    % (self.path, exc))
         f = Gio.File.parse_name(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest,
@@ -203,7 +203,8 @@ class PdfDoc(BasicDoc):
 def is_pdf_doc(docpath):
     try:
         filelist = os.listdir(docpath)
-    except OSError:
-        logger.exception("Warning: Failed to list files in %s:" % docpath)
+    except OSError, exc:
+        logger.exception("Warning: Failed to list files in %s:"
+                % (docpath, exc))
         return False
     return PDF_FILENAME in filelist

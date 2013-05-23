@@ -356,8 +356,9 @@ class DocSearch(object):
                 raise IndexError('Schema is not up to date')
 
         except (whoosh.index.EmptyIndexError, IndexError), exc:
-            logger.exception("Failed to open index or bad index '%s'"
+            logger.error("Failed to open index or bad index '%s'"
                    % self.indexdir)
+            logger.error("Exception was: %s" % exc)
             logger.info("Will try to create a new one")
             self.index = whoosh.index.create_in(self.indexdir, self.WHOOSH_SCHEMA)
             logger.info("Index '%s' created" % self.indexdir)
@@ -689,7 +690,7 @@ class DocSearch(object):
             langs --- Languages to use with the spell checker and the OCR tool
                 ( { 'ocr' : 'fra', 'spelling' : 'fr' } )
         """
-        loggeR.info("Redoing OCR of all documents ...")
+        logger.info("Redoing OCR of all documents ...")
 
         dlist = self.docs
         threads = []

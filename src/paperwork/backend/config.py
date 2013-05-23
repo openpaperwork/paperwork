@@ -87,7 +87,7 @@ class PaperworkConfig(object):
                 break
         if not configfile_found:
             logger.info("Config file not found. Will use '%s'"
-					% self.__configfile)
+                    % self.__configfile)
 
     def read(self):
         """
@@ -169,9 +169,10 @@ class PaperworkConfig(object):
                 if ocr_lang in ocr_langs:
                     return ocr_lang
         except Exception, exc:
-            logger.exception("Warning: Failed to figure out system language"
+            logger.error("Warning: Failed to figure out system language"
                    " (locale is [%s]). Will default to %s"
                    % (default_locale_long, default_locale_long))
+            logger.error('Exception was: %s' % exc)
         return self.DEFAULT_OCR_LANG
 
     def __set_ocr_lang(self, lang):
@@ -344,7 +345,7 @@ class PaperworkConfig(object):
             logger.info("Scanner mode set to 'Gray'")
         else:
             logger.warn("WARNING: "
-					"Unable to set scanner mode ! May be 'Lineart'")
+                    "Unable to set scanner mode ! May be 'Lineart'")
         return scanner
 
     def __get_toolbar_visible(self):

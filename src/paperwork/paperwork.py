@@ -44,24 +44,6 @@ LOCALE_PATHS = [
 ]
 
 
-def check_module_version(module_name, module_version, expected_version):
-    """
-    Check that the specified module is up-to-date enough
-    """
-    if module_version < expected_version:
-        raise Exception(("%s is not up-to-date."
-                         " Expected version: %s. Version found: %s")
-                        % (module_name, str(expected_version),
-                           str(module_version)))
-
-
-def check_module_versions():
-    """
-    Check that the required modules are up-to-date enough
-    """
-    check_module_version("pyocr", pyocr.pyocr.VERSION, (0, 1, 1))
-
-
 def set_locale():
     """
     Enable locale support
@@ -104,7 +86,6 @@ def main():
     Where everything start.
     """
     init_logging()
-    check_module_versions()
     set_locale()
 
     GObject.threads_init()

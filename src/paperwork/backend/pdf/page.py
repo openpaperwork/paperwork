@@ -17,6 +17,7 @@
 import cairo
 import codecs
 import os
+import logging
 import pyocr.builders
 import pyocr.pyocr
 
@@ -28,6 +29,7 @@ from paperwork.util import surface2image
 # By default, PDF are too small for a good image rendering
 # so we increase their size
 PDF_RENDER_FACTOR = 2
+logger = logging.getLogger(__name__)
 
 
 class PdfWordBox(object):
@@ -103,7 +105,7 @@ class PdfPage(BasicPage):
                         line = line.strip()
                         txt.append(line)
             except IOError, exc:
-                print "Unable to read [%s]: %s" % (txtfile, str(exc))
+                logger.error("Unable to read [%s]: %s" % (txtfile, str(exc)))
             return txt
 
         except OSError, exc:  # os.stat() failed
@@ -130,7 +132,7 @@ class PdfPage(BasicPage):
                     self.__boxes = box_builder.read_file(file_desc)
                 return self.__boxes
             except IOError, exc:
-                print ("Unable to get boxes for '%s': %s"
+                logger.error("Unable to get boxes for '%s': %s"
                        % (self.doc.docid, exc))
                 # will fall back on pdf boxes
         except OSError, exc:  # os.stat() failed
@@ -182,15 +184,15 @@ class PdfPage(BasicPage):
     def print_page_cb(self, print_op, print_context):
         ctx = print_context.get_cairo_context()
 
-        print "Context: %d x %d" % (print_context.get_width(),
-                                    print_context.get_height())
-        print "Size: %d x %d" % (self.size[0], self.size[1])
+        logger.debug("Context: %d x %d" % (print_context.get_width(),
+                                    print_context.get_height()))
+        logger.debug("Size: %d x %d" % (self.size[0], self.size[1]))
 
         factor_x = float(print_context.get_width()) / float(self.size[0])
         factor_y = float(print_context.get_height()) / float(self.size[1])
         factor = min(factor_x, factor_y)
 
-        print "Scale: %f x %f --> %f" % (factor_x, factor_y, factor)
+        logger.debug("Scale: %f x %f --> %f" % (factor_x, factor_y, factor))
 
         ctx.scale(factor, factor)
 

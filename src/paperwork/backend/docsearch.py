@@ -20,6 +20,7 @@ Also everything related to indexation and searching in the documents (+
 suggestions)
 """
 
+import logging
 import copy
 import datetime
 import multiprocessing
@@ -45,6 +46,7 @@ from paperwork.util import mkdir_p
 from paperwork.util import rm_rf
 from paperwork.util import strip_accents
 
+logger = logging.getLogger(__name__)
 
 DOC_TYPE_LIST = [
     (is_pdf_doc, PdfDoc.doctype, PdfDoc),
@@ -242,7 +244,7 @@ class DocIndexUpdater(GObject.GObject):
         """
         Add a document to the index
         """
-        print "Indexing new doc: %s" % (str(doc))
+        logger.info("Indexing new doc: %s" % doc)
         self._update_doc_in_index(self.writer, doc)
         self.__need_reload = True
 
@@ -250,14 +252,14 @@ class DocIndexUpdater(GObject.GObject):
         """
         Update a document in the index
         """
-        print "Updating modified doc: %s" % (str(doc))
+        logger.info("Updating modified doc: %s" % doc)
         self._update_doc_in_index(self.writer, doc)
 
     def del_doc(self, docid):
         """
         Delete a document
         """
-        print "Removing doc from the index: %s" % (docid)
+        logger.info("Removing doc from the index: %s" % docid)
         self._delete_doc_from_index(self.writer, docid)
         self.__need_reload = True
 
@@ -265,19 +267,19 @@ class DocIndexUpdater(GObject.GObject):
         """
         Apply the changes to the index
         """
-        print "Index: Commiting changes"
+        logger.info("Index: Commiting changes")
         self.writer.commit(optimize=self.optimize)
         del self.writer
         self.docsearch.reload_searcher()
         if self.__need_reload:
-            print "Index: Reloading ..."
+            logger.info("Index: Reloading ...")
             self.docsearch.reload_index(progress_cb=self.progress_cb)
 
     def cancel(self):
         """
         Forget about the changes
         """
-        print "Index: Index update cancelled"
+        logger.info("Index: Index update cancelled")
         self.writer.cancel()
         del self.writer
 
@@ -331,7 +333,7 @@ class DocSearch(object):
         self.label_list = []
 
         try:
-            print ("Opening index dir '%s' ..." % self.indexdir)
+            logger.info("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
         except whoosh.index.EmptyIndexError, exc:
             print ("Failed to open index '%s'" % self.indexdir)
@@ -385,7 +387,7 @@ class DocSearch(object):
                     must_clean = True
                     break
             if must_clean:
-                print "Cleanup: Removing '%s'" % filepath
+                logger.info("Cleanup: Removing '%s'" % filepath)
                 rm_rf(filepath)
         progress_cb(1, 1, self.INDEX_STEP_CLEANING)
 
@@ -418,13 +420,13 @@ class DocSearch(object):
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
                 if doc_type_name_b == doc_type_name:
                     return doc_type(docpath, docid)
-            print ("Warning: unknown doc type found in the index: %s"
+            logger.warn("Warning: unknown doc type found in the index: %s"
                    % doc_type_name)
         # otherwise we guess the doc type
         for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
             if is_doc_type(docpath):
                 return doc_type(docpath, docid)
-        print "Warning: unknown doc type for doc %s" % docid
+        logger.warn("Warning: unknown doc type for doc %s" % docid)
         return None
 
     def get_doc_from_docid(self, docid, doc_type_name=None):
@@ -484,7 +486,7 @@ class DocSearch(object):
         updater.upd_doc(page.doc)
         updater.commit()
         if not page.doc.docid in self.__docs_by_id:
-            print ("Adding document '%s' to the index" % page.doc.docid)
+            logger.info("Adding document '%s' to the index" % page.doc.docid)
             self.__docs_by_id[page.doc.docid] = page.doc
 
     def __find_documents(self, query):
@@ -661,7 +663,7 @@ class DocSearch(object):
             langs --- Languages to use with the spell checker and the OCR tool
                 ( { 'ocr' : 'fra', 'spelling' : 'fr' } )
         """
-        print "Redoing OCR of all documents ..."
+        loggeR.info("Redoing OCR of all documents ...")
 
         dlist = self.docs
         threads = []
@@ -685,13 +687,13 @@ class DocSearch(object):
                                   len(dlist), self.INDEX_STEP_READING,
                                   doc)
             time.sleep(self.OCR_THREADS_POLLING_TIME)
-        print "OCR of all documents done"
+        logger.info("OCR of all documents done")
 
     def destroy_index(self):
         """
         Destroy the index. Don't use this DocSearch object anymore after this
         call. Next instantiation of a DocSearch will rebuild the whole index
         """
-        print "Destroying the index ..."
+        logger.info("Destroying the index ...")
         rm_rf(self.indexdir)
-        print "Done"
+        logger.info("Done")

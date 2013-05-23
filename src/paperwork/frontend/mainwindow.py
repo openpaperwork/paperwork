@@ -23,6 +23,7 @@ import time
 
 import PIL.Image
 import gettext
+import logging
 import cairo
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -55,6 +56,7 @@ from paperwork.util import popup_no_scanner_found
 from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 def check_workdir(config):
@@ -66,7 +68,7 @@ def check_workdir(config):
         os.stat(config.workdir)
         return
     except OSError, exc:
-        print ("Unable to stat dir '%s': %s --> mkdir"
+        logger.error("Unable to stat dir '%s': %s --> mkdir"
                % (config.workdir, exc))
 
     os.mkdir(config.workdir, 0750)
@@ -130,7 +132,7 @@ class WorkerDocIndexLoader(Worker):
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.__main_win.docsearch = docsearch
         except StopIteration:
-            print "Indexation interrupted"
+            logger.error("Indexation interrupted")
         self.emit('index-loading-end')
 
 
@@ -189,7 +191,7 @@ class WorkerDocExaminer(IndependentWorker):
                 self.__on_doc_missing,
                 self.__progress_cb)
         except StopIteration:
-            print "Document examination interrupted"
+            logger.error("Document examination interrupted")
         finally:
             self.emit('doc-examination-end')
 
@@ -495,7 +497,7 @@ class WorkerImgBuilder(Worker):
             original_width = pixbuf.get_width()
 
             factor = self.__main_win.get_zoom_factor(original_width)
-            print "Zoom: %f" % (factor)
+            logger.info("Zoom: %f" % (factor))
 
             wanted_width = int(factor * pixbuf.get_width())
             wanted_height = int(factor * pixbuf.get_height())
@@ -644,11 +646,11 @@ class WorkerSingleScan(Worker):
             try:
                 scanner.options['source'].value = "Auto"
             except (KeyError, pyinsane.rawapi.SaneException), exc:
-                print ("Warning: Unable to set scanner source to 'Auto': %s" %
-                       (str(exc)))
+                logger.exception("Warning: Unable to set scanner source "
+                       "to 'Auto':")
             scan_src = scanner.scan(multiple=False)
         except pyinsane.rawapi.SaneException, exc:
-            print "No scanner found !"
+            logger.error("No scanner found !")
             GObject.idle_add(popup_no_scanner_found, self.__main_win.window)
             self.emit('single-scan-done', None)
             raise
@@ -811,12 +813,12 @@ class ActionOpenSelectedDocument(SimpleAction):
         match_list = self.__main_win.lists['matches']['gui']
         selection_path = match_list.get_selected_items()
         if len(selection_path) <= 0:
-            print "No document selected. Can't open"
+            logger.warn("No document selected. Can't open")
             return
         doc_idx = selection_path[0].get_indices()[0]
         doc = self.__main_win.lists['matches']['model'][doc_idx][1]
 
-        print "Showing doc %s" % doc
+        logger.info("Showing doc %s" % doc)
         self.__main_win.show_doc(doc)
 
 
@@ -978,12 +980,12 @@ class ActionToggleLabel(object):
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels']['model'][objpath][2]
         if not label in self.__main_win.doc.labels:
-            print ("Action: Adding label '%s' on document '%s'"
+            logger.info("Action: Adding label '%s' on document '%s'"
                    % (str(label), str(self.__main_win.doc)))
             self.__main_win.docsearch.add_label(self.__main_win.doc, label)
         else:
-            print ("Action: Removing label '%s' on document '%s'"
-                   % (str(label), str(self.__main_win.doc)))
+            logger.info("Action: Removing label '%s' on document '%s'"
+                   % (label, self.__main_win.doc))
             self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs([self.__main_win.doc])
@@ -1002,8 +1004,8 @@ class ActionCreateLabel(SimpleAction):
         SimpleAction.do(self)
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
-            print "Adding label %s to doc %s" % (str(labeleditor.label),
-                                                 str(self.__main_win.doc))
+            logger.info("Adding label %s to doc %s" % (labeleditor.label,
+                                                 self.__main_win.doc))
             self.__main_win.docsearch.add_label(self.__main_win.doc,
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()
@@ -1024,16 +1026,16 @@ class ActionEditLabel(SimpleAction):
         label_list = self.__main_win.lists['labels']['gui']
         selection_path = label_list.get_selection().get_selected()
         if selection_path[1] is None:
-            print "No label selected"
+            logger.warn("No label selected")
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
         new_label = copy(label)
         editor = LabelEditor(new_label)
         if not editor.edit(self.__main_win.window):
-            print "Label edition cancelled"
+            logger.warn("Label edition cancelled")
             return
-        print "Label edited. Applying changes"
+        logger.info("Label edited. Applying changes")
         if self.__main_win.workers['label_updater'].is_running:
             return
         self.__main_win.workers['label_updater'].start(old_label=label,
@@ -1057,7 +1059,7 @@ class ActionDeleteLabel(SimpleAction):
         label_list = self.__main_win.lists['labels']['gui']
         selection_path = label_list.get_selection().get_selected()
         if selection_path[1] is None:
-            print "No label selected"
+            logger.warn("No label selected")
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
@@ -1165,12 +1167,12 @@ class ActionImport(SimpleAction):
 
         response = dialog.run()
         if response != 0:
-            print "Import: Canceled by user"
+            logger.info("Import: Canceled by user")
             dialog.destroy()
             return None
         file_uri = dialog.get_uri()
         dialog.destroy()
-        print "Import: %s" % file_uri
+        logger.info("Import: %s" % file_uri)
         return file_uri
 
     def __select_importer(self, importers):
@@ -1238,9 +1240,9 @@ class ActionDeleteDoc(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
         SimpleAction.do(self)
-        print "Deleting ..."
+        logger.info("Deleting ...")
         self.__main_win.doc.destroy()
-        print "Deleted"
+        logger.info("Deleted")
         self.__main_win.actions['new_doc'][1].do()
         self.__main_win.actions['reindex'][1].do()
 
@@ -1257,9 +1259,9 @@ class ActionDeletePage(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
         SimpleAction.do(self)
-        print "Deleting ..."
+        logger.info("Deleting ...")
         self.__main_win.page.destroy()
-        print "Deleted"
+        logger.info("Deleted")
         self.__main_win.page = None
         for widget in self.__main_win.need_page_widgets:
             widget.set_sensitive(False)
@@ -1311,7 +1313,7 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['fileFormat']['model'].clear()
         nb_export_formats = 0
         formats = to_export.get_export_formats()
-        print "[Export]: Supported formats: %s" % str(formats)
+        logger.info("[Export]: Supported formats: %s" % formats)
         for out_format in to_export.get_export_formats():
             self.main_win.export['fileFormat']['model'].append([out_format])
             nb_export_formats += 1
@@ -1384,10 +1386,10 @@ class ActionSelectExportFormat(SimpleAction):
         exporter = target.build_exporter(imgformat)
         self.__main_win.export['exporter'] = exporter
 
-        print ("[Export] Format: %s" % (str(exporter)))
-        print ("[Export] Can change quality ? %s"
-               % str(exporter.can_change_quality))
-        print ("[Export] Can_select_format ? %s"
+        logger.info("[Export] Format: %s" % (exporter))
+        logger.info("[Export] Can change quality ? %s"
+               % exporter.can_change_quality)
+        logger("[Export] Can_select_format ? %s"
                % str(exporter.can_select_format))
 
         widgets = [
@@ -1458,7 +1460,7 @@ class ActionSelectExportPath(SimpleAction):
         filepath = chooser.get_filename()
         chooser.destroy()
         if response != Gtk.ResponseType.OK:
-            print "File path for export canceled"
+            logger.warn("File path for export canceled")
             return
 
         valid_exts = self.__main_win.export['exporter'].get_file_extensions()
@@ -1548,7 +1550,7 @@ class ActionZoomChange(SimpleAction):
         for zoom_list_idx in range(0, len(zoom_list)):
             if (zoom_list[zoom_list_idx][0] == 0.0):
                 continue
-            print ("%f <= %f < %f ?" % (zoom_list[zoom_list_idx][0],
+            logger.info("%f <= %f < %f ?" % (zoom_list[zoom_list_idx][0],
                                         current_zoom,
                                         zoom_list[zoom_list_idx+1][0]))
             if (zoom_list[zoom_list_idx][0] <= current_zoom
@@ -1678,7 +1680,7 @@ class ActionRebuildIndex(SimpleAction):
         self.__main_win.workers['index_reloader'].start()
 
     def __on_thumbnailing_end_cb(self):
-        print ("Index loaded and thumbnailing done. Will start refreshing the"
+        logger.info("Index loaded and thumbnailing done. Will start refreshing the"
                " index ...")
         doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
         doc_thumbnailer.disconnect(self.__connect_handler_id)
@@ -1692,16 +1694,16 @@ class ActionRebuildIndex(SimpleAction):
         doc_examiner.start()
 
     def __on_doc_exam_end(self, examiner):
-        print "Document examen finished. Updating index ..."
+        logger.info("Document examen finished. Updating index ...")
         examiner.disconnect(self.__connect_handler_id)
-        print "New document: %d" % len(examiner.new_docs)
-        print "Updated document: %d" % len(examiner.docs_changed)
-        print "Deleted document: %d" % len(examiner.docs_missing)
+        logger.info("New document: %d" % len(examiner.new_docs))
+        logger.info("Updated document: %d" % len(examiner.docs_changed))
+        logger.info("Deleted document: %d" % len(examiner.docs_missing))
 
         if (len(examiner.new_docs) == 0
                 and len(examiner.docs_changed) == 0
                 and len(examiner.docs_missing) == 0):
-            print "No changes"
+            logger.info("No changes")
             return
 
         self.__main_win.workers['index_updater'].start(
@@ -1725,9 +1727,9 @@ class ActionEditPage(SimpleAction):
         todo = ped.get_changes()
         if todo == []:
             return
-        print "Changes to do to the page %s:" % (self.__main_win.page)
+        logger.info("Changes to do to the page %s:" % (self.__main_win.page))
         for action in todo:
-            print "- %s" % str(action)
+            logger.info("- %s" % action)
         self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
                                                      changes=todo)
 
@@ -2219,7 +2221,7 @@ class MainWindow(object):
         for action in self.actions:
             for button in self.actions[action][0]:
                 if button is None:
-                    print "MISSING BUTTON: %s" % (action)
+                    logger.warn("MISSING BUTTON: %s" % (action))
             self.actions[action][1].connect(self.actions[action][0])
 
         for (buttons, action) in self.actions.values():
@@ -2561,12 +2563,12 @@ class MainWindow(object):
         self.workers['page_thumbnailer'].soft_stop()
         self.workers['doc_thumbnailer'].stop()
 
-        print "Got %d suggestions" % len(suggestions)
+        logger.info("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
         for suggestion in suggestions:
             self.lists['suggestions']['model'].append([suggestion])
 
-        print "Got %d documents" % len(documents)
+        logger.info("Got %d documents" % len(documents))
         self.lists['matches']['model'].clear()
         active_idx = -1
         idx = 0
@@ -2926,7 +2928,7 @@ class MainWindow(object):
 
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        print "Search: %s" % (sentence.encode('utf-8', 'replace'))
+        logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
 
         doc_list = self.lists['matches']['doclist']
 
@@ -3009,8 +3011,8 @@ class MainWindow(object):
             try:
                 doc_idx = doc_list.index(doc)
             except ValueError, err:
-                print ("Warning: Should refresh doc %s in doc list, but"
-                       " didn't find it !" % str(doc))
+                logger.error("Warning: Should refresh doc %s in doc list, but"
+                       " didn't find it !" % doc)
                 continue
             doc_indexes.append(doc_idx)
             if self.doc == doc:
@@ -3086,12 +3088,12 @@ class MainWindow(object):
         self.img['image'].queue_draw()
 
     def show_page(self, page):
-        print "Showing page %s" % (str(page))
+        logging.info("Showing page %s" % page)
 
         self.workers['img_builder'].stop()
 
         if self.export['exporter'] is not None:
-            print "Canceling export"
+            logging.info("Canceling export")
             self.actions['cancel_export'][1].do()
 
         for widget in self.need_page_widgets:
@@ -3179,7 +3181,7 @@ class MainWindow(object):
 
         self.workers['img_builder'].soft_stop()
         self.img['viewport']['size'] = new_size
-        print ("Image view port resized. (%d, %d) --> (%d, %d)"
+        logger.info("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
 
         # check if zoom level is set to adjusted, if yes,
@@ -3213,14 +3215,14 @@ class MainWindow(object):
     def __on_page_list_drag_data_get_cb(self, widget, drag_context,
                                         selection_data, info, time):
         pageid = unicode(self.page.pageid)
-        print "[page list] drag-data-get: %s" % self.page.pageid
+        logger.info("[page list] drag-data-get: %s" % self.page.pageid)
         selection_data.set_text(pageid, -1)
 
     def __on_page_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                              selection_data, info, time):
         target = self.lists['pages']['gui'].get_dest_item_at_pos(x, y)
         if target is None:
-            print "[page list] drag-data-received: no target. aborting"
+            logger.warn("[page list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
@@ -3229,7 +3231,7 @@ class MainWindow(object):
             target_idx += 1
         obj_id = selection_data.get_text()
 
-        print "[page list] drag-data-received: %s -> %s" % (obj_id, target_idx)
+        logger.info("[page list] drag-data-received: %s -> %s" % (obj_id, target_idx))
         obj = self.docsearch.get_by_id(obj_id)
         # TODO(Jflesch): Instantiate an ActionXXX to do that, so
         # this action can be cancelled later
@@ -3244,7 +3246,7 @@ class MainWindow(object):
         obj_id = selection_data.get_text()
         target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
         if target is None:
-            print "[page list] drag-data-received: no target. aborting"
+            logger.warn("[page list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
@@ -3253,18 +3255,18 @@ class MainWindow(object):
         obj = self.docsearch.get_by_id(obj_id)
 
         if not target_doc.can_edit:
-            print ("[doc list] drag-data-received: Destination document"
+            logger.warn("[doc list] drag-data-received: Destination document"
                    " can't be modified")
             drag_context.finish(False, False, time)
             return
 
         if target_doc == obj.doc:
-            print ("[doc list] drag-data-received: Source and destination docs"
+            logger.info("[doc list] drag-data-received: Source and destination docs"
                    " are the same. Nothing to do")
             drag_context.finish(False, False, time)
             return
 
-        print ("[doc list] drag-data-received: %s -> %s"
+        logger.info("[doc list] drag-data-received: %s -> %s"
                % (obj_id, target_doc.docid))
         # TODO(Jflesch): Instantiate an ActionXXX to do that, so
         # it can be cancelled later

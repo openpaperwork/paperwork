@@ -20,6 +20,7 @@ Various tiny functions that didn't fit anywhere else.
 import errno
 import os
 import re
+import logging
 import StringIO
 import threading
 import unicodedata
@@ -36,6 +37,7 @@ from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
@@ -137,11 +139,11 @@ def load_uifile(filename):
         try:
             widget_tree.add_from_file(ui_file)
         except GLib.GError, exc:
-            print ("Tried to use UI file %s but failed: %s"
+            logging.error("Tried to use UI file %s but failed: %s"
                    % (ui_file, str(exc)))
             continue
         has_ui_file = True
-        print "UI file used: " + ui_file
+        logging.info("UI file used: " + ui_file)
         break
     if not has_ui_file:
         raise Exception("Can't find resource file. Aborting")
@@ -210,7 +212,7 @@ def popup_no_scanner_found(parent):
     """
     # TODO(Jflesch): should be in paperwork.frontend
     # Pyinsane doesn't return any specific exception :(
-    print "Showing popup !"
+    logger.info("Showing popup !")
     msg = _("No scanner found (is your scanner turned on ?)")
     dialog = Gtk.MessageDialog(parent=parent,
                                flags=Gtk.DialogFlags.MODAL,
@@ -238,7 +240,7 @@ def ask_confirmation(parent):
     response = confirm.run()
     confirm.destroy()
     if response != Gtk.ResponseType.YES:
-        print "User cancelled"
+        logging.info("User cancelled")
         return False
     return True
 
@@ -323,7 +325,7 @@ def check_spelling(spelling_lang, txt):
                 # hm, this word looks like it's in a bad shape
                 continue
 
-            print ("Spell checking: Replacing: %s -> %s"
+            logging.info("Spell checking: Replacing: %s -> %s"
                    % (word, main_suggestion))
 
             # let's replace the word by its suggestion
@@ -364,10 +366,10 @@ def rm_rf(path):
         for root, dirs, files in os.walk(path, topdown=False):
             for filename in files:
                 filepath = os.path.join(root, filename)
-                print "Deleting file %s" % filepath
+                logging.info("Deleting file %s" % filepath)
                 os.unlink(filepath)
             for dirname in dirs:
                 dirpath = os.path.join(root, dirname)
-                print "Deleting dir %s" % dirpath
+                logging.info("Deleting dir %s" % dirpath)
                 os.rmdir(dirpath)
         os.rmdir(path)

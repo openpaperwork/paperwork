@@ -91,7 +91,12 @@ def init_logging():
     logger = logging.getLogger()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel({
+        "DEBUG" : logging.DEBUG,
+        "INFO" : logging.INFO,
+        "WARNING" : logging.WARNING,
+        "ERROR" : logging.ERROR,
+    }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
 
 
 def main():

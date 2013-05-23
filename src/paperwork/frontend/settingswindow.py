@@ -23,6 +23,7 @@ import sys
 import time
 
 import gettext
+import logging
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -40,6 +41,7 @@ from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 RECOMMENDED_RESOLUTION = 300
 
@@ -74,13 +76,13 @@ class WorkerDeviceFinder(Worker):
     def do(self):
         self.emit("device-finding-start")
         try:
-            print "Looking for scan devices ..."
+            logger.info("Looking for scan devices ...")
             sys.stdout.flush()
             devices = pyinsane.get_devices()
             for device in devices:
                 selected = (self.__selected_devid == device.name)
                 name = self.__get_dev_name(device)
-                print "Device found: [%s] -> [%s]" % (name, device.name)
+                logger.info("Device found: [%s] -> [%s]" % (name, device.name))
                 sys.stdout.flush()
                 self.emit('device-found', name, device.name, selected)
         finally:
@@ -125,11 +127,11 @@ class WorkerResolutionFinder(Worker):
     def do(self, devid):
         self.emit("resolution-finding-start")
         try:
-            print "Looking for resolution of device [%s]" % (devid)
+            logger.info("Looking for resolution of device [%s]" % (devid))
             device = pyinsane.Scanner(name=devid)
             sys.stdout.flush()
             resolutions = device.options['resolution'].constraint
-            print "Resolutions found: %s" % (str(resolutions))
+            logger.info("Resolutions found: %s" % resolutions)
             sys.stdout.flush()
             # Sometimes sane return the resolutions as a integer array,
             # sometimes as a range (-> tuple). So if it is a range, we turn
@@ -177,22 +179,22 @@ class WorkerCalibrationScan(Worker):
         try:
             dev.options['source'].value = "Auto"
         except (KeyError, pyinsane.rawapi.SaneException), exc:
-            print ("Warning: Unable to set scanner source to 'Auto': %s" %
-                   (str(exc)))
+            logger.error("Warning: Unable to set scanner source to 'Auto': %s"
+                   % exc)
         try:
             resolution = PaperworkConfig.CALIBRATION_RESOLUTION
             dev.options['resolution'].value = resolution
         except pyinsane.rawapi.SaneException:
-            print ("Warning: Unable to set scanner resolution to %d: %s" %
-                   (PaperworkConfig.CALIBRATION_RESOLUTION, str(exc)))
+            logger.error("Warning: Unable to set scanner resolution to %d: %s"
+                    % (PaperworkConfig.CALIBRATION_RESOLUTION, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
-            print "Scanner mode set to 'Color'"
+            logger.info("Scanner mode set to 'Color'")
         elif "Gray" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Gray"
-            print "Scanner mode set to 'Gray'"
+            logger.info("Scanner mode set to 'Gray'")
         else:
-            print "WARNING: Unable to set scanner mode ! May be 'Lineart'"
+            logger.warn("WARNING: Unable to set scanner mode ! May be 'Lineart'")
 
         scan_inst = dev.scan(multiple=False)
         try:
@@ -209,7 +211,7 @@ class WorkerCalibrationScan(Worker):
         # resize
         orig_img_size = orig_img.getbbox()
         orig_img_size = (orig_img_size[2], orig_img_size[3])
-        print "Calibration: Got an image of size '%s'" % (str(orig_img_size))
+        logger.info("Calibration: Got an image of size '%s'" % orig_img_size)
 
         target_alloc = self.target_viewport.get_allocation()
         max_width = target_alloc.width
@@ -225,8 +227,8 @@ class WorkerCalibrationScan(Worker):
         target_height = int(factor * orig_img_size[1])
         target = (target_width, target_height)
 
-        print ("Calibration: Will resize it to: (%s) (ratio: %f)"
-               % (str(target), factor))
+        logger.info("Calibration: Will resize it to: (%s) (ratio: %f)"
+               % (target, factor))
 
         resized_img = orig_img.resize(target, PIL.Image.BILINEAR)
         self.emit('calibration-resize-done', factor, resized_img)
@@ -252,7 +254,7 @@ class ActionSelectScanner(SimpleAction):
             res_settings['gui'].set_sensitive(False)
             self.__settings_win.calibration["scan_button"].set_sensitive(False)
             return
-        print "Select scanner: %d" % idx
+        logger.info("Select scanner: %d" % idx)
         self.__settings_win.calibration["scan_button"].set_sensitive(True)
         devid = settings['stores']['loaded'][idx][1]
         self.__settings_win.workers['resolution_finder'].start(devid=devid)
@@ -525,10 +527,9 @@ class SettingsWindow(GObject.GObject):
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))
             except KeyError, exc:
-                print ("Warning: Long name not found for language '%s'."
-                       % (short_lang))
-                print ("  Exception was: %s" % (str(exc)))
-                print ("  Will use short name as long name.")
+                logger.error("Warning: Long name not found for language "
+                        "'%s'." % short_lang)
+                logger.warn("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))
         return langs
 
@@ -563,7 +564,7 @@ class SettingsWindow(GObject.GObject):
     def __on_value_found_cb(self, settings,
                             user_name, store_name, active):
         store_line = [user_name, store_name]
-        print "Got value [%s]" % (str(store_line))
+        logger.info("Got value [%s]" % store_line)
         settings['stores']['loaded'].append(store_line)
         if active:
             settings['active_idx'] = settings['nb_elements']
@@ -625,7 +626,7 @@ class SettingsWindow(GObject.GObject):
     def __on_destroy(self, window=None):
         for worker in self.workers.values():
             worker.stop()
-        print "Settings window destroyed"
+        logger.info("Settings window destroyed")
 
     def hide(self):
         """

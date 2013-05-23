@@ -15,6 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import gettext
+import logging
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -28,6 +29,7 @@ from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class DocScanWorker(Worker):
@@ -78,8 +80,8 @@ class DocScanWorker(Worker):
                 self.docsearch.index_page(page)
                 self.emit('scan-done', page, self.nb_pages)
             except StopIteration:
-                print ("Warning: Feeder appears to be empty and we haven't"
-                       " scanned all the pages yet !")
+                logger.error("Warning: Feeder appears to be empty and we "
+                       "haven't scanned all the pages yet !")
         self.current_page = None
 
 
@@ -117,11 +119,11 @@ class ActionSelectDoc(SimpleAction):
         SimpleAction.do(self)
         selection = self.__dialog.lists['docs']['gui'].get_selection()
         if selection is None:
-            print "No doc selected"
+            logger.warn("No doc selected")
             return
         (model, selection_iter) = selection.get_selected()
         if selection_iter is None:
-            print "No doc selected"
+            logger.warn("No doc selected")
             return
         val = model.get_value(selection_iter, 5)
         self.__dialog.removeDocButton.set_sensitive(val)
@@ -137,7 +139,7 @@ class ActionRemoveDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            print "No doc selected"
+            logger.warn("No doc selected")
             return
         model.remove(selection_iter)
         for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
@@ -158,7 +160,7 @@ class ActionStartEditDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            print "No doc selected"
+            logger.warn("No doc selected")
             return
         self.__dialog.lists['docs']['gui'].set_cursor(
             model.get_path(selection_iter),
@@ -177,7 +179,7 @@ class ActionEndEditDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            print "No doc selected"
+            logger.warn("No doc selected")
             return
         line = model[selection_iter]
         int(new_text)  # make sure it's a valid number
@@ -197,7 +199,7 @@ class ActionScan(SimpleAction):
         try:
             scanner = self.__config.get_scanner_inst()
         except Exception:
-            print "No scanner found !"
+            logger.error("No scanner found !")
             GObject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
             raise
 
@@ -216,12 +218,12 @@ class ActionScan(SimpleAction):
         try:
             scanner.options['source'].value = "ADF"
         except (KeyError, pyinsane.rawapi.SaneException), exc:
-            print ("Warning: Unable to set scanner source to 'Auto': %s" %
-                   (str(exc)))
+            logger.error("Warning: Unable to set scanner source to 'Auto': %s"
+                   % exc)
         try:
             scan_src = scanner.scan(multiple=True)
         except Exception:
-            print "No scanner found !"
+            logger.error("No scanner found !")
             GObject.idle_add(popup_no_scanner_found, self.__dialog.dialog)
             raise
 
@@ -423,6 +425,6 @@ class MultiscanDialog(GObject.GObject):
     def __on_destroy(self, window=None):
         if self.scan_queue.is_running:
             self.scan_queue.stop()
-        print "Multi-scan dialog destroyed"
+        logger.info("Multi-scan dialog destroyed")
 
 GObject.type_register(MultiscanDialog)

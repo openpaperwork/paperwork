@@ -21,6 +21,7 @@ Bootstrapping code
 import os
 
 import gettext
+import logging
 from gi.repository import GObject
 from gi.repository import Gtk
 import locale
@@ -32,6 +33,8 @@ from frontend import mainwindow
 from frontend import workers
 from backend.config import PaperworkConfig
 
+
+logger = logging.getLogger(__name__)
 
 LOCALE_PATHS = [
     ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
@@ -68,23 +71,34 @@ def set_locale():
     got_locales = False
     locales_path = None
     for (fr_locale_path, locales_path) in LOCALE_PATHS:
-        print "Looking for locales in '%s' ..." % (fr_locale_path)
+        logger.info("Looking for locales in '%s' ..." % (fr_locale_path))
         if os.access(fr_locale_path, os.R_OK):
-            print "Will use locales from '%s'" % (locales_path)
+            logging.info("Will use locales from '%s'" % (locales_path))
             got_locales = True
             break
     if not got_locales:
-        print "WARNING: Locales not found"
+        logger.warn("WARNING: Locales not found")
     else:
         for module in (gettext, locale):
             module.bindtextdomain('paperwork', locales_path)
             module.textdomain('paperwork')
 
 
+def init_logging():
+    formatter = logging.Formatter(
+            '%(levelname)-6s %(name)-30s %(message)s')
+    handler = logging.StreamHandler()
+    logger = logging.getLogger()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+
 def main():
     """
     Where everything start.
     """
+    init_logging()
     check_module_versions()
     set_locale()
 
@@ -99,7 +113,7 @@ def main():
         Gtk.main()
     finally:
         workers.halt()
-        print "Good bye"
+        logger.warn("Good bye")
 
 
 if __name__ == "__main__":

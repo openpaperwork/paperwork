@@ -1,4 +1,5 @@
 import gettext
+import logging
 
 from gi.repository import Gtk
 
@@ -7,6 +8,7 @@ from paperwork.util import load_uifile
 
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class LabelEditor(object):
@@ -48,15 +50,15 @@ class LabelEditor(object):
             response = Gtk.ResponseType.CANCEL
 
         if (response == Gtk.ResponseType.OK):
-            print "Label validated"
+            logger.info("Label validated")
             self.label.name = unicode(name_entry.get_text(), encoding='utf-8')
             self.label.color = color_chooser.get_current_color()
         else:
-            print "Label editing cancelled"
+            logger.info("Label editing cancelled")
 
         dialog.destroy()
 
-        print "Label after editing: %s" % (self.label)
+        logger.info("Label after editing: %s" % self.label)
         return (response == Gtk.ResponseType.OK)
 
     def __on_label_entry_changed(self, label_entry):

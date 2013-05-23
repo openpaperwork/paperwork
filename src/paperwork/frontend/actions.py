@@ -14,7 +14,11 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from gi.repository import Gtk
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleAction(object):
@@ -41,7 +45,7 @@ class SimpleAction(object):
         self.enabled = True
 
     def do(self, **kwargs):
-        print "Action: [%s]" % (self.name)
+        logger.info("Action: [%s]" % (self.name))
 
     def __do(self, **kwargs):
         if not self.enabled:

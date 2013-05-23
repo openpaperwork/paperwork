@@ -24,6 +24,7 @@ import errno
 import os
 import os.path
 import time
+import logging
 
 import cairo
 from gi.repository import Gio
@@ -36,6 +37,8 @@ from paperwork.util import dummy_progress_cb
 from paperwork.util import surface2image
 from paperwork.util import image2surface
 from paperwork.util import mkdir_p
+
+logger = logging.getLogger(__name__)
 
 
 class ImgToPdfDocExporter(object):
@@ -261,7 +264,7 @@ class ImgDoc(BasicDoc):
             return count
         except OSError, exc:
             if exc.errno != errno.ENOENT:
-                print ("Exception while trying to get the number of pages of "
+                logging.error("Exception while trying to get the number of pages of "
                        "'%s': %s" % (self.docid, exc))
                 raise
             return 0
@@ -338,7 +341,7 @@ class ImgDoc(BasicDoc):
         other_doc_nb_pages = page.doc.nb_pages
 
         new_page = ImgPage(self, self.nb_pages)
-        print "%s --> %s" % (str(page), str(new_page))
+        logger.info("%s --> %s" % (str(page), str(new_page)))
         new_page._steal_content(page)
         self.drop_cache()
 
@@ -361,7 +364,7 @@ def is_img_doc(docpath):
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:
-        print "Warning: Failed to list files in %s: %s" % (docpath, str(exc))
+        logging.warn("Warning: Failed to list files in %s: %s" % (docpath, str(exc)))
         return False
     for filename in filelist:
         if ".jpg" in filename.lower():

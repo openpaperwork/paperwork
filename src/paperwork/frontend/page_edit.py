@@ -16,6 +16,7 @@
 
 import PIL.Image
 import gettext
+import logging
 
 from gi.repository import GObject
 
@@ -23,8 +24,8 @@ from paperwork.frontend.img_cutting import ImgGripHandler
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
-
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class PageEditionAction(object):
@@ -185,7 +186,7 @@ class PageEditingDialog(object):
             if button == widget:
                 break
         assert(button is not None)
-        print "Adding action rotation of %d degrees" % angle
+        logger.info("Adding action rotation of %d degrees" % angle)
         rotation = PageRotationAction(angle)
         rotation.add_to_action_queue(self.__changes)
         self.__redraw_result()
@@ -201,6 +202,6 @@ class PageEditingDialog(object):
         resp_id = self.__dialog.run()
         self.__dialog.destroy()
         if resp_id == 1:  # cancel
-            print "Image editing cancelled by user"
+            logger.info("Image editing cancelled by user")
             return []
         return self.__changes

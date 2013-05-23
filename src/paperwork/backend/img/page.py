@@ -260,7 +260,7 @@ class ImgPage(BasicPage):
         OCR will have to decide which is the best
         """
         logger.info("Scanner resolution: %d" % (scan_res))
-        logger.info("Scanner calibration: %s" % scanner_calibration)
+        logger.info("Scanner calibration: %s" % str(scanner_calibration))
         logger.info("Calibration resolution: %d"
                % PaperworkConfig.CALIBRATION_RESOLUTION)
         if scan_res != 0 and scanner_calibration is not None:
@@ -276,7 +276,7 @@ class ImgPage(BasicPage):
                         scanner_calibration[1][1]
                         * scan_res
                         / PaperworkConfig.CALIBRATION_RESOLUTION)
-            logging.info("Cropping: %s" % cropping)
+            logging.info("Cropping: %s" % str(cropping))
             img = img.crop(cropping)
 
         img.load()  # WORKAROUND: For PIL on ArchLinux

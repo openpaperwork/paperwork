@@ -165,7 +165,7 @@ class PdfPage(BasicPage):
         # context. It would be much more efficient.
 
         if factor not in self.__img_cache:
-            logger.info('PdfPage: building img from pdf with factor: %s'
+            logger.debug('Building img from pdf with factor: %s'
                     % factor)
             width = int(factor * self.size[0])
             height = int(factor * self.size[1])

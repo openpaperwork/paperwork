@@ -36,7 +36,7 @@ class _WorkerThread(object):
         self.thread.start()
 
     def run(self):
-        logger.info("Workers: Worker thread started")
+        logger.debug("Workers: Worker thread started")
 
         while True:
             self._running = None
@@ -44,7 +44,7 @@ class _WorkerThread(object):
             self._running = self._todo.pop()
             (worker, kwargs) = self._running
             if worker is None:
-                logger.info("Workers: Worker thread halting")
+                logger.debug("Workers: Worker thread halting")
                 return
             try:
                 worker._wrapper(**kwargs)
@@ -52,15 +52,15 @@ class _WorkerThread(object):
                 logger.exception("Worker [%s] raised an exception:"
                         % worker.name)
 
-        logger.info("Workers: Worker thread stopped")
+        logger.debug("Workers: Worker thread stopped")
 
     def queue_worker(self, worker, kwargs):
-        logger.info("Workers: Queueing [%s]" % (worker.name))
+        logger.debug("Workers: Queueing [%s]" % (worker.name))
         self._todo.append((worker, kwargs))
         self._sem.release()
 
     def halt(self):
-        logger.info("Workers: Requesting halt")
+        logger.debug("Workers: Requesting halt")
         self._todo.append((None, None))
         self._sem.release()
 
@@ -100,18 +100,18 @@ class BasicWorker(GObject.GObject):
             return
         self.is_running = True
         if "resume" in kwargs:
-            logger.info("Workers: [%s] resumed" % (self.name))
+            logger.debug("Workers: [%s] resumed" % (self.name))
         else:
-            logger.info("Workers: [%s] started" % (self.name))
+            logger.debug("Workers: [%s] started" % (self.name))
         try:
             return self.do(**kwargs)
         finally:
             self.is_running = False
             self.__started_by = None
             if self.paused:
-                logger.info("Workers: [%s] paused" % (self.name))
+                logger.debug("Workers: [%s] paused" % (self.name))
             else:
-                logger.info("Workers: [%s] ended" % (self.name))
+                logger.debug("Workers: [%s] ended" % (self.name))
 
     def start(self, **kwargs):
         if self.is_running and self.can_run:
@@ -132,7 +132,7 @@ class BasicWorker(GObject.GObject):
         self.can_run = True
 
     def soft_stop(self):
-        logger.info("Stopping worker [%s]" % (self))
+        logger.debug("Stopping worker [%s]" % (self))
         if not self.can_interrupt and self.is_running:
             logger.warn("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
@@ -189,7 +189,7 @@ class Worker(BasicWorker):
         self.__last_args = kwargs
         paused = self.__pause_all()
         try:
-            logger.info("Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
+            logger.debug("Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
                                           self.is_running))
             if not self.__is_in_queue:
                 _WORKER_THREAD.queue_worker(self, kwargs)
@@ -241,7 +241,7 @@ class IndependentWorker(BasicWorker):
         self.thread.start()
 
     def stop(self):
-        logger.info("Stopping worker [%s]" % (self))
+        logger.debug("Stopping worker [%s]" % (self))
         self.soft_stop()
         self.wait()
 
@@ -286,10 +286,10 @@ class IndependentWorkerQueue(IndependentWorker):
             try:
                 while len(self.__queue) > 0 and self.can_run:
                     self.__current_worker = self.__queue.pop(0)
-                    logger.info("Queue [%s]: Starting worker [%s]"
+                    logger.debug("Queue [%s]: Starting worker [%s]"
                            % (self.name, self.__current_worker.name))
                     self.__current_worker.do(**kwargs)
-                    logger.info("Queue [%s]: Worker [%s] has ended"
+                    logger.debug("Queue [%s]: Worker [%s] has ended"
                            % (self.name, self.__current_worker.name))
             except Exception, exc:
                 exception = exc

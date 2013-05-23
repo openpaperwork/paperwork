@@ -136,17 +136,14 @@ def load_uifile(filename):
     has_ui_file = False
     for ui_dir in UI_FILES_DIRS:
         ui_file = os.path.join(ui_dir, filename)
-        try:
+        if os.access(ui_file, os.R_OK):
+            logging.info("UI file used: " + ui_file)
             widget_tree.add_from_file(ui_file)
-        except GLib.GError, exc:
-            logging.error("Tried to use UI file %s but failed: %s"
-                   % (ui_file, str(exc)))
-            continue
-        has_ui_file = True
-        logging.info("UI file used: " + ui_file)
-        break
+            has_ui_file = True
+            break
     if not has_ui_file:
-        raise Exception("Can't find resource file. Aborting")
+        logging.error("Can't find resource file '%s'. Aborting" % filename)
+        raise Exception("Can't find resource file '%s'. Aborting" % filename)
     return widget_tree
 
 
@@ -325,7 +322,7 @@ def check_spelling(spelling_lang, txt):
                 # hm, this word looks like it's in a bad shape
                 continue
 
-            logging.info("Spell checking: Replacing: %s -> %s"
+            logging.debug("Spell checking: Replacing: %s -> %s"
                    % (word, main_suggestion))
 
             # let's replace the word by its suggestion

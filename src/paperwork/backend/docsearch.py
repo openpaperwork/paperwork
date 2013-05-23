@@ -207,8 +207,7 @@ class DocIndexUpdater(GObject.GObject):
         docid = unicode(doc.docid)
         txt = u""
         for page in doc.pages:
-            for line in page.text:
-                txt += unicode(line) + u"\n"
+            txt += u"\n".join([unicode(line) for line in page.text])
         extra_txt = doc.extra_text
         if extra_txt != u"":
             txt += extra_txt + u"\n"

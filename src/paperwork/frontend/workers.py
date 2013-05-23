@@ -16,11 +16,14 @@
 
 import os
 import sys
+import logging
 import threading
 import time
 import traceback
 
 from gi.repository import GObject
+
+logger = logging.getLogger(__name__)
 
 
 class _WorkerThread(object):
@@ -33,7 +36,7 @@ class _WorkerThread(object):
         self.thread.start()
 
     def run(self):
-        print "Workers: Worker thread started"
+        logger.info("Workers: Worker thread started")
 
         while True:
             self._running = None
@@ -41,24 +44,23 @@ class _WorkerThread(object):
             self._running = self._todo.pop()
             (worker, kwargs) = self._running
             if worker is None:
-                print "Workers: Worker thread halting"
+                logger.info("Workers: Worker thread halting")
                 return
             try:
                 worker._wrapper(**kwargs)
             except Exception, exc:
-                print ("Worker [%s] raised an exception: %s"
-                       % (worker.name, str(exc)))
-                traceback.print_exc(file=sys.stdout)
+                logger.exception("Worker [%s] raised an exception:"
+                        % worker.name)
 
-        print "Workers: Worker thread stopped"
+        logger.info("Workers: Worker thread stopped")
 
     def queue_worker(self, worker, kwargs):
-        print "Workers: Queueing [%s]" % (worker.name)
+        logger.info("Workers: Queueing [%s]" % (worker.name))
         self._todo.append((worker, kwargs))
         self._sem.release()
 
     def halt(self):
-        print "Workers: Requesting halt"
+        logger.info("Workers: Requesting halt")
         self._todo.append((None, None))
         self._sem.release()
 
@@ -98,31 +100,31 @@ class BasicWorker(GObject.GObject):
             return
         self.is_running = True
         if "resume" in kwargs:
-            print "Workers: [%s] resumed" % (self.name)
+            logger.info("Workers: [%s] resumed" % (self.name))
         else:
-            print "Workers: [%s] started" % (self.name)
+            logger.info("Workers: [%s] started" % (self.name))
         try:
             return self.do(**kwargs)
         finally:
             self.is_running = False
             self.__started_by = None
             if self.paused:
-                print "Workers: [%s] paused" % (self.name)
+                logger.info("Workers: [%s] paused" % (self.name))
             else:
-                print "Workers: [%s] ended" % (self.name)
+                logger.info("Workers: [%s] ended" % (self.name))
 
     def start(self, **kwargs):
         if self.is_running and self.can_run:
-            print "====="
-            print "ERROR"
-            print "Thread '%s' was already started by:" % (self.name)
+            logger.error("=====")
+            logger.error("ERROR")
+            logger.error("Thread '%s' was already started by:" % (self.name))
             idx = 0
             for stack_el in self.__started_by:
-                print ("%2d: %20s: L%5d: %s"
+                logger.error("%2d: %20s: L%5d: %s"
                        % (idx, os.path.basename(stack_el[0]),
                           stack_el[1], stack_el[2]))
                 idx += 1
-            print "====="
+            logger.error("=====")
             raise threading.ThreadError(
                 ("Tried to start a thread already running: %s"
                  % (self.name)))
@@ -130,9 +132,9 @@ class BasicWorker(GObject.GObject):
         self.can_run = True
 
     def soft_stop(self):
-        print "Stopping worker [%s]" % (self)
+        logger.info("Stopping worker [%s]" % (self))
         if not self.can_interrupt and self.is_running:
-            print ("Trying to stop worker [%s], but it cannot be stopped"
+            logger.warn("Trying to stop worker [%s], but it cannot be stopped"
                    % (self.name))
         self.can_run = False
 
@@ -187,8 +189,8 @@ class Worker(BasicWorker):
         self.__last_args = kwargs
         paused = self.__pause_all()
         try:
-            print "Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
-                                          str(self.is_running))
+            logger.info("Worker %s: %d ; %s" % (self.name, self.__is_in_queue,
+                                          self.is_running))
             if not self.__is_in_queue:
                 _WORKER_THREAD.queue_worker(self, kwargs)
                 self.__is_in_queue = True
@@ -239,7 +241,7 @@ class IndependentWorker(BasicWorker):
         self.thread.start()
 
     def stop(self):
-        print "Stopping worker [%s]" % (self)
+        logger.info("Stopping worker [%s]" % (self))
         self.soft_stop()
         self.wait()
 
@@ -284,10 +286,10 @@ class IndependentWorkerQueue(IndependentWorker):
             try:
                 while len(self.__queue) > 0 and self.can_run:
                     self.__current_worker = self.__queue.pop(0)
-                    print ("Queue [%s]: Starting worker [%s]"
+                    logger.info("Queue [%s]: Starting worker [%s]"
                            % (self.name, self.__current_worker.name))
                     self.__current_worker.do(**kwargs)
-                    print ("Queue [%s]: Worker [%s] has ended"
+                    logger.info("Queue [%s]: Worker [%s] has ended"
                            % (self.name, self.__current_worker.name))
             except Exception, exc:
                 exception = exc

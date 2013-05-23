@@ -218,8 +218,6 @@ class DocIndexUpdater(GObject.GObject):
         extra_txt = doc.extra_text
         if extra_txt != u"":
             txt += extra_txt + u"\n"
-        for label in doc.labels:
-            txt += u" " + unicode(label.name)
         txt = txt.strip()
         txt = strip_accents(txt)
         if txt == u"":
@@ -371,6 +369,13 @@ class DocSearch(object):
                  prefixlength=0, constantscore=True):
                 whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
                  prefixlength, constantscore=True)
+
+        self.query_parser_list.append(whoosh.qparser.SimpleParser("label",
+                                            schema=self.index.schema,
+                                            termclass=whoosh.qparser.query.Prefix))
+        self.query_parser_list.append(whoosh.qparser.SimpleParser("label",
+                                            schema=self.index.schema,
+                                            termclass=CustomFuzzy))
 
         self.query_parser_list.append(whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
@@ -557,9 +562,9 @@ class DocSearch(object):
             result_list_list.append(self.__searcher.search(query, limit=None))
 
         # merging results
-        results =  result_list_list.pop()
-        for result_intermediate in result_list_list:
-            results.upgrade_and_extend(result_intermediate)
+        results = result_list_list[0]
+        for result_intermediate in result_list_list[1:]:
+            results.extend(result_intermediate)
 
         docs = [self.__docs_by_id.get(result['docid']) for result in results]
         try:

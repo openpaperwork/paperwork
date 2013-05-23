@@ -183,9 +183,16 @@ class ImgPage(BasicPage):
         """
         boxfile = self.__box_path
 
-        box_builder = pyocr.builders.LineBoxBuilder()
-
         try:
+            box_builder = pyocr.builders.LineBoxBuilder()
+            with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
+                boxes = box_builder.read_file(file_desc)
+            if boxes != []:
+                return boxes
+            # fallback: old format: word boxes
+            # shouldn't be used anymore ...
+            print "WARNING: Doc %s uses old box format" % (str(self.doc))
+            box_builder = pyocr.builders.WordBoxBuilder()
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                 boxes = box_builder.read_file(file_desc)
             return boxes

@@ -20,6 +20,8 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 
+import pyinsane.abstract_th as pyinsane
+
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.workers import Worker
 from paperwork.frontend.workers import IndependentWorkerQueue

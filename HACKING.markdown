@@ -12,6 +12,13 @@ I don't always do it. Because sometimes I forget the rules or because
 sometimes I don't care. Anyway, do as I say, not as I do :)
 
 
+## Increasing verbose
+
+You can use the environment variable 'PAPERWORK\_VERBOSE' to increase or
+decrease the logging level. The accepted values are: DEBUG, INFO, WARNING,
+ERROR.
+
+
 ## Documents organisation
 
 workdir|rootdir = ~/papers

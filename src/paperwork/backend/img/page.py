@@ -105,7 +105,7 @@ class ImgOCRThread(threading.Thread):
             except Exception, exc:
                 logging.error("**WARNING** Scoring method '%s' failed !"
                        % score_method[0])
-                logging.exception("Reason:")
+                logging.error("Reason: %s" % exc)
 
 
 class ImgPage(BasicPage):
@@ -201,7 +201,7 @@ class ImgPage(BasicPage):
             return boxes
         except IOError, exc:
             logger.error("Unable to get boxes for '%s': %s"
-					% (self.doc.docid, exc))
+                    % (self.doc.docid, exc))
             return []
 
     boxes = property(__get_boxes)

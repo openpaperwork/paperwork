@@ -256,7 +256,8 @@ class BasicDoc(object):
             final = datetime_obj.strftime("%x")
             return final
         except Exception, exc:
-            logger.exception("Unable to parse document id [%s]:" % self.docid)
+            logger.error("Unable to parse document id [%s]: %s"
+                    % (self.docid, exc))
             return self.docid
 
     name = property(__get_name)

@@ -179,13 +179,14 @@ class WorkerCalibrationScan(Worker):
         try:
             dev.options['source'].value = "Auto"
         except (KeyError, pyinsane.rawapi.SaneException), exc:
-            logger.exception("Warning: Unable to set scanner source to 'Auto':")
+            logger.error("Warning: Unable to set scanner source to 'Auto': %s"
+                   % exc)
         try:
             resolution = PaperworkConfig.CALIBRATION_RESOLUTION
             dev.options['resolution'].value = resolution
         except pyinsane.rawapi.SaneException:
-            logger.exception("Warning: Unable to set scanner resolution to %d:"
-                    % PaperworkConfig.CALIBRATION_RESOLUTION)
+            logger.error("Warning: Unable to set scanner resolution to %d: %s"
+                    % (PaperworkConfig.CALIBRATION_RESOLUTION, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
             logger.info("Scanner mode set to 'Color'")
@@ -526,7 +527,7 @@ class SettingsWindow(GObject.GObject):
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))
             except KeyError, exc:
-                logger.exception("Warning: Long name not found for language "
+                logger.error("Warning: Long name not found for language "
                         "'%s'." % short_lang)
                 logger.warn("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))

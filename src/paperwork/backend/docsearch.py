@@ -336,9 +336,9 @@ class DocSearch(object):
             logger.info("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
         except whoosh.index.EmptyIndexError, exc:
-            print ("Failed to open index '%s'" % self.indexdir)
-            print ("Exception was: %s" % str(exc))
-            print ("Will try to create a new one")
+            logger.warning("Failed to open index '%s'" % self.indexdir)
+            logger.warning("Exception was: %s" % str(exc))
+            logger.info("Will try to create a new one")
             schema = whoosh.fields.Schema(
                 docid=whoosh.fields.ID(stored=True, unique=True),
                 doctype=whoosh.fields.ID(stored=True, unique=False),
@@ -348,7 +348,7 @@ class DocSearch(object):
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
             self.index = whoosh.index.create_in(self.indexdir, schema)
-            print ("Index '%s' created" % self.indexdir)
+            logger.info("Index '%s' created" % self.indexdir)
 
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
@@ -663,7 +663,7 @@ class DocSearch(object):
             langs --- Languages to use with the spell checker and the OCR tool
                 ( { 'ocr' : 'fra', 'spelling' : 'fr' } )
         """
-        loggeR.info("Redoing OCR of all documents ...")
+        logger.info("Redoing OCR of all documents ...")
 
         dlist = self.docs
         threads = []

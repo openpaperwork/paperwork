@@ -103,7 +103,7 @@ class ImgOCRThread(threading.Thread):
                 logging.info("Page orientation score: %d" % self.score)
                 return
             except Exception, exc:
-                logging.error("**WARNING** Scoring method '%s' failed !"
+                logging.error("Scoring method '%s' failed !"
                        % score_method[0])
                 logging.error("Reason: %s" % exc)
 
@@ -194,7 +194,8 @@ class ImgPage(BasicPage):
                 return boxes
             # fallback: old format: word boxes
             # shouldn't be used anymore ...
-            print "WARNING: Doc %s uses old box format" % (str(self.doc))
+            logger.warning("WARNING: Doc %s uses old box format" %
+                           (str(self.doc)))
             box_builder = pyocr.builders.WordBoxBuilder()
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                 boxes = box_builder.read_file(file_desc)

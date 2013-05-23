@@ -2563,12 +2563,12 @@ class MainWindow(object):
         self.workers['page_thumbnailer'].soft_stop()
         self.workers['doc_thumbnailer'].stop()
 
-        logger.info("Got %d suggestions" % len(suggestions))
+        logger.debug("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
         for suggestion in suggestions:
             self.lists['suggestions']['model'].append([suggestion])
 
-        logger.info("Got %d documents" % len(documents))
+        logger.debug("Got %d documents" % len(documents))
         self.lists['matches']['model'].clear()
         active_idx = -1
         idx = 0

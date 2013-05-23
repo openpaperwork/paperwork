@@ -113,7 +113,7 @@ def main():
         Gtk.main()
     finally:
         workers.halt()
-        logger.warn("Good bye")
+        logger.info("Good bye")
 
 
 if __name__ == "__main__":

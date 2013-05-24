@@ -102,7 +102,7 @@ class DocEditDialog(object):
 
     def refresh_date(self):
         date = self.doc.date
-        logger.info("Doc date: %s" % date)
+        logger.info("Doc date: %s" % str(date))
         self.date['year']['model'].set_value(date[0])
         self.date['month']['model'].set_value(date[1])
         self.date['day']['model'].set_value(date[2])

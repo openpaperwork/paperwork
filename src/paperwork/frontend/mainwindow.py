@@ -1389,8 +1389,8 @@ class ActionSelectExportFormat(SimpleAction):
         logger.info("[Export] Format: %s" % (exporter))
         logger.info("[Export] Can change quality ? %s"
                % exporter.can_change_quality)
-        logger("[Export] Can_select_format ? %s"
-               % str(exporter.can_select_format))
+        logger.info("[Export] Can_select_format ? %s"
+               % exporter.can_select_format)
 
         widgets = [
             (exporter.can_change_quality,

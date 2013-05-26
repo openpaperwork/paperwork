@@ -158,9 +158,6 @@ class WorkerDocExaminer(IndependentWorker):
         IndependentWorker.__init__(self, "Document examination")
         self.__main_win = main_window
         self.__config = config
-        self.new_docs = set()  # documents
-        self.docs_changed = set()  # documents
-        self.docs_missing = set()  # document ids
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -183,6 +180,9 @@ class WorkerDocExaminer(IndependentWorker):
 
     def do(self):
         self.emit('doc-examination-start')
+        self.new_docs = set()  # documents
+        self.docs_changed = set()  # documents
+        self.docs_missing = set()  # document ids
         try:
             doc_examiner = self.__main_win.docsearch.get_doc_examiner()
             doc_examiner.examine_rootdir(

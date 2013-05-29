@@ -211,7 +211,8 @@ class WorkerCalibrationScan(Worker):
         # resize
         orig_img_size = orig_img.getbbox()
         orig_img_size = (orig_img_size[2], orig_img_size[3])
-        logger.info("Calibration: Got an image of size '%s'" % orig_img_size)
+        logger.info("Calibration: Got an image of size '%s'"
+				% str(orig_img_size))
 
         target_alloc = self.target_viewport.get_allocation()
         max_width = target_alloc.width

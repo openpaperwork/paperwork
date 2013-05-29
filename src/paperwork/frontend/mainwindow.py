@@ -158,9 +158,6 @@ class WorkerDocExaminer(IndependentWorker):
         IndependentWorker.__init__(self, "Document examination")
         self.__main_win = main_window
         self.__config = config
-        self.new_docs = set()  # documents
-        self.docs_changed = set()  # documents
-        self.docs_missing = set()  # document ids
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -183,6 +180,9 @@ class WorkerDocExaminer(IndependentWorker):
 
     def do(self):
         self.emit('doc-examination-start')
+        self.new_docs = set()  # documents
+        self.docs_changed = set()  # documents
+        self.docs_missing = set()  # document ids
         try:
             doc_examiner = self.__main_win.docsearch.get_doc_examiner()
             doc_examiner.examine_rootdir(
@@ -1389,8 +1389,8 @@ class ActionSelectExportFormat(SimpleAction):
         logger.info("[Export] Format: %s" % (exporter))
         logger.info("[Export] Can change quality ? %s"
                % exporter.can_change_quality)
-        logger("[Export] Can_select_format ? %s"
-               % str(exporter.can_select_format))
+        logger.info("[Export] Can_select_format ? %s"
+               % exporter.can_select_format)
 
         widgets = [
             (exporter.can_change_quality,

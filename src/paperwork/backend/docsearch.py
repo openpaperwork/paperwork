@@ -17,6 +17,7 @@ from whoosh.query import Term
 from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
 import numpy
 from sklearn.externals import joblib
+from whoosh import sorting
 """
 Contains all the code relative to keyword and document list management list.
 Also everything related to indexation and searching in the documents (+
@@ -230,6 +231,7 @@ class DocIndexUpdater(GObject.GObject):
             content=doc.get_index_text(),
             label=doc.get_index_labels(),
             predicted_label=predicted_labels,
+            docdate=doc.date,
             last_read=last_mod
         )
         return True
@@ -321,6 +323,7 @@ class DocSearch(object):
                                             spelling=True, scorable=True),
                 predicted_label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                             spelling=True, scorable=True),
+                docdate=whoosh.fields.DATETIME(stored=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
     LABEL_ESTIMATOR_TEMPLATE = PassiveAggressiveClassifier(n_iter=50)
@@ -373,7 +376,7 @@ class DocSearch(object):
 
         self.__searcher = self.index.searcher()
 
-        self.query_parser_list = []
+        self.search_param_list = []
 
         class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
             def __init__(self, fieldname, text, boost=1.0, maxdist=1,
@@ -381,26 +384,45 @@ class DocSearch(object):
                 whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
                  prefixlength, constantscore=True)
 
-        self.query_parser_list.append(whoosh.qparser.SimpleParser("label",
+        facets = [sorting.ScoreFacet(),sorting.FieldFacet("docdate", reverse=True)]
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
                                             schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix))
-        self.query_parser_list.append(whoosh.qparser.SimpleParser("label",
+                                            termclass=Term),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
                                             schema=self.index.schema,
-                                            termclass=CustomFuzzy))
+                                            termclass=whoosh.qparser.query.Prefix),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
+                                            schema=self.index.schema,
+                                            termclass=CustomFuzzy),
+                                       "sortedby" : facets})
 
-        self.query_parser_list.append(whoosh.qparser.SimpleParser("predicted_label",
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
                                             schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix))
-        self.query_parser_list.append(whoosh.qparser.SimpleParser("predicted_label",
+                                            termclass=Term),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
                                             schema=self.index.schema,
-                                            termclass=CustomFuzzy))
+                                            termclass=whoosh.qparser.query.Prefix),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
+                                            schema=self.index.schema,
+                                            termclass=CustomFuzzy),
+                                       "sortedby" : facets})
 
-        self.query_parser_list.append(whoosh.qparser.QueryParser("content",
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
-                                            termclass=CustomFuzzy))
-        self.query_parser_list.append(whoosh.qparser.QueryParser("content",
+                                            termclass=Term),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix))
+                                            termclass=CustomFuzzy),
+                                       "sortedby" : facets})
+        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
+                                            schema=self.index.schema,
+                                            termclass=whoosh.qparser.query.Prefix),
+                                       "sortedby" : facets})
 
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
@@ -688,9 +710,12 @@ class DocSearch(object):
         sentence = strip_accents(sentence)
 
         result_list_list=[]
-        for query_parser in self.query_parser_list:
-            query = query_parser.parse(sentence)
-            result_list_list.append(self.__searcher.search(query, limit=None))
+        for query_parser in self.search_param_list:
+            query = query_parser["query_parser"].parse(sentence)
+            if "sortedby" in query_parser:
+                result_list_list.append(self.__searcher.search(query, limit=None, sortedby = query_parser["sortedby"]))
+            else:
+                result_list_list.append(self.__searcher.search(query, limit=None))
 
         # merging results
         results = result_list_list[0]

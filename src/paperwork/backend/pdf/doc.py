@@ -201,10 +201,12 @@ class PdfDoc(BasicDoc):
 
 
 def is_pdf_doc(docpath):
+    if not os.path.isdir(docpath):
+        return False
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:
-        logger.exception("Warning: Failed to list files in %s:"
-                % (docpath, exc))
+        logger.exception("Warning: Failed to list files in %s: %s"
+                % (docpath, str(exc)))
         return False
     return PDF_FILENAME in filelist

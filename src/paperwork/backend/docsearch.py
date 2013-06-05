@@ -384,42 +384,38 @@ class DocSearch(object):
                                             schema=self.index.schema,
                                             termclass=whoosh.qparser.query.Prefix))
 
-        # TODO(Jflesch): Too dangerous
-        #self.cleanup_rootdir(callback)
+        self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
-    @staticmethod
-    def __browse_dir(rootdir):
-        """
-        Yield the paths to all the subdirectories and subfiles of rootdir
-        """
-        for root, dirs, files, in os.walk(rootdir, topdown=False):
-            for filename in files:
-                filepath = os.path.join(root, filename)
-                yield filepath
-            for dirname in dirs:
-                dirpath = os.path.join(root, dirname)
-                yield dirpath
+    def __must_clean(self, filepath):
+        must_clean_cbs = [
+            is_dir_empty,
+            img.is_tmp_file,
+        ]
+        for must_clean_cb in must_clean_cbs:
+            if must_clean_cb(filepath):
+                return True
+        return False
+
 
     def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
         """
         Remove all the crap from the work dir (temporary files, empty
         directories, etc)
         """
-        must_clean_cbs = [
-            is_dir_empty,
-            img.is_tmp_file,
-        ]
         progress_cb(0, 1, self.INDEX_STEP_CLEANING)
-        for filepath in self.__browse_dir(self.rootdir):
-            must_clean = False
-            for must_clean_cb in must_clean_cbs:
-                if must_clean_cb(filepath):
-                    must_clean = True
-                    break
-            if must_clean:
+        for filename in os.listdir(self.rootdir):
+            filepath = os.path.join(self.rootdir, filename)
+            if self.__must_clean(filepath):
                 logger.info("Cleanup: Removing '%s'" % filepath)
                 rm_rf(filepath)
+            elif os.path.isdir(filepath):
+                # we only want to go one subdirectory deep, no more
+                for subfilename in os.listdir(filepath):
+                    subfilepath = os.path.join(filepath, subfilename)
+                    if self.__must_clean(subfilepath):
+                        logger.info("Cleanup: Removing '%s'" % subfilepath)
+                        rm_rf(subfilepath)
         progress_cb(1, 1, self.INDEX_STEP_CLEANING)
 
     def get_doc_examiner(self):

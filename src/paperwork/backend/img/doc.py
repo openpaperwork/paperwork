@@ -352,6 +352,8 @@ class ImgDoc(BasicDoc):
 
 
 def is_img_doc(docpath):
+    if not os.path.isdir(docpath):
+        return False
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:

@@ -18,20 +18,23 @@ import codecs
 import datetime
 import gettext
 import logging
-import os
 import os.path
 import time
 import hashlib
+
+from scipy import sparse
+from sklearn.feature_extraction.text import HashingVectorizer
+from sklearn.preprocessing import normalize
 
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
 from paperwork.util import dummy_progress_cb
 from paperwork.util import rm_rf
+from paperwork.util import strip_accents
 
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
 
 class BasicDoc(object):
     LABEL_FILE = "labels"
@@ -40,6 +43,7 @@ class BasicDoc(object):
 
     pages = []
     can_edit = False
+    predicted_label_name_list = []
 
     def __init__(self, docpath, docid=None):
         """
@@ -56,9 +60,11 @@ class BasicDoc(object):
             self.__docid = docid
             self.path = docpath
         self.__cache = {}
+        self.predicted_label_name_list = []
 
     def drop_cache(self):
         self.__cache = {}
+        self.predicted_label_name_list = []
 
     def __str__(self):
         return self.__docid
@@ -166,6 +172,44 @@ class BasicDoc(object):
         return self.__cache['labels']
 
     labels = property(__get_labels)
+
+    def get_index_text(self):
+        txt = u""
+        for page in self.pages:
+            txt += u"\n".join([unicode(line) for line in page.text])
+        extra_txt = self.extra_text
+        if extra_txt != u"":
+            txt += extra_txt + u"\n"
+        txt = txt.strip()
+        txt = strip_accents(txt)
+        if txt == u"":
+            # make sure the text field is not empty. Whoosh doesn't like that
+            txt = u"empty"
+        return txt
+
+    def extract_features(self):
+        """
+        return an array of features extracted from this doc for the sklearn estimators
+        Concatenate features from the text, the page number and the image
+        """
+        features = []
+
+        # add the words count. norm='l2', analyzer='char_wb', ngram_range=(3,3) are empirical
+        hash_vectorizer = HashingVectorizer(norm='l2', analyzer='char_wb', ngram_range=(3,3))
+        features.append(hash_vectorizer.fit_transform([self.get_index_text()]))
+
+        # add image info
+        features.append(self.pages[0].extract_features())
+
+        # concatenate all the features
+        features = sparse.hstack(features)
+        features = features.tocsr()
+
+        return normalize(features, norm='l2')
+
+    def get_index_labels(self):
+        return u",".join([strip_accents(unicode(label.name))
+                            for label in self.labels])
 
     def update_label(self, old_label, new_label):
         """

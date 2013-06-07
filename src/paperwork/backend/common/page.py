@@ -14,12 +14,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import codecs
 from copy import copy
 import PIL.Image
-import os
 import os.path
-import re
+
+import numpy
+from scipy import sparse
+from scipy.sparse.csr import csr_matrix
+from skimage import feature
+from sklearn.preprocessing import normalize
 
 from paperwork.util import split_words
 
@@ -91,6 +94,10 @@ class PageExporter(object):
 
 
 class BasicPage(object):
+
+    DEFAULT_THUMB_WIDTH = 150
+    DEFAULT_THUMB_HEIGHT = 220
+
     SCAN_STEP_SCAN = "scanning"
     SCAN_STEP_OCR = "ocr"
 
@@ -221,6 +228,42 @@ class BasicPage(object):
 
     keywords = property(__get_keywords)
 
+    def extract_features(self):
+        """
+        compute image data to present features for the estimators
+        """
+        image = self.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+
+        # use color and grayscale histogram
+        histogram = image.histogram()
+        separated_histo = []
+        separated_histo.append(histogram[0:256])
+        separated_histo.append(histogram[256:256*2])
+        separated_histo.append([i*2 for i in image.convert('L').histogram()])
+        separated_flat_histo = []
+        for histo in separated_histo:
+            # flatten histograms
+            window_len = 4
+            s = numpy.r_[histo[window_len-1:0:-1],histo,histo[-1:-window_len:-1]]
+            w = numpy.ones(window_len,'d')
+            separated_flat_histo.append(csr_matrix(numpy.convolve(w/w.sum(),
+                                                                  s,
+                                                                  mode='valid'))
+                                        .astype(numpy.float64))
+        flat_histo = normalize(sparse.hstack(separated_flat_histo), norm='l1')
+
+        # hog feature extraction
+        # must resize to multiple of 8 because of skimage hog bug
+        hog_features = feature.hog(numpy.array(image.resize((144,144))
+                                               .convert('L')),
+                                   normalise=False)
+        hog_features = csr_matrix(hog_features).astype(numpy.float64)
+        hog_features = normalize(hog_features, norm='l1')
+
+        # concatenate
+        features = sparse.hstack([flat_histo, hog_features * 3])
+
+        return normalize(features, norm='l1')
 
 class DummyPage(object):
     page_nb = -1

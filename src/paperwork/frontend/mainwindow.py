@@ -43,7 +43,7 @@ from paperwork.frontend.workers import IndependentWorker
 from paperwork.frontend.workers import Worker
 from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.backend import docimport
-from paperwork.backend.common.page import DummyPage
+from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
@@ -231,6 +231,9 @@ class WorkerIndexUpdater(Worker):
     def do(self, new_docs=[], upd_docs=[], del_docs=[], optimize=True):
         self.emit('index-update-start')
         try:
+            self.__main_win.docsearch.fit_label_estimator(new_docs)
+            self.__main_win.docsearch.fit_label_estimator(upd_docs)
+
             index_updater = self.__main_win.docsearch.get_index_updater(
                 optimize=optimize)
 
@@ -355,7 +358,7 @@ class WorkerPageThumbnailer(Worker):
         self.emit('page-thumbnailing-start')
         for page_idx in range(0, self.__main_win.doc.nb_pages):
             page = self.__main_win.doc.pages[page_idx]
-            img = page.get_thumbnail(WorkerDocThumbnailer.THUMB_WIDTH)
+            img = page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
             img = img.copy()
             if search != u"" and search in page:
                 img = add_img_border(img, color="#009e00", width=3)
@@ -376,9 +379,6 @@ class WorkerDocThumbnailer(Worker):
     """
     Generate doc list thumbnails
     """
-
-    THUMB_WIDTH = 150
-    THUMB_HEIGHT = 220
 
     __gsignals__ = {
         'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -423,18 +423,18 @@ class WorkerDocThumbnailer(Worker):
             if doc.nb_pages <= 0:
                 resume += 1
                 continue
-            img = doc.pages[0].get_thumbnail(self.THUMB_WIDTH)
+            img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
 
             (width, height) = img.size
             # always make sure the thumbnail has a specific height
             # otherwise the scrollbar keep moving while loading
-            if height > self.THUMB_HEIGHT:
-                img = img.crop((0, 0, width, self.THUMB_HEIGHT))
+            if height > BasicPage.DEFAULT_THUMB_HEIGHT:
+                img = img.crop((0, 0, width, BasicPage.DEFAULT_THUMB_HEIGHT))
                 img = img.copy()
             else:
-                new_img = PIL.Image.new('RGBA', (width, self.THUMB_HEIGHT),
+                new_img = PIL.Image.new('RGBA', (width, BasicPage.DEFAULT_THUMB_HEIGHT),
                                     '#FFFFFF')
-                h = (self.THUMB_HEIGHT - height) / 2
+                h = (BasicPage.DEFAULT_THUMB_HEIGHT - height) / 2
                 new_img.paste(img, (0, h, width, h+height))
                 img = new_img
 
@@ -1742,8 +1742,8 @@ class MainWindow(object):
         self.__last_highlight_update = time.time()
 
         img = PIL.Image.new("RGB", (
-            WorkerDocThumbnailer.THUMB_WIDTH,
-            WorkerDocThumbnailer.THUMB_HEIGHT
+            BasicPage.DEFAULT_THUMB_WIDTH,
+            BasicPage.DEFAULT_THUMB_HEIGHT
         ), color="#CCCCCC")
         self.default_thumbnail = image2pixbuf(img)
 
@@ -3076,8 +3076,15 @@ class MainWindow(object):
         self.lists['labels']['model'].clear()
         labels = self.doc.labels
         for label in self.docsearch.label_list:
+            in_predicted_label = (label.name in self.doc.predicted_label_name_list)
+            in_label = (label in labels)
+            if in_predicted_label or in_label:
+                label_html = ("<b>%s</b>"
+                              % label.get_html())
+            else:
+                label_html = label.get_html()
             self.lists['labels']['model'].append([
-                label.get_html(),
+                label_html,
                 (label in labels),
                 label,
                 True

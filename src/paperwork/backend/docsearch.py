@@ -14,7 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 from whoosh.query import Term
-
+from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
+import numpy
+from sklearn.externals import joblib
 """
 Contains all the code relative to keyword and document list management list.
 Also everything related to indexation and searching in the documents (+
@@ -205,33 +207,29 @@ class DocIndexUpdater(GObject.GObject):
         self.progress_cb = progress_cb
         self.__need_reload = False
 
-    @staticmethod
-    def _update_doc_in_index(index_writer, doc):
+    def _update_doc_in_index(self, index_writer, doc):
         """
         Add/Update a document in the index
         """
+        self.docsearch.fit_label_estimator([doc])  # update the label estimator
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
         docid = unicode(doc.docid)
-        txt = u""
-        for page in doc.pages:
-            txt += u"\n".join([unicode(line) for line in page.text])
-        extra_txt = doc.extra_text
-        if extra_txt != u"":
-            txt += extra_txt + u"\n"
-        txt = txt.strip()
-        txt = strip_accents(txt)
-        if txt == u"":
-            # make sure the text field is not empty. Whoosh doesn't like that
-            txt = u"empty"
-        labels = u",".join([strip_accents(unicode(label.name))
-                            for label in doc.labels])
+        label = doc.get_index_labels()
+        # try to predict some labels if there is none
+        if label == u"":
+            doc.predicted_label_name_list = self.docsearch.predict_label_list(doc)
+            predicted_labels = u",".join([strip_accents(unicode(predicted_label_name))
+                                          for predicted_label_name in doc.predicted_label_name_list])
+        else:
+            predicted_labels = u""
 
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
             docfilehash=unicode(doc.get_docfilehash(), "utf-8"),
-            content=txt,
-            label=labels,
+            content=doc.get_index_text(),
+            label=doc.get_index_labels(),
+            predicted_label=predicted_labels,
             last_read=last_mod
         )
         return True
@@ -271,7 +269,8 @@ class DocIndexUpdater(GObject.GObject):
         """
         Apply the changes to the index
         """
-        logger.info("Index: Commiting changes")
+        logger.info("Index: Commiting changes and saving estimators")
+        self.docsearch.save_label_estimators()
         self.writer.commit(optimize=self.optimize)
         del self.writer
         self.docsearch.reload_searcher()
@@ -320,8 +319,20 @@ class DocSearch(object):
                 content=whoosh.fields.TEXT(spelling=True),
                 label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                             spelling=True, scorable=True),
+                predicted_label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                            spelling=True, scorable=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
+    LABEL_ESTIMATOR_TEMPLATE = PassiveAggressiveClassifier(n_iter=50)
+    """
+    Label_estimators is a dict with one estimator per label.
+    Each label is predicted with its own estimator (OneVsAll strategy)
+    We cannot use directly OneVsAllClassifier sklearn class because
+    it doesn't support online learning (partial_fit)
+    """
+    label_estimators = {}
+    # the fitted indicator is used to guess the estimator accuracy
+    label_estimators_fitted_with_docid = set()
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -377,6 +388,13 @@ class DocSearch(object):
                                             schema=self.index.schema,
                                             termclass=CustomFuzzy))
 
+        self.query_parser_list.append(whoosh.qparser.SimpleParser("predicted_label",
+                                            schema=self.index.schema,
+                                            termclass=whoosh.qparser.query.Prefix))
+        self.query_parser_list.append(whoosh.qparser.SimpleParser("predicted_label",
+                                            schema=self.index.schema,
+                                            termclass=CustomFuzzy))
+
         self.query_parser_list.append(whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
                                             termclass=CustomFuzzy))
@@ -386,6 +404,33 @@ class DocSearch(object):
 
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
+
+        self.label_estimators_file = os.path.join(base_indexdir,
+                                                  "paperwork",
+                                                  "label_estimators.jbl")
+        try:
+            logger.info("Opening label_estimators file '%s' ..." %
+                        self.label_estimators_file)
+            (l_estimators, f_docid) = joblib.load(self.label_estimators_file)
+            self.label_estimators = l_estimators
+            self.label_estimators_fitted_with_docid = f_docid
+            # check that the label_estimators are up to date for their class
+            for label_name in self.label_estimators:
+                params = self.label_estimators[label_name].get_params()
+                if params != self.LABEL_ESTIMATOR_TEMPLATE.get_params():
+                    raise IndexError('label_estimators params are not up to date')
+        except (IOError, IndexError, ValueError), exc:
+            logger.error("Failed to open label_estimator file '%s', or bad label_estimator structure"
+                   % self.indexdir)
+            logger.error("Exception was: %s" % exc)
+            logger.info("Will create new label_estimators")
+            self.label_estimators = {}
+            self.label_estimators_fitted_with_docid=set()
+
+    def save_label_estimators(self):
+        joblib.dump((self.label_estimators,
+                     self.label_estimators_fitted_with_docid),
+                    self.label_estimators_file, compress=9)
 
     def __must_clean(self, filepath):
         must_clean_cbs = [
@@ -435,10 +480,87 @@ class DocSearch(object):
         """
         return DocIndexUpdater(self, optimize)
 
-    def __inst_doc_from_id(self, docid, doc_type_name=None):
+    def fit_label_estimator(self, docs=None, removed_label=None, labels=None):
+        """
+        fit the estimator with the supervised documents
+
+        Arguments:
+            docs --- a collection of documents to fit the estimator with
+                if none, all the docs are used
+            removed_label --- if the fitting is done when a label is removed
+                a doc with no label is not used for learning (fitting), unless
+                the label has been explicitely removed
+            labels --- a collection a labels to operate with. If none, all
+                the labels are used
+        """
+        if not docs:
+            docs = self.docs
+
+        label_name_set = set()
+        if not labels:
+            for doc in docs:
+                for label in doc.labels:
+                    label_name_set.add(label.name)
+        else:
+            for label in labels:
+                    label_name_set.add(label.name)
+
+        # construct the estimators if not present in the list
+        for label_name in label_name_set:
+            if label_name not in self.label_estimators:
+                self.label_estimators[label_name] = copy.deepcopy(DocSearch.LABEL_ESTIMATOR_TEMPLATE)
+
+        for doc in docs:
+            # fit only with labelled documents
+            if doc.labels:
+                self.label_estimators_fitted_with_docid.add(doc.docid)
+                for label_name in label_name_set:
+                    # check for this estimator if the document is labelled or not
+                    doc_has_label = 'unlabelled'
+                    for label in doc.labels:
+                        if label.name == label_name:
+                            doc_has_label = 'labelled'
+                            break
+                    logger.info("Fitting estimator with doc: %s %s %s "
+                                % (doc,
+                                   doc_has_label,
+                                   label_name))
+                    # fit the estimators with the hashed text and the model class (labelled or unlabelled)
+                    # don't use True or False for the classes as it raises a casting bug in underlying library
+                    l_estimator =  self.label_estimators[label_name]
+                    l_estimator.partial_fit(doc.extract_features(),
+                                            [doc_has_label],
+                                            numpy.array(['labelled','unlabelled']))
+            elif removed_label:
+                logger.info("Fitting estimator with doc: %s and %s %s "
+                            % (doc,
+                               'unlabelled',
+                               removed_label.name))
+                l_estimator =  self.label_estimators[removed_label.name]
+                l_estimator.partial_fit(doc.extract_features(),
+                                        ['unlabelled'],
+                                        numpy.array(['labelled','unlabelled']))
+
+    def predict_label_list(self, doc):
+        # if there is only one label, or not enough document fitted prediction is not possible
+        if len(self.label_estimators) < 2:
+            return []
+        # don't do prediction if not enough fitted docs because the prediction is not very good
+        if len(self.label_estimators_fitted_with_docid) < 8:
+            return []
+
+        predicted_label_list=[]
+        for label_name in self.label_estimators:
+            prediction = self.label_estimators[label_name].predict(doc.extract_features())
+            if prediction == 'labelled':
+                predicted_label_list.append(label_name)
+        return predicted_label_list
+
+    def __inst_doc(self, docid, doc_type_name=None, predicted_label_names=None):
         """
         Instantiate a document based on its document id.
         """
+        doc = None
         docpath = os.path.join(self.rootdir, docid)
         if not os.path.exists(docpath):
             return None
@@ -446,15 +568,28 @@ class DocSearch(object):
             # if we already know the doc type name
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
                 if doc_type_name_b == doc_type_name:
-                    return doc_type(docpath, docid)
-            logger.warn("Warning: unknown doc type found in the index: %s"
+                    doc = doc_type(docpath, docid)
+            if not doc:
+                logger.warn("Warning: unknown doc type found in the index: %s"
                    % doc_type_name)
         # otherwise we guess the doc type
-        for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
-            if is_doc_type(docpath):
-                return doc_type(docpath, docid)
-        logger.warn("Warning: unknown doc type for doc %s" % docid)
-        return None
+        if not doc:
+            for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
+                if is_doc_type(docpath):
+                    doc = doc_type(docpath, docid)
+        if not doc:
+            logger.warn("Warning: unknown doc type for doc %s" % docid)
+            return doc
+
+
+        if predicted_label_names:
+            doc.predicted_label_name_list = predicted_label_names
+        else:
+            # search in the index for the predicted_labels
+            results = self.__searcher.search(Term('docid', docid))
+            if results and results[0]['docid'] == docid:
+                doc.predicted_label_name_list = results[0]['predicted_label'].split(',')
+        return doc
 
     def get_doc_from_docid(self, docid, doc_type_name=None):
         """
@@ -463,8 +598,8 @@ class DocSearch(object):
         """
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
-        self.__docs_by_id[docid] = self.__inst_doc_from_id(docid,
-                                                           doc_type_name)
+        self.__docs_by_id[docid] = self.__inst_doc(docid,
+                                                   doc_type_name)
         return self.__docs_by_id[docid]
 
     def reload_index(self, progress_cb=dummy_progress_cb):
@@ -487,7 +622,7 @@ class DocSearch(object):
         for result in results:
             docid = result['docid']
             doctype = result['doctype']
-            doc = self.__inst_doc_from_id(docid, doctype)
+            doc = self.__inst_doc(docid, doctype, predicted_label_names=result['predicted_label'].split(','))
             if doc is None:
                 continue
             progress_cb(progress, nb_results, self.INDEX_STEP_LOADING, doc)
@@ -611,12 +746,18 @@ class DocSearch(object):
             doc --- The first document on which this label has been added
         """
         label = copy.copy(label)
+        new_label = False
         if not label in self.label_list:
             self.label_list.append(label)
             self.label_list.sort()
+            new_label = True
         doc.add_label(label)
         updater = self.get_index_updater(optimize=False)
         updater.upd_doc(doc)
+        if new_label:
+            # its a brand new label, there is a new estimator.
+            # we need to fit this new estimator.
+            self.fit_label_estimator(labels=[label])
         updater.commit()
 
     def remove_label(self, doc, label):
@@ -626,6 +767,7 @@ class DocSearch(object):
         doc.remove_label(label)
         updater = self.get_index_updater(optimize=False)
         updater.upd_doc(doc)
+        self.fit_label_estimator(docs=[doc], removed_label=label)
         updater.commit()
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
@@ -633,7 +775,9 @@ class DocSearch(object):
         Replace 'old_label' by 'new_label' on all the documents. Takes care of
         updating the index.
         """
+        assert(old_label)
         self.label_list.remove(old_label)
+        self.label_estimators.pop(old_label.name)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
             self.label_list.sort()
@@ -647,6 +791,9 @@ class DocSearch(object):
             if must_reindex:
                 updater.upd_doc(doc)
             current += 1
+
+        # fit all documents
+        self.fit_label_estimator(docs=self.docs)
         updater.commit()
 
     def destroy_label(self, label, callback=dummy_progress_cb):
@@ -654,7 +801,9 @@ class DocSearch(object):
         Remove the label 'label' from all the documents. Takes care of updating
         the index.
         """
+        assert(label)
         self.label_list.remove(label)
+        self.label_estimators.pop(label.name)
         current = 0
         docs = self.docs
         total = len(docs)
@@ -723,6 +872,7 @@ class DocSearch(object):
         """
         logger.info("Destroying the index ...")
         rm_rf(self.indexdir)
+        rm_rf(self.label_estimators_file)
         logger.info("Done")
 
     def is_hash_in_index(self, filehash):

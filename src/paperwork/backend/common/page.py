@@ -100,6 +100,8 @@ class BasicPage(object):
 
     SCAN_STEP_SCAN = "scanning"
     SCAN_STEP_OCR = "ocr"
+    EXT_THUMB = "thumb.jpg"
+    FILE_PREFIX = "paper."
 
     boxes = []
     img = None
@@ -125,13 +127,44 @@ class BasicPage(object):
 
     pageid = property(__get_pageid)
 
-    def _get_thumbnail(self, width):
-        raise NotImplementedError()
+    def _get_filepath(self, ext):
+        """
+        Returns a file path relative to this page
+        """
+        filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
+        return os.path.join(self.doc.path, filename)
+
+    def __make_thumbnail(self, width):
+        """
+        Create the page's thumbnail
+        """
+        img = self.img
+        (w, h) = img.size
+        factor = (float(w) / width)
+        w = width
+        h /= factor
+        img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
+        return img
 
     def get_thumbnail(self, width):
+        """
+        thumbnail with a memory cache
+        """
         if (width == self.__thumbnail_cache[1]):
             return self.__thumbnail_cache[0]
-        thumbnail = self._get_thumbnail(width)
+
+        # get from the file
+        try:
+            if os.path.getmtime(self.get_doc_file_path()) < \
+               os.path.getmtime(self._get_filepath(self.EXT_THUMB)):
+                thumbnail = PIL.Image.open(self._get_filepath(self.EXT_THUMB))
+            else:
+                thumbnail = self.__make_thumbnail(width)
+                thumbnail.save(self._get_filepath(self.EXT_THUMB))
+        except:
+            thumbnail = self.__make_thumbnail(width)
+            thumbnail.save(self._get_filepath(self.EXT_THUMB))
+
         self.__thumbnail_cache = (thumbnail, width)
         return thumbnail
 
@@ -274,6 +307,9 @@ class DummyPage(object):
 
     def __init__(self, parent_doc):
         self.doc = parent_doc
+
+    def _get_filepath(self, ext):
+        raise NotImplementedError()
 
     def get_thumbnail(self, width):
         raise NotImplementedError()

@@ -369,6 +369,6 @@ def is_img_doc(docpath):
         logging.warn("Warning: Failed to list files in %s: %s" % (docpath, str(exc)))
         return False
     for filename in filelist:
-        if ".jpg" in filename.lower():
+        if filename.lower().endswith(ImgPage.EXT_IMG) and not filename.lower().endswith(ImgPage.EXT_THUMB):
             return True
     return False

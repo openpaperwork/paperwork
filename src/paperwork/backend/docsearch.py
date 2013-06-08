@@ -208,17 +208,24 @@ class DocIndexUpdater(GObject.GObject):
         self.progress_cb = progress_cb
         self.__need_reload = False
 
-    def _update_doc_in_index(self, index_writer, doc):
+    def _update_doc_in_index(self, index_writer, doc,
+                             predicted_label_list=None,
+                             fit_label_estimator=True):
         """
         Add/Update a document in the index
         """
-        self.docsearch.fit_label_estimator([doc])  # update the label estimator
+        if fit_label_estimator:
+            self.docsearch.fit_label_estimator(
+                [doc], labels=self.docsearch.label_list + doc.labels)
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
         docid = unicode(doc.docid)
         label = doc.get_index_labels()
         # try to predict some labels if there is none
         if label == u"":
-            doc.predicted_label_name_list = self.docsearch.predict_label_list(doc)
+            if predicted_label_list is None:
+                doc.predicted_label_name_list = self.docsearch.predict_label_list(doc)
+            else:
+                doc.predicted_label_name_list = predicted_label_list
             predicted_labels = u",".join([strip_accents(unicode(predicted_label_name))
                                           for predicted_label_name in doc.predicted_label_name_list])
         else:
@@ -244,27 +251,33 @@ class DocIndexUpdater(GObject.GObject):
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
 
-    def add_doc(self, doc):
+    def add_doc(self, doc, fit_label_estimator=True):
         """
         Add a document to the index
         """
         logger.info("Indexing new doc: %s" % doc)
-        self._update_doc_in_index(self.writer, doc)
+        self._update_doc_in_index(self.writer, doc,
+                                  fit_label_estimator=fit_label_estimator)
         self.__need_reload = True
 
-    def upd_doc(self, doc):
+    def upd_doc(self, doc,
+                predicted_label_list=None,
+                fit_label_estimator=True):
         """
         Update a document in the index
         """
         logger.info("Updating modified doc: %s" % doc)
-        self._update_doc_in_index(self.writer, doc)
+        self._update_doc_in_index(self.writer, doc,
+                                  predicted_label_list,
+                                  fit_label_estimator=fit_label_estimator)
 
-    def del_doc(self, docid):
+    def del_doc(self, docid, fit_label_estimator=True):
         """
         Delete a document
         """
         logger.info("Removing doc from the index: %s" % docid)
-        self._delete_doc_from_index(self.writer, docid)
+        self._delete_doc_from_index(self.writer, docid,
+                                    fit_label_estimator=fit_label_estimator)
         self.__need_reload = True
 
     def commit(self):
@@ -449,6 +462,9 @@ class DocSearch(object):
             self.label_estimators = {}
             self.label_estimators_fitted_with_docid=set()
 
+        # redo prediction on all documents
+        self.reindex_label_predictions()
+
     def save_label_estimators(self):
         joblib.dump((self.label_estimators,
                      self.label_estimators_fitted_with_docid),
@@ -515,17 +531,15 @@ class DocSearch(object):
             labels --- a collection a labels to operate with. If none, all
                 the labels are used
         """
-        if not docs:
+        if docs is None:
             docs = self.docs
 
-        label_name_set = set()
-        if not labels:
+        if labels is None:
+            labels = []
             for doc in docs:
-                for label in doc.labels:
-                    label_name_set.add(label.name)
-        else:
-            for label in labels:
-                    label_name_set.add(label.name)
+                labels += doc.labels
+
+        label_name_set = set([label.name for label in labels])
 
         # construct the estimators if not present in the list
         for label_name in label_name_set:
@@ -535,7 +549,6 @@ class DocSearch(object):
         for doc in docs:
             # fit only with labelled documents
             if doc.labels:
-                self.label_estimators_fitted_with_docid.add(doc.docid)
                 for label_name in label_name_set:
                     # check for this estimator if the document is labelled or not
                     doc_has_label = 'unlabelled'
@@ -564,6 +577,10 @@ class DocSearch(object):
                                         numpy.array(['labelled','unlabelled']))
 
     def predict_label_list(self, doc):
+        """
+        return a prediction of label names
+        """
+        logger.info('Start prediction of doc %s' % doc)
         # if there is only one label, or not enough document fitted prediction is not possible
         if len(self.label_estimators) < 2:
             return []
@@ -578,9 +595,31 @@ class DocSearch(object):
                 predicted_label_list.append(label_name)
         return predicted_label_list
 
+    def reindex_label_predictions(self, docs=None):
+        if docs is None:
+            docs = self.docs
+        updater = None
+        for doc in docs:
+            # check the labels prediction for non labeled documents
+            if not doc.labels:
+                estimator_list = self.predict_label_list(doc)
+                if not estimator_list:
+                    estimator_list = [u''] # whoosh return u'' for empty results
+                if set(estimator_list) != set(doc.predicted_label_name_list):
+                    logger.info("doc %s needs label prediction index update" % doc)
+
+                    if updater is None:
+                        updater = self.get_index_updater(optimize=False)
+                    updater.upd_doc(doc, predicted_label_list = estimator_list)
+
+        if updater:
+            updater.commit()
+
     def __inst_doc(self, docid, doc_type_name=None, predicted_label_names=None):
         """
         Instantiate a document based on its document id.
+        The information are taken from the whoosh index.
+        The predicted labels are checked
         """
         doc = None
         docpath = os.path.join(self.rootdir, docid)
@@ -804,7 +843,8 @@ class DocSearch(object):
         """
         assert(old_label)
         self.label_list.remove(old_label)
-        self.label_estimators.pop(old_label.name)
+        if old_label.name in self.label_estimators:
+            self.label_estimators.pop(old_label.name)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
             self.label_list.sort()
@@ -819,8 +859,8 @@ class DocSearch(object):
                 updater.upd_doc(doc)
             current += 1
 
-        # fit all documents
-        self.fit_label_estimator(docs=self.docs)
+        # fit all documents for this new label
+        self.fit_label_estimator(docs=self.docs, labels=[new_label])
         updater.commit()
 
     def destroy_label(self, label, callback=dummy_progress_cb):

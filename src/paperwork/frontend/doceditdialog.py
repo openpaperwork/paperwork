@@ -103,9 +103,9 @@ class DocEditDialog(object):
     def refresh_date(self):
         date = self.doc.date
         logger.info("Doc date: %s" % str(date))
-        self.date['year']['model'].set_value(date[0])
-        self.date['month']['model'].set_value(date[1])
-        self.date['day']['model'].set_value(date[2])
+        self.date['year']['model'].set_value(date.year)
+        self.date['month']['model'].set_value(date.month)
+        self.date['day']['model'].set_value(date.day)
 
     def refresh_text(self):
         self.text['model'].set_text(self.doc.extra_text)

@@ -128,6 +128,9 @@ class PdfDoc(BasicDoc):
 
     last_mod = property(__get_last_mod)
 
+    def get_pdf_file_path(self):
+        return  ("%s/%s" % (self.path, PDF_FILENAME))
+
     def _open_pdf(self):
         self.__pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (self.path, PDF_FILENAME)),

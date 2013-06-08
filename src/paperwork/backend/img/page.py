@@ -118,7 +118,6 @@ class ImgPage(BasicPage):
     EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"
     EXT_IMG = "jpg"
-    EXT_THUMB = "thumb.jpg"
 
     KEYWORD_HIGHLIGHT = 3
 
@@ -130,19 +129,11 @@ class ImgPage(BasicPage):
     def __init__(self, doc, page_nb):
         BasicPage.__init__(self, doc, page_nb)
 
-    def __get_filepath(self, ext):
-        """
-        Returns a file path relative to this page
-        """
-        return os.path.join(self.doc.path,
-                            "%s%d.%s" % (self.FILE_PREFIX,
-                                         self.page_nb + 1, ext))
-
     def __get_box_path(self):
         """
         Returns the file path of the box list corresponding to this page
         """
-        return self.__get_filepath(self.EXT_BOX)
+        return self._get_filepath(self.EXT_BOX)
 
     __box_path = property(__get_box_path)
 
@@ -150,17 +141,15 @@ class ImgPage(BasicPage):
         """
         Returns the file path of the image corresponding to this page
         """
-        return self.__get_filepath(self.EXT_IMG)
+        return self._get_filepath(self.EXT_IMG)
+
+    def get_doc_file_path(self):
+        """
+        Returns the file path of the image corresponding to this page
+        """
+        return self.__get_img_path()
 
     __img_path = property(__get_img_path)
-
-    def __get_thumb_path(self):
-        """
-        Returns the file path of the thumbnail corresponding to this page
-        """
-        return self.__get_filepath(self.EXT_THUMB)
-
-    __thumb_path = property(__get_thumb_path)
 
     def __get_last_mod(self):
         try:
@@ -218,38 +207,6 @@ class ImgPage(BasicPage):
         self.drop_cache()
 
     img = property(__get_img, __set_img)
-
-    def __make_thumbnail(self, width):
-        """
-        Create the page's thumbnail
-        """
-        img = self.img
-        (w, h) = img.size
-        factor = (float(w) / width)
-        w = width
-        h /= factor
-        img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
-        img.save(self.__thumb_path)
-        return img
-
-    def __get_thumbnail(self):
-        """
-        Returns an image object corresponding to the last saved thumbnail
-        """
-        return PIL.Image.open(self.__thumb_path)
-
-    def _get_thumbnail(self, width):
-        """
-        Returns an image object corresponding to the up-to-date thumbnail
-        """
-        try:
-            if os.path.getmtime(self.__img_path) > \
-               os.path.getmtime(self.__thumb_path):
-                return self.__make_thumbnail(width)
-            else:
-                return self.__get_thumbnail()
-        except:
-            return self.__make_thumbnail(width)
 
     def __save_imgs(self, img, scan_res=0, scanner_calibration=None,
                     callback=dummy_progress_cb):

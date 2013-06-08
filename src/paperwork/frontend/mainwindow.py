@@ -254,7 +254,8 @@ class WorkerIndexUpdater(Worker):
                     self.emit('index-update-progression',
                               (progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
-                    op(doc)
+                    # update the docs but don't fit the estimators, its already done
+                    op(doc, fit_label_estimator=False)
                     progression += 1
                     if not self.can_run:
                         index_updater.cancel()

@@ -59,7 +59,6 @@ class PdfLineBox(object):
 
 
 class PdfPage(BasicPage):
-    FILE_PREFIX = "paper."
     EXT_TXT = "txt"
     EXT_BOX = "words"
 
@@ -71,19 +70,20 @@ class PdfPage(BasicPage):
         self.size = (int(size[0]), int(size[1]))
         self.__boxes = None
         self.__img_cache = {}
+        doc = doc
 
-    def __get_filepath(self, ext):
+
+    def get_doc_file_path(self):
         """
-        Returns a file path relative to this page
+        Returns the file path of the image corresponding to this page
         """
-        filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
-        return os.path.join(self.doc.path, filename)
+        return self.doc.get_pdf_file_path()
 
     def __get_txt_path(self):
-        return self.__get_filepath(self.EXT_TXT)
+        return self._get_filepath(self.EXT_TXT)
 
     def __get_box_path(self):
-        return self.__get_filepath(self.EXT_BOX)
+        return self._get_filepath(self.EXT_BOX)
 
     def __get_last_mod(self):
         try:
@@ -181,10 +181,6 @@ class PdfPage(BasicPage):
         return self.__render_img(PDF_RENDER_FACTOR)
 
     img = property(__get_img)
-
-    def _get_thumbnail(self, width):
-        factor = float(width) / self.size[0]
-        return self.__render_img(factor)
 
     def print_page_cb(self, print_op, print_context):
         ctx = print_context.get_cairo_context()

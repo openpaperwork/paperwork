@@ -204,7 +204,8 @@ class BasicDoc(object):
                                        os.path.getmtime(page._get_filepath(page.EXT_BOX)))
 
                 if max_doc_time <= os.path.getmtime(os.path.join(self.path, self.FEATURES_FILE)):
-                    logger.info("Opening features file")
+                    logger.debug("Opening features file: %s"
+                                 % os.path.join(self.path, self.FEATURES_FILE))
                     self.__cache['features'] = joblib.load(os.path.join(self.path, self.FEATURES_FILE))
                 else:
                     logger.info("Features file is out of date")

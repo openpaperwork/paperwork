@@ -556,10 +556,10 @@ class DocSearch(object):
                         if label.name == label_name:
                             doc_has_label = 'labelled'
                             break
-                    logger.info("Fitting estimator with doc: %s %s %s "
-                                % (doc,
-                                   doc_has_label,
-                                   label_name))
+                    logger.debug("Fitting estimator with doc: %s %s %s "
+                                 % (doc,
+                                    doc_has_label,
+                                    label_name))
                     # fit the estimators with the hashed text and the model class (labelled or unlabelled)
                     # don't use True or False for the classes as it raises a casting bug in underlying library
                     l_estimator =  self.label_estimators[label_name]
@@ -567,9 +567,9 @@ class DocSearch(object):
                                             [doc_has_label],
                                             numpy.array(['labelled','unlabelled']))
             elif removed_label:
-                logger.info("Fitting estimator with doc: %s and %s %s "
-                            % (doc,
-                               'unlabelled',
+                logger.debug("Fitting estimator with doc: %s and %s %s "
+                             % (doc,
+                                'unlabelled',
                                removed_label.name))
                 l_estimator =  self.label_estimators[removed_label.name]
                 l_estimator.partial_fit(doc.get_features(),

@@ -547,6 +547,7 @@ class DocSearch(object):
                 self.label_estimators[label_name] = copy.deepcopy(DocSearch.LABEL_ESTIMATOR_TEMPLATE)
 
         for doc in docs:
+            logger.info("Fitting estimator with doc: %s " % doc)
             # fit only with labelled documents
             if doc.labels:
                 for label_name in label_name_set:
@@ -556,21 +557,14 @@ class DocSearch(object):
                         if label.name == label_name:
                             doc_has_label = 'labelled'
                             break
-                    logger.debug("Fitting estimator with doc: %s %s %s "
-                                 % (doc,
-                                    doc_has_label,
-                                    label_name))
-                    # fit the estimators with the hashed text and the model class (labelled or unlabelled)
+
+                    # fit the estimators with the model class (labelled or unlabelled)
                     # don't use True or False for the classes as it raises a casting bug in underlying library
                     l_estimator =  self.label_estimators[label_name]
                     l_estimator.partial_fit(doc.get_features(),
                                             [doc_has_label],
                                             numpy.array(['labelled','unlabelled']))
             elif removed_label:
-                logger.debug("Fitting estimator with doc: %s and %s %s "
-                             % (doc,
-                                'unlabelled',
-                               removed_label.name))
                 l_estimator =  self.label_estimators[removed_label.name]
                 l_estimator.partial_fit(doc.get_features(),
                                         ['unlabelled'],
@@ -580,7 +574,6 @@ class DocSearch(object):
         """
         return a prediction of label names
         """
-        logger.info('Start prediction of doc %s' % doc)
         # if there is only one label, or not enough document fitted prediction is not possible
         if len(self.label_estimators) < 2:
             return []
@@ -600,6 +593,8 @@ class DocSearch(object):
         return predicted_label_list
 
     def reindex_label_predictions(self, docs=None):
+        logger.info("reindexing label predictions")
+
         if docs is None:
             docs = self.docs
 

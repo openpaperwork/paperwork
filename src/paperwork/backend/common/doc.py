@@ -204,8 +204,6 @@ class BasicDoc(object):
                                        os.path.getmtime(page._get_filepath(page.EXT_BOX)))
 
                 if max_doc_time <= os.path.getmtime(os.path.join(self.path, self.FEATURES_FILE)):
-                    logger.debug("Opening features file: %s"
-                                 % os.path.join(self.path, self.FEATURES_FILE))
                     self.__cache['features'] = joblib.load(os.path.join(self.path, self.FEATURES_FILE))
                 else:
                     logger.info("Features file is out of date")
@@ -226,7 +224,7 @@ class BasicDoc(object):
     def __extract_features(self):
         """
         return an array of features extracted from this doc for the sklearn estimators
-        Concatenate features from the text, the page number and the image
+        Concatenate features from the text and the image
         """
         features = []
 

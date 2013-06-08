@@ -23,6 +23,7 @@ import time
 import hashlib
 
 from scipy import sparse
+from sklearn.externals import joblib
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.preprocessing import normalize
 
@@ -40,6 +41,7 @@ class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
     EXTRA_TEXT_FILE = "extra.txt"
+    FEATURES_FILE = "features_V01.jbl"
 
     pages = []
     can_edit = False
@@ -187,7 +189,40 @@ class BasicDoc(object):
             txt = u"empty"
         return txt
 
-    def extract_features(self):
+    def get_features(self):
+        # get from the cache
+        if 'features' not in self.__cache :
+            # try to get from file
+            try:
+                # check the synchronisation time
+                max_doc_time = os.path.getmtime(self.pages[0]._get_filepath(self.pages[0].EXT_THUMB))
+                extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+                if os.access(extra_txt_file, os.R_OK):
+                    max_doc_time = max(max_doc_time, os.path.getmtime(extra_txt_file))
+                for page in self.pages:
+                    max_doc_time = max(max_doc_time,
+                                       os.path.getmtime(page._get_filepath(page.EXT_BOX)))
+
+                if max_doc_time <= os.path.getmtime(os.path.join(self.path, self.FEATURES_FILE)):
+                    logger.info("Opening features file")
+                    self.__cache['features'] = joblib.load(os.path.join(self.path, self.FEATURES_FILE))
+                else:
+                    logger.info("Features file is out of date")
+            except (OSError, IOError, IndexError, ValueError), exc:
+                logger.error("Failed to open features file '%s'"
+                       % os.path.join(self.path, self.FEATURES_FILE))
+                logger.error("Exception was: %s" % exc)
+
+            if 'features' not in self.__cache :
+                logger.info("Will create new features file")
+                self.__cache['features'] = self.__extract_features()
+                joblib.dump(self.__cache['features'],
+                            os.path.join(self.path, self.FEATURES_FILE),
+                            compress=0)
+
+        return self.__cache['features']
+
+    def __extract_features(self):
         """
         return an array of features extracted from this doc for the sklearn estimators
         Concatenate features from the text, the page number and the image
@@ -217,14 +252,15 @@ class BasicDoc(object):
 
         Will go on each document, and replace 'old_label' by 'new_label'
         """
-        logger.info("%s : Updating label ([%s] -> [%s])"
-               % (str(self), str(old_label), str(new_label)))
         labels = self.labels
         try:
             labels.remove(old_label)
         except ValueError:
             # this document doesn't have this label
             return
+
+        logger.info("%s : Updating label ([%s] -> [%s])"
+               % (str(self), str(old_label), str(new_label)))
         labels.append(new_label)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
                          encoding='utf-8') as file_desc:

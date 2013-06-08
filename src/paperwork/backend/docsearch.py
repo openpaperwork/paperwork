@@ -347,8 +347,6 @@ class DocSearch(object):
     it doesn't support online learning (partial_fit)
     """
     label_estimators = {}
-    # the fitted indicator is used to guess the estimator accuracy
-    label_estimators_fitted_with_docid = set()
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -440,15 +438,16 @@ class DocSearch(object):
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
-        self.label_estimators_file = os.path.join(base_indexdir,
+        self.label_estimators_dir = os.path.join(base_indexdir,
                                                   "paperwork",
+                                                  "label_estimators")
+        self.label_estimators_file = os.path.join(self.label_estimators_dir,
                                                   "label_estimators.jbl")
         try:
             logger.info("Opening label_estimators file '%s' ..." %
                         self.label_estimators_file)
-            (l_estimators, f_docid) = joblib.load(self.label_estimators_file)
+            l_estimators = joblib.load(self.label_estimators_file)
             self.label_estimators = l_estimators
-            self.label_estimators_fitted_with_docid = f_docid
             # check that the label_estimators are up to date for their class
             for label_name in self.label_estimators:
                 params = self.label_estimators[label_name].get_params()
@@ -460,15 +459,16 @@ class DocSearch(object):
             logger.error("Exception was: %s" % exc)
             logger.info("Will create new label_estimators")
             self.label_estimators = {}
-            self.label_estimators_fitted_with_docid=set()
 
         # redo prediction on all documents
         self.reindex_label_predictions()
 
     def save_label_estimators(self):
-        joblib.dump((self.label_estimators,
-                     self.label_estimators_fitted_with_docid),
-                    self.label_estimators_file, compress=9)
+        if not os.path.exists(self.label_estimators_dir):
+            os.mkdir(self.label_estimators_dir)
+        joblib.dump(self.label_estimators,
+                    self.label_estimators_file,
+                    compress=0)
 
     def __must_clean(self, filepath):
         must_clean_cbs = [
@@ -563,7 +563,7 @@ class DocSearch(object):
                     # fit the estimators with the hashed text and the model class (labelled or unlabelled)
                     # don't use True or False for the classes as it raises a casting bug in underlying library
                     l_estimator =  self.label_estimators[label_name]
-                    l_estimator.partial_fit(doc.extract_features(),
+                    l_estimator.partial_fit(doc.get_features(),
                                             [doc_has_label],
                                             numpy.array(['labelled','unlabelled']))
             elif removed_label:
@@ -572,7 +572,7 @@ class DocSearch(object):
                                'unlabelled',
                                removed_label.name))
                 l_estimator =  self.label_estimators[removed_label.name]
-                l_estimator.partial_fit(doc.extract_features(),
+                l_estimator.partial_fit(doc.get_features(),
                                         ['unlabelled'],
                                         numpy.array(['labelled','unlabelled']))
 
@@ -584,13 +584,17 @@ class DocSearch(object):
         # if there is only one label, or not enough document fitted prediction is not possible
         if len(self.label_estimators) < 2:
             return []
-        # don't do prediction if not enough fitted docs because the prediction is not very good
-        if len(self.label_estimators_fitted_with_docid) < 8:
-            return []
 
         predicted_label_list=[]
         for label_name in self.label_estimators:
-            prediction = self.label_estimators[label_name].predict(doc.extract_features())
+            features = doc.get_features()
+            prediction = self.label_estimators[label_name].predict(features)
+            # logger.info("%s %s %s with decision %s " % (
+            #                                            doc,
+            #                                            prediction,
+            #                                            label_name,
+            #                                            self.label_estimators[label_name].
+            #                                                decision_function(features)))"""
             if prediction == 'labelled':
                 predicted_label_list.append(label_name)
         return predicted_label_list
@@ -598,6 +602,7 @@ class DocSearch(object):
     def reindex_label_predictions(self, docs=None):
         if docs is None:
             docs = self.docs
+
         updater = None
         for doc in docs:
             # check the labels prediction for non labeled documents
@@ -939,7 +944,7 @@ class DocSearch(object):
         """
         logger.info("Destroying the index ...")
         rm_rf(self.indexdir)
-        rm_rf(self.label_estimators_file)
+        rm_rf(self.label_estimators_dir)
         logger.info("Done")
 
     def is_hash_in_index(self, filehash):

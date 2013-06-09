@@ -274,10 +274,11 @@ class DocIndexUpdater(GObject.GObject):
     def del_doc(self, docid, fit_label_estimator=True):
         """
         Delete a document
+        argument fit_label_estimator is not used but is needed for the
+        same interface as upd_doc and add_doc
         """
         logger.info("Removing doc from the index: %s" % docid)
-        self._delete_doc_from_index(self.writer, docid,
-                                    fit_label_estimator=fit_label_estimator)
+        self._delete_doc_from_index(self.writer, docid)
         self.__need_reload = True
 
     def commit(self):

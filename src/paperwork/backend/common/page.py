@@ -266,12 +266,14 @@ class BasicPage(object):
         compute image data to present features for the estimators
         """
         image = self.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+        image = image.convert('RGB')
 
-        # use color and grayscale histogram
+        # use the first two channels of color histogram
         histogram = image.histogram()
         separated_histo = []
         separated_histo.append(histogram[0:256])
         separated_histo.append(histogram[256:256*2])
+        # use the grayscale histogram with a weight of 2
         separated_histo.append([i*2 for i in image.convert('L').histogram()])
         separated_flat_histo = []
         for histo in separated_histo:

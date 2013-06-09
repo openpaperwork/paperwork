@@ -238,9 +238,13 @@ class ImgPage(BasicPage):
 
         img.load()  # WORKAROUND: For PIL on ArchLinux
 
-        # strip the alpha channel if there is one
-        color_channels = img.split()
-        img = PIL.Image.merge("RGB", color_channels[:3])
+        # we wants rgb for homogenous work
+        if len(img.getbands()) > 3 :
+            # strip the alpha channel if there is one
+            color_channels = img.split()
+            img = PIL.Image.merge("RGB", color_channels[:3])
+        else:
+            img = img.convert('RGB')
 
         outfiles = []
         # rotate the image 0, 90, 180 and 270 degrees

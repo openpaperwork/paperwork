@@ -842,9 +842,10 @@ class DocSearch(object):
         updating the index.
         """
         assert(old_label)
+        assert(new_label)
         self.label_list.remove(old_label)
         if old_label.name in self.label_estimators:
-            self.label_estimators.pop(old_label.name)
+            self.label_estimators[new_label.name] = self.label_estimators.pop(old_label.name)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
             self.label_list.sort()
@@ -859,8 +860,6 @@ class DocSearch(object):
                 updater.upd_doc(doc)
             current += 1
 
-        # fit all documents for this new label
-        self.fit_label_estimator(docs=self.docs, labels=[new_label])
         updater.commit()
 
     def destroy_label(self, label, callback=dummy_progress_cb):

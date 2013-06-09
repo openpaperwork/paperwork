@@ -581,15 +581,11 @@ class DocSearch(object):
         predicted_label_list=[]
         for label_name in self.label_estimators:
             features = doc.get_features()
-            prediction = self.label_estimators[label_name].predict(features)
-            # logger.info("%s %s %s with decision %s " % (
-            #                                            doc,
-            #                                            prediction,
-            #                                            label_name,
-            #                                            self.label_estimators[label_name].
-            #                                                decision_function(features)))"""
-            if prediction == 'labelled':
-                predicted_label_list.append(label_name)
+            # check that the estimator will not throw an error because its not fitted
+            if self.label_estimators[label_name].coef_ is not None:
+                prediction = self.label_estimators[label_name].predict(features)
+                if prediction == 'labelled':
+                    predicted_label_list.append(label_name)
         return predicted_label_list
 
     def reindex_label_predictions(self, docs=None):

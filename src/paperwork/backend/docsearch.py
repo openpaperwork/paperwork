@@ -587,6 +587,12 @@ class DocSearch(object):
                 prediction = self.label_estimators[label_name].predict(features)
                 if prediction == 'labelled':
                     predicted_label_list.append(label_name)
+                logger.debug("%s %s %s with decision %s " % (
+                                                           doc,
+                                                           prediction,
+                                                           label_name,
+                                                           self.label_estimators[label_name].
+                                                               decision_function(features)))
         return predicted_label_list
 
     def reindex_label_predictions(self, docs=None):

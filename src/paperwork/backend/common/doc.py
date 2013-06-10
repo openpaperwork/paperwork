@@ -233,13 +233,14 @@ class BasicDoc(object):
         features.append(hash_vectorizer.fit_transform([self.get_index_text()]))
 
         # add image info
-        features.append(self.pages[0].extract_features())
+        image_features = normalize(self.pages[0].extract_features(), norm='l1')
+        features.append(image_features)
 
         # concatenate all the features
         features = sparse.hstack(features)
         features = features.tocsr()
 
-        return normalize(features, norm='l2')
+        return features
 
     def get_index_labels(self):
         return u",".join([strip_accents(unicode(label.name))

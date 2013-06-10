@@ -234,7 +234,7 @@ class BasicDoc(object):
 
         # add image info
         image_features = normalize(self.pages[0].extract_features(), norm='l1')
-        features.append(image_features)
+        features.append(image_features*0.3)
 
         # concatenate all the features
         features = sparse.hstack(features)

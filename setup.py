@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import imp
+import os
 import platform
 import sys
 
@@ -77,7 +78,7 @@ Let the machine do most of the work.
           'paperwork.backend.img': 'src/paperwork/backend/img',
           },
       data_files=[
-          ('share/paperwork', [
+          (os.path.join(sys.prefix, 'share/paperwork'), [
             'src/paperwork/frontend/aboutdialog.glade',
             'src/paperwork/frontend/doceditdialog.glade',
             'src/paperwork/frontend/import.glade',
@@ -88,11 +89,11 @@ Let the machine do most of the work.
             'src/paperwork/frontend/settingswindow.glade',
             'src/paperwork/frontend/labeledit.glade',
             ]),
-          ('share/locale/fr/LC_MESSAGES',
+          (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
            ['locale/fr/LC_MESSAGES/paperwork.mo']),
-          ('share/applications',
+          (os.path.join(sys.prefix, 'share/applications'),
            ['data/paperwork.desktop']),
-          ('share/icons',
+          (os.path.join(sys.prefix, 'share/icons'),
            ['data/paperwork.svg']),
       ],
       scripts=['scripts/paperwork'],

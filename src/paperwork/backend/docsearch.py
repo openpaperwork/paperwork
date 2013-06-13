@@ -274,10 +274,11 @@ class DocIndexUpdater(GObject.GObject):
     def del_doc(self, docid, fit_label_estimator=True):
         """
         Delete a document
+        argument fit_label_estimator is not used but is needed for the
+        same interface as upd_doc and add_doc
         """
         logger.info("Removing doc from the index: %s" % docid)
-        self._delete_doc_from_index(self.writer, docid,
-                                    fit_label_estimator=fit_label_estimator)
+        self._delete_doc_from_index(self.writer, docid)
         self.__need_reload = True
 
     def commit(self):
@@ -547,6 +548,7 @@ class DocSearch(object):
                 self.label_estimators[label_name] = copy.deepcopy(DocSearch.LABEL_ESTIMATOR_TEMPLATE)
 
         for doc in docs:
+            logger.info("Fitting estimator with doc: %s " % doc)
             # fit only with labelled documents
             if doc.labels:
                 for label_name in label_name_set:
@@ -556,21 +558,14 @@ class DocSearch(object):
                         if label.name == label_name:
                             doc_has_label = 'labelled'
                             break
-                    logger.debug("Fitting estimator with doc: %s %s %s "
-                                 % (doc,
-                                    doc_has_label,
-                                    label_name))
-                    # fit the estimators with the hashed text and the model class (labelled or unlabelled)
+
+                    # fit the estimators with the model class (labelled or unlabelled)
                     # don't use True or False for the classes as it raises a casting bug in underlying library
                     l_estimator =  self.label_estimators[label_name]
                     l_estimator.partial_fit(doc.get_features(),
                                             [doc_has_label],
                                             numpy.array(['labelled','unlabelled']))
             elif removed_label:
-                logger.debug("Fitting estimator with doc: %s and %s %s "
-                             % (doc,
-                                'unlabelled',
-                               removed_label.name))
                 l_estimator =  self.label_estimators[removed_label.name]
                 l_estimator.partial_fit(doc.get_features(),
                                         ['unlabelled'],
@@ -580,7 +575,6 @@ class DocSearch(object):
         """
         return a prediction of label names
         """
-        logger.info('Start prediction of doc %s' % doc)
         # if there is only one label, or not enough document fitted prediction is not possible
         if len(self.label_estimators) < 2:
             return []
@@ -588,18 +582,16 @@ class DocSearch(object):
         predicted_label_list=[]
         for label_name in self.label_estimators:
             features = doc.get_features()
-            prediction = self.label_estimators[label_name].predict(features)
-            # logger.info("%s %s %s with decision %s " % (
-            #                                            doc,
-            #                                            prediction,
-            #                                            label_name,
-            #                                            self.label_estimators[label_name].
-            #                                                decision_function(features)))"""
-            if prediction == 'labelled':
-                predicted_label_list.append(label_name)
+            # check that the estimator will not throw an error because its not fitted
+            if self.label_estimators[label_name].coef_ is not None:
+                prediction = self.label_estimators[label_name].predict(features)
+                if prediction == 'labelled':
+                    predicted_label_list.append(label_name)
         return predicted_label_list
 
     def reindex_label_predictions(self, docs=None):
+        logger.info("reindexing label predictions")
+
         if docs is None:
             docs = self.docs
 
@@ -847,9 +839,10 @@ class DocSearch(object):
         updating the index.
         """
         assert(old_label)
+        assert(new_label)
         self.label_list.remove(old_label)
         if old_label.name in self.label_estimators:
-            self.label_estimators.pop(old_label.name)
+            self.label_estimators[new_label.name] = self.label_estimators.pop(old_label.name)
         if new_label not in self.label_list:
             self.label_list.append(new_label)
             self.label_list.sort()
@@ -864,8 +857,6 @@ class DocSearch(object):
                 updater.upd_doc(doc)
             current += 1
 
-        # fit all documents for this new label
-        self.fit_label_estimator(docs=self.docs, labels=[new_label])
         updater.commit()
 
     def destroy_label(self, label, callback=dummy_progress_cb):

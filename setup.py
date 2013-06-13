@@ -142,19 +142,15 @@ modules = [
      },
     ),
 
-    # TODO(Jflesch): check for gladeui ?
-    #
     # use_env_var += [ 'introspection' ]  # gentoo
-    # missing_modules.append(
-    #        ('Glade UI', '???',
-    #         {
-    #             'debian': 'gir1.2-gladeui-2.0',
-    #             'fedora': 'glade3-libgladeui',
-    #             'gentoo': 'dev-util/glade',
-    #             'ubuntu': 'gir1.2-gladeui-2.0',
-    #         },
-    #        )
-    #    )
+    ('Glade UI', 'gi.repository.Gladeui',
+     {
+         'debian': 'gir1.2-gladeui-2.0',
+         'fedora': 'glade3-libgladeui',
+         'gentoo': 'dev-util/glade',
+         'ubuntu': 'gir1.2-gladeui-2.0',
+     },
+    ),
 
     # TODO(Jflesch): check for jpeg support in PIL
 

@@ -349,6 +349,11 @@ class WorkerPageThumbnailer(Worker):
         self.__main_win = main_window
 
     def do(self):
+        for t in range(0, 10):
+            if not self.can_run or self.paused:
+                return
+            time.sleep(0.05)
+
         search = unicode(self.__main_win.search_field.get_text(),
                          encoding='utf-8')
 

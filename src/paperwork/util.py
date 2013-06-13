@@ -46,10 +46,10 @@ MIN_KEYWORD_LEN = 3
 PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 
 UI_FILES_DIRS = [
-    PREFIX + "/share/paperwork",
-    PREFIX + "/local/share/paperwork",
     ".",
     "src/paperwork/frontend",
+    PREFIX + "/share/paperwork",
+    PREFIX + "/local/share/paperwork",
 ]
 
 

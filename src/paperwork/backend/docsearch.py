@@ -13,11 +13,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
-from whoosh.query import Term
-from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
-import numpy
-from sklearn.externals import joblib
-from whoosh import sorting
 """
 Contains all the code relative to keyword and document list management list.
 Also everything related to indexation and searching in the documents (+
@@ -28,18 +23,25 @@ import logging
 import copy
 import datetime
 import multiprocessing
-import os
 import os.path
 import time
 import threading
 
 from gi.repository import GObject
+
+import numpy
+from sklearn.externals import joblib
+from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
+
 import whoosh.fields
 import whoosh.index
 import whoosh.qparser
 import whoosh.query
+from whoosh.query import Term
+from whoosh import sorting
 
 from paperwork.backend import img
+from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
@@ -447,14 +449,19 @@ class DocSearch(object):
         try:
             logger.info("Opening label_estimators file '%s' ..." %
                         self.label_estimators_file)
-            l_estimators = joblib.load(self.label_estimators_file)
-            self.label_estimators = l_estimators
+            (l_estimators,ver) = joblib.load(self.label_estimators_file)
+            if ver != BasicDoc.FEATURES_VER:
+                logger.info("Estimator version is not up to date")
+                self.label_estimators = {}
+            else:
+                self.label_estimators = l_estimators
+
             # check that the label_estimators are up to date for their class
             for label_name in self.label_estimators:
                 params = self.label_estimators[label_name].get_params()
                 if params != self.LABEL_ESTIMATOR_TEMPLATE.get_params():
                     raise IndexError('label_estimators params are not up to date')
-        except (IOError, IndexError, ValueError), exc:
+        except Exception, exc:
             logger.error("Failed to open label_estimator file '%s', or bad label_estimator structure"
                    % self.indexdir)
             logger.error("Exception was: %s" % exc)
@@ -467,7 +474,7 @@ class DocSearch(object):
     def save_label_estimators(self):
         if not os.path.exists(self.label_estimators_dir):
             os.mkdir(self.label_estimators_dir)
-        joblib.dump(self.label_estimators,
+        joblib.dump((self.label_estimators, BasicDoc.FEATURES_VER),
                     self.label_estimators_file,
                     compress=0)
 
@@ -587,6 +594,10 @@ class DocSearch(object):
                 prediction = self.label_estimators[label_name].predict(features)
                 if prediction == 'labelled':
                     predicted_label_list.append(label_name)
+                logger.debug("%s %s %s with decision %s "
+                             % (doc, prediction, label_name,
+                                self.label_estimators[label_name].
+                                    decision_function(features)))
         return predicted_label_list
 
     def reindex_label_predictions(self, docs=None):

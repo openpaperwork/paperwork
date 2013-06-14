@@ -298,7 +298,7 @@ class BasicPage(object):
         # concatenate
         features = sparse.hstack([flat_histo, hog_features * 3])
 
-        return normalize(features, norm='l1')
+        return features
 
 class DummyPage(object):
     page_nb = -1

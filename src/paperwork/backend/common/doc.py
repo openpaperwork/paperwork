@@ -41,7 +41,9 @@ class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
     EXTRA_TEXT_FILE = "extra.txt"
-    FEATURES_FILE = "features_V01.jbl"
+    FEATURES_DIR = "features"
+    FEATURES_FILE = "features.jbl"
+    FEATURES_VER = 1
 
     pages = []
     can_edit = False
@@ -192,9 +194,11 @@ class BasicDoc(object):
     def get_features(self):
         # get from the cache
         if 'features' not in self.__cache :
+            features_file = os.path.join(self.path, self.FEATURES_DIR,
+                                self.FEATURES_FILE)
             # try to get from file
             try:
-                # check the synchronisation time
+                # check the synchro time
                 max_doc_time = os.path.getmtime(self.pages[0]._get_filepath(self.pages[0].EXT_THUMB))
                 extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
                 if os.access(extra_txt_file, os.R_OK):
@@ -202,22 +206,28 @@ class BasicDoc(object):
                 for page in self.pages:
                     max_doc_time = max(max_doc_time,
                                        os.path.getmtime(page._get_filepath(page.EXT_BOX)))
-
-                if max_doc_time <= os.path.getmtime(os.path.join(self.path, self.FEATURES_FILE)):
-                    self.__cache['features'] = joblib.load(os.path.join(self.path, self.FEATURES_FILE))
-                else:
+                if max_doc_time > os.path.getmtime(features_file):
                     logger.info("Features file is out of date")
+                else:
+                    (computed_features, ver) = joblib.load(features_file)
+                    if ver != self.FEATURES_VER:
+                        logger.info("Features computed version is not up to date")
+                    else:
+                        # ok we have good time and version computed features
+                        self.__cache['features'] = computed_features
+
             except (OSError, IOError, IndexError, ValueError), exc:
-                logger.info("Failed to open features file '%s'"
-                       % os.path.join(self.path, self.FEATURES_FILE))
+                logger.info("Failed to open features file '%s'" % features_file)
                 logger.info("Exception was: %s" % exc)
 
             if 'features' not in self.__cache :
+                self.delete_features_files() # purge the directory
                 logger.info("Will create new features file")
                 self.__cache['features'] = self.__extract_features()
-                joblib.dump(self.__cache['features'],
-                            os.path.join(self.path, self.FEATURES_FILE),
-                            compress=0)
+                if not os.path.exists(os.path.join(self.path,
+                                                   self.FEATURES_DIR)):
+                    os.mkdir(os.path.join(self.path, self.FEATURES_DIR))
+                joblib.dump((self.__cache['features'], self.FEATURES_VER), features_file, compress=0)
 
         return self.__cache['features']
 
@@ -241,6 +251,9 @@ class BasicDoc(object):
         features = features.tocsr()
 
         return features
+
+    def delete_features_files(self):
+        rm_rf(os.path.join(self.path, self.FEATURES_DIR))
 
     def get_index_labels(self):
         return u",".join([strip_accents(unicode(label.name))

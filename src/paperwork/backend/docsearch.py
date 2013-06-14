@@ -18,6 +18,7 @@ from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
 import numpy
 from sklearn.externals import joblib
 from whoosh import sorting
+from paperwork.backend.common.doc import BasicDoc
 """
 Contains all the code relative to keyword and document list management list.
 Also everything related to indexation and searching in the documents (+
@@ -447,14 +448,19 @@ class DocSearch(object):
         try:
             logger.info("Opening label_estimators file '%s' ..." %
                         self.label_estimators_file)
-            l_estimators = joblib.load(self.label_estimators_file)
-            self.label_estimators = l_estimators
+            (l_estimators,ver) = joblib.load(self.label_estimators_file)
+            if ver != BasicDoc.FEATURES_VER:
+                logger.info("Estimator version is not up to date")
+                self.label_estimators = {}
+            else:
+                self.label_estimators = l_estimators
+
             # check that the label_estimators are up to date for their class
             for label_name in self.label_estimators:
                 params = self.label_estimators[label_name].get_params()
                 if params != self.LABEL_ESTIMATOR_TEMPLATE.get_params():
                     raise IndexError('label_estimators params are not up to date')
-        except (IOError, IndexError, ValueError), exc:
+        except Exception, exc:
             logger.error("Failed to open label_estimator file '%s', or bad label_estimator structure"
                    % self.indexdir)
             logger.error("Exception was: %s" % exc)
@@ -467,7 +473,7 @@ class DocSearch(object):
     def save_label_estimators(self):
         if not os.path.exists(self.label_estimators_dir):
             os.mkdir(self.label_estimators_dir)
-        joblib.dump(self.label_estimators,
+        joblib.dump((self.label_estimators, BasicDoc.FEATURES_VER),
                     self.label_estimators_file,
                     compress=0)
 

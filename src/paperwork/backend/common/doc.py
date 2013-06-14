@@ -208,9 +208,9 @@ class BasicDoc(object):
                 else:
                     logger.info("Features file is out of date")
             except (OSError, IOError, IndexError, ValueError), exc:
-                logger.error("Failed to open features file '%s'"
+                logger.info("Failed to open features file '%s'"
                        % os.path.join(self.path, self.FEATURES_FILE))
-                logger.error("Exception was: %s" % exc)
+                logger.info("Exception was: %s" % exc)
 
             if 'features' not in self.__cache :
                 logger.info("Will create new features file")

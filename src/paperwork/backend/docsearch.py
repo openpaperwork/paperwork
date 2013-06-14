@@ -13,12 +13,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
-from whoosh.query import Term
-from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
-import numpy
-from sklearn.externals import joblib
-from whoosh import sorting
-from paperwork.backend.common.doc import BasicDoc
 """
 Contains all the code relative to keyword and document list management list.
 Also everything related to indexation and searching in the documents (+
@@ -29,18 +23,25 @@ import logging
 import copy
 import datetime
 import multiprocessing
-import os
 import os.path
 import time
 import threading
 
 from gi.repository import GObject
+
+import numpy
+from sklearn.externals import joblib
+from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
+
 import whoosh.fields
 import whoosh.index
 import whoosh.qparser
 import whoosh.query
+from whoosh.query import Term
+from whoosh import sorting
 
 from paperwork.backend import img
+from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc

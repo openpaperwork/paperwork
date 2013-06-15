@@ -27,7 +27,7 @@ class JobFactory(object):
         self.name = name
         self.id_generator = itertools.counter()
 
-    def make(self, **kwargs, *args):
+    def make(self, *args, **kwargs):
         """Child class must override this method"""
         raise NotImplementedError()
 

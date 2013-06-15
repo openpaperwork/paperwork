@@ -179,7 +179,7 @@ class JobScheduler(object):
                 logger.debug("Job %s took %dms"
                              % (str(self._active_job), diff * 1000))
             else:
-                logger.warning("Job %s took %ms and is unstoppable !"
+                logger.warning("Job %s took %dms and is unstoppable !"
                                " (maximum allowed: %dms)"
                                % (str(self._active_job), diff * 1000,
                                   Job.MAX_TIME_FOR_UNSTOPPABLE_JOB * 1000))
@@ -210,7 +210,7 @@ class JobScheduler(object):
         diff = stop - start
         if active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
             logger.warning("[Scheduler %s] Took %dms to stop job %s !"
-                           " (maximum allowed: %ms)"
+                           " (maximum allowed: %dms)"
                            % (self.name, diff * 1000,
                               str(active_job),
                               Job.MAX_TIME_TO_STOP * 1000))

@@ -771,9 +771,6 @@ class JobFactoryImgBuilder(JobFactory):
 
 # TODO
 class WorkerLabelUpdater(Worker):
-    """
-    Resize and paint on the page
-    """
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-updating-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -806,9 +803,6 @@ GObject.type_register(WorkerLabelUpdater)
 
 # TODO
 class WorkerLabelDeleter(Worker):
-    """
-    Resize and paint on the page
-    """
     __gsignals__ = {
         'label-deletion-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-deletion-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -840,9 +834,6 @@ GObject.type_register(WorkerLabelDeleter)
 
 # TODO
 class WorkerOCRRedoer(Worker):
-    """
-    Resize and paint on the page
-    """
     __gsignals__ = {
         'redo-ocr-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'redo-ocr-doc-updated': (GObject.SignalFlags.RUN_LAST, None,

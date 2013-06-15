@@ -135,11 +135,12 @@ class JobIndexLoader(Job):
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.emit('index-loading-end', docsearch)
         except StopIteration:
-            logger.error("Indexation interrupted")
-            self.emit('index-loading-end', None)
+            logger.info("Index loading interrupted")
 
     def stop(self, will_resume=False):
         self.can_run = False
+        if not will_resume:
+            self.emit('index-loading-end', None)
 
 
 GObject.type_register(JobIndexLoader)
@@ -222,7 +223,7 @@ class JobDocExaminer(Job):
                 self.__on_doc_missing,
                 self.__progress_cb)
         except StopIteration:
-            logger.error("Document examination interrupted")
+            logger.info("Document examination interrupted")
         finally:
             self.emit('doc-examination-end')
 
@@ -2716,13 +2717,17 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_index_loading_end_cb(self, src, docsearch):
-        self.docsearch = docsearch
-
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
+
+        if docsearch is None:
+            return
+
+        self.docsearch = docsearch
         self.refresh_doc_list()
         self.refresh_label_list()
+
 
     def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)

@@ -463,8 +463,8 @@ class JobFactoryDocSearcher(JobFactory):
                              documents, suggestions))
         return job
 
-# TODO
-class WorkerPageThumbnailer(Worker):
+
+class JobPageThumbnailer(Job):
     """
     Generate page thumbnails
     """
@@ -477,39 +477,80 @@ class WorkerPageThumbnailer(Worker):
         'page-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 450
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Page thumbnailing")
-        self.__main_win = main_window
+    def __init__(self, factory, id, doc, search):
+        Job.__init__(self, factory, id)
+        self.__doc = doc
+        self.__search = search
+
+        self.__current_idx = -1
 
     def do(self):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return
-            time.sleep(0.05)
+        pages = self.__doc.pages
+        nb_pages = self.__doc.nb_pages
 
-        search = unicode(self.__main_win.search_field.get_text(),
-                         encoding='utf-8')
+        self.can_run = True
+        if self.__current_idx >= nb_pages:
+            return
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
-        self.emit('page-thumbnailing-start')
-        for page_idx in range(0, self.__main_win.doc[1].nb_pages):
-            page = self.__main_win.doc[1].pages[page_idx]
-            img = page.get_thumbnail(WorkerDocThumbnailer.THUMB_WIDTH)
+        if self.__current_idx < 0:
+            self.emit('page-thumbnailing-start')
+            self.__current_idx = 0
+
+        for page_idx in range(self.__current_idx, nb_pages):
+            page = pages[page_idx]
+            img = page.get_thumbnail(JobDocThumbnailer.THUMB_WIDTH)
             img = img.copy()
-            if search != u"" and search in page:
+
+            if self.__search != u"" and self.__search in page:
                 img = add_img_border(img, color="#009e00", width=3)
             else:
                 img = add_img_border(img)
-            pixbuf = image2pixbuf(img)
             if not self.can_run:
-                self.emit('page-thumbnailing-end')
                 return
+
+            pixbuf = image2pixbuf(img)
             self.emit('page-thumbnailing-page-done', page_idx, pixbuf)
+            self.__current_idx = page_idx
+            if not self.can_run:
+                return
         self.emit('page-thumbnailing-end')
 
+    def stop(self, will_resumce=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume and self.__current_idx >= 0:
+            self.emit('page-thumbnailing-end')
 
-GObject.type_register(WorkerPageThumbnailer)
+
+GObject.type_register(JobPageThumbnailer)
+
+
+class JobFactoryPageThumbnailer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "PageThumbnailer")
+        self.__main_win = main_win
+
+    def make(self, doc, search):
+        job = JobPageThumbnailer(self, next(self.id_generator), doc, search)
+        job.connect('page-thumbnailing-start',
+                    lambda thumbnailer:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_start_cb,
+                                     thumbnailer))
+        job.connect('page-thumbnailing-page-done',
+                    lambda thumbnailer, page_idx, thumbnail:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_page_done_cb,
+                                     thumbnailer, page_idx, thumbnail))
+        job.connect('page-thumbnailing-end',
+                    lambda thumbnailer:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_end_cb,
+                                     thumbnailer))
+        return job
 
 
 class JobDocThumbnailer(Job):
@@ -534,15 +575,19 @@ class JobDocThumbnailer(Job):
     def __init__(self, factory, id, doclist):
         Job.__init__(self, factory, id)
         self.__doclist = doclist
-        self.__current_idx = 0
+        self.__current_idx = -1
 
     def do(self):
         self.can_run = True
+        if self.__current_idx >= len(self.__doclist):
+            return
         self._wait(0.5)
         if not self.can_run:
             return
 
-        self.emit('doc-thumbnailing-start')
+        if self.__current_idx < 0:
+            self.emit('doc-thumbnailing-start')
+            self.__current_idx = 0
 
         for idx in xrange(self.__current_idx, len(self.__doclist)):
             (doc_position, doc) = self.__doclist[idx]
@@ -586,7 +631,7 @@ class JobDocThumbnailer(Job):
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
-        if not will_resume:
+        if not will_resume and self.__current_idx >= 0:
             self.emit('doc-thumbnailing-end')
 
 
@@ -2090,7 +2135,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'page_thumbnailer': WorkerPageThumbnailer(self),
         #    'img_builder': WorkerImgBuilder(self),
         #    'label_updater': WorkerLabelUpdater(self),
         #    'label_deleter': WorkerLabelDeleter(self),
@@ -2107,6 +2151,7 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
+            'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
         }
@@ -2495,23 +2540,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['page_thumbnailer'].connect(
-        #    'page-thumbnailing-start',
-        #    lambda thumbnailer:
-        #    GObject.idle_add(self.__on_page_thumbnailing_start_cb,
-        #                     thumbnailer))
-        #self.workers['page_thumbnailer'].connect(
-        #    'page-thumbnailing-page-done',
-        #    lambda thumbnailer, page_idx, thumbnail:
-        #    GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
-        #                     thumbnailer, page_idx, thumbnail))
-        #self.workers['page_thumbnailer'].connect(
-        #    'page-thumbnailing-end',
-        #    lambda thumbnailer:
-        #    GObject.idle_add(self.__on_page_thumbnailing_end_cb,
-        #                     thumbnailer))
-
-        # TODO
         #self.workers['img_builder'].connect(
         #    'img-building-start',
         #    lambda builder:
@@ -2740,17 +2768,17 @@ class MainWindow(object):
         job = self.job_factories['doc_thumbnailer'].make(documents)
         self.scheduler.schedule(job)
 
-    def __on_page_thumbnailing_start_cb(self, src):
+    def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
 
-    def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
+    def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
-    def __on_page_thumbnailing_end_cb(self, src):
+    def on_page_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
@@ -3142,8 +3170,7 @@ class MainWindow(object):
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        # TODO
-        #self.workers['page_thumbnailer'].stop()
+        self.scheduler.cancel_all(self.job_factories['page_thumbnailer'])
         self.lists['pages']['model'].clear()
         for page in self.doc[1].pages:
             self.lists['pages']['model'].append([
@@ -3159,8 +3186,10 @@ class MainWindow(object):
             widget.set_sensitive(self.doc[1].can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
-        # TODO
-        #self.workers['page_thumbnailer'].start()
+
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['page_thumbnailer'].make(self.doc[1], search)
+        self.scheduler.schedule(job)
 
     def refresh_label_list(self):
         """
@@ -3228,22 +3257,22 @@ class MainWindow(object):
         #self.workers['img_builder'].start()
 
     def show_doc(self, doc_idx, doc):
-        self.doc = (doc_ix, doc)
-        is_new = self.doc[1].is_new
+        self.doc = (doc_idx, doc)
+        is_new = doc.is_new
         for widget in self.need_doc_widgets:
             widget.set_sensitive(not is_new)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(doc.can_edit)
         pages_gui = self.lists['pages']['gui']
-        if self.doc[1].can_edit:
+        if doc.can_edit:
             pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
             pages_gui.drag_source_add_text_targets()
         else:
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
-        if self.doc[1].nb_pages > 0:
-            self.show_page(self.doc[1].pages[0])
+        if doc.nb_pages > 0:
+            self.show_page(doc.pages[0])
         else:
             self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
                                              Gtk.IconSize.DIALOG)

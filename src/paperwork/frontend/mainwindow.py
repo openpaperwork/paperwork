@@ -440,7 +440,7 @@ class JobDocSearcher(Job):
 
         self.emit('search-result', documents, suggestions)
 
-    def stop(self):
+    def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
 
@@ -478,7 +478,7 @@ class JobPageThumbnailer(Job):
     }
 
     can_stop = True
-    priority = 450
+    priority = 400
 
     def __init__(self, factory, id, doc, search):
         Job.__init__(self, factory, id)
@@ -521,7 +521,7 @@ class JobPageThumbnailer(Job):
                 return
         self.emit('page-thumbnailing-end')
 
-    def stop(self, will_resumce=False):
+    def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
         if not will_resume and self.__current_idx >= 0:
@@ -668,8 +668,7 @@ class JobFactoryDocThumbnailer(JobFactory):
         return job
 
 
-# TODO
-class WorkerImgBuilder(Worker):
+class JobImgBuilder(Job):
     """
     Resize and paint on the page
     """
@@ -686,52 +685,88 @@ class WorkerImgBuilder(Worker):
                                       (GObject.TYPE_STRING, )),
     }
 
-    # even if it's not true, this process is not really long, so it doesn't
-    # really matter
-    can_interrupt = True
+    can_stop = True
+    priority = 450
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Building page image")
-        self.__main_win = main_window
+    def __init__(self, factory, id, page, zoom_factor_func):
+        Job.__init__(self, factory, id)
+        self.__page = page
+        self.__zoom_factor_func = zoom_factor_func
+        self.__started_once = False
 
     def do(self):
-        self.emit('img-building-start')
-
-        if self.__main_win.page.img is None:
-            self.emit('img-building-result-clear')
-            return
-
-        # to keep the GUI smooth
-        for t in range(0, 25):
-            if not self.can_run:
-                break
-            time.sleep(0.01)
-        if not self.can_run:
-            self.emit('img-building-result-clear')
-            return
+        self.can_run = True
 
         try:
-            img = self.__main_win.page.img
+            if not self.__started_once:
+                self.emit('img-building-start')
+                self.__started_once = True
+
+            self._wait(0.5)
+            if not self.can_run:
+                return
+
+            img = self.__page.img  # load the image
+            if img is None:
+                self.emit('img-building-result-clear')
+                return
+            if not self.can_run:
+                return
 
             pixbuf = image2pixbuf(img)
+            if not self.can_run:
+                return
+
             original_width = pixbuf.get_width()
 
-            factor = self.__main_win.get_zoom_factor(original_width)
+            factor = self.__zoom_factor_func(original_width)
             logger.info("Zoom: %f" % (factor))
 
             wanted_width = int(factor * pixbuf.get_width())
             wanted_height = int(factor * pixbuf.get_height())
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                          GdkPixbuf.InterpType.BILINEAR)
-
+            if not self.can_run:
+                return
             self.emit('img-building-result-pixbuf', factor, original_width,
-                      pixbuf, self.__main_win.page.boxes)
-        except Exception, exc:
+                      pixbuf, self.__page.boxes)
+        except Exception:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
-            raise exc
+            raise
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume:
+            self.emit('img-building-result-clear')
+            return
 
 
-GObject.type_register(WorkerImgBuilder)
+GObject.type_register(JobImgBuilder)
+
+
+class JobFactoryImgBuilder(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "ImgBuilder")
+        self.__main_win = main_win
+
+    def make(self, page):
+        job = JobImgBuilder(self, next(self.id_generator), page,
+                            self.__main_win.get_zoom_factor)
+        job.connect('img-building-start',
+                    lambda builder:
+                    GObject.idle_add(self.__main_win.on_img_building_start))
+        job.connect('img-building-result-pixbuf',
+                    lambda builder, factor, original_width, img, boxes:
+                    GObject.idle_add(self.__main_win.on_img_building_result_pixbuf,
+                                     builder, factor, original_width, img, boxes))
+        job.connect('img-building-result-stock',
+                    lambda builder, img:
+                    GObject.idle_add(self.__main_win.on_img_building_result_stock, img))
+        job.connect('img-building-result-clear',
+                    lambda builder:
+                    GObject.idle_add(self.__main_win.on_img_building_result_clear))
+        return job
 
 
 # TODO
@@ -1175,9 +1210,10 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        # TODO
-        #self.__main_win.workers['img_builder'].stop()
-        #self.__main_win.workers['img_builder'].start()
+        self.__main_win.scheduler.cancel_all(self.__main_win.job_factories['img_builder'])
+        job = self.__main_win.job_factories['img_builder'].make(
+            self.__main_win.page)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -2135,7 +2171,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'img_builder': WorkerImgBuilder(self),
         #    'label_updater': WorkerLabelUpdater(self),
         #    'label_deleter': WorkerLabelDeleter(self),
         #    'single_scan': WorkerSingleScan(self, config),
@@ -2149,6 +2184,7 @@ class MainWindow(object):
 
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
+            'img_builder': JobFactoryImgBuilder(self),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
@@ -2540,25 +2576,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['img_builder'].connect(
-        #    'img-building-start',
-        #    lambda builder:
-        #    GObject.idle_add(self.__on_img_building_start))
-        #self.workers['img_builder'].connect(
-        #    'img-building-result-pixbuf',
-        #    lambda builder, factor, original_width, img, boxes:
-        #    GObject.idle_add(self.__on_img_building_result_pixbuf,
-        #                     builder, factor, original_width, img, boxes))
-        #self.workers['img_builder'].connect(
-        #    'img-building-result-stock',
-        #    lambda builder, img:
-        #    GObject.idle_add(self.__on_img_building_result_stock, img))
-        #self.workers['img_builder'].connect(
-        #    'img-building-result-clear',
-        #    lambda builder:
-        #    GObject.idle_add(self.__on_img_building_result_clear))
-
-        # TODO
         #self.workers['label_updater'].connect(
         #    'label-updating-start',
         #    lambda updater:
@@ -2801,22 +2818,22 @@ class MainWindow(object):
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
-    def __on_img_building_start(self):
+    def on_img_building_start(self):
         self.disable_boxes()
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
 
-    def __on_img_building_result_stock(self, img):
+    def on_img_building_result_stock(self, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
-    def __on_img_building_result_clear(self):
+    def on_img_building_result_clear(self):
         self.img['image'].clear()
         self.set_mouse_cursor("Normal")
 
-    def __on_img_building_result_pixbuf(self, builder, factor, original_width,
-                                        pixbuf, boxes):
+    def on_img_building_result_pixbuf(self, builder, factor, original_width,
+                                      pixbuf, boxes):
         self.img['boxes']['all'] = boxes
         self.__reload_boxes()
 
@@ -3222,8 +3239,7 @@ class MainWindow(object):
     def show_page(self, page):
         logging.info("Showing page %s" % page)
 
-        # TODO
-        #self.workers['img_builder'].stop()
+        self.scheduler.cancel_all(self.job_factories['img_builder'])
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3253,8 +3269,8 @@ class MainWindow(object):
 
         self.export['dialog'].set_visible(False)
 
-        # TODO
-        #self.workers['img_builder'].start()
+        job = self.job_factories['img_builder'].make(page)
+        self.scheduler.schedule(job)
 
     def show_doc(self, doc_idx, doc):
         self.doc = (doc_idx, doc)
@@ -3314,11 +3330,9 @@ class MainWindow(object):
         if old_size == new_size:
             return
 
-        # TODO
-        #self.workers['img_builder'].soft_stop()
-        self.img['viewport']['size'] = new_size
         logger.info("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
+        self.img['viewport']['size'] = new_size
 
         # check if zoom level is set to adjusted, if yes,
         # we must resize the image
@@ -3328,8 +3342,9 @@ class MainWindow(object):
         if factor != 0.0:
             return
 
-        # TODO
-        #self.workers['img_builder'].start()
+        self.scheduler.cancel_all(self.job_factories['img_builder'])
+        job = self.job_factories['img_builder'].make(self.page)
+        self.scheduler.schedule(job)
 
     def __on_page_editing_img_edit_start_cb(self, worker, page):
         self.set_mouse_cursor("Busy")

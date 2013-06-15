@@ -37,6 +37,7 @@ class JobFactory(object):
 
 class Job(object):
     MAX_TIME_FOR_UNSTOPPABLE_JOB = 0.5  # secs
+    MAX_TIME_TO_STOP = 0.5  # secs
 
     # some jobs can be interrupted. In that case, the job should store in
     # the instance where it stopped, so it can resume its work when do()
@@ -141,7 +142,7 @@ class JobScheduler(object):
                                " (maximum allowed: %dms)"
                                % (self._active_job.factory.name,
                                   self._active_job.idx, diff * 1000,
-                                  Job.MAX_TIME_FOR_UNSTOPPABLE_JOB))
+                                  Job.MAX_TIME_FOR_UNSTOPPABLE_JOB * 1000))
 
             self._job_queue_cond.acquire()
             try:
@@ -153,6 +154,28 @@ class JobScheduler(object):
             if not self.running:
                 return
 
+    def _stop_active_job(self):
+        if self._active_job.can_stop:
+            self._active_job.stop()
+        else:
+            logger.warning(
+                "[Scheduler %s] Tried to stop job %s:%d, but it can't"
+                " be stopped"
+                % (self.name, self._active_job.factory.name,
+                   self._active_job.id))
+        start = time.time()
+        self._job_queue_cond.wait()
+        stop = time.time()
+        diff = stop - start
+        if self.can_stop and diff > Job.MAX_TIME_TO_STOP:
+            logger.warning("[Scheduler %s] Took %dms to stop job %s:%d !"
+                           " (maximum allowed: %ms)"
+                           % (self.name, diff * 1000,
+                              self._active_job.factory.name,
+                              self._active_job.id,
+                              Job.MAX_TIME_TO_STOP * 1000))
+        logger.debug("[Scheduler %s] Job %s:%d halted"
+                     % (self.name, job.factory.name, job.id))
 
     def add(self, job):
         logger.debug("[Scheduler %s] Queuing job %s:%d"
@@ -164,13 +187,22 @@ class JobScheduler(object):
                 self._job_queue_cond.release()
                 raise JobException("Job %s:%d already scheduled"
                                    % (job.factory.name, job.id))
-            heapq.push(self._job_queue, job)
+
+            active = self._active_job
+            if active.priority < job.priority:
+                # if a job with a lower priority is running, we try to stop it
+                # and take its place
+                self._stop_active_job()
+                heapq.push(self._job_queue, active)
+            else:
+                # otherwise we just queue our job
+                heapq.push(self._job_queue, job)
+
             self._job_queue_cond.notify_all()
         finally:
             self._job_queue_cond.release()
 
-
-    def cancel_matching_jobs(self, condition):
+    def _cancel_matching_jobs(self, condition):
         self._job_queue_cond.acquire()
         try:
             try:
@@ -178,33 +210,25 @@ class JobScheduler(object):
                     if condition(job.factory):
                         self._job_queue.remove(job)
                         logger.debug("[Scheduler %s] Job %s:%d cancelled"
-                                     % (job.factory.name, job.id))
+                                     % (self.name, job.factory.name, job.id))
             except ValueError:
                 pass
 
             if condition(self._active_job):
-                if job.can_stop:
-                    job.stop()
-                else:
-                    logger.warning(
-                        "[Scheduler %s] Tried to stop job %s:%d, but it can't"
-                        " be stopped" % (job.factory.name, job.id))
-                self._job_queue_cond.wait()
-                logger.debug("[Scheduler %s] Job %s:%d halted"
-                             % (job.factory.name, job.id))
+                self._stop_active_job()
         finally:
             self._job_queue_cond.release()
 
     def cancel(self, target_job):
         logger.debug("[Scheduler %s] Canceling job %s:%d"
-                     % (job.factory.name, job.id))
-        self.cancel_matching_jobs(
+                     % (self.name, job.factory.name, job.id))
+        self._cancel_matching_jobs(
             lambda job: (job == target_job))
 
     def cancel_all(self, factory):
         logger.debug("[Scheduler %s] Canceling all jobs %s"
-                     % (factory.name))
-        self.cancel_matching_jobs(
+                     % (self.name, factory.name))
+        self._cancel_matching_jobs(
             lambda job: (job.factory == factory))
 
     def stop(self):

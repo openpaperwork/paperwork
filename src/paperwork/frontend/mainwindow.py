@@ -87,7 +87,7 @@ def sort_documents_by_date(documents):
     documents.reverse()
 
 
-class WorkerDocIndexLoader(Worker):
+class JobIndexLoader(Job):
     """
     Reload the doc index
     """
@@ -97,15 +97,16 @@ class WorkerDocIndexLoader(Worker):
         'index-loading-progression': (GObject.SignalFlags.RUN_LAST, None,
                                       (GObject.TYPE_FLOAT,
                                        GObject.TYPE_STRING)),
-        'index-loading-end': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-end': (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_PYOBJECT, )),
     }
 
-    can_interrupt = True
+    can_stop = True
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Document reindexation")
-        self.__main_win = main_window
+    def __init__(self, factory, job_id, config):
+        Job.__init__(self, factory, job_id)
         self.__config = config
+        self.can_run = True
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -131,15 +132,41 @@ class WorkerDocIndexLoader(Worker):
         self.emit('index-loading-start')
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
-            self.__main_win.docsearch = docsearch
+            self.emit('index-loading-end', docsearch)
         except StopIteration:
             logger.error("Indexation interrupted")
-        self.emit('index-loading-end')
+            self.emit('index-loading-end', None)
+
+    def stop(self):
+        self.can_run = False
 
 
-GObject.type_register(WorkerDocIndexLoader)
+GObject.type_register(JobIndexLoader)
 
 
+class JobFactoryIndexLoader(JobFactory):
+    def __init__(self, main_window, config):
+        JobFactory.__init__(self, "IndexLoader")
+        self.__main_window = main_window
+        self.__config = config
+
+    def make(self):
+        job = JobIndexLoader(self, next(self.id_generator), self.__config)
+        job.connect('index-loading-start',
+                    lambda job: GObject.idle_add(
+                        self.__main_window.on_index_loading_start_cb, job))
+        job.connect('index-loading-progression',
+                    lambda job, progression, txt:
+                    GObject.idle_add(self.__main_window.set_progression,
+                                     job, progression, txt))
+        job.connect('index-loading-end',
+                    lambda loader, docsearch: GObject.idle_add(
+                        self.__main_window.on_index_loading_end_cb, loader,
+                        docsearch))
+        return job
+
+
+# TODO
 class WorkerDocExaminer(IndependentWorker):
     """
     Look for modified documents
@@ -209,6 +236,7 @@ class WorkerDocExaminer(IndependentWorker):
 GObject.type_register(WorkerDocExaminer)
 
 
+# TODO
 class WorkerIndexUpdater(Worker):
     """
     Look for modified documents
@@ -269,6 +297,7 @@ class WorkerIndexUpdater(Worker):
 GObject.type_register(WorkerIndexUpdater)
 
 
+# TODO
 class WorkerDocSearcher(Worker):
     """
     Search the documents
@@ -330,6 +359,7 @@ class WorkerDocSearcher(Worker):
 GObject.type_register(WorkerDocSearcher)
 
 
+# TODO
 class WorkerPageThumbnailer(Worker):
     """
     Generate page thumbnails
@@ -378,6 +408,7 @@ class WorkerPageThumbnailer(Worker):
 GObject.type_register(WorkerPageThumbnailer)
 
 
+# TODO
 class WorkerDocThumbnailer(Worker):
     """
     Generate doc list thumbnails
@@ -455,6 +486,7 @@ class WorkerDocThumbnailer(Worker):
 GObject.type_register(WorkerDocThumbnailer)
 
 
+# TODO
 class WorkerImgBuilder(Worker):
     """
     Resize and paint on the page
@@ -520,6 +552,7 @@ class WorkerImgBuilder(Worker):
 GObject.type_register(WorkerImgBuilder)
 
 
+# TODO
 class WorkerLabelUpdater(Worker):
     """
     Resize and paint on the page
@@ -554,6 +587,7 @@ class WorkerLabelUpdater(Worker):
 GObject.type_register(WorkerLabelUpdater)
 
 
+# TODO
 class WorkerLabelDeleter(Worker):
     """
     Resize and paint on the page
@@ -587,6 +621,7 @@ class WorkerLabelDeleter(Worker):
 GObject.type_register(WorkerLabelDeleter)
 
 
+# TODO
 class WorkerOCRRedoer(Worker):
     """
     Resize and paint on the page
@@ -620,6 +655,7 @@ class WorkerOCRRedoer(Worker):
 GObject.type_register(WorkerOCRRedoer)
 
 
+# TODO
 class WorkerSingleScan(Worker):
     __gsignals__ = {
         'single-scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -673,6 +709,7 @@ class WorkerSingleScan(Worker):
 GObject.type_register(WorkerSingleScan)
 
 
+# TODO
 class WorkerImporter(Worker):
     __gsignals__ = {
         'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -699,6 +736,7 @@ class WorkerImporter(Worker):
 GObject.type_register(WorkerImporter)
 
 
+# TODO
 class WorkerExportPreviewer(Worker):
     __gsignals__ = {
         'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -728,6 +766,7 @@ class WorkerExportPreviewer(Worker):
 GObject.type_register(WorkerExportPreviewer)
 
 
+# TODO
 class WorkerPageEditor(Worker):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
@@ -1661,9 +1700,7 @@ class ActionRealQuit(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        # TODO
-        #for worker in self.__main_win.workers.values():
-        #    worker.stop()
+        self.__main_win.scheduler.stop()
 
         self.__config.write()
         Gtk.main_quit()
@@ -1682,8 +1719,9 @@ class ActionRebuildIndex(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.scheduler.cancel_all(
+            self.__main_win.job_factories['index_reloader'])
         # TODO
-        #self.__main_win.workers['index_reloader'].stop()
         #self.__main_win.workers['doc_examiner'].stop()
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
@@ -1697,7 +1735,8 @@ class ActionRebuildIndex(SimpleAction):
         #self.__connect_handler_id = doc_thumbnailer.connect(
         #    'doc-thumbnailing-end', lbd_func)
 
-        #self.__main_win.workers['index_reloader'].start()
+        job = self.__main_win.job_factories['index_reloader'].make()
+        self.__main_win.scheduler.schedule(job)
 
     def __on_thumbnailing_end_cb(self):
         logger.info("Index loaded and thumbnailing done. Will start refreshing the"
@@ -1924,7 +1963,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'index_reloader': WorkerDocIndexLoader(self, config),
         #    'doc_examiner': WorkerDocExaminer(self, config),
         #    'index_updater': WorkerIndexUpdater(self, config),
         #    'searcher': WorkerDocSearcher(self, config),
@@ -1941,6 +1979,10 @@ class MainWindow(object):
         #    'export_previewer': WorkerExportPreviewer(self),
         #    'page_editor': WorkerPageEditor(self, config),
         #}
+
+        self.job_factories = {
+            'index_reloader' : JobFactoryIndexLoader(self, config),
+        }
 
         self.actions = {
             'new_doc': (
@@ -2326,21 +2368,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['index_reloader'].connect(
-        #    'index-loading-start',
-        #    lambda loader: GObject.idle_add(self.__on_index_loading_start_cb,
-        #                                    loader))
-        #self.workers['index_reloader'].connect(
-        #    'index-loading-progression',
-        #    lambda loader, progression, txt:
-        #     GObject.idle_add(self.set_progression, loader,
-        #                     progression, txt))
-        #self.workers['index_reloader'].connect(
-        #    'index-loading-end',
-        #    lambda loader:
-        #    GObject.idle_add(self.__on_index_loading_end_cb, loader))
-
-        # TODO
         #self.workers['doc_examiner'].connect(
         #    'doc-examination-start',
         #    lambda examiner:
@@ -2542,6 +2569,9 @@ class MainWindow(object):
 
         self.window.set_visible(True)
 
+        self.scheduler.start()
+
+
     def set_search_availability(self, enabled):
         for list_view in self.doc_browsing.values():
             list_view.set_sensitive(enabled)
@@ -2568,12 +2598,14 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
-    def __on_index_loading_start_cb(self, src):
+    def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_index_loading_end_cb(self, src):
+    def on_index_loading_end_cb(self, src, docsearch):
+        self.docsearch = docsearch
+
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
@@ -2592,13 +2624,14 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_index_update_end_cb(self, src):
-        # TODO
-        #self.workers['index_reloader'].stop()
+        self.scheduler.cancel_all(self.job_factories['index_reloader'])
+
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        # TODO
-        #self.workers['index_reloader'].start()
+
+        job = self.job_factories['index_reloader'].make()
+        self.__main_win.scheduler.schedule(job)
 
     def __on_search_result_cb(self, documents, suggestions):
         # TODO

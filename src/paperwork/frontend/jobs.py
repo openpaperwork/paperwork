@@ -5,6 +5,8 @@ import threading
 import traceback
 import time
 
+from gi.repository import GObject
+
 """
 Job scheduling
 
@@ -25,7 +27,7 @@ class JobException(Exception):
 class JobFactory(object):
     def __init__(self, name):
         self.name = name
-        self.id_generator = itertools.counter()
+        self.id_generator = itertools.count()
 
     def make(self, *args, **kwargs):
         """Child class must override this method"""
@@ -35,7 +37,7 @@ class JobFactory(object):
         return self is other
 
 
-class Job(object):
+class Job(GObject.GObject):  # inherits from GObject so it can send signals
     MAX_TIME_FOR_UNSTOPPABLE_JOB = 0.5  # secs
     MAX_TIME_TO_STOP = 0.5  # secs
 
@@ -49,6 +51,7 @@ class Job(object):
     priority = 0 # the higher priority is run first
 
     def __init__(self, job_factory, job_id):
+        GObject.GObject.__init__(self)
         self.factory = job_factory
         self.id = job_id
 
@@ -91,7 +94,7 @@ class JobScheduler(object):
         assert(not self.running)
         assert(self._thread is None)
         logger.info("[Scheduler %s] Starting" % self.name)
-        self._thread = Threading(target=self._run)
+        self._thread = threading.Thread(target=self._run)
         self.running = True
         self._thread.start()
 
@@ -103,7 +106,7 @@ class JobScheduler(object):
             self._job_queue_cond.acquire()
             try:
                 while len(self._job_queue) <= 0:
-                    self._new_job_cond.wait()
+                    self._job_queue_cond.wait()
                     if not self.running:
                         return
 
@@ -136,7 +139,7 @@ class JobScheduler(object):
                 or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
                 logger.debug("Job %s:%d took %dms"
                              % (self._active_job.factory.name,
-                                self._active_job.idx, diff * 1000))
+                                self._active_job.id, diff * 1000))
             else:
                 logger.warning("Job %s:%d took %ms and is unstoppable !"
                                " (maximum allowed: %dms)"
@@ -177,7 +180,7 @@ class JobScheduler(object):
         logger.debug("[Scheduler %s] Job %s:%d halted"
                      % (self.name, job.factory.name, job.id))
 
-    def add(self, job):
+    def schedule(self, job):
         logger.debug("[Scheduler %s] Queuing job %s:%d"
                      % (self.name, job.factory.name, job.id))
 
@@ -188,16 +191,14 @@ class JobScheduler(object):
                 raise JobException("Job %s:%d already scheduled"
                                    % (job.factory.name, job.id))
 
+            heapq.heappush(self._job_queue, job)
+
+            # if a job with a lower priority is running, we try to stop
+            # it and take its place
             active = self._active_job
-            if active.priority < job.priority:
-                # if a job with a lower priority is running, we try to stop it
-                # and take its place
+            if active is not None and active.priority < job.priority:
                 self._stop_active_job()
                 heapq.push(self._job_queue, active)
-            else:
-                # otherwise we just queue our job
-                heapq.push(self._job_queue, job)
-
             self._job_queue_cond.notify_all()
         finally:
             self._job_queue_cond.release()
@@ -214,7 +215,7 @@ class JobScheduler(object):
             except ValueError:
                 pass
 
-            if condition(self._active_job):
+            if (self._active_job is not None and condition(self._active_job)):
                 self._stop_active_job()
         finally:
             self._job_queue_cond.release()

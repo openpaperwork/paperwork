@@ -59,6 +59,30 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
         self.factory = job_factory
         self.id = job_id
 
+        self._wait_time = None
+        self._wait_cond = threading.Condition()
+
+    def _wait(self, wait_time):
+        """Convenience function to wait while being stoppable"""
+        if self._wait_time is None:
+            self._wait_time = wait_time
+
+        start = time.time()
+        self._wait_cond.acquire()
+        try:
+            self._wait_cond.wait(self._wait_time)
+        finally:
+            self._wait_cond.release()
+            stop = time.time()
+            self._wait_time -= (stop - start)
+
+    def _stop_wait(self):
+        self._wait_cond.acquire()
+        try:
+            self._wait_cond.notify_all()
+        finally:
+            self._wait_cond.release()
+
     def do(self):
         """Child class must override this method"""
         raise NotImplementedError()
@@ -188,7 +212,7 @@ class JobScheduler(object):
         self._job_queue_cond.wait()
         stop = time.time()
         diff = stop - start
-        if self.can_stop and diff > Job.MAX_TIME_TO_STOP:
+        if self._active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
             logger.warning("[Scheduler %s] Took %dms to stop job %s:%d !"
                            " (maximum allowed: %ms)"
                            % (self.name, diff * 1000,
@@ -196,7 +220,8 @@ class JobScheduler(object):
                               self._active_job.id,
                               Job.MAX_TIME_TO_STOP * 1000))
         logger.debug("[Scheduler %s] Job %s:%d halted"
-                     % (self.name, job.factory.name, job.id))
+                     % (self.name, self._active_job.factory.name,
+                        self._active_job.id))
 
     def schedule(self, job):
         logger.debug("[Scheduler %s] Queuing job %s:%d"
@@ -218,7 +243,7 @@ class JobScheduler(object):
             active = self._active_job
             if active is not None and active.priority < job.priority:
                 self._stop_active_job(will_resume=True)
-                heapq.push(self._job_queue, active)
+                heapq.heappush(self._job_queue, active)
             self._job_queue_cond.notify_all()
         finally:
             self._job_queue_cond.release()

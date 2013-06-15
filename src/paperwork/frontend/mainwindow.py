@@ -387,8 +387,7 @@ class JobFactoryIndexUpdater(JobFactory):
         return job
 
 
-# TODO
-class WorkerDocSearcher(Worker):
+class JobDocSearcher(Job):
     """
     Search the documents
     """
@@ -401,53 +400,67 @@ class WorkerDocSearcher(Worker):
                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 500
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Search")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch, sort_func, search):
+        Job.__init__(self, factory, id)
+        self.search = search
+        self.__docsearch = docsearch
+        self.__sort_func = sort_func
         self.__config = config
 
     def do(self):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return
-            time.sleep(0.05)
+        self.can_run = True
 
-        sentence = unicode(self.__main_win.search_field.get_text(),
-                           encoding='utf-8')
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
         self.emit('search-start')
+
+        documents = self.__docsearch.find_documents(self.search)
         if not self.can_run:
             return
 
-        documents = self.__main_win.docsearch.find_documents(sentence)
-        if not self.can_run:
-            return
-
-        if sentence == u"":
+        if self.search == u"":
             # when no specific search has been done, the sorting is always
             # the same
             sort_documents_by_date(documents)
             # append a new document to the list
             documents.insert(0, ImgDoc(self.__config.workdir))
         else:
-            for (widget, sort_func) in self.__main_win.sortings:
-                if widget.get_active():
-                    sort_func(documents)
-                    break
+            self.__sort_func(documents)
         if not self.can_run:
             return
 
-        suggestions = self.__main_win.docsearch.find_suggestions(sentence)
+        suggestions = self.__docsearch.find_suggestions(self.search)
         if not self.can_run:
             return
 
         self.emit('search-result', documents, suggestions)
 
+    def stop(self):
+        self._stop_wait()
 
-GObject.type_register(WorkerDocSearcher)
 
+GObject.type_register(JobDocSearcher)
+
+
+class JobFactoryDocSearcher(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "Search")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, sort_func, search_sentence):
+        job = JobDocSearcher(self, next(self.id_generator), self.__config,
+                             docsearch, sort_func, search_sentence)
+        job.connect('search-result',
+            lambda searcher, documents, suggestions:
+            GObject.idle_add(self.__main_win.on_search_result_cb,
+                             documents, suggestions))
+        return job
 
 # TODO
 class WorkerPageThumbnailer(Worker):
@@ -995,7 +1008,8 @@ class ActionUpdateSearchResults(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
         if self.__refresh_pages:
-            self.__main_win.refresh_page()
+            # TODO: Refresh page thumbnails
+            self.__main_win.refresh_boxes()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
                          event=None):
@@ -1087,14 +1101,14 @@ class ActionRebuildPage(SimpleAction):
         #self.__main_win.workers['img_builder'].start()
 
 
-class ActionRefreshPage(SimpleAction):
+class ActionRefreshBoxes(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Refresh current page")
+        SimpleAction.__init__(self, "Refresh curren page boxes")
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.refresh_page()
+        self.__main_win.refresh_boxes()
 
 
 class ActionLabelSelected(SimpleAction):
@@ -1815,19 +1829,10 @@ class ActionRefreshIndex(SimpleAction):
             self.__main_win.job_factories['doc_examiner'])
         self.__main_win.scheduler.cancel_all(
             self.__main_win.job_factories['index_updater'])
-        # TODO
-        # stop doc_thumbnailer ?
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
-
-        # TODO
-        # doc_thumbnailer = self.__main_win.factories['doc_thumbnailer']
-        #lbd_func = lambda worker: GObject.idle_add(
-        #    self.__on_thumbnailing_end_cb)
-        #self.__connect_handler_id = doc_thumbnailer.connect(
-        #    'doc-thumbnailing-end', lbd_func)
 
         job = self.__main_win.job_factories['index_reloader'].make()
         job.connect('index-loading-end', self.__on_index_reload_end)
@@ -1840,14 +1845,6 @@ class ActionRefreshIndex(SimpleAction):
         job.connect('doc-examination-end', lambda job: GObject.idle_add(
             self.__on_doc_exam_end, job))
         self.__main_win.scheduler.schedule(job)
-
-    def __on_thumbnailing_end_cb(self):
-        logger.info("Index loaded and thumbnailing done. Will start refreshing the"
-                    " index ...")
-        # TODO
-        #doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
-        #doc_thumbnailer.disconnect(self.__connect_handler_id)
-        #self.__main_win.workers['doc_examiner'].stop()
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
@@ -2078,6 +2075,7 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
+            'searcher': JobFactoryDocSearcher(self, config),
         }
 
         self.actions = {
@@ -2336,7 +2334,7 @@ class MainWindow(object):
                 [
                     self.show_all_boxes
                 ],
-                ActionRefreshPage(self)
+                ActionRefreshBoxes(self)
             ),
             'show_toolbar': (
                 [
@@ -2462,13 +2460,6 @@ class MainWindow(object):
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
-
-        # TODO
-        #self.workers['searcher'].connect(
-        #    'search-result',
-        #    lambda searcher, documents, suggestions:
-        #    GObject.idle_add(self.__on_search_result_cb, documents,
-        #                     suggestions))
 
         # TODO
         #self.workers['page_thumbnailer'].connect(
@@ -2702,9 +2693,8 @@ class MainWindow(object):
         job = self.job_factories['index_reloader'].make()
         self.scheduler.schedule(job)
 
-    def __on_search_result_cb(self, documents, suggestions):
+    def on_search_result_cb(self, documents, suggestions):
         # TODO
-        #self.workers['page_thumbnailer'].soft_stop()
         #self.workers['doc_thumbnailer'].stop()
 
         logger.debug("Got %d suggestions" % len(suggestions))
@@ -2732,8 +2722,6 @@ class MainWindow(object):
         self.__select_doc(active_idx)
 
         # TODO
-        #self.workers['page_thumbnailer'].stop()
-        #self.workers['page_thumbnailer'].start()
         #self.workers['doc_thumbnailer'].start()
 
     def __on_page_thumbnailing_start_cb(self, src):
@@ -3186,11 +3174,11 @@ class MainWindow(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        # TODO
-        #self.workers['doc_thumbnailer'].soft_stop()
-        #self.workers['searcher'].soft_stop()
-        #self.workers['searcher'].start()
-        pass
+        self.scheduler.cancel_all(self.job_factories['searcher'])
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['searcher'].make(
+            self.docsearch, self.get_doc_sort_func(), search)
+        self.scheduler.schedule(job)
 
     def refresh_page_list(self):
         """
@@ -3241,7 +3229,7 @@ class MainWindow(object):
         else:
             self.img['boxes']['visible'] = []
 
-    def refresh_page(self):
+    def refresh_boxes(self):
         self.__reload_boxes()
         self.img['image'].queue_draw()
 
@@ -3448,3 +3436,9 @@ class MainWindow(object):
         # TODO
         #GObject.idle_add(lambda: self.workers['index_updater'].start(
         #                 upd_docs=upd_docs, del_docs=del_docs, optimize=False))
+
+    def get_doc_sort_func(self):
+        for (widget, sort_func) in self.sortings:
+            if widget.get_active():
+                return sort_func
+        return self.sortings[0][1]

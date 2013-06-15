@@ -35,6 +35,7 @@ import pyinsane.rawapi
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.doceditdialog import DocEditDialog
+from paperwork.frontend.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.page_edit import PageEditingDialog
@@ -952,8 +953,9 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['img_builder'].stop()
-        self.__main_win.workers['img_builder'].start()
+        # TODO
+        #self.__main_win.workers['img_builder'].stop()
+        #self.__main_win.workers['img_builder'].start()
 
 
 class ActionRefreshPage(SimpleAction):
@@ -1023,8 +1025,9 @@ class ActionEditLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        if self.__main_win.workers['label_updater'].is_running:
-            return
+        # TODO
+        #if self.__main_win.workers['label_updater'].is_running:
+        #    return
 
         SimpleAction.do(self)
 
@@ -1041,10 +1044,11 @@ class ActionEditLabel(SimpleAction):
             logger.warn("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
-        if self.__main_win.workers['label_updater'].is_running:
-            return
-        self.__main_win.workers['label_updater'].start(old_label=label,
-                                                       new_label=new_label)
+        # TODO
+        #if self.__main_win.workers['label_updater'].is_running:
+        #    return
+        #self.__main_win.workers['label_updater'].start(old_label=label,
+        #                                               new_label=new_label)
 
 
 class ActionDeleteLabel(SimpleAction):
@@ -1053,8 +1057,11 @@ class ActionDeleteLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        if self.__main_win.workers['label_deleter'].is_running:
-            return
+        # TODO
+        #if self.__main_win.workers['label_updater'].is_running:
+        #    return
+        #if self.__main_win.workers['label_deleter'].is_running:
+        #    return
 
         SimpleAction.do(self)
 
@@ -1068,9 +1075,10 @@ class ActionDeleteLabel(SimpleAction):
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
-        if self.__main_win.workers['label_deleter'].is_running:
-            return
-        self.__main_win.workers['label_deleter'].start(label=label)
+        # TODO
+        #if self.__main_win.workers['label_deleter'].is_running:
+        #    return
+        #self.__main_win.workers['label_deleter'].start(label=label)
 
 
 class ActionOpenDocDir(SimpleAction):
@@ -1133,7 +1141,8 @@ class ActionSingleScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
         doc = self.__main_win.doc
-        self.__main_win.workers['single_scan'].start(doc=doc)
+        # TODO
+        #self.__main_win.workers['single_scan'].start(doc=doc)
 
 
 class ActionMultiScan(SimpleAction):
@@ -1229,8 +1238,9 @@ class ActionImport(SimpleAction):
 
         Gtk.RecentManager().add_item(file_uri)
 
-        self.__main_win.workers['importer'].start(
-            importer=importer, file_uri=file_uri)
+        # TODO
+        #self.__main_win.workers['importer'].start(
+        #    importer=importer, file_uri=file_uri)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1285,10 +1295,11 @@ class ActionRedoDocOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        if self.__main_win.workers['ocr_redoer'].is_running:
-            return
-        doc = self.__main_win.doc
-        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        # TODO
+        #if self.__main_win.workers['ocr_redoer'].is_running:
+        #    return
+        #doc = self.__main_win.doc
+        #self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
 
 
 class ActionRedoAllOCR(SimpleAction):
@@ -1301,10 +1312,11 @@ class ActionRedoAllOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        if self.__main_win.workers['ocr_redoer'].is_running:
-            return
-        doc = self.__main_win.docsearch
-        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        # TODO
+        #if self.__main_win.workers['ocr_redoer'].is_running:
+        #    return
+        #doc = self.__main_win.docsearch
+        #self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -1649,8 +1661,9 @@ class ActionRealQuit(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        for worker in self.__main_win.workers.values():
-            worker.stop()
+        # TODO
+        #for worker in self.__main_win.workers.values():
+        #    worker.stop()
 
         self.__config.write()
         Gtk.main_quit()
@@ -1669,34 +1682,37 @@ class ActionRebuildIndex(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['index_reloader'].stop()
-        self.__main_win.workers['doc_examiner'].stop()
+        # TODO
+        #self.__main_win.workers['index_reloader'].stop()
+        #self.__main_win.workers['doc_examiner'].stop()
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
 
-        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
-        lbd_func = lambda worker: GObject.idle_add(
-            self.__on_thumbnailing_end_cb)
-        self.__connect_handler_id = doc_thumbnailer.connect(
-            'doc-thumbnailing-end', lbd_func)
+        # TODO
+        #doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
+        #lbd_func = lambda worker: GObject.idle_add(
+        #    self.__on_thumbnailing_end_cb)
+        #self.__connect_handler_id = doc_thumbnailer.connect(
+        #    'doc-thumbnailing-end', lbd_func)
 
-        self.__main_win.workers['index_reloader'].start()
+        #self.__main_win.workers['index_reloader'].start()
 
     def __on_thumbnailing_end_cb(self):
         logger.info("Index loaded and thumbnailing done. Will start refreshing the"
                " index ...")
-        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
-        doc_thumbnailer.disconnect(self.__connect_handler_id)
-        self.__main_win.workers['doc_examiner'].stop()
+        # TODO
+        #doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
+        #doc_thumbnailer.disconnect(self.__connect_handler_id)
+        #self.__main_win.workers['doc_examiner'].stop()
 
-        doc_examiner = self.__main_win.workers['doc_examiner']
-        lbd_func = lambda examiner: GObject.idle_add(
-            self.__on_doc_exam_end, examiner)
-        self.__connect_handler_id = doc_examiner.connect(
-            'doc-examination-end', lbd_func)
-        doc_examiner.start()
+        #doc_examiner = self.__main_win.workers['doc_examiner']
+        #lbd_func = lambda examiner: GObject.idle_add(
+        #    self.__on_doc_exam_end, examiner)
+        #self.__connect_handler_id = doc_examiner.connect(
+        #    'doc-examination-end', lbd_func)
+        #doc_examiner.start()
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
@@ -1711,11 +1727,12 @@ class ActionRebuildIndex(SimpleAction):
             logger.info("No changes")
             return
 
-        self.__main_win.workers['index_updater'].start(
-            new_docs=examiner.new_docs,
-            upd_docs=examiner.docs_changed,
-            del_docs=examiner.docs_missing
-        )
+        # TODO
+        #self.__main_win.workers['index_updater'].start(
+        #    new_docs=examiner.new_docs,
+        #    upd_docs=examiner.docs_changed,
+        #    del_docs=examiner.docs_missing
+        #)
 
 
 class ActionEditPage(SimpleAction):
@@ -1735,14 +1752,17 @@ class ActionEditPage(SimpleAction):
         logger.info("Changes to do to the page %s:" % (self.__main_win.page))
         for action in todo:
             logger.info("- %s" % action)
-        self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
-                                                     changes=todo)
+        # TODO
+        #self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
+        #                                             changes=todo)
 
 
 class MainWindow(object):
     def __init__(self, config):
+        self.scheduler = JobScheduler("Main")
+
         # used by the set_mouse_cursor() function to keep track of how many
-        # threads requested a busy mouse cursor
+        # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
         self.__last_highlight_update = time.time()
 
@@ -1902,24 +1922,25 @@ class MainWindow(object):
              sort_documents_by_date),
         ]
 
-        self.workers = {
-            'index_reloader': WorkerDocIndexLoader(self, config),
-            'doc_examiner': WorkerDocExaminer(self, config),
-            'index_updater': WorkerIndexUpdater(self, config),
-            'searcher': WorkerDocSearcher(self, config),
-            'page_thumbnailer': WorkerPageThumbnailer(self),
-            'doc_thumbnailer': WorkerDocThumbnailer(self),
-            'img_builder': WorkerImgBuilder(self),
-            'label_updater': WorkerLabelUpdater(self),
-            'label_deleter': WorkerLabelDeleter(self),
-            'single_scan': WorkerSingleScan(self, config),
-            'importer': WorkerImporter(self, config),
-            'progress_updater': WorkerProgressUpdater(
-                "main window progress bar", self.status['progress']),
-            'ocr_redoer': WorkerOCRRedoer(self, config),
-            'export_previewer': WorkerExportPreviewer(self),
-            'page_editor': WorkerPageEditor(self, config),
-        }
+        # TODO
+        #self.workers = {
+        #    'index_reloader': WorkerDocIndexLoader(self, config),
+        #    'doc_examiner': WorkerDocExaminer(self, config),
+        #    'index_updater': WorkerIndexUpdater(self, config),
+        #    'searcher': WorkerDocSearcher(self, config),
+        #    'page_thumbnailer': WorkerPageThumbnailer(self),
+        #    'doc_thumbnailer': WorkerDocThumbnailer(self),
+        #    'img_builder': WorkerImgBuilder(self),
+        #    'label_updater': WorkerLabelUpdater(self),
+        #    'label_deleter': WorkerLabelDeleter(self),
+        #    'single_scan': WorkerSingleScan(self, config),
+        #    'importer': WorkerImporter(self, config),
+        #    'progress_updater': WorkerProgressUpdater(
+        #        "main window progress bar", self.status['progress']),
+        #    'ocr_redoer': WorkerOCRRedoer(self, config),
+        #    'export_previewer': WorkerExportPreviewer(self),
+        #    'page_editor': WorkerPageEditor(self, config),
+        #}
 
         self.actions = {
             'new_doc': (
@@ -2304,202 +2325,215 @@ class MainWindow(object):
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.workers['index_reloader'].connect(
-            'index-loading-start',
-            lambda loader: GObject.idle_add(self.__on_index_loading_start_cb,
-                                            loader))
-        self.workers['index_reloader'].connect(
-            'index-loading-progression',
-            lambda loader, progression, txt:
-            GObject.idle_add(self.set_progression, loader,
-                             progression, txt))
-        self.workers['index_reloader'].connect(
-            'index-loading-end',
-            lambda loader:
-            GObject.idle_add(self.__on_index_loading_end_cb, loader))
+        # TODO
+        #self.workers['index_reloader'].connect(
+        #    'index-loading-start',
+        #    lambda loader: GObject.idle_add(self.__on_index_loading_start_cb,
+        #                                    loader))
+        #self.workers['index_reloader'].connect(
+        #    'index-loading-progression',
+        #    lambda loader, progression, txt:
+        #     GObject.idle_add(self.set_progression, loader,
+        #                     progression, txt))
+        #self.workers['index_reloader'].connect(
+        #    'index-loading-end',
+        #    lambda loader:
+        #    GObject.idle_add(self.__on_index_loading_end_cb, loader))
 
-        self.workers['doc_examiner'].connect(
-            'doc-examination-start',
-            lambda examiner:
-            GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
-        self.workers['doc_examiner'].connect(
-            'doc-examination-progression',
-            lambda examiner, progression, txt:
-            GObject.idle_add(self.set_progression, examiner,
-                             progression, txt))
-        self.workers['doc_examiner'].connect(
-            'doc-examination-end',
-            lambda examiner: GObject.idle_add(
-                self.__on_doc_examination_end_cb, examiner))
+        # TODO
+        #self.workers['doc_examiner'].connect(
+        #    'doc-examination-start',
+        #    lambda examiner:
+        #    GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
+        #self.workers['doc_examiner'].connect(
+        #    'doc-examination-progression',
+        #    lambda examiner, progression, txt:
+        #    GObject.idle_add(self.set_progression, examiner,
+        #                     progression, txt))
+        #self.workers['doc_examiner'].connect(
+        #    'doc-examination-end',
+        #    lambda examiner: GObject.idle_add(
+        #        self.__on_doc_examination_end_cb, examiner))
 
-        self.workers['index_updater'].connect(
-            'index-update-start',
-            lambda updater:
-            GObject.idle_add(self.__on_index_update_start_cb, updater))
-        self.workers['index_updater'].connect(
-            'index-update-progression',
-            lambda updater, progression, txt:
-            GObject.idle_add(self.set_progression, updater, progression, txt))
-        self.workers['index_updater'].connect(
-            'index-update-end',
-            lambda updater:
-            GObject.idle_add(self.__on_index_update_end_cb, updater))
-        self.workers['searcher'].connect(
-            'search-result',
-            lambda searcher, documents, suggestions:
-            GObject.idle_add(self.__on_search_result_cb, documents,
-                             suggestions))
+        # TODO
+        #self.workers['index_updater'].connect(
+        #    'index-update-start',
+        #    lambda updater:
+        #    GObject.idle_add(self.__on_index_update_start_cb, updater))
+        #self.workers['index_updater'].connect(
+        #    'index-update-progression',
+        #    lambda updater, progression, txt:
+        #    GObject.idle_add(self.set_progression, updater, progression, txt))
+        #self.workers['index_updater'].connect(
+        #    'index-update-end',
+        #    lambda updater:
+        #    GObject.idle_add(self.__on_index_update_end_cb, updater))
+        #self.workers['searcher'].connect(
+        #    'search-result',
+        #    lambda searcher, documents, suggestions:
+        #    GObject.idle_add(self.__on_search_result_cb, documents,
+        #                     suggestions))
 
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-start',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_page_thumbnailing_start_cb,
-                             thumbnailer))
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-page-done',
-            lambda thumbnailer, page_idx, thumbnail:
-            GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
-                             thumbnailer, page_idx, thumbnail))
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-end',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_page_thumbnailing_end_cb,
-                             thumbnailer))
+        # TODO
+        #self.workers['page_thumbnailer'].connect(
+        #    'page-thumbnailing-start',
+        #    lambda thumbnailer:
+        #    GObject.idle_add(self.__on_page_thumbnailing_start_cb,
+        #                     thumbnailer))
+        #self.workers['page_thumbnailer'].connect(
+        #    'page-thumbnailing-page-done',
+        #    lambda thumbnailer, page_idx, thumbnail:
+        #    GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
+        #                     thumbnailer, page_idx, thumbnail))
+        #self.workers['page_thumbnailer'].connect(
+        #    'page-thumbnailing-end',
+        #    lambda thumbnailer:
+        #    GObject.idle_add(self.__on_page_thumbnailing_end_cb,
+        #                     thumbnailer))
 
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-start',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
-                             thumbnailer))
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-doc-done',
-            lambda thumbnailer, doc_idx, thumbnail:
-            GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
-                             thumbnailer, doc_idx, thumbnail))
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-end',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
-                             thumbnailer))
+        # TODO
+        #self.workers['doc_thumbnailer'].connect(
+        #    'doc-thumbnailing-start',
+        #    lambda thumbnailer:
+        #    GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
+        #                     thumbnailer))
+        #self.workers['doc_thumbnailer'].connect(
+        #    'doc-thumbnailing-doc-done',
+        #    lambda thumbnailer, doc_idx, thumbnail:
+        #    GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
+        #                     thumbnailer, doc_idx, thumbnail))
+        #self.workers['doc_thumbnailer'].connect(
+        #    'doc-thumbnailing-end',
+        #    lambda thumbnailer:
+        #    GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
+        #                     thumbnailer))
 
-        self.workers['img_builder'].connect(
-            'img-building-start',
-            lambda builder:
-            GObject.idle_add(self.__on_img_building_start))
-        self.workers['img_builder'].connect(
-            'img-building-result-pixbuf',
-            lambda builder, factor, original_width, img, boxes:
-            GObject.idle_add(self.__on_img_building_result_pixbuf,
-                             builder, factor, original_width, img, boxes))
-        self.workers['img_builder'].connect(
-            'img-building-result-stock',
-            lambda builder, img:
-            GObject.idle_add(self.__on_img_building_result_stock, img))
-        self.workers['img_builder'].connect(
-            'img-building-result-clear',
-            lambda builder:
-            GObject.idle_add(self.__on_img_building_result_clear))
+        # TODO
+        #self.workers['img_builder'].connect(
+        #    'img-building-start',
+        #    lambda builder:
+        #    GObject.idle_add(self.__on_img_building_start))
+        #self.workers['img_builder'].connect(
+        #    'img-building-result-pixbuf',
+        #    lambda builder, factor, original_width, img, boxes:
+        #    GObject.idle_add(self.__on_img_building_result_pixbuf,
+        #                     builder, factor, original_width, img, boxes))
+        #self.workers['img_builder'].connect(
+        #    'img-building-result-stock',
+        #    lambda builder, img:
+        #    GObject.idle_add(self.__on_img_building_result_stock, img))
+        #self.workers['img_builder'].connect(
+        #    'img-building-result-clear',
+        #    lambda builder:
+        #    GObject.idle_add(self.__on_img_building_result_clear))
 
-        self.workers['label_updater'].connect(
-            'label-updating-start',
-            lambda updater:
-            GObject.idle_add(self.__on_label_updating_start_cb,
-                             updater))
-        self.workers['label_updater'].connect(
-            'label-updating-doc-updated',
-            lambda updater, progression, doc_name:
-            GObject.idle_add(self.__on_label_updating_doc_updated_cb,
-                             updater, progression, doc_name))
-        self.workers['label_updater'].connect(
-            'label-updating-end',
-            lambda updater:
-            GObject.idle_add(self.__on_label_updating_end_cb,
-                             updater))
+        # TODO
+        #self.workers['label_updater'].connect(
+        #    'label-updating-start',
+        #    lambda updater:
+        #    GObject.idle_add(self.__on_label_updating_start_cb,
+        #                     updater))
+        #self.workers['label_updater'].connect(
+        #    'label-updating-doc-updated',
+        #    lambda updater, progression, doc_name:
+        #    GObject.idle_add(self.__on_label_updating_doc_updated_cb,
+        #                     updater, progression, doc_name))
+        #self.workers['label_updater'].connect(
+        #    'label-updating-end',
+        #    lambda updater:
+        #    GObject.idle_add(self.__on_label_updating_end_cb,
+        #                     updater))
 
-        self.workers['label_deleter'].connect(
-            'label-deletion-start',
-            lambda deleter:
-            GObject.idle_add(self.__on_label_updating_start_cb,
-                             deleter))
-        self.workers['label_deleter'].connect(
-            'label-deletion-doc-updated',
-            lambda deleter, progression, doc_name:
-            GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
-                             deleter, progression, doc_name))
-        self.workers['label_deleter'].connect(
-            'label-deletion-end',
-            lambda deleter:
-            GObject.idle_add(self.__on_label_updating_end_cb,
-                             deleter))
+        # TODO
+        #self.workers['label_deleter'].connect(
+        #    'label-deletion-start',
+        #    lambda deleter:
+        #    GObject.idle_add(self.__on_label_updating_start_cb,
+        #                     deleter))
+        #self.workers['label_deleter'].connect(
+        #    'label-deletion-doc-updated',
+        #    lambda deleter, progression, doc_name:
+        #    GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
+        #                     deleter, progression, doc_name))
+        #self.workers['label_deleter'].connect(
+        #    'label-deletion-end',
+        #    lambda deleter:
+        #    GObject.idle_add(self.__on_label_updating_end_cb,
+        #                     deleter))
 
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-start',
-            lambda ocr_redoer:
-            GObject.idle_add(self.__on_redo_ocr_start_cb,
-                             ocr_redoer))
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-doc-updated',
-            lambda ocr_redoer, progression, doc_name:
-            GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
-                             ocr_redoer, progression, doc_name))
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-end',
-            lambda ocr_redoer:
-            GObject.idle_add(self.__on_redo_ocr_end_cb,
-                             ocr_redoer))
+        # TODO
+        #self.workers['ocr_redoer'].connect(
+        #    'redo-ocr-start',
+        #    lambda ocr_redoer:
+        #    GObject.idle_add(self.__on_redo_ocr_start_cb,
+        #                     ocr_redoer))
+        #self.workers['ocr_redoer'].connect(
+        #    'redo-ocr-doc-updated',
+        #    lambda ocr_redoer, progression, doc_name:
+        #    GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
+        #                     ocr_redoer, progression, doc_name))
+        #self.workers['ocr_redoer'].connect(
+        #    'redo-ocr-end',
+        #    lambda ocr_redoer:
+        #    GObject.idle_add(self.__on_redo_ocr_end_cb,
+        #                     ocr_redoer))
 
-        self.workers['single_scan'].connect(
-            'single-scan-start',
-            lambda worker:
-            GObject.idle_add(self.__on_single_scan_start, worker))
-        self.workers['single_scan'].connect(
-            'single-scan-ocr',
-            lambda worker:
-            GObject.idle_add(self.__on_single_scan_ocr, worker))
-        self.workers['single_scan'].connect(
-            'single-scan-done',
-            lambda worker, page:
-            GObject.idle_add(self.__on_single_scan_done, worker, page))
+        # TODO
+        #self.workers['single_scan'].connect(
+        #    'single-scan-start',
+        #    lambda worker:
+        #    GObject.idle_add(self.__on_single_scan_start, worker))
+        #self.workers['single_scan'].connect(
+        #    'single-scan-ocr',
+        #    lambda worker:
+        #    GObject.idle_add(self.__on_single_scan_ocr, worker))
+        #self.workers['single_scan'].connect(
+        #    'single-scan-done',
+        #    lambda worker, page:
+        #    GObject.idle_add(self.__on_single_scan_done, worker, page))
 
-        self.workers['importer'].connect(
-            'import-start',
-            lambda worker:
-            GObject.idle_add(self.__on_import_start, worker))
-        self.workers['importer'].connect(
-            'import-done',
-            lambda worker, doc, page:
-            GObject.idle_add(self.__on_import_done, worker, doc, page))
+        # TODO
+        #self.workers['importer'].connect(
+        #    'import-start',
+        #    lambda worker:
+        #    GObject.idle_add(self.__on_import_start, worker))
+        #self.workers['importer'].connect(
+        #    'import-done',
+        #    lambda worker, doc, page:
+        #    GObject.idle_add(self.__on_import_done, worker, doc, page))
 
-        self.workers['export_previewer'].connect(
-            'export-preview-start',
-            lambda worker:
-            GObject.idle_add(self.__on_export_preview_start))
-        self.workers['export_previewer'].connect(
-            'export-preview-done',
-            lambda worker, size, pixbuf:
-            GObject.idle_add(self.__on_export_preview_done, size,
-                             pixbuf))
+        # TODO
+        #self.workers['export_previewer'].connect(
+        #    'export-preview-start',
+        #    lambda worker:
+        #    GObject.idle_add(self.__on_export_preview_start))
+        #self.workers['export_previewer'].connect(
+        #    'export-preview-done',
+        #    lambda worker, size, pixbuf:
+        #    GObject.idle_add(self.__on_export_preview_done, size,
+        #                     pixbuf))
 
-        self.workers['page_editor'].connect(
-            'page-editing-img-edit',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-ocr',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_ocr_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-index-upd',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_index_upd_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-done',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_done_cb,
-                             worker, page))
+        # TODO
+        #self.workers['page_editor'].connect(
+        #    'page-editing-img-edit',
+        #    lambda worker, page:
+        #    GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
+        #                     worker, page))
+        #self.workers['page_editor'].connect(
+        #    'page-editing-ocr',
+        #    lambda worker, page:
+        #    GObject.idle_add(self.__on_page_editing_ocr_cb,
+        #                     worker, page))
+        #self.workers['page_editor'].connect(
+        #    'page-editing-index-upd',
+        #    lambda worker, page:
+        #    GObject.idle_add(self.__on_page_editing_index_upd_cb,
+        #                     worker, page))
+        #self.workers['page_editor'].connect(
+        #    'page-editing-done',
+        #    lambda worker, page:
+        #    GObject.idle_add(self.__on_page_editing_done_cb,
+        #                     worker, page))
 
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
@@ -2558,15 +2592,18 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def __on_index_update_end_cb(self, src):
-        self.workers['index_reloader'].stop()
+        # TODO
+        #self.workers['index_reloader'].stop()
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        self.workers['index_reloader'].start()
+        # TODO
+        #self.workers['index_reloader'].start()
 
     def __on_search_result_cb(self, documents, suggestions):
-        self.workers['page_thumbnailer'].soft_stop()
-        self.workers['doc_thumbnailer'].stop()
+        # TODO
+        #self.workers['page_thumbnailer'].soft_stop()
+        #self.workers['doc_thumbnailer'].stop()
 
         logger.debug("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
@@ -2592,9 +2629,10 @@ class MainWindow(object):
 
         self.__select_doc(active_idx)
 
-        self.workers['page_thumbnailer'].stop()
-        self.workers['page_thumbnailer'].start()
-        self.workers['doc_thumbnailer'].start()
+        # TODO
+        #self.workers['page_thumbnailer'].stop()
+        #self.workers['page_thumbnailer'].start()
+        #self.workers['doc_thumbnailer'].start()
 
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -2699,21 +2737,24 @@ class MainWindow(object):
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(False)
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
-            value_min=0.0, value_max=0.5,
-            total_time=self.__config.scan_time['normal'])
+        # TODO
+        #self.workers['progress_updater'].start(
+        #    value_min=0.0, value_max=0.5,
+        #    total_time=self.__config.scan_time['normal'])
 
     def __on_single_scan_ocr(self, src):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
+        # TODO
+        #self.workers['progress_updater'].stop()
         self.__config.scan_time['normal'] = scan_stop - self.__scan_start
 
         self.set_progression(src, 0.5, _("Reading ..."))
 
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
-            value_min=0.5, value_max=1.0,
-            total_time=self.__config.scan_time['ocr'])
+        # TODO
+        #self.workers['progress_updater'].start(
+        #    value_min=0.5, value_max=1.0,
+        #    total_time=self.__config.scan_time['ocr'])
 
     def __on_single_scan_done(self, src, page):
         scan_stop = time.time()
@@ -2733,21 +2774,24 @@ class MainWindow(object):
 
         self.append_docs([self.doc])
 
-        self.workers['progress_updater'].stop()
+        # TODO
+        #self.workers['progress_updater'].stop()
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        self.workers['progress_updater'].start(
-            value_min=0.0, value_max=0.75,
-            total_time=self.__config.scan_time['ocr'])
+        # TODO
+        #self.workers['progress_updater'].start(
+        #    value_min=0.0, value_max=0.75,
+        #    total_time=self.__config.scan_time['ocr'])
         self.__scan_start = time.time()
 
     def __on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
+        # TODO
+        #self.workers['progress_updater'].stop()
         # Note: don't update scan time here: OCR is not required for all
         # imports
 
@@ -2953,7 +2997,8 @@ class MainWindow(object):
     def append_docs(self, docs):
         # We don't stop the doc thumbnailer here. It might be
         # refreshing other documents we won't
-        self.workers['doc_thumbnailer'].wait()
+        # TODO
+        #self.workers['doc_thumbnailer'].wait()
 
         doc_list = self.lists['matches']['doclist']
         model = self.lists['matches']['model']
@@ -2991,8 +3036,9 @@ class MainWindow(object):
         if active_idx >= 0:
             self.__select_doc(active_idx)
 
-        self.workers['doc_thumbnailer'].start(
-            doc_indexes=range(0, max_thumbnail_idx))
+        # TODO
+        #self.workers['doc_thumbnailer'].start(
+        #    doc_indexes=range(0, max_thumbnail_idx))
 
     def refresh_docs(self, docs):
         """
@@ -3003,7 +3049,8 @@ class MainWindow(object):
         """
         # We don't stop the doc thumbnailer here. It might be
         # refreshing other documents we won't
-        self.workers['doc_thumbnailer'].wait()
+        # TODO
+        #self.workers['doc_thumbnailer'].wait()
 
         doc_list = self.lists['matches']['doclist']
 
@@ -3028,8 +3075,8 @@ class MainWindow(object):
 
         if active_idx >= 0:
             self.__select_doc(active_idx)
-
-        self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
+        # TODO
+        #self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
 
     def refresh_doc_list(self):
         """
@@ -3037,16 +3084,19 @@ class MainWindow(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        self.workers['doc_thumbnailer'].soft_stop()
-        self.workers['searcher'].soft_stop()
-        self.workers['searcher'].start()
+        # TODO
+        #self.workers['doc_thumbnailer'].soft_stop()
+        #self.workers['searcher'].soft_stop()
+        #self.workers['searcher'].start()
+        pass
 
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        self.workers['page_thumbnailer'].stop()
+        # TODO
+        #self.workers['page_thumbnailer'].stop()
         self.lists['pages']['model'].clear()
         for page in self.doc.pages:
             self.lists['pages']['model'].append([
@@ -3062,7 +3112,8 @@ class MainWindow(object):
             widget.set_sensitive(self.doc.can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
-        self.workers['page_thumbnailer'].start()
+        # TODO
+        #self.workers['page_thumbnailer'].start()
 
     def refresh_label_list(self):
         """
@@ -3095,7 +3146,8 @@ class MainWindow(object):
     def show_page(self, page):
         logging.info("Showing page %s" % page)
 
-        self.workers['img_builder'].stop()
+        # TODO
+        #self.workers['img_builder'].stop()
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3125,7 +3177,8 @@ class MainWindow(object):
 
         self.export['dialog'].set_visible(False)
 
-        self.workers['img_builder'].start()
+        # TODO
+        #self.workers['img_builder'].start()
 
     def show_doc(self, doc):
         self.doc = doc
@@ -3172,8 +3225,9 @@ class MainWindow(object):
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        self.workers['export_previewer'].stop()
-        self.workers['export_previewer'].start()
+        # TODO
+        #self.workers['export_previewer'].stop()
+        #self.workers['export_previewer'].start()
 
     def __on_img_resize_cb(self, viewport, rectangle):
         if self.export['exporter'] is not None:
@@ -3184,7 +3238,8 @@ class MainWindow(object):
         if old_size == new_size:
             return
 
-        self.workers['img_builder'].soft_stop()
+        # TODO
+        #self.workers['img_builder'].soft_stop()
         self.img['viewport']['size'] = new_size
         logger.info("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
@@ -3197,7 +3252,8 @@ class MainWindow(object):
         if factor != 0.0:
             return
 
-        self.workers['img_builder'].start()
+        # TODO
+        #self.workers['img_builder'].start()
 
     def __on_page_editing_img_edit_start_cb(self, worker, page):
         self.set_mouse_cursor("Busy")
@@ -3287,5 +3343,6 @@ class MainWindow(object):
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
         # the index update will start a doc list refresh when finished
-        GObject.idle_add(lambda: self.workers['index_updater'].start(
-                         upd_docs=upd_docs, del_docs=del_docs, optimize=False))
+        # TODO
+        #GObject.idle_add(lambda: self.workers['index_updater'].start(
+        #                 upd_docs=upd_docs, del_docs=del_docs, optimize=False))

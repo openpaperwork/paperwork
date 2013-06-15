@@ -112,6 +112,8 @@ class JobIndexLoader(Job):
         """
         Update the main progress bar
         """
+        if not self.can_run:
+            raise StopIteration()
         if progression % 50 != 0:
             return
         txt = None
@@ -125,8 +127,6 @@ class JobIndexLoader(Job):
         if doc is not None:
             txt += (" (%s)" % (doc.name))
         self.emit('index-loading-progression', float(progression) / total, txt)
-        if not self.can_run:
-            raise StopIteration()
 
     def do(self):
         self.emit('index-loading-start')
@@ -1709,9 +1709,9 @@ class ActionRealQuit(SimpleAction):
         self.do()
 
 
-class ActionRebuildIndex(SimpleAction):
+class ActionRefreshIndex(SimpleAction):
     def __init__(self, main_window, config, force=False):
-        SimpleAction.__init__(self, "Rebuild index")
+        SimpleAction.__init__(self, "Refresh index")
         self.__main_win = main_window
         self.__config = config
         self.__force = force
@@ -2262,13 +2262,13 @@ class MainWindow(object):
             ),
             'reindex': (
                 [],
-                ActionRebuildIndex(self, config, force=False),
+                ActionRefreshIndex(self, config, force=False),
             ),
             'reindex_from_scratch': (
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
-                ActionRebuildIndex(self, config, force=True),
+                ActionRefreshIndex(self, config, force=True),
             ),
             'edit_doc': (
                 [

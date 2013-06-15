@@ -95,7 +95,7 @@ def main():
         config.read()
 
         main_win = mainwindow.MainWindow(config)
-        mainwindow.ActionRebuildIndex(main_win, config).do()
+        mainwindow.ActionRefreshIndex(main_win, config).do()
         Gtk.main()
     finally:
         workers.halt()

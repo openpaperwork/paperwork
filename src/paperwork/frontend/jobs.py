@@ -195,25 +195,27 @@ class JobScheduler(object):
                 return
 
     def _stop_active_job(self, will_resume=False):
-        if self._active_job.can_stop:
-            self._active_job.stop(will_resume=will_resume)
+        active_job = self._active_job
+
+        if active_job.can_stop:
+            active_job.stop(will_resume=will_resume)
         else:
             logger.warning(
                 "[Scheduler %s] Tried to stop job %s, but it can't"
                 " be stopped"
-                % (self.name, str(self._active_job)))
+                % (self.name, str(active_job)))
         start = time.time()
         self._job_queue_cond.wait()
         stop = time.time()
         diff = stop - start
-        if self._active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
+        if active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
             logger.warning("[Scheduler %s] Took %dms to stop job %s !"
                            " (maximum allowed: %ms)"
                            % (self.name, diff * 1000,
-                              str(self._active_job),
+                              str(active_job),
                               Job.MAX_TIME_TO_STOP * 1000))
         logger.debug("[Scheduler %s] Job %s halted"
-                     % (self.name, str(self._active_job)))
+                     % (self.name, str(active_job)))
 
     def schedule(self, job):
         logger.debug("[Scheduler %s] Queuing job %s"

@@ -102,11 +102,11 @@ class JobIndexLoader(Job):
     }
 
     can_stop = True
+    priority = 100
 
     def __init__(self, factory, job_id, config):
         Job.__init__(self, factory, job_id)
         self.__config = config
-        self.can_run = True
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -129,6 +129,7 @@ class JobIndexLoader(Job):
         self.emit('index-loading-progression', float(progression) / total, txt)
 
     def do(self):
+        self.can_run = True
         self.emit('index-loading-start')
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
@@ -166,8 +167,7 @@ class JobFactoryIndexLoader(JobFactory):
         return job
 
 
-# TODO
-class WorkerDocExaminer(IndependentWorker):
+class JobDocExaminer(Job):
     """
     Look for modified documents
     """
@@ -180,10 +180,11 @@ class WorkerDocExaminer(IndependentWorker):
         'doc-examination-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 50
 
-    def __init__(self, main_window, config):
-        IndependentWorker.__init__(self, "Document examination")
+    def __init__(self, factory, id, main_window, config):
+        Job.__init__(self, factory, id)
         self.__main_win = main_window
         self.__config = config
 
@@ -191,6 +192,8 @@ class WorkerDocExaminer(IndependentWorker):
         """
         Update the main progress bar
         """
+        if not self.can_run:
+            raise StopIteration()
         if progression % 10 != 0:
             return
         txt = None
@@ -203,10 +206,10 @@ class WorkerDocExaminer(IndependentWorker):
             txt += (" (%s)" % (str(doc)))
         self.emit('doc-examination-progression',
                   float(progression) / total, txt)
-        if not self.can_run:
-            raise StopIteration()
 
     def do(self):
+        self.can_run = True
+
         self.emit('doc-examination-start')
         self.new_docs = set()  # documents
         self.docs_changed = set()  # documents
@@ -223,6 +226,9 @@ class WorkerDocExaminer(IndependentWorker):
         finally:
             self.emit('doc-examination-end')
 
+    def stop(self):
+        self.can_run = False
+
     def __on_new_doc(self, doc):
         self.new_docs.add(doc)
 
@@ -233,7 +239,31 @@ class WorkerDocExaminer(IndependentWorker):
         self.docs_missing.add(docid)
 
 
-GObject.type_register(WorkerDocExaminer)
+GObject.type_register(JobDocExaminer)
+
+
+class JobFactoryDocExaminer(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "DocExaminer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self):
+        job = JobDocExaminer(self, next(self.id_generator), self.__main_win,
+                             self.__config)
+        job.connect(
+            'doc-examination-start',
+            lambda job: GObject.idle_add(
+                self.__main_win.on_doc_examination_start_cb, job))
+        job.connect(
+            'doc-examination-progression',
+            lambda job, progression, txt: GObject.idle_add(
+                self.__main_win.set_progression, job, progression, txt))
+        job.connect(
+            'doc-examination-end',
+            lambda job: GObject.idle_add(
+                self.__main_win.on_doc_examination_end_cb, job))
+        return job
 
 
 # TODO
@@ -1721,41 +1751,44 @@ class ActionRefreshIndex(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.scheduler.cancel_all(
             self.__main_win.job_factories['index_reloader'])
+        self.__main_win.scheduler.cancel_all(
+            self.__main_win.job_factories['doc_examiner'])
         # TODO
-        #self.__main_win.workers['doc_examiner'].stop()
+        # stop doc_thumbnailer ?
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
 
         # TODO
-        #doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
+        # doc_thumbnailer = self.__main_win.factories['doc_thumbnailer']
         #lbd_func = lambda worker: GObject.idle_add(
         #    self.__on_thumbnailing_end_cb)
         #self.__connect_handler_id = doc_thumbnailer.connect(
         #    'doc-thumbnailing-end', lbd_func)
 
         job = self.__main_win.job_factories['index_reloader'].make()
+        job.connect('index-loading-end', self.__on_index_reload_end)
+        self.__main_win.scheduler.schedule(job)
+
+    def __on_index_reload_end(self, job, docsearch):
+        if docsearch is None:
+            return
+        job = self.__main_win.job_factories['doc_examiner'].make()
+        job.connect('doc-examination-end', lambda job: GObject.idle_add(
+            self.__on_doc_exam_end, job))
         self.__main_win.scheduler.schedule(job)
 
     def __on_thumbnailing_end_cb(self):
         logger.info("Index loaded and thumbnailing done. Will start refreshing the"
-               " index ...")
+                    " index ...")
         # TODO
         #doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
         #doc_thumbnailer.disconnect(self.__connect_handler_id)
         #self.__main_win.workers['doc_examiner'].stop()
 
-        #doc_examiner = self.__main_win.workers['doc_examiner']
-        #lbd_func = lambda examiner: GObject.idle_add(
-        #    self.__on_doc_exam_end, examiner)
-        #self.__connect_handler_id = doc_examiner.connect(
-        #    'doc-examination-end', lbd_func)
-        #doc_examiner.start()
-
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
-        examiner.disconnect(self.__connect_handler_id)
         logger.info("New document: %d" % len(examiner.new_docs))
         logger.info("Updated document: %d" % len(examiner.docs_changed))
         logger.info("Deleted document: %d" % len(examiner.docs_missing))
@@ -1963,7 +1996,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'doc_examiner': WorkerDocExaminer(self, config),
         #    'index_updater': WorkerIndexUpdater(self, config),
         #    'searcher': WorkerDocSearcher(self, config),
         #    'page_thumbnailer': WorkerPageThumbnailer(self),
@@ -1981,6 +2013,7 @@ class MainWindow(object):
         #}
 
         self.job_factories = {
+            'doc_examiner': JobFactoryDocExaminer(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
         }
 
@@ -2368,21 +2401,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['doc_examiner'].connect(
-        #    'doc-examination-start',
-        #    lambda examiner:
-        #    GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
-        #self.workers['doc_examiner'].connect(
-        #    'doc-examination-progression',
-        #    lambda examiner, progression, txt:
-        #    GObject.idle_add(self.set_progression, examiner,
-        #                     progression, txt))
-        #self.workers['doc_examiner'].connect(
-        #    'doc-examination-end',
-        #    lambda examiner: GObject.idle_add(
-        #        self.__on_doc_examination_end_cb, examiner))
-
-        # TODO
         #self.workers['index_updater'].connect(
         #    'index-update-start',
         #    lambda updater:
@@ -2612,10 +2630,10 @@ class MainWindow(object):
         self.refresh_doc_list()
         self.refresh_label_list()
 
-    def __on_doc_examination_start_cb(self, src):
+    def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def __on_doc_examination_end_cb(self, src):
+    def on_doc_examination_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
     def __on_index_update_start_cb(self, src):

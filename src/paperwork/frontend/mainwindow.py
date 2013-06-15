@@ -138,7 +138,7 @@ class JobIndexLoader(Job):
             logger.error("Indexation interrupted")
             self.emit('index-loading-end', None)
 
-    def stop(self):
+    def stop(self, will_resume=False):
         self.can_run = False
 
 
@@ -183,11 +183,10 @@ class JobDocExaminer(Job):
     can_stop = True
     priority = 50
 
-    def __init__(self, factory, id, main_window, config, docsearch):
+    def __init__(self, factory, id, config, docsearch):
         Job.__init__(self, factory, id)
-        self.__main_win = main_window
         self.__config = config
-        self.__docsearch = docsearch
+        self.docsearch = docsearch
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -216,7 +215,7 @@ class JobDocExaminer(Job):
         self.docs_changed = set()  # documents
         self.docs_missing = set()  # document ids
         try:
-            doc_examiner = self.__docsearch.get_doc_examiner()
+            doc_examiner = self.docsearch.get_doc_examiner()
             doc_examiner.examine_rootdir(
                 self.__on_new_doc,
                 self.__on_doc_changed,
@@ -227,7 +226,7 @@ class JobDocExaminer(Job):
         finally:
             self.emit('doc-examination-end')
 
-    def stop(self):
+    def stop(self, will_resume=False):
         self.can_run = False
 
     def __on_new_doc(self, doc):
@@ -250,7 +249,7 @@ class JobFactoryDocExaminer(JobFactory):
         self.__config = config
 
     def make(self, docsearch):
-        job = JobDocExaminer(self, next(self.id_generator), self.__main_win,
+        job = JobDocExaminer(self, next(self.id_generator),
                              self.__config, docsearch)
         job.connect(
             'doc-examination-start',
@@ -267,8 +266,7 @@ class JobFactoryDocExaminer(JobFactory):
         return job
 
 
-# TODO
-class WorkerIndexUpdater(Worker):
+class JobIndexUpdater(Job):
     """
     Look for modified documents
     """
@@ -278,54 +276,115 @@ class WorkerIndexUpdater(Worker):
         'index-update-progression': (GObject.SignalFlags.RUN_LAST, None,
                                      (GObject.TYPE_FLOAT,
                                       GObject.TYPE_STRING)),
+        'index-update-interrupted': (GObject.SignalFlags.RUN_LAST, None, ()),
         'index-update-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 200
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Document index update")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch,
+                new_docs=[], upd_docs=[], del_docs=[],
+                optimize=True):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
         self.__config = config
 
-    def do(self, new_docs=[], upd_docs=[], del_docs=[], optimize=True):
-        self.emit('index-update-start')
-        try:
-            index_updater = self.__main_win.docsearch.get_index_updater(
-                optimize=optimize)
+        self.new_docs = new_docs
+        self.upd_docs = upd_docs
+        self.del_docs = del_docs
+        self.optimize = optimize
+        self.index_updater = None
+        self.total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
 
-            docs = [
-                (_("Indexing new document ..."), new_docs,
-                 index_updater.add_doc),
-                (_("Reindexing modified document ..."), upd_docs,
-                 index_updater.upd_doc),
-                (_("Removing deleted document from index ..."), del_docs,
-                 index_updater.del_doc),
-            ]
+    def do(self):
+        # keep in mind that we may have been interrupted and then called back
+        # later
 
-            progression = float(0)
-            total = len(new_docs) + len(upd_docs) + len(del_docs)
+        self.can_run = True
 
-            for (op_name, doc_bunch, op) in docs:
-                for doc in doc_bunch:
+        total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
+        if total <= 0:
+            return
+
+        if self.index_updater is None:
+            self.emit('index-update-start')
+            self.index_updater = self.__docsearch.get_index_updater(
+                optimize=self.optimize)
+
+        if not self.can_run:
+            self.emit('index-update-interrupted')
+            return
+
+        docs = [
+            (_("Indexing new document ..."), self.new_docs,
+             self.index_updater.add_doc),
+            (_("Reindexing modified document ..."), self.upd_docs,
+             self.index_updater.upd_doc),
+            (_("Removing deleted document from index ..."), self.del_docs,
+             self.index_updater.del_doc),
+        ]
+
+        progression = float(0)
+
+        for (op_name, doc_bunch, op) in docs:
+            try:
+                while True:
+                    if not self.can_run:
+                        self.emit('index-update-interrupted')
+                        return
+                    doc = doc_bunch.pop()
                     self.emit('index-update-progression',
                               (progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
                     op(doc)
                     progression += 1
-                    if not self.can_run:
-                        index_updater.cancel()
-                        self.emit('index-update-end')
+            except KeyError:
+                pass
 
-            self.emit('index-update-progression', 0.75,
-                      _("Writing index ..."))
-            index_updater.commit()
-            self.emit('index-update-progression', 1.0, "")
-        finally:
-            self.emit('index-update-end')
+        if not self.can_run:
+            self.emit('index-update-interrupted')
+            return
+
+        self.emit('index-update-progression', 0.75,
+                  _("Writing index ..."))
+        self.index_updater.commit()
+        self.emit('index-update-progression', 1.0, "")
+        self.emit('index-update-end')
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        if not will_resume:
+            self.connect('index-update-interrupted',
+                         lambda job: self.index_updater.cancel())
 
 
-GObject.type_register(WorkerIndexUpdater)
+GObject.type_register(JobIndexUpdater)
+
+
+class JobFactoryIndexUpdater(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "IndexUpdater")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch,
+            new_docs, upd_docs, del_docs, optimize=True):
+        job = JobIndexUpdater(self, next(self.id_generator), self.__config,
+                              docsearch, new_docs, upd_docs, del_docs, optimize)
+        job.connect('index-update-start',
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.on_index_update_start_cb,
+                                     updater))
+        job.connect('index-update-progression',
+                    lambda updater, progression, txt:
+                    GObject.idle_add(self.__main_win.set_progression, updater,
+                                     progression, txt))
+        job.connect('index-update-end',
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.on_index_update_end_cb,
+                                     updater))
+        return job
 
 
 # TODO
@@ -1754,6 +1813,8 @@ class ActionRefreshIndex(SimpleAction):
             self.__main_win.job_factories['index_reloader'])
         self.__main_win.scheduler.cancel_all(
             self.__main_win.job_factories['doc_examiner'])
+        self.__main_win.scheduler.cancel_all(
+            self.__main_win.job_factories['index_updater'])
         # TODO
         # stop doc_thumbnailer ?
         docsearch = self.__main_win.docsearch
@@ -1800,12 +1861,13 @@ class ActionRefreshIndex(SimpleAction):
             logger.info("No changes")
             return
 
-        # TODO
-        #self.__main_win.workers['index_updater'].start(
-        #    new_docs=examiner.new_docs,
-        #    upd_docs=examiner.docs_changed,
-        #    del_docs=examiner.docs_missing
-        #)
+        job = self.__main_win.job_factories['index_updater'].make(
+            docsearch=examiner.docsearch,
+            new_docs=examiner.new_docs,
+            upd_docs=examiner.docs_changed,
+            del_docs=examiner.docs_missing,
+        )
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionEditPage(SimpleAction):
@@ -1997,7 +2059,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'index_updater': WorkerIndexUpdater(self, config),
         #    'searcher': WorkerDocSearcher(self, config),
         #    'page_thumbnailer': WorkerPageThumbnailer(self),
         #    'doc_thumbnailer': WorkerDocThumbnailer(self),
@@ -2016,6 +2077,7 @@ class MainWindow(object):
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
+            'index_updater': JobFactoryIndexUpdater(self, config),
         }
 
         self.actions = {
@@ -2402,18 +2464,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['index_updater'].connect(
-        #    'index-update-start',
-        #    lambda updater:
-        #    GObject.idle_add(self.__on_index_update_start_cb, updater))
-        #self.workers['index_updater'].connect(
-        #    'index-update-progression',
-        #    lambda updater, progression, txt:
-        #    GObject.idle_add(self.set_progression, updater, progression, txt))
-        #self.workers['index_updater'].connect(
-        #    'index-update-end',
-        #    lambda updater:
-        #    GObject.idle_add(self.__on_index_update_end_cb, updater))
         #self.workers['searcher'].connect(
         #    'search-result',
         #    lambda searcher, documents, suggestions:
@@ -2637,12 +2687,12 @@ class MainWindow(object):
     def on_doc_examination_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def __on_index_update_start_cb(self, src):
+    def on_index_update_start_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_index_update_end_cb(self, src):
+    def on_index_update_end_cb(self, src):
         self.scheduler.cancel_all(self.job_factories['index_reloader'])
 
         self.set_progression(src, 0.0, None)
@@ -2650,7 +2700,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
 
         job = self.job_factories['index_reloader'].make()
-        self.__main_win.scheduler.schedule(job)
+        self.scheduler.schedule(job)
 
     def __on_search_result_cb(self, documents, suggestions):
         # TODO

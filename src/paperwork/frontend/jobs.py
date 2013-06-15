@@ -119,6 +119,7 @@ class JobScheduler(object):
 
             assert(self._active_job is not None)
 
+            start = time.time()
             try:
                 self._active_job.do()
             except Exception, exc:
@@ -127,6 +128,20 @@ class JobScheduler(object):
                                   self._active_job.id,
                                   str(exc)))
                 traceback.print_exc()
+            stop = time.time()
+
+            diff = start - stop
+            if (self._active_job.can_stop
+                or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
+                logger.debug("Job %s:%d took %dms"
+                             % (self._active_job.factory.name,
+                                self._active_job.idx, diff * 1000))
+            else:
+                logger.warning("Job %s:%d took %ms and is unstoppable !"
+                               " (maximum allowed: %dms)"
+                               % (self._active_job.factory.name,
+                                  self._active_job.idx, diff * 1000,
+                                  Job.MAX_TIME_FOR_UNSTOPPABLE_JOB))
 
             self._job_queue_cond.acquire()
             try:

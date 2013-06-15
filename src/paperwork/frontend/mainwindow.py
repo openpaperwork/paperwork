@@ -281,7 +281,7 @@ class JobIndexUpdater(Job):
     }
 
     can_stop = True
-    priority = 200
+    priority = 40
 
     def __init__(self, factory, id, config, docsearch,
                 new_docs=[], upd_docs=[], del_docs=[],
@@ -441,6 +441,7 @@ class JobDocSearcher(Job):
         self.emit('search-result', documents, suggestions)
 
     def stop(self):
+        self.can_run = False
         self._stop_wait()
 
 
@@ -492,8 +493,8 @@ class WorkerPageThumbnailer(Worker):
                          encoding='utf-8')
 
         self.emit('page-thumbnailing-start')
-        for page_idx in range(0, self.__main_win.doc.nb_pages):
-            page = self.__main_win.doc.pages[page_idx]
+        for page_idx in range(0, self.__main_win.doc[1].nb_pages):
+            page = self.__main_win.doc[1].pages[page_idx]
             img = page.get_thumbnail(WorkerDocThumbnailer.THUMB_WIDTH)
             img = img.copy()
             if search != u"" and search in page:
@@ -511,8 +512,7 @@ class WorkerPageThumbnailer(Worker):
 GObject.type_register(WorkerPageThumbnailer)
 
 
-# TODO
-class WorkerDocThumbnailer(Worker):
+class JobDocThumbnailer(Job):
     """
     Generate doc list thumbnails
     """
@@ -528,42 +528,32 @@ class WorkerDocThumbnailer(Worker):
         'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
-    can_pause = True
+    can_stop = True
+    priority = 20
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Doc thumbnailing")
-        self.__main_win = main_window
+    def __init__(self, factory, id, doclist):
+        Job.__init__(self, factory, id)
+        self.__doclist = doclist
+        self.__current_idx = 0
 
-    def do(self, doc_indexes=None, resume=0):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return resume
-            time.sleep(0.05)
+    def do(self):
+        self.can_run = True
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
         self.emit('doc-thumbnailing-start')
 
-        doclist = self.__main_win.lists['matches']['doclist']
-        if doc_indexes is None:
-            if resume >= len(doclist):
-                resume = 0
-            doc_indexes = range(resume, len(doclist))
-        else:
-            if resume >= len(doc_indexes):
-                resume = 0
-            doc_indexes = doc_indexes[resume:]
-
-        for doc_idx in doc_indexes:
-            if self.paused:
-                return resume
-            if not self.can_run:
-                self.emit('doc-thumbnailing-end')
-                return resume
-            doc = doclist[doc_idx]
-            if doc.nb_pages <= 0:
-                resume += 1
+        for idx in xrange(self.__current_idx, len(self.__doclist)):
+            (doc_position, doc) = self.__doclist[idx]
+            if doc_position < 0:
                 continue
+            if doc.nb_pages <= 0:
+                continue
+
             img = doc.pages[0].get_thumbnail(self.THUMB_WIDTH)
+            if not self.can_run:
+                return
 
             (width, height) = img.size
             # always make sure the thumbnail has a specific height
@@ -573,20 +563,64 @@ class WorkerDocThumbnailer(Worker):
                 img = img.copy()
             else:
                 new_img = PIL.Image.new('RGBA', (width, self.THUMB_HEIGHT),
-                                    '#FFFFFF')
+                                        '#FFFFFF')
                 h = (self.THUMB_HEIGHT - height) / 2
                 new_img.paste(img, (0, h, width, h+height))
                 img = new_img
+            if not self.can_run:
+                return
 
             img = add_img_border(img)
+            if not self.can_run:
+                return
+
             pixbuf = image2pixbuf(img)
-            self.emit('doc-thumbnailing-doc-done', doc_idx, pixbuf)
-            resume += 1
+            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
+
+            self.__current_idx = idx
+            if not self.can_run:
+                return
+
         self.emit('doc-thumbnailing-end')
-        return 0
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume:
+            self.emit('doc-thumbnailing-end')
 
 
-GObject.type_register(WorkerDocThumbnailer)
+GObject.type_register(JobDocThumbnailer)
+
+
+class JobFactoryDocThumbnailer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "DocThumbnailer")
+        self.__main_win = main_win
+
+    def make(self, doclist):
+        """
+        Arguments:
+            doclist --- must be an array of (position, document), position being
+            the position of the document
+        """
+        job = JobDocThumbnailer(self, next(self.id_generator), doclist)
+        job.connect(
+            'doc-thumbnailing-start',
+            lambda thumbnailer:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_start_cb,
+                             thumbnailer))
+        job.connect(
+            'doc-thumbnailing-doc-done',
+            lambda thumbnailer, doc_idx, thumbnail:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
+                             thumbnailer, doc_idx, thumbnail))
+        job.connect(
+            'doc-thumbnailing-end',
+            lambda thumbnailer:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_end_cb,
+                             thumbnailer))
+        return job
 
 
 # TODO
@@ -832,7 +866,7 @@ class WorkerImporter(Worker):
         self.emit('import-start')
         (doc, page) = importer.import_doc(file_uri, self.__config,
                                           self.__main_win.docsearch,
-                                          self.__main_win.doc)
+                                          self.__main_win.doc[1])
         self.emit('import-done', doc, page)
 
 
@@ -967,7 +1001,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         doc = self.__main_win.lists['matches']['model'][doc_idx][1]
 
         logger.info("Showing doc %s" % doc)
-        self.__main_win.show_doc(doc)
+        self.__main_win.show_doc(doc_idx, doc)
 
 
 class ActionStartSimpleWorker(SimpleAction):
@@ -1031,12 +1065,12 @@ class ActionOpenPageSelected(SimpleAction):
         gui_list = self.__main_win.lists['pages']['gui']
         selection_path = gui_list.get_selected_items()
         if len(selection_path) <= 0:
-            self.__main_win.show_page(DummyPage(self.__main_win.doc))
+            self.__main_win.show_page(DummyPage(self.__main_win.doc[1]))
             return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
         page_idx = selection_path[0].get_indices()[0]
-        page = self.__main_win.doc.pages[page_idx]
+        page = self.__main_win.doc[1].pages[page_idx]
         self.__main_win.show_page(page)
 
 
@@ -1062,12 +1096,12 @@ class ActionMovePageIndex(SimpleAction):
         if self.relative:
             page_idx += self.value
         elif self.value < 0:
-            page_idx = self.__main_win.doc.nb_pages - 1
+            page_idx = self.__main_win.doc[1].nb_pages - 1
         else:
             page_idx = self.value
-        if page_idx < 0 or page_idx >= self.__main_win.doc.nb_pages:
+        if page_idx < 0 or page_idx >= self.__main_win.doc[1].nb_pages:
             return
-        page = self.__main_win.doc.pages[page_idx]
+        page = self.__main_win.doc[1].pages[page_idx]
         self.__main_win.show_page(page)
 
 
@@ -1083,9 +1117,9 @@ class ActionOpenPageNb(SimpleAction):
         SimpleAction.do(self)
         page_nb = self.__main_win.indicators['current_page'].get_text()
         page_nb = int(page_nb) - 1
-        if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
+        if page_nb < 0 or page_nb > self.__main_win.doc[1].nb_pages:
             return
-        page = self.__main_win.doc.pages[page_nb]
+        page = self.__main_win.doc[1].pages[page_nb]
         self.__main_win.show_page(page)
 
 
@@ -1129,14 +1163,14 @@ class ActionToggleLabel(object):
 
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels']['model'][objpath][2]
-        if not label in self.__main_win.doc.labels:
+        if not label in self.__main_win.doc[1].labels:
             logger.info("Action: Adding label '%s' on document '%s'"
-                   % (str(label), str(self.__main_win.doc)))
-            self.__main_win.docsearch.add_label(self.__main_win.doc, label)
+                   % (str(label), str(self.__main_win.doc[1])))
+            self.__main_win.docsearch.add_label(self.__main_win.doc[1], label)
         else:
             logger.info("Action: Removing label '%s' on document '%s'"
-                   % (label, self.__main_win.doc))
-            self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
+                   % (label, self.__main_win.doc[1]))
+            self.__main_win.docsearch.remove_label(self.__main_win.doc[1], label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs([self.__main_win.doc])
 
@@ -1154,9 +1188,9 @@ class ActionCreateLabel(SimpleAction):
         SimpleAction.do(self)
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
-            logger.info("Adding label %s to doc %s" % (labeleditor.label,
-                                                 self.__main_win.doc))
-            self.__main_win.docsearch.add_label(self.__main_win.doc,
+            logger.info("Adding label %s to doc %s"
+                        % (labeleditor.label, self.__main_win.doc[1]))
+            self.__main_win.docsearch.add_label(self.__main_win.doc[1],
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs([self.__main_win.doc])
@@ -1231,7 +1265,7 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
+        os.system('xdg-open "%s"' % (self.__main_win.doc[1].path))
 
 
 class ActionPrintDoc(SimpleAction):
@@ -1245,13 +1279,13 @@ class ActionPrintDoc(SimpleAction):
         print_settings = Gtk.PrintSettings()
         print_op = Gtk.PrintOperation()
         print_op.set_print_settings(print_settings)
-        print_op.set_n_pages(self.__main_win.doc.nb_pages)
-        print_op.set_current_page(self.__main_win.page.page_nb)
+        print_op.set_n_pages(self.__main_win.doc[1].nb_pages)
+        print_op.set_current_page(self.__main_win.page[1].page_nb)
         print_op.set_use_full_page(False)
-        print_op.set_job_name(str(self.__main_win.doc))
-        print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
+        print_op.set_job_name(str(self.__main_win.doc[1]))
+        print_op.set_export_filename(str(self.__main_win.doc[1]) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
+        print_op.connect("draw-page", self.__main_win.doc[1].print_page_cb)
         print_op.set_embed_page_setup(True)
         print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG,
                      self.__main_win.window)
@@ -1283,7 +1317,7 @@ class ActionSingleScan(SimpleAction):
         check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
-        doc = self.__main_win.doc
+        doc = self.__main_win.doc[1]
         # TODO
         #self.__main_win.workers['single_scan'].start(doc=doc)
 
@@ -1359,7 +1393,7 @@ class ActionImport(SimpleAction):
             return
 
         importers = docimport.get_possible_importers(file_uri,
-                                                     self.__main_win.doc)
+                                                     self.__main_win.doc[1])
         if len(importers) <= 0:
             msg = (_("Don't know how to import '%s'. Sorry.") %
                    (os.path.basename(file_uri)))
@@ -1399,7 +1433,7 @@ class ActionDeleteDoc(SimpleAction):
             return
         SimpleAction.do(self)
         logger.info("Deleting ...")
-        self.__main_win.doc.destroy()
+        self.__main_win.doc[1].destroy()
         logger.info("Deleted")
         self.__main_win.actions['new_doc'][1].do()
         self.__main_win.actions['reindex'][1].do()
@@ -1441,7 +1475,7 @@ class ActionRedoDocOCR(SimpleAction):
         # TODO
         #if self.__main_win.workers['ocr_redoer'].is_running:
         #    return
-        #doc = self.__main_win.doc
+        #doc = self.__main_win.doc[1]
         #self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
 
 
@@ -1762,7 +1796,7 @@ class ActionEditDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
+        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc[1])
 
 
 class ActionAbout(SimpleAction):
@@ -1899,8 +1933,8 @@ class MainWindow(object):
         self.__last_highlight_update = time.time()
 
         img = PIL.Image.new("RGB", (
-            WorkerDocThumbnailer.THUMB_WIDTH,
-            WorkerDocThumbnailer.THUMB_HEIGHT
+            JobDocThumbnailer.THUMB_WIDTH,
+            JobDocThumbnailer.THUMB_HEIGHT
         ), color="#CCCCCC")
         self.default_thumbnail = image2pixbuf(img)
 
@@ -1912,8 +1946,8 @@ class MainWindow(object):
         self.__scan_start = 0.0
 
         self.docsearch = DummyDocSearch()
-        self.doc = ImgDoc(self.__config.workdir)
-        self.page = DummyPage(self.doc)
+        self.doc = (0, ImgDoc(self.__config.workdir))
+        self.page = DummyPage(self.doc[1])
 
         self.lists = {
             'suggestions': {
@@ -2056,9 +2090,7 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'searcher': WorkerDocSearcher(self, config),
         #    'page_thumbnailer': WorkerPageThumbnailer(self),
-        #    'doc_thumbnailer': WorkerDocThumbnailer(self),
         #    'img_builder': WorkerImgBuilder(self),
         #    'label_updater': WorkerLabelUpdater(self),
         #    'label_deleter': WorkerLabelDeleter(self),
@@ -2076,6 +2108,7 @@ class MainWindow(object):
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'searcher': JobFactoryDocSearcher(self, config),
+            'doc_thumbnailer': JobFactoryDocThumbnailer(self),
         }
 
         self.actions = {
@@ -2479,23 +2512,6 @@ class MainWindow(object):
         #                     thumbnailer))
 
         # TODO
-        #self.workers['doc_thumbnailer'].connect(
-        #    'doc-thumbnailing-start',
-        #    lambda thumbnailer:
-        #    GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
-        #                     thumbnailer))
-        #self.workers['doc_thumbnailer'].connect(
-        #    'doc-thumbnailing-doc-done',
-        #    lambda thumbnailer, doc_idx, thumbnail:
-        #    GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
-        #                     thumbnailer, doc_idx, thumbnail))
-        #self.workers['doc_thumbnailer'].connect(
-        #    'doc-thumbnailing-end',
-        #    lambda thumbnailer:
-        #    GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
-        #                     thumbnailer))
-
-        # TODO
         #self.workers['img_builder'].connect(
         #    'img-building-start',
         #    lambda builder:
@@ -2694,8 +2710,7 @@ class MainWindow(object):
         self.scheduler.schedule(job)
 
     def on_search_result_cb(self, documents, suggestions):
-        # TODO
-        #self.workers['doc_thumbnailer'].stop()
+        self.scheduler.cancel_all(self.job_factories['doc_thumbnailer'])
 
         logger.debug("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
@@ -2707,13 +2722,13 @@ class MainWindow(object):
         active_idx = -1
         idx = 0
         for doc in documents:
-            if doc == self.doc:
+            if doc == self.doc[1]:
                 active_idx = idx
             idx += 1
             self.lists['matches']['model'].append(
                 self.__get_doc_model_line(doc))
 
-        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
+        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
             active_idx = 0
 
         self.lists['matches']['doclist'] = documents
@@ -2721,8 +2736,9 @@ class MainWindow(object):
 
         self.__select_doc(active_idx)
 
-        # TODO
-        #self.workers['doc_thumbnailer'].start()
+        documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
+        job = self.job_factories['doc_thumbnailer'].make(documents)
+        self.scheduler.schedule(job)
 
     def __on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -2731,17 +2747,17 @@ class MainWindow(object):
     def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
-        self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
+        self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
     def __on_page_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
-    def __on_doc_thumbnailing_start_cb(self, src):
+    def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
-    def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
+    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
         line_iter = self.lists['matches']['model'].get_iter(doc_idx)
         self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
         self.set_progression(src, ((float)(doc_idx+1) /
@@ -2749,7 +2765,7 @@ class MainWindow(object):
                              _("Loading thumbnails ..."))
         active_doc_idx = self.lists['matches']['active_idx']
 
-    def __on_doc_thumbnailing_end_cb(self, src):
+    def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
     def disable_boxes(self):
@@ -2862,7 +2878,7 @@ class MainWindow(object):
         assert(page is not None)
         self.show_page(page)
 
-        self.append_docs([self.doc])
+        self.refresh_docs([self.doc])
 
         # TODO
         #self.workers['progress_updater'].stop()
@@ -2890,7 +2906,7 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
-        self.show_doc(doc)  # will refresh the page list
+        self.show_doc(0, doc)  # will refresh the page list
         # Many documents may have been imported actually. So we still
         # refresh the whole list
         self.refresh_doc_list()
@@ -3084,52 +3100,6 @@ class MainWindow(object):
             return True
         return False
 
-    def append_docs(self, docs):
-        # We don't stop the doc thumbnailer here. It might be
-        # refreshing other documents we won't
-        # TODO
-        #self.workers['doc_thumbnailer'].wait()
-
-        doc_list = self.lists['matches']['doclist']
-        model = self.lists['matches']['model']
-
-        if (len(doc_list) > 0
-                and (doc_list[0] in docs or doc_list[0].is_new)):
-            # Remove temporarily "New document" from the list
-            doc_list.pop(0)
-            model.remove(model[0].iter)
-
-        for doc in docs:
-            if doc in doc_list:
-                # already in the list --> won't append
-                docs.remove(doc)
-
-        if len(docs) <= 0:
-            return
-
-        active_idx = -1
-        for doc in docs:
-            if doc == self.doc:
-                active_idx = 0
-            elif active_idx >= 0:
-                active_idx += 1
-            doc_list.insert(0, doc)
-            doc_line = self.__get_doc_model_line(doc)
-            model.insert(0, doc_line)
-
-        max_thumbnail_idx = len(docs)
-        if self.__insert_new_doc():
-            if active_idx >= 0:
-                active_idx += 1
-            max_thumbnail_idx += 1
-
-        if active_idx >= 0:
-            self.__select_doc(active_idx)
-
-        # TODO
-        #self.workers['doc_thumbnailer'].start(
-        #    doc_indexes=range(0, max_thumbnail_idx))
-
     def refresh_docs(self, docs):
         """
         Refresh specific documents in the document list
@@ -3137,27 +3107,13 @@ class MainWindow(object):
         Arguments:
             docs --- Array of Doc
         """
-        # We don't stop the doc thumbnailer here. It might be
-        # refreshing other documents we won't
-        # TODO
-        #self.workers['doc_thumbnailer'].wait()
-
         doc_list = self.lists['matches']['doclist']
 
         self.__insert_new_doc()
 
-        doc_indexes = []
         active_idx = -1
-
-        for doc in docs:
-            try:
-                doc_idx = doc_list.index(doc)
-            except ValueError, err:
-                logger.error("Warning: Should refresh doc %s in doc list, but"
-                       " didn't find it !" % doc)
-                continue
-            doc_indexes.append(doc_idx)
-            if self.doc == doc:
+        for (doc_idx, doc) in docs:
+            if self.doc[1] == doc:
                 active_idx = doc_idx
             doc_txt = self.__get_doc_txt(doc)
             doc_line = self.__get_doc_model_line(doc)
@@ -3165,8 +3121,9 @@ class MainWindow(object):
 
         if active_idx >= 0:
             self.__select_doc(active_idx)
-        # TODO
-        #self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
+
+        job = self.job_factories['doc_thumbnailer'].make(docs)
+        self.scheduler.schedule(job)
 
     def refresh_doc_list(self):
         """
@@ -3188,7 +3145,7 @@ class MainWindow(object):
         # TODO
         #self.workers['page_thumbnailer'].stop()
         self.lists['pages']['model'].clear()
-        for page in self.doc.pages:
+        for page in self.doc[1].pages:
             self.lists['pages']['model'].append([
                 self.default_thumbnail,
                 None,
@@ -3197,9 +3154,9 @@ class MainWindow(object):
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
-            _("/ %d") % (self.doc.nb_pages))
+            _("/ %d") % (self.doc[1].nb_pages))
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(self.doc[1].can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
         # TODO
@@ -3210,7 +3167,7 @@ class MainWindow(object):
         Reload and refresh the label list
         """
         self.lists['labels']['model'].clear()
-        labels = self.doc.labels
+        labels = self.doc[1].labels
         for label in self.docsearch.label_list:
             self.lists['labels']['model'].append([
                 label.get_html(),
@@ -3246,7 +3203,7 @@ class MainWindow(object):
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(self.doc[1].can_edit)
 
         if page.page_nb >= 0:
             # we are going to select the current page in the list
@@ -3270,23 +3227,23 @@ class MainWindow(object):
         # TODO
         #self.workers['img_builder'].start()
 
-    def show_doc(self, doc):
-        self.doc = doc
-        is_new = self.doc.is_new
+    def show_doc(self, doc_idx, doc):
+        self.doc = (doc_ix, doc)
+        is_new = self.doc[1].is_new
         for widget in self.need_doc_widgets:
             widget.set_sensitive(not is_new)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(self.doc.can_edit)
         pages_gui = self.lists['pages']['gui']
-        if self.doc.can_edit:
+        if self.doc[1].can_edit:
             pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
             pages_gui.drag_source_add_text_targets()
         else:
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
-        if self.doc.nb_pages > 0:
-            self.show_page(self.doc.pages[0])
+        if self.doc[1].nb_pages > 0:
+            self.show_page(self.doc[1].pages[0])
         else:
             self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
                                              Gtk.IconSize.DIALOG)
@@ -3390,7 +3347,8 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
-        GObject.idle_add(self.refresh_docs, [obj.doc])
+        doc = (self.lists['matches']['doclist'].index(obj.doc), obj.doc)
+        GObject.idle_add(self.refresh_docs, [doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):

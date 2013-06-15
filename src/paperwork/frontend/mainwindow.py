@@ -183,10 +183,11 @@ class JobDocExaminer(Job):
     can_stop = True
     priority = 50
 
-    def __init__(self, factory, id, main_window, config):
+    def __init__(self, factory, id, main_window, config, docsearch):
         Job.__init__(self, factory, id)
         self.__main_win = main_window
         self.__config = config
+        self.__docsearch = docsearch
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -215,7 +216,7 @@ class JobDocExaminer(Job):
         self.docs_changed = set()  # documents
         self.docs_missing = set()  # document ids
         try:
-            doc_examiner = self.__main_win.docsearch.get_doc_examiner()
+            doc_examiner = self.__docsearch.get_doc_examiner()
             doc_examiner.examine_rootdir(
                 self.__on_new_doc,
                 self.__on_doc_changed,
@@ -248,9 +249,9 @@ class JobFactoryDocExaminer(JobFactory):
         self.__main_win = main_win
         self.__config = config
 
-    def make(self):
+    def make(self, docsearch):
         job = JobDocExaminer(self, next(self.id_generator), self.__main_win,
-                             self.__config)
+                             self.__config, docsearch)
         job.connect(
             'doc-examination-start',
             lambda job: GObject.idle_add(
@@ -1774,7 +1775,7 @@ class ActionRefreshIndex(SimpleAction):
     def __on_index_reload_end(self, job, docsearch):
         if docsearch is None:
             return
-        job = self.__main_win.job_factories['doc_examiner'].make()
+        job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
         job.connect('doc-examination-end', lambda job: GObject.idle_add(
             self.__on_doc_exam_end, job))
         self.__main_win.scheduler.schedule(job)

@@ -1,6 +1,8 @@
 import heapq
 import logging
+import os
 import itertools
+import sys
 import threading
 import traceback
 import time
@@ -48,7 +50,9 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
     # MAX_TIME_FOR_UNSTOPPABLE_JOB
     can_stop = False
 
-    priority = 0 # the higher priority is run first
+    priority = 0  # the higher priority is run first
+
+    started_by = None  # set by the scheduler
 
     def __init__(self, job_factory, job_id):
         GObject.GObject.__init__(self)
@@ -59,7 +63,7 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
         """Child class must override this method"""
         raise NotImplementedError()
 
-    def stop(self):
+    def stop(self, will_resume=False):
         """
         Only called if can_stop == True.
         Child class must override this method if can_stop == True.
@@ -127,11 +131,25 @@ class JobScheduler(object):
             try:
                 self._active_job.do()
             except Exception, exc:
-                logger.warning("Job %s:%d raised an exception: %s"
-                               % (self._active_job.factory.name,
-                                  self._active_job.id,
-                                  str(exc)))
-                traceback.print_exc()
+                logger.error("===> Job %s:%d raised an exception: %s"
+                             % (self._active_job.factory.name,
+                                self._active_job.id,
+                                str(exc)))
+                idx = 0
+                for stack_el in traceback.extract_tb(sys.exc_info()[2]):
+                    logger.error("%2d: %20s: L%5d: %s"
+                                 % (idx, os.path.basename(stack_el[0]),
+                                    stack_el[1], stack_el[2]))
+                    idx += 1
+                logger.error("---> Job %s:%d was started by:"
+                             % (self._active_job.factory.name,
+                                self._active_job.id))
+                idx = 0
+                for stack_el in self._active_job.started_by:
+                    logger.error("%2d: %20s: L%5d: %s"
+                                 % (idx, os.path.basename(stack_el[0]),
+                                    stack_el[1], stack_el[2]))
+                    idx += 1
             stop = time.time()
 
             diff = start - stop
@@ -157,9 +175,9 @@ class JobScheduler(object):
             if not self.running:
                 return
 
-    def _stop_active_job(self):
+    def _stop_active_job(self, will_resume=False):
         if self._active_job.can_stop:
-            self._active_job.stop()
+            self._active_job.stop(will_resume=will_resume)
         else:
             logger.warning(
                 "[Scheduler %s] Tried to stop job %s:%d, but it can't"
@@ -184,6 +202,8 @@ class JobScheduler(object):
         logger.debug("[Scheduler %s] Queuing job %s:%d"
                      % (self.name, job.factory.name, job.id))
 
+        job.started_by = traceback.extract_stack()
+
         self._job_queue_cond.acquire()
         try:
             if (job in self._job_queue or job == self._active_job):
@@ -197,7 +217,7 @@ class JobScheduler(object):
             # it and take its place
             active = self._active_job
             if active is not None and active.priority < job.priority:
-                self._stop_active_job()
+                self._stop_active_job(will_resume=True)
                 heapq.push(self._job_queue, active)
             self._job_queue_cond.notify_all()
         finally:
@@ -216,7 +236,7 @@ class JobScheduler(object):
                 pass
 
             if (self._active_job is not None and condition(self._active_job)):
-                self._stop_active_job()
+                self._stop_active_job(will_resume=False)
         finally:
             self._job_queue_cond.release()
 

@@ -947,58 +947,94 @@ class JobFactoryOCRRedoer(JobFactory):
         return job
 
 
-# TODO
-class WorkerSingleScan(Worker):
+class JobSingleScan(Job):
     __gsignals__ = {
         'single-scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'single-scan-ocr': (GObject.SignalFlags.RUN_LAST, None, ()),
         'single-scan-done': (GObject.SignalFlags.RUN_LAST, None,
                              (GObject.TYPE_PYOBJECT,)),  # ImgPage
+        'single-scan-no-scanner-found': (GObject.SignalFlags.RUN_LAST, None,
+                                         ()),
+        'single-scan-error': (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_STRING,)),
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Scanning page")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch, target_doc):
+        Job.__init__(self, factory, id)
         self.__config = config
+        self.__doc = target_doc
+        self.__docsearch = docsearch
         self.__ocr_running = False
 
     def __scan_progress_cb(self, progression, total, step, doc=None):
-        if not self.can_run:
-            raise Exception("Interrupted by the user")
         if (step == ImgPage.SCAN_STEP_OCR) and (not self.__ocr_running):
             self.emit('single-scan-ocr')
             self.__ocr_running = True
 
-    def do(self, doc):
+    def do(self):
         self.emit('single-scan-start')
 
-        self.__ocr_running = False
         try:
-            scanner = self.__config.get_scanner_inst()
+            self.__ocr_running = False
             try:
-                scanner.options['source'].value = "Auto"
-            except (KeyError, pyinsane.rawapi.SaneException), exc:
-                logger.error("Warning: Unable to set scanner source "
-                       "to 'Auto': %s" % exc)
-            scan_src = scanner.scan(multiple=False)
-        except pyinsane.rawapi.SaneException, exc:
-            logger.error("No scanner found !")
-            GObject.idle_add(popup_no_scanner_found, self.__main_win.window)
-            self.emit('single-scan-done', None)
+                scanner = self.__config.get_scanner_inst()
+                try:
+                    scanner.options['source'].value = "Auto"
+                except (KeyError, pyinsane.rawapi.SaneException), exc:
+                    logger.error("Warning: Unable to set scanner source "
+                           "to 'Auto': %s" % exc)
+                scan_src = scanner.scan(multiple=False)
+            except pyinsane.rawapi.SaneException, exc:
+                logger.error("No scanner found !")
+                self.emit('single-scan-no-scanner-found', None)
+                raise
+            self.__doc.scan_single_page(scan_src, scanner.options['resolution'].value,
+                                        self.__config.scanner_calibration,
+                                        self.__config.langs,
+                                        self.__scan_progress_cb)
+            page = self.__doc.pages[self.__doc.nb_pages - 1]
+            self.__docsearch.index_page(page)
+            self.emit('single-scan-done', page)
+        except Exception, exc:
+            self.emit('single-scan-error', str(exc))
             raise
-        doc.scan_single_page(scan_src, scanner.options['resolution'].value,
-                             self.__config.scanner_calibration,
-                             self.__config.langs,
-                             self.__scan_progress_cb)
-        page = doc.pages[doc.nb_pages - 1]
-        self.__main_win.docsearch.index_page(page)
-
-        self.emit('single-scan-done', page)
 
 
-GObject.type_register(WorkerSingleScan)
+GObject.type_register(JobSingleScan)
+
+
+class JobFactorySingleScan(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "SingleScan")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, target_doc):
+        job = JobSingleScan(self, next(self.id_generator), self.__config,
+                            docsearch, target_doc)
+        job.connect('single-scan-start',
+                    lambda worker:
+                    GObject.idle_add(self.__main_win.on_single_scan_start,
+                                     worker))
+        job.connect('single-scan-ocr',
+                    lambda worker:
+                    GObject.idle_add(self.__main_win.on_single_scan_ocr,
+                                     worker))
+        job.connect('single-scan-done',
+                    lambda worker, page:
+                    GObject.idle_add(self.__main_win.on_single_scan_done,
+                                     worker, page))
+        job.connect('single-scan-no-scanner-found',
+                    lambda job:
+                    GObject.idle_add(popup_no_scanner_found, self.__main_win))
+        job.connect('single-scan-error',
+                    lambda job, error:
+                    GObject.idle_add(self.__main_win.on_single_scan_error,
+                                     job, error))
+        return job
 
 
 # TODO
@@ -1150,7 +1186,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         match_list = self.__main_win.lists['matches']['gui']
         selection_path = match_list.get_selected_items()
         if len(selection_path) <= 0:
-            logger.warn("No document selected. Can't open")
+            logger.info("No document selected. Can't open")
             return
         doc_idx = selection_path[0].get_indices()[0]
         doc = self.__main_win.lists['matches']['model'][doc_idx][1]
@@ -1461,8 +1497,12 @@ class ActionSingleScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
         doc = self.__main_win.doc[1]
-        # TODO
-        #self.__main_win.workers['single_scan'].start(doc=doc)
+
+        self.__main_win.scheduler.cancel_all(
+            self.__main_win.job_factories['single_scan'])
+        job = self.__main_win.job_factories['single_scan'].make(
+            self.__main_win.docsearch, doc)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionMultiScan(SimpleAction):
@@ -2231,7 +2271,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'single_scan': WorkerSingleScan(self, config),
         #    'importer': WorkerImporter(self, config),
         #    'progress_updater': WorkerProgressUpdater(
         #        "main window progress bar", self.status['progress']),
@@ -2241,6 +2280,7 @@ class MainWindow(object):
 
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
+            'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'img_builder': JobFactoryImgBuilder(self),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
@@ -2249,7 +2289,7 @@ class MainWindow(object):
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
-            'doc_thumbnailer': JobFactoryDocThumbnailer(self),
+            'single_scan': JobFactorySingleScan(self, config),
         }
 
         self.actions = {
@@ -2557,7 +2597,7 @@ class MainWindow(object):
         for action in self.actions:
             for button in self.actions[action][0]:
                 if button is None:
-                    logger.warn("MISSING BUTTON: %s" % (action))
+                    logger.error("MISSING BUTTON: %s" % (action))
             self.actions[action][1].connect(self.actions[action][0])
 
         for (buttons, action) in self.actions.values():
@@ -2634,20 +2674,6 @@ class MainWindow(object):
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
-
-        # TODO
-        #self.workers['single_scan'].connect(
-        #    'single-scan-start',
-        #    lambda worker:
-        #    GObject.idle_add(self.__on_single_scan_start, worker))
-        #self.workers['single_scan'].connect(
-        #    'single-scan-ocr',
-        #    lambda worker:
-        #    GObject.idle_add(self.__on_single_scan_ocr, worker))
-        #self.workers['single_scan'].connect(
-        #    'single-scan-done',
-        #    lambda worker, page:
-        #    GObject.idle_add(self.__on_single_scan_done, worker, page))
 
         # TODO
         #self.workers['importer'].connect(
@@ -2893,7 +2919,7 @@ class MainWindow(object):
         self.show_page(self.page)
         self.actions['reindex'][1].do()
 
-    def __on_single_scan_start(self, src):
+    def on_single_scan_start(self, src):
         self.set_progression(src, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
@@ -2906,7 +2932,7 @@ class MainWindow(object):
         #    value_min=0.0, value_max=0.5,
         #    total_time=self.__config.scan_time['normal'])
 
-    def __on_single_scan_ocr(self, src):
+    def on_single_scan_ocr(self, src):
         scan_stop = time.time()
         # TODO
         #self.workers['progress_updater'].stop()
@@ -2920,7 +2946,7 @@ class MainWindow(object):
         #    value_min=0.5, value_max=1.0,
         #    total_time=self.__config.scan_time['ocr'])
 
-    def __on_single_scan_done(self, src, page):
+    def on_single_scan_done(self, src, page):
         scan_stop = time.time()
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
@@ -2940,6 +2966,28 @@ class MainWindow(object):
 
         # TODO
         #self.workers['progress_updater'].stop()
+
+    def on_single_scan_error(self, src, error):
+        logger.error("Error while scanning: %s" % error)
+        for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(True)
+
+        self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+        self.refresh_page_list()
+        self.refresh_docs([self.doc])
+
+        flags = (Gtk.DialogFlags.MODAL
+                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(
+            parent=self.window,
+            flags=flags,
+            type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.OK,
+            message_format=error)
+
 
     def __on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))

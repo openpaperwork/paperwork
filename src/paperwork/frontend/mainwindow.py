@@ -770,8 +770,7 @@ class JobFactoryImgBuilder(JobFactory):
         return job
 
 
-# TODO
-class WorkerLabelUpdater(Worker):
+class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-updating-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -780,26 +779,55 @@ class WorkerLabelUpdater(Worker):
         'label-updating-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 1000  # this job must NOT be interrupted
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Updating label")
-        self.__main_win = main_window
+    def __init__(self, factory, id, docsearch, old_label, new_label):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__old_label = old_label
+        self.__new_label = new_label
 
     def __progress_cb(self, progression, total, step, doc):
         self.emit('label-updating-doc-updated', float(progression) / total,
                   doc.name)
 
-    def do(self, old_label, new_label):
+    def do(self):
         self.emit('label-updating-start')
         try:
-            self.__main_win.docsearch.update_label(old_label, new_label,
-                                                   self.__progress_cb)
+            self.__docsearch.update_label(self.__old_label, self.__new_label,
+                                          self.__progress_cb)
         finally:
             self.emit('label-updating-end')
 
 
-GObject.type_register(WorkerLabelUpdater)
+GObject.type_register(JobLabelUpdater)
+
+
+class JobFactoryLabelUpdater(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "LabelUpdater")
+        self.__main_win = main_win
+
+    def make(self, docsearch, old_label, new_label):
+        job = JobLabelUpdater(self, next(self.id_generator), docsearch,
+                              old_label, new_label)
+        job.connect('label-updating-start',
+                    lambda updater:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_start_cb,
+                        updater))
+        job.connect('label-updating-doc-updated',
+                    lambda updater, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_doc_updated_cb,
+                        updater, progression, doc_name))
+        job.connect('label-updating-end',
+                    lambda updater:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_end_cb,
+                        updater))
+        return job
 
 
 # TODO
@@ -1275,10 +1303,6 @@ class ActionEditLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        # TODO
-        #if self.__main_win.workers['label_updater'].is_running:
-        #    return
-
         SimpleAction.do(self)
 
         label_list = self.__main_win.lists['labels']['gui']
@@ -1294,11 +1318,9 @@ class ActionEditLabel(SimpleAction):
             logger.warn("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
-        # TODO
-        #if self.__main_win.workers['label_updater'].is_running:
-        #    return
-        #self.__main_win.workers['label_updater'].start(old_label=label,
-        #                                               new_label=new_label)
+        job = self.__main_win.job_factories['label_updater'].make(
+            self.__main_win.docsearch, label, new_label)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionDeleteLabel(SimpleAction):
@@ -1307,12 +1329,6 @@ class ActionDeleteLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        # TODO
-        #if self.__main_win.workers['label_updater'].is_running:
-        #    return
-        #if self.__main_win.workers['label_deleter'].is_running:
-        #    return
-
         SimpleAction.do(self)
 
         if not ask_confirmation(self.__main_win.window):
@@ -2163,7 +2179,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'label_updater': WorkerLabelUpdater(self),
         #    'label_deleter': WorkerLabelDeleter(self),
         #    'single_scan': WorkerSingleScan(self, config),
         #    'importer': WorkerImporter(self, config),
@@ -2179,6 +2194,7 @@ class MainWindow(object):
             'img_builder': JobFactoryImgBuilder(self),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
+            'label_updater': JobFactoryLabelUpdater(self),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -2568,23 +2584,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['label_updater'].connect(
-        #    'label-updating-start',
-        #    lambda updater:
-        #    GObject.idle_add(self.__on_label_updating_start_cb,
-        #                     updater))
-        #self.workers['label_updater'].connect(
-        #    'label-updating-doc-updated',
-        #    lambda updater, progression, doc_name:
-        #    GObject.idle_add(self.__on_label_updating_doc_updated_cb,
-        #                     updater, progression, doc_name))
-        #self.workers['label_updater'].connect(
-        #    'label-updating-end',
-        #    lambda updater:
-        #    GObject.idle_add(self.__on_label_updating_end_cb,
-        #                     updater))
-
-        # TODO
         #self.workers['label_deleter'].connect(
         #    'label-deletion-start',
         #    lambda deleter:
@@ -2840,11 +2839,11 @@ class MainWindow(object):
         self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
 
-    def __on_label_updating_start_cb(self, src):
+    def on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_label_updating_doc_updated_cb(self, src, progression, doc_name):
+    def on_label_updating_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Updating label (%s) ...") % (doc_name))
 
@@ -2852,7 +2851,7 @@ class MainWindow(object):
         self.set_progression(src, progression,
                              _("Deleting label (%s) ...") % (doc_name))
 
-    def __on_label_updating_end_cb(self, src):
+    def on_label_updating_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")

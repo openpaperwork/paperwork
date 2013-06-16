@@ -62,9 +62,9 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
         self._wait_time = None
         self._wait_cond = threading.Condition()
 
-    def _wait(self, wait_time):
+    def _wait(self, wait_time, force=False):
         """Convenience function to wait while being stoppable"""
-        if self._wait_time is None:
+        if self._wait_time is None or force:
             self._wait_time = wait_time
 
         start = time.time()
@@ -261,7 +261,7 @@ class JobScheduler(object):
 
     def cancel(self, target_job):
         logger.debug("[Scheduler %s] Canceling job %s"
-                     % (self.name, str(job)))
+                     % (self.name, str(target_job)))
         self._cancel_matching_jobs(
             lambda job: (job == target_job))
 
@@ -288,3 +288,55 @@ class JobScheduler(object):
         self._thread = None
 
         logger.info("[Scheduler %s] Stopped" % self.name)
+
+
+class JobProgressUpdater(Job):
+    """
+    Update a progress bar a predefined timing.
+    """
+
+    can_stop = True
+    priority = 500
+    NB_UPDATES = 50
+
+    def __init__(self, factory, id, progressbar,
+                 value_min=0.0, value_max=0.5, total_time=20.0):
+        Job.__init__(self, factory, id)
+        self.progressbar = progressbar
+        self.value_min = float(value_min)
+        self.value_max = float(value_max)
+        self.total_time = float(total_time)
+
+    def do(self):
+        self.can_run = True
+
+        for upd in xrange(0, self.NB_UPDATES):
+            if not self.can_run:
+                return
+
+            val = self.value_max - self.value_min
+            val *= upd
+            val /= self.NB_UPDATES
+            val += self.value_min
+
+            GObject.idle_add(self.progressbar.set_fraction, val)
+            self._wait(self.total_time / self.NB_UPDATES, force=True)
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobProgressUpdater)
+
+
+class JobFactoryProgressUpdater(JobFactory):
+    def __init__(self, progress_bar):
+        JobFactory.__init__(self, "ProgressUpdater")
+        self.progress_bar = progress_bar
+
+    def make(self, value_min=0.0, value_max=0.5, total_time=20.0):
+        job = JobProgressUpdater(self, next(self.id_generator),
+                                 self.progress_bar, value_min, value_max,
+                                 total_time)
+        return job

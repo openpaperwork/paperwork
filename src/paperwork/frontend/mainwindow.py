@@ -35,14 +35,13 @@ import pyinsane.rawapi
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.doceditdialog import DocEditDialog
-from paperwork.frontend.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
 from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.page_edit import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.workers import IndependentWorker
 from paperwork.frontend.workers import Worker
-from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.backend import docimport
 from paperwork.backend.common.page import DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -989,7 +988,7 @@ class JobSingleScan(Job):
                 scan_src = scanner.scan(multiple=False)
             except pyinsane.rawapi.SaneException, exc:
                 logger.error("No scanner found !")
-                self.emit('single-scan-no-scanner-found', None)
+                self.emit('single-scan-no-scanner-found')
                 raise
             self.__doc.scan_single_page(scan_src, scanner.options['resolution'].value,
                                         self.__config.scanner_calibration,
@@ -1410,10 +1409,11 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.scheduler.cancel_all(self.__main_win.job_factories['img_builder'])
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['img_builder'])
         job = self.__main_win.job_factories['img_builder'].make(
             self.__main_win.page)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -1500,7 +1500,7 @@ class ActionEditLabel(SimpleAction):
         logger.info("Label edited. Applying changes")
         job = self.__main_win.job_factories['label_updater'].make(
             self.__main_win.docsearch, label, new_label)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionDeleteLabel(SimpleAction):
@@ -1523,7 +1523,7 @@ class ActionDeleteLabel(SimpleAction):
 
         job = self.__main_win.job_factories['label_deleter'].make(
             self.__main_win.docsearch, label)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionOpenDocDir(SimpleAction):
@@ -1587,11 +1587,11 @@ class ActionSingleScan(SimpleAction):
             return
         doc = self.__main_win.doc[1]
 
-        self.__main_win.scheduler.cancel_all(
+        self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['single_scan'])
         job = self.__main_win.job_factories['single_scan'].make(
             self.__main_win.docsearch, doc)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionMultiScan(SimpleAction):
@@ -1690,7 +1690,7 @@ class ActionImport(SimpleAction):
         job = self.__main_win.job_factories['importer'].make(
             self.__main_win.docsearch, self.__main_win.doc[1],
             importer, file_uri)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1747,7 +1747,7 @@ class ActionRedoDocOCR(SimpleAction):
 
         doc = self.__main_win.doc[1]
         job = self.__main_win.job_factories['ocr_redoer'].make(doc)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionRedoAllOCR(SimpleAction):
@@ -1760,11 +1760,11 @@ class ActionRedoAllOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        self.__main_win.scheduler.cancel_all(
+        self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['ocr_redoer'])
         job = self.__main_win.job_factories['ocr_redoer'].make(
             self.__main_win.docsearch)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -2110,7 +2110,8 @@ class ActionRealQuit(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        self.__main_win.scheduler.stop()
+        for scheduler in self.__main_win.schedulers.values():
+            scheduler.stop()
 
         self.__config.write()
         Gtk.main_quit()
@@ -2129,11 +2130,11 @@ class ActionRefreshIndex(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.scheduler.cancel_all(
+        self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['index_reloader'])
-        self.__main_win.scheduler.cancel_all(
+        self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['doc_examiner'])
-        self.__main_win.scheduler.cancel_all(
+        self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['index_updater'])
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
@@ -2142,7 +2143,7 @@ class ActionRefreshIndex(SimpleAction):
 
         job = self.__main_win.job_factories['index_reloader'].make()
         job.connect('index-loading-end', self.__on_index_reload_end)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
     def __on_index_reload_end(self, job, docsearch):
         if docsearch is None:
@@ -2150,7 +2151,7 @@ class ActionRefreshIndex(SimpleAction):
         job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
         job.connect('doc-examination-end', lambda job: GObject.idle_add(
             self.__on_doc_exam_end, job))
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
@@ -2170,7 +2171,7 @@ class ActionRefreshIndex(SimpleAction):
             upd_docs=examiner.docs_changed,
             del_docs=examiner.docs_missing,
         )
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionEditPage(SimpleAction):
@@ -2193,12 +2194,15 @@ class ActionEditPage(SimpleAction):
 
         job = self.__main_win.job_factories['page_editor'].make(
             self.__main_win.docsearch, self.__main_win.page, changes=todo)
-        self.__main_win.scheduler.schedule(job)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class MainWindow(object):
     def __init__(self, config):
-        self.scheduler = JobScheduler("Main")
+        self.schedulers = {
+            'main' : JobScheduler("Main"),
+            'progress' : JobScheduler("Progress"),
+        }
 
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
@@ -2217,6 +2221,7 @@ class MainWindow(object):
 
         self.__config = config
         self.__scan_start = 0.0
+        self.__scan_progress_job = None
 
         self.docsearch = DummyDocSearch()
         self.doc = (0, ImgDoc(self.__config.workdir))
@@ -2361,12 +2366,6 @@ class MainWindow(object):
              sort_documents_by_date),
         ]
 
-        # TODO
-        #self.workers = {
-        #    'progress_updater': WorkerProgressUpdater(
-        #        "main window progress bar", self.status['progress']),
-        #}
-
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -2380,6 +2379,8 @@ class MainWindow(object):
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
+            'progress_updater': JobFactoryProgressUpdater(
+                self.status['progress']),
             'searcher': JobFactoryDocSearcher(self, config),
             'single_scan': JobFactorySingleScan(self, config),
         }
@@ -2774,7 +2775,8 @@ class MainWindow(object):
 
         self.window.set_visible(True)
 
-        self.scheduler.start()
+        for scheduler in self.schedulers.values():
+            scheduler.start()
 
 
     def set_search_availability(self, enabled):
@@ -2833,17 +2835,18 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_index_update_end_cb(self, src):
-        self.scheduler.cancel_all(self.job_factories['index_reloader'])
+        self.schedulers['main'].cancel_all(
+            self.job_factories['index_reloader'])
 
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
 
         job = self.job_factories['index_reloader'].make()
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def on_search_result_cb(self, documents, suggestions):
-        self.scheduler.cancel_all(self.job_factories['doc_thumbnailer'])
+        self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
 
         logger.debug("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
@@ -2871,7 +2874,7 @@ class MainWindow(object):
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
         job = self.job_factories['doc_thumbnailer'].make(documents)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -2976,27 +2979,28 @@ class MainWindow(object):
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(False)
         self.__scan_start = time.time()
-        # TODO
-        #self.workers['progress_updater'].start(
-        #    value_min=0.0, value_max=0.5,
-        #    total_time=self.__config.scan_time['normal'])
+
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
+            value_min=0.0, value_max=0.5,
+            total_time=self.__config.scan_time['normal'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_single_scan_ocr(self, src):
         scan_stop = time.time()
-        # TODO
-        #self.workers['progress_updater'].stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['normal'] = scan_stop - self.__scan_start
 
         self.set_progression(src, 0.5, _("Reading ..."))
 
         self.__scan_start = time.time()
-        # TODO
-        #self.workers['progress_updater'].start(
-        #    value_min=0.5, value_max=1.0,
-        #    total_time=self.__config.scan_time['ocr'])
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
+            value_min=0.5, value_max=1.0,
+            total_time=self.__config.scan_time['ocr'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_single_scan_done(self, src, page):
         scan_stop = time.time()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
         for widget in self.need_doc_widgets:
@@ -3012,9 +3016,6 @@ class MainWindow(object):
         self.show_page(page)
 
         self.refresh_docs([self.doc])
-
-        # TODO
-        #self.workers['progress_updater'].stop()
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s" % error)
@@ -3043,16 +3044,15 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        # TODO
-        #self.workers['progress_updater'].start(
-        #    value_min=0.0, value_max=0.75,
-        #    total_time=self.__config.scan_time['ocr'])
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
+            value_min=0.0, value_max=0.75,
+            total_time=self.__config.scan_time['ocr'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
         self.__scan_start = time.time()
 
     def on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
-        # TODO
-        #self.workers['progress_updater'].stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         # Note: don't update scan time here: OCR is not required for all
         # imports
 
@@ -3278,7 +3278,7 @@ class MainWindow(object):
             self.__select_doc(active_idx)
 
         job = self.job_factories['doc_thumbnailer'].make(docs)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def refresh_doc_list(self):
         """
@@ -3286,18 +3286,18 @@ class MainWindow(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        self.scheduler.cancel_all(self.job_factories['searcher'])
+        self.schedulers['main'].cancel_all(self.job_factories['searcher'])
         search = unicode(self.search_field.get_text(), encoding='utf-8')
         job = self.job_factories['searcher'].make(
             self.docsearch, self.get_doc_sort_func(), search)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        self.scheduler.cancel_all(self.job_factories['page_thumbnailer'])
+        self.schedulers['main'].cancel_all(self.job_factories['page_thumbnailer'])
         self.lists['pages']['model'].clear()
         for page in self.doc[1].pages:
             self.lists['pages']['model'].append([
@@ -3316,7 +3316,7 @@ class MainWindow(object):
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
         job = self.job_factories['page_thumbnailer'].make(self.doc[1], search)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def refresh_label_list(self):
         """
@@ -3349,7 +3349,7 @@ class MainWindow(object):
     def show_page(self, page):
         logging.info("Showing page %s" % page)
 
-        self.scheduler.cancel_all(self.job_factories['img_builder'])
+        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3380,7 +3380,7 @@ class MainWindow(object):
         self.export['dialog'].set_visible(False)
 
         job = self.job_factories['img_builder'].make(page)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def show_doc(self, doc_idx, doc):
         self.doc = (doc_idx, doc)
@@ -3427,10 +3427,10 @@ class MainWindow(object):
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        self.scheduler.cancel_all(self.job_factories['export_previewer'])
+        self.schedulers['main'].cancel_all(self.job_factories['export_previewer'])
         job = self.job_factories['export_previewer'].make(
             self.export['exporter'])
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def __on_img_resize_cb(self, viewport, rectangle):
         if self.export['exporter'] is not None:
@@ -3453,9 +3453,9 @@ class MainWindow(object):
         if factor != 0.0:
             return
 
-        self.scheduler.cancel_all(self.job_factories['img_builder'])
+        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
         job = self.job_factories['img_builder'].make(self.page)
-        self.scheduler.schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def on_page_editing_img_edit_start_cb(self, worker, page):
         self.set_mouse_cursor("Busy")

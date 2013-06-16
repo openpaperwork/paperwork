@@ -36,7 +36,8 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.img_cutting import ImgGripHandler
 from paperwork.frontend.workers import Worker
-from paperwork.frontend.workers import WorkerProgressUpdater
+# TODO
+#from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -417,8 +418,9 @@ class SettingsWindow(GObject.GObject):
                 config.RECOMMENDED_RESOLUTION),
             "scan": WorkerCalibrationScan(
                 self.calibration['image_viewport']),
-            "progress_updater": WorkerProgressUpdater("calibration scan",
-                                                      self.progressbar)
+            # TODO
+            #"progress_updater": WorkerProgressUpdater("calibration scan",
+            #                                          self.progressbar)
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -593,13 +595,15 @@ class SettingsWindow(GObject.GObject):
             Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
-            value_min=0.0, value_max=1.0,
-            total_time=self.__config.scan_time['calibration'])
+        # TODO
+        #self.workers['progress_updater'].start(
+        #    value_min=0.0, value_max=1.0,
+        #    total_time=self.__config.scan_time['calibration'])
 
     def __on_scan_done(self, img):
         scan_stop = time.time()
-        self.workers['progress_updater'].soft_stop()
+        # TODO
+        #self.workers['progress_updater'].soft_stop()
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['images'] = [(1.0, img)]

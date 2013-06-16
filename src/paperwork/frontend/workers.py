@@ -312,33 +312,3 @@ class IndependentWorkerQueue(IndependentWorker):
         Worker.stop(self)
 
 GObject.type_register(IndependentWorkerQueue)
-
-
-class WorkerProgressUpdater(IndependentWorker):
-    """
-    Update a progress bar a predefined timing.
-    """
-
-    can_interrupt = True
-
-    NB_UPDATES = 50
-
-    def __init__(self, name, progressbar):
-        self.name = "Progress bar updater: %s" % (name)
-        IndependentWorker.__init__(self, self.name)
-        self.progressbar = progressbar
-
-    def do(self, value_min=0.0, value_max=0.5, total_time=20.0):
-        for upd in range(0, self.NB_UPDATES):
-            if not self.can_run:
-                return
-            val = value_max - value_min
-            val *= upd
-            val /= self.NB_UPDATES
-            val += value_min
-
-            GObject.idle_add(self.progressbar.set_fraction, val)
-            time.sleep(total_time / self.NB_UPDATES)
-
-
-GObject.type_register(WorkerProgressUpdater)

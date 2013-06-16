@@ -104,6 +104,7 @@ class JobIndexLoader(Job):
     def __init__(self, factory, job_id, config):
         Job.__init__(self, factory, job_id)
         self.__config = config
+        self.started = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -127,7 +128,9 @@ class JobIndexLoader(Job):
 
     def do(self):
         self.can_run = True
-        self.emit('index-loading-start')
+        if not self.started:
+            self.emit('index-loading-start')
+            self.started = True
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.emit('index-loading-end', docsearch)
@@ -626,8 +629,6 @@ class JobDocThumbnailer(Job):
             self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
 
             self.__current_idx = idx
-            if not self.can_run:
-                return
 
         self.emit('doc-thumbnailing-end')
 

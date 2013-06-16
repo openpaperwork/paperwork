@@ -211,7 +211,7 @@ class JobFactoryResolutionFinder(JobFactory):
         return job
 
 
-class WorkerCalibrationScan(Worker):
+class JobCalibrationScan(Job):
     __gsignals__ = {
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
@@ -222,17 +222,19 @@ class WorkerCalibrationScan(Worker):
                                      GObject.TYPE_PYOBJECT, )),  # Pillow image
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 495
 
-    def __init__(self, target_viewport):
-        Worker.__init__(self, "Calibration scan")
-        self.target_viewport = target_viewport
+    def __init__(self, factory, id, target_viewport, devid):
+        Job.__init__(self, factory, id)
+        self.__target_viewport = target_viewport
+        self.__devid = devid
 
-    def do(self, devid):
+    def do(self):
         self.emit('calibration-scan-start')
 
         # scan
-        dev = pyinsane.Scanner(name=devid)
+        dev = pyinsane.Scanner(name=self.__devid)
         try:
             dev.options['source'].value = "Auto"
         except (KeyError, pyinsane.rawapi.SaneException), exc:
@@ -255,13 +257,11 @@ class WorkerCalibrationScan(Worker):
 
         scan_inst = dev.scan(multiple=False)
         try:
-            while self.can_run:
+            while True:
                 scan_inst.read()
                 time.sleep(0)  # Give some CPU time to PyGtk
         except EOFError:
             pass
-        if not self.can_run:
-            return
         orig_img = scan_inst.get_img()
         self.emit('calibration-scan-done', orig_img)
 
@@ -271,7 +271,7 @@ class WorkerCalibrationScan(Worker):
         logger.info("Calibration: Got an image of size '%s'"
 				% str(orig_img_size))
 
-        target_alloc = self.target_viewport.get_allocation()
+        target_alloc = self.__target_viewport.get_allocation()
         max_width = target_alloc.width
         max_height = target_alloc.height
 
@@ -292,7 +292,29 @@ class WorkerCalibrationScan(Worker):
         self.emit('calibration-resize-done', factor, resized_img)
 
 
-GObject.type_register(WorkerCalibrationScan)
+GObject.type_register(JobCalibrationScan)
+
+
+class JobFactoryCalibrationScan(JobFactory):
+    def __init__(self, settings_win, target_viewport):
+        JobFactory.__init__(self, "CalibrationScan")
+        self.__settings_win = settings_win
+        self.__target_viewport = target_viewport
+
+    def make(self, devid):
+        job = JobCalibrationScan(self, next(self.id_generator),
+                                 self.__target_viewport, devid)
+        job.connect('calibration-scan-start',
+                    lambda job:
+                    GObject.idle_add(self.__settings_win.on_scan_start))
+        job.connect('calibration-scan-done',
+                    lambda job, img:
+                    GObject.idle_add(self.__settings_win.on_scan_done, img))
+        job.connect('calibration-resize-done',
+                    lambda job, factor, img:
+                    GObject.idle_add(self.__settings_win.on_resize_done,
+                                     factor, img))
+        return job
 
 
 class ActionSelectScanner(SimpleAction):
@@ -385,8 +407,9 @@ class ActionScanCalibration(SimpleAction):
         idx = setting['gui'].get_active()
         assert(idx >= 0)
         devid = setting['stores']['loaded'][idx][1]
-        # TODO
-        # self.__settings_win.workers['scan'].start(devid=devid)
+
+        job = self.__settings_win.job_factories['scan'].make(devid)
+        self.__settings_win.schedulers['main'].schedule(job)
 
 
 class SettingsWindow(GObject.GObject):
@@ -482,9 +505,6 @@ class SettingsWindow(GObject.GObject):
 
         # TODO
         #self.workers = {
-        #    "device_finder": WorkerDeviceFinder(config.scanner_devid),
-        #    "scan": WorkerCalibrationScan(
-        #        self.calibration['image_viewport']),
         #    # TODO
         #    #"progress_updater": WorkerProgressUpdater("calibration scan",
         #    #                                          self.progressbar)
@@ -495,6 +515,8 @@ class SettingsWindow(GObject.GObject):
             "resolution_finder": JobFactoryResolutionFinder(self,
                 config.scanner_resolution,
                 config.RECOMMENDED_RESOLUTION),
+            "scan": JobFactoryCalibrationScan(self,
+                self.calibration['image_viewport']),
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -515,18 +537,6 @@ class SettingsWindow(GObject.GObject):
         ]
         for action in action_names:
             actions[action][1].connect(actions[action][0])
-
-        # TODO
-        #self.workers['scan'].connect(
-        #    'calibration-scan-start',
-        #    lambda worker: GObject.idle_add(self.__on_scan_start))
-        #self.workers['scan'].connect(
-        #    'calibration-scan-done',
-        #    lambda worker, img: GObject.idle_add(self.__on_scan_done, img))
-        #self.workers['scan'].connect(
-        #    'calibration-resize-done',
-        #    lambda worker, factor, img:
-        #    GObject.idle_add(self.__on_resize_done, factor, img))
 
         self.window.connect("destroy", self.__on_destroy)
 
@@ -634,7 +644,7 @@ class SettingsWindow(GObject.GObject):
             "Busy": Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
 
-    def __on_scan_start(self):
+    def on_scan_start(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.set_mouse_cursor("Busy")
         self.calibration['image_gui'].set_alignment(0.5, 0.5)
@@ -647,7 +657,7 @@ class SettingsWindow(GObject.GObject):
         #    value_min=0.0, value_max=1.0,
         #    total_time=self.__config.scan_time['calibration'])
 
-    def __on_scan_done(self, img):
+    def on_scan_done(self, img):
         scan_stop = time.time()
         # TODO
         #self.workers['progress_updater'].soft_stop()
@@ -656,7 +666,7 @@ class SettingsWindow(GObject.GObject):
         self.calibration['images'] = [(1.0, img)]
         self.progressbar.set_fraction(0.0)
 
-    def __on_resize_done(self, factor, img):
+    def on_resize_done(self, factor, img):
         self.calibration['images'].insert(0, (factor, img))
         self.grips = ImgGripHandler(self.calibration['images'],
                                     self.calibration['image_scrollbars'],

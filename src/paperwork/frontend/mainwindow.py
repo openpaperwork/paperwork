@@ -35,13 +35,11 @@ import pyinsane.rawapi
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.doceditdialog import DocEditDialog
+from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
 from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.page_edit import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
-from paperwork.frontend.workers import IndependentWorker
-from paperwork.frontend.workers import Worker
-from paperwork.frontend.workers import WorkerProgressUpdater
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -86,7 +84,7 @@ def sort_documents_by_date(documents):
     documents.reverse()
 
 
-class WorkerDocIndexLoader(Worker):
+class JobIndexLoader(Job):
     """
     Reload the doc index
     """
@@ -96,20 +94,23 @@ class WorkerDocIndexLoader(Worker):
         'index-loading-progression': (GObject.SignalFlags.RUN_LAST, None,
                                       (GObject.TYPE_FLOAT,
                                        GObject.TYPE_STRING)),
-        'index-loading-end': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-loading-end': (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_PYOBJECT, )),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 100
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Document reindexation")
-        self.__main_win = main_window
+    def __init__(self, factory, job_id, config):
+        Job.__init__(self, factory, job_id)
         self.__config = config
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
         Update the main progress bar
         """
+        if not self.can_run:
+            raise StopIteration()
         if progression % 50 != 0:
             return
         txt = None
@@ -123,23 +124,48 @@ class WorkerDocIndexLoader(Worker):
         if doc is not None:
             txt += (" (%s)" % (doc.name))
         self.emit('index-loading-progression', float(progression) / total, txt)
-        if not self.can_run:
-            raise StopIteration()
 
     def do(self):
+        self.can_run = True
         self.emit('index-loading-start')
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
-            self.__main_win.docsearch = docsearch
+            self.emit('index-loading-end', docsearch)
         except StopIteration:
-            logger.error("Indexation interrupted")
-        self.emit('index-loading-end')
+            logger.info("Index loading interrupted")
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        if not will_resume:
+            self.emit('index-loading-end', None)
 
 
-GObject.type_register(WorkerDocIndexLoader)
+GObject.type_register(JobIndexLoader)
 
 
-class WorkerDocExaminer(IndependentWorker):
+class JobFactoryIndexLoader(JobFactory):
+    def __init__(self, main_window, config):
+        JobFactory.__init__(self, "IndexLoader")
+        self.__main_window = main_window
+        self.__config = config
+
+    def make(self):
+        job = JobIndexLoader(self, next(self.id_generator), self.__config)
+        job.connect('index-loading-start',
+                    lambda job: GObject.idle_add(
+                        self.__main_window.on_index_loading_start_cb, job))
+        job.connect('index-loading-progression',
+                    lambda job, progression, txt:
+                    GObject.idle_add(self.__main_window.set_progression,
+                                     job, progression, txt))
+        job.connect('index-loading-end',
+                    lambda loader, docsearch: GObject.idle_add(
+                        self.__main_window.on_index_loading_end_cb, loader,
+                        docsearch))
+        return job
+
+
+class JobDocExaminer(Job):
     """
     Look for modified documents
     """
@@ -152,17 +178,21 @@ class WorkerDocExaminer(IndependentWorker):
         'doc-examination-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 50
 
-    def __init__(self, main_window, config):
-        IndependentWorker.__init__(self, "Document examination")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch):
+        Job.__init__(self, factory, id)
         self.__config = config
+        self.docsearch = docsearch
+        self.done = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
         Update the main progress bar
         """
+        if not self.can_run:
+            raise StopIteration()
         if progression % 10 != 0:
             return
         txt = None
@@ -175,25 +205,32 @@ class WorkerDocExaminer(IndependentWorker):
             txt += (" (%s)" % (str(doc)))
         self.emit('doc-examination-progression',
                   float(progression) / total, txt)
-        if not self.can_run:
-            raise StopIteration()
 
     def do(self):
+        if self.done:
+            return
+
+        self.can_run = True
+
         self.emit('doc-examination-start')
         self.new_docs = set()  # documents
         self.docs_changed = set()  # documents
         self.docs_missing = set()  # document ids
         try:
-            doc_examiner = self.__main_win.docsearch.get_doc_examiner()
+            doc_examiner = self.docsearch.get_doc_examiner()
             doc_examiner.examine_rootdir(
                 self.__on_new_doc,
                 self.__on_doc_changed,
                 self.__on_doc_missing,
                 self.__progress_cb)
         except StopIteration:
-            logger.error("Document examination interrupted")
+            logger.info("Document examination interrupted")
         finally:
             self.emit('doc-examination-end')
+            self.done = True
+
+    def stop(self, will_resume=False):
+        self.can_run = False
 
     def __on_new_doc(self, doc):
         self.new_docs.add(doc)
@@ -205,12 +242,36 @@ class WorkerDocExaminer(IndependentWorker):
         self.docs_missing.add(docid)
 
 
-GObject.type_register(WorkerDocExaminer)
+GObject.type_register(JobDocExaminer)
 
 
-class WorkerIndexUpdater(Worker):
+class JobFactoryDocExaminer(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "DocExaminer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch):
+        job = JobDocExaminer(self, next(self.id_generator),
+                             self.__config, docsearch)
+        job.connect(
+            'doc-examination-start',
+            lambda job: GObject.idle_add(
+                self.__main_win.on_doc_examination_start_cb, job))
+        job.connect(
+            'doc-examination-progression',
+            lambda job, progression, txt: GObject.idle_add(
+                self.__main_win.set_progression, job, progression, txt))
+        job.connect(
+            'doc-examination-end',
+            lambda job: GObject.idle_add(
+                self.__main_win.on_doc_examination_end_cb, job))
+        return job
+
+
+class JobIndexUpdater(Job):
     """
-    Look for modified documents
+    Update the index
     """
 
     __gsignals__ = {
@@ -218,61 +279,121 @@ class WorkerIndexUpdater(Worker):
         'index-update-progression': (GObject.SignalFlags.RUN_LAST, None,
                                      (GObject.TYPE_FLOAT,
                                       GObject.TYPE_STRING)),
+        'index-update-interrupted': (GObject.SignalFlags.RUN_LAST, None, ()),
         'index-update-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 15
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Document index update")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch,
+                new_docs=[], upd_docs=[], del_docs=[],
+                optimize=True):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
         self.__config = config
 
-    def do(self, new_docs=[], upd_docs=[], del_docs=[], optimize=True):
-        self.emit('index-update-start')
-        try:
-            self.__main_win.docsearch.fit_label_estimator(new_docs)
-            self.__main_win.docsearch.fit_label_estimator(upd_docs)
+        self.new_docs = new_docs
+        self.upd_docs = upd_docs
+        self.del_docs = del_docs
+        self.optimize = optimize
+        self.index_updater = None
+        self.total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
 
-            index_updater = self.__main_win.docsearch.get_index_updater(
-                optimize=optimize)
+    def do(self):
+        # keep in mind that we may have been interrupted and then called back
+        # later
 
-            docs = [
-                (_("Indexing new document ..."), new_docs,
-                 index_updater.add_doc),
-                (_("Reindexing modified document ..."), upd_docs,
-                 index_updater.upd_doc),
-                (_("Removing deleted document from index ..."), del_docs,
-                 index_updater.del_doc),
-            ]
+        self.can_run = True
 
-            progression = float(0)
-            total = len(new_docs) + len(upd_docs) + len(del_docs)
+        total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
+        if total <= 0:
+            return
 
-            for (op_name, doc_bunch, op) in docs:
-                for doc in doc_bunch:
+        if self.index_updater is None:
+            self.emit('index-update-start')
+            self.index_updater = self.__docsearch.get_index_updater(
+                optimize=self.optimize)
+            self.__docsearch.fit_label_estimator(self.new_docs)
+            self.__docsearch.fit_label_estimator(self.upd_docs)
+
+        if not self.can_run:
+            self.emit('index-update-interrupted')
+            return
+
+        docs = [
+            (_("Indexing new document ..."), self.new_docs,
+             self.index_updater.add_doc),
+            (_("Reindexing modified document ..."), self.upd_docs,
+             self.index_updater.upd_doc),
+            (_("Removing deleted document from index ..."), self.del_docs,
+             self.index_updater.del_doc),
+        ]
+
+        progression = float(0)
+
+        for (op_name, doc_bunch, op) in docs:
+            try:
+                while True:
+                    if not self.can_run:
+                        self.emit('index-update-interrupted')
+                        return
+                    doc = doc_bunch.pop()
                     self.emit('index-update-progression',
                               (progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
                     # update the docs but don't fit the estimators, its already done
                     op(doc, fit_label_estimator=False)
                     progression += 1
-                    if not self.can_run:
-                        index_updater.cancel()
-                        self.emit('index-update-end')
+            except KeyError:
+                pass
 
-            self.emit('index-update-progression', 0.75,
-                      _("Writing index ..."))
-            index_updater.commit()
-            self.emit('index-update-progression', 1.0, "")
-        finally:
-            self.emit('index-update-end')
+        if not self.can_run:
+            self.emit('index-update-interrupted')
+            return
+
+        self.emit('index-update-progression', 0.75,
+                  _("Writing index ..."))
+        self.index_updater.commit()
+        self.emit('index-update-progression', 1.0, "")
+        self.emit('index-update-end')
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        if not will_resume:
+            self.connect('index-update-interrupted',
+                         lambda job: self.index_updater.cancel())
 
 
-GObject.type_register(WorkerIndexUpdater)
+GObject.type_register(JobIndexUpdater)
 
 
-class WorkerDocSearcher(Worker):
+class JobFactoryIndexUpdater(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "IndexUpdater")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch,
+            new_docs, upd_docs, del_docs, optimize=True):
+        job = JobIndexUpdater(self, next(self.id_generator), self.__config,
+                              docsearch, new_docs, upd_docs, del_docs, optimize)
+        job.connect('index-update-start',
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.on_index_update_start_cb,
+                                     updater))
+        job.connect('index-update-progression',
+                    lambda updater, progression, txt:
+                    GObject.idle_add(self.__main_win.set_progression, updater,
+                                     progression, txt))
+        job.connect('index-update-end',
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.on_index_update_end_cb,
+                                     updater))
+        return job
+
+
+class JobDocSearcher(Job):
     """
     Search the documents
     """
@@ -285,55 +406,71 @@ class WorkerDocSearcher(Worker):
                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 500
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Search")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch, sort_func, search):
+        Job.__init__(self, factory, id)
+        self.search = search
+        self.__docsearch = docsearch
+        self.__sort_func = sort_func
         self.__config = config
 
     def do(self):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return
-            time.sleep(0.05)
+        self.can_run = True
 
-        sentence = unicode(self.__main_win.search_field.get_text(),
-                           encoding='utf-8')
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
         self.emit('search-start')
+
+        documents = self.__docsearch.find_documents(self.search)
         if not self.can_run:
             return
 
-        documents = self.__main_win.docsearch.find_documents(sentence)
-        if not self.can_run:
-            return
-
-        if sentence == u"":
+        if self.search == u"":
             # when no specific search has been done, the sorting is always
             # the same
             sort_documents_by_date(documents)
             # append a new document to the list
             documents.insert(0, ImgDoc(self.__config.workdir))
         else:
-            for (widget, sort_func) in self.__main_win.sortings:
-                if widget.get_active():
-                    sort_func(documents)
-                    break
+            self.__sort_func(documents)
         if not self.can_run:
             return
 
-        suggestions = self.__main_win.docsearch.find_suggestions(sentence)
+        suggestions = self.__docsearch.find_suggestions(self.search)
         if not self.can_run:
             return
 
         self.emit('search-result', documents, suggestions)
 
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
 
-GObject.type_register(WorkerDocSearcher)
+
+GObject.type_register(JobDocSearcher)
 
 
-class WorkerPageThumbnailer(Worker):
+class JobFactoryDocSearcher(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "Search")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, sort_func, search_sentence):
+        job = JobDocSearcher(self, next(self.id_generator), self.__config,
+                             docsearch, sort_func, search_sentence)
+        job.connect('search-result',
+            lambda searcher, documents, suggestions:
+            GObject.idle_add(self.__main_win.on_search_result_cb,
+                             documents, suggestions))
+        return job
+
+
+class JobPageThumbnailer(Job):
     """
     Generate page thumbnails
     """
@@ -346,42 +483,83 @@ class WorkerPageThumbnailer(Worker):
         'page-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 400
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Page thumbnailing")
-        self.__main_win = main_window
+    def __init__(self, factory, id, doc, search):
+        Job.__init__(self, factory, id)
+        self.__doc = doc
+        self.__search = search
+
+        self.__current_idx = -1
 
     def do(self):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return
-            time.sleep(0.05)
+        pages = self.__doc.pages
+        nb_pages = self.__doc.nb_pages
 
-        search = unicode(self.__main_win.search_field.get_text(),
-                         encoding='utf-8')
+        self.can_run = True
+        if self.__current_idx >= nb_pages:
+            return
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
-        self.emit('page-thumbnailing-start')
-        for page_idx in range(0, self.__main_win.doc.nb_pages):
-            page = self.__main_win.doc.pages[page_idx]
+        if self.__current_idx < 0:
+            self.emit('page-thumbnailing-start')
+            self.__current_idx = 0
+
+        for page_idx in xrange(self.__current_idx, nb_pages):
+            page = pages[page_idx]
             img = page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
             img = img.copy()
-            if search != u"" and search in page:
+
+            if self.__search != u"" and self.__search in page:
                 img = add_img_border(img, color="#009e00", width=3)
             else:
                 img = add_img_border(img)
-            pixbuf = image2pixbuf(img)
             if not self.can_run:
-                self.emit('page-thumbnailing-end')
                 return
+
+            pixbuf = image2pixbuf(img)
             self.emit('page-thumbnailing-page-done', page_idx, pixbuf)
+            self.__current_idx = page_idx
+            if not self.can_run:
+                return
         self.emit('page-thumbnailing-end')
 
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume and self.__current_idx >= 0:
+            self.emit('page-thumbnailing-end')
 
-GObject.type_register(WorkerPageThumbnailer)
+
+GObject.type_register(JobPageThumbnailer)
 
 
-class WorkerDocThumbnailer(Worker):
+class JobFactoryPageThumbnailer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "PageThumbnailer")
+        self.__main_win = main_win
+
+    def make(self, doc, search):
+        job = JobPageThumbnailer(self, next(self.id_generator), doc, search)
+        job.connect('page-thumbnailing-start',
+                    lambda thumbnailer:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_start_cb,
+                                     thumbnailer))
+        job.connect('page-thumbnailing-page-done',
+                    lambda thumbnailer, page_idx, thumbnail:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_page_done_cb,
+                                     thumbnailer, page_idx, thumbnail))
+        job.connect('page-thumbnailing-end',
+                    lambda thumbnailer:
+                    GObject.idle_add(self.__main_win.on_page_thumbnailing_end_cb,
+                                     thumbnailer))
+        return job
+
+
+class JobDocThumbnailer(Job):
     """
     Generate doc list thumbnails
     """
@@ -394,42 +572,36 @@ class WorkerDocThumbnailer(Worker):
         'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = True
-    can_pause = True
+    can_stop = True
+    priority = 20
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Doc thumbnailing")
-        self.__main_win = main_window
+    def __init__(self, factory, id, doclist):
+        Job.__init__(self, factory, id)
+        self.__doclist = doclist
+        self.__current_idx = -1
 
-    def do(self, doc_indexes=None, resume=0):
-        for t in range(0, 10):
-            if not self.can_run or self.paused:
-                return resume
-            time.sleep(0.05)
+    def do(self):
+        self.can_run = True
+        if self.__current_idx >= len(self.__doclist):
+            return
+        self._wait(0.5)
+        if not self.can_run:
+            return
 
-        self.emit('doc-thumbnailing-start')
+        if self.__current_idx < 0:
+            self.emit('doc-thumbnailing-start')
+            self.__current_idx = 0
 
-        doclist = self.__main_win.lists['matches']['doclist']
-        if doc_indexes is None:
-            if resume >= len(doclist):
-                resume = 0
-            doc_indexes = range(resume, len(doclist))
-        else:
-            if resume >= len(doc_indexes):
-                resume = 0
-            doc_indexes = doc_indexes[resume:]
-
-        for doc_idx in doc_indexes:
-            if self.paused:
-                return resume
-            if not self.can_run:
-                self.emit('doc-thumbnailing-end')
-                return resume
-            doc = doclist[doc_idx]
-            if doc.nb_pages <= 0:
-                resume += 1
+        for idx in xrange(self.__current_idx, len(self.__doclist)):
+            (doc_position, doc) = self.__doclist[idx]
+            if doc_position < 0:
                 continue
+            if doc.nb_pages <= 0:
+                continue
+
             img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+            if not self.can_run:
+                return
 
             (width, height) = img.size
             # always make sure the thumbnail has a specific height
@@ -439,23 +611,67 @@ class WorkerDocThumbnailer(Worker):
                 img = img.copy()
             else:
                 new_img = PIL.Image.new('RGBA', (width, BasicPage.DEFAULT_THUMB_HEIGHT),
-                                    '#FFFFFF')
+                                        '#FFFFFF')
                 h = (BasicPage.DEFAULT_THUMB_HEIGHT - height) / 2
                 new_img.paste(img, (0, h, width, h+height))
                 img = new_img
+            if not self.can_run:
+                return
 
             img = add_img_border(img)
+            if not self.can_run:
+                return
+
             pixbuf = image2pixbuf(img)
-            self.emit('doc-thumbnailing-doc-done', doc_idx, pixbuf)
-            resume += 1
+            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
+
+            self.__current_idx = idx
+            if not self.can_run:
+                return
+
         self.emit('doc-thumbnailing-end')
-        return 0
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume and self.__current_idx >= 0:
+            self.emit('doc-thumbnailing-end')
 
 
-GObject.type_register(WorkerDocThumbnailer)
+GObject.type_register(JobDocThumbnailer)
 
 
-class WorkerImgBuilder(Worker):
+class JobFactoryDocThumbnailer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "DocThumbnailer")
+        self.__main_win = main_win
+
+    def make(self, doclist):
+        """
+        Arguments:
+            doclist --- must be an array of (position, document), position being
+            the position of the document
+        """
+        job = JobDocThumbnailer(self, next(self.id_generator), doclist)
+        job.connect(
+            'doc-thumbnailing-start',
+            lambda thumbnailer:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_start_cb,
+                             thumbnailer))
+        job.connect(
+            'doc-thumbnailing-doc-done',
+            lambda thumbnailer, doc_idx, thumbnail:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
+                             thumbnailer, doc_idx, thumbnail))
+        job.connect(
+            'doc-thumbnailing-end',
+            lambda thumbnailer:
+            GObject.idle_add(self.__main_win.on_doc_thumbnailing_end_cb,
+                             thumbnailer))
+        return job
+
+
+class JobImgBuilder(Job):
     """
     Resize and paint on the page
     """
@@ -472,58 +688,229 @@ class WorkerImgBuilder(Worker):
                                       (GObject.TYPE_STRING, )),
     }
 
-    # even if it's not true, this process is not really long, so it doesn't
-    # really matter
-    can_interrupt = True
+    can_stop = True
+    priority = 450
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Building page image")
-        self.__main_win = main_window
+    def __init__(self, factory, id, page, zoom_factor_func):
+        Job.__init__(self, factory, id)
+        self.__page = page
+        self.__zoom_factor_func = zoom_factor_func
+        self.__started_once = False
 
     def do(self):
-        self.emit('img-building-start')
-
-        if self.__main_win.page.img is None:
-            self.emit('img-building-result-clear')
-            return
-
-        # to keep the GUI smooth
-        for t in range(0, 25):
-            if not self.can_run:
-                break
-            time.sleep(0.01)
-        if not self.can_run:
-            self.emit('img-building-result-clear')
-            return
+        self.can_run = True
 
         try:
-            img = self.__main_win.page.img
+            if not self.__started_once:
+                self.emit('img-building-start')
+                self.__started_once = True
+
+            self._wait(0.5)
+            if not self.can_run:
+                return
+
+            img = self.__page.img  # load the image
+            if img is None:
+                self.emit('img-building-result-clear')
+                return
+            if not self.can_run:
+                return
 
             pixbuf = image2pixbuf(img)
+            if not self.can_run:
+                return
+
             original_width = pixbuf.get_width()
 
-            factor = self.__main_win.get_zoom_factor(original_width)
+            factor = self.__zoom_factor_func(original_width)
             logger.info("Zoom: %f" % (factor))
 
             wanted_width = int(factor * pixbuf.get_width())
             wanted_height = int(factor * pixbuf.get_height())
             pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
                                          GdkPixbuf.InterpType.BILINEAR)
-
+            if not self.can_run:
+                return
             self.emit('img-building-result-pixbuf', factor, original_width,
-                      pixbuf, self.__main_win.page.boxes)
-        except Exception, exc:
+                      pixbuf, self.__page.boxes)
+        except Exception:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
-            raise exc
+            raise
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+        if not will_resume:
+            self.emit('img-building-result-clear')
+            return
 
 
-GObject.type_register(WorkerImgBuilder)
+GObject.type_register(JobImgBuilder)
 
 
-class WorkerLabelUpdater(Worker):
-    """
-    Resize and paint on the page
-    """
+class JobFactoryImgBuilder(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "ImgBuilder")
+        self.__main_win = main_win
+
+    def make(self, page):
+        job = JobImgBuilder(self, next(self.id_generator), page,
+                            self.__main_win.get_zoom_factor)
+        job.connect('img-building-start',
+                    lambda builder:
+                    GObject.idle_add(self.__main_win.on_img_building_start))
+        job.connect('img-building-result-pixbuf',
+                    lambda builder, factor, original_width, img, boxes:
+                    GObject.idle_add(self.__main_win.on_img_building_result_pixbuf,
+                                     builder, factor, original_width, img, boxes))
+        job.connect('img-building-result-stock',
+                    lambda builder, img:
+                    GObject.idle_add(self.__main_win.on_img_building_result_stock, img))
+        job.connect('img-building-result-clear',
+                    lambda builder:
+                    GObject.idle_add(self.__main_win.on_img_building_result_clear))
+        return job
+
+
+class JobBoxesRefresher(Job):
+    __gsignals__ = {
+        'highlighted-boxes': (GObject.SignalFlags.RUN_LAST, None,
+                              (
+                                  # highlighted boxes
+                                  GObject.TYPE_PYOBJECT,
+                              )),
+    }
+
+    can_stop = True
+    priority = 430
+
+    def __init__(self, factory, id, page, search):
+        Job.__init__(self, factory, id)
+        self.__page = page
+        self.__search = search
+
+    def do(self):
+        self.can_run = True
+        self._wait(0.5)
+        if not self.can_run:
+            return
+
+        highlighted = self.__page.get_boxes(self.__search)
+        if not self.can_run:
+            return
+
+        self.emit('highlighted-boxes', highlighted)
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobBoxesRefresher)
+
+
+class JobFactoryBoxesRefresher(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesRefresher")
+        self.__main_win = main_win
+
+    def make(self, page, search):
+        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
+        job.connect('highlighted-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                                     boxes))
+        return job
+
+
+class JobBoxesSelecter(Job):
+    __gsignals__ = {
+        'selected-boxes': (GObject.SignalFlags.RUN_LAST, None,
+                           (
+                               # selected boxes
+                               GObject.TYPE_PYOBJECT,
+                           )),
+    }
+
+    can_stop = True
+    priority = 100
+
+    def __init__(self, factory, id, boxes, mouse_position, get_box_pos_func):
+        Job.__init__(self, factory, id)
+        self.__boxes = boxes
+        self.__mouse_pos = mouse_position
+        self.__get_box_pos_func = get_box_pos_func
+
+    def do(self):
+        self.can_run = True
+        self._wait(0.5)
+        if not self.can_run:
+            return
+
+        mouse_x, mouse_y = self.__mouse_pos
+        selected = set()
+
+        for line in self.__boxes:
+            if not self.can_run:
+                return
+
+            pos = self.__get_box_pos_func(line)
+            ((a, b), (c, d)) = pos
+            if (mouse_x < a or mouse_y < b
+                    or mouse_x > c or mouse_y > d):
+                continue
+
+            for box in line.word_boxes:
+                if not self.can_run:
+                    return
+
+                pos = self.__get_box_pos_func(box)
+                ((a, b), (c, d)) = pos
+                if (mouse_x < a or mouse_y < b
+                        or mouse_x > c or mouse_y > d):
+                    continue
+                selected.add(box)
+
+        self.emit('selected-boxes', selected)
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobBoxesSelecter)
+
+
+class JobFactoryBoxesSelecter(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesSelecter")
+        self.__main_win = main_win
+
+    def make(self, boxes, mouse_position, get_box_pos_func):
+        job = JobBoxesSelecter(self, next(self.id_generator),
+                               boxes, mouse_position, get_box_pos_func)
+        job.connect('selected-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_selected_boxes,
+                                     boxes))
+        return job
+
+
+class JobFactoryBoxesRefresher(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesRefresher")
+        self.__main_win = main_win
+
+    def make(self, page, search):
+        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
+        job.connect('highlighted-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                                     boxes))
+        return job
+
+
+class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-updating-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -532,32 +919,58 @@ class WorkerLabelUpdater(Worker):
         'label-updating-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Updating label")
-        self.__main_win = main_window
+    def __init__(self, factory, id, docsearch, old_label, new_label):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__old_label = old_label
+        self.__new_label = new_label
 
     def __progress_cb(self, progression, total, step, doc):
         self.emit('label-updating-doc-updated', float(progression) / total,
                   doc.name)
 
-    def do(self, old_label, new_label):
+    def do(self):
         self.emit('label-updating-start')
         try:
-            self.__main_win.docsearch.update_label(old_label, new_label,
-                                                   self.__progress_cb)
+            self.__docsearch.update_label(self.__old_label, self.__new_label,
+                                          self.__progress_cb)
         finally:
             self.emit('label-updating-end')
 
 
-GObject.type_register(WorkerLabelUpdater)
+GObject.type_register(JobLabelUpdater)
 
 
-class WorkerLabelDeleter(Worker):
-    """
-    Resize and paint on the page
-    """
+class JobFactoryLabelUpdater(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "LabelUpdater")
+        self.__main_win = main_win
+
+    def make(self, docsearch, old_label, new_label):
+        job = JobLabelUpdater(self, next(self.id_generator), docsearch,
+                              old_label, new_label)
+        job.connect('label-updating-start',
+                    lambda updater:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_start_cb,
+                        updater))
+        job.connect('label-updating-doc-updated',
+                    lambda updater, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_doc_updated_cb,
+                        updater, progression, doc_name))
+        job.connect('label-updating-end',
+                    lambda updater:
+                    GObject.idle_add(
+                        self.__main_win.on_label_updating_end_cb,
+                        updater))
+        return job
+
+
+class JobLabelDeleter(Job):
     __gsignals__ = {
         'label-deletion-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-deletion-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -566,31 +979,53 @@ class WorkerLabelDeleter(Worker):
         'label-deletion-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Removing label")
-        self.__main_win = main_window
+    def __init__(self, factory, id, docsearch, label):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__label = label
 
     def __progress_cb(self, progression, total, step, doc):
         self.emit('label-deletion-doc-updated', float(progression) / total,
                   doc.name)
 
-    def do(self, label):
+    def do(self):
         self.emit('label-deletion-start')
         try:
-            self.__main_win.docsearch.destroy_label(label, self.__progress_cb)
+            self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
             self.emit('label-deletion-end')
 
 
-GObject.type_register(WorkerLabelDeleter)
+GObject.type_register(JobLabelDeleter)
 
 
-class WorkerOCRRedoer(Worker):
-    """
-    Resize and paint on the page
-    """
+class JobFactoryLabelDeleter(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "LabelDeleter")
+        self.__main_win = main_win
+
+    def make(self, docsearch, label):
+        job = JobLabelDeleter(self, next(self.id_generator), docsearch, label)
+        job.connect('label-deletion-start',
+                    lambda deleter:
+                    GObject.idle_add(self.__main_win.on_label_updating_start_cb,
+                                     deleter))
+        job.connect('label-deletion-doc-updated',
+                    lambda deleter, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_label_deletion_doc_updated_cb,
+                        deleter, progression, doc_name))
+        job.connect('label-deletion-end',
+                    lambda deleter:
+                    GObject.idle_add(self.__main_win.on_label_updating_end_cb,
+                                     deleter))
+        return job
+
+
+class JobOCRRedoer(Job):
     __gsignals__ = {
         'redo-ocr-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'redo-ocr-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -598,82 +1033,152 @@ class WorkerOCRRedoer(Worker):
         'redo-ocr-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    # we make it non-interruptible because there is no way for us to start
+    # back from where we stopped, and redoing all the docs may take far too
+    # much time
+    # TODO(Jflesch): Make it interruptible (use iter(target))
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Redoing OCR")
-        self.__main_win = main_window
-        self.__config = config
+    def __init__(self, factory, id, langs, target):
+        Job.__init__(self, factory, id)
+        self.__target = target
+        self.__langs = langs
 
     def __progress_cb(self, progression, total, step, doc):
-        self.emit('redo-ocr-doc-updated', float(progression) / total,
+        logger.info("OCR progression: %s : %d / %d : %s"
+                    % (step, progression, total, doc.name))
+        self.emit('redo-ocr-doc-updated', float(progression) / (total + 1),
                   doc.name)
 
-    def do(self, doc_target):
+    def do(self):
         self.emit('redo-ocr-start')
         try:
-            doc_target.redo_ocr(self.__config.langs, self.__progress_cb)
+            self.__target.redo_ocr(self.__langs, self.__progress_cb)
         finally:
             self.emit('redo-ocr-end')
 
 
-GObject.type_register(WorkerOCRRedoer)
+GObject.type_register(JobOCRRedoer)
 
 
-class WorkerSingleScan(Worker):
+class JobFactoryOCRRedoer(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "OCRRedoer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, target):
+        job = JobOCRRedoer(self, next(self.id_generator), self.__config.langs,
+                           target)
+        job.connect('redo-ocr-start',
+                    lambda ocr_redoer:
+                    GObject.idle_add(self.__main_win.on_redo_ocr_start_cb,
+                                     ocr_redoer))
+        job.connect('redo-ocr-doc-updated',
+                    lambda ocr_redoer, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_redo_ocr_doc_updated_cb,
+                        ocr_redoer, progression, doc_name))
+        job.connect('redo-ocr-end',
+                    lambda ocr_redoer:
+                    GObject.idle_add(self.__main_win.on_redo_ocr_end_cb,
+                                     ocr_redoer))
+        return job
+
+
+class JobSingleScan(Job):
     __gsignals__ = {
         'single-scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'single-scan-ocr': (GObject.SignalFlags.RUN_LAST, None, ()),
         'single-scan-done': (GObject.SignalFlags.RUN_LAST, None,
                              (GObject.TYPE_PYOBJECT,)),  # ImgPage
+        'single-scan-no-scanner-found': (GObject.SignalFlags.RUN_LAST, None,
+                                         ()),
+        'single-scan-error': (GObject.SignalFlags.RUN_LAST, None,
+                              (GObject.TYPE_STRING,)),
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Scanning page")
-        self.__main_win = main_window
+    def __init__(self, factory, id, config, docsearch, target_doc):
+        Job.__init__(self, factory, id)
         self.__config = config
+        self.doc = target_doc
+        self.__docsearch = docsearch
         self.__ocr_running = False
+        self.done = False
 
     def __scan_progress_cb(self, progression, total, step, doc=None):
-        if not self.can_run:
-            raise Exception("Interrupted by the user")
         if (step == ImgPage.SCAN_STEP_OCR) and (not self.__ocr_running):
             self.emit('single-scan-ocr')
             self.__ocr_running = True
 
-    def do(self, doc):
+    def do(self):
         self.emit('single-scan-start')
 
-        self.__ocr_running = False
         try:
-            scanner = self.__config.get_scanner_inst()
+            self.__ocr_running = False
             try:
-                scanner.options['source'].value = "Auto"
-            except (KeyError, pyinsane.rawapi.SaneException), exc:
-                logger.error("Warning: Unable to set scanner source "
-                       "to 'Auto': %s" % exc)
-            scan_src = scanner.scan(multiple=False)
-        except pyinsane.rawapi.SaneException, exc:
-            logger.error("No scanner found !")
-            GObject.idle_add(popup_no_scanner_found, self.__main_win.window)
-            self.emit('single-scan-done', None)
+                scanner = self.__config.get_scanner_inst()
+                try:
+                    scanner.options['source'].value = "Auto"
+                except (KeyError, pyinsane.rawapi.SaneException), exc:
+                    logger.error("Warning: Unable to set scanner source "
+                           "to 'Auto': %s" % exc)
+                scan_src = scanner.scan(multiple=False)
+            except pyinsane.rawapi.SaneException, exc:
+                logger.error("No scanner found !")
+                self.emit('single-scan-no-scanner-found')
+                raise
+            self.doc.scan_single_page(scan_src, scanner.options['resolution'].value,
+                                        self.__config.scanner_calibration,
+                                        self.__config.langs,
+                                        self.__scan_progress_cb)
+            page = self.doc.pages[self.doc.nb_pages - 1]
+            self.__docsearch.index_page(page)
+            self.emit('single-scan-done', page)
+        except Exception, exc:
+            self.emit('single-scan-error', str(exc))
             raise
-        doc.scan_single_page(scan_src, scanner.options['resolution'].value,
-                             self.__config.scanner_calibration,
-                             self.__config.langs,
-                             self.__scan_progress_cb)
-        page = doc.pages[doc.nb_pages - 1]
-        self.__main_win.docsearch.index_page(page)
-
-        self.emit('single-scan-done', page)
 
 
-GObject.type_register(WorkerSingleScan)
+GObject.type_register(JobSingleScan)
 
 
-class WorkerImporter(Worker):
+class JobFactorySingleScan(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "SingleScan")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, target_doc):
+        job = JobSingleScan(self, next(self.id_generator), self.__config,
+                            docsearch, target_doc)
+        job.connect('single-scan-start',
+                    lambda job:
+                    GObject.idle_add(self.__main_win.on_single_scan_start,
+                                     job))
+        job.connect('single-scan-ocr',
+                    lambda job:
+                    GObject.idle_add(self.__main_win.on_single_scan_ocr,
+                                     job))
+        job.connect('single-scan-done',
+                    lambda job, page:
+                    GObject.idle_add(self.__main_win.on_single_scan_done,
+                                     job, page))
+        job.connect('single-scan-no-scanner-found',
+                    lambda job:
+                    GObject.idle_add(popup_no_scanner_found, self.__main_win))
+        job.connect('single-scan-error',
+                    lambda job, error:
+                    GObject.idle_add(self.__main_win.on_single_scan_error,
+                                     job, error))
+        return job
+
+
+class JobImporter(Job):
     __gsignals__ = {
         'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'import-done': (GObject.SignalFlags.RUN_LAST, None,
@@ -681,54 +1186,110 @@ class WorkerImporter(Worker):
                          GObject.TYPE_PYOBJECT),),  # Page
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 10
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Importing file")
-        self.__main_win = main_window
+    def __init__(self, factory, id,
+                 config, docsearch, doc,
+                 importer, file_uri):
+        Job.__init__(self, factory, id)
         self.__config = config
+        self.__docsearch = docsearch
+        self.__doc = doc
+        self.__importer = importer
+        self.__file_uri = file_uri
 
-    def do(self, importer, file_uri):
+    def do(self):
         self.emit('import-start')
-        (doc, page) = importer.import_doc(file_uri, self.__config,
-                                          self.__main_win.docsearch,
-                                          self.__main_win.doc)
+        (doc, page) = self.__importer.import_doc(
+            self.__file_uri, self.__config, self.__docsearch, self.__doc)
         self.emit('import-done', doc, page)
 
 
-GObject.type_register(WorkerImporter)
+GObject.type_register(JobImporter)
 
 
-class WorkerExportPreviewer(Worker):
+class JobFactoryImporter(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "Importer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, doc, importer, file_uri):
+        job = JobImporter(self, next(self.id_generator),
+                          self.__config, docsearch, doc,
+                          importer, file_uri)
+        job.connect('import-start',
+                    lambda job:
+                    GObject.idle_add(self.__main_win.on_import_start, job))
+        job.connect('import-done',
+                    lambda job, doc, page:
+                    GObject.idle_add(self.__main_win.on_import_done, job, doc, page))
+        return job
+
+
+class JobExportPreviewer(Job):
     __gsignals__ = {
         'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'export-preview-done': (GObject.SignalFlags.RUN_LAST, None,
                                 (GObject.TYPE_INT, GObject.TYPE_PYOBJECT,)),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 500
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Export previewer")
-        self.__main_win = main_window
+    def __init__(self, factory, id, exporter):
+        Job.__init__(self, factory, id)
+        self.__exporter = exporter
 
     def do(self):
-        exporter = self.__main_win.export['exporter']
-        for i in range(0, 7):
-            time.sleep(0.1)
-            if not self.can_run:
-                return
+        self.can_run = True
+        self._wait(0.7)
+        if not self.can_run:
+            return
+
         self.emit('export-preview-start')
-        size = exporter.estimate_size()
-        img = exporter.get_img()
+
+        size = self.__exporter.estimate_size()
+        if not self.can_run:
+            return
+
+        img = self.__exporter.get_img()
+        if not self.can_run:
+            return
+
         pixbuf = image2pixbuf(img)
+        if not self.can_run:
+            return
+
         self.emit('export-preview-done', size, pixbuf)
 
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
 
-GObject.type_register(WorkerExportPreviewer)
+
+GObject.type_register(JobExportPreviewer)
 
 
-class WorkerPageEditor(Worker):
+class JobFactoryExportPreviewer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "ExportPreviewer")
+        self.__main_win = main_win
+
+    def make(self, exporter):
+        job = JobExportPreviewer(self, next(self.id_generator), exporter)
+        job.connect('export-preview-start',
+                    lambda job:
+                    GObject.idle_add(self.__main_win.on_export_preview_start))
+        job.connect('export-preview-done',
+                    lambda job, size, pixbuf:
+                    GObject.idle_add(self.__main_win.on_export_preview_done,
+                                     size, pixbuf))
+        return job
+
+
+class JobPageEditor(Job):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT, )),
@@ -740,30 +1301,66 @@ class WorkerPageEditor(Worker):
                               (GObject.TYPE_PYOBJECT, )),
     }
 
+    can_stop = False
+    priority = 10
+
+    def __init__(self, factory, id, docsearch, langs, page, changes=[]):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__langs = langs
+        self.__page = page
+        self.__changes = changes[:]
+
+    def do(self):
+        self.emit('page-editing-img-edit', self.__page)
+        try:
+            img = self.__page.img
+            for change in self.__changes:
+                img = change.do(img, 1.0)
+            self.__page.img = img
+
+            self.emit('page-editing-ocr', self.__page)
+            self.__page.redo_ocr(self.__langs)
+
+            self.emit('page-editing-index-upd', self.__page)
+            index_upd = self.__docsearch.get_index_updater(optimize=False)
+            index_upd.upd_doc(self.__page.doc)
+            index_upd.commit()
+        finally:
+            self.emit('page-editing-done', self.__page)
+
+
+GObject.type_register(JobPageEditor)
+
+
+class JobFactoryPageEditor(JobFactory):
     def __init__(self, main_win, config):
-        Worker.__init__(self, "Page editor")
+        JobFactory.__init__(self, "PageEditor")
         self.__main_win = main_win
         self.__config = config
 
-    def do(self, page, changes=[]):
-        self.emit('page-editing-img-edit', page)
-        try:
-            img = page.img
-            for change in changes:
-                img = change.do(img, 1.0)
-            page.img = img
-            self.emit('page-editing-ocr', page)
-            page.redo_ocr(self.__config.langs)
-            self.emit('page-editing-index-upd', page)
-            docsearch = self.__main_win.docsearch
-            index_upd = docsearch.get_index_updater(optimize=False)
-            index_upd.upd_doc(page.doc)
-            index_upd.commit()
-        finally:
-            self.emit('page-editing-done', page)
-
-
-GObject.type_register(WorkerPageEditor)
+    def make(self, docsearch, page, changes):
+        job = JobPageEditor(self, next(self.id_generator), docsearch,
+                            self.__config.langs, page, changes)
+        job.connect('page-editing-img-edit',
+                    lambda job, page:
+                    GObject.idle_add(
+                        self.__main_win.on_page_editing_img_edit_start_cb,
+                        job, page))
+        job.connect('page-editing-ocr',
+                    lambda job, page:
+                    GObject.idle_add(self.__main_win.on_page_editing_ocr_cb,
+                                     job, page))
+        job.connect('page-editing-index-upd',
+                    lambda job, page:
+                    GObject.idle_add(
+                        self.__main_win.on_page_editing_index_upd_cb,
+                        job, page))
+        job.connect('page-editing-done',
+                    lambda job, page:
+                    GObject.idle_add(self.__main_win.on_page_editing_done_cb,
+                                     job, page))
+        return job
 
 
 class ActionNewDocument(SimpleAction):
@@ -819,26 +1416,13 @@ class ActionOpenSelectedDocument(SimpleAction):
         match_list = self.__main_win.lists['matches']['gui']
         selection_path = match_list.get_selected_items()
         if len(selection_path) <= 0:
-            logger.warn("No document selected. Can't open")
+            logger.info("No document selected. Can't open")
             return
         doc_idx = selection_path[0].get_indices()[0]
         doc = self.__main_win.lists['matches']['model'][doc_idx][1]
 
         logger.info("Showing doc %s" % doc)
-        self.__main_win.show_doc(doc)
-
-
-class ActionStartSimpleWorker(SimpleAction):
-    """
-    Start a threaded job
-    """
-    def __init__(self, worker):
-        SimpleAction.__init__(self, str(worker))
-        self.__worker = worker
-
-    def do(self):
-        SimpleAction.do(self)
-        self.__worker.start()
+        self.__main_win.show_doc(doc_idx, doc)
 
 
 class ActionStartSearch(SimpleAction):
@@ -865,8 +1449,20 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
+
         if self.__refresh_pages:
-            self.__main_win.refresh_page()
+
+            # Don't call self.__main_win.refresh_page_list():
+            # it will redo the list from scratch. We just want to update
+            # the thumbnails of the pages. There is no new or removed pages.
+            self.__main_win.schedulers['main'].cancel_all(
+                self.__main_win.job_factories['page_thumbnailer'])
+            search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+            job = self.__main_win.job_factories['page_thumbnailer'].make(
+                self.__main_win.doc[1], search)
+            self.__main_win.schedulers['main'].schedule(job)
+
+            self.__main_win.refresh_boxes()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
                          event=None):
@@ -888,12 +1484,12 @@ class ActionOpenPageSelected(SimpleAction):
         gui_list = self.__main_win.lists['pages']['gui']
         selection_path = gui_list.get_selected_items()
         if len(selection_path) <= 0:
-            self.__main_win.show_page(DummyPage(self.__main_win.doc))
+            self.__main_win.show_page(DummyPage(self.__main_win.doc[1]))
             return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
         page_idx = selection_path[0].get_indices()[0]
-        page = self.__main_win.doc.pages[page_idx]
+        page = self.__main_win.doc[1].pages[page_idx]
         self.__main_win.show_page(page)
 
 
@@ -919,12 +1515,12 @@ class ActionMovePageIndex(SimpleAction):
         if self.relative:
             page_idx += self.value
         elif self.value < 0:
-            page_idx = self.__main_win.doc.nb_pages - 1
+            page_idx = self.__main_win.doc[1].nb_pages - 1
         else:
             page_idx = self.value
-        if page_idx < 0 or page_idx >= self.__main_win.doc.nb_pages:
+        if page_idx < 0 or page_idx >= self.__main_win.doc[1].nb_pages:
             return
-        page = self.__main_win.doc.pages[page_idx]
+        page = self.__main_win.doc[1].pages[page_idx]
         self.__main_win.show_page(page)
 
 
@@ -940,9 +1536,9 @@ class ActionOpenPageNb(SimpleAction):
         SimpleAction.do(self)
         page_nb = self.__main_win.indicators['current_page'].get_text()
         page_nb = int(page_nb) - 1
-        if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
+        if page_nb < 0 or page_nb > self.__main_win.doc[1].nb_pages:
             return
-        page = self.__main_win.doc.pages[page_nb]
+        page = self.__main_win.doc[1].pages[page_nb]
         self.__main_win.show_page(page)
 
 
@@ -953,18 +1549,21 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['img_builder'].stop()
-        self.__main_win.workers['img_builder'].start()
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['img_builder'])
+        job = self.__main_win.job_factories['img_builder'].make(
+            self.__main_win.page)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
-class ActionRefreshPage(SimpleAction):
+class ActionRefreshBoxes(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Refresh current page")
+        SimpleAction.__init__(self, "Refresh current page boxes")
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.refresh_page()
+        self.__main_win.refresh_boxes()
 
 
 class ActionLabelSelected(SimpleAction):
@@ -985,16 +1584,17 @@ class ActionToggleLabel(object):
 
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels']['model'][objpath][2]
-        if not label in self.__main_win.doc.labels:
+        if not label in self.__main_win.doc[1].labels:
             logger.info("Action: Adding label '%s' on document '%s'"
-                   % (str(label), str(self.__main_win.doc)))
-            self.__main_win.docsearch.add_label(self.__main_win.doc, label)
+                   % (str(label), str(self.__main_win.doc[1])))
+            self.__main_win.docsearch.add_label(self.__main_win.doc[1], label)
         else:
             logger.info("Action: Removing label '%s' on document '%s'"
-                   % (label, self.__main_win.doc))
-            self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
+                   % (label, self.__main_win.doc[1]))
+            self.__main_win.docsearch.remove_label(self.__main_win.doc[1], label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc])
+        self.__main_win.refresh_docs([self.__main_win.doc],
+                                     redo_thumbnails=False)
 
     def connect(self, cellrenderers):
         for cellrenderer in cellrenderers:
@@ -1010,12 +1610,13 @@ class ActionCreateLabel(SimpleAction):
         SimpleAction.do(self)
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
-            logger.info("Adding label %s to doc %s" % (labeleditor.label,
-                                                 self.__main_win.doc))
-            self.__main_win.docsearch.add_label(self.__main_win.doc,
+            logger.info("Adding label %s to doc %s"
+                        % (labeleditor.label, self.__main_win.doc[1]))
+            self.__main_win.docsearch.add_label(self.__main_win.doc[1],
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc])
+        self.__main_win.refresh_docs([self.__main_win.doc],
+                                     redo_thumbnails=False)
 
 
 class ActionEditLabel(SimpleAction):
@@ -1024,9 +1625,6 @@ class ActionEditLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        if self.__main_win.workers['label_updater'].is_running:
-            return
-
         SimpleAction.do(self)
 
         label_list = self.__main_win.lists['labels']['gui']
@@ -1042,10 +1640,9 @@ class ActionEditLabel(SimpleAction):
             logger.warn("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
-        if self.__main_win.workers['label_updater'].is_running:
-            return
-        self.__main_win.workers['label_updater'].start(old_label=label,
-                                                       new_label=new_label)
+        job = self.__main_win.job_factories['label_updater'].make(
+            self.__main_win.docsearch, label, new_label)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionDeleteLabel(SimpleAction):
@@ -1054,9 +1651,6 @@ class ActionDeleteLabel(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        if self.__main_win.workers['label_deleter'].is_running:
-            return
-
         SimpleAction.do(self)
 
         if not ask_confirmation(self.__main_win.window):
@@ -1069,9 +1663,9 @@ class ActionDeleteLabel(SimpleAction):
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
-        if self.__main_win.workers['label_deleter'].is_running:
-            return
-        self.__main_win.workers['label_deleter'].start(label=label)
+        job = self.__main_win.job_factories['label_deleter'].make(
+            self.__main_win.docsearch, label)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionOpenDocDir(SimpleAction):
@@ -1081,7 +1675,7 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
+        os.system('xdg-open "%s"' % (self.__main_win.doc[1].path))
 
 
 class ActionPrintDoc(SimpleAction):
@@ -1095,13 +1689,13 @@ class ActionPrintDoc(SimpleAction):
         print_settings = Gtk.PrintSettings()
         print_op = Gtk.PrintOperation()
         print_op.set_print_settings(print_settings)
-        print_op.set_n_pages(self.__main_win.doc.nb_pages)
-        print_op.set_current_page(self.__main_win.page.page_nb)
+        print_op.set_n_pages(self.__main_win.doc[1].nb_pages)
+        print_op.set_current_page(self.__main_win.page[1].page_nb)
         print_op.set_use_full_page(False)
-        print_op.set_job_name(str(self.__main_win.doc))
-        print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
+        print_op.set_job_name(str(self.__main_win.doc[1]))
+        print_op.set_export_filename(str(self.__main_win.doc[1]) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
+        print_op.connect("draw-page", self.__main_win.doc[1].print_page_cb)
         print_op.set_embed_page_setup(True)
         print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG,
                      self.__main_win.window)
@@ -1115,7 +1709,8 @@ class ActionOpenSettings(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        sw = SettingsWindow(self.__main_win.window, self.__config)
+        sw = SettingsWindow(self.__main_win.schedulers['main'],
+                            self.__main_win.window, self.__config)
         sw.connect("need-reindex", self.__reindex_cb)
 
     def __reindex_cb(self, settings_window):
@@ -1133,8 +1728,13 @@ class ActionSingleScan(SimpleAction):
         check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
-        doc = self.__main_win.doc
-        self.__main_win.workers['single_scan'].start(doc=doc)
+        doc = self.__main_win.doc[1]
+
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['single_scan'])
+        job = self.__main_win.job_factories['single_scan'].make(
+            self.__main_win.docsearch, doc)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionMultiScan(SimpleAction):
@@ -1208,7 +1808,7 @@ class ActionImport(SimpleAction):
             return
 
         importers = docimport.get_possible_importers(file_uri,
-                                                     self.__main_win.doc)
+                                                     self.__main_win.doc[1])
         if len(importers) <= 0:
             msg = (_("Don't know how to import '%s'. Sorry.") %
                    (os.path.basename(file_uri)))
@@ -1230,8 +1830,10 @@ class ActionImport(SimpleAction):
 
         Gtk.RecentManager().add_item(file_uri)
 
-        self.__main_win.workers['importer'].start(
-            importer=importer, file_uri=file_uri)
+        job = self.__main_win.job_factories['importer'].make(
+            self.__main_win.docsearch, self.__main_win.doc[1],
+            importer, file_uri)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1247,7 +1849,7 @@ class ActionDeleteDoc(SimpleAction):
             return
         SimpleAction.do(self)
         logger.info("Deleting ...")
-        self.__main_win.doc.destroy()
+        self.__main_win.doc[1].destroy()
         logger.info("Deleted")
         self.__main_win.actions['new_doc'][1].do()
         self.__main_win.actions['reindex'][1].do()
@@ -1286,10 +1888,9 @@ class ActionRedoDocOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        if self.__main_win.workers['ocr_redoer'].is_running:
-            return
-        doc = self.__main_win.doc
-        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        doc = self.__main_win.doc[1]
+        job = self.__main_win.job_factories['ocr_redoer'].make(doc)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionRedoAllOCR(SimpleAction):
@@ -1302,10 +1903,11 @@ class ActionRedoAllOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        if self.__main_win.workers['ocr_redoer'].is_running:
-            return
-        doc = self.__main_win.docsearch
-        self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['ocr_redoer'])
+        job = self.__main_win.job_factories['ocr_redoer'].make(
+            self.__main_win.docsearch)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -1369,9 +1971,9 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
-        self.main_win.export['to_export'] = self.main_win.doc
+        self.main_win.export['to_export'] = self.main_win.doc[1]
         self.main_win.export['buttons']['ok'].set_label(_("Export document"))
-        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
+        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc[1])
 
 
 class ActionSelectExportFormat(SimpleAction):
@@ -1428,6 +2030,7 @@ class ActionChangeExportProperty(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        assert(self.__main_win.export['exporter'] is not None)
         if self.__main_win.export['exporter'].can_select_format:
             page_format_widget = self.__main_win.export['pageFormat']['widget']
             format_idx = page_format_widget.get_active()
@@ -1608,7 +2211,7 @@ class ActionEditDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
+        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc[1])
 
 
 class ActionAbout(SimpleAction):
@@ -1650,8 +2253,8 @@ class ActionRealQuit(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        for worker in self.__main_win.workers.values():
-            worker.stop()
+        for scheduler in self.__main_win.schedulers.values():
+            scheduler.stop()
 
         self.__config.write()
         Gtk.main_quit()
@@ -1660,9 +2263,9 @@ class ActionRealQuit(SimpleAction):
         self.do()
 
 
-class ActionRebuildIndex(SimpleAction):
+class ActionRefreshIndex(SimpleAction):
     def __init__(self, main_window, config, force=False):
-        SimpleAction.__init__(self, "Rebuild index")
+        SimpleAction.__init__(self, "Refresh index")
         self.__main_win = main_window
         self.__config = config
         self.__force = force
@@ -1670,38 +2273,31 @@ class ActionRebuildIndex(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.workers['index_reloader'].stop()
-        self.__main_win.workers['doc_examiner'].stop()
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['index_reloader'])
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['doc_examiner'])
+        self.__main_win.schedulers['main'].cancel_all(
+            self.__main_win.job_factories['index_updater'])
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         if self.__force:
             docsearch.destroy_index()
 
-        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
-        lbd_func = lambda worker: GObject.idle_add(
-            self.__on_thumbnailing_end_cb)
-        self.__connect_handler_id = doc_thumbnailer.connect(
-            'doc-thumbnailing-end', lbd_func)
+        job = self.__main_win.job_factories['index_reloader'].make()
+        job.connect('index-loading-end', self.__on_index_reload_end)
+        self.__main_win.schedulers['main'].schedule(job)
 
-        self.__main_win.workers['index_reloader'].start()
-
-    def __on_thumbnailing_end_cb(self):
-        logger.info("Index loaded and thumbnailing done. Will start refreshing the"
-               " index ...")
-        doc_thumbnailer = self.__main_win.workers['doc_thumbnailer']
-        doc_thumbnailer.disconnect(self.__connect_handler_id)
-        self.__main_win.workers['doc_examiner'].stop()
-
-        doc_examiner = self.__main_win.workers['doc_examiner']
-        lbd_func = lambda examiner: GObject.idle_add(
-            self.__on_doc_exam_end, examiner)
-        self.__connect_handler_id = doc_examiner.connect(
-            'doc-examination-end', lbd_func)
-        doc_examiner.start()
+    def __on_index_reload_end(self, job, docsearch):
+        if docsearch is None:
+            return
+        job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
+        job.connect('doc-examination-end', lambda job: GObject.idle_add(
+            self.__on_doc_exam_end, job))
+        self.__main_win.schedulers['main'].schedule(job)
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
-        examiner.disconnect(self.__connect_handler_id)
         logger.info("New document: %d" % len(examiner.new_docs))
         logger.info("Updated document: %d" % len(examiner.docs_changed))
         logger.info("Deleted document: %d" % len(examiner.docs_missing))
@@ -1712,11 +2308,13 @@ class ActionRebuildIndex(SimpleAction):
             logger.info("No changes")
             return
 
-        self.__main_win.workers['index_updater'].start(
+        job = self.__main_win.job_factories['index_updater'].make(
+            docsearch=examiner.docsearch,
             new_docs=examiner.new_docs,
             upd_docs=examiner.docs_changed,
-            del_docs=examiner.docs_missing
+            del_docs=examiner.docs_missing,
         )
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionEditPage(SimpleAction):
@@ -1736,14 +2334,21 @@ class ActionEditPage(SimpleAction):
         logger.info("Changes to do to the page %s:" % (self.__main_win.page))
         for action in todo:
             logger.info("- %s" % action)
-        self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
-                                                     changes=todo)
+
+        job = self.__main_win.job_factories['page_editor'].make(
+            self.__main_win.docsearch, self.__main_win.page, changes=todo)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class MainWindow(object):
     def __init__(self, config):
+        self.schedulers = {
+            'main' : JobScheduler("Main"),
+            'progress' : JobScheduler("Progress"),
+        }
+
         # used by the set_mouse_cursor() function to keep track of how many
-        # threads requested a busy mouse cursor
+        # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
         self.__last_highlight_update = time.time()
 
@@ -1759,10 +2364,11 @@ class MainWindow(object):
 
         self.__config = config
         self.__scan_start = 0.0
+        self.__scan_progress_job = None
 
         self.docsearch = DummyDocSearch()
-        self.doc = ImgDoc(self.__config.workdir)
-        self.page = DummyPage(self.doc)
+        self.doc = (0, ImgDoc(self.__config.workdir))
+        self.page = DummyPage(self.doc[1])
 
         self.lists = {
             'suggestions': {
@@ -1903,23 +2509,25 @@ class MainWindow(object):
              sort_documents_by_date),
         ]
 
-        self.workers = {
-            'index_reloader': WorkerDocIndexLoader(self, config),
-            'doc_examiner': WorkerDocExaminer(self, config),
-            'index_updater': WorkerIndexUpdater(self, config),
-            'searcher': WorkerDocSearcher(self, config),
-            'page_thumbnailer': WorkerPageThumbnailer(self),
-            'doc_thumbnailer': WorkerDocThumbnailer(self),
-            'img_builder': WorkerImgBuilder(self),
-            'label_updater': WorkerLabelUpdater(self),
-            'label_deleter': WorkerLabelDeleter(self),
-            'single_scan': WorkerSingleScan(self, config),
-            'importer': WorkerImporter(self, config),
-            'progress_updater': WorkerProgressUpdater(
-                "main window progress bar", self.status['progress']),
-            'ocr_redoer': WorkerOCRRedoer(self, config),
-            'export_previewer': WorkerExportPreviewer(self),
-            'page_editor': WorkerPageEditor(self, config),
+        self.job_factories = {
+            'boxes_refresher': JobFactoryBoxesRefresher(self),
+            'boxes_selecter': JobFactoryBoxesSelecter(self),
+            'doc_examiner': JobFactoryDocExaminer(self, config),
+            'doc_thumbnailer': JobFactoryDocThumbnailer(self),
+            'export_previewer': JobFactoryExportPreviewer(self),
+            'img_builder': JobFactoryImgBuilder(self),
+            'importer': JobFactoryImporter(self, config),
+            'index_reloader' : JobFactoryIndexLoader(self, config),
+            'index_updater': JobFactoryIndexUpdater(self, config),
+            'label_deleter': JobFactoryLabelDeleter(self),
+            'label_updater': JobFactoryLabelUpdater(self),
+            'ocr_redoer': JobFactoryOCRRedoer(self, config),
+            'page_editor': JobFactoryPageEditor(self, config),
+            'page_thumbnailer': JobFactoryPageThumbnailer(self),
+            'progress_updater': JobFactoryProgressUpdater(
+                self.status['progress']),
+            'searcher': JobFactoryDocSearcher(self, config),
+            'single_scan': JobFactorySingleScan(self, config),
         }
 
         self.actions = {
@@ -2178,7 +2786,7 @@ class MainWindow(object):
                 [
                     self.show_all_boxes
                 ],
-                ActionRefreshPage(self)
+                ActionRefreshBoxes(self)
             ),
             'show_toolbar': (
                 [
@@ -2200,13 +2808,13 @@ class MainWindow(object):
             ),
             'reindex': (
                 [],
-                ActionRebuildIndex(self, config, force=False),
+                ActionRefreshIndex(self, config, force=False),
             ),
             'reindex_from_scratch': (
                 [
                     widget_tree.get_object("menuitemReindexAll"),
                 ],
-                ActionRebuildIndex(self, config, force=True),
+                ActionRefreshIndex(self, config, force=True),
             ),
             'edit_doc': (
                 [
@@ -2227,7 +2835,7 @@ class MainWindow(object):
         for action in self.actions:
             for button in self.actions[action][0]:
                 if button is None:
-                    logger.warn("MISSING BUTTON: %s" % (action))
+                    logger.error("MISSING BUTTON: %s" % (action))
             self.actions[action][1].connect(self.actions[action][0])
 
         for (buttons, action) in self.actions.values():
@@ -2305,209 +2913,16 @@ class MainWindow(object):
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.workers['index_reloader'].connect(
-            'index-loading-start',
-            lambda loader: GObject.idle_add(self.__on_index_loading_start_cb,
-                                            loader))
-        self.workers['index_reloader'].connect(
-            'index-loading-progression',
-            lambda loader, progression, txt:
-            GObject.idle_add(self.set_progression, loader,
-                             progression, txt))
-        self.workers['index_reloader'].connect(
-            'index-loading-end',
-            lambda loader:
-            GObject.idle_add(self.__on_index_loading_end_cb, loader))
-
-        self.workers['doc_examiner'].connect(
-            'doc-examination-start',
-            lambda examiner:
-            GObject.idle_add(self.__on_doc_examination_start_cb, examiner))
-        self.workers['doc_examiner'].connect(
-            'doc-examination-progression',
-            lambda examiner, progression, txt:
-            GObject.idle_add(self.set_progression, examiner,
-                             progression, txt))
-        self.workers['doc_examiner'].connect(
-            'doc-examination-end',
-            lambda examiner: GObject.idle_add(
-                self.__on_doc_examination_end_cb, examiner))
-
-        self.workers['index_updater'].connect(
-            'index-update-start',
-            lambda updater:
-            GObject.idle_add(self.__on_index_update_start_cb, updater))
-        self.workers['index_updater'].connect(
-            'index-update-progression',
-            lambda updater, progression, txt:
-            GObject.idle_add(self.set_progression, updater, progression, txt))
-        self.workers['index_updater'].connect(
-            'index-update-end',
-            lambda updater:
-            GObject.idle_add(self.__on_index_update_end_cb, updater))
-        self.workers['searcher'].connect(
-            'search-result',
-            lambda searcher, documents, suggestions:
-            GObject.idle_add(self.__on_search_result_cb, documents,
-                             suggestions))
-
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-start',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_page_thumbnailing_start_cb,
-                             thumbnailer))
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-page-done',
-            lambda thumbnailer, page_idx, thumbnail:
-            GObject.idle_add(self.__on_page_thumbnailing_page_done_cb,
-                             thumbnailer, page_idx, thumbnail))
-        self.workers['page_thumbnailer'].connect(
-            'page-thumbnailing-end',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_page_thumbnailing_end_cb,
-                             thumbnailer))
-
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-start',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_doc_thumbnailing_start_cb,
-                             thumbnailer))
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-doc-done',
-            lambda thumbnailer, doc_idx, thumbnail:
-            GObject.idle_add(self.__on_doc_thumbnailing_doc_done_cb,
-                             thumbnailer, doc_idx, thumbnail))
-        self.workers['doc_thumbnailer'].connect(
-            'doc-thumbnailing-end',
-            lambda thumbnailer:
-            GObject.idle_add(self.__on_doc_thumbnailing_end_cb,
-                             thumbnailer))
-
-        self.workers['img_builder'].connect(
-            'img-building-start',
-            lambda builder:
-            GObject.idle_add(self.__on_img_building_start))
-        self.workers['img_builder'].connect(
-            'img-building-result-pixbuf',
-            lambda builder, factor, original_width, img, boxes:
-            GObject.idle_add(self.__on_img_building_result_pixbuf,
-                             builder, factor, original_width, img, boxes))
-        self.workers['img_builder'].connect(
-            'img-building-result-stock',
-            lambda builder, img:
-            GObject.idle_add(self.__on_img_building_result_stock, img))
-        self.workers['img_builder'].connect(
-            'img-building-result-clear',
-            lambda builder:
-            GObject.idle_add(self.__on_img_building_result_clear))
-
-        self.workers['label_updater'].connect(
-            'label-updating-start',
-            lambda updater:
-            GObject.idle_add(self.__on_label_updating_start_cb,
-                             updater))
-        self.workers['label_updater'].connect(
-            'label-updating-doc-updated',
-            lambda updater, progression, doc_name:
-            GObject.idle_add(self.__on_label_updating_doc_updated_cb,
-                             updater, progression, doc_name))
-        self.workers['label_updater'].connect(
-            'label-updating-end',
-            lambda updater:
-            GObject.idle_add(self.__on_label_updating_end_cb,
-                             updater))
-
-        self.workers['label_deleter'].connect(
-            'label-deletion-start',
-            lambda deleter:
-            GObject.idle_add(self.__on_label_updating_start_cb,
-                             deleter))
-        self.workers['label_deleter'].connect(
-            'label-deletion-doc-updated',
-            lambda deleter, progression, doc_name:
-            GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
-                             deleter, progression, doc_name))
-        self.workers['label_deleter'].connect(
-            'label-deletion-end',
-            lambda deleter:
-            GObject.idle_add(self.__on_label_updating_end_cb,
-                             deleter))
-
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-start',
-            lambda ocr_redoer:
-            GObject.idle_add(self.__on_redo_ocr_start_cb,
-                             ocr_redoer))
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-doc-updated',
-            lambda ocr_redoer, progression, doc_name:
-            GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
-                             ocr_redoer, progression, doc_name))
-        self.workers['ocr_redoer'].connect(
-            'redo-ocr-end',
-            lambda ocr_redoer:
-            GObject.idle_add(self.__on_redo_ocr_end_cb,
-                             ocr_redoer))
-
-        self.workers['single_scan'].connect(
-            'single-scan-start',
-            lambda worker:
-            GObject.idle_add(self.__on_single_scan_start, worker))
-        self.workers['single_scan'].connect(
-            'single-scan-ocr',
-            lambda worker:
-            GObject.idle_add(self.__on_single_scan_ocr, worker))
-        self.workers['single_scan'].connect(
-            'single-scan-done',
-            lambda worker, page:
-            GObject.idle_add(self.__on_single_scan_done, worker, page))
-
-        self.workers['importer'].connect(
-            'import-start',
-            lambda worker:
-            GObject.idle_add(self.__on_import_start, worker))
-        self.workers['importer'].connect(
-            'import-done',
-            lambda worker, doc, page:
-            GObject.idle_add(self.__on_import_done, worker, doc, page))
-
-        self.workers['export_previewer'].connect(
-            'export-preview-start',
-            lambda worker:
-            GObject.idle_add(self.__on_export_preview_start))
-        self.workers['export_previewer'].connect(
-            'export-preview-done',
-            lambda worker, size, pixbuf:
-            GObject.idle_add(self.__on_export_preview_done, size,
-                             pixbuf))
-
-        self.workers['page_editor'].connect(
-            'page-editing-img-edit',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-ocr',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_ocr_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-index-upd',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_index_upd_cb,
-                             worker, page))
-        self.workers['page_editor'].connect(
-            'page-editing-done',
-            lambda worker, page:
-            GObject.idle_add(self.__on_page_editing_done_cb,
-                             worker, page))
-
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
         self.img['viewport']['widget'].connect("size-allocate",
                                                self.__on_img_resize_cb)
 
         self.window.set_visible(True)
+
+        for scheduler in self.schedulers.values():
+            scheduler.start()
+
 
     def set_search_availability(self, enabled):
         for list_view in self.doc_browsing.values():
@@ -2535,39 +2950,48 @@ class MainWindow(object):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
 
-    def __on_index_loading_start_cb(self, src):
+    def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_index_loading_end_cb(self, src):
+    def on_index_loading_end_cb(self, src, docsearch):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
+
+        if docsearch is None:
+            return
+
+        self.docsearch = docsearch
         self.refresh_doc_list()
         self.refresh_label_list()
 
-    def __on_doc_examination_start_cb(self, src):
+
+    def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def __on_doc_examination_end_cb(self, src):
+    def on_doc_examination_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def __on_index_update_start_cb(self, src):
+    def on_index_update_start_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_index_update_end_cb(self, src):
-        self.workers['index_reloader'].stop()
+    def on_index_update_end_cb(self, src):
+        self.schedulers['main'].cancel_all(
+            self.job_factories['index_reloader'])
+
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        self.workers['index_reloader'].start()
 
-    def __on_search_result_cb(self, documents, suggestions):
-        self.workers['page_thumbnailer'].soft_stop()
-        self.workers['doc_thumbnailer'].stop()
+        job = self.job_factories['index_reloader'].make()
+        self.schedulers['main'].schedule(job)
+
+    def on_search_result_cb(self, documents, suggestions):
+        self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
 
         logger.debug("Got %d suggestions" % len(suggestions))
         self.lists['suggestions']['model'].clear()
@@ -2579,13 +3003,13 @@ class MainWindow(object):
         active_idx = -1
         idx = 0
         for doc in documents:
-            if doc == self.doc:
+            if doc == self.doc[1]:
                 active_idx = idx
             idx += 1
             self.lists['matches']['model'].append(
                 self.__get_doc_model_line(doc))
 
-        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
+        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
             active_idx = 0
 
         self.lists['matches']['doclist'] = documents
@@ -2593,28 +3017,28 @@ class MainWindow(object):
 
         self.__select_doc(active_idx)
 
-        self.workers['page_thumbnailer'].stop()
-        self.workers['page_thumbnailer'].start()
-        self.workers['doc_thumbnailer'].start()
+        documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
+        job = self.job_factories['doc_thumbnailer'].make(documents)
+        self.schedulers['main'].schedule(job)
 
-    def __on_page_thumbnailing_start_cb(self, src):
+    def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
 
-    def __on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
+    def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         line_iter = self.lists['pages']['model'].get_iter(page_idx)
         self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
-        self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
+        self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
-    def __on_page_thumbnailing_end_cb(self, src):
+    def on_page_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
 
-    def __on_doc_thumbnailing_start_cb(self, src):
+    def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
-    def __on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
+    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
         line_iter = self.lists['matches']['model'].get_iter(doc_idx)
         self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
         self.set_progression(src, ((float)(doc_idx+1) /
@@ -2622,7 +3046,7 @@ class MainWindow(object):
                              _("Loading thumbnails ..."))
         active_doc_idx = self.lists['matches']['active_idx']
 
-    def __on_doc_thumbnailing_end_cb(self, src):
+    def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
     def disable_boxes(self):
@@ -2630,24 +3054,23 @@ class MainWindow(object):
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
-    def __on_img_building_start(self):
+    def on_img_building_start(self):
         self.disable_boxes()
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
 
-    def __on_img_building_result_stock(self, img):
+    def on_img_building_result_stock(self, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         self.set_mouse_cursor("Normal")
 
-    def __on_img_building_result_clear(self):
+    def on_img_building_result_clear(self):
         self.img['image'].clear()
         self.set_mouse_cursor("Normal")
 
-    def __on_img_building_result_pixbuf(self, builder, factor, original_width,
-                                        pixbuf, boxes):
+    def on_img_building_result_pixbuf(self, builder, factor, original_width,
+                                      pixbuf, boxes):
         self.img['boxes']['all'] = boxes
-        self.__reload_boxes()
 
         self.img['factor'] = factor
         self.img['pixbuf'] = pixbuf
@@ -2656,34 +3079,36 @@ class MainWindow(object):
         self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
 
-    def __on_label_updating_start_cb(self, src):
+        self.refresh_boxes()
+
+    def on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
-    def __on_label_updating_doc_updated_cb(self, src, progression, doc_name):
+    def on_label_updating_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Updating label (%s) ...") % (doc_name))
 
-    def __on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
+    def on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Deleting label (%s) ...") % (doc_name))
 
-    def __on_label_updating_end_cb(self, src):
+    def on_label_updating_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
 
-    def __on_redo_ocr_start_cb(self, src):
+    def on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
         self.set_progression(src, 0.0, _("Redoing OCR ..."))
 
-    def __on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
+    def on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Redoing OCR (%s) ...") % (doc_name))
 
-    def __on_redo_ocr_end_cb(self, src):
+    def on_redo_ocr_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
@@ -2692,34 +3117,59 @@ class MainWindow(object):
         self.show_page(self.page, refresh=True)
         self.actions['reindex'][1].do()
 
-    def __on_single_scan_start(self, src):
-        self.set_progression(src, 0.0, _("Scanning ..."))
+    def on_single_scan_start(self, job):
+        self.set_progression(job, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(False)
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
+
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=0.5,
             total_time=self.__config.scan_time['normal'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def __on_single_scan_ocr(self, src):
+    def on_single_scan_ocr(self, job):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['normal'] = scan_stop - self.__scan_start
 
-        self.set_progression(src, 0.5, _("Reading ..."))
+        self.set_progression(job, 0.5, _("Reading ..."))
 
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.5, value_max=1.0,
             total_time=self.__config.scan_time['ocr'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def __on_single_scan_done(self, src, page):
+    def on_single_scan_done(self, job, page):
         scan_stop = time.time()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
+        for widget in self.need_doc_widgets:
+            widget.set_sensitive(True)
+        for widget in self.doc_edit_widgets:
+            widget.set_sensitive(True)
+
+        self.set_progression(job, 0.0, None)
+        self.set_mouse_cursor("Normal")
+        self.refresh_page_list()
+
+        assert(page is not None)
+        self.show_page(page)
+
+        if job.doc.nb_pages <= 1:
+            if job.doc == self.doc:
+                self.refresh_docs([self.doc])
+            else:
+                idx = self.lists['matches']['doclist'].index(job.doc)
+                self.refresh_docs([(idx, job.doc)])
+
+    def on_single_scan_error(self, src, error):
+        logger.error("Error while scanning: %s" % error)
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
@@ -2728,27 +3178,32 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
+        self.refresh_docs([self.doc])
 
-        assert(page is not None)
-        self.show_page(page)
+        flags = (Gtk.DialogFlags.MODAL
+                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(
+            parent=self.window,
+            flags=flags,
+            type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.OK,
+            message_format=error)
 
-        self.append_docs([self.doc])
 
-        self.workers['progress_updater'].stop()
-
-    def __on_import_start(self, src):
+    def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        self.workers['progress_updater'].start(
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=0.75,
             total_time=self.__config.scan_time['ocr'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
         self.__scan_start = time.time()
 
-    def __on_import_done(self, src, doc, page=None):
+    def on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
-        self.workers['progress_updater'].stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         # Note: don't update scan time here: OCR is not required for all
         # imports
 
@@ -2758,7 +3213,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         if doc is not None:
-            self.show_doc(doc)  # will refresh the page list
+            self.show_doc(0, doc)  # will refresh the page list
             self.refresh_doc_list()
             if page is not None:
                 self.show_page(page)
@@ -2781,56 +3236,36 @@ class MainWindow(object):
         popup_menu.popup(None, None, None, None, event.button, event.time)
 
     def __on_img_mouse_motion(self, event_box, event):
-        (mouse_x, mouse_y) = event.get_coords()
+        self.schedulers['main'].cancel_all(
+            self.job_factories['boxes_selecter'])
+        job = self.job_factories['boxes_selecter'].make(
+            self.img['boxes']['all'], event.get_coords(),
+            lambda box: self.__get_box_position(box, window=self.img['image'],
+                                                width=0))
+        self.schedulers['main'].schedule(job)
 
-        # prevent looking for boxes all the time
-        # XXX(Jflesch): This is a hack .. it may have visible side effects
-        # in the GUI ...
-        now = time.time()
-        if (now - self.__last_highlight_update <= 0.25):
-            return
-        self.__last_highlight_update = now
-
-        to_refresh = self.img['boxes']['selected']
-        selected = None
-
-        for line in self.img['boxes']['all']:
-            pos = self.__get_box_position(line,
-                                          window=self.img['image'],
-                                          width=0)
-            ((a, b), (c, d)) = pos
-            if (mouse_x < a or mouse_y < b
-                    or mouse_x > c or mouse_y > d):
-                continue
-            for box in line.word_boxes:
-                pos = self.__get_box_position(box,
-                                              window=self.img['image'],
-                                              width=0)
-                ((a, b), (c, d)) = pos
-                if (mouse_x < a or mouse_y < b
-                        or mouse_x > c or mouse_y > d):
-                    continue
-                selected = box
-                break
-
-        if selected is not None:
-            if selected in self.img['boxes']['selected']:
-                return
-            to_refresh.append(selected)
-
-        if selected is not None:
-            self.img['boxes']['selected'] = [selected]
-            self.img['image'].set_tooltip_text(selected.content)
-        else:
-            self.img['boxes']['selected'] = []
-            self.img['image'].set_has_tooltip(False)
-
-        for box in to_refresh:
+    def __queue_box_draw(self, boxes):
+        for box in boxes:
             position = self.__get_box_position(
                 box, window=self.img['image'], width=5)
             self.img['image'].queue_draw_area(position[0][0], position[0][1],
                                               position[1][0] - position[0][0],
                                               position[1][1] - position[0][1])
+
+    def on_selected_boxes(self, selected):
+        selected = set(selected)  # copy
+        to_refresh = set(self.img['boxes']['selected'])
+        to_refresh = to_refresh.union(selected)
+
+        self.img['boxes']['selected'] = [x for x in selected]
+
+        if len(selected) > 0:
+            box = selected.pop()
+            self.img['image'].set_tooltip_text(box.content)
+        else:
+            self.img['image'].set_has_tooltip(False)
+
+        self.__queue_box_draw(to_refresh)
 
     def __on_img_mouse_leave(self, event_box, event):
         to_refresh = self.img['boxes']['selected']
@@ -2961,86 +3396,34 @@ class MainWindow(object):
             return True
         return False
 
-    def append_docs(self, docs):
-        # We don't stop the doc thumbnailer here. It might be
-        # refreshing other documents we won't
-        self.workers['doc_thumbnailer'].wait()
-
-        doc_list = self.lists['matches']['doclist']
-        model = self.lists['matches']['model']
-
-        if (len(doc_list) > 0
-                and (doc_list[0] in docs or doc_list[0].is_new)):
-            # Remove temporarily "New document" from the list
-            doc_list.pop(0)
-            model.remove(model[0].iter)
-
-        for doc in docs:
-            if doc in doc_list:
-                # already in the list --> won't append
-                docs.remove(doc)
-
-        if len(docs) <= 0:
-            return
-
-        active_idx = -1
-        for doc in docs:
-            if doc == self.doc:
-                active_idx = 0
-            elif active_idx >= 0:
-                active_idx += 1
-            doc_list.insert(0, doc)
-            doc_line = self.__get_doc_model_line(doc)
-            model.insert(0, doc_line)
-
-        max_thumbnail_idx = len(docs)
-        if self.__insert_new_doc():
-            if active_idx >= 0:
-                active_idx += 1
-            max_thumbnail_idx += 1
-
-        if active_idx >= 0:
-            self.__select_doc(active_idx)
-
-        self.workers['doc_thumbnailer'].start(
-            doc_indexes=range(0, max_thumbnail_idx))
-
-    def refresh_docs(self, docs):
+    def refresh_docs(self, docs, redo_thumbnails=True):
         """
         Refresh specific documents in the document list
 
         Arguments:
             docs --- Array of Doc
         """
-        # We don't stop the doc thumbnailer here. It might be
-        # refreshing other documents we won't
-        self.workers['doc_thumbnailer'].wait()
-
         doc_list = self.lists['matches']['doclist']
 
         self.__insert_new_doc()
 
-        doc_indexes = []
         active_idx = -1
-
-        for doc in docs:
-            try:
-                doc_idx = doc_list.index(doc)
-            except ValueError, err:
-                logger.error("Warning: Should refresh doc %s in doc list, but"
-                       " didn't find it !" % doc)
-                continue
-            doc_indexes.append(doc_idx)
-            if self.doc == doc:
+        for (doc_idx, doc) in docs:
+            if self.doc[1] == doc:
                 active_idx = doc_idx
             doc_txt = self.__get_doc_txt(doc)
             doc_line = self.__get_doc_model_line(doc)
+            if not redo_thumbnails:
+                current_model = self.lists['matches']['model'][doc_idx]
+                doc_line[2] = current_model[2]
             self.lists['matches']['model'][doc_idx] = doc_line
 
         if active_idx >= 0:
             self.__select_doc(active_idx)
 
-        self.workers['doc_thumbnailer'].start(doc_indexes=doc_indexes)
+        if redo_thumbnails:
+            job = self.job_factories['doc_thumbnailer'].make(docs)
+            self.schedulers['main'].schedule(job)
 
     def refresh_doc_list(self):
         """
@@ -3048,18 +3431,20 @@ class MainWindow(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        self.workers['doc_thumbnailer'].soft_stop()
-        self.workers['searcher'].soft_stop()
-        self.workers['searcher'].start()
+        self.schedulers['main'].cancel_all(self.job_factories['searcher'])
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['searcher'].make(
+            self.docsearch, self.get_doc_sort_func(), search)
+        self.schedulers['main'].schedule(job)
 
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        self.workers['page_thumbnailer'].stop()
+        self.schedulers['main'].cancel_all(self.job_factories['page_thumbnailer'])
         self.lists['pages']['model'].clear()
-        for page in self.doc.pages:
+        for page in self.doc[1].pages:
             self.lists['pages']['model'].append([
                 self.default_thumbnail,
                 None,
@@ -3068,21 +3453,24 @@ class MainWindow(object):
                 page.page_nb
             ])
         self.indicators['total_pages'].set_text(
-            _("/ %d") % (self.doc.nb_pages))
+            _("/ %d") % (self.doc[1].nb_pages))
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(self.doc[1].can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
-        self.workers['page_thumbnailer'].start()
+
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['page_thumbnailer'].make(self.doc[1], search)
+        self.schedulers['main'].schedule(job)
 
     def refresh_label_list(self):
         """
         Reload and refresh the label list
         """
         self.lists['labels']['model'].clear()
-        labels = self.doc.labels
+        labels = self.doc[1].labels
         for label in self.docsearch.label_list:
-            in_predicted_label = (label.name in self.doc.predicted_label_name_list)
+            in_predicted_label = (label.name in self.doc[1].predicted_label_name_list)
             in_label = (label in labels)
             if in_predicted_label or in_label:
                 label_html = ("<b>%s</b>"
@@ -3098,24 +3486,31 @@ class MainWindow(object):
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)
 
-    def __reload_boxes(self):
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
-        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
+    def on_highlighted_boxes(self, highlighted):
+        prev_highlighted = set(self.img['boxes']['highlighted'])
+        self.img['boxes']['highlighted'] = highlighted
+
         if self.show_all_boxes.get_active():
             self.img['boxes']['visible'] = self.img['boxes']['all']
+            to_refresh = self.img['boxes']['all']
         else:
             self.img['boxes']['visible'] = []
+            to_refresh = prev_highlighted.union(set(highlighted))
 
-    def refresh_page(self):
-        self.__reload_boxes()
-        self.img['image'].queue_draw()
+        self.__queue_box_draw(to_refresh)
+
+    def refresh_boxes(self):
+        self.schedulers['main'].cancel_all(self.job_factories['boxes_refresher'])
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['boxes_refresher'].make(self.page, search)
+        self.schedulers['main'].schedule(job)
 
     def show_page(self, page, refresh=False):
         if page is self.page and not refresh:
             return
         logging.info("Showing page %s" % page)
 
-        self.workers['img_builder'].stop()
+        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3124,7 +3519,7 @@ class MainWindow(object):
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(self.doc[1].can_edit)
 
         if page.page_nb >= 0:
             # we are going to select the current page in the list
@@ -3145,35 +3540,36 @@ class MainWindow(object):
 
         self.export['dialog'].set_visible(False)
 
-        self.workers['img_builder'].start()
+        job = self.job_factories['img_builder'].make(page)
+        self.schedulers['main'].schedule(job)
 
-    def show_doc(self, doc, refresh=False):
-        if doc is self.doc and not refresh:
+    def show_doc(self, doc_idx, doc, refresh=False):
+        if doc is self.doc[1] and not refresh:
             return
-        self.doc = doc
-        is_new = self.doc.is_new
+        self.doc = (doc_idx, doc)
+        is_new = doc.is_new
         for widget in self.need_doc_widgets:
             widget.set_sensitive(not is_new)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+            widget.set_sensitive(doc.can_edit)
         pages_gui = self.lists['pages']['gui']
-        if self.doc.can_edit:
+        if doc.can_edit:
             pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
             pages_gui.drag_source_add_text_targets()
         else:
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
-        if self.doc.nb_pages > 0:
-            self.show_page(self.doc.pages[0])
+        if doc.nb_pages > 0:
+            self.show_page(doc.pages[0])
         else:
             self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
                                              Gtk.IconSize.DIALOG)
 
-    def __on_export_preview_start(self):
+    def on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))
 
-    def __on_export_preview_done(self, img_size, pixbuf):
+    def on_export_preview_done(self, img_size, pixbuf):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
         self.img['image'].set_from_pixbuf(pixbuf)
 
@@ -3194,8 +3590,10 @@ class MainWindow(object):
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        self.workers['export_previewer'].stop()
-        self.workers['export_previewer'].start()
+        self.schedulers['main'].cancel_all(self.job_factories['export_previewer'])
+        job = self.job_factories['export_previewer'].make(
+            self.export['exporter'])
+        self.schedulers['main'].schedule(job)
 
     def __on_img_resize_cb(self, viewport, rectangle):
         if self.export['exporter'] is not None:
@@ -3206,10 +3604,9 @@ class MainWindow(object):
         if old_size == new_size:
             return
 
-        self.workers['img_builder'].soft_stop()
-        self.img['viewport']['size'] = new_size
         logger.info("Image view port resized. (%d, %d) --> (%d, %d)"
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
+        self.img['viewport']['size'] = new_size
 
         # check if zoom level is set to adjusted, if yes,
         # we must resize the image
@@ -3219,20 +3616,22 @@ class MainWindow(object):
         if factor != 0.0:
             return
 
-        self.workers['img_builder'].start()
+        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
+        job = self.job_factories['img_builder'].make(self.page)
+        self.schedulers['main'].schedule(job)
 
-    def __on_page_editing_img_edit_start_cb(self, worker, page):
+    def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")
-        self.set_progression(worker, 0.0, _("Updating the image ..."))
+        self.set_progression(job, 0.0, _("Updating the image ..."))
 
-    def __on_page_editing_ocr_cb(self, worker, page):
-        self.set_progression(worker, 0.25, _("Redoing OCR ..."))
+    def on_page_editing_ocr_cb(self, job, page):
+        self.set_progression(job, 0.25, _("Redoing OCR ..."))
 
-    def __on_page_editing_index_upd_cb(self, worker, page):
-        self.set_progression(worker, 0.75, _("Updating the index ..."))
+    def on_page_editing_index_upd_cb(self, job, page):
+        self.set_progression(job, 0.75, _("Updating the index ..."))
 
-    def __on_page_editing_done_cb(self, worker, page):
-        self.set_progression(worker, 0.0, "")
+    def on_page_editing_done_cb(self, job, page):
+        self.set_progression(job, 0.0, "")
         self.set_mouse_cursor("Normal")
         if page.page_nb == 0:
             self.refresh_doc_list()
@@ -3266,7 +3665,8 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
-        GObject.idle_add(self.refresh_docs, [obj.doc])
+        doc = (self.lists['matches']['doclist'].index(obj.doc), obj.doc)
+        GObject.idle_add(self.refresh_docs, [doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):
@@ -3308,6 +3708,19 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
+
         # the index update will start a doc list refresh when finished
-        GObject.idle_add(lambda: self.workers['index_updater'].start(
-                         upd_docs=upd_docs, del_docs=del_docs, optimize=False))
+        job = self.__main_win.job_factories['index_updater'].make(
+            docsearch=self.docsearch,
+            new_docs=[],
+            upd_docs=upd_docs,
+            del_docs=del_docs,
+            optimize=False
+        )
+        self.__main_win.schedulers['main'].schedule(job)
+
+    def get_doc_sort_func(self):
+        for (widget, sort_func) in self.sortings:
+            if widget.get_active():
+                return sort_func
+        return self.sortings[0][1]

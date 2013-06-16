@@ -35,8 +35,7 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.img_cutting import ImgGripHandler
-from paperwork.frontend.workers import Worker
-from paperwork.frontend.workers import WorkerProgressUpdater
+from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -46,7 +45,7 @@ logger = logging.getLogger(__name__)
 RECOMMENDED_RESOLUTION = 300
 
 
-class WorkerDeviceFinder(Worker):
+class JobDeviceFinder(Job):
     __gsignals__ = {
         'device-finding-start': (GObject.SignalFlags.RUN_LAST, None,
                                  ()),
@@ -57,10 +56,11 @@ class WorkerDeviceFinder(Worker):
         'device-finding-end': (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 500
 
-    def __init__(self, selected_devid):
-        Worker.__init__(self, "Device finder")
+    def __init__(self, factory, id, selected_devid):
+        Job.__init__(self, factory, id)
         self.__selected_devid = selected_devid
 
     @staticmethod
@@ -89,10 +89,34 @@ class WorkerDeviceFinder(Worker):
             self.emit("device-finding-end")
 
 
-GObject.type_register(WorkerDeviceFinder)
+GObject.type_register(JobDeviceFinder)
 
 
-class WorkerResolutionFinder(Worker):
+class JobFactoryDeviceFinder(JobFactory):
+    def __init__(self, settings_win, selected_devid):
+        JobFactory.__init__(self, "DeviceFinder")
+        self.__selected_devid = selected_devid
+        self.__settings_win = settings_win
+
+    def make(self):
+        job = JobDeviceFinder(self, next(self.id_generator),
+                              self.__selected_devid)
+        job.connect('device-finding-start',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_device_finding_start_cb))
+        job.connect('device-found',
+                    lambda job, user_name, store_name, active:
+                    GObject.idle_add(self.__settings_win.on_value_found_cb,
+                                     self.__settings_win.device_settings['devid'],
+                                     user_name, store_name, active))
+        job.connect('device-finding-end',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_finding_end_cb,
+                        self.__settings_win.device_settings['devid']))
+        return job
+
+
+class JobResolutionFinder(Job):
     __gsignals__ = {
         'resolution-finding-start': (GObject.SignalFlags.RUN_LAST,
                                      None, ()),
@@ -104,13 +128,17 @@ class WorkerResolutionFinder(Worker):
                                    None, ())
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 490
 
-    def __init__(self, selected_resolution,
-                 recommended_resolution):
-        Worker.__init__(self, "Resolution finder")
+    def __init__(self, factory, id,
+                 selected_resolution,
+                 recommended_resolution,
+                 devid):
+        Job.__init__(self, factory, id)
         self.__selected_resolution = selected_resolution
         self.__recommended_resolution = recommended_resolution
+        self.__devid = devid
 
     def __get_resolution_name(self, resolution):
         """
@@ -124,11 +152,11 @@ class WorkerResolutionFinder(Worker):
             txt += _(' (recommended)')
         return txt
 
-    def do(self, devid):
+    def do(self):
         self.emit("resolution-finding-start")
         try:
-            logger.info("Looking for resolution of device [%s]" % (devid))
-            device = pyinsane.Scanner(name=devid)
+            logger.info("Looking for resolution of device [%s]" % (self.__devid))
+            device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
             resolutions = device.options['resolution'].constraint
             logger.info("Resolutions found: %s" % resolutions)
@@ -151,10 +179,38 @@ class WorkerResolutionFinder(Worker):
             self.emit("resolution-finding-end")
 
 
-GObject.type_register(WorkerResolutionFinder)
+GObject.type_register(JobResolutionFinder)
 
 
-class WorkerCalibrationScan(Worker):
+class JobFactoryResolutionFinder(JobFactory):
+    def __init__(self, settings_win, selected_resolution, recommended_resolution):
+        JobFactory.__init__(self, "ResolutionFinder")
+        self.__settings_win = settings_win
+        self.__selected_resolution = selected_resolution
+        self.__recommended_resolution = recommended_resolution
+
+    def make(self, devid):
+        job = JobResolutionFinder(self, next(self.id_generator),
+                                  self.__selected_resolution,
+                                  self.__recommended_resolution, devid)
+        job.connect('resolution-finding-start',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_finding_start_cb,
+                        self.__settings_win.device_settings['resolution']))
+        job.connect('resolution-found',
+                    lambda job, user_name, store_name, active:
+                    GObject.idle_add(
+                        self.__settings_win.on_value_found_cb,
+                        self.__settings_win.device_settings['resolution'],
+                        user_name, store_name, active))
+        job.connect('resolution-finding-end',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_finding_end_cb,
+                        self.__settings_win.device_settings['resolution']))
+        return job
+
+
+class JobCalibrationScan(Job):
     __gsignals__ = {
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
@@ -165,17 +221,19 @@ class WorkerCalibrationScan(Worker):
                                      GObject.TYPE_PYOBJECT, )),  # Pillow image
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 495
 
-    def __init__(self, target_viewport):
-        Worker.__init__(self, "Calibration scan")
-        self.target_viewport = target_viewport
+    def __init__(self, factory, id, target_viewport, devid):
+        Job.__init__(self, factory, id)
+        self.__target_viewport = target_viewport
+        self.__devid = devid
 
-    def do(self, devid):
+    def do(self):
         self.emit('calibration-scan-start')
 
         # scan
-        dev = pyinsane.Scanner(name=devid)
+        dev = pyinsane.Scanner(name=self.__devid)
         try:
             dev.options['source'].value = "Auto"
         except (KeyError, pyinsane.rawapi.SaneException), exc:
@@ -198,13 +256,11 @@ class WorkerCalibrationScan(Worker):
 
         scan_inst = dev.scan(multiple=False)
         try:
-            while self.can_run:
+            while True:
                 scan_inst.read()
                 time.sleep(0)  # Give some CPU time to PyGtk
         except EOFError:
             pass
-        if not self.can_run:
-            return
         orig_img = scan_inst.get_img()
         self.emit('calibration-scan-done', orig_img)
 
@@ -214,7 +270,7 @@ class WorkerCalibrationScan(Worker):
         logger.info("Calibration: Got an image of size '%s'"
 				% str(orig_img_size))
 
-        target_alloc = self.target_viewport.get_allocation()
+        target_alloc = self.__target_viewport.get_allocation()
         max_width = target_alloc.width
         max_height = target_alloc.height
 
@@ -235,7 +291,29 @@ class WorkerCalibrationScan(Worker):
         self.emit('calibration-resize-done', factor, resized_img)
 
 
-GObject.type_register(WorkerCalibrationScan)
+GObject.type_register(JobCalibrationScan)
+
+
+class JobFactoryCalibrationScan(JobFactory):
+    def __init__(self, settings_win, target_viewport):
+        JobFactory.__init__(self, "CalibrationScan")
+        self.__settings_win = settings_win
+        self.__target_viewport = target_viewport
+
+    def make(self, devid):
+        job = JobCalibrationScan(self, next(self.id_generator),
+                                 self.__target_viewport, devid)
+        job.connect('calibration-scan-start',
+                    lambda job:
+                    GObject.idle_add(self.__settings_win.on_scan_start))
+        job.connect('calibration-scan-done',
+                    lambda job, img:
+                    GObject.idle_add(self.__settings_win.on_scan_done, img))
+        job.connect('calibration-resize-done',
+                    lambda job, factor, img:
+                    GObject.idle_add(self.__settings_win.on_resize_done,
+                                     factor, img))
+        return job
 
 
 class ActionSelectScanner(SimpleAction):
@@ -258,7 +336,10 @@ class ActionSelectScanner(SimpleAction):
         logger.info("Select scanner: %d" % idx)
         self.__settings_win.calibration["scan_button"].set_sensitive(True)
         devid = settings['stores']['loaded'][idx][1]
-        self.__settings_win.workers['resolution_finder'].start(devid=devid)
+
+        # no point in trying to stop the previous jobs, they are unstoppable
+        job = self.__settings_win.job_factories['resolution_finder'].make(devid)
+        self.__settings_win.schedulers['main'].schedule(job)
 
 
 class ActionApplySettings(SimpleAction):
@@ -325,7 +406,9 @@ class ActionScanCalibration(SimpleAction):
         idx = setting['gui'].get_active()
         assert(idx >= 0)
         devid = setting['stores']['loaded'][idx][1]
-        self.__settings_win.workers['scan'].start(devid=devid)
+
+        job = self.__settings_win.job_factories['scan'].make(devid)
+        self.__settings_win.schedulers['main'].schedule(job)
 
 
 class SettingsWindow(GObject.GObject):
@@ -337,8 +420,17 @@ class SettingsWindow(GObject.GObject):
         'need-reindex': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, mainwindow_gui, config):
+    def __init__(self, main_scheduler, mainwindow_gui, config):
         GObject.GObject.__init__(self)
+
+        self.schedulers = {
+            'main': main_scheduler,
+            'progress': JobScheduler('progress'),
+        }
+        self.local_schedulers = [
+            self.schedulers['progress'],
+        ]
+
         widget_tree = load_uifile("settingswindow.glade")
 
         self.window = widget_tree.get_object("windowSettings")
@@ -410,15 +502,14 @@ class SettingsWindow(GObject.GObject):
         self.progressbar = widget_tree.get_object("progressbarScan")
         self.__scan_start = 0.0
 
-        self.workers = {
-            "device_finder": WorkerDeviceFinder(config.scanner_devid),
-            "resolution_finder": WorkerResolutionFinder(
+        self.job_factories = {
+            "device_finder": JobFactoryDeviceFinder(self, config.scanner_devid),
+            "resolution_finder": JobFactoryResolutionFinder(self,
                 config.scanner_resolution,
                 config.RECOMMENDED_RESOLUTION),
-            "scan": WorkerCalibrationScan(
+            "scan": JobFactoryCalibrationScan(self,
                 self.calibration['image_viewport']),
-            "progress_updater": WorkerProgressUpdater("calibration scan",
-                                                      self.progressbar)
+            "progress_updater": JobFactoryProgressUpdater(self.progressbar),
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -440,50 +531,6 @@ class SettingsWindow(GObject.GObject):
         for action in action_names:
             actions[action][1].connect(actions[action][0])
 
-        self.workers['device_finder'].connect(
-            'device-finding-start',
-            lambda worker: GObject.idle_add(
-                self.__on_device_finding_start_cb))
-        self.workers['device_finder'].connect(
-            'device-found',
-            lambda worker, user_name, store_name, active:
-            GObject.idle_add(self.__on_value_found_cb,
-                             self.device_settings['devid'],
-                             user_name, store_name, active))
-        self.workers['device_finder'].connect(
-            'device-finding-end',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_end_cb,
-                self.device_settings['devid']))
-
-        self.workers['resolution_finder'].connect(
-            'resolution-finding-start',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_start_cb,
-                self.device_settings['resolution']))
-        self.workers['resolution_finder'].connect(
-            'resolution-found',
-            lambda worker, user_name, store_name, active:
-            GObject.idle_add(self.__on_value_found_cb,
-                             self.device_settings['resolution'],
-                             user_name, store_name, active))
-        self.workers['resolution_finder'].connect(
-            'resolution-finding-end',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_end_cb,
-                self.device_settings['resolution']))
-
-        self.workers['scan'].connect(
-            'calibration-scan-start',
-            lambda worker: GObject.idle_add(self.__on_scan_start))
-        self.workers['scan'].connect(
-            'calibration-scan-done',
-            lambda worker, img: GObject.idle_add(self.__on_scan_done, img))
-        self.workers['scan'].connect(
-            'calibration-resize-done',
-            lambda worker, factor, img:
-            GObject.idle_add(self.__on_resize_done, factor, img))
-
         self.window.connect("destroy", self.__on_destroy)
 
         self.display_config(config)
@@ -497,7 +544,12 @@ class SettingsWindow(GObject.GObject):
         self.ocr_settings['lang']['gui'].connect(
             "changed", self.__on_ocr_lang_changed)
 
-        self.workers['device_finder'].start()
+        for scheduler in self.local_schedulers:
+            scheduler.start()
+
+        job = self.job_factories['device_finder'].make()
+        self.schedulers['main'].schedule(job)
+
 
     @staticmethod
     def __get_short_to_long_langs(short_langs):
@@ -548,7 +600,7 @@ class SettingsWindow(GObject.GObject):
             dialog.run()
             dialog.destroy()
 
-    def __on_finding_start_cb(self, settings):
+    def on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)
         settings['gui'].set_model(settings['stores']['loading'])
         settings['gui'].set_active(0)
@@ -556,13 +608,13 @@ class SettingsWindow(GObject.GObject):
         settings['nb_elements'] = 0
         settings['active_idx'] = -1
 
-    def __on_device_finding_start_cb(self):
+    def on_device_finding_start_cb(self):
         self.calibration["scan_button"].set_sensitive(False)
-        self.__on_finding_start_cb(self.device_settings['devid'])
+        self.on_finding_start_cb(self.device_settings['devid'])
         for element in self.device_settings.values():
             element['gui'].set_sensitive(False)
 
-    def __on_value_found_cb(self, settings,
+    def on_value_found_cb(self, settings,
                             user_name, store_name, active):
         store_line = [user_name, store_name]
         logger.info("Got value [%s]" % store_line)
@@ -571,7 +623,7 @@ class SettingsWindow(GObject.GObject):
             settings['active_idx'] = settings['nb_elements']
         settings['nb_elements'] += 1
 
-    def __on_finding_end_cb(self, settings):
+    def on_finding_end_cb(self, settings):
         settings['gui'].set_sensitive(len(settings['stores']['loaded']) > 0)
         settings['gui'].set_model(settings['stores']['loaded'])
         if settings['active_idx'] >= 0:
@@ -585,7 +637,7 @@ class SettingsWindow(GObject.GObject):
             "Busy": Gdk.Cursor.new(Gdk.CursorType.WATCH),
         }[cursor])
 
-    def __on_scan_start(self):
+    def on_scan_start(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.set_mouse_cursor("Busy")
         self.calibration['image_gui'].set_alignment(0.5, 0.5)
@@ -593,19 +645,21 @@ class SettingsWindow(GObject.GObject):
             Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
         self.__scan_start = time.time()
-        self.workers['progress_updater'].start(
+
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=1.0,
             total_time=self.__config.scan_time['calibration'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def __on_scan_done(self, img):
+    def on_scan_done(self, img):
         scan_stop = time.time()
-        self.workers['progress_updater'].soft_stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['images'] = [(1.0, img)]
         self.progressbar.set_fraction(0.0)
 
-    def __on_resize_done(self, factor, img):
+    def on_resize_done(self, factor, img):
         self.calibration['images'].insert(0, (factor, img))
         self.grips = ImgGripHandler(self.calibration['images'],
                                     self.calibration['image_scrollbars'],
@@ -625,9 +679,9 @@ class SettingsWindow(GObject.GObject):
             idx += 1
 
     def __on_destroy(self, window=None):
-        for worker in self.workers.values():
-            worker.stop()
         logger.info("Settings window destroyed")
+        for scheduler in self.local_schedulers:
+            scheduler.stop()
 
     def hide(self):
         """

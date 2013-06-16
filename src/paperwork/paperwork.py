@@ -30,7 +30,6 @@ import pyocr.pyocr
 import pyinsane.abstract_th  # Just to start the Sane thread
 
 from frontend import mainwindow
-from frontend import workers
 from backend.config import PaperworkConfig
 
 
@@ -95,10 +94,9 @@ def main():
         config.read()
 
         main_win = mainwindow.MainWindow(config)
-        mainwindow.ActionRebuildIndex(main_win, config).do()
+        mainwindow.ActionRefreshIndex(main_win, config).do()
         Gtk.main()
     finally:
-        workers.halt()
         logger.info("Good bye")
 
 

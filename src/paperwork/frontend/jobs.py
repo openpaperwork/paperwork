@@ -256,11 +256,15 @@ class JobScheduler(object):
         self._job_queue_cond.acquire()
         try:
             try:
+                to_rm = []
                 for job in self._job_queue:
                     if condition(job[2]):
-                        self._job_queue.remove(job)
-                        logger.debug("[Scheduler %s] Job %s cancelled"
-                                     % (self.name, str(job[1])))
+                        to_rm.append(job)
+                for job in to_rm:
+                    self._job_queue.remove(job)
+                    logger.debug("[Scheduler %s] Job %s cancelled"
+                                % (self.name, str(job[2])))
+                heapq.heapify(self._job_queue)
             except ValueError:
                 pass
 

@@ -40,8 +40,6 @@ from paperwork.frontend.label_editor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.page_edit import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
-from paperwork.frontend.workers import IndependentWorker
-from paperwork.frontend.workers import Worker
 from paperwork.backend import docimport
 from paperwork.backend.common.page import DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -1015,17 +1013,17 @@ class JobFactorySingleScan(JobFactory):
         job = JobSingleScan(self, next(self.id_generator), self.__config,
                             docsearch, target_doc)
         job.connect('single-scan-start',
-                    lambda worker:
+                    lambda job:
                     GObject.idle_add(self.__main_win.on_single_scan_start,
-                                     worker))
+                                     job))
         job.connect('single-scan-ocr',
-                    lambda worker:
+                    lambda job:
                     GObject.idle_add(self.__main_win.on_single_scan_ocr,
-                                     worker))
+                                     job))
         job.connect('single-scan-done',
-                    lambda worker, page:
+                    lambda job, page:
                     GObject.idle_add(self.__main_win.on_single_scan_done,
-                                     worker, page))
+                                     job, page))
         job.connect('single-scan-no-scanner-found',
                     lambda job:
                     GObject.idle_add(popup_no_scanner_found, self.__main_win))
@@ -1078,11 +1076,11 @@ class JobFactoryImporter(JobFactory):
                           self.__config, docsearch, doc,
                           importer, file_uri)
         job.connect('import-start',
-                    lambda worker:
-                    GObject.idle_add(self.__main_win.on_import_start, worker))
+                    lambda job:
+                    GObject.idle_add(self.__main_win.on_import_start, job))
         job.connect('import-done',
-                    lambda worker, doc, page:
-                    GObject.idle_add(self.__main_win.on_import_done, worker, doc, page))
+                    lambda job, doc, page:
+                    GObject.idle_add(self.__main_win.on_import_done, job, doc, page))
         return job
 
 
@@ -1138,10 +1136,10 @@ class JobFactoryExportPreviewer(JobFactory):
     def make(self, exporter):
         job = JobExportPreviewer(self, next(self.id_generator), exporter)
         job.connect('export-preview-start',
-                    lambda worker:
+                    lambda job:
                     GObject.idle_add(self.__main_win.on_export_preview_start))
         job.connect('export-preview-done',
-                    lambda worker, size, pixbuf:
+                    lambda job, size, pixbuf:
                     GObject.idle_add(self.__main_win.on_export_preview_done,
                                      size, pixbuf))
         return job
@@ -1201,23 +1199,23 @@ class JobFactoryPageEditor(JobFactory):
         job = JobPageEditor(self, next(self.id_generator), docsearch,
                             self.__config.langs, page, changes)
         job.connect('page-editing-img-edit',
-                    lambda worker, page:
+                    lambda job, page:
                     GObject.idle_add(
                         self.__main_win.on_page_editing_img_edit_start_cb,
-                        worker, page))
+                        job, page))
         job.connect('page-editing-ocr',
-                    lambda worker, page:
+                    lambda job, page:
                     GObject.idle_add(self.__main_win.on_page_editing_ocr_cb,
-                                     worker, page))
+                                     job, page))
         job.connect('page-editing-index-upd',
-                    lambda worker, page:
+                    lambda job, page:
                     GObject.idle_add(
                         self.__main_win.on_page_editing_index_upd_cb,
-                        worker, page))
+                        job, page))
         job.connect('page-editing-done',
-                    lambda worker, page:
+                    lambda job, page:
                     GObject.idle_add(self.__main_win.on_page_editing_done_cb,
-                                     worker, page))
+                                     job, page))
         return job
 
 
@@ -1281,19 +1279,6 @@ class ActionOpenSelectedDocument(SimpleAction):
 
         logger.info("Showing doc %s" % doc)
         self.__main_win.show_doc(doc_idx, doc)
-
-
-class ActionStartSimpleWorker(SimpleAction):
-    """
-    Start a threaded job
-    """
-    def __init__(self, worker):
-        SimpleAction.__init__(self, str(worker))
-        self.__worker = worker
-
-    def do(self):
-        SimpleAction.do(self)
-        self.__worker.start()
 
 
 class ActionStartSearch(SimpleAction):
@@ -3457,18 +3442,18 @@ class MainWindow(object):
         job = self.job_factories['img_builder'].make(self.page)
         self.schedulers['main'].schedule(job)
 
-    def on_page_editing_img_edit_start_cb(self, worker, page):
+    def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")
-        self.set_progression(worker, 0.0, _("Updating the image ..."))
+        self.set_progression(job, 0.0, _("Updating the image ..."))
 
-    def on_page_editing_ocr_cb(self, worker, page):
-        self.set_progression(worker, 0.25, _("Redoing OCR ..."))
+    def on_page_editing_ocr_cb(self, job, page):
+        self.set_progression(job, 0.25, _("Redoing OCR ..."))
 
-    def on_page_editing_index_upd_cb(self, worker, page):
-        self.set_progression(worker, 0.75, _("Updating the index ..."))
+    def on_page_editing_index_upd_cb(self, job, page):
+        self.set_progression(job, 0.75, _("Updating the index ..."))
 
-    def on_page_editing_done_cb(self, worker, page):
-        self.set_progression(worker, 0.0, "")
+    def on_page_editing_done_cb(self, job, page):
+        self.set_progression(job, 0.0, "")
         self.set_mouse_cursor("Normal")
         if page.page_nb == 0:
             self.refresh_doc_list()
@@ -3545,10 +3530,16 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
+
         # the index update will start a doc list refresh when finished
-        # TODO
-        #GObject.idle_add(lambda: self.workers['index_updater'].start(
-        #                 upd_docs=upd_docs, del_docs=del_docs, optimize=False))
+        job = self.__main_win.job_factories['index_updater'].make(
+            docsearch=self.docsearch,
+            new_docs=[],
+            upd_docs=upd_docs,
+            del_docs=del_docs,
+            optimize=False
+        )
+        self.__main_win.schedulers['main'].schedule(job)
 
     def get_doc_sort_func(self):
         for (widget, sort_func) in self.sortings:

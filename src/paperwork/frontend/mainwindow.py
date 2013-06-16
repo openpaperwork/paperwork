@@ -1100,7 +1100,7 @@ class JobSingleScan(Job):
     def __init__(self, factory, id, config, docsearch, target_doc):
         Job.__init__(self, factory, id)
         self.__config = config
-        self.__doc = target_doc
+        self.doc = target_doc
         self.__docsearch = docsearch
         self.__ocr_running = False
 
@@ -1126,11 +1126,11 @@ class JobSingleScan(Job):
                 logger.error("No scanner found !")
                 self.emit('single-scan-no-scanner-found')
                 raise
-            self.__doc.scan_single_page(scan_src, scanner.options['resolution'].value,
+            self.doc.scan_single_page(scan_src, scanner.options['resolution'].value,
                                         self.__config.scanner_calibration,
                                         self.__config.langs,
                                         self.__scan_progress_cb)
-            page = self.__doc.pages[self.__doc.nb_pages - 1]
+            page = self.doc.pages[self.doc.nb_pages - 1]
             self.__docsearch.index_page(page)
             self.emit('single-scan-done', page)
         except Exception, exc:
@@ -3111,8 +3111,8 @@ class MainWindow(object):
         self.show_page(self.page)
         self.actions['reindex'][1].do()
 
-    def on_single_scan_start(self, src):
-        self.set_progression(src, 0.0, _("Scanning ..."))
+    def on_single_scan_start(self, job):
+        self.set_progression(job, 0.0, _("Scanning ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
@@ -3125,12 +3125,12 @@ class MainWindow(object):
             total_time=self.__config.scan_time['normal'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def on_single_scan_ocr(self, src):
+    def on_single_scan_ocr(self, job):
         scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['normal'] = scan_stop - self.__scan_start
 
-        self.set_progression(src, 0.5, _("Reading ..."))
+        self.set_progression(job, 0.5, _("Reading ..."))
 
         self.__scan_start = time.time()
         self.__scan_progress_job = self.job_factories['progress_updater'].make(
@@ -3138,7 +3138,7 @@ class MainWindow(object):
             total_time=self.__config.scan_time['ocr'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def on_single_scan_done(self, src, page):
+    def on_single_scan_done(self, job, page):
         scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
@@ -3148,15 +3148,19 @@ class MainWindow(object):
         for widget in self.doc_edit_widgets:
             widget.set_sensitive(True)
 
-        self.set_progression(src, 0.0, None)
+        self.set_progression(job, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
 
         assert(page is not None)
         self.show_page(page)
 
-        if self.doc.nb_pages <= 1:
-            self.refresh_docs([self.doc])
+        if job.doc.nb_pages <= 1:
+            if job.doc == self.doc:
+                self.refresh_docs([self.doc])
+            else:
+                idx = self.lists['matches']['doclist'].index(job.doc)
+                self.refresh_docs([(idx, job.doc)])
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s" % error)

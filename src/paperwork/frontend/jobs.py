@@ -205,7 +205,8 @@ class JobScheduler(object):
                 " be stopped"
                 % (self.name, str(active_job)))
         start = time.time()
-        self._job_queue_cond.wait()
+        while active_job == self._active_job:
+            self._job_queue_cond.wait()
         stop = time.time()
         diff = stop - start
         if active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
@@ -279,8 +280,6 @@ class JobScheduler(object):
 
         self._job_queue_cond.acquire()
         try:
-            if self._active_job is not None:
-                self._active_job.stop()
             self._job_queue_cond.notify_all()
         finally:
             self._job_queue_cond.release()

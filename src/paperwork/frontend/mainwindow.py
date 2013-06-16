@@ -780,7 +780,7 @@ class JobLabelUpdater(Job):
     }
 
     can_stop = False
-    priority = 1000  # this job must NOT be interrupted
+    priority = 5
 
     def __init__(self, factory, id, docsearch, old_label, new_label):
         Job.__init__(self, factory, id)
@@ -840,7 +840,7 @@ class JobLabelDeleter(Job):
     }
 
     can_stop = False
-    priority = 1000  # this job must not be interrupted
+    priority = 5
 
     def __init__(self, factory, id, docsearch, label):
         Job.__init__(self, factory, id)
@@ -885,8 +885,7 @@ class JobFactoryLabelDeleter(JobFactory):
         return job
 
 
-# TODO
-class WorkerOCRRedoer(Worker):
+class JobOCRRedoer(Job):
     __gsignals__ = {
         'redo-ocr-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'redo-ocr-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -894,26 +893,58 @@ class WorkerOCRRedoer(Worker):
         'redo-ocr-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    # we make it non-interruptible because there is no way for us to start
+    # back from where we stopped, and redoing all the docs may take far too
+    # much time
+    # TODO(Jflesch): Make it interruptible (use iter(target))
+    can_stop = False
+    priority = 5
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Redoing OCR")
-        self.__main_win = main_window
-        self.__config = config
+    def __init__(self, factory, id, langs, target):
+        Job.__init__(self, factory, id)
+        self.__target = target
+        self.__langs = langs
 
     def __progress_cb(self, progression, total, step, doc):
-        self.emit('redo-ocr-doc-updated', float(progression) / total,
+        logger.info("OCR progression: %s : %d / %d : %s"
+                    % (step, progression, total, doc.name))
+        self.emit('redo-ocr-doc-updated', float(progression) / (total + 1),
                   doc.name)
 
-    def do(self, doc_target):
+    def do(self):
         self.emit('redo-ocr-start')
         try:
-            doc_target.redo_ocr(self.__config.langs, self.__progress_cb)
+            self.__target.redo_ocr(self.__langs, self.__progress_cb)
         finally:
             self.emit('redo-ocr-end')
 
 
-GObject.type_register(WorkerOCRRedoer)
+GObject.type_register(JobOCRRedoer)
+
+
+class JobFactoryOCRRedoer(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "OCRRedoer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, target):
+        job = JobOCRRedoer(self, next(self.id_generator), self.__config.langs,
+                           target)
+        job.connect('redo-ocr-start',
+                    lambda ocr_redoer:
+                    GObject.idle_add(self.__main_win.on_redo_ocr_start_cb,
+                                     ocr_redoer))
+        job.connect('redo-ocr-doc-updated',
+                    lambda ocr_redoer, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_redo_ocr_doc_updated_cb,
+                        ocr_redoer, progression, doc_name))
+        job.connect('redo-ocr-end',
+                    lambda ocr_redoer:
+                    GObject.idle_add(self.__main_win.on_redo_ocr_end_cb,
+                                     ocr_redoer))
+        return job
 
 
 # TODO
@@ -1584,11 +1615,9 @@ class ActionRedoDocOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        # TODO
-        #if self.__main_win.workers['ocr_redoer'].is_running:
-        #    return
-        #doc = self.__main_win.doc[1]
-        #self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        doc = self.__main_win.doc[1]
+        job = self.__main_win.job_factories['ocr_redoer'].make(doc)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionRedoAllOCR(SimpleAction):
@@ -1601,11 +1630,11 @@ class ActionRedoAllOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        # TODO
-        #if self.__main_win.workers['ocr_redoer'].is_running:
-        #    return
-        #doc = self.__main_win.docsearch
-        #self.__main_win.workers['ocr_redoer'].start(doc_target=doc)
+        self.__main_win.scheduler.cancel_all(
+            self.__main_win.job_factories['ocr_redoer'])
+        job = self.__main_win.job_factories['ocr_redoer'].make(
+            self.__main_win.docsearch)
+        self.__main_win.scheduler.schedule(job)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -2206,7 +2235,6 @@ class MainWindow(object):
         #    'importer': WorkerImporter(self, config),
         #    'progress_updater': WorkerProgressUpdater(
         #        "main window progress bar", self.status['progress']),
-        #    'ocr_redoer': WorkerOCRRedoer(self, config),
         #    'export_previewer': WorkerExportPreviewer(self),
         #    'page_editor': WorkerPageEditor(self, config),
         #}
@@ -2218,6 +2246,7 @@ class MainWindow(object):
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
+            'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -2607,23 +2636,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['ocr_redoer'].connect(
-        #    'redo-ocr-start',
-        #    lambda ocr_redoer:
-        #    GObject.idle_add(self.__on_redo_ocr_start_cb,
-        #                     ocr_redoer))
-        #self.workers['ocr_redoer'].connect(
-        #    'redo-ocr-doc-updated',
-        #    lambda ocr_redoer, progression, doc_name:
-        #    GObject.idle_add(self.__on_redo_ocr_doc_updated_cb,
-        #                     ocr_redoer, progression, doc_name))
-        #self.workers['ocr_redoer'].connect(
-        #    'redo-ocr-end',
-        #    lambda ocr_redoer:
-        #    GObject.idle_add(self.__on_redo_ocr_end_cb,
-        #                     ocr_redoer))
-
-        # TODO
         #self.workers['single_scan'].connect(
         #    'single-scan-start',
         #    lambda worker:
@@ -2863,16 +2875,16 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
 
-    def __on_redo_ocr_start_cb(self, src):
+    def on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
         self.set_progression(src, 0.0, _("Redoing OCR ..."))
 
-    def __on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
+    def on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Redoing OCR (%s) ...") % (doc_name))
 
-    def __on_redo_ocr_end_cb(self, src):
+    def on_redo_ocr_end_cb(self, src):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")

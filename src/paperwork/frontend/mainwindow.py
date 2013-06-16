@@ -1037,8 +1037,7 @@ class JobFactorySingleScan(JobFactory):
         return job
 
 
-# TODO
-class WorkerImporter(Worker):
+class JobImporter(Job):
     __gsignals__ = {
         'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'import-done': (GObject.SignalFlags.RUN_LAST, None,
@@ -1046,22 +1045,46 @@ class WorkerImporter(Worker):
                          GObject.TYPE_PYOBJECT),),  # Page
     }
 
-    can_interrupt = True
+    can_stop = False
+    priority = 10
 
-    def __init__(self, main_window, config):
-        Worker.__init__(self, "Importing file")
-        self.__main_win = main_window
+    def __init__(self, factory, id,
+                 config, docsearch, doc,
+                 importer, file_uri):
+        Job.__init__(self, factory, id)
         self.__config = config
+        self.__docsearch = docsearch
+        self.__doc = doc
+        self.__importer = importer
+        self.__file_uri = file_uri
 
-    def do(self, importer, file_uri):
+    def do(self):
         self.emit('import-start')
-        (doc, page) = importer.import_doc(file_uri, self.__config,
-                                          self.__main_win.docsearch,
-                                          self.__main_win.doc[1])
+        (doc, page) = self.__importer.import_doc(
+            self.__file_uri, self.__config, self.__docsearch, self.__doc)
         self.emit('import-done', doc, page)
 
 
-GObject.type_register(WorkerImporter)
+GObject.type_register(JobImporter)
+
+
+class JobFactoryImporter(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "Importer")
+        self.__main_win = main_win
+        self.__config = config
+
+    def make(self, docsearch, doc, importer, file_uri):
+        job = JobImporter(self, next(self.id_generator),
+                          self.__config, docsearch, doc,
+                          importer, file_uri)
+        job.connect('import-start',
+                    lambda worker:
+                    GObject.idle_add(self.__main_win.on_import_start, worker))
+        job.connect('import-done',
+                    lambda worker, doc, page:
+                    GObject.idle_add(self.__main_win.on_import_done, worker, doc, page))
+        return job
 
 
 # TODO
@@ -1598,9 +1621,10 @@ class ActionImport(SimpleAction):
 
         Gtk.RecentManager().add_item(file_uri)
 
-        # TODO
-        #self.__main_win.workers['importer'].start(
-        #    importer=importer, file_uri=file_uri)
+        job = self.__main_win.job_factories['importer'].make(
+            self.__main_win.docsearch, self.__main_win.doc[1],
+            importer, file_uri)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -2271,7 +2295,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'importer': WorkerImporter(self, config),
         #    'progress_updater': WorkerProgressUpdater(
         #        "main window progress bar", self.status['progress']),
         #    'export_previewer': WorkerExportPreviewer(self),
@@ -2282,6 +2305,7 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'img_builder': JobFactoryImgBuilder(self),
+            'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_deleter': JobFactoryLabelDeleter(self),
@@ -2676,16 +2700,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['importer'].connect(
-        #    'import-start',
-        #    lambda worker:
-        #    GObject.idle_add(self.__on_import_start, worker))
-        #self.workers['importer'].connect(
-        #    'import-done',
-        #    lambda worker, doc, page:
-        #    GObject.idle_add(self.__on_import_done, worker, doc, page))
-
-        # TODO
         #self.workers['export_previewer'].connect(
         #    'export-preview-start',
         #    lambda worker:
@@ -2989,7 +3003,7 @@ class MainWindow(object):
             message_format=error)
 
 
-    def __on_import_start(self, src):
+    def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
@@ -3000,7 +3014,7 @@ class MainWindow(object):
         #    total_time=self.__config.scan_time['ocr'])
         self.__scan_start = time.time()
 
-    def __on_import_done(self, src, doc, page=None):
+    def on_import_done(self, src, doc, page=None):
         scan_stop = time.time()
         # TODO
         #self.workers['progress_updater'].stop()

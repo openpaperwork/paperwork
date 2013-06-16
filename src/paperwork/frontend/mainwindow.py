@@ -818,6 +818,93 @@ class JobFactoryBoxesRefresher(JobFactory):
         return job
 
 
+class JobBoxesSelecter(Job):
+    __gsignals__ = {
+        'selected-boxes': (GObject.SignalFlags.RUN_LAST, None,
+                           (
+                               # selected boxes
+                               GObject.TYPE_PYOBJECT,
+                           )),
+    }
+
+    can_stop = True
+    priority = 100
+
+    def __init__(self, factory, id, boxes, mouse_position, get_box_pos_func):
+        Job.__init__(self, factory, id)
+        self.__boxes = boxes
+        self.__mouse_pos = mouse_position
+        self.__get_box_pos_func = get_box_pos_func
+
+    def do(self):
+        self.can_run = True
+        self._wait(0.5)
+        if not self.can_run:
+            return
+
+        mouse_x, mouse_y = self.__mouse_pos
+        selected = set()
+
+        for line in self.__boxes:
+            if not self.can_run:
+                return
+
+            pos = self.__get_box_pos_func(line)
+            ((a, b), (c, d)) = pos
+            if (mouse_x < a or mouse_y < b
+                    or mouse_x > c or mouse_y > d):
+                continue
+
+            for box in line.word_boxes:
+                if not self.can_run:
+                    return
+
+                pos = self.__get_box_pos_func(box)
+                ((a, b), (c, d)) = pos
+                if (mouse_x < a or mouse_y < b
+                        or mouse_x > c or mouse_y > d):
+                    continue
+                selected.add(box)
+
+        self.emit('selected-boxes', selected)
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobBoxesSelecter)
+
+
+class JobFactoryBoxesSelecter(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesSelecter")
+        self.__main_win = main_win
+
+    def make(self, boxes, mouse_position, get_box_pos_func):
+        job = JobBoxesSelecter(self, next(self.id_generator),
+                               boxes, mouse_position, get_box_pos_func)
+        job.connect('selected-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_selected_boxes,
+                                     boxes))
+        return job
+
+
+class JobFactoryBoxesRefresher(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesRefresher")
+        self.__main_win = main_win
+
+    def make(self, page, search):
+        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
+        job.connect('highlighted-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                                     boxes))
+        return job
+
+
 class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -2416,6 +2503,7 @@ class MainWindow(object):
 
         self.job_factories = {
             'boxes_refresher': JobFactoryBoxesRefresher(self),
+            'boxes_selecter': JobFactoryBoxesSelecter(self),
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'export_previewer': JobFactoryExportPreviewer(self),
@@ -3125,56 +3213,36 @@ class MainWindow(object):
         popup_menu.popup(None, None, None, None, event.button, event.time)
 
     def __on_img_mouse_motion(self, event_box, event):
-        (mouse_x, mouse_y) = event.get_coords()
+        self.schedulers['main'].cancel_all(
+            self.job_factories['boxes_selecter'])
+        job = self.job_factories['boxes_selecter'].make(
+            self.img['boxes']['all'], event.get_coords(),
+            lambda box: self.__get_box_position(box, window=self.img['image'],
+                                                width=0))
+        self.schedulers['main'].schedule(job)
 
-        # prevent looking for boxes all the time
-        # XXX(Jflesch): This is a hack .. it may have visible side effects
-        # in the GUI ...
-        now = time.time()
-        if (now - self.__last_highlight_update <= 0.25):
-            return
-        self.__last_highlight_update = now
-
-        to_refresh = self.img['boxes']['selected']
-        selected = None
-
-        for line in self.img['boxes']['all']:
-            pos = self.__get_box_position(line,
-                                          window=self.img['image'],
-                                          width=0)
-            ((a, b), (c, d)) = pos
-            if (mouse_x < a or mouse_y < b
-                    or mouse_x > c or mouse_y > d):
-                continue
-            for box in line.word_boxes:
-                pos = self.__get_box_position(box,
-                                              window=self.img['image'],
-                                              width=0)
-                ((a, b), (c, d)) = pos
-                if (mouse_x < a or mouse_y < b
-                        or mouse_x > c or mouse_y > d):
-                    continue
-                selected = box
-                break
-
-        if selected is not None:
-            if selected in self.img['boxes']['selected']:
-                return
-            to_refresh.append(selected)
-
-        if selected is not None:
-            self.img['boxes']['selected'] = [selected]
-            self.img['image'].set_tooltip_text(selected.content)
-        else:
-            self.img['boxes']['selected'] = []
-            self.img['image'].set_has_tooltip(False)
-
-        for box in to_refresh:
+    def __queue_box_draw(self, boxes):
+        for box in boxes:
             position = self.__get_box_position(
                 box, window=self.img['image'], width=5)
             self.img['image'].queue_draw_area(position[0][0], position[0][1],
                                               position[1][0] - position[0][0],
                                               position[1][1] - position[0][1])
+
+    def on_selected_boxes(self, selected):
+        selected = set(selected)  # copy
+        to_refresh = set(self.img['boxes']['selected'])
+        to_refresh = to_refresh.union(selected)
+
+        self.img['boxes']['selected'] = [x for x in selected]
+
+        if len(selected) > 0:
+            box = selected.pop()
+            self.img['image'].set_tooltip_text(box.content)
+        else:
+            self.img['image'].set_has_tooltip(False)
+
+        self.__queue_box_draw(to_refresh)
 
     def __on_img_mouse_leave(self, event_box, event):
         to_refresh = self.img['boxes']['selected']
@@ -3385,12 +3453,17 @@ class MainWindow(object):
             widget.set_sensitive(False)
 
     def on_highlighted_boxes(self, highlighted):
+        prev_highlighted = set(self.img['boxes']['highlighted'])
         self.img['boxes']['highlighted'] = highlighted
+
         if self.show_all_boxes.get_active():
             self.img['boxes']['visible'] = self.img['boxes']['all']
+            to_refresh = self.img['boxes']['all']
         else:
             self.img['boxes']['visible'] = []
-        self.img['image'].queue_draw()
+            to_refresh = prev_highlighted.union(set(highlighted))
+
+        self.__queue_box_draw(to_refresh)
 
     def refresh_boxes(self):
         self.schedulers['main'].cancel_all(self.job_factories['boxes_refresher'])

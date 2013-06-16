@@ -266,7 +266,7 @@ class JobFactoryDocExaminer(JobFactory):
 
 class JobIndexUpdater(Job):
     """
-    Look for modified documents
+    Update the index
     """
 
     __gsignals__ = {
@@ -279,7 +279,7 @@ class JobIndexUpdater(Job):
     }
 
     can_stop = True
-    priority = 40
+    priority = 15
 
     def __init__(self, factory, id, config, docsearch,
                 new_docs=[], upd_docs=[], del_docs=[],
@@ -1305,8 +1305,19 @@ class ActionUpdateSearchResults(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.refresh_doc_list()
+
         if self.__refresh_pages:
-            # TODO: Refresh page thumbnails
+
+            # Don't call self.__main_win.refresh_page_list():
+            # it will redo the list from scratch. We just want to update
+            # the thumbnails of the pages. There is no new or removed pages.
+            self.__main_win.schedulers['main'].cancel_all(
+                self.__main_win.job_factories['page_thumbnailer'])
+            search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+            job = self.__main_win.job_factories['page_thumbnailer'].make(
+                self.__main_win.doc[1], search)
+            self.__main_win.schedulers['main'].schedule(job)
+
             self.__main_win.refresh_boxes()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
@@ -3329,6 +3340,7 @@ class MainWindow(object):
             self.img['boxes']['visible'] = []
 
     def refresh_boxes(self):
+        # TODO(Jflesch): Should be done in a job
         self.__reload_boxes()
         self.img['image'].queue_draw()
 

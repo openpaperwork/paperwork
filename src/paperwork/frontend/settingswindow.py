@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 RECOMMENDED_RESOLUTION = 300
 
 
-class WorkerDeviceFinder(Worker):
+class JobDeviceFinder(Job):
     __gsignals__ = {
         'device-finding-start': (GObject.SignalFlags.RUN_LAST, None,
                                  ()),
@@ -59,10 +59,11 @@ class WorkerDeviceFinder(Worker):
         'device-finding-end': (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 500
 
-    def __init__(self, selected_devid):
-        Worker.__init__(self, "Device finder")
+    def __init__(self, factory, id, selected_devid):
+        Job.__init__(self, factory, id)
         self.__selected_devid = selected_devid
 
     @staticmethod
@@ -91,7 +92,31 @@ class WorkerDeviceFinder(Worker):
             self.emit("device-finding-end")
 
 
-GObject.type_register(WorkerDeviceFinder)
+GObject.type_register(JobDeviceFinder)
+
+
+class JobFactoryDeviceFinder(JobFactory):
+    def __init__(self, settings_win, selected_devid):
+        JobFactory.__init__(self, "DeviceFinder")
+        self.__selected_devid = selected_devid
+        self.__settings_win = settings_win
+
+    def make(self):
+        job = JobDeviceFinder(self, next(self.id_generator),
+                              self.__selected_devid)
+        job.connect('device-finding-start',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_device_finding_start_cb))
+        job.connect('device-found',
+                    lambda job, user_name, store_name, active:
+                    GObject.idle_add(self.__settings_win.on_value_found_cb,
+                                     self.__settings_win.device_settings['devid'],
+                                     user_name, store_name, active))
+        job.connect('device-finding-end',
+                    lambda job: GObject.idle_add(
+                        self.__settings_win.on_finding_end_cb,
+                        self.__settings_win.device_settings['devid']))
+        return job
 
 
 class WorkerResolutionFinder(Worker):
@@ -341,8 +366,17 @@ class SettingsWindow(GObject.GObject):
         'need-reindex': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, mainwindow_gui, config):
+    def __init__(self, main_scheduler, mainwindow_gui, config):
         GObject.GObject.__init__(self)
+
+        self.schedulers = {
+            'main': main_scheduler,
+            'progress': JobScheduler('progress'),
+        }
+        self.local_schedulers = [
+            self.schedulers['progress'],
+        ]
+
         widget_tree = load_uifile("settingswindow.glade")
 
         self.window = widget_tree.get_object("windowSettings")
@@ -427,6 +461,10 @@ class SettingsWindow(GObject.GObject):
         #    #                                          self.progressbar)
         #}
 
+        self.job_factories = {
+            "device_finder": JobFactoryDeviceFinder(self, config.scanner_devid),
+        }
+
         ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) <= 0:
             ocr_langs = []
@@ -447,22 +485,6 @@ class SettingsWindow(GObject.GObject):
             actions[action][1].connect(actions[action][0])
 
         # TODO
-        #self.workers['device_finder'].connect(
-        #    'device-finding-start',
-        #    lambda worker: GObject.idle_add(
-        #        self.__on_device_finding_start_cb))
-        #self.workers['device_finder'].connect(
-        #    'device-found',
-        #    lambda worker, user_name, store_name, active:
-        #    GObject.idle_add(self.__on_value_found_cb,
-        #                     self.device_settings['devid'],
-        #                     user_name, store_name, active))
-        #self.workers['device_finder'].connect(
-        #    'device-finding-end',
-        #    lambda worker: GObject.idle_add(
-        #        self.__on_finding_end_cb,
-        #        self.device_settings['devid']))
-
         #self.workers['resolution_finder'].connect(
         #    'resolution-finding-start',
         #    lambda worker: GObject.idle_add(
@@ -504,8 +526,12 @@ class SettingsWindow(GObject.GObject):
         self.ocr_settings['lang']['gui'].connect(
             "changed", self.__on_ocr_lang_changed)
 
-        # TODO
-        #self.workers['device_finder'].start()
+        for scheduler in self.local_schedulers:
+            scheduler.start()
+
+        job = self.job_factories['device_finder'].make()
+        self.schedulers['main'].schedule(job)
+
 
     @staticmethod
     def __get_short_to_long_langs(short_langs):
@@ -564,13 +590,13 @@ class SettingsWindow(GObject.GObject):
         settings['nb_elements'] = 0
         settings['active_idx'] = -1
 
-    def __on_device_finding_start_cb(self):
+    def on_device_finding_start_cb(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.__on_finding_start_cb(self.device_settings['devid'])
         for element in self.device_settings.values():
             element['gui'].set_sensitive(False)
 
-    def __on_value_found_cb(self, settings,
+    def on_value_found_cb(self, settings,
                             user_name, store_name, active):
         store_line = [user_name, store_name]
         logger.info("Got value [%s]" % store_line)
@@ -579,7 +605,7 @@ class SettingsWindow(GObject.GObject):
             settings['active_idx'] = settings['nb_elements']
         settings['nb_elements'] += 1
 
-    def __on_finding_end_cb(self, settings):
+    def on_finding_end_cb(self, settings):
         settings['gui'].set_sensitive(len(settings['stores']['loaded']) > 0)
         settings['gui'].set_model(settings['stores']['loaded'])
         if settings['active_idx'] >= 0:
@@ -635,10 +661,9 @@ class SettingsWindow(GObject.GObject):
             idx += 1
 
     def __on_destroy(self, window=None):
-        # TODO
-        #for worker in self.workers.values():
-        #    worker.stop()
         logger.info("Settings window destroyed")
+        for scheduler in self.local_schedulers:
+            scheduler.stop()
 
     def hide(self):
         """

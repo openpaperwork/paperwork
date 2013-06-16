@@ -1552,7 +1552,8 @@ class ActionOpenSettings(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        sw = SettingsWindow(self.__main_win.window, self.__config)
+        sw = SettingsWindow(self.__main_win.schedulers['main'],
+                            self.__main_win.window, self.__config)
         sw.connect("need-reindex", self.__reindex_cb)
 
     def __reindex_cb(self, settings_window):

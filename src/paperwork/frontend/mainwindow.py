@@ -2350,7 +2350,6 @@ class MainWindow(object):
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
-        self.__last_highlight_update = time.time()
 
         img = PIL.Image.new("RGB", (
             JobDocThumbnailer.THUMB_WIDTH,

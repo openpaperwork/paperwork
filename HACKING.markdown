@@ -112,10 +112,28 @@ Thread safety is a major issue in Paperwork. We need threads to keep the GUI
 smooth, but unfortunately, a lot of Paperwork dependencies are not
 thread-safe. For instance, libpoppler is not thread-safe at all.
 
-TODO
+A job scheduling mechanism has been implemented (see
+src/paperwork/frontend/jobs.py):
 
-Note that there is another thread running: The thread of
-[PyInsane](https://github.com/jflesch/pyinsane#readme).
+Each Job represents ... well, a job to do. Some jobs can be stopped and resumed
+later (for instance JobDocThumbnailer).
+
+JobFactories instanciate Jobs. They are also used to keep the job recognizable.
+
+Each JobScheduler represent a thread. It accepts jobs (using the method
+schedule()). The job with the higher priority is run first. If the job
+added to the scheduler has an higher priority than the active one,
+the scheduler will *try* to stop the active one and run it back later.
+
+Jobs can be cancelled (assuming they are stoppable or not active yet). A single
+job can be cancelled, or all the jobs from a given factory.
+
+There is one main scheduler (called 'main'), and some others used mostly for
+progress bar updates based on time. The main scheduler is the one used to
+access all the documents contents and the index.
+
+Note that there are other threads running: The thread of
+[PyInsane](https://github.com/jflesch/pyinsane#readme) and the Gtk main loop.
 
 
 ## Tips

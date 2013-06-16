@@ -173,7 +173,7 @@ class JobScheduler(object):
                     idx += 1
             stop = time.time()
 
-            diff = start - stop
+            diff = stop - start
             if (self._active_job.can_stop
                 or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
                 logger.debug("Job %s took %dms"

@@ -1587,7 +1587,8 @@ class ActionToggleLabel(object):
                    % (label, self.__main_win.doc[1]))
             self.__main_win.docsearch.remove_label(self.__main_win.doc[1], label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc])
+        self.__main_win.refresh_docs([self.__main_win.doc],
+                                     redo_thumbnails=False)
 
     def connect(self, cellrenderers):
         for cellrenderer in cellrenderers:
@@ -1608,7 +1609,8 @@ class ActionCreateLabel(SimpleAction):
             self.__main_win.docsearch.add_label(self.__main_win.doc[1],
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc])
+        self.__main_win.refresh_docs([self.__main_win.doc],
+                                     redo_thumbnails=False)
 
 
 class ActionEditLabel(SimpleAction):
@@ -3153,7 +3155,8 @@ class MainWindow(object):
         assert(page is not None)
         self.show_page(page)
 
-        self.refresh_docs([self.doc])
+        if self.doc.nb_pages <= 1:
+            self.refresh_docs([self.doc])
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s" % error)
@@ -3373,7 +3376,7 @@ class MainWindow(object):
             return True
         return False
 
-    def refresh_docs(self, docs):
+    def refresh_docs(self, docs, redo_thumbnails=True):
         """
         Refresh specific documents in the document list
 
@@ -3390,13 +3393,17 @@ class MainWindow(object):
                 active_idx = doc_idx
             doc_txt = self.__get_doc_txt(doc)
             doc_line = self.__get_doc_model_line(doc)
+            if not redo_thumbnails:
+                current_model = self.lists['matches']['model'][doc_idx]
+                doc_line[2] = current_model[2]
             self.lists['matches']['model'][doc_idx] = doc_line
 
         if active_idx >= 0:
             self.__select_doc(active_idx)
 
-        job = self.job_factories['doc_thumbnailer'].make(docs)
-        self.schedulers['main'].schedule(job)
+        if redo_thumbnails:
+            job = self.job_factories['doc_thumbnailer'].make(docs)
+            self.schedulers['main'].schedule(job)
 
     def refresh_doc_list(self):
         """

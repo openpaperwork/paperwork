@@ -1087,34 +1087,65 @@ class JobFactoryImporter(JobFactory):
         return job
 
 
-# TODO
-class WorkerExportPreviewer(Worker):
+class JobExportPreviewer(Job):
     __gsignals__ = {
         'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'export-preview-done': (GObject.SignalFlags.RUN_LAST, None,
                                 (GObject.TYPE_INT, GObject.TYPE_PYOBJECT,)),
     }
 
-    can_interrupt = True
+    can_stop = True
+    priority = 500
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Export previewer")
-        self.__main_win = main_window
+    def __init__(self, factory, id, exporter):
+        Job.__init__(self, factory, id)
+        self.__exporter = exporter
 
     def do(self):
-        exporter = self.__main_win.export['exporter']
-        for i in range(0, 7):
-            time.sleep(0.1)
-            if not self.can_run:
-                return
+        self.can_run = True
+        self._wait(0.7)
+        if not self.can_run:
+            return
+
         self.emit('export-preview-start')
-        size = exporter.estimate_size()
-        img = exporter.get_img()
+
+        size = self.__exporter.estimate_size()
+        if not self.can_run:
+            return
+
+        img = self.__exporter.get_img()
+        if not self.can_run:
+            return
+
         pixbuf = image2pixbuf(img)
+        if not self.can_run:
+            return
+
         self.emit('export-preview-done', size, pixbuf)
 
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
 
-GObject.type_register(WorkerExportPreviewer)
+
+GObject.type_register(JobExportPreviewer)
+
+
+class JobFactoryExportPreviewer(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "ExportPreviewer")
+        self.__main_win = main_win
+
+    def make(self, exporter):
+        job = JobExportPreviewer(self, next(self.id_generator), exporter)
+        job.connect('export-preview-start',
+                    lambda worker:
+                    GObject.idle_add(self.__main_win.on_export_preview_start))
+        job.connect('export-preview-done',
+                    lambda worker, size, pixbuf:
+                    GObject.idle_add(self.__main_win.on_export_preview_done,
+                                     size, pixbuf))
+        return job
 
 
 # TODO
@@ -1762,9 +1793,9 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
-        self.main_win.export['to_export'] = self.main_win.doc
+        self.main_win.export['to_export'] = self.main_win.doc[1]
         self.main_win.export['buttons']['ok'].set_label(_("Export document"))
-        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
+        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc[1])
 
 
 class ActionSelectExportFormat(SimpleAction):
@@ -1821,6 +1852,7 @@ class ActionChangeExportProperty(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        assert(self.__main_win.export['exporter'] is not None)
         if self.__main_win.export['exporter'].can_select_format:
             page_format_widget = self.__main_win.export['pageFormat']['widget']
             format_idx = page_format_widget.get_active()
@@ -2297,7 +2329,6 @@ class MainWindow(object):
         #self.workers = {
         #    'progress_updater': WorkerProgressUpdater(
         #        "main window progress bar", self.status['progress']),
-        #    'export_previewer': WorkerExportPreviewer(self),
         #    'page_editor': WorkerPageEditor(self, config),
         #}
 
@@ -2311,6 +2342,7 @@ class MainWindow(object):
             'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
+            'export_previewer': JobFactoryExportPreviewer(self),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
             'single_scan': JobFactorySingleScan(self, config),
@@ -2700,16 +2732,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['export_previewer'].connect(
-        #    'export-preview-start',
-        #    lambda worker:
-        #    GObject.idle_add(self.__on_export_preview_start))
-        #self.workers['export_previewer'].connect(
-        #    'export-preview-done',
-        #    lambda worker, size, pixbuf:
-        #    GObject.idle_add(self.__on_export_preview_done, size,
-        #                     pixbuf))
-
         # TODO
         #self.workers['page_editor'].connect(
         #    'page-editing-img-edit',
@@ -3368,10 +3390,10 @@ class MainWindow(object):
             self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
                                              Gtk.IconSize.DIALOG)
 
-    def __on_export_preview_start(self):
+    def on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))
 
-    def __on_export_preview_done(self, img_size, pixbuf):
+    def on_export_preview_done(self, img_size, pixbuf):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
         self.img['image'].set_from_pixbuf(pixbuf)
 
@@ -3392,9 +3414,10 @@ class MainWindow(object):
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        # TODO
-        #self.workers['export_previewer'].stop()
-        #self.workers['export_previewer'].start()
+        self.scheduler.cancel_all(self.job_factories['export_previewer'])
+        job = self.job_factories['export_previewer'].make(
+            self.export['exporter'])
+        self.scheduler.schedule(job)
 
     def __on_img_resize_cb(self, viewport, rectangle):
         if self.export['exporter'] is not None:

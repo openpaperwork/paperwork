@@ -219,6 +219,16 @@ class JobScheduler(object):
                      % (self.name, str(active_job)))
 
     def schedule(self, job):
+        """
+        Schedule a job.
+
+        Job are run by priority (higher first). If the given job
+        has a priority higher than the one currently running, the scheduler
+        will try to stop the running one, and start the given one instead.
+
+        In case 2 jobs have the same priority, they are run in the order they
+        were given.
+        """
         logger.debug("[Scheduler %s] Queuing job %s"
                      % (self.name, str(job)))
 

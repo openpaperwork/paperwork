@@ -1148,8 +1148,7 @@ class JobFactoryExportPreviewer(JobFactory):
         return job
 
 
-# TODO
-class WorkerPageEditor(Worker):
+class JobPageEditor(Job):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT, )),
@@ -1161,30 +1160,66 @@ class WorkerPageEditor(Worker):
                               (GObject.TYPE_PYOBJECT, )),
     }
 
+    can_stop = False
+    priority = 10
+
+    def __init__(self, factory, id, docsearch, langs, page, changes=[]):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__langs = langs
+        self.__page = page
+        self.__changes = changes[:]
+
+    def do(self):
+        self.emit('page-editing-img-edit', self.__page)
+        try:
+            img = self.__page.img
+            for change in self.__changes:
+                img = change.do(img, 1.0)
+            self.__page.img = img
+
+            self.emit('page-editing-ocr', self.__page)
+            self.__page.redo_ocr(self.__langs)
+
+            self.emit('page-editing-index-upd', self.__page)
+            index_upd = self.__docsearch.get_index_updater(optimize=False)
+            index_upd.upd_doc(self.__page.doc)
+            index_upd.commit()
+        finally:
+            self.emit('page-editing-done', self.__page)
+
+
+GObject.type_register(JobPageEditor)
+
+
+class JobFactoryPageEditor(JobFactory):
     def __init__(self, main_win, config):
-        Worker.__init__(self, "Page editor")
+        JobFactory.__init__(self, "PageEditor")
         self.__main_win = main_win
         self.__config = config
 
-    def do(self, page, changes=[]):
-        self.emit('page-editing-img-edit', page)
-        try:
-            img = page.img
-            for change in changes:
-                img = change.do(img, 1.0)
-            page.img = img
-            self.emit('page-editing-ocr', page)
-            page.redo_ocr(self.__config.langs)
-            self.emit('page-editing-index-upd', page)
-            docsearch = self.__main_win.docsearch
-            index_upd = docsearch.get_index_updater(optimize=False)
-            index_upd.upd_doc(page.doc)
-            index_upd.commit()
-        finally:
-            self.emit('page-editing-done', page)
-
-
-GObject.type_register(WorkerPageEditor)
+    def make(self, docsearch, page, changes):
+        job = JobPageEditor(self, next(self.id_generator), docsearch,
+                            self.__config.langs, page, changes)
+        job.connect('page-editing-img-edit',
+                    lambda worker, page:
+                    GObject.idle_add(
+                        self.__main_win.on_page_editing_img_edit_start_cb,
+                        worker, page))
+        job.connect('page-editing-ocr',
+                    lambda worker, page:
+                    GObject.idle_add(self.__main_win.on_page_editing_ocr_cb,
+                                     worker, page))
+        job.connect('page-editing-index-upd',
+                    lambda worker, page:
+                    GObject.idle_add(
+                        self.__main_win.on_page_editing_index_upd_cb,
+                        worker, page))
+        job.connect('page-editing-done',
+                    lambda worker, page:
+                    GObject.idle_add(self.__main_win.on_page_editing_done_cb,
+                                     worker, page))
+        return job
 
 
 class ActionNewDocument(SimpleAction):
@@ -2155,9 +2190,10 @@ class ActionEditPage(SimpleAction):
         logger.info("Changes to do to the page %s:" % (self.__main_win.page))
         for action in todo:
             logger.info("- %s" % action)
-        # TODO
-        #self.__main_win.workers['page_editor'].start(page=self.__main_win.page,
-        #                                             changes=todo)
+
+        job = self.__main_win.job_factories['page_editor'].make(
+            self.__main_win.docsearch, self.__main_win.page, changes=todo)
+        self.__main_win.scheduler.schedule(job)
 
 
 class MainWindow(object):
@@ -2329,12 +2365,12 @@ class MainWindow(object):
         #self.workers = {
         #    'progress_updater': WorkerProgressUpdater(
         #        "main window progress bar", self.status['progress']),
-        #    'page_editor': WorkerPageEditor(self, config),
         #}
 
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
+            'export_previewer': JobFactoryExportPreviewer(self),
             'img_builder': JobFactoryImgBuilder(self),
             'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
@@ -2342,7 +2378,7 @@ class MainWindow(object):
             'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
-            'export_previewer': JobFactoryExportPreviewer(self),
+            'page_editor': JobFactoryPageEditor(self, config),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
             'single_scan': JobFactorySingleScan(self, config),
@@ -2730,29 +2766,6 @@ class MainWindow(object):
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
-
-        # TODO
-        # TODO
-        #self.workers['page_editor'].connect(
-        #    'page-editing-img-edit',
-        #    lambda worker, page:
-        #    GObject.idle_add(self.__on_page_editing_img_edit_start_cb,
-        #                     worker, page))
-        #self.workers['page_editor'].connect(
-        #    'page-editing-ocr',
-        #    lambda worker, page:
-        #    GObject.idle_add(self.__on_page_editing_ocr_cb,
-        #                     worker, page))
-        #self.workers['page_editor'].connect(
-        #    'page-editing-index-upd',
-        #    lambda worker, page:
-        #    GObject.idle_add(self.__on_page_editing_index_upd_cb,
-        #                     worker, page))
-        #self.workers['page_editor'].connect(
-        #    'page-editing-done',
-        #    lambda worker, page:
-        #    GObject.idle_add(self.__on_page_editing_done_cb,
-        #                     worker, page))
 
         self.img['image'].connect_after('draw', self.__on_img_draw)
 
@@ -3444,17 +3457,17 @@ class MainWindow(object):
         job = self.job_factories['img_builder'].make(self.page)
         self.scheduler.schedule(job)
 
-    def __on_page_editing_img_edit_start_cb(self, worker, page):
+    def on_page_editing_img_edit_start_cb(self, worker, page):
         self.set_mouse_cursor("Busy")
         self.set_progression(worker, 0.0, _("Updating the image ..."))
 
-    def __on_page_editing_ocr_cb(self, worker, page):
+    def on_page_editing_ocr_cb(self, worker, page):
         self.set_progression(worker, 0.25, _("Redoing OCR ..."))
 
-    def __on_page_editing_index_upd_cb(self, worker, page):
+    def on_page_editing_index_upd_cb(self, worker, page):
         self.set_progression(worker, 0.75, _("Updating the index ..."))
 
-    def __on_page_editing_done_cb(self, worker, page):
+    def on_page_editing_done_cb(self, worker, page):
         self.set_progression(worker, 0.0, "")
         self.set_mouse_cursor("Normal")
         if page.page_nb == 0:

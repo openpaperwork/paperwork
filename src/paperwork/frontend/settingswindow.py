@@ -36,7 +36,6 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.img_cutting import ImgGripHandler
 from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
-from paperwork.frontend.workers import Worker # TODO
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -195,17 +194,17 @@ class JobFactoryResolutionFinder(JobFactory):
                                   self.__selected_resolution,
                                   self.__recommended_resolution, devid)
         job.connect('resolution-finding-start',
-                    lambda worker: GObject.idle_add(
+                    lambda job: GObject.idle_add(
                         self.__settings_win.on_finding_start_cb,
                         self.__settings_win.device_settings['resolution']))
         job.connect('resolution-found',
-                    lambda worker, user_name, store_name, active:
+                    lambda job, user_name, store_name, active:
                     GObject.idle_add(
                         self.__settings_win.on_value_found_cb,
                         self.__settings_win.device_settings['resolution'],
                         user_name, store_name, active))
         job.connect('resolution-finding-end',
-                    lambda worker: GObject.idle_add(
+                    lambda job: GObject.idle_add(
                         self.__settings_win.on_finding_end_cb,
                         self.__settings_win.device_settings['resolution']))
         return job
@@ -503,13 +502,6 @@ class SettingsWindow(GObject.GObject):
         self.progressbar = widget_tree.get_object("progressbarScan")
         self.__scan_start = 0.0
 
-        # TODO
-        #self.workers = {
-        #    # TODO
-        #    #"progress_updater": WorkerProgressUpdater("calibration scan",
-        #    #                                          self.progressbar)
-        #}
-
         self.job_factories = {
             "device_finder": JobFactoryDeviceFinder(self, config.scanner_devid),
             "resolution_finder": JobFactoryResolutionFinder(self,
@@ -517,6 +509,7 @@ class SettingsWindow(GObject.GObject):
                 config.RECOMMENDED_RESOLUTION),
             "scan": JobFactoryCalibrationScan(self,
                 self.calibration['image_viewport']),
+            "progress_updater": JobFactoryProgressUpdater(self.progressbar),
         }
 
         ocr_tools = pyocr.get_available_tools()
@@ -652,15 +645,15 @@ class SettingsWindow(GObject.GObject):
             Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
         self.__scan_start = time.time()
-        # TODO
-        #self.workers['progress_updater'].start(
-        #    value_min=0.0, value_max=1.0,
-        #    total_time=self.__config.scan_time['calibration'])
+
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
+            value_min=0.0, value_max=1.0,
+            total_time=self.__config.scan_time['calibration'])
+        self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_done(self, img):
         scan_stop = time.time()
-        # TODO
-        #self.workers['progress_updater'].soft_stop()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['images'] = [(1.0, img)]

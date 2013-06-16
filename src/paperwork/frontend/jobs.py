@@ -243,11 +243,19 @@ class JobScheduler(object):
             # if a job with a lower priority is running, we try to stop
             # it and take its place
             active = self._active_job
-            if active is not None and active.priority < job.priority:
-                self._stop_active_job(will_resume=True)
-                heapq.heappush(self._job_queue, (-1 * active.priority,
-                                                 next(self._job_idx_generator),
-                                                 active))
+            if (active is not None
+                    and active.priority < job.priority):
+                if not active.can_stop:
+                    logger.debug("Job %s has a higher priority than %s,"
+                                 " but %s can't be stopped"
+                                 % (str(job), str(active), str(active)))
+                else:
+                    self._stop_active_job(will_resume=True)
+                    heapq.heappush(self._job_queue,
+                                   (-1 * active.priority,
+                                    next(self._job_idx_generator),
+                                    active))
+
             self._job_queue_cond.notify_all()
         finally:
             self._job_queue_cond.release()

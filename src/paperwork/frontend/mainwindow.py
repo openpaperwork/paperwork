@@ -185,6 +185,7 @@ class JobDocExaminer(Job):
         Job.__init__(self, factory, id)
         self.__config = config
         self.docsearch = docsearch
+        self.done = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -206,6 +207,9 @@ class JobDocExaminer(Job):
                   float(progression) / total, txt)
 
     def do(self):
+        if self.done:
+            return
+
         self.can_run = True
 
         self.emit('doc-examination-start')
@@ -223,6 +227,7 @@ class JobDocExaminer(Job):
             logger.info("Document examination interrupted")
         finally:
             self.emit('doc-examination-end')
+            self.done = True
 
     def stop(self, will_resume=False):
         self.can_run = False
@@ -1103,6 +1108,7 @@ class JobSingleScan(Job):
         self.doc = target_doc
         self.__docsearch = docsearch
         self.__ocr_running = False
+        self.done = False
 
     def __scan_progress_cb(self, progression, total, step, doc=None):
         if (step == ImgPage.SCAN_STEP_OCR) and (not self.__ocr_running):

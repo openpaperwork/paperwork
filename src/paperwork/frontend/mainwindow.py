@@ -830,8 +830,7 @@ class JobFactoryLabelUpdater(JobFactory):
         return job
 
 
-# TODO
-class WorkerLabelDeleter(Worker):
+class JobLabelDeleter(Job):
     __gsignals__ = {
         'label-deletion-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'label-deletion-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
@@ -840,25 +839,50 @@ class WorkerLabelDeleter(Worker):
         'label-deletion-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_interrupt = False
+    can_stop = False
+    priority = 1000  # this job must not be interrupted
 
-    def __init__(self, main_window):
-        Worker.__init__(self, "Removing label")
-        self.__main_win = main_window
+    def __init__(self, factory, id, docsearch, label):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__label = label
 
     def __progress_cb(self, progression, total, step, doc):
         self.emit('label-deletion-doc-updated', float(progression) / total,
                   doc.name)
 
-    def do(self, label):
+    def do(self):
         self.emit('label-deletion-start')
         try:
-            self.__main_win.docsearch.destroy_label(label, self.__progress_cb)
+            self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
             self.emit('label-deletion-end')
 
 
-GObject.type_register(WorkerLabelDeleter)
+GObject.type_register(JobLabelDeleter)
+
+
+class JobFactoryLabelDeleter(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "LabelDeleter")
+        self.__main_win = main_win
+
+    def make(self, docsearch, label):
+        job = JobLabelDeleter(self, next(self.id_generator), docsearch, label)
+        job.connect('label-deletion-start',
+                    lambda deleter:
+                    GObject.idle_add(self.__main_win.on_label_updating_start_cb,
+                                     deleter))
+        job.connect('label-deletion-doc-updated',
+                    lambda deleter, progression, doc_name:
+                    GObject.idle_add(
+                        self.__main_win.on_label_deletion_doc_updated_cb,
+                        deleter, progression, doc_name))
+        job.connect('label-deletion-end',
+                    lambda deleter:
+                    GObject.idle_add(self.__main_win.on_label_updating_end_cb,
+                                     deleter))
+        return job
 
 
 # TODO
@@ -1341,10 +1365,9 @@ class ActionDeleteLabel(SimpleAction):
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
-        # TODO
-        #if self.__main_win.workers['label_deleter'].is_running:
-        #    return
-        #self.__main_win.workers['label_deleter'].start(label=label)
+        job = self.__main_win.job_factories['label_deleter'].make(
+            self.__main_win.docsearch, label)
+        self.__main_win.scheduler.schedule(job)
 
 
 class ActionOpenDocDir(SimpleAction):
@@ -2179,7 +2202,6 @@ class MainWindow(object):
 
         # TODO
         #self.workers = {
-        #    'label_deleter': WorkerLabelDeleter(self),
         #    'single_scan': WorkerSingleScan(self, config),
         #    'importer': WorkerImporter(self, config),
         #    'progress_updater': WorkerProgressUpdater(
@@ -2194,6 +2216,7 @@ class MainWindow(object):
             'img_builder': JobFactoryImgBuilder(self),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
+            'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'searcher': JobFactoryDocSearcher(self, config),
@@ -2584,23 +2607,6 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         # TODO
-        #self.workers['label_deleter'].connect(
-        #    'label-deletion-start',
-        #    lambda deleter:
-        #    GObject.idle_add(self.__on_label_updating_start_cb,
-        #                     deleter))
-        #self.workers['label_deleter'].connect(
-        #    'label-deletion-doc-updated',
-        #    lambda deleter, progression, doc_name:
-        #    GObject.idle_add(self.__on_label_deletion_doc_updated_cb,
-        #                     deleter, progression, doc_name))
-        #self.workers['label_deleter'].connect(
-        #    'label-deletion-end',
-        #    lambda deleter:
-        #    GObject.idle_add(self.__on_label_updating_end_cb,
-        #                     deleter))
-
-        # TODO
         #self.workers['ocr_redoer'].connect(
         #    'redo-ocr-start',
         #    lambda ocr_redoer:
@@ -2847,7 +2853,7 @@ class MainWindow(object):
         self.set_progression(src, progression,
                              _("Updating label (%s) ...") % (doc_name))
 
-    def __on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
+    def on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
         self.set_progression(src, progression,
                              _("Deleting label (%s) ...") % (doc_name))
 

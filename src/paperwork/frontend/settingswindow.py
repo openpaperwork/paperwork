@@ -35,6 +35,7 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.img_cutting import ImgGripHandler
+from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
 from paperwork.frontend.workers import Worker
 # TODO
 #from paperwork.frontend.workers import WorkerProgressUpdater
@@ -259,7 +260,8 @@ class ActionSelectScanner(SimpleAction):
         logger.info("Select scanner: %d" % idx)
         self.__settings_win.calibration["scan_button"].set_sensitive(True)
         devid = settings['stores']['loaded'][idx][1]
-        self.__settings_win.workers['resolution_finder'].start(devid=devid)
+        # TODO
+        #self.__settings_win.workers['resolution_finder'].start(devid=devid)
 
 
 class ActionApplySettings(SimpleAction):
@@ -326,7 +328,8 @@ class ActionScanCalibration(SimpleAction):
         idx = setting['gui'].get_active()
         assert(idx >= 0)
         devid = setting['stores']['loaded'][idx][1]
-        self.__settings_win.workers['scan'].start(devid=devid)
+        # TODO
+        # self.__settings_win.workers['scan'].start(devid=devid)
 
 
 class SettingsWindow(GObject.GObject):
@@ -411,17 +414,18 @@ class SettingsWindow(GObject.GObject):
         self.progressbar = widget_tree.get_object("progressbarScan")
         self.__scan_start = 0.0
 
-        self.workers = {
-            "device_finder": WorkerDeviceFinder(config.scanner_devid),
-            "resolution_finder": WorkerResolutionFinder(
-                config.scanner_resolution,
-                config.RECOMMENDED_RESOLUTION),
-            "scan": WorkerCalibrationScan(
-                self.calibration['image_viewport']),
-            # TODO
-            #"progress_updater": WorkerProgressUpdater("calibration scan",
-            #                                          self.progressbar)
-        }
+        # TODO
+        #self.workers = {
+        #    "device_finder": WorkerDeviceFinder(config.scanner_devid),
+        #    "resolution_finder": WorkerResolutionFinder(
+        #        config.scanner_resolution,
+        #        config.RECOMMENDED_RESOLUTION),
+        #    "scan": WorkerCalibrationScan(
+        #        self.calibration['image_viewport']),
+        #    # TODO
+        #    #"progress_updater": WorkerProgressUpdater("calibration scan",
+        #    #                                          self.progressbar)
+        #}
 
         ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) <= 0:
@@ -442,49 +446,50 @@ class SettingsWindow(GObject.GObject):
         for action in action_names:
             actions[action][1].connect(actions[action][0])
 
-        self.workers['device_finder'].connect(
-            'device-finding-start',
-            lambda worker: GObject.idle_add(
-                self.__on_device_finding_start_cb))
-        self.workers['device_finder'].connect(
-            'device-found',
-            lambda worker, user_name, store_name, active:
-            GObject.idle_add(self.__on_value_found_cb,
-                             self.device_settings['devid'],
-                             user_name, store_name, active))
-        self.workers['device_finder'].connect(
-            'device-finding-end',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_end_cb,
-                self.device_settings['devid']))
+        # TODO
+        #self.workers['device_finder'].connect(
+        #    'device-finding-start',
+        #    lambda worker: GObject.idle_add(
+        #        self.__on_device_finding_start_cb))
+        #self.workers['device_finder'].connect(
+        #    'device-found',
+        #    lambda worker, user_name, store_name, active:
+        #    GObject.idle_add(self.__on_value_found_cb,
+        #                     self.device_settings['devid'],
+        #                     user_name, store_name, active))
+        #self.workers['device_finder'].connect(
+        #    'device-finding-end',
+        #    lambda worker: GObject.idle_add(
+        #        self.__on_finding_end_cb,
+        #        self.device_settings['devid']))
 
-        self.workers['resolution_finder'].connect(
-            'resolution-finding-start',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_start_cb,
-                self.device_settings['resolution']))
-        self.workers['resolution_finder'].connect(
-            'resolution-found',
-            lambda worker, user_name, store_name, active:
-            GObject.idle_add(self.__on_value_found_cb,
-                             self.device_settings['resolution'],
-                             user_name, store_name, active))
-        self.workers['resolution_finder'].connect(
-            'resolution-finding-end',
-            lambda worker: GObject.idle_add(
-                self.__on_finding_end_cb,
-                self.device_settings['resolution']))
+        #self.workers['resolution_finder'].connect(
+        #    'resolution-finding-start',
+        #    lambda worker: GObject.idle_add(
+        #        self.__on_finding_start_cb,
+        #        self.device_settings['resolution']))
+        #self.workers['resolution_finder'].connect(
+        #    'resolution-found',
+        #    lambda worker, user_name, store_name, active:
+        #    GObject.idle_add(self.__on_value_found_cb,
+        #                     self.device_settings['resolution'],
+        #                     user_name, store_name, active))
+        #self.workers['resolution_finder'].connect(
+        #    'resolution-finding-end',
+        #    lambda worker: GObject.idle_add(
+        #        self.__on_finding_end_cb,
+        #        self.device_settings['resolution']))
 
-        self.workers['scan'].connect(
-            'calibration-scan-start',
-            lambda worker: GObject.idle_add(self.__on_scan_start))
-        self.workers['scan'].connect(
-            'calibration-scan-done',
-            lambda worker, img: GObject.idle_add(self.__on_scan_done, img))
-        self.workers['scan'].connect(
-            'calibration-resize-done',
-            lambda worker, factor, img:
-            GObject.idle_add(self.__on_resize_done, factor, img))
+        #self.workers['scan'].connect(
+        #    'calibration-scan-start',
+        #    lambda worker: GObject.idle_add(self.__on_scan_start))
+        #self.workers['scan'].connect(
+        #    'calibration-scan-done',
+        #    lambda worker, img: GObject.idle_add(self.__on_scan_done, img))
+        #self.workers['scan'].connect(
+        #    'calibration-resize-done',
+        #    lambda worker, factor, img:
+        #    GObject.idle_add(self.__on_resize_done, factor, img))
 
         self.window.connect("destroy", self.__on_destroy)
 
@@ -499,7 +504,8 @@ class SettingsWindow(GObject.GObject):
         self.ocr_settings['lang']['gui'].connect(
             "changed", self.__on_ocr_lang_changed)
 
-        self.workers['device_finder'].start()
+        # TODO
+        #self.workers['device_finder'].start()
 
     @staticmethod
     def __get_short_to_long_langs(short_langs):
@@ -629,8 +635,9 @@ class SettingsWindow(GObject.GObject):
             idx += 1
 
     def __on_destroy(self, window=None):
-        for worker in self.workers.values():
-            worker.stop()
+        # TODO
+        #for worker in self.workers.values():
+        #    worker.stop()
         logger.info("Settings window destroyed")
 
     def hide(self):

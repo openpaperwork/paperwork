@@ -767,6 +767,57 @@ class JobFactoryImgBuilder(JobFactory):
         return job
 
 
+class JobBoxesRefresher(Job):
+    __gsignals__ = {
+        'highlighted-boxes': (GObject.SignalFlags.RUN_LAST, None,
+                              (
+                                  # highlighted boxes
+                                  GObject.TYPE_PYOBJECT,
+                              )),
+    }
+
+    can_stop = True
+    priority = 430
+
+    def __init__(self, factory, id, page, search):
+        Job.__init__(self, factory, id)
+        self.__page = page
+        self.__search = search
+
+    def do(self):
+        self.can_run = True
+        self._wait(0.5)
+        if not self.can_run:
+            return
+
+        highlighted = self.__page.get_boxes(self.__search)
+        if not self.can_run:
+            return
+
+        self.emit('highlighted-boxes', highlighted)
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobBoxesRefresher)
+
+
+class JobFactoryBoxesRefresher(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "BoxesRefresher")
+        self.__main_win = main_win
+
+    def make(self, page, search):
+        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
+        job.connect('highlighted-boxes',
+                    lambda job, boxes:
+                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                                     boxes))
+        return job
+
+
 class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1414,7 +1465,7 @@ class ActionRebuildPage(SimpleAction):
 
 class ActionRefreshBoxes(SimpleAction):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Refresh curren page boxes")
+        SimpleAction.__init__(self, "Refresh current page boxes")
         self.__main_win = main_window
 
     def do(self):
@@ -2364,6 +2415,7 @@ class MainWindow(object):
         ]
 
         self.job_factories = {
+            'boxes_refresher': JobFactoryBoxesRefresher(self),
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'export_previewer': JobFactoryExportPreviewer(self),
@@ -2923,7 +2975,6 @@ class MainWindow(object):
     def on_img_building_result_pixbuf(self, builder, factor, original_width,
                                       pixbuf, boxes):
         self.img['boxes']['all'] = boxes
-        self.__reload_boxes()
 
         self.img['factor'] = factor
         self.img['pixbuf'] = pixbuf
@@ -2931,6 +2982,8 @@ class MainWindow(object):
 
         self.img['image'].set_from_pixbuf(pixbuf)
         self.set_mouse_cursor("Normal")
+
+        self.refresh_boxes()
 
     def on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
@@ -3331,18 +3384,19 @@ class MainWindow(object):
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)
 
-    def __reload_boxes(self):
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
-        self.img['boxes']['highlighted'] = self.page.get_boxes(search)
+    def on_highlighted_boxes(self, highlighted):
+        self.img['boxes']['highlighted'] = highlighted
         if self.show_all_boxes.get_active():
             self.img['boxes']['visible'] = self.img['boxes']['all']
         else:
             self.img['boxes']['visible'] = []
+        self.img['image'].queue_draw()
 
     def refresh_boxes(self):
-        # TODO(Jflesch): Should be done in a job
-        self.__reload_boxes()
-        self.img['image'].queue_draw()
+        self.schedulers['main'].cancel_all(self.job_factories['boxes_refresher'])
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        job = self.job_factories['boxes_refresher'].make(self.page, search)
+        self.schedulers['main'].schedule(job)
 
     def show_page(self, page):
         logging.info("Showing page %s" % page)

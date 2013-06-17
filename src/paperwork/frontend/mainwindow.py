@@ -3171,7 +3171,7 @@ class MainWindow(object):
         self.show_page(page)
 
         if job.doc.nb_pages <= 1:
-            if job.doc == self.doc:
+            if job.doc == self.doc[1]:
                 self.refresh_docs([self.doc])
             else:
                 idx = self.lists['matches']['doclist'].index(job.doc)

@@ -2993,29 +2993,38 @@ class MainWindow(object):
     def on_search_result_cb(self, documents, suggestions):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
 
+
         logger.debug("Got %d suggestions" % len(suggestions))
-        self.lists['suggestions']['model'].clear()
-        for suggestion in suggestions:
-            self.lists['suggestions']['model'].append([suggestion])
+        self.lists['suggestions']['gui'].freeze_child_notify()
+        try:
+            self.lists['suggestions']['model'].clear()
+            for suggestion in suggestions:
+                self.lists['suggestions']['model'].append([suggestion])
+        finally:
+            self.lists['suggestions']['gui'].thaw_child_notify()
 
         logger.debug("Got %d documents" % len(documents))
-        self.lists['matches']['model'].clear()
-        active_idx = -1
-        idx = 0
-        for doc in documents:
-            if doc == self.doc[1]:
-                active_idx = idx
-            idx += 1
-            self.lists['matches']['model'].append(
-                self.__get_doc_model_line(doc))
+        self.lists['matches']['gui'].freeze_child_notify()
+        try:
+            self.lists['matches']['model'].clear()
+            active_idx = -1
+            idx = 0
+            for doc in documents:
+                if doc == self.doc[1]:
+                    active_idx = idx
+                idx += 1
+                self.lists['matches']['model'].append(
+                    self.__get_doc_model_line(doc))
 
-        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
-            active_idx = 0
+            if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
+                active_idx = 0
 
-        self.lists['matches']['doclist'] = documents
-        self.lists['matches']['active_idx'] = active_idx
+            self.lists['matches']['doclist'] = documents
+            self.lists['matches']['active_idx'] = active_idx
 
-        self.__select_doc(active_idx)
+            self.__select_doc(active_idx)
+        finally:
+            self.lists['matches']['gui'].thaw_child_notify()
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
         job = self.job_factories['doc_thumbnailer'].make(documents)

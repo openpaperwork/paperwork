@@ -104,6 +104,7 @@ class JobIndexLoader(Job):
     def __init__(self, factory, job_id, config):
         Job.__init__(self, factory, job_id)
         self.__config = config
+        self.started = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -127,7 +128,9 @@ class JobIndexLoader(Job):
 
     def do(self):
         self.can_run = True
-        self.emit('index-loading-start')
+        if not self.started:
+            self.emit('index-loading-start')
+            self.started = True
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.emit('index-loading-end', docsearch)
@@ -626,8 +629,6 @@ class JobDocThumbnailer(Job):
             self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
 
             self.__current_idx = idx
-            if not self.can_run:
-                return
 
         self.emit('doc-thumbnailing-end')
 
@@ -2350,7 +2351,6 @@ class MainWindow(object):
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
-        self.__last_highlight_update = time.time()
 
         img = PIL.Image.new("RGB", (
             BasicPage.DEFAULT_THUMB_WIDTH,
@@ -2993,29 +2993,38 @@ class MainWindow(object):
     def on_search_result_cb(self, documents, suggestions):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
 
+
         logger.debug("Got %d suggestions" % len(suggestions))
-        self.lists['suggestions']['model'].clear()
-        for suggestion in suggestions:
-            self.lists['suggestions']['model'].append([suggestion])
+        self.lists['suggestions']['gui'].freeze_child_notify()
+        try:
+            self.lists['suggestions']['model'].clear()
+            for suggestion in suggestions:
+                self.lists['suggestions']['model'].append([suggestion])
+        finally:
+            self.lists['suggestions']['gui'].thaw_child_notify()
 
         logger.debug("Got %d documents" % len(documents))
-        self.lists['matches']['model'].clear()
-        active_idx = -1
-        idx = 0
-        for doc in documents:
-            if doc == self.doc[1]:
-                active_idx = idx
-            idx += 1
-            self.lists['matches']['model'].append(
-                self.__get_doc_model_line(doc))
+        self.lists['matches']['gui'].freeze_child_notify()
+        try:
+            self.lists['matches']['model'].clear()
+            active_idx = -1
+            idx = 0
+            for doc in documents:
+                if doc == self.doc[1]:
+                    active_idx = idx
+                idx += 1
+                self.lists['matches']['model'].append(
+                    self.__get_doc_model_line(doc))
 
-        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
-            active_idx = 0
+            if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
+                active_idx = 0
 
-        self.lists['matches']['doclist'] = documents
-        self.lists['matches']['active_idx'] = active_idx
+            self.lists['matches']['doclist'] = documents
+            self.lists['matches']['active_idx'] = active_idx
 
-        self.__select_doc(active_idx)
+            self.__select_doc(active_idx)
+        finally:
+            self.lists['matches']['gui'].thaw_child_notify()
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
         job = self.job_factories['doc_thumbnailer'].make(documents)
@@ -3162,11 +3171,14 @@ class MainWindow(object):
         self.show_page(page)
 
         if job.doc.nb_pages <= 1:
-            if job.doc == self.doc:
+            if job.doc == self.doc[1]:
                 self.refresh_docs([self.doc])
             else:
-                idx = self.lists['matches']['doclist'].index(job.doc)
-                self.refresh_docs([(idx, job.doc)])
+                try:
+                    idx = self.lists['matches']['doclist'].index(job.doc)
+                    self.refresh_docs([(idx, job.doc)])
+                except ValueError:
+                    self.refresh_doc_list()
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s" % error)
@@ -3405,7 +3417,8 @@ class MainWindow(object):
         """
         doc_list = self.lists['matches']['doclist']
 
-        self.__insert_new_doc()
+        if self.__insert_new_doc():
+            docs = [(pos+1, doc) for (pos, doc) in docs]
 
         active_idx = -1
         for (doc_idx, doc) in docs:

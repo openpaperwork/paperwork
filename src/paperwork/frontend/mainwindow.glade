@@ -802,8 +802,6 @@
                                   <object class="GtkCellRendererPixbuf" id="cellrendererthumb"/>
                                   <attributes>
                                     <attribute name="pixbuf">2</attribute>
-                                    <attribute name="stock-id">3</attribute>
-                                    <attribute name="stock-size">4</attribute>
                                   </attributes>
                                 </child>
                                 <child>

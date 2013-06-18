@@ -3171,11 +3171,14 @@ class MainWindow(object):
         self.show_page(page)
 
         if job.doc.nb_pages <= 1:
-            if job.doc == self.doc:
+            if job.doc == self.doc[1]:
                 self.refresh_docs([self.doc])
             else:
-                idx = self.lists['matches']['doclist'].index(job.doc)
-                self.refresh_docs([(idx, job.doc)])
+                try:
+                    idx = self.lists['matches']['doclist'].index(job.doc)
+                    self.refresh_docs([(idx, job.doc)])
+                except ValueError:
+                    self.refresh_doc_list()
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s" % error)
@@ -3404,7 +3407,8 @@ class MainWindow(object):
         """
         doc_list = self.lists['matches']['doclist']
 
-        self.__insert_new_doc()
+        if self.__insert_new_doc():
+            docs = [(pos+1, doc) for (pos, doc) in docs]
 
         active_idx = -1
         for (doc_idx, doc) in docs:

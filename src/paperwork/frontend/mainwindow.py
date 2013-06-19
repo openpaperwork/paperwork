@@ -2428,7 +2428,9 @@ class ProgressiveList(object):
         if len(selected) <= 0:
             selected = -1
         else:
-            selected = max([x.get_indices()[0] for x in selected])
+            selected = min([x.get_indices()[0] for x in selected])
+
+        (first_visible, last_visible) = self.widget_gui.get_visible_range()
 
         self.widget_gui.freeze_child_notify()
         self.widget_gui.set_model(None)
@@ -2439,7 +2441,11 @@ class ProgressiveList(object):
             self.widget_gui.freeze_child_notify()
             self.widget_gui.set_model(self.model)
 
-        self.select_idx(selected)
+        path = Gtk.TreePath(selected)
+        self.widget_gui.select_path(path)
+        self.widget_gui.set_cursor(path, None, False)
+
+        GObject.idle_add(self.widget_gui.scroll_to_path, last_visible, False, 0.0, 0.0)
 
     def _display_up_to(self, nb_elements):
         for line_idx in xrange(self.nb_displayed, nb_elements):

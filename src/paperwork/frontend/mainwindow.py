@@ -2341,7 +2341,40 @@ class ActionEditPage(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
-class ProgressiveListDisplay(object):
+class JobProgressiveList(Job):
+    can_stop = True
+    priority = 500
+
+    def __init__(self, factory, id, progressive_list):
+        Job.__init__(self, factory, id)
+        self.__progressive_list = progressive_list
+        self.can_run = True
+
+    def do(self):
+        self._wait(0.5)
+        if not self.can_run:
+            return
+        GObject.idle_add(self.__progressive_list.display_extra)
+
+    def stop(self, will_resume=True):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobProgressiveList)
+
+
+class JobFactoryProgressiveList(JobFactory):
+    def __init__(self, progressive_list):
+        JobFactory.__init__(self, "Progressive List")
+        self.progressive_list = progressive_list
+
+    def make(self):
+        return JobProgressiveList(self, next(self.id_generator),
+                                  self.progressive_list)
+
+
+class ProgressiveList(object):
     """
     We use GtkIconView to display documents and pages. However this widget
     doesn't like having too many elements to display: it keeps redrawing the
@@ -2353,16 +2386,29 @@ class ProgressiveListDisplay(object):
     """
 
     NB_EL_DISPLAYED_INITIALLY = 50
-    NB_KEEP_SCROLLBAR_ABOVE = 0.75
+    NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN = 0.85
+    NB_EL_DISPLAYED_ADDITIONNAL = 10
 
-    def __init__(self,
+    def __init__(self, name,
                  main_win,
                  gui, scrollbars, model):
+        self.name = name
         self.__main_win = main_win
         self.widget_gui = gui
+
         self.widget_scrollbars = scrollbars
+        self._vadjustment = scrollbars.get_vadjustment()
+
         self.model = model
         self.model_content = []
+
+        self.nb_displayed = 0
+
+        self._vadjustment.connect(
+            "value-changed",
+            lambda widget: GObject.idle_add(self.__on_scrollbar_moved))
+
+        self.job_factory = JobFactoryProgressiveList(self)
 
     def set_model(self, model_content):
         self.model_content = model_content
@@ -2371,19 +2417,65 @@ class ProgressiveListDisplay(object):
         self.widget_gui.set_model(None)
         try:
             self.model.clear()
-
-            for line in model_content:
-                self.model.append(line)
+            self.nb_displayed = 0
+            self._display_up_to(self.NB_EL_DISPLAYED_INITIALLY)
         finally:
             self.widget_gui.freeze_child_notify()
             self.widget_gui.set_model(self.model)
 
+    def display_extra(self):
+        selected = self.widget_gui.get_selected_items()
+        if len(selected) <= 0:
+            selected = -1
+        else:
+            selected = max([x.get_indices()[0] for x in selected])
+
+        self.widget_gui.freeze_child_notify()
+        self.widget_gui.set_model(None)
+        try:
+            self._display_up_to(self.nb_displayed +
+                                self.NB_EL_DISPLAYED_ADDITIONNAL)
+        finally:
+            self.widget_gui.freeze_child_notify()
+            self.widget_gui.set_model(self.model)
+
+        self.select_idx(selected)
+
+    def _display_up_to(self, nb_elements):
+        for line_idx in xrange(self.nb_displayed, nb_elements):
+            if (self.nb_displayed >= nb_elements
+                    or line_idx >= len(self.model_content)):
+                break
+            self.model.append(self.model_content[line_idx])
+            self.nb_displayed += 1
+
+        logger.info("List '%s' : %d elements displayed'"
+                    % (self.name, self.nb_displayed))
+
+    def __on_scrollbar_moved(self):
+        if self.nb_displayed >= len(self.model_content):
+            return
+
+        lower = self._vadjustment.get_lower()
+        upper = self._vadjustment.get_upper()
+        val = self._vadjustment.get_value()
+        proportion = (val - lower) / (upper - lower)
+
+        if proportion > self.NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN:
+            self.__main_win.schedulers['main'].cancel_all(self.job_factory)
+            job = self.job_factory.make()
+            self.__main_win.schedulers['main'].schedule(job)
+
     def set_model_value(self, line_idx, column_idx, value):
-        line_iter = self.model.get_iter(line_idx)
-        self.model.set_value(line_iter, column_idx, value)
+        self.model_content[line_idx][column_idx] = value
+        if line_idx < self.nb_displayed:
+            line_iter = self.model.get_iter(line_idx)
+            self.model.set_value(line_iter, column_idx, value)
 
     def set_model_line(self, line_idx, model_line):
-        self.model[line_idx] = model_line
+        self.model_content[line_idx] = model_line
+        if line_idx < self.nb_displayed:
+            self.model[line_idx] = model_line
 
     def select_idx(self, idx=-1):
         if idx >= 0:
@@ -2392,11 +2484,14 @@ class ProgressiveListDisplay(object):
             self.__main_win.actions['open_doc'][1].enabled = False
 
             self.widget_gui.unselect_all()
-            self.widget_gui.select_path(Gtk.TreePath(idx))
+
+            path = Gtk.TreePath(idx)
+            self.widget_gui.select_path(path)
+            self.widget_gui.set_cursor(path, None, False)
 
             self.__main_win.actions['open_doc'][1].enabled = True
 
-            # HACK(Jflesch): The Gtk documentation says that scroll_to_cell()
+            # HACK(Jflesch): The Gtk documentation says that scroll_to_path()
             # should do nothing if the target cell is already visible (which
             # is the desired behavior here). Except we just emptied the
             # document list model and remade it from scratch. For some reason,
@@ -2404,7 +2499,6 @@ class ProgressiveListDisplay(object):
             # not visible and move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything
             # has been displayed
-            path = Gtk.TreePath(idx)
             GObject.idle_add(self.widget_gui.scroll_to_path,
                              path, False, 0.0, 0.0)
         else:
@@ -2462,16 +2556,18 @@ class MainWindow(object):
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
             'doclist': [],
-            'matches': ProgressiveListDisplay(
+            'matches': ProgressiveList(
+                name='documents',
                 main_win=self,
                 gui=widget_tree.get_object("iconviewMatch"),
                 scrollbars=widget_tree.get_object("scrolledwindowMatch"),
                 model=widget_tree.get_object("liststoreMatch"),
             ),
-            'pages': ProgressiveListDisplay(
+            'pages': ProgressiveList(
+                name='pages',
                 main_win=self,
                 gui=widget_tree.get_object("iconviewPage"),
-                scrollbars=widget_tree.get_object("scrolledwindowPages"),
+                scrollbars=widget_tree.get_object("scrolledwindowPage"),
                 model=widget_tree.get_object("liststorePage"),
             ),
             'labels': {
@@ -2609,8 +2705,10 @@ class MainWindow(object):
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
+            'match_list': self.lists['matches'].job_factory,
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
+            'page_list': self.lists['pages'].job_factory,
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'progress_updater': JobFactoryProgressUpdater(
                 self.status['progress']),

@@ -1420,7 +1420,7 @@ class ActionOpenSelectedDocument(SimpleAction):
             logger.info("No document selected. Can't open")
             return
         doc_idx = selection_path[0].get_indices()[0]
-        doc = self.__main_win.lists['matches']['model'][doc_idx][1]
+        doc = self.__main_win.lists['matches']['model'][doc_idx][2]
 
         logger.info("Showing doc %s" % doc)
         self.__main_win.show_doc(doc_idx, doc)
@@ -2425,37 +2425,51 @@ class ProgressiveList(object):
             self.widget_gui.set_model(self.model)
 
     def display_extra(self):
-        selected = self.widget_gui.get_selected_items()
-        if len(selected) <= 0:
-            selected = -1
-        else:
-            selected = min([x.get_indices()[0] for x in selected])
-
-        (first_visible, last_visible) = self.widget_gui.get_visible_range()
-
-        self.widget_gui.freeze_child_notify()
-        self.widget_gui.set_model(None)
+        self.__main_win.actions['open_doc'][1].enabled = False
         try:
-            self._display_up_to(self.nb_displayed +
-                                self.NB_EL_DISPLAYED_ADDITIONNAL)
-        finally:
+            selected = self.widget_gui.get_selected_items()
+            if len(selected) <= 0:
+                selected = -1
+            else:
+                selected = min([x.get_indices()[0] for x in selected])
+
+            (first_visible, last_visible) = self.widget_gui.get_visible_range()
+
             self.widget_gui.freeze_child_notify()
-            self.widget_gui.set_model(self.model)
+            self.widget_gui.set_model(None)
+            try:
+                self._display_up_to(self.nb_displayed +
+                                    self.NB_EL_DISPLAYED_ADDITIONNAL)
+            finally:
+                self.widget_gui.freeze_child_notify()
+                self.widget_gui.set_model(self.model)
 
-        if (selected > 0):
-            path = Gtk.TreePath(selected)
-            self.widget_gui.select_path(path)
-            self.widget_gui.set_cursor(path, None, False)
+            if (selected > 0):
+                path = Gtk.TreePath(selected)
+                self.widget_gui.select_path(path)
+                self.widget_gui.set_cursor(path, None, False)
 
-        GObject.idle_add(self.widget_gui.scroll_to_path, last_visible, False, 0.0, 0.0)
+            GObject.idle_add(self.widget_gui.scroll_to_path, last_visible, False, 0.0, 0.0)
+        finally:
+            self.__main_win.actions['open_doc'][1].enabled = True
 
     def _display_up_to(self, nb_elements):
+        l_model = len(self.model)
+        if l_model > 0:
+            doc = self.model[-1][2]
+            if doc is None:
+                line_iter = self.model.get_iter(l_model-1)
+                self.model.remove(line_iter)
+
         for line_idx in xrange(self.nb_displayed, nb_elements):
             if (self.nb_displayed >= nb_elements
                     or line_idx >= len(self.model_content)):
                 break
             self.model.append(self.model_content[line_idx])
             self.nb_displayed += 1
+
+        if nb_elements < len(self.model_content):
+            self.model.append([_("Loading ..."), None, None])
 
         logger.info("List '%s' : %d elements displayed'"
                     % (self.name, self.nb_displayed))
@@ -2490,14 +2504,14 @@ class ProgressiveList(object):
             # we are going to select the current page in the list
             # except we don't want to be called again because of it
             self.__main_win.actions['open_doc'][1].enabled = False
+            try:
+                self.widget_gui.unselect_all()
 
-            self.widget_gui.unselect_all()
-
-            path = Gtk.TreePath(idx)
-            self.widget_gui.select_path(path)
-            self.widget_gui.set_cursor(path, None, False)
-
-            self.__main_win.actions['open_doc'][1].enabled = True
+                path = Gtk.TreePath(idx)
+                self.widget_gui.select_path(path)
+                self.widget_gui.set_cursor(path, None, False)
+            finally:
+                self.__main_win.actions['open_doc'][1].enabled = True
 
             # HACK(Jflesch): The Gtk documentation says that scroll_to_path()
             # should do nothing if the target cell is already visible (which
@@ -3224,7 +3238,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        self.lists['pages'].set_model_value(page_idx, 0, thumbnail)
+        self.lists['pages'].set_model_value(page_idx, 1, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
@@ -3236,7 +3250,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
     def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
-        self.lists['matches'].set_model_value(doc_idx, 2, thumbnail)
+        self.lists['matches'].set_model_value(doc_idx, 1, thumbnail)
         self.set_progression(src, ((float)(doc_idx+1) /
                                    len(self.lists['doclist'])),
                              _("Loading thumbnails ..."))
@@ -3531,10 +3545,8 @@ class MainWindow(object):
             thumbnail = None
         return ([
             doc_txt,
-            doc,
             thumbnail,
-            None,
-            Gtk.IconSize.DIALOG,
+            doc,
         ])
 
     def __insert_new_doc(self):
@@ -3607,10 +3619,8 @@ class MainWindow(object):
 
         model = [
             [
-                self.default_thumbnail,
-                None,
-                Gtk.IconSize.DIALOG,
                 _('Page %d') % (page.page_nb + 1),
+                self.default_thumbnail,
                 page.page_nb
             ] for page in self.doc[1].pages
         ]

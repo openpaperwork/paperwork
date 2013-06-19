@@ -79,26 +79,18 @@
     <columns>
       <!-- column-name Matching -->
       <column type="gchararray"/>
-      <!-- column-name doc -->
-      <column type="PyObject"/>
       <!-- column-name thumb -->
       <column type="GdkPixbuf"/>
-      <!-- column-name stock_icon -->
-      <column type="gchararray"/>
-      <!-- column-name stock_size -->
-      <column type="GtkIconSize"/>
+      <!-- column-name doc -->
+      <column type="PyObject"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststorePage">
     <columns>
-      <!-- column-name thumb -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name stock_icon -->
-      <column type="gchararray"/>
-      <!-- column-name stock_size -->
-      <column type="GtkIconSize"/>
       <!-- column-name txt -->
       <column type="gchararray"/>
+      <!-- column-name thumb -->
+      <column type="GdkPixbuf"/>
       <!-- column-name page_nb -->
       <column type="gint"/>
     </columns>
@@ -802,7 +794,7 @@
                                 <child>
                                   <object class="GtkCellRendererPixbuf" id="cellrendererthumb"/>
                                   <attributes>
-                                    <attribute name="pixbuf">2</attribute>
+                                    <attribute name="pixbuf">1</attribute>
                                   </attributes>
                                 </child>
                                 <child>
@@ -851,15 +843,13 @@
                                     <child>
                                       <object class="GtkCellRendererPixbuf" id="cellrendererThumb"/>
                                       <attributes>
-                                        <attribute name="pixbuf">0</attribute>
-                                        <attribute name="stock-id">1</attribute>
-                                        <attribute name="stock-size">2</attribute>
+                                        <attribute name="pixbuf">1</attribute>
                                       </attributes>
                                     </child>
                                     <child>
                                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                       <attributes>
-                                        <attribute name="text">3</attribute>
+                                        <attribute name="text">0</attribute>
                                       </attributes>
                                     </child>
                                   </object>

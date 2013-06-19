@@ -1378,7 +1378,7 @@ class ActionNewDocument(SimpleAction):
 
         must_insert_new = False
 
-        doclist = self.__main_win.lists['matches']['doclist']
+        doclist = self.__main_win.lists['doclist']
         if (len(doclist) <= 0):
             must_insert_new = True
         else:
@@ -2341,6 +2341,89 @@ class ActionEditPage(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
+class ProgressiveListDisplay(object):
+    """
+    We use GtkIconView to display documents and pages. However this widget
+    doesn't like having too many elements to display: it keeps redrawing the
+    list when the mouse goes over it --> with 600 documents, this may be
+    quite long.
+
+    So instead, we display only X elements. When the user scroll down,
+    we add Y elements to the list, etc.
+    """
+
+    NB_EL_DISPLAYED_INITIALLY = 50
+    NB_KEEP_SCROLLBAR_ABOVE = 0.75
+
+    def __init__(self,
+                 main_win,
+                 gui, scrollbars, model):
+        self.__main_win = main_win
+        self.widget_gui = gui
+        self.widget_scrollbars = scrollbars
+        self.model = model
+        self.model_content = []
+
+    def set_model(self, model_content):
+        self.model_content = model_content
+
+        self.widget_gui.freeze_child_notify()
+        self.widget_gui.set_model(None)
+        try:
+            self.model.clear()
+
+            for line in model_content:
+                self.model.append(line)
+        finally:
+            self.widget_gui.freeze_child_notify()
+            self.widget_gui.set_model(self.model)
+
+    def set_model_value(self, line_idx, column_idx, value):
+        line_iter = self.model.get_iter(line_idx)
+        self.model.set_value(line_iter, column_idx, value)
+
+    def set_model_line(self, line_idx, model_line):
+        self.model[line_idx] = model_line
+
+    def select_idx(self, idx=-1):
+        if idx >= 0:
+            # we are going to select the current page in the list
+            # except we don't want to be called again because of it
+            self.__main_win.actions['open_doc'][1].enabled = False
+
+            self.widget_gui.unselect_all()
+            self.widget_gui.select_path(Gtk.TreePath(idx))
+
+            self.__main_win.actions['open_doc'][1].enabled = True
+
+            # HACK(Jflesch): The Gtk documentation says that scroll_to_cell()
+            # should do nothing if the target cell is already visible (which
+            # is the desired behavior here). Except we just emptied the
+            # document list model and remade it from scratch. For some reason,
+            # it seems that  Gtk will then always consider that the cell is
+            # not visible and move the scrollbar.
+            # --> we use idle_add to move the scrollbar only once everything
+            # has been displayed
+            path = Gtk.TreePath(idx)
+            GObject.idle_add(self.widget_gui.scroll_to_path,
+                             path, False, 0.0, 0.0)
+        else:
+            self.unselect()
+
+    def unselect(self):
+        widget_gui.unselect_all()
+        path = Gtk.TreePath(0)
+        GObject.idle_add(self.widget_gui.scroll_to_path,
+                         path, False, 0.0, 0.0)
+
+    def __getitem__(self, item):
+        return {
+            'gui': self.widget_gui,
+            'model': self.model_content,
+            'scrollbars': self.widget_scrollbars
+        }[item]
+
+
 class MainWindow(object):
     def __init__(self, config):
         self.schedulers = {
@@ -2378,16 +2461,19 @@ class MainWindow(object):
                 'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
-            'matches': {
-                'gui': widget_tree.get_object("iconviewMatch"),
-                'model': widget_tree.get_object("liststoreMatch"),
-                'doclist': [],
-                'active_idx': -1,
-            },
-            'pages': {
-                'gui': widget_tree.get_object("iconviewPage"),
-                'model': widget_tree.get_object("liststorePage"),
-            },
+            'doclist': [],
+            'matches': ProgressiveListDisplay(
+                main_win=self,
+                gui=widget_tree.get_object("iconviewMatch"),
+                scrollbars=widget_tree.get_object("scrolledwindowMatch"),
+                model=widget_tree.get_object("liststoreMatch"),
+            ),
+            'pages': ProgressiveListDisplay(
+                main_win=self,
+                gui=widget_tree.get_object("iconviewPage"),
+                scrollbars=widget_tree.get_object("scrolledwindowPages"),
+                model=widget_tree.get_object("liststorePage"),
+            ),
             'labels': {
                 'gui': widget_tree.get_object("treeviewLabel"),
                 'model': widget_tree.get_object("liststoreLabel"),
@@ -3006,29 +3092,22 @@ class MainWindow(object):
             self.lists['suggestions']['gui'].thaw_child_notify()
 
         logger.debug("Got %d documents" % len(documents))
-        self.lists['matches']['gui'].freeze_child_notify()
-        self.lists['matches']['gui'].set_model(None)
-        try:
-            self.lists['matches']['model'].clear()
-            active_idx = -1
-            idx = 0
-            for doc in documents:
-                if doc == self.doc[1]:
-                    active_idx = idx
-                idx += 1
-                self.lists['matches']['model'].append(
-                    self.__get_doc_model_line(doc))
 
-            if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
-                active_idx = 0
+        active_idx = -1
+        idx = 0
+        for doc in documents:
+            if doc == self.doc[1]:
+                active_idx = idx
+                break
+            idx += 1
 
-            self.lists['matches']['doclist'] = documents
-            self.lists['matches']['active_idx'] = active_idx
+        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
+            active_idx = 0
 
-            self.__select_doc(active_idx)
-        finally:
-            self.lists['matches']['gui'].set_model(self.lists['matches']['model'])
-            self.lists['matches']['gui'].thaw_child_notify()
+        self.lists['doclist'] = documents
+        self.lists['matches'].set_model([self.__get_doc_model_line(doc)
+                                         for doc in documents])
+        self.lists['matches'].select_idx(active_idx)
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
         job = self.job_factories['doc_thumbnailer'].make(documents)
@@ -3039,8 +3118,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        line_iter = self.lists['pages']['model'].get_iter(page_idx)
-        self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
+        self.lists['pages'].set_model_value(page_idx, 0, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
@@ -3052,12 +3130,10 @@ class MainWindow(object):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
     def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
-        line_iter = self.lists['matches']['model'].get_iter(doc_idx)
-        self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
+        self.lists['matches'].set_model_value(doc_idx, 2, thumbnail)
         self.set_progression(src, ((float)(doc_idx+1) /
-                                   len(self.lists['matches']['doclist'])),
+                                   len(self.lists['doclist'])),
                              _("Loading thumbnails ..."))
-        active_doc_idx = self.lists['matches']['active_idx']
 
     def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3179,7 +3255,7 @@ class MainWindow(object):
                 self.refresh_docs([self.doc])
             else:
                 try:
-                    idx = self.lists['matches']['doclist'].index(job.doc)
+                    idx = self.lists['doclist'].index(job.doc)
                     self.refresh_docs([(idx, job.doc)])
                 except ValueError:
                     self.refresh_doc_list()
@@ -3355,39 +3431,11 @@ class MainWindow(object):
             Gtk.IconSize.DIALOG,
         ])
 
-    def __select_doc(self, doc_idx):
-        if doc_idx >= 0:
-            # we are going to select the current page in the list
-            # except we don't want to be called again because of it
-            self.actions['open_doc'][1].enabled = False
-
-            self.lists['matches']['gui'].unselect_all()
-            self.lists['matches']['gui'].select_path(Gtk.TreePath(doc_idx))
-
-            self.actions['open_doc'][1].enabled = True
-
-            # HACK(Jflesch): The Gtk documentation says that scroll_to_cell()
-            # should do nothing if the target cell is already visible (which
-            # is the desired behavior here). Except we just emptied the
-            # document list model and remade it from scratch. For some reason,
-            # it seems that  Gtk will then always consider that the cell is
-            # not visible and move the scrollbar.
-            # --> we use idle_add to move the scrollbar only once everything
-            # has been displayed
-            path = Gtk.TreePath(doc_idx)
-            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             path, False, 0.0, 0.0)
-        else:
-            self.lists['matches']['gui'].unselect_all()
-            path = Gtk.TreePath(0)
-            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             path, False, 0.0, 0.0)
-
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
 
-        doc_list = self.lists['matches']['doclist']
+        doc_list = self.lists['doclist']
 
         # When a scan is done, we try to refresh only the current document.
         # However, the current document may be "New document". In which case
@@ -3409,7 +3457,7 @@ class MainWindow(object):
         Arguments:
             docs --- Array of Doc
         """
-        doc_list = self.lists['matches']['doclist']
+        doc_list = self.lists['doclist']
 
         if self.__insert_new_doc():
             docs = [(pos+1, doc) for (pos, doc) in docs]
@@ -3423,10 +3471,10 @@ class MainWindow(object):
             if not redo_thumbnails:
                 current_model = self.lists['matches']['model'][doc_idx]
                 doc_line[2] = current_model[2]
-            self.lists['matches']['model'][doc_idx] = doc_line
+            self.lists['matches'].set_model_line = doc_line
 
         if active_idx >= 0:
-            self.__select_doc(active_idx)
+            self.lists['matches'].select_idx(active_idx)
 
         if redo_thumbnails:
             job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -3450,15 +3498,18 @@ class MainWindow(object):
         Warning: Will remove the thumbnails on all the pages
         """
         self.schedulers['main'].cancel_all(self.job_factories['page_thumbnailer'])
-        self.lists['pages']['model'].clear()
-        for page in self.doc[1].pages:
-            self.lists['pages']['model'].append([
+
+        model = [
+            [
                 self.default_thumbnail,
                 None,
                 Gtk.IconSize.DIALOG,
                 _('Page %d') % (page.page_nb + 1),
                 page.page_nb
-            ])
+            ] for page in self.doc[1].pages
+        ]
+        self.lists['pages'].set_model(model)
+
         self.indicators['total_pages'].set_text(
             _("/ %d") % (self.doc[1].nb_pages))
         for widget in self.doc_edit_widgets:
@@ -3661,7 +3712,7 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
-        doc = (self.lists['matches']['doclist'].index(obj.doc), obj.doc)
+        doc = (self.lists['doclist'].index(obj.doc), obj.doc)
         GObject.idle_add(self.refresh_docs, [doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,

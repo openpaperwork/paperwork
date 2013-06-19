@@ -2385,9 +2385,10 @@ class ProgressiveList(object):
     we add Y elements to the list, etc.
     """
 
-    NB_EL_DISPLAYED_INITIALLY = 50
+    NB_EL_DISPLAYED_INITIALLY = 100
     NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN = 0.85
-    NB_EL_DISPLAYED_ADDITIONNAL = 10
+    NB_EL_DISPLAYED_ADDITIONNAL = int((1.0 - NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN)
+                                      * NB_EL_DISPLAYED_INITIALLY)
 
     def __init__(self, name,
                  main_win,
@@ -2441,9 +2442,10 @@ class ProgressiveList(object):
             self.widget_gui.freeze_child_notify()
             self.widget_gui.set_model(self.model)
 
-        path = Gtk.TreePath(selected)
-        self.widget_gui.select_path(path)
-        self.widget_gui.set_cursor(path, None, False)
+        if (selected > 0):
+            path = Gtk.TreePath(selected)
+            self.widget_gui.select_path(path)
+            self.widget_gui.set_cursor(path, None, False)
 
         GObject.idle_add(self.widget_gui.scroll_to_path, last_visible, False, 0.0, 0.0)
 
@@ -2511,7 +2513,7 @@ class ProgressiveList(object):
             self.unselect()
 
     def unselect(self):
-        widget_gui.unselect_all()
+        self.widget_gui.unselect_all()
         path = Gtk.TreePath(0)
         GObject.idle_add(self.widget_gui.scroll_to_path,
                          path, False, 0.0, 0.0)

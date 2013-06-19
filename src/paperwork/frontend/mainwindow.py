@@ -2370,9 +2370,12 @@ class MainWindow(object):
         self.doc = (0, ImgDoc(self.__config.workdir))
         self.page = DummyPage(self.doc[1])
 
+        search_completion = Gtk.EntryCompletion()
+
         self.lists = {
             'suggestions': {
                 'gui': widget_tree.get_object("entrySearch"),
+                'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
             'matches': {
@@ -2395,7 +2398,6 @@ class MainWindow(object):
             },
         }
 
-        search_completion = Gtk.EntryCompletion()
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
         search_completion.set_match_func(lambda a, b, c, d: True, None)
@@ -3005,6 +3007,7 @@ class MainWindow(object):
 
         logger.debug("Got %d documents" % len(documents))
         self.lists['matches']['gui'].freeze_child_notify()
+        self.lists['matches']['gui'].set_model(None)
         try:
             self.lists['matches']['model'].clear()
             active_idx = -1
@@ -3024,6 +3027,7 @@ class MainWindow(object):
 
             self.__select_doc(active_idx)
         finally:
+            self.lists['matches']['gui'].set_model(self.lists['matches']['model'])
             self.lists['matches']['gui'].thaw_child_notify()
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]

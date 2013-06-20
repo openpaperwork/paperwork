@@ -788,6 +788,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="shadow_type">in</property>
+                            <property name="kinetic_scrolling">False</property>
                             <child>
                               <object class="GtkIconView" id="iconviewMatch">
                                 <property name="width_request">100</property>
@@ -802,8 +803,6 @@
                                   <object class="GtkCellRendererPixbuf" id="cellrendererthumb"/>
                                   <attributes>
                                     <attribute name="pixbuf">2</attribute>
-                                    <attribute name="stock-id">3</attribute>
-                                    <attribute name="stock-size">4</attribute>
                                   </attributes>
                                 </child>
                                 <child>

@@ -1133,10 +1133,17 @@ class JobSingleScan(Job):
                 logger.error("No scanner found !")
                 self.emit('single-scan-no-scanner-found')
                 raise
-            self.doc.scan_single_page(scan_src, scanner.options['resolution'].value,
-                                        self.__config.scanner_calibration,
-                                        self.__config.langs,
-                                        self.__scan_progress_cb)
+            try:
+                resolution = scanner.options['resolution'].value
+            except pyinsane.rawapi.SaneException, exc:
+                resolution = self.__config.scanner_resolution
+                logger.warning("Failed to read the resolution set on"
+                               " the scanner: %s. Assuming %d"
+                               % str(exc), resolution)
+            self.doc.scan_single_page(scan_src, resolution,
+                                      self.__config.scanner_calibration,
+                                      self.__config.langs,
+                                      self.__scan_progress_cb)
             page = self.doc.pages[self.doc.nb_pages - 1]
             self.__docsearch.index_page(page)
             self.emit('single-scan-done', page)
@@ -2370,9 +2377,12 @@ class MainWindow(object):
         self.doc = (0, ImgDoc(self.__config.workdir))
         self.page = DummyPage(self.doc[1])
 
+        search_completion = Gtk.EntryCompletion()
+
         self.lists = {
             'suggestions': {
                 'gui': widget_tree.get_object("entrySearch"),
+                'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
             'matches': {
@@ -2395,7 +2405,6 @@ class MainWindow(object):
             },
         }
 
-        search_completion = Gtk.EntryCompletion()
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
         search_completion.set_match_func(lambda a, b, c, d: True, None)
@@ -3005,6 +3014,7 @@ class MainWindow(object):
 
         logger.debug("Got %d documents" % len(documents))
         self.lists['matches']['gui'].freeze_child_notify()
+        self.lists['matches']['gui'].set_model(None)
         try:
             self.lists['matches']['model'].clear()
             active_idx = -1
@@ -3024,6 +3034,7 @@ class MainWindow(object):
 
             self.__select_doc(active_idx)
         finally:
+            self.lists['matches']['gui'].set_model(self.lists['matches']['model'])
             self.lists['matches']['gui'].thaw_child_notify()
 
         documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]

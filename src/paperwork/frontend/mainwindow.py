@@ -1139,7 +1139,7 @@ class JobSingleScan(Job):
                 resolution = self.__config.scanner_resolution
                 logger.warning("Failed to read the resolution set on"
                                " the scanner: %s. Assuming %d"
-                               % str(exc), resolution)
+                               % (str(exc), resolution))
             self.doc.scan_single_page(scan_src, resolution,
                                       self.__config.scanner_calibration,
                                       self.__config.langs,

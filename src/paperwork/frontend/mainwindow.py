@@ -1133,10 +1133,17 @@ class JobSingleScan(Job):
                 logger.error("No scanner found !")
                 self.emit('single-scan-no-scanner-found')
                 raise
-            self.doc.scan_single_page(scan_src, scanner.options['resolution'].value,
-                                        self.__config.scanner_calibration,
-                                        self.__config.langs,
-                                        self.__scan_progress_cb)
+            try:
+                resolution = scanner.options['resolution'].value
+            except pyinsane.rawapi.SaneException, exc:
+                resolution = self.__config.scanner_resolution
+                logger.warning("Failed to read the resolution set on"
+                               " the scanner: %s. Assuming %d"
+                               % (str(exc), resolution))
+            self.doc.scan_single_page(scan_src, resolution,
+                                      self.__config.scanner_calibration,
+                                      self.__config.langs,
+                                      self.__scan_progress_cb)
             page = self.doc.pages[self.doc.nb_pages - 1]
             self.__docsearch.index_page(page)
             self.emit('single-scan-done', page)

@@ -189,6 +189,7 @@ class JobDocExaminer(Job):
         self.__config = config
         self.docsearch = docsearch
         self.done = False
+        self.started = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -215,7 +216,9 @@ class JobDocExaminer(Job):
 
         self.can_run = True
 
-        self.emit('doc-examination-start')
+        if not self.started:
+            self.emit('doc-examination-start')
+            self.started = True
         self.new_docs = set()  # documents
         self.docs_changed = set()  # documents
         self.docs_missing = set()  # document ids
@@ -226,14 +229,15 @@ class JobDocExaminer(Job):
                 self.__on_doc_changed,
                 self.__on_doc_missing,
                 self.__progress_cb)
-        except StopIteration:
-            logger.info("Document examination interrupted")
-        finally:
             self.emit('doc-examination-end')
             self.done = True
+        except StopIteration:
+            logger.info("Document examination interrupted")
 
     def stop(self, will_resume=False):
         self.can_run = False
+        if not will_resume:
+            self.emit('doc-examination-end')
 
     def __on_new_doc(self, doc):
         self.new_docs.add(doc)

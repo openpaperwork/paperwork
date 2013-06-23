@@ -287,17 +287,18 @@ class BasicDoc(object):
     def __get_date(self):
         try:
             split = self.__docid.split("_")[0]
-            return (int(split[0:4]),
-                    int(split[4:6]),
-                    int(split[6:8]))
+            return (datetime.datetime(
+                int(split[0:4]),
+                int(split[4:6]),
+                int(split[6:8])))
         except (IndexError, ValueError):
-            return (1985, 12, 19)
+            return (datetime.datetime())
 
     def __set_date(self, new_date):
         new_id = ("%02d%02d%02d_0000_01"
-                  % (new_date[0],
-                     new_date[1],
-                     new_date[2]))
+                  % (new_date.year,
+                     new_date.month,
+                     new_date.day))
         self.docid = new_id
 
     date = property(__get_date, __set_date)

@@ -772,7 +772,7 @@ class JobBoxesRefresher(Job):
     }
 
     can_stop = True
-    priority = 430
+    priority = 30
 
     def __init__(self, factory, id, page, search):
         Job.__init__(self, factory, id)
@@ -823,7 +823,7 @@ class JobBoxesSelecter(Job):
     }
 
     can_stop = True
-    priority = 100
+    priority = 30
 
     def __init__(self, factory, id, boxes, mouse_position, get_box_pos_func):
         Job.__init__(self, factory, id)

@@ -738,7 +738,8 @@
 * To search documents with a specific label: label:[label]
 * Only the documents with a specific keyword: "[keyword]"
 * Ignore documents containing a specific keyword: NOT [keyword]
-* Find documents with one word or another: [keyword] OR [keyword]</property>
+* Find documents with one word or another: [keyword] OR [keyword]
+* Documents with a specific date: date:YYYYMMDD or date:[YYYYMMDD to YYYYMMDD]</property>
                     <property name="invisible_char">•</property>
                     <property name="invisible_char_set">True</property>
                     <property name="primary_icon_stock">gtk-find</property>

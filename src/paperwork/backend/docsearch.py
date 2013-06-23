@@ -240,7 +240,7 @@ class DocIndexUpdater(GObject.GObject):
             content=doc.get_index_text(),
             label=doc.get_index_labels(),
             predicted_label=predicted_labels,
-            docdate=doc.date,
+            date=doc.date,
             last_read=last_mod
         )
         return True
@@ -339,7 +339,7 @@ class DocSearch(object):
                                             spelling=True, scorable=True),
                 predicted_label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                             spelling=True, scorable=True),
-                docdate=whoosh.fields.DATETIME(stored=True),
+                date=whoosh.fields.DATETIME(stored=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
     LABEL_ESTIMATOR_TEMPLATE = PassiveAggressiveClassifier(n_iter=50)
@@ -373,19 +373,23 @@ class DocSearch(object):
         self.__docs_by_id = {}  # docid --> doc
         self.label_list = []
 
+        need_index_rewrite = True
         try:
             logger.info("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
-            #check that schema in up to date
-            if str(self.index.schema) != str(self.WHOOSH_SCHEMA): #TODO : find a better way to compare schema
-                raise IndexError('Schema is not up to date')
+            # check that the schema is up-to-date
+            # We use the string representation of the schemas, because previous
+            # versions of whoosh don't always implement __eq__
+            if str(self.index.schema) == str(self.WHOOSH_SCHEMA):
+                need_index_rewrite = False
+        except whoosh.index.EmptyIndexError, exc:
+            logger.warning("Failed to open index '%s'" % self.indexdir)
+            logger.warning("Exception was: %s" % str(exc))
 
-        except (whoosh.index.EmptyIndexError, IndexError), exc:
-            logger.error("Failed to open index or bad index '%s'"
-                   % self.indexdir)
-            logger.error("Exception was: %s" % exc)
-            logger.info("Will try to create a new one")
-            self.index = whoosh.index.create_in(self.indexdir, self.WHOOSH_SCHEMA)
+        if need_index_rewrite:
+            logger.info("Creating a new index")
+            self.index = whoosh.index.create_in(self.indexdir,
+                                                self.WHOOSH_SCHEMA)
             logger.info("Index '%s' created" % self.indexdir)
 
         self.__searcher = self.index.searcher()

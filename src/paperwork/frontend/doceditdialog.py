@@ -110,22 +110,17 @@ class DocEditDialog(object):
     def refresh_text(self):
         self.text['model'].set_text(self.doc.extra_text)
 
-    def __check_date(self, date):
-        datetime.datetime(year=date[0],
-                          month=date[1],
-                          day=date[2])
-
     def set_date(self):
 
-        date = (int(self.date['year']['model'].get_value()),
-                int(self.date['month']['model'].get_value()),
-                int(self.date['day']['model'].get_value()))
+        date = datetime.datetime(
+            int(self.date['year']['model'].get_value()),
+            int(self.date['month']['model'].get_value()),
+            int(self.date['day']['model'].get_value()))
         if date == self.doc.date:
             logger.info("Date unchanged")
             return False
-        logger.info("Date changed")
 
-        self.__check_date(date)
+        logger.info("Date changed")
         self.doc.date = date
 
         self.__main_win.refresh_doc_list()

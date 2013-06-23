@@ -353,6 +353,7 @@ class DocSearch(object):
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
         self.__searcher = self.index.searcher()
+        self.check_workdir()
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
@@ -366,6 +367,12 @@ class DocSearch(object):
                 return True
         return False
 
+    def check_workdir(self):
+        """
+        Check that the current work dir (see config.PaperworkConfig) exists. If
+        not, open the settings dialog.
+        """
+        mkdir_p(self.rootdir)
 
     def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
         """

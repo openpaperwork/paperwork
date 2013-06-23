@@ -57,21 +57,6 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-def check_workdir(config):
-    """
-    Check that the current work dir (see config.PaperworkConfig) exists. If
-    not, open the settings dialog.
-    """
-    try:
-        os.stat(config.workdir)
-        return
-    except OSError, exc:
-        logger.error("Unable to stat dir '%s': %s --> mkdir"
-               % (config.workdir, exc))
-
-    os.mkdir(config.workdir, 0750)
-
-
 def check_scanner(main_win, config):
     if config.scanner_devid is not None:
         return True
@@ -1737,7 +1722,6 @@ class ActionSingleScan(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
         doc = self.__main_win.doc[1]
@@ -1757,7 +1741,6 @@ class ActionMultiScan(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
@@ -1812,8 +1795,6 @@ class ActionImport(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-
-        check_workdir(self.__config)
 
         file_uri = self.__select_file()
         if file_uri is None:
@@ -3209,12 +3190,15 @@ class MainWindow(object):
 
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        msg = _("Error while scanning: %s") % (error)
         dialog = Gtk.MessageDialog(
             parent=self.window,
             flags=flags,
             type=Gtk.MessageType.ERROR,
             buttons=Gtk.ButtonsType.OK,
-            message_format=error)
+            message_format=msg)
+        dialog.run()
+        dialog.destroy()
 
 
     def on_import_start(self, src):

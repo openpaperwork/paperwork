@@ -228,6 +228,7 @@ class DocIndexUpdater(GObject.GObject):
             doctype=doc.doctype,
             content=txt,
             label=labels,
+            date=doc.date,
             last_read=last_mod
         )
         return True
@@ -315,6 +316,7 @@ class DocSearch(object):
         content=whoosh.fields.TEXT(spelling=True),
         label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                     spelling=True, scorable=True),
+        date=whoosh.fields.DATETIME(stored=True),  # document date
         last_read=whoosh.fields.DATETIME(stored=True),
     )
 

@@ -3190,12 +3190,15 @@ class MainWindow(object):
 
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        msg = _("Error while scanning: %s") % (error)
         dialog = Gtk.MessageDialog(
             parent=self.window,
             flags=flags,
             type=Gtk.MessageType.ERROR,
             buttons=Gtk.ButtonsType.OK,
-            message_format=error)
+            message_format=msg)
+        dialog.run()
+        dialog.destroy()
 
 
     def on_import_start(self, src):

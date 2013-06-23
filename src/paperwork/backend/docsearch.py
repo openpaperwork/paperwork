@@ -402,7 +402,7 @@ class DocSearch(object):
                 whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
                  prefixlength, constantscore=True)
 
-        facets = [sorting.ScoreFacet(),sorting.FieldFacet("docdate", reverse=True)]
+        facets = [sorting.ScoreFacet(),sorting.FieldFacet("date", reverse=True)]
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
                                             schema=self.index.schema,
                                             termclass=Term),

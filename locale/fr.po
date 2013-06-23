@@ -493,8 +493,8 @@ msgstr ""
 "* Seulement les documents avec un mot-clef spécifique: \"[keyword]\"\n"
 "* Ignorer les documents contenant un mot-clef spécifique: NOT [keyword]\n"
 "* Trouver des documents avec un mot ou un autre: [keyword] OR [keyword]\n"
-"* Trouver des documents avec une date spécifique: date:YYYYMMDD or date:[YYYYMMDD to "
-" YYYYMMDD]"
+"* Trouver des documents avec une date spécifique: date:AAAAMMJJ or date:[AAAAMMJJ to "
+" AAAAMMJJ]"
 
 #: src/paperwork/frontend/mainwindow.glade.h:56
 #: src/paperwork/frontend/multiscan.glade.h:3

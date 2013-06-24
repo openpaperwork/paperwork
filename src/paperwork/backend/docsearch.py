@@ -228,6 +228,7 @@ class DocIndexUpdater(GObject.GObject):
             doctype=doc.doctype,
             content=txt,
             label=labels,
+            date=doc.date,
             last_read=last_mod
         )
         return True
@@ -309,6 +310,15 @@ class DocSearch(object):
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
     OCR_THREADS_POLLING_TIME = 0.5
+    WHOOSH_SCHEMA = whoosh.fields.Schema(
+        docid=whoosh.fields.ID(stored=True, unique=True),
+        doctype=whoosh.fields.ID(stored=True, unique=False),
+        content=whoosh.fields.TEXT(spelling=True),
+        label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                    spelling=True, scorable=True),
+        date=whoosh.fields.DATETIME(stored=True),  # document date
+        last_read=whoosh.fields.DATETIME(stored=True),
+    )
 
     def __init__(self, rootdir, callback=dummy_progress_cb):
         """
@@ -332,27 +342,29 @@ class DocSearch(object):
         self.__docs_by_id = {}  # docid --> doc
         self.label_list = []
 
+        need_index_rewrite = True
         try:
             logger.info("Opening index dir '%s' ..." % self.indexdir)
             self.index = whoosh.index.open_dir(self.indexdir)
+            # check that the schema is up-to-date
+            # We use the string representation of the schemas, because previous
+            # versions of whoosh don't always implement __eq__
+            if str(self.index.schema) == str(self.WHOOSH_SCHEMA):
+                need_index_rewrite = False
         except whoosh.index.EmptyIndexError, exc:
             logger.warning("Failed to open index '%s'" % self.indexdir)
             logger.warning("Exception was: %s" % str(exc))
-            logger.info("Will try to create a new one")
-            schema = whoosh.fields.Schema(
-                docid=whoosh.fields.ID(stored=True, unique=True),
-                doctype=whoosh.fields.ID(stored=True, unique=False),
-                content=whoosh.fields.TEXT(spelling=True),
-                label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                            spelling=True, scorable=True),
-                last_read=whoosh.fields.DATETIME(stored=True),
-            )
-            self.index = whoosh.index.create_in(self.indexdir, schema)
+
+        if need_index_rewrite:
+            logger.info("Creating a new index")
+            self.index = whoosh.index.create_in(self.indexdir,
+                                                self.WHOOSH_SCHEMA)
             logger.info("Index '%s' created" % self.indexdir)
 
         self.__qparser = whoosh.qparser.QueryParser("content",
                                                     self.index.schema)
         self.__searcher = self.index.searcher()
+        self.check_workdir()
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
@@ -366,6 +378,12 @@ class DocSearch(object):
                 return True
         return False
 
+    def check_workdir(self):
+        """
+        Check that the current work dir (see config.PaperworkConfig) exists. If
+        not, open the settings dialog.
+        """
+        mkdir_p(self.rootdir)
 
     def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
         """

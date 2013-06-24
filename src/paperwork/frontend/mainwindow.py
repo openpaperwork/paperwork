@@ -57,21 +57,6 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-def check_workdir(config):
-    """
-    Check that the current work dir (see config.PaperworkConfig) exists. If
-    not, open the settings dialog.
-    """
-    try:
-        os.stat(config.workdir)
-        return
-    except OSError, exc:
-        logger.error("Unable to stat dir '%s': %s --> mkdir"
-               % (config.workdir, exc))
-
-    os.mkdir(config.workdir, 0750)
-
-
 def check_scanner(main_win, config):
     if config.scanner_devid is not None:
         return True
@@ -189,6 +174,7 @@ class JobDocExaminer(Job):
         self.__config = config
         self.docsearch = docsearch
         self.done = False
+        self.started = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -215,7 +201,9 @@ class JobDocExaminer(Job):
 
         self.can_run = True
 
-        self.emit('doc-examination-start')
+        if not self.started:
+            self.emit('doc-examination-start')
+            self.started = True
         self.new_docs = set()  # documents
         self.docs_changed = set()  # documents
         self.docs_missing = set()  # document ids
@@ -226,14 +214,15 @@ class JobDocExaminer(Job):
                 self.__on_doc_changed,
                 self.__on_doc_missing,
                 self.__progress_cb)
-        except StopIteration:
-            logger.info("Document examination interrupted")
-        finally:
             self.emit('doc-examination-end')
             self.done = True
+        except StopIteration:
+            logger.info("Document examination interrupted")
 
     def stop(self, will_resume=False):
         self.can_run = False
+        if not will_resume:
+            self.emit('doc-examination-end')
 
     def __on_new_doc(self, doc):
         self.new_docs.add(doc)
@@ -783,7 +772,7 @@ class JobBoxesRefresher(Job):
     }
 
     can_stop = True
-    priority = 430
+    priority = 30
 
     def __init__(self, factory, id, page, search):
         Job.__init__(self, factory, id)
@@ -834,7 +823,7 @@ class JobBoxesSelecter(Job):
     }
 
     can_stop = True
-    priority = 100
+    priority = 30
 
     def __init__(self, factory, id, boxes, mouse_position, get_box_pos_func):
         Job.__init__(self, factory, id)
@@ -1733,7 +1722,6 @@ class ActionSingleScan(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
         doc = self.__main_win.doc[1]
@@ -1753,7 +1741,6 @@ class ActionMultiScan(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        check_workdir(self.__config)
         if not check_scanner(self.__main_win, self.__config):
             return
         ms = MultiscanDialog(self.__main_win, self.__config)
@@ -1808,8 +1795,6 @@ class ActionImport(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-
-        check_workdir(self.__config)
 
         file_uri = self.__select_file()
         if file_uri is None:
@@ -3205,12 +3190,15 @@ class MainWindow(object):
 
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        msg = _("Error while scanning: %s") % (error)
         dialog = Gtk.MessageDialog(
             parent=self.window,
             flags=flags,
             type=Gtk.MessageType.ERROR,
             buttons=Gtk.ButtonsType.OK,
-            message_format=error)
+            message_format=msg)
+        dialog.run()
+        dialog.destroy()
 
 
     def on_import_start(self, src):

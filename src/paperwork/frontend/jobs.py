@@ -160,7 +160,7 @@ class JobScheduler(object):
                 idx = 0
                 for stack_el in traceback.extract_tb(sys.exc_info()[2]):
                     logger.error("%2d: %20s: L%5d: %s"
-                                 % (idx, os.path.basename(stack_el[0]),
+                                 % (idx, stack_el[0],
                                     stack_el[1], stack_el[2]))
                     idx += 1
                 logger.error("---> Job %s was started by:"
@@ -168,7 +168,7 @@ class JobScheduler(object):
                 idx = 0
                 for stack_el in self._active_job.started_by:
                     logger.error("%2d: %20s: L%5d: %s"
-                                 % (idx, os.path.basename(stack_el[0]),
+                                 % (idx, stack_el[0],
                                     stack_el[1], stack_el[2]))
                     idx += 1
             stop = time.time()

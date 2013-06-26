@@ -3583,8 +3583,8 @@ class MainWindow(object):
             doc_line = self.__get_doc_model_line(doc)
             if not redo_thumbnails:
                 current_model = self.lists['matches']['model'][doc_idx]
-                doc_line[2] = current_model[2]
-            self.lists['matches'].set_model_line = doc_line
+                doc_line[1] = current_model[1]
+            self.lists['matches'].set_model_line(doc_idx, doc_line)
 
         if active_idx >= 0:
             self.lists['matches'].select_idx(active_idx)

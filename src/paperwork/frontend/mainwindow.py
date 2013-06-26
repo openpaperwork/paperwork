@@ -166,7 +166,7 @@ class JobDocExaminer(Job):
         'doc-examination-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_stop = True
+    can_stop = False
     priority = 50
 
     def __init__(self, factory, id, config, docsearch):

@@ -2366,7 +2366,7 @@ class JobFactoryProgressiveList(JobFactory):
                                   self.progressive_list)
 
 
-class ProgressiveList(object):
+class ProgressiveList(GObject.GObject):
     """
     We use GtkIconView to display documents and pages. However this widget
     doesn't like having too many elements to display: it keeps redrawing the
@@ -2382,9 +2382,15 @@ class ProgressiveList(object):
     NB_EL_DISPLAYED_ADDITIONNAL = int((1.0 - NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN)
                                       * NB_EL_DISPLAYED_INITIALLY)
 
+    __gsignals__ = {
+        'lines-shown': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT,) ),  # [(line_idx, obj), ... ]
+    }
+
     def __init__(self, name,
                  main_win,
                  gui, scrollbars, model):
+        GObject.GObject.__init__(self)
         self.name = name
         self.__main_win = main_win
         self.widget_gui = gui
@@ -2441,7 +2447,8 @@ class ProgressiveList(object):
                 self.widget_gui.select_path(path)
                 self.widget_gui.set_cursor(path, None, False)
 
-            GObject.idle_add(self.widget_gui.scroll_to_path, last_visible, False, 0.0, 0.0)
+            GObject.idle_add(self.widget_gui.scroll_to_path, last_visible,
+                             False, 0.0, 0.0)
         finally:
             self.__main_win.actions['open_doc'][1].enabled = True
 
@@ -2453,18 +2460,22 @@ class ProgressiveList(object):
                 line_iter = self.model.get_iter(l_model-1)
                 self.model.remove(line_iter)
 
+        newly_displayed = []
         for line_idx in xrange(self.nb_displayed, nb_elements):
             if (self.nb_displayed >= nb_elements
                     or line_idx >= len(self.model_content)):
                 break
+            newly_displayed.append((line_idx, self.model_content[line_idx][2]))
             self.model.append(self.model_content[line_idx])
             self.nb_displayed += 1
+
+        self.emit('lines-shown', newly_displayed)
 
         if nb_elements < len(self.model_content):
             self.model.append([_("Loading ..."), None, None])
 
-        logger.info("List '%s' : %d elements displayed'"
-                    % (self.name, self.nb_displayed))
+        logger.info("List '%s' : %d elements displayed (%d additionnal)"
+                    % (self.name, self.nb_displayed, len(newly_displayed)))
 
     def __on_scrollbar_moved(self):
         if self.nb_displayed >= len(self.model_content):
@@ -2532,6 +2543,9 @@ class ProgressiveList(object):
         }[item]
 
 
+GObject.type_register(ProgressiveList)
+
+
 class MainWindow(object):
     def __init__(self, config):
         self.schedulers = {
@@ -2593,6 +2607,10 @@ class MainWindow(object):
                 'model': widget_tree.get_object("liststoreZoom"),
             },
         }
+
+        self.lists['matches'].connect(
+            'lines-shown',
+            lambda x, docs: GObject.idle_add(self.__on_doc_lines_shown, docs))
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -3220,10 +3238,6 @@ class MainWindow(object):
         self.lists['matches'].set_model([self.__get_doc_model_line(doc)
                                          for doc in documents])
         self.lists['matches'].select_idx(active_idx)
-
-        documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
-        job = self.job_factories['doc_thumbnailer'].make(documents)
-        self.schedulers['main'].schedule(job)
 
     def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -3876,6 +3890,10 @@ class MainWindow(object):
             optimize=False
         )
         self.__main_win.schedulers['main'].schedule(job)
+
+    def __on_doc_lines_shown(self, docs):
+        job = self.job_factories['doc_thumbnailer'].make(docs)
+        self.schedulers['main'].schedule(job) 
 
     def get_doc_sort_func(self):
         for (widget, sort_func) in self.sortings:

@@ -2479,7 +2479,8 @@ class ProgressiveList(GObject.GObject):
         self.emit('lines-shown', newly_displayed)
 
         if nb_elements < len(self.model_content):
-            self.model.append([_("Loading ..."), None, None])
+            self.model.append([_("Loading ..."),
+                               self.__main_win.default_thumbnail, None])
 
         logger.info("List '%s' : %d elements displayed (%d additionnal)"
                     % (self.name, self.nb_displayed, len(newly_displayed)))

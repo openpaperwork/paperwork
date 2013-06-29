@@ -289,12 +289,29 @@ class JobIndexUpdater(Job):
         self.__docsearch = docsearch
         self.__config = config
 
+        self.__condition = threading.Condition()
+
         self.new_docs = new_docs
         self.upd_docs = upd_docs
         self.del_docs = del_docs
         self.optimize = optimize
         self.index_updater = None
         self.total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
+
+    def __wakeup(self):
+        self.__condition.acquire()
+        self.__condition.notify_all()
+        self.__condition.release()
+
+    def __wait(self):
+        # HACK(Jflesch): Make sure the signal is actually taken care
+        # of before continuing. Otherwise, on slow computers, the
+        # progress bar may not be updated at all until the index
+        # update is finished
+        self.__condition.acquire()
+        GObject.idle_add(self.__wakeup)
+        self.__condition.wait()
+        self.__condition.release()
 
     def do(self):
         # keep in mind that we may have been interrupted and then called back
@@ -336,6 +353,9 @@ class JobIndexUpdater(Job):
                     self.emit('index-update-progression',
                               (progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
+
+                    self.__wait()
+
                     op(doc)
                     progression += 1
             except KeyError:
@@ -347,6 +367,7 @@ class JobIndexUpdater(Job):
 
         self.emit('index-update-progression', 0.75,
                   _("Writing index ..."))
+        self.wait()
         self.index_updater.commit()
         self.emit('index-update-progression', 1.0, "")
         self.emit('index-update-end')
@@ -376,9 +397,7 @@ class JobFactoryIndexUpdater(JobFactory):
                     GObject.idle_add(self.__main_win.on_index_update_start_cb,
                                      updater))
         job.connect('index-update-progression',
-                    lambda updater, progression, txt:
-                    GObject.idle_add(self.__main_win.set_progression, updater,
-                                     progression, txt))
+                    self.__main_win.set_progression)
         job.connect('index-update-end',
                     lambda updater:
                     GObject.idle_add(self.__main_win.on_index_update_end_cb,

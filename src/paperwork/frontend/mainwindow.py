@@ -310,7 +310,7 @@ class JobIndexUpdater(Job):
         # update is finished
         self.__condition.acquire()
         GObject.idle_add(self.__wakeup)
-        self.__condition.wait()
+        self.__condition.wait(1)
         self.__condition.release()
 
     def do(self):

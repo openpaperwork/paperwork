@@ -801,13 +801,17 @@
                                 <property name="column_spacing">0</property>
                                 <property name="item_padding">0</property>
                                 <child>
-                                  <object class="GtkCellRendererPixbuf" id="cellrendererthumb"/>
+                                  <object class="GtkCellRendererPixbuf" id="cellrendererthumb">
+                                    <property name="xpad">10</property>
+                                  </object>
                                   <attributes>
                                     <attribute name="pixbuf">2</attribute>
                                   </attributes>
                                 </child>
                                 <child>
-                                  <object class="GtkCellRendererText" id="cellrenderertext5"/>
+                                  <object class="GtkCellRendererText" id="cellrenderertext5">
+                                    <property name="xpad">10</property>
+                                  </object>
                                   <attributes>
                                     <attribute name="markup">0</attribute>
                                   </attributes>
@@ -850,7 +854,10 @@
                                     <property name="model">liststorePage</property>
                                     <property name="columns">1</property>
                                     <child>
-                                      <object class="GtkCellRendererPixbuf" id="cellrendererThumb"/>
+                                      <object class="GtkCellRendererPixbuf" id="cellrendererThumb">
+                                        <property name="xpad">15</property>
+                                        <property name="xalign">0.50999999046325684</property>
+                                      </object>
                                       <attributes>
                                         <attribute name="pixbuf">0</attribute>
                                         <attribute name="stock-id">1</attribute>
@@ -858,7 +865,10 @@
                                       </attributes>
                                     </child>
                                     <child>
-                                      <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                                      <object class="GtkCellRendererText" id="cellrenderertext2">
+                                        <property name="xpad">15</property>
+                                        <property name="xalign">0.50999999046325684</property>
+                                      </object>
                                       <attributes>
                                         <attribute name="text">3</attribute>
                                       </attributes>

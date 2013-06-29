@@ -2566,9 +2566,10 @@ class MainWindow(object):
         self.__busy_mouse_counter = 0
 
         img = PIL.Image.new("RGB", (
-            JobDocThumbnailer.THUMB_WIDTH + JobDocThumbnailer.THUMB_BORDER,
-            JobDocThumbnailer.THUMB_HEIGHT + JobDocThumbnailer.THUMB_BORDER,
-        ), color="#CCCCCC")
+            JobDocThumbnailer.THUMB_WIDTH,
+            JobDocThumbnailer.THUMB_HEIGHT,
+        ), color="#EEEEEE")
+        img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
         self.default_thumbnail = image2pixbuf(img)
 
         widget_tree = load_uifile("mainwindow.glade")

@@ -90,6 +90,7 @@ class JobIndexLoader(Job):
         Job.__init__(self, factory, job_id)
         self.__config = config
         self.started = False
+        self.done = False
 
     def __progress_cb(self, progression, total, step, doc=None):
         """
@@ -112,6 +113,8 @@ class JobIndexLoader(Job):
         self.emit('index-loading-progression', float(progression) / total, txt)
 
     def do(self):
+        if self.done:
+            return
         self.can_run = True
         if not self.started:
             self.emit('index-loading-start')
@@ -119,12 +122,13 @@ class JobIndexLoader(Job):
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
             self.emit('index-loading-end', docsearch)
+            self.done = True
         except StopIteration:
             logger.info("Index loading interrupted")
 
     def stop(self, will_resume=False):
         self.can_run = False
-        if not will_resume:
+        if not will_resume and not self.done:
             self.emit('index-loading-end', None)
 
 

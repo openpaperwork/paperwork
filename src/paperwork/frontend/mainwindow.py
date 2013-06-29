@@ -555,6 +555,7 @@ class JobDocThumbnailer(Job):
 
     THUMB_WIDTH = 150
     THUMB_HEIGHT = 220
+    THUMB_BORDER = 1
 
     __gsignals__ = {
         'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -614,7 +615,7 @@ class JobDocThumbnailer(Job):
             if not self.can_run:
                 return
 
-            img = add_img_border(img)
+            img = add_img_border(img, width=self.THUMB_BORDER)
             if not self.can_run:
                 return
 
@@ -2564,8 +2565,8 @@ class MainWindow(object):
         self.__busy_mouse_counter = 0
 
         img = PIL.Image.new("RGB", (
-            JobDocThumbnailer.THUMB_WIDTH,
-            JobDocThumbnailer.THUMB_HEIGHT
+            JobDocThumbnailer.THUMB_WIDTH + JobDocThumbnailer.THUMB_BORDER,
+            JobDocThumbnailer.THUMB_HEIGHT + JobDocThumbnailer.THUMB_BORDER,
         ), color="#CCCCCC")
         self.default_thumbnail = image2pixbuf(img)
 

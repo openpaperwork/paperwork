@@ -559,8 +559,12 @@ class JobDocThumbnailer(Job):
     __gsignals__ = {
         'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'doc-thumbnailing-doc-done': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_INT,
-                                       GObject.TYPE_PYOBJECT)),
+                                      (GObject.TYPE_INT, # doc idx in the list
+                                       GObject.TYPE_PYOBJECT,
+                                       GObject.TYPE_INT, # current doc
+                                       # number of docs being thumbnailed
+                                       GObject.TYPE_INT,
+                                      )),
         'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -615,7 +619,8 @@ class JobDocThumbnailer(Job):
                 return
 
             pixbuf = image2pixbuf(img)
-            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
+            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf,
+                     idx, len(self.__doclist))
 
             self.__current_idx = idx
 
@@ -650,9 +655,10 @@ class JobFactoryDocThumbnailer(JobFactory):
                              thumbnailer))
         job.connect(
             'doc-thumbnailing-doc-done',
-            lambda thumbnailer, doc_idx, thumbnail:
+            lambda thumbnailer, doc_idx, thumbnail, doc_nb, total_docs:
             GObject.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
-                             thumbnailer, doc_idx, thumbnail))
+                             thumbnailer, doc_idx, thumbnail, doc_nb,
+                             total_docs))
         job.connect(
             'doc-thumbnailing-end',
             lambda thumbnailer:
@@ -3255,10 +3261,10 @@ class MainWindow(object):
     def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
-    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
+    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail,
+                                       doc_nb, total_docs):
         self.lists['matches'].set_model_value(doc_idx, 1, thumbnail)
-        self.set_progression(src, ((float)(doc_idx+1) /
-                                   len(self.lists['doclist'])),
+        self.set_progression(src, ((float)(doc_nb+1) / total_docs),
                              _("Loading thumbnails ..."))
 
     def on_doc_thumbnailing_end_cb(self, src):

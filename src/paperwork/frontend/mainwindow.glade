@@ -79,26 +79,18 @@
     <columns>
       <!-- column-name Matching -->
       <column type="gchararray"/>
-      <!-- column-name doc -->
-      <column type="PyObject"/>
       <!-- column-name thumb -->
       <column type="GdkPixbuf"/>
-      <!-- column-name stock_icon -->
-      <column type="gchararray"/>
-      <!-- column-name stock_size -->
-      <column type="GtkIconSize"/>
+      <!-- column-name doc -->
+      <column type="PyObject"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststorePage">
     <columns>
-      <!-- column-name thumb -->
-      <column type="GdkPixbuf"/>
-      <!-- column-name stock_icon -->
-      <column type="gchararray"/>
-      <!-- column-name stock_size -->
-      <column type="GtkIconSize"/>
       <!-- column-name txt -->
       <column type="gchararray"/>
+      <!-- column-name thumb -->
+      <column type="GdkPixbuf"/>
       <!-- column-name page_nb -->
       <column type="gint"/>
     </columns>
@@ -785,7 +777,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow" id="scrolledwindow1">
+                          <object class="GtkScrolledWindow" id="scrolledwindowMatch">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="shadow_type">in</property>
@@ -805,7 +797,7 @@
                                     <property name="xpad">10</property>
                                   </object>
                                   <attributes>
-                                    <attribute name="pixbuf">2</attribute>
+                                    <attribute name="pixbuf">1</attribute>
                                   </attributes>
                                 </child>
                                 <child>
@@ -842,7 +834,7 @@
                             <property name="can_focus">False</property>
                             <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkScrolledWindow" id="scrolledwindow3">
+                              <object class="GtkScrolledWindow" id="scrolledwindowPage">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="hscrollbar_policy">never</property>
@@ -859,9 +851,7 @@
                                         <property name="xalign">0.50999999046325684</property>
                                       </object>
                                       <attributes>
-                                        <attribute name="pixbuf">0</attribute>
-                                        <attribute name="stock-id">1</attribute>
-                                        <attribute name="stock-size">2</attribute>
+                                        <attribute name="pixbuf">1</attribute>
                                       </attributes>
                                     </child>
                                     <child>
@@ -870,7 +860,7 @@
                                         <property name="xalign">0.50999999046325684</property>
                                       </object>
                                       <attributes>
-                                        <attribute name="text">3</attribute>
+                                        <attribute name="text">0</attribute>
                                       </attributes>
                                     </child>
                                   </object>

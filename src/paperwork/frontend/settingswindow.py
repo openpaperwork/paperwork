@@ -375,7 +375,8 @@ class ActionApplySettings(SimpleAction):
 
         if self.__settings_win.grips is not None:
             coords = self.__settings_win.grips.get_coords()
-            self.__config.scanner_calibration = coords
+            self.__config.scanner_calibration = (
+                self.__config.CALIBRATION_RESOLUTION, coords)
 
         self.__config.write()
 

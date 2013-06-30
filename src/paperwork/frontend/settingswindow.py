@@ -240,11 +240,11 @@ class JobCalibrationScan(Job):
             logger.error("Warning: Unable to set scanner source to 'Auto': %s"
                    % exc)
         try:
-            resolution = PaperworkConfig.CALIBRATION_RESOLUTION
+            resolution = PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION
             dev.options['resolution'].value = resolution
         except pyinsane.rawapi.SaneException:
             logger.error("Warning: Unable to set scanner resolution to %d: %s"
-                    % (PaperworkConfig.CALIBRATION_RESOLUTION, exc))
+                    % (PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
             logger.info("Scanner mode set to 'Color'")
@@ -376,7 +376,7 @@ class ActionApplySettings(SimpleAction):
         if self.__settings_win.grips is not None:
             coords = self.__settings_win.grips.get_coords()
             self.__config.scanner_calibration = (
-                self.__config.CALIBRATION_RESOLUTION, coords)
+                self.__config.DEFAULT_CALIBRATION_RESOLUTION, coords)
 
         self.__config.write()
 

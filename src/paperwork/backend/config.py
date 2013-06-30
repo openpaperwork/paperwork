@@ -61,7 +61,7 @@ class PaperworkConfig(object):
     used.
     """
     RECOMMENDED_RESOLUTION = 300
-    CALIBRATION_RESOLUTION = 200
+    DEFAULT_CALIBRATION_RESOLUTION = 200
     DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
     def __init__(self):
@@ -285,8 +285,17 @@ class PaperworkConfig(object):
                 (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
             if (pt_a_y > pt_b_y):
                 (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
-            return (self.CALIBRATION_RESOLUTION, ((pt_a_x, pt_a_y),
-                                                  (pt_b_x, pt_b_y)))
+
+            resolution = self.DEFAULT_CALIBRATION_RESOLUTION
+            try:
+                resolution = int(self._configparser.get(
+                    "Scanner", "Calibration_Resolution"))
+            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+                logger.warning("Calibration resolution is not specified in the"
+                               " configuration. Will assume the calibration was"
+                               " done with a resolution of %ddpi" % resolution)
+
+            return (resolution, ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)))
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             # no calibration -> no cropping -> we have to keep the whole image
             # each time
@@ -296,6 +305,8 @@ class PaperworkConfig(object):
         """
         Set the scanner resolution used for normal scans.
         """
+        self._configparser.set("Scanner", "Calibration_Resolution",
+                               str(calibration[0]))
         self._configparser.set("Scanner", "Calibration_Pt_A_X",
                                str(calibration[1][0][0]))
         self._configparser.set("Scanner", "Calibration_Pt_A_Y",

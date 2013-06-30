@@ -51,6 +51,7 @@ from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
+from paperwork.util import set_scanner_opt
 from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
@@ -577,11 +578,17 @@ class JobDocThumbnailer(Job):
     Generate doc list thumbnails
     """
 
+    THUMB_BORDER = 1
+
     __gsignals__ = {
         'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'doc-thumbnailing-doc-done': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_INT,
-                                       GObject.TYPE_PYOBJECT)),
+                                      (GObject.TYPE_INT, # doc idx in the list
+                                       GObject.TYPE_PYOBJECT,
+                                       GObject.TYPE_INT, # current doc
+                                       # number of docs being thumbnailed
+                                       GObject.TYPE_INT,
+                                      )),
         'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -631,12 +638,13 @@ class JobDocThumbnailer(Job):
             if not self.can_run:
                 return
 
-            img = add_img_border(img)
+            img = add_img_border(img, width=self.THUMB_BORDER)
             if not self.can_run:
                 return
 
             pixbuf = image2pixbuf(img)
-            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf)
+            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf,
+                     idx, len(self.__doclist))
 
             self.__current_idx = idx
 
@@ -671,9 +679,10 @@ class JobFactoryDocThumbnailer(JobFactory):
                              thumbnailer))
         job.connect(
             'doc-thumbnailing-doc-done',
-            lambda thumbnailer, doc_idx, thumbnail:
+            lambda thumbnailer, doc_idx, thumbnail, doc_nb, total_docs:
             GObject.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
-                             thumbnailer, doc_idx, thumbnail))
+                             thumbnailer, doc_idx, thumbnail, doc_nb,
+                             total_docs))
         job.connect(
             'doc-thumbnailing-end',
             lambda thumbnailer:
@@ -1134,10 +1143,13 @@ class JobSingleScan(Job):
             try:
                 scanner = self.__config.get_scanner_inst()
                 try:
-                    scanner.options['source'].value = "Auto"
+                    # any source is actually fine. we just have a clearly defined
+                    # preferred order
+                    set_scanner_opt('source', scanner.options['source'],
+                                    ["Auto", "FlatBed", "ADF"])
                 except (KeyError, pyinsane.rawapi.SaneException), exc:
-                    logger.error("Warning: Unable to set scanner source "
-                           "to 'Auto': %s" % exc)
+                    logger.error("Warning: Unable to set scanner source: "
+                                 "%s" % exc)
                 scan_src = scanner.scan(multiple=False)
             except pyinsane.rawapi.SaneException, exc:
                 logger.error("No scanner found !")
@@ -1395,7 +1407,7 @@ class ActionNewDocument(SimpleAction):
 
         must_insert_new = False
 
-        doclist = self.__main_win.lists['matches']['doclist']
+        doclist = self.__main_win.lists['doclist']
         if (len(doclist) <= 0):
             must_insert_new = True
         else:
@@ -1437,7 +1449,7 @@ class ActionOpenSelectedDocument(SimpleAction):
             logger.info("No document selected. Can't open")
             return
         doc_idx = selection_path[0].get_indices()[0]
-        doc = self.__main_win.lists['matches']['model'][doc_idx][1]
+        doc = self.__main_win.lists['matches']['model'][doc_idx][2]
 
         logger.info("Showing doc %s" % doc)
         self.__main_win.show_doc(doc_idx, doc)
@@ -2354,6 +2366,220 @@ class ActionEditPage(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
+class JobProgressiveList(Job):
+    can_stop = True
+    priority = 500
+
+    def __init__(self, factory, id, progressive_list):
+        Job.__init__(self, factory, id)
+        self.__progressive_list = progressive_list
+        self.can_run = True
+
+    def do(self):
+        self._wait(0.5)
+        if not self.can_run:
+            return
+        GObject.idle_add(self.__progressive_list.display_extra)
+
+    def stop(self, will_resume=True):
+        self.can_run = False
+        self._stop_wait()
+
+
+GObject.type_register(JobProgressiveList)
+
+
+class JobFactoryProgressiveList(JobFactory):
+    def __init__(self, progressive_list):
+        JobFactory.__init__(self, "Progressive List")
+        self.progressive_list = progressive_list
+
+    def make(self):
+        return JobProgressiveList(self, next(self.id_generator),
+                                  self.progressive_list)
+
+
+class ProgressiveList(GObject.GObject):
+    """
+    We use GtkIconView to display documents and pages. However this widget
+    doesn't like having too many elements to display: it keeps redrawing the
+    list when the mouse goes over it --> with 600 documents, this may be
+    quite long.
+
+    So instead, we display only X elements. When the user scroll down,
+    we add Y elements to the list, etc.
+    """
+
+    NB_EL_DISPLAYED_INITIALLY = 100
+    NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN = 0.85
+    NB_EL_DISPLAYED_ADDITIONNAL = int((1.0 - NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN)
+                                      * NB_EL_DISPLAYED_INITIALLY)
+
+    __gsignals__ = {
+        'lines-shown': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT,) ),  # [(line_idx, obj), ... ]
+    }
+
+    def __init__(self, name,
+                 main_win,
+                 gui, scrollbars, model):
+        GObject.GObject.__init__(self)
+        self.name = name
+        self.__main_win = main_win
+        self.widget_gui = gui
+
+        self.widget_scrollbars = scrollbars
+        self._vadjustment = scrollbars.get_vadjustment()
+
+        self.model = model
+        self.model_content = []
+
+        self.nb_displayed = 0
+
+        self._vadjustment.connect(
+            "value-changed",
+            lambda widget: GObject.idle_add(self.__on_scrollbar_moved))
+
+        self.job_factory = JobFactoryProgressiveList(self)
+
+    def set_model(self, model_content):
+        self.model_content = model_content
+
+        self.widget_gui.freeze_child_notify()
+        self.widget_gui.set_model(None)
+        try:
+            self.model.clear()
+            self.nb_displayed = 0
+            self._display_up_to(self.NB_EL_DISPLAYED_INITIALLY)
+        finally:
+            self.widget_gui.freeze_child_notify()
+            self.widget_gui.set_model(self.model)
+
+    def display_extra(self):
+        self.__main_win.actions['open_doc'][1].enabled = False
+        try:
+            selected = self.widget_gui.get_selected_items()
+            if len(selected) <= 0:
+                selected = -1
+            else:
+                selected = min([x.get_indices()[0] for x in selected])
+
+            (first_visible, last_visible) = self.widget_gui.get_visible_range()
+
+            self.widget_gui.freeze_child_notify()
+            self.widget_gui.set_model(None)
+            try:
+                self._display_up_to(self.nb_displayed +
+                                    self.NB_EL_DISPLAYED_ADDITIONNAL)
+            finally:
+                self.widget_gui.freeze_child_notify()
+                self.widget_gui.set_model(self.model)
+
+            if (selected > 0):
+                path = Gtk.TreePath(selected)
+                self.widget_gui.select_path(path)
+                self.widget_gui.set_cursor(path, None, False)
+
+            GObject.idle_add(self.widget_gui.scroll_to_path, last_visible,
+                             False, 0.0, 0.0)
+        finally:
+            self.__main_win.actions['open_doc'][1].enabled = True
+
+    def _display_up_to(self, nb_elements):
+        l_model = len(self.model)
+        if l_model > 0:
+            doc = self.model[-1][2]
+            if doc is None:
+                line_iter = self.model.get_iter(l_model-1)
+                self.model.remove(line_iter)
+
+        newly_displayed = []
+        for line_idx in xrange(self.nb_displayed, nb_elements):
+            if (self.nb_displayed >= nb_elements
+                    or line_idx >= len(self.model_content)):
+                break
+            newly_displayed.append((line_idx, self.model_content[line_idx][2]))
+            self.model.append(self.model_content[line_idx])
+            self.nb_displayed += 1
+
+        self.emit('lines-shown', newly_displayed)
+
+        if nb_elements < len(self.model_content):
+            self.model.append([_("Loading ..."),
+                               self.__main_win.default_thumbnail, None])
+
+        logger.info("List '%s' : %d elements displayed (%d additionnal)"
+                    % (self.name, self.nb_displayed, len(newly_displayed)))
+
+    def __on_scrollbar_moved(self):
+        if self.nb_displayed >= len(self.model_content):
+            return
+
+        lower = self._vadjustment.get_lower()
+        upper = self._vadjustment.get_upper()
+        val = self._vadjustment.get_value()
+        proportion = (val - lower) / (upper - lower)
+
+        if proportion > self.NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN:
+            self.__main_win.schedulers['main'].cancel_all(self.job_factory)
+            job = self.job_factory.make()
+            self.__main_win.schedulers['main'].schedule(job)
+
+    def set_model_value(self, line_idx, column_idx, value):
+        self.model_content[line_idx][column_idx] = value
+        if line_idx < self.nb_displayed:
+            line_iter = self.model.get_iter(line_idx)
+            self.model.set_value(line_iter, column_idx, value)
+
+    def set_model_line(self, line_idx, model_line):
+        self.model_content[line_idx] = model_line
+        if line_idx < self.nb_displayed:
+            self.model[line_idx] = model_line
+
+    def select_idx(self, idx=-1):
+        if idx >= 0:
+            # we are going to select the current page in the list
+            # except we don't want to be called again because of it
+            self.__main_win.actions['open_doc'][1].enabled = False
+            try:
+                self.widget_gui.unselect_all()
+
+                path = Gtk.TreePath(idx)
+                self.widget_gui.select_path(path)
+                self.widget_gui.set_cursor(path, None, False)
+            finally:
+                self.__main_win.actions['open_doc'][1].enabled = True
+
+            # HACK(Jflesch): The Gtk documentation says that scroll_to_path()
+            # should do nothing if the target cell is already visible (which
+            # is the desired behavior here). Except we just emptied the
+            # document list model and remade it from scratch. For some reason,
+            # it seems that  Gtk will then always consider that the cell is
+            # not visible and move the scrollbar.
+            # --> we use idle_add to move the scrollbar only once everything
+            # has been displayed
+            GObject.idle_add(self.widget_gui.scroll_to_path,
+                             path, False, 0.0, 0.0)
+        else:
+            self.unselect()
+
+    def unselect(self):
+        self.widget_gui.unselect_all()
+        path = Gtk.TreePath(0)
+        GObject.idle_add(self.widget_gui.scroll_to_path,
+                         path, False, 0.0, 0.0)
+
+    def __getitem__(self, item):
+        return {
+            'gui': self.widget_gui,
+            'model': self.model_content,
+            'scrollbars': self.widget_scrollbars
+        }[item]
+
+
+GObject.type_register(ProgressiveList)
+
+
 class MainWindow(object):
     def __init__(self, config):
         self.schedulers = {
@@ -2367,8 +2593,9 @@ class MainWindow(object):
 
         img = PIL.Image.new("RGB", (
             BasicPage.DEFAULT_THUMB_WIDTH,
-            BasicPage.DEFAULT_THUMB_HEIGHT
-        ), color="#CCCCCC")
+            BasicPage.DEFAULT_THUMB_HEIGHT,
+        ), color="#EEEEEE")
+        img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
         self.default_thumbnail = image2pixbuf(img)
 
         widget_tree = load_uifile("mainwindow.glade")
@@ -2391,16 +2618,21 @@ class MainWindow(object):
                 'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
-            'matches': {
-                'gui': widget_tree.get_object("iconviewMatch"),
-                'model': widget_tree.get_object("liststoreMatch"),
-                'doclist': [],
-                'active_idx': -1,
-            },
-            'pages': {
-                'gui': widget_tree.get_object("iconviewPage"),
-                'model': widget_tree.get_object("liststorePage"),
-            },
+            'doclist': [],
+            'matches': ProgressiveList(
+                name='documents',
+                main_win=self,
+                gui=widget_tree.get_object("iconviewMatch"),
+                scrollbars=widget_tree.get_object("scrolledwindowMatch"),
+                model=widget_tree.get_object("liststoreMatch"),
+            ),
+            'pages': ProgressiveList(
+                name='pages',
+                main_win=self,
+                gui=widget_tree.get_object("iconviewPage"),
+                scrollbars=widget_tree.get_object("scrolledwindowPage"),
+                model=widget_tree.get_object("liststorePage"),
+            ),
             'labels': {
                 'gui': widget_tree.get_object("treeviewLabel"),
                 'model': widget_tree.get_object("liststoreLabel"),
@@ -2410,6 +2642,10 @@ class MainWindow(object):
                 'model': widget_tree.get_object("liststoreZoom"),
             },
         }
+
+        self.lists['matches'].connect(
+            'lines-shown',
+            lambda x, docs: GObject.idle_add(self.__on_doc_lines_shown, docs))
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -2536,8 +2772,10 @@ class MainWindow(object):
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
+            'match_list': self.lists['matches'].job_factory,
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
+            'page_list': self.lists['pages'].job_factory,
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'progress_updater': JobFactoryProgressUpdater(
                 self.status['progress']),
@@ -3019,41 +3257,29 @@ class MainWindow(object):
             self.lists['suggestions']['gui'].thaw_child_notify()
 
         logger.debug("Got %d documents" % len(documents))
-        self.lists['matches']['gui'].freeze_child_notify()
-        self.lists['matches']['gui'].set_model(None)
-        try:
-            self.lists['matches']['model'].clear()
-            active_idx = -1
-            idx = 0
-            for doc in documents:
-                if doc == self.doc[1]:
-                    active_idx = idx
-                idx += 1
-                self.lists['matches']['model'].append(
-                    self.__get_doc_model_line(doc))
 
-            if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
-                active_idx = 0
+        active_idx = -1
+        idx = 0
+        for doc in documents:
+            if doc == self.doc[1]:
+                active_idx = idx
+                break
+            idx += 1
 
-            self.lists['matches']['doclist'] = documents
-            self.lists['matches']['active_idx'] = active_idx
+        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
+            active_idx = 0
 
-            self.__select_doc(active_idx)
-        finally:
-            self.lists['matches']['gui'].set_model(self.lists['matches']['model'])
-            self.lists['matches']['gui'].thaw_child_notify()
-
-        documents = [(idx, documents[idx]) for idx in xrange(0, len(documents))]
-        job = self.job_factories['doc_thumbnailer'].make(documents)
-        self.schedulers['main'].schedule(job)
+        self.lists['doclist'] = documents
+        self.lists['matches'].set_model([self.__get_doc_model_line(doc)
+                                         for doc in documents])
+        self.lists['matches'].select_idx(active_idx)
 
     def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.set_mouse_cursor("Busy")
 
     def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        line_iter = self.lists['pages']['model'].get_iter(page_idx)
-        self.lists['pages']['model'].set_value(line_iter, 0, thumbnail)
+        self.lists['pages'].set_model_value(page_idx, 1, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
                              _("Loading thumbnails ..."))
 
@@ -3064,13 +3290,11 @@ class MainWindow(object):
     def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
-    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail):
-        line_iter = self.lists['matches']['model'].get_iter(doc_idx)
-        self.lists['matches']['model'].set_value(line_iter, 2, thumbnail)
-        self.set_progression(src, ((float)(doc_idx+1) /
-                                   len(self.lists['matches']['doclist'])),
+    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail,
+                                       doc_nb, total_docs):
+        self.lists['matches'].set_model_value(doc_idx, 1, thumbnail)
+        self.set_progression(src, ((float)(doc_nb+1) / total_docs),
                              _("Loading thumbnails ..."))
-        active_doc_idx = self.lists['matches']['active_idx']
 
     def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3192,7 +3416,7 @@ class MainWindow(object):
                 self.refresh_docs([self.doc])
             else:
                 try:
-                    idx = self.lists['matches']['doclist'].index(job.doc)
+                    idx = self.lists['doclist'].index(job.doc)
                     self.refresh_docs([(idx, job.doc)])
                 except ValueError:
                     self.refresh_doc_list()
@@ -3375,45 +3599,15 @@ class MainWindow(object):
             thumbnail = None
         return ([
             doc_txt,
-            doc,
             thumbnail,
-            None,
-            Gtk.IconSize.DIALOG,
+            doc,
         ])
-
-    def __select_doc(self, doc_idx):
-        if doc_idx >= 0:
-            # we are going to select the current page in the list
-            # except we don't want to be called again because of it
-            self.actions['open_doc'][1].enabled = False
-
-            self.lists['matches']['gui'].unselect_all()
-            self.lists['matches']['gui'].select_path(Gtk.TreePath(doc_idx))
-
-            self.actions['open_doc'][1].enabled = True
-
-            # HACK(Jflesch): The Gtk documentation says that scroll_to_cell()
-            # should do nothing if the target cell is already visible (which
-            # is the desired behavior here). Except we just emptied the
-            # document list model and remade it from scratch. For some reason,
-            # it seems that  Gtk will then always consider that the cell is
-            # not visible and move the scrollbar.
-            # --> we use idle_add to move the scrollbar only once everything
-            # has been displayed
-            path = Gtk.TreePath(doc_idx)
-            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             path, False, 0.0, 0.0)
-        else:
-            self.lists['matches']['gui'].unselect_all()
-            path = Gtk.TreePath(0)
-            GObject.idle_add(self.lists['matches']['gui'].scroll_to_path,
-                             path, False, 0.0, 0.0)
 
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
 
-        doc_list = self.lists['matches']['doclist']
+        doc_list = self.lists['doclist']
 
         # When a scan is done, we try to refresh only the current document.
         # However, the current document may be "New document". In which case
@@ -3435,7 +3629,7 @@ class MainWindow(object):
         Arguments:
             docs --- Array of Doc
         """
-        doc_list = self.lists['matches']['doclist']
+        doc_list = self.lists['doclist']
 
         if self.__insert_new_doc():
             docs = [(pos+1, doc) for (pos, doc) in docs]
@@ -3448,11 +3642,11 @@ class MainWindow(object):
             doc_line = self.__get_doc_model_line(doc)
             if not redo_thumbnails:
                 current_model = self.lists['matches']['model'][doc_idx]
-                doc_line[2] = current_model[2]
-            self.lists['matches']['model'][doc_idx] = doc_line
+                doc_line[1] = current_model[1]
+            self.lists['matches'].set_model_line(doc_idx, doc_line)
 
         if active_idx >= 0:
-            self.__select_doc(active_idx)
+            self.lists['matches'].select_idx(active_idx)
 
         if redo_thumbnails:
             job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -3476,15 +3670,16 @@ class MainWindow(object):
         Warning: Will remove the thumbnails on all the pages
         """
         self.schedulers['main'].cancel_all(self.job_factories['page_thumbnailer'])
-        self.lists['pages']['model'].clear()
-        for page in self.doc[1].pages:
-            self.lists['pages']['model'].append([
-                self.default_thumbnail,
-                None,
-                Gtk.IconSize.DIALOG,
+
+        model = [
+            [
                 _('Page %d') % (page.page_nb + 1),
+                self.default_thumbnail,
                 page.page_nb
-            ])
+            ] for page in self.doc[1].pages
+        ]
+        self.lists['pages'].set_model(model)
+
         self.indicators['total_pages'].set_text(
             _("/ %d") % (self.doc[1].nb_pages))
         for widget in self.doc_edit_widgets:
@@ -3698,7 +3893,7 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
-        doc = (self.lists['matches']['doclist'].index(obj.doc), obj.doc)
+        doc = (self.lists['doclist'].index(obj.doc), obj.doc)
         GObject.idle_add(self.refresh_docs, [doc])
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
@@ -3751,6 +3946,10 @@ class MainWindow(object):
             optimize=False
         )
         self.__main_win.schedulers['main'].schedule(job)
+
+    def __on_doc_lines_shown(self, docs):
+        job = self.job_factories['doc_thumbnailer'].make(docs)
+        self.schedulers['main'].schedule(job) 
 
     def get_doc_sort_func(self):
         for (widget, sort_func) in self.sortings:

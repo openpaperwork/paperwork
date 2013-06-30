@@ -38,6 +38,7 @@ from paperwork.frontend.img_cutting import ImgGripHandler
 from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
+from paperwork.util import set_scanner_opt
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -252,9 +253,11 @@ class JobCalibrationScan(Job):
         # scan
         dev = pyinsane.Scanner(name=self.__devid)
         try:
-            dev.options['source'].value = "Auto"
+            # any source is actually fine. we just have a clearly defined
+            # preferred order
+            set_scanner_opt('source', dev.options['source'], ["Auto", "FlatBed", "ADF"])
         except (KeyError, pyinsane.rawapi.SaneException), exc:
-            logger.error("Warning: Unable to set scanner source to 'Auto': %s"
+            logger.error("Warning: Unable to set scanner source: %s"
                    % exc)
         try:
             dev.options['resolution'].value = resolution

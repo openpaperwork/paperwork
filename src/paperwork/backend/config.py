@@ -61,7 +61,7 @@ class PaperworkConfig(object):
     used.
     """
     RECOMMENDED_RESOLUTION = 300
-    CALIBRATION_RESOLUTION = 200
+    DEFAULT_CALIBRATION_RESOLUTION = 200
     DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
     def __init__(self):
@@ -268,9 +268,12 @@ class PaperworkConfig(object):
 
     def __get_scanner_calibration(self):
         """
-        This is the resolution of the scannner used for normal scans.
+        Scanner calibration
 
-        String.
+        Returns:
+            (calibration_resolution,
+             ((pt_a_x, pt_a_y),
+              (pt_b_x, pt_b_y)))
         """
         try:
             pt_a_x = int(self._configparser.get(
@@ -285,7 +288,17 @@ class PaperworkConfig(object):
                 (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
             if (pt_a_y > pt_b_y):
                 (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
-            return ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y))
+
+            resolution = self.DEFAULT_CALIBRATION_RESOLUTION
+            try:
+                resolution = int(self._configparser.get(
+                    "Scanner", "Calibration_Resolution"))
+            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+                logger.warning("Calibration resolution is not specified in the"
+                               " configuration. Will assume the calibration was"
+                               " done with a resolution of %ddpi" % resolution)
+
+            return (resolution, ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)))
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             # no calibration -> no cropping -> we have to keep the whole image
             # each time
@@ -294,15 +307,22 @@ class PaperworkConfig(object):
     def __set_scanner_calibration(self, calibration):
         """
         Set the scanner resolution used for normal scans.
+
+        Arguments:
+            calibration --- (calibration_resolution,
+                             ((pt_a_x, pt_a_y),
+                              (pt_b_x, pt_b_y)))
         """
+        self._configparser.set("Scanner", "Calibration_Resolution",
+                               str(calibration[0]))
         self._configparser.set("Scanner", "Calibration_Pt_A_X",
-                               str(calibration[0][0]))
+                               str(calibration[1][0][0]))
         self._configparser.set("Scanner", "Calibration_Pt_A_Y",
-                               str(calibration[0][1]))
+                               str(calibration[1][0][1]))
         self._configparser.set("Scanner", "Calibration_Pt_B_X",
-                               str(calibration[1][0]))
+                               str(calibration[1][1][0]))
         self._configparser.set("Scanner", "Calibration_Pt_B_Y",
-                               str(calibration[1][1]))
+                               str(calibration[1][1][1]))
 
     scanner_calibration = property(__get_scanner_calibration,
                                    __set_scanner_calibration)

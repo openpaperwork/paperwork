@@ -215,7 +215,9 @@ class JobCalibrationScan(Job):
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
         'calibration-scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                                  (GObject.TYPE_PYOBJECT, )),  # Pillow image
+                                  (GObject.TYPE_PYOBJECT,  # Pillow image
+                                   GObject.TYPE_INT,  # scan resolution
+                                  )),
         'calibration-resize-done': (GObject.SignalFlags.RUN_LAST, None,
                                     (GObject.TYPE_FLOAT,  # resize factor
                                      GObject.TYPE_PYOBJECT, )),  # Pillow image
@@ -224,13 +226,28 @@ class JobCalibrationScan(Job):
     can_stop = False
     priority = 495
 
-    def __init__(self, factory, id, target_viewport, devid):
+    def __init__(self, factory, id, resolutions_store, target_viewport, devid):
         Job.__init__(self, factory, id)
         self.__target_viewport = target_viewport
+        self.__resolutions_store = resolutions_store
         self.__devid = devid
 
     def do(self):
         self.emit('calibration-scan-start')
+
+        # find the best resolution : the default calibration resolution
+        # is not always available
+        resolutions = [x[1] for x in self.__resolutions_store]
+        resolutions.sort()
+
+        resolution = PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION
+        for nresolution in resolutions:
+            if nresolution > PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION:
+                break
+            resolution = nresolution
+
+        logger.info("Will do the calibration scan with a resolution of %d"
+                    % resolution)
 
         # scan
         dev = pyinsane.Scanner(name=self.__devid)
@@ -240,11 +257,10 @@ class JobCalibrationScan(Job):
             logger.error("Warning: Unable to set scanner source to 'Auto': %s"
                    % exc)
         try:
-            resolution = PaperworkConfig.CALIBRATION_RESOLUTION
             dev.options['resolution'].value = resolution
         except pyinsane.rawapi.SaneException:
             logger.error("Warning: Unable to set scanner resolution to %d: %s"
-                    % (PaperworkConfig.CALIBRATION_RESOLUTION, exc))
+                         % (resolution, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
             logger.info("Scanner mode set to 'Color'")
@@ -262,7 +278,7 @@ class JobCalibrationScan(Job):
         except EOFError:
             pass
         orig_img = scan_inst.get_img()
-        self.emit('calibration-scan-done', orig_img)
+        self.emit('calibration-scan-done', orig_img, resolution)
 
         # resize
         orig_img_size = orig_img.getbbox()
@@ -295,20 +311,23 @@ GObject.type_register(JobCalibrationScan)
 
 
 class JobFactoryCalibrationScan(JobFactory):
-    def __init__(self, settings_win, target_viewport):
+    def __init__(self, settings_win, target_viewport, resolutions_store):
         JobFactory.__init__(self, "CalibrationScan")
         self.__settings_win = settings_win
         self.__target_viewport = target_viewport
+        self.__resolutions_store = resolutions_store
 
     def make(self, devid):
         job = JobCalibrationScan(self, next(self.id_generator),
+                                 self.__resolutions_store,
                                  self.__target_viewport, devid)
         job.connect('calibration-scan-start',
                     lambda job:
                     GObject.idle_add(self.__settings_win.on_scan_start))
         job.connect('calibration-scan-done',
-                    lambda job, img:
-                    GObject.idle_add(self.__settings_win.on_scan_done, img))
+                    lambda job, img, resolution:
+                    GObject.idle_add(self.__settings_win.on_scan_done, img,
+                                     resolution))
         job.connect('calibration-resize-done',
                     lambda job, factor, img:
                     GObject.idle_add(self.__settings_win.on_resize_done,
@@ -375,7 +394,8 @@ class ActionApplySettings(SimpleAction):
 
         if self.__settings_win.grips is not None:
             coords = self.__settings_win.grips.get_coords()
-            self.__config.scanner_calibration = coords
+            self.__config.scanner_calibration = (
+                self.__settings_win.calibration['resolution'], coords)
 
         self.__config.write()
 
@@ -495,6 +515,8 @@ class SettingsWindow(GObject.GObject):
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
             "image_scrollbars":
             widget_tree.get_object("scrolledwindowCalibration"),
+            "resolution":
+            PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION,
         }
 
         self.grips = None
@@ -507,8 +529,11 @@ class SettingsWindow(GObject.GObject):
             "resolution_finder": JobFactoryResolutionFinder(self,
                 config.scanner_resolution,
                 config.RECOMMENDED_RESOLUTION),
-            "scan": JobFactoryCalibrationScan(self,
-                self.calibration['image_viewport']),
+            "scan": JobFactoryCalibrationScan(
+                self,
+                self.calibration['image_viewport'],
+                self.device_settings['resolution']['stores']['loaded']
+            ),
             "progress_updater": JobFactoryProgressUpdater(self.progressbar),
         }
 
@@ -651,12 +676,13 @@ class SettingsWindow(GObject.GObject):
             total_time=self.__config.scan_time['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
-    def on_scan_done(self, img):
+    def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['images'] = [(1.0, img)]
+        self.calibration['resolution'] = scan_resolution
         self.progressbar.set_fraction(0.0)
 
     def on_resize_done(self, factor, img):

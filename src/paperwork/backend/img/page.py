@@ -219,20 +219,21 @@ class ImgPage(BasicPage):
         logger.info("Scanner resolution: %d" % (scan_res))
         logger.info("Scanner calibration: %s" % str(scanner_calibration))
         logger.info("Calibration resolution: %d"
-               % PaperworkConfig.CALIBRATION_RESOLUTION)
+               % scanner_calibration[0])
         if scan_res != 0 and scanner_calibration is not None:
-            cropping = (scanner_calibration[0][0]
+            cropping = (scanner_calibration[1][0][0]
                         * scan_res
-                        / PaperworkConfig.CALIBRATION_RESOLUTION,
-                        scanner_calibration[0][1]
+                        / scanner_calibration[0],
+                        scanner_calibration[1][0][1]
                         * scan_res
-                        / PaperworkConfig.CALIBRATION_RESOLUTION,
-                        scanner_calibration[1][0]
+                        / scanner_calibration[0],
+                        scanner_calibration[1][1][0]
                         * scan_res
-                        / PaperworkConfig.CALIBRATION_RESOLUTION,
-                        scanner_calibration[1][1]
+                        / scanner_calibration[0],
+                        scanner_calibration[1][1][1]
                         * scan_res
-                        / PaperworkConfig.CALIBRATION_RESOLUTION)
+                        / scanner_calibration[0]
+                       )
             logging.info("Cropping: %s" % str(cropping))
             img = img.crop(cropping)
 

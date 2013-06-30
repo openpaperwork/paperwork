@@ -131,6 +131,7 @@ class JobIndexLoader(Job):
         self.can_run = False
         if not will_resume and not self.done:
             self.emit('index-loading-end', None)
+            self.done = True
 
 
 GObject.type_register(JobIndexLoader)

@@ -25,16 +25,17 @@ import StringIO
 import threading
 import unicodedata
 
+import cairo
 import enchant
 import enchant.tokenize
-import cairo
-import nltk.metrics.distance
-import PIL.Image
-import PIL.ImageDraw
 import gettext
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
+import nltk.metrics.distance
+import PIL.Image
+import PIL.ImageDraw
+import pyinsane.rawapi
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -370,3 +371,31 @@ def rm_rf(path):
                 logging.info("Deleting dir %s" % dirpath)
                 os.rmdir(dirpath)
         os.rmdir(path)
+
+
+def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
+    """
+    Set one of the scanner options
+
+    Arguments:
+        scanner_opt_name --- for verbose
+        scanner_opt --- the scanner option (its value, its constraints, etc)
+        possible_values --- a list of values considered valid (the first one
+                            being the preferred one)
+    """
+    value = possible_values[0]
+
+    if (scanner_opt.constraint_type ==
+        pyinsane.rawapi.SaneConstraintType.STRING_LIST):
+        for value in possible_values:
+            if value in scanner_opt.constraint:
+                break
+            value = None
+        if value is None:
+            raise pyinsane.rawapi.SaneException(
+                "%s are not a valid values for option %s"
+                % (str(possible_values), scanner_opt_name))
+
+    scanner_opt.value = value
+    logger.info("Scanner option '%s' set to '%s'"
+                % (scanner_opt_name, str(value)))

@@ -51,6 +51,7 @@ from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
+from paperwork.util import set_scanner_opt
 from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
@@ -1143,10 +1144,13 @@ class JobSingleScan(Job):
             try:
                 scanner = self.__config.get_scanner_inst()
                 try:
-                    scanner.options['source'].value = "Auto"
+                    # any source is actually fine. we just have a clearly defined
+                    # preferred order
+                    set_scanner_opt('source', scanner.options['source'],
+                                    ["Auto", "FlatBed", "ADF"])
                 except (KeyError, pyinsane.rawapi.SaneException), exc:
-                    logger.error("Warning: Unable to set scanner source "
-                           "to 'Auto': %s" % exc)
+                    logger.error("Warning: Unable to set scanner source: "
+                                 "%s" % exc)
                 scan_src = scanner.scan(multiple=False)
             except pyinsane.rawapi.SaneException, exc:
                 logger.error("No scanner found !")

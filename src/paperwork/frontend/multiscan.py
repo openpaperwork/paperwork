@@ -28,6 +28,7 @@ from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.util import load_uifile
 from paperwork.util import popup_no_scanner_found
+from paperwork.util import set_scanner_opt
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -290,7 +291,7 @@ class ActionScan(SimpleAction):
                 raise
 
             try:
-                scanner.options['source'].value = "ADF"
+                set_scanner_opt('source', scanner.options['source'], ["ADF"])
             except (KeyError, pyinsane.rawapi.SaneException), exc:
                 logger.error("Warning: Unable to set scanner source to 'Auto': %s"
                        % exc)

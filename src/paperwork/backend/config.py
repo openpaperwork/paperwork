@@ -268,9 +268,12 @@ class PaperworkConfig(object):
 
     def __get_scanner_calibration(self):
         """
-        This is the resolution of the scannner used for normal scans.
+        Scanner calibration
 
-        String.
+        Returns:
+            (calibration_resolution,
+             ((pt_a_x, pt_a_y),
+              (pt_b_x, pt_b_y)))
         """
         try:
             pt_a_x = int(self._configparser.get(
@@ -304,6 +307,11 @@ class PaperworkConfig(object):
     def __set_scanner_calibration(self, calibration):
         """
         Set the scanner resolution used for normal scans.
+
+        Arguments:
+            calibration --- (calibration_resolution,
+                             ((pt_a_x, pt_a_y),
+                              (pt_b_x, pt_b_y)))
         """
         self._configparser.set("Scanner", "Calibration_Resolution",
                                str(calibration[0]))

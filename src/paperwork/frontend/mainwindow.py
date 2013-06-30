@@ -367,7 +367,7 @@ class JobIndexUpdater(Job):
 
         self.emit('index-update-progression', 0.75,
                   _("Writing index ..."))
-        self.wait()
+        self.__wait()
         self.index_updater.commit()
         self.emit('index-update-progression', 1.0, "")
         self.emit('index-update-end')

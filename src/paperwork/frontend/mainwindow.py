@@ -508,8 +508,12 @@ class JobPageThumbnailer(Job):
         self.__search = search
 
         self.__current_idx = -1
+        self.done = False
 
     def do(self):
+        if self.done:
+            return
+
         pages = self.__doc.pages
         nb_pages = self.__doc.nb_pages
 
@@ -541,11 +545,15 @@ class JobPageThumbnailer(Job):
             if not self.can_run:
                 return
         self.emit('page-thumbnailing-end')
+        self.done = True
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
-        if not will_resume and self.__current_idx >= 0:
+        if (not will_resume
+            and self.__current_idx >= 0
+            and not self.done):
+            self.done = True
             self.emit('page-thumbnailing-end')
 
 
@@ -718,8 +726,11 @@ class JobImgBuilder(Job):
         self.__page = page
         self.__zoom_factor_func = zoom_factor_func
         self.__started_once = False
+        self.done = False
 
     def do(self):
+        if self.done:
+            return
         self.can_run = True
 
         try:
@@ -733,6 +744,7 @@ class JobImgBuilder(Job):
             img = self.__page.img  # load the image
             if img is None:
                 self.emit('img-building-result-clear')
+                self.done = True
                 return
             if not self.can_run:
                 return
@@ -754,16 +766,18 @@ class JobImgBuilder(Job):
                 return
             self.emit('img-building-result-pixbuf', factor, original_width,
                       pixbuf, self.__page.boxes)
+            self.done = True
         except Exception:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
+            self.done = True
             raise
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
-        if not will_resume:
+        if not will_resume and not self.done:
             self.emit('img-building-result-clear')
-            return
+            self.done = True
 
 
 GObject.type_register(JobImgBuilder)

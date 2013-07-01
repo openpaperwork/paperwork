@@ -278,6 +278,7 @@ class JobIndexUpdater(Job):
                                      (GObject.TYPE_FLOAT,
                                       GObject.TYPE_STRING)),
         'index-update-interrupted': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-update-write': (GObject.SignalFlags.RUN_LAST, None, ()),
         'index-update-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -369,6 +370,7 @@ class JobIndexUpdater(Job):
 
         self.emit('index-update-progression', 0.75,
                   _("Writing index ..."))
+        self.emit('index-update-write')
         self.__wait()
         self.index_updater.commit()
         self.emit('index-update-progression', 1.0, "")
@@ -400,8 +402,13 @@ class JobFactoryIndexUpdater(JobFactory):
                     GObject.idle_add(self.__main_win.on_index_update_start_cb,
                                      updater))
         job.connect('index-update-progression',
+                    lambda updater, progression, txt:
+                    GObject.idle_add(self.__main_win.set_progression, updater,
+                                     progression, txt))
+        job.connect('index-update-write',
                     lambda updater:
-                    GObject.idle_add(self.__main_win.set_progression, updater))
+                    GObject.idle_add(self.__main_win.on_index_update_write_cb,
+                                     updater))
         job.connect('index-update-end',
                     lambda updater:
                     GObject.idle_add(self.__main_win.on_index_update_end_cb,
@@ -3243,7 +3250,6 @@ class MainWindow(object):
 
     def on_index_update_start_cb(self, src):
         self.set_progression(src, 0.0, None)
-        self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
     def on_index_update_end_cb(self, src):
@@ -3256,6 +3262,9 @@ class MainWindow(object):
 
         job = self.job_factories['index_reloader'].make()
         self.schedulers['main'].schedule(job)
+
+    def on_index_update_write_cb(self, src):
+        self.set_search_availability(False)
 
     def on_search_result_cb(self, documents, suggestions):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])

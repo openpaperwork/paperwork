@@ -201,25 +201,14 @@ class JobScheduler(object):
         active_job = self._active_job
 
         if active_job.can_stop:
+            logger.debug("[Scheduler %s] Job %s marked for stopping"
+                         % (self.name, str(active_job)))
             active_job.stop(will_resume=will_resume)
         else:
             logger.warning(
                 "[Scheduler %s] Tried to stop job %s, but it can't"
                 " be stopped"
                 % (self.name, str(active_job)))
-        start = time.time()
-        while active_job == self._active_job:
-            self._job_queue_cond.wait()
-        stop = time.time()
-        diff = stop - start
-        if active_job.can_stop and diff > Job.MAX_TIME_TO_STOP:
-            logger.warning("[Scheduler %s] Took %dms to stop job %s !"
-                           " (maximum allowed: %dms)"
-                           % (self.name, diff * 1000,
-                              str(active_job),
-                              Job.MAX_TIME_TO_STOP * 1000))
-        logger.debug("[Scheduler %s] Job %s halted"
-                     % (self.name, str(active_job)))
 
     def schedule(self, job):
         """
@@ -254,10 +243,14 @@ class JobScheduler(object):
                                  % (str(job), str(active), str(active)))
                 else:
                     self._stop_active_job(will_resume=True)
-                    heapq.heappush(self._job_queue,
-                                   (-1 * active.priority,
-                                    next(self._job_idx_generator),
-                                    active))
+                    # the active job may have already been re-queued
+                    # previously. In which case we don't want to requeue
+                    # it again
+                    if not active in self._job_queue:
+                        heapq.heappush(self._job_queue,
+                                       (-1 * active.priority,
+                                        next(self._job_idx_generator),
+                                        active))
 
             self._job_queue_cond.notify_all()
         finally:

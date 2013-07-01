@@ -278,6 +278,7 @@ class JobIndexUpdater(Job):
                                      (GObject.TYPE_FLOAT,
                                       GObject.TYPE_STRING)),
         'index-update-interrupted': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'index-update-write': (GObject.SignalFlags.RUN_LAST, None, ()),
         'index-update-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -299,6 +300,7 @@ class JobIndexUpdater(Job):
         self.optimize = optimize
         self.index_updater = None
         self.total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
+        self.progression = float(0)
 
     def __wakeup(self):
         self.__condition.acquire()
@@ -312,7 +314,7 @@ class JobIndexUpdater(Job):
         # update is finished
         self.__condition.acquire()
         GObject.idle_add(self.__wakeup)
-        self.__condition.wait(1)
+        self.__condition.wait()
         self.__condition.release()
 
     def do(self):
@@ -345,7 +347,6 @@ class JobIndexUpdater(Job):
              self.index_updater.del_doc),
         ]
 
-        progression = float(0)
 
         for (op_name, doc_bunch, op) in docs:
             try:
@@ -355,12 +356,12 @@ class JobIndexUpdater(Job):
                         return
                     doc = doc_bunch.pop()
                     self.emit('index-update-progression',
-                              (progression * 0.75) / total,
+                              (self.progression * 0.75) / self.total,
                               "%s (%s)" % (op_name, str(doc)))
                     self.__wait()
                     # update the docs but don't fit the estimators, its already done
                     op(doc, fit_label_estimator=False)
-                    progression += 1
+                    self.progression += 1
             except KeyError:
                 pass
 
@@ -370,6 +371,7 @@ class JobIndexUpdater(Job):
 
         self.emit('index-update-progression', 0.75,
                   _("Writing index ..."))
+        self.emit('index-update-write')
         self.__wait()
         self.index_updater.commit()
         self.emit('index-update-progression', 1.0, "")
@@ -379,7 +381,8 @@ class JobIndexUpdater(Job):
         self.can_run = False
         if not will_resume:
             self.connect('index-update-interrupted',
-                         lambda job: self.index_updater.cancel())
+                         lambda job:
+                         GObject.idle_add(self.index_updater.cancel))
 
 
 GObject.type_register(JobIndexUpdater)
@@ -400,7 +403,13 @@ class JobFactoryIndexUpdater(JobFactory):
                     GObject.idle_add(self.__main_win.on_index_update_start_cb,
                                      updater))
         job.connect('index-update-progression',
-                    self.__main_win.set_progression)
+                    lambda updater, progression, txt:
+                    GObject.idle_add(self.__main_win.set_progression, updater,
+                                     progression, txt))
+        job.connect('index-update-write',
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.on_index_update_write_cb,
+                                     updater))
         job.connect('index-update-end',
                     lambda updater:
                     GObject.idle_add(self.__main_win.on_index_update_end_cb,
@@ -507,8 +516,12 @@ class JobPageThumbnailer(Job):
         self.__search = search
 
         self.__current_idx = -1
+        self.done = False
 
     def do(self):
+        if self.done:
+            return
+
         pages = self.__doc.pages
         nb_pages = self.__doc.nb_pages
 
@@ -540,11 +553,15 @@ class JobPageThumbnailer(Job):
             if not self.can_run:
                 return
         self.emit('page-thumbnailing-end')
+        self.done = True
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
-        if not will_resume and self.__current_idx >= 0:
+        if (not will_resume
+            and self.__current_idx >= 0
+            and not self.done):
+            self.done = True
             self.emit('page-thumbnailing-end')
 
 
@@ -715,8 +732,11 @@ class JobImgBuilder(Job):
         self.__page = page
         self.__zoom_factor_func = zoom_factor_func
         self.__started_once = False
+        self.done = False
 
     def do(self):
+        if self.done:
+            return
         self.can_run = True
 
         try:
@@ -730,6 +750,7 @@ class JobImgBuilder(Job):
             img = self.__page.img  # load the image
             if img is None:
                 self.emit('img-building-result-clear')
+                self.done = True
                 return
             if not self.can_run:
                 return
@@ -751,16 +772,18 @@ class JobImgBuilder(Job):
                 return
             self.emit('img-building-result-pixbuf', factor, original_width,
                       pixbuf, self.__page.boxes)
+            self.done = True
         except Exception:
             self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
+            self.done = True
             raise
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
-        if not will_resume:
+        if not will_resume and not self.done:
             self.emit('img-building-result-clear')
-            return
+            self.done = True
 
 
 GObject.type_register(JobImgBuilder)
@@ -3226,7 +3249,6 @@ class MainWindow(object):
 
     def on_index_update_start_cb(self, src):
         self.set_progression(src, 0.0, None)
-        self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
 
     def on_index_update_end_cb(self, src):
@@ -3239,6 +3261,9 @@ class MainWindow(object):
 
         job = self.job_factories['index_reloader'].make()
         self.schedulers['main'].schedule(job)
+
+    def on_index_update_write_cb(self, src):
+        self.set_search_availability(False)
 
     def on_search_result_cb(self, documents, suggestions):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])

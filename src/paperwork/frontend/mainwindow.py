@@ -716,6 +716,9 @@ class JobImgBuilder(Job):
         'img-building-start': (GObject.SignalFlags.RUN_LAST, None,
                                (GObject.TYPE_BOOLEAN,  # True == warn the user
                                )),
+        'img-building-canceled': (GObject.SignalFlags.RUN_LAST, None,
+                                  (GObject.TYPE_BOOLEAN,  # True == warned the user
+                                  )),
         'img-building-result-pixbuf': (GObject.SignalFlags.RUN_LAST, None,
                                        (GObject.TYPE_BOOLEAN,  # True == warned the user
                                         GObject.TYPE_FLOAT, GObject.TYPE_INT,
@@ -796,8 +799,7 @@ class JobImgBuilder(Job):
         self.can_run = False
         self._stop_wait()
         if not will_resume and not self.done:
-            if self.warn_user:
-                self.emit('img-building-result-clear', self.warn_user)
+            self.emit('img-building-canceled', self.warn_user)
             self.done = True
 
 
@@ -817,6 +819,10 @@ class JobFactoryImgBuilder(JobFactory):
                     lambda builder, warn_user:
                     GObject.idle_add(self.__main_win.on_img_building_start,
                                      warn_user))
+        job.connect('img-building-canceled',
+                    lambda builder, warned_user:
+                    GObject.idle_add(self.__main_win.on_img_building_canceled,
+                                     warned_user))
         job.connect('img-building-result-pixbuf',
                     lambda builder, warned_user, factor, original_width, img, boxes:
                     GObject.idle_add(self.__main_win.on_img_building_result_pixbuf,
@@ -3361,6 +3367,10 @@ class MainWindow(object):
 
     def on_img_building_result_clear(self, warned_user):
         self.img['image'].clear()
+        if warned_user:
+            self.set_mouse_cursor("Normal")
+
+    def on_img_building_canceled(self, warned_user):
         if warned_user:
             self.set_mouse_cursor("Normal")
 

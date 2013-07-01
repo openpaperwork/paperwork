@@ -299,6 +299,7 @@ class JobIndexUpdater(Job):
         self.optimize = optimize
         self.index_updater = None
         self.total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
+        self.progression = float(0)
 
     def __wakeup(self):
         self.__condition.acquire()
@@ -343,7 +344,6 @@ class JobIndexUpdater(Job):
              self.index_updater.del_doc),
         ]
 
-        progression = float(0)
 
         for (op_name, doc_bunch, op) in docs:
             try:
@@ -353,13 +353,13 @@ class JobIndexUpdater(Job):
                         return
                     doc = doc_bunch.pop()
                     self.emit('index-update-progression',
-                              (progression * 0.75) / total,
+                              (self.progression * 0.75) / total,
                               "%s (%s)" % (op_name, str(doc)))
 
                     self.__wait()
 
                     op(doc)
-                    progression += 1
+                    self.progression += 1
             except KeyError:
                 pass
 

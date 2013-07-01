@@ -810,7 +810,6 @@ class JobBoxesRefresher(Job):
 
     def do(self):
         self.can_run = True
-        self._wait(0.5)
         if not self.can_run:
             return
 

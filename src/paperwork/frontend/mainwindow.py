@@ -378,7 +378,8 @@ class JobIndexUpdater(Job):
         self.can_run = False
         if not will_resume:
             self.connect('index-update-interrupted',
-                         lambda job: self.index_updater.cancel())
+                         lambda job:
+                         GObject.idle_add(self.index_updater.cancel))
 
 
 GObject.type_register(JobIndexUpdater)
@@ -399,7 +400,8 @@ class JobFactoryIndexUpdater(JobFactory):
                     GObject.idle_add(self.__main_win.on_index_update_start_cb,
                                      updater))
         job.connect('index-update-progression',
-                    self.__main_win.set_progression)
+                    lambda updater:
+                    GObject.idle_add(self.__main_win.set_progression, updater))
         job.connect('index-update-end',
                     lambda updater:
                     GObject.idle_add(self.__main_win.on_index_update_end_cb,

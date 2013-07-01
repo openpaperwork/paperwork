@@ -515,7 +515,6 @@ class JobPageThumbnailer(Job):
         self.can_run = True
         if self.__current_idx >= nb_pages:
             return
-        self._wait(0.5)
         if not self.can_run:
             return
 
@@ -605,7 +604,6 @@ class JobDocThumbnailer(Job):
         self.can_run = True
         if self.__current_idx >= len(self.__doclist):
             return
-        self._wait(0.5)
         if not self.can_run:
             return
 
@@ -726,7 +724,6 @@ class JobImgBuilder(Job):
                 self.emit('img-building-start')
                 self.__started_once = True
 
-            self._wait(0.5)
             if not self.can_run:
                 return
 
@@ -812,7 +809,6 @@ class JobBoxesRefresher(Job):
 
     def do(self):
         self.can_run = True
-        self._wait(0.5)
         if not self.can_run:
             return
 

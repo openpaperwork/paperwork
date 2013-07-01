@@ -243,10 +243,14 @@ class JobScheduler(object):
                                  % (str(job), str(active), str(active)))
                 else:
                     self._stop_active_job(will_resume=True)
-                    heapq.heappush(self._job_queue,
-                                   (-1 * active.priority,
-                                    next(self._job_idx_generator),
-                                    active))
+                    # the active job may have already been re-queued
+                    # previously. In which case we don't want to requeue
+                    # it again
+                    if not active in self._job_queue:
+                        heapq.heappush(self._job_queue,
+                                       (-1 * active.priority,
+                                        next(self._job_idx_generator),
+                                        active))
 
             self._job_queue_cond.notify_all()
         finally:

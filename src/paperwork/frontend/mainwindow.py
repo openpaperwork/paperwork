@@ -725,7 +725,6 @@ class JobImgBuilder(Job):
                 self.emit('img-building-start')
                 self.__started_once = True
 
-            self._wait(0.5)
             if not self.can_run:
                 return
 

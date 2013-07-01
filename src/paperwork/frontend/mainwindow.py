@@ -354,7 +354,7 @@ class JobIndexUpdater(Job):
                         return
                     doc = doc_bunch.pop()
                     self.emit('index-update-progression',
-                              (self.progression * 0.75) / total,
+                              (self.progression * 0.75) / self.total,
                               "%s (%s)" % (op_name, str(doc)))
 
                     self.__wait()

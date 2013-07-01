@@ -301,6 +301,8 @@ class JobScheduler(object):
         self.running = False
 
         self._job_queue_cond.acquire()
+        if self._active_job is not None:
+            self._stop_active_job(will_resume=False)
         try:
             self._job_queue_cond.notify_all()
         finally:

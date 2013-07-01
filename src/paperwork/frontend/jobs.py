@@ -54,6 +54,8 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
 
     started_by = None  # set by the scheduler
 
+    already_started_once = False
+
     def __init__(self, job_factory, job_id):
         GObject.GObject.__init__(self)
         self.factory = job_factory
@@ -151,6 +153,7 @@ class JobScheduler(object):
             assert(self._active_job is not None)
 
             start = time.time()
+            self._active_job.already_started_once = True
             try:
                 self._active_job.do()
             except Exception, exc:
@@ -270,12 +273,14 @@ class JobScheduler(object):
                         to_rm.append(job)
                 for job in to_rm:
                     self._job_queue.remove(job)
+                    if job[2].already_started_once:
+                        job[2].stop(will_resume=False)
                     logger.debug("[Scheduler %s] Job %s cancelled"
-                                % (self.name, str(job[2])))
-                heapq.heapify(self._job_queue)
+                                 % (self.name, str(job[2])))
             except ValueError:
                 pass
 
+            heapq.heapify(self._job_queue)
             if (self._active_job is not None and condition(self._active_job)):
                 self._stop_active_job(will_resume=False)
         finally:

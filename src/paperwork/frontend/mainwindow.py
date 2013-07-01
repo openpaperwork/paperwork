@@ -712,27 +712,37 @@ class JobImgBuilder(Job):
     Resize and paint on the page
     """
     __gsignals__ = {
-        'img-building-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'img-building-start': (GObject.SignalFlags.RUN_LAST, None,
+                               (GObject.TYPE_BOOLEAN,  # True == warn the user
+                               )),
+        'img-building-canceled': (GObject.SignalFlags.RUN_LAST, None,
+                                  (GObject.TYPE_BOOLEAN,  # True == warned the user
+                                  )),
         'img-building-result-pixbuf': (GObject.SignalFlags.RUN_LAST, None,
-                                       (GObject.TYPE_FLOAT, GObject.TYPE_INT,
+                                       (GObject.TYPE_BOOLEAN,  # True == warned the user
+                                        GObject.TYPE_FLOAT, GObject.TYPE_INT,
                                         GObject.TYPE_PYOBJECT,  # pixbuf
                                         # array of boxes
                                         GObject.TYPE_PYOBJECT,
-                                        )),
-        'img-building-result-clear': (GObject.SignalFlags.RUN_LAST, None, ()),
+                                       )),
+        'img-building-result-clear': (GObject.SignalFlags.RUN_LAST, None,
+                                      (GObject.TYPE_BOOLEAN,  # True == warned the user
+                                      )),
         'img-building-result-stock': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_STRING, )),
+                                      (GObject.TYPE_BOOLEAN,  # True == warned the user
+                                       GObject.TYPE_STRING, )),
     }
 
     can_stop = True
     priority = 450
 
-    def __init__(self, factory, id, page, zoom_factor_func):
+    def __init__(self, factory, id, page, zoom_factor_func, warn_user):
         Job.__init__(self, factory, id)
         self.__page = page
         self.__zoom_factor_func = zoom_factor_func
         self.__started_once = False
         self.done = False
+        self.warn_user = warn_user
 
     def do(self):
         if self.done:
@@ -740,8 +750,13 @@ class JobImgBuilder(Job):
         self.can_run = True
 
         try:
-            if not self.__started_once:
-                self.emit('img-building-start')
+            if (not self.__started_once and self.warn_user):
+                # warn_user == True is the normal mode where we change the
+                # GUI to show the user we have taken its request into account
+                # and we are loading the new image
+                # warn_user == False is a sneaky mode where we don't warn
+                # them
+                self.emit('img-building-start', self.warn_user)
                 self.__started_once = True
 
             if not self.can_run:
@@ -749,7 +764,7 @@ class JobImgBuilder(Job):
 
             img = self.__page.img  # load the image
             if img is None:
-                self.emit('img-building-result-clear')
+                self.emit('img-building-result-clear', self.warn_user)
                 self.done = True
                 return
             if not self.can_run:
@@ -770,11 +785,12 @@ class JobImgBuilder(Job):
                                          GdkPixbuf.InterpType.BILINEAR)
             if not self.can_run:
                 return
-            self.emit('img-building-result-pixbuf', factor, original_width,
-                      pixbuf, self.__page.boxes)
+            self.emit('img-building-result-pixbuf', self.warn_user, factor,
+                      original_width, pixbuf, self.__page.boxes)
             self.done = True
         except Exception:
-            self.emit('img-building-result-stock', Gtk.STOCK_DIALOG_ERROR)
+            self.emit('img-building-result-stock', self.warn_user,
+                      Gtk.STOCK_DIALOG_ERROR)
             self.done = True
             raise
 
@@ -782,7 +798,7 @@ class JobImgBuilder(Job):
         self.can_run = False
         self._stop_wait()
         if not will_resume and not self.done:
-            self.emit('img-building-result-clear')
+            self.emit('img-building-canceled', self.warn_user)
             self.done = True
 
 
@@ -794,22 +810,31 @@ class JobFactoryImgBuilder(JobFactory):
         JobFactory.__init__(self, "ImgBuilder")
         self.__main_win = main_win
 
-    def make(self, page):
+    def make(self, page, warn_user=True):
         job = JobImgBuilder(self, next(self.id_generator), page,
-                            self.__main_win.get_zoom_factor)
+                            self.__main_win.get_zoom_factor,
+                            warn_user)
         job.connect('img-building-start',
-                    lambda builder:
-                    GObject.idle_add(self.__main_win.on_img_building_start))
+                    lambda builder, warn_user:
+                    GObject.idle_add(self.__main_win.on_img_building_start,
+                                     warn_user))
+        job.connect('img-building-canceled',
+                    lambda builder, warned_user:
+                    GObject.idle_add(self.__main_win.on_img_building_canceled,
+                                     warned_user))
         job.connect('img-building-result-pixbuf',
-                    lambda builder, factor, original_width, img, boxes:
+                    lambda builder, warned_user, factor, original_width, img, boxes:
                     GObject.idle_add(self.__main_win.on_img_building_result_pixbuf,
-                                     builder, factor, original_width, img, boxes))
+                                     builder, warn_user,
+                                     factor, original_width, img, boxes))
         job.connect('img-building-result-stock',
-                    lambda builder, img:
-                    GObject.idle_add(self.__main_win.on_img_building_result_stock, img))
+                    lambda builder, warned_user, img:
+                    GObject.idle_add(self.__main_win.on_img_building_result_stock,
+                                     warn_user, img))
         job.connect('img-building-result-clear',
-                    lambda builder:
-                    GObject.idle_add(self.__main_win.on_img_building_result_clear))
+                    lambda builder, warned_user:
+                    GObject.idle_add(self.__main_win.on_img_building_result_clear,
+                                     warned_user))
         return job
 
 
@@ -1978,7 +2003,7 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
         self.main_win.lists['zoom_levels']['gui'].set_sensitive(False)
-        self.main_win.disable_boxes()
+        self.main_win.drop_boxes()
 
         self.main_win.export['pageFormat']['model'].clear()
         idx = 0
@@ -3321,27 +3346,35 @@ class MainWindow(object):
     def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
 
-    def disable_boxes(self):
+    def drop_boxes(self):
         self.img['boxes']['all'] = []
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
-    def on_img_building_start(self):
-        self.disable_boxes()
+    def on_img_building_start(self, warn_user):
+        if not warn_user:
+            return
+        self.drop_boxes()
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
 
-    def on_img_building_result_stock(self, img):
+    def on_img_building_result_stock(self, img, warned_user):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
-        self.set_mouse_cursor("Normal")
+        if warned_user:
+            self.set_mouse_cursor("Normal")
 
-    def on_img_building_result_clear(self):
+    def on_img_building_result_clear(self, warned_user):
         self.img['image'].clear()
-        self.set_mouse_cursor("Normal")
+        if warned_user:
+            self.set_mouse_cursor("Normal")
 
-    def on_img_building_result_pixbuf(self, builder, factor, original_width,
-                                      pixbuf, boxes):
+    def on_img_building_canceled(self, warned_user):
+        if warned_user:
+            self.set_mouse_cursor("Normal")
+
+    def on_img_building_result_pixbuf(self, builder, warned_user, factor,
+                                      original_width, pixbuf, boxes):
         self.img['boxes']['all'] = boxes
 
         self.img['factor'] = factor
@@ -3349,9 +3382,11 @@ class MainWindow(object):
         self.img['original_width'] = original_width
 
         self.img['image'].set_from_pixbuf(pixbuf)
-        self.set_mouse_cursor("Normal")
 
         self.refresh_boxes()
+
+        if warned_user:
+            self.set_mouse_cursor("Normal")
 
     def on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
@@ -3867,7 +3902,8 @@ class MainWindow(object):
             return
 
         self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
-        job = self.job_factories['img_builder'].make(self.page)
+        job = self.job_factories['img_builder'].make(self.page,
+                                                     warn_user=False)
         self.schedulers['main'].schedule(job)
 
     def on_page_editing_img_edit_start_cb(self, job, page):

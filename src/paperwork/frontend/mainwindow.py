@@ -3922,13 +3922,23 @@ class MainWindow(object):
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
-        target_idx = self.lists['pages']['model'][target_path][4]
+        if target_path is None:
+            logger.warn("[page list] drag-data-received: no target. aborting")
+            drag_context.finish(False, False, time)
+            return
+        target = target_path.get_indices()[0]
+        target_idx = self.lists['pages']['model'][target][2]
         if position == Gtk.IconViewDropPosition.DROP_BELOW:
             target_idx += 1
+
+        assert(target_idx >= 0)
         obj_id = selection_data.get_text()
 
         logger.info("[page list] drag-data-received: %s -> %s" % (obj_id, target_idx))
         obj = self.docsearch.get_by_id(obj_id)
+        if (target_idx >= obj.doc.nb_pages):
+            target_idx = obj.doc.nb_pages - 1
+
         # TODO(Jflesch): Instantiate an ActionXXX to do that, so
         # this action can be cancelled later
         obj.change_index(target_idx)
@@ -3943,11 +3953,11 @@ class MainWindow(object):
         obj_id = selection_data.get_text()
         target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
         if target is None:
-            logger.warn("[page list] drag-data-received: no target. aborting")
+            logger.warn("[doc list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
-        target_doc = self.lists['matches']['model'][target_path][1]
+        target_doc = self.lists['matches']['model'][target_path][2]
         obj_id = selection_data.get_text()
         obj = self.docsearch.get_by_id(obj_id)
 
@@ -3991,7 +4001,7 @@ class MainWindow(object):
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)
-        self.schedulers['main'].schedule(job) 
+        self.schedulers['main'].schedule(job)
 
     def get_doc_sort_func(self):
         for (widget, sort_func) in self.sortings:

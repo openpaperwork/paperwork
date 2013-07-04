@@ -486,7 +486,6 @@ class DocSearch(object):
     def __must_clean(self, filepath):
         must_clean_cbs = [
             is_dir_empty,
-            img.is_tmp_file,
         ]
         for must_clean_cb in must_clean_cbs:
             if must_clean_cb(filepath):

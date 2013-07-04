@@ -37,6 +37,7 @@ class PdfDocExporter(object):
     can_change_quality = False
 
     def __init__(self, doc):
+        self.doc = doc
         self.pdfpath = ("%s/%s" % (doc.path, PDF_FILENAME))
 
     def get_mime_type(self):
@@ -53,7 +54,7 @@ class PdfDocExporter(object):
         return os.path.getsize(self.pdfpath)
 
     def get_img(self):
-        raise NotImplementedError()
+        return self.doc.pages[0].img
 
     def __str__(self):
         return 'PDF'

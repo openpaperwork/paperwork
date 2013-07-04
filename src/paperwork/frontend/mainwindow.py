@@ -1596,7 +1596,7 @@ class ActionMovePageIndex(SimpleAction):
         if page_idx < 0 or page_idx >= self.__main_win.doc[1].nb_pages:
             return
         page = self.__main_win.doc[1].pages[page_idx]
-        self.__main_win.show_page(page)
+        self.__main_win.show_page(page, force_refresh=True)
 
 
 class ActionOpenPageNb(SimpleAction):
@@ -1821,7 +1821,7 @@ class ActionMultiScan(SimpleAction):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
             return
-        ms = MultiscanDialog(self.__main_win, self.__config)
+        ms = MultiscanDialog(self.__main_win, self__config)
         ms.connect("need-show-page",
                    lambda ms_dialog, page:
                    GObject.idle_add(self.__show_page, page))
@@ -2167,7 +2167,7 @@ class BasicActionEndExport(SimpleAction):
         self.main_win.export['dialog'].set_visible(False)
         self.main_win.export['exporter'] = None
         # force refresh of the current page
-        self.main_win.show_page(self.main_win.page)
+        self.main_win.show_page(self.main_win.page, force_refresh=True)
 
 
 class ActionExport(BasicActionEndExport):
@@ -3421,7 +3421,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
         # in case the keywords were highlighted
-        self.show_page(self.page, refresh=True)
+        self.show_page(self.page, force_refresh=True)
         self.actions['reindex'][1].do()
 
     def on_single_scan_start(self, job):
@@ -3466,7 +3466,7 @@ class MainWindow(object):
         self.refresh_page_list()
 
         assert(page is not None)
-        self.show_page(page)
+        self.show_page(page, force_refresh=True)
 
         if job.doc.nb_pages <= 1:
             if job.doc == self.doc[1]:
@@ -3790,8 +3790,8 @@ class MainWindow(object):
         job = self.job_factories['boxes_refresher'].make(self.page, search)
         self.schedulers['main'].schedule(job)
 
-    def show_page(self, page, refresh=False):
-        if page is self.page and not refresh:
+    def show_page(self, page, force_refresh=False):
+        if (page == self.page and not force_refresh):
             return
         logging.info("Showing page %s" % page)
 
@@ -3828,8 +3828,8 @@ class MainWindow(object):
         job = self.job_factories['img_builder'].make(page)
         self.schedulers['main'].schedule(job)
 
-    def show_doc(self, doc_idx, doc, refresh=False):
-        if doc is self.doc[1] and not refresh:
+    def show_doc(self, doc_idx, doc, force_refresh=False):
+        if (self.doc is not None and self.doc[1] == doc and not force_refresh):
             return
         self.doc = (doc_idx, doc)
         is_new = doc.is_new

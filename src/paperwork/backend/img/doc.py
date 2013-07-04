@@ -343,6 +343,7 @@ class ImgDoc(BasicDoc):
         new_page = ImgPage(self, self.nb_pages)
         logger.info("%s --> %s" % (str(page), str(new_page)))
         new_page._steal_content(page)
+        page.doc.drop_cache()
         self.drop_cache()
 
     def drop_cache(self):

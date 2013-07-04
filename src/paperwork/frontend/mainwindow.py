@@ -3957,7 +3957,12 @@ class MainWindow(object):
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
-        target_doc = self.lists['matches']['model'][target_path][2]
+        if target_path is None:
+            logger.warn("[doc list] drag-data-received: no target. aborting")
+            drag_context.finish(False, False, time)
+            return
+        target = target_path.get_indices()[0]
+        target_doc = self.lists['matches']['model'][target][2]
         obj_id = selection_data.get_text()
         obj = self.docsearch.get_by_id(obj_id)
 
@@ -3980,24 +3985,24 @@ class MainWindow(object):
         target_doc.steal_page(obj)
 
         if obj.doc.nb_pages <= 0:
-            del_docs = [obj.doc.docid]
-            upd_docs = [target_doc]
+            del_docs = {obj.doc.docid}
+            upd_docs = {target_doc}
         else:
-            del_docs = []
-            upd_docs = [obj.doc, target_doc]
+            del_docs = set()
+            upd_docs = {obj.doc, target_doc}
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
 
         # the index update will start a doc list refresh when finished
-        job = self.__main_win.job_factories['index_updater'].make(
+        job = self.job_factories['index_updater'].make(
             docsearch=self.docsearch,
-            new_docs=[],
+            new_docs=set(),
             upd_docs=upd_docs,
             del_docs=del_docs,
             optimize=False
         )
-        self.__main_win.schedulers['main'].schedule(job)
+        self.schedulers['main'].schedule(job)
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)

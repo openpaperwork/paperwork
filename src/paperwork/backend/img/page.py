@@ -45,8 +45,9 @@ logger = logging.getLogger(__name__)
 
 
 class ImgOCRThread(threading.Thread):
-    def __init__(self, ocr_tool, langs, img, compute_score=True):
+    def __init__(self, name, ocr_tool, langs, img, compute_score=True):
         threading.Thread.__init__(self, name="OCR")
+        self.name = name
         self.ocr_tool = ocr_tool
         self.langs = langs
         self.img = img
@@ -80,7 +81,7 @@ class ImgOCRThread(threading.Thread):
             ("no_score", lambda txt: (txt, 0))
         ]
 
-        logger.info("Running OCR on page")
+        logger.info("Running OCR on page orientation %s" % self.name)
         self.text = self.ocr_tool.image_to_string(
             self.img, lang=self.langs['ocr'])
 
@@ -90,21 +91,22 @@ class ImgOCRThread(threading.Thread):
 
         for score_method in SCORE_METHODS:
             try:
-                logging.info("Evaluating score of this page orientation (%s)"
-                       " using method '%s' ..."
-                       % (self.img, score_method[0]))
+                logger.info("Evaluating score of page orientation (%s)"
+                             " using method '%s' ..."
+                             % (self.name, score_method[0]))
                 (fixed_text, self.score) = score_method[1](self.text)
                 # TODO(Jflesch): For now, we throw away the fixed version:
                 # The original version may contain proper nouns, and spell
                 # checking could make them disappear
                 # However, it would be best if we could keep both versions
                 # without increasing too much indexation time
-                logging.info("Page orientation score: %d" % self.score)
+                logger.info("Page orientation %s score: %d"
+                             % (self.name, self.score))
                 return
             except Exception, exc:
-                logging.error("Scoring method '%s' failed !"
-                       % score_method[0])
-                logging.error("Reason: %s" % exc)
+                logger.error("Scoring method '%s' on orientation %s failed !"
+                             % (score_method[0], self.name))
+                logger.error("Reason: %s" % exc)
 
 
 class ImgPage(BasicPage):
@@ -253,9 +255,7 @@ class ImgPage(BasicPage):
     def __save_imgs(self, img, scan_res=0, scanner_calibration=None,
                     callback=dummy_progress_cb):
         """
-        Make a page (on disk), and generate 4 output files:
-            <docid>/paper.rotated.0.bmp: original output
-            <docid>/paper.rotated.1.bmp: original output at 90 degrees
+        Make a page, and generate 4 output images, one for each orientation.
         OCR will have to decide which is the best
         """
         logger.info("Scanner resolution: %d" % (scan_res))
@@ -276,7 +276,7 @@ class ImgPage(BasicPage):
                         * scan_res
                         / scanner_calibration[0]
                        )
-            logging.info("Cropping: %s" % str(cropping))
+            logger.info("Cropping: %s" % str(cropping))
             img = img.crop(cropping)
 
         img.load()  # WORKAROUND: For PIL on ArchLinux
@@ -292,11 +292,8 @@ class ImgPage(BasicPage):
         outfiles = []
         # rotate the image 0, 90, 180 and 270 degrees
         for rotation in range(0, 4):
-            filename = ("%s%d.%s" % (self.ROTATED_FILE_PREFIX, rotation,
-                                     self.EXT_IMG_SCAN))
-            imgpath = os.path.join(self.doc.path, filename)
-            logging.info("Saving scan (rotated %d degree) in '%s'"
-                   % (rotation * -90, imgpath))
+            logger.info("Scan rotated of %d degree"
+                        % (rotation * -90))
             outfiles.append(img)
             img = img.rotate(-90)
         return outfiles
@@ -346,6 +343,7 @@ class ImgPage(BasicPage):
 
         # Run the OCR tools in as many threads as there are processors/core
         # on the computer
+        nb = 0
         while (len(imgs) > 0 or len(threads) > 0):
             # look for finished threads
             for thread in threads:
@@ -353,21 +351,22 @@ class ImgPage(BasicPage):
                     threads.remove(thread)
                     scores.append((thread.score, thread.img, thread.text))
                     callback(len(scores),
-                             len(scores) + len(files) + len(threads) + 1,
+                             len(scores) + len(imgs) + len(threads) + 1,
                              self.SCAN_STEP_OCR)
             # start new threads if required
-            while (len(threads) < max_threads and len(files) > 0):
+            while (len(threads) < max_threads and len(imgs) > 0):
                 img = imgs.pop()
-                thread = ImgOCRThread(ocr_tools[0], langs, img,
+                thread = ImgOCRThread(str(nb), ocr_tools[0], langs, img,
                                       need_scores)
                 thread.start()
                 threads.append(thread)
+                nb += 1
             time.sleep(self.OCR_THREADS_POLLING_TIME)
 
         # We want the higher score first
         scores.sort(cmp=lambda x, y: self.__compare_score(y[0], x[0]))
 
-        logger.info("Best: %f -> %s" % (scores[0][0], scores[0][1]))
+        logger.info("Best: %f" % (scores[0][0]))
 
         logger.info("Extracting boxes ...")
         callback(len(scores), len(scores) + 1, self.SCAN_STEP_OCR)

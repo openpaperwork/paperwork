@@ -114,7 +114,6 @@ class ImgPage(BasicPage):
     Represents a page. A page is a sub-element of ImgDoc.
     """
     FILE_PREFIX = "paper."
-    ROTATED_FILE_PREFIX = "rotated."
     EXT_TXT = "txt"
     EXT_BOX = "words"
     EXT_IMG_SCAN = "bmp"

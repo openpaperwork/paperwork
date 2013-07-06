@@ -255,7 +255,9 @@ class JobCalibrationScan(Job):
         try:
             # any source is actually fine. we just have a clearly defined
             # preferred order
-            set_scanner_opt('source', dev.options['source'], ["Auto", "FlatBed", "ADF"])
+            set_scanner_opt('source', dev.options['source'],
+                            ["Auto", "FlatBed",
+                             ".*ADF.*", ".*Feeder.*"])
         except (KeyError, pyinsane.rawapi.SaneException), exc:
             logger.error("Warning: Unable to set scanner source: %s"
                    % exc)

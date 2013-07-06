@@ -1192,7 +1192,8 @@ class JobSingleScan(Job):
                     # any source is actually fine. we just have a clearly defined
                     # preferred order
                     set_scanner_opt('source', scanner.options['source'],
-                                    ["Auto", "FlatBed", "ADF"])
+                                    ["Auto", "FlatBed",
+                                     ".*ADF.*", ".*Feeder.*"])
                 except (KeyError, pyinsane.rawapi.SaneException), exc:
                     logger.error("Warning: Unable to set scanner source: "
                                  "%s" % exc)
@@ -3480,7 +3481,7 @@ class MainWindow(object):
                     self.refresh_doc_list()
 
     def on_single_scan_error(self, src, error):
-        logger.error("Error while scanning: %s" % error)
+        logger.error("Error while scanning: %s: %s" % (type(error), error))
         for widget in self.need_doc_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:

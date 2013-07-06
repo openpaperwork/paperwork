@@ -35,7 +35,8 @@ from gi.repository import GdkPixbuf
 import nltk.metrics.distance
 import PIL.Image
 import PIL.ImageDraw
-import pyinsane.rawapi
+
+import pyinsane.abstract_th as pyinsane
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -387,7 +388,7 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
     regexs = [re.compile(x) for x in possible_values]
 
     if (scanner_opt.constraint_type ==
-        pyinsane.rawapi.SaneConstraintType.STRING_LIST):
+        pyinsane.SaneConstraintType.STRING_LIST):
         value = None
         for regex in regexs:
             for constraint in scanner_opt.constraint:
@@ -397,7 +398,7 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
             if value is not None:
                 break
         if value is None:
-            raise pyinsane.rawapi.SaneException(
+            raise pyinsane.SaneException(
                 "%s are not a valid values for option %s"
                 % (str(possible_values), scanner_opt_name))
 

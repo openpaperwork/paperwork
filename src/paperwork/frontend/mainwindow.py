@@ -30,7 +30,7 @@ from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-import pyinsane.rawapi
+import pyinsane.abstract_th as pyinsane
 
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.actions import SimpleAction
@@ -1194,17 +1194,17 @@ class JobSingleScan(Job):
                     set_scanner_opt('source', scanner.options['source'],
                                     ["Auto", "FlatBed",
                                      ".*ADF.*", ".*Feeder.*"])
-                except (KeyError, pyinsane.rawapi.SaneException), exc:
+                except (KeyError, pyinsane.SaneException), exc:
                     logger.error("Warning: Unable to set scanner source: "
                                  "%s" % exc)
                 scan_src = scanner.scan(multiple=False)
-            except pyinsane.rawapi.SaneException, exc:
+            except pyinsane.SaneException, exc:
                 logger.error("No scanner found !")
                 self.emit('single-scan-no-scanner-found')
                 raise
             try:
                 resolution = scanner.options['resolution'].value
-            except pyinsane.rawapi.SaneException, exc:
+            except pyinsane.SaneException, exc:
                 resolution = self.__config.scanner_resolution
                 logger.warning("Failed to read the resolution set on"
                                " the scanner: %s. Assuming %d"

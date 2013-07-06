@@ -104,7 +104,7 @@ Let the machine do most of the work.
           # "pycairo",  # doesn't work ?
           "pyenchant",
           "Whoosh",
-          "pyinsane >= 1.0.3",
+          "pyinsane >= 1.1.0",
           "pyocr",
           # "PyGObject",  # doesn't work with virtualenv
           # Missing due to the use of gobject introspection:

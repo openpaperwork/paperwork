@@ -324,7 +324,7 @@ class JobIndexUpdater(Job):
         self.can_run = True
 
         total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
-        if total <= 0:
+        if total <= 0 and self.index_updater is None:
             return
 
         if self.index_updater is None:

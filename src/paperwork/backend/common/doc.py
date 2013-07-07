@@ -49,8 +49,19 @@ class BasicDoc(object):
         and thread-safety issues. Load the content on-the-fly when requested.
         """
         if docid is None:
-            self.__docid = time.strftime(self.DOCNAME_FORMAT)
-            self.path = os.path.join(docpath, self.__docid)
+            # new empty doc
+            # we must make sure we use an unused id
+            basic_docid = time.strftime(self.DOCNAME_FORMAT)
+            extra = 0
+            docid = basic_docid
+            path = os.path.join(docpath, docid)
+            while os.access(path, os.F_OK):
+                extra += 1
+                docid = "%s_%d" % (basic_docid, extra)
+                path = os.path.join(docpath, docid)
+
+            self.__docid = docid
+            self.path = path
         else:
             self.__docid = docid
             self.path = docpath
@@ -233,12 +244,7 @@ class BasicDoc(object):
         return hash(self.__docid)
 
     def __is_new(self):
-        try:
-            os.stat(self.path)
-            return False
-        except OSError:
-            # this document doesn't exist yet
-            return True
+        return not os.access(self.path, os.F_OK)
 
     is_new = property(__is_new)
 

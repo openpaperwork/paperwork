@@ -331,8 +331,6 @@ class JobIndexUpdater(Job):
             self.emit('index-update-start')
             self.index_updater = self.__docsearch.get_index_updater(
                 optimize=self.optimize)
-            self.__docsearch.fit_label_estimator(self.new_docs)
-            self.__docsearch.fit_label_estimator(self.upd_docs)
 
         if not self.can_run:
             self.emit('index-update-interrupted')
@@ -358,8 +356,7 @@ class JobIndexUpdater(Job):
                               (self.progression * 0.75) / self.total,
                               "%s (%s)" % (op_name, str(doc)))
                     self.__wait()
-                    # update the docs but don't fit the estimators, its already done
-                    op(doc, fit_label_estimator=False)
+                    op(doc)
                     self.progression += 1
             except KeyError:
                 pass

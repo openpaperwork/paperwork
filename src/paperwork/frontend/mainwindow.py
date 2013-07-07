@@ -3759,7 +3759,11 @@ class MainWindow(object):
 
         # reselect the active doc
         if self.doc is not None:
-            if self.doc in doc_list:
+            if (self.doc.is_new
+                and len(self.lists['doclist']) > 0
+                and self.lists['doclist'][0].is_new):
+                self.lists['matches'].select_idx(0)
+            elif self.doc in doc_list:
                 active_idx = doc_list[self.doc]
                 self.lists['matches'].select_idx(active_idx)
             else:

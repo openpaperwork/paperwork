@@ -3148,19 +3148,19 @@ class MainWindow(object):
             if isinstance(button, Gtk.ToolButton):
                 button.set_tooltip_text(_("Scan single page"))
 
-        self.need_doc_widgets = (
+        self.need_doc_widgets = set(
             self.actions['print'][0]
             + self.actions['create_label'][0]
             + self.actions['open_doc_dir'][0]
             + self.actions['del_doc'][0]
             + self.actions['set_current_page'][0]
-            + self.actions['toggle_label'][0]
+            + [self.lists['labels']['gui']]
             + self.actions['redo_ocr_doc'][0]
             + self.actions['open_export_doc_dialog'][0]
             + self.actions['edit_doc'][0]
         )
 
-        self.need_page_widgets = (
+        self.need_page_widgets = set(
             self.actions['del_page'][0]
             + self.actions['first_page'][0]
             + self.actions['prev_page'][0]
@@ -3170,18 +3170,18 @@ class MainWindow(object):
             + self.actions['edit_page'][0]
         )
 
-        self.need_label_widgets = (
+        self.need_label_widgets = set(
             self.actions['del_label'][0]
             + self.actions['edit_label'][0]
         )
 
-        self.doc_edit_widgets = (
+        self.doc_edit_widgets = set(
             self.actions['single_scan'][0]
             + self.actions['del_page'][0]
             + self.actions['edit_page'][0]
         )
 
-        for widget in self.need_doc_widgets + self.need_page_widgets:
+        for widget in self.need_doc_widgets.union(self.need_page_widgets):
             widget.set_sensitive(False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
@@ -3458,9 +3458,7 @@ class MainWindow(object):
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
-        for widget in self.need_doc_widgets:
-            widget.set_sensitive(True)
-        for widget in self.doc_edit_widgets:
+        for widget in self.need_doc_widgets.union(self.doc_edit_widgets):
             widget.set_sensitive(True)
 
         self.set_progression(job, 0.0, None)
@@ -3482,9 +3480,7 @@ class MainWindow(object):
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s: %s" % (type(error), error))
-        for widget in self.need_doc_widgets:
-            widget.set_sensitive(True)
-        for widget in self.doc_edit_widgets:
+        for widget in self.need_doc_widgets.union(self.doc_edit_widgets):
             widget.set_sensitive(True)
 
         self.set_progression(src, 0.0, None)
@@ -3817,11 +3813,21 @@ class MainWindow(object):
         if (self.doc is not None and self.doc[1] == doc and not force_refresh):
             return
         self.doc = (doc_idx, doc)
+
         is_new = doc.is_new
+        can_edit = doc.can_edit
+
         for widget in self.need_doc_widgets:
-            widget.set_sensitive(not is_new)
+            widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(doc.can_edit)
+            widget.set_sensitive(True)
+        for widget in self.need_doc_widgets:
+            if is_new:
+                widget.set_sensitive(False)
+        for widget in self.doc_edit_widgets:
+            if not can_edit:
+                widget.set_sensitive(False)
+
         pages_gui = self.lists['pages']['gui']
         if doc.can_edit:
             pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)

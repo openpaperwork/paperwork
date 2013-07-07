@@ -291,8 +291,9 @@ class ActionScan(SimpleAction):
                 raise
 
             try:
-                set_scanner_opt('source', scanner.options['source'], ["ADF"])
-            except (KeyError, pyinsane.rawapi.SaneException), exc:
+                set_scanner_opt('source', scanner.options['source'],
+                                ["ADF", ".*ADF.*", ".*Feeder.*"])
+            except (KeyError, pyinsane.SaneException), exc:
                 logger.error("Warning: Unable to set scanner source to 'Auto': %s"
                        % exc)
             try:

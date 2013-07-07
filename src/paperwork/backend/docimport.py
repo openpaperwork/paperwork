@@ -128,8 +128,6 @@ class MultiplePdfImporter(object):
             except Exception:
                 continue
             doc = PdfDoc(config.workdir)
-            doc.path += ("_%02d" % idx)
-            doc.docid += ("_%02d" % idx)
             doc.import_pdf(config, child.get_uri())
             for page in doc.pages:
                 docsearch.index_page(page)

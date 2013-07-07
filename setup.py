@@ -233,7 +233,7 @@ Let the machine do most of the work.
           "pyenchant",
           "python-Levenshtein",
           "Whoosh",
-          "pyinsane >= 1.0.3",
+          "pyinsane >= 1.1.0",
           "pyocr",
           "numpy",
           "scipy",

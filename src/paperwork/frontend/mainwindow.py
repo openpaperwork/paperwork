@@ -345,7 +345,6 @@ class JobIndexUpdater(Job):
              self.index_updater.del_doc),
         ]
 
-
         for (op_name, doc_bunch, op) in docs:
             try:
                 while True:
@@ -1536,7 +1535,7 @@ class ActionUpdateSearchResults(SimpleAction):
                 self.__main_win.job_factories['page_thumbnailer'])
             search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
             job = self.__main_win.job_factories['page_thumbnailer'].make(
-                self.__main_win.doc[1], search)
+                self.__main_win.doc, search)
             self.__main_win.schedulers['main'].schedule(job)
 
             self.__main_win.refresh_boxes()
@@ -1561,12 +1560,12 @@ class ActionOpenPageSelected(SimpleAction):
         gui_list = self.__main_win.lists['pages']['gui']
         selection_path = gui_list.get_selected_items()
         if len(selection_path) <= 0:
-            self.__main_win.show_page(DummyPage(self.__main_win.doc[1]))
+            self.__main_win.show_page(DummyPage(self.__main_win.doc))
             return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
         page_idx = selection_path[0].get_indices()[0]
-        page = self.__main_win.doc[1].pages[page_idx]
+        page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page)
 
 
@@ -1592,12 +1591,12 @@ class ActionMovePageIndex(SimpleAction):
         if self.relative:
             page_idx += self.value
         elif self.value < 0:
-            page_idx = self.__main_win.doc[1].nb_pages - 1
+            page_idx = self.__main_win.doc.nb_pages - 1
         else:
             page_idx = self.value
-        if page_idx < 0 or page_idx >= self.__main_win.doc[1].nb_pages:
+        if page_idx < 0 or page_idx >= self.__main_win.doc.nb_pages:
             return
-        page = self.__main_win.doc[1].pages[page_idx]
+        page = self.__main_win.doc.pages[page_idx]
         self.__main_win.show_page(page, force_refresh=True)
 
 
@@ -1613,9 +1612,9 @@ class ActionOpenPageNb(SimpleAction):
         SimpleAction.do(self)
         page_nb = self.__main_win.indicators['current_page'].get_text()
         page_nb = int(page_nb) - 1
-        if page_nb < 0 or page_nb > self.__main_win.doc[1].nb_pages:
+        if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
             return
-        page = self.__main_win.doc[1].pages[page_nb]
+        page = self.__main_win.doc.pages[page_nb]
         self.__main_win.show_page(page)
 
 
@@ -1661,16 +1660,16 @@ class ActionToggleLabel(object):
 
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels']['model'][objpath][2]
-        if not label in self.__main_win.doc[1].labels:
+        if not label in self.__main_win.doc.labels:
             logger.info("Action: Adding label '%s' on document '%s'"
-                   % (str(label), str(self.__main_win.doc[1])))
-            self.__main_win.docsearch.add_label(self.__main_win.doc[1], label)
+                   % (str(label), str(self.__main_win.doc)))
+            self.__main_win.docsearch.add_label(self.__main_win.doc, label)
         else:
             logger.info("Action: Removing label '%s' on document '%s'"
-                   % (label, self.__main_win.doc[1]))
-            self.__main_win.docsearch.remove_label(self.__main_win.doc[1], label)
+                   % (label, self.__main_win.doc))
+            self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc],
+        self.__main_win.refresh_docs({self.__main_win.doc},
                                      redo_thumbnails=False)
 
     def connect(self, cellrenderers):
@@ -1688,11 +1687,11 @@ class ActionCreateLabel(SimpleAction):
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
             logger.info("Adding label %s to doc %s"
-                        % (labeleditor.label, self.__main_win.doc[1]))
-            self.__main_win.docsearch.add_label(self.__main_win.doc[1],
+                        % (labeleditor.label, self.__main_win.doc))
+            self.__main_win.docsearch.add_label(self.__main_win.doc,
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs([self.__main_win.doc],
+        self.__main_win.refresh_docs({self.__main_win.doc},
                                      redo_thumbnails=False)
 
 
@@ -1752,7 +1751,7 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        os.system('xdg-open "%s"' % (self.__main_win.doc[1].path))
+        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
 
 
 class ActionPrintDoc(SimpleAction):
@@ -1766,13 +1765,13 @@ class ActionPrintDoc(SimpleAction):
         print_settings = Gtk.PrintSettings()
         print_op = Gtk.PrintOperation()
         print_op.set_print_settings(print_settings)
-        print_op.set_n_pages(self.__main_win.doc[1].nb_pages)
-        print_op.set_current_page(self.__main_win.page[1].page_nb)
+        print_op.set_n_pages(self.__main_win.doc.nb_pages)
+        print_op.set_current_page(self.__main_win.page.page_nb)
         print_op.set_use_full_page(False)
-        print_op.set_job_name(str(self.__main_win.doc[1]))
-        print_op.set_export_filename(str(self.__main_win.doc[1]) + ".pdf")
+        print_op.set_job_name(str(self.__main_win.doc))
+        print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
         print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.__main_win.doc[1].print_page_cb)
+        print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
         print_op.set_embed_page_setup(True)
         print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG,
                      self.__main_win.window)
@@ -1804,7 +1803,7 @@ class ActionSingleScan(SimpleAction):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
             return
-        doc = self.__main_win.doc[1]
+        doc = self.__main_win.doc
 
         self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['single_scan'])
@@ -1881,7 +1880,7 @@ class ActionImport(SimpleAction):
             return
 
         importers = docimport.get_possible_importers(file_uri,
-                                                     self.__main_win.doc[1])
+                                                     self.__main_win.doc)
         if len(importers) <= 0:
             msg = (_("Don't know how to import '%s'. Sorry.") %
                    (os.path.basename(file_uri)))
@@ -1904,7 +1903,7 @@ class ActionImport(SimpleAction):
         Gtk.RecentManager().add_item(file_uri)
 
         job = self.__main_win.job_factories['importer'].make(
-            self.__main_win.docsearch, self.__main_win.doc[1],
+            self.__main_win.docsearch, self.__main_win.doc,
             importer, file_uri)
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -1922,7 +1921,7 @@ class ActionDeleteDoc(SimpleAction):
             return
         SimpleAction.do(self)
         logger.info("Deleting ...")
-        self.__main_win.doc[1].destroy()
+        self.__main_win.doc.destroy()
         logger.info("Deleted")
         self.__main_win.actions['new_doc'][1].do()
         self.__main_win.actions['reindex'][1].do()
@@ -1946,7 +1945,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.page = None
         for widget in self.__main_win.need_page_widgets:
             widget.set_sensitive(False)
-        self.__main_win.refresh_docs([self.__main_win.doc])
+        self.__main_win.refresh_docs({self.__main_win.doc})
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
 
@@ -1961,7 +1960,7 @@ class ActionRedoDocOCR(SimpleAction):
             return
         SimpleAction.do(self)
 
-        doc = self.__main_win.doc[1]
+        doc = self.__main_win.doc
         job = self.__main_win.job_factories['ocr_redoer'].make(doc)
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -2044,9 +2043,9 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
-        self.main_win.export['to_export'] = self.main_win.doc[1]
+        self.main_win.export['to_export'] = self.main_win.doc
         self.main_win.export['buttons']['ok'].set_label(_("Export document"))
-        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc[1])
+        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
 
 
 class ActionSelectExportFormat(SimpleAction):
@@ -2284,7 +2283,7 @@ class ActionEditDoc(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc[1])
+        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
 
 
 class ActionAbout(SimpleAction):
@@ -2583,6 +2582,16 @@ class ProgressiveList(GObject.GObject):
         if line_idx < self.nb_displayed:
             self.model[line_idx] = model_line
 
+    def pop(self, idx):
+        content = self.model_content.pop(idx)
+        itr = self.model.get_iter(idx)
+        self.model.remove(itr)
+        return content
+
+    def insert(self, idx, line):
+        self.model_content.insert(idx, line)
+        self.model.insert(idx, line)
+
     def select_idx(self, idx=-1):
         if idx >= 0:
             # we are going to select the current page in the list
@@ -2654,8 +2663,8 @@ class MainWindow(object):
         self.__scan_progress_job = None
 
         self.docsearch = DummyDocSearch()
-        self.doc = (0, ImgDoc(self.__config.workdir))
-        self.page = DummyPage(self.doc[1])
+        self.doc = ImgDoc(self.__config.workdir)
+        self.page = DummyPage(self.doc)
 
         search_completion = Gtk.EntryCompletion()
 
@@ -3310,12 +3319,12 @@ class MainWindow(object):
         active_idx = -1
         idx = 0
         for doc in documents:
-            if doc == self.doc[1]:
+            if doc == self.doc:
                 active_idx = idx
                 break
             idx += 1
 
-        if len(documents) > 0 and documents[0].is_new and self.doc[1].is_new:
+        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
             active_idx = 0
 
         self.lists['doclist'] = documents
@@ -3329,7 +3338,7 @@ class MainWindow(object):
 
     def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
         self.lists['pages'].set_model_value(page_idx, 1, thumbnail)
-        self.set_progression(src, ((float)(page_idx+1) / self.doc[1].nb_pages),
+        self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Loading thumbnails ..."))
 
     def on_page_thumbnailing_end_cb(self, src):
@@ -3466,17 +3475,13 @@ class MainWindow(object):
         self.refresh_page_list()
 
         assert(page is not None)
+        self.doc = job.doc  # no need to call show_doc() here
         self.show_page(page, force_refresh=True)
 
         if job.doc.nb_pages <= 1:
-            if job.doc == self.doc[1]:
-                self.refresh_docs([self.doc])
-            else:
-                try:
-                    idx = self.lists['doclist'].index(job.doc)
-                    self.refresh_docs([(idx, job.doc)])
-                except ValueError:
-                    self.refresh_doc_list()
+            self.refresh_docs({job.doc}, redo_thumbnails=True)
+        else:
+            self.refresh_docs({job.doc}, redo_thumbnails=False)
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s: %s" % (type(error), error))
@@ -3486,7 +3491,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
-        self.refresh_docs([self.doc])
+        self.refresh_docs({self.doc})
 
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
@@ -3648,24 +3653,41 @@ class MainWindow(object):
             doc,
         ])
 
+    def __pop_new_doc(self):
+        doc_list = self.lists['doclist']
+        if (len(doc_list) <= 0 or not doc_list[0].is_new):
+            return False
+        doc_list.pop(0)
+        self.lists['matches'].pop(0)
+        return True
+
+    def __insert_doc(self, doc_idx, doc):
+        doc_list = self.lists['doclist']
+        doc_list.insert(doc_idx, doc)
+        doc_line = self.__get_doc_model_line(doc)
+        self.lists['matches'].insert(doc_idx, doc_line)
+
+    def __remove_doc(self, doc_idx):
+        doc_list.pop(doc_idx)
+        self.lists['matches'].pop(doc_idx)
+
     def __insert_new_doc(self):
         sentence = unicode(self.search_field.get_text(), encoding='utf-8')
         logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
-
-        doc_list = self.lists['doclist']
 
         # When a scan is done, we try to refresh only the current document.
         # However, the current document may be "New document". In which case
         # it won't appear as "New document" anymore. So we have to add a new
         # one to the list
-        if sentence == u"" and (len(doc_list) == 0 or not doc_list[0].is_new):
-            # append a new document to the list
-            new_doc = ImgDoc(self.__config.workdir)
-            doc_list.insert(0, new_doc)
-            new_doc_line = self.__get_doc_model_line(new_doc)
-            self.lists['matches']['model'].insert(0, new_doc_line)
-            return True
-        return False
+        if sentence != u"":
+            return False
+        # append a new document to the list
+        doc_list = self.lists['doclist']
+        new_doc = ImgDoc(self.__config.workdir)
+        doc_list.insert(0, new_doc)
+        new_doc_line = self.__get_doc_model_line(new_doc)
+        self.lists['matches'].insert(0, new_doc_line)
+        return True
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -3674,26 +3696,71 @@ class MainWindow(object):
         Arguments:
             docs --- Array of Doc
         """
+        must_rethumbnail = set()
+
+        for doc in set(docs):
+            if doc.is_new:  # ASSUMPTION: was actually deleted
+                doc_list = self.lists['doclist']
+                idx = doc_list.index(doc)
+                logger.info("Doc list refresh: %d:%s deleted"
+                            % (idx, doc.docid))
+                self.__remove_doc(idx)
+                docs.remove(doc)
+
+        if self.__pop_new_doc():
+            logger.info("Doc list refresh: 'new doc' popped out of the list")
+
+        # make sure all the target docs are already in the list in a first
+        # place
+        # XXX(Jflesch): this may screw up the document sorting
         doc_list = self.lists['doclist']
+        doc_list = {doc_list[x]: x for x in xrange(0, len(doc_list))}
+        for doc in set(docs):
+            if not doc in doc_list:
+                logger.info("Doc list refresh: 0:%s added"
+                            % doc.docid)
+                self.__insert_doc(0, doc)
+                must_rethumbnail.add(doc)
+                docs.remove(doc)
 
         if self.__insert_new_doc():
-            docs = [(pos+1, doc) for (pos, doc) in docs]
+            logger.info("Doc list refresh: 'new doc' reinserted in the list")
 
-        active_idx = -1
-        for (doc_idx, doc) in docs:
-            if self.doc[1] == doc:
-                active_idx = doc_idx
+        # Update the model of the remaining target docs
+        doc_list = self.lists['doclist']
+        doc_list = {doc_list[x]: x for x in xrange(0, len(doc_list))}
+        for doc in set(docs):
+            assert(doc in doc_list)
+            doc_idx = doc_list[doc]
+            logger.info("Doc list refresh: %d:%s refreshed"
+                        % (doc_idx, doc.docid))
             doc_txt = self.__get_doc_txt(doc)
             doc_line = self.__get_doc_model_line(doc)
-            if not redo_thumbnails:
+            if redo_thumbnails:
+                must_rethumbnail.add(doc)
+            else:
+                # put back the previous thumbnail
                 current_model = self.lists['matches']['model'][doc_idx]
                 doc_line[1] = current_model[1]
             self.lists['matches'].set_model_line(doc_idx, doc_line)
+            docs.remove(doc)
 
-        if active_idx >= 0:
-            self.lists['matches'].select_idx(active_idx)
+        assert(not docs)
 
-        if redo_thumbnails:
+        # reselect the active doc
+        if self.doc is not None:
+            if self.doc in doc_list:
+                active_idx = doc_list[self.doc]
+                self.lists['matches'].select_idx(active_idx)
+            else:
+                logger.warning("Selected document (%s) is not in the list"
+                               % str(self.doc.docid))
+
+        # and rethumbnail what must be
+        if must_rethumbnail:
+            docs = [x for x in must_rethumbnail]
+            docs = [(doc_list[doc], doc) for doc in must_rethumbnail]
+            logger.info("Will redo thumbnails: %s" % str(docs))
             job = self.job_factories['doc_thumbnailer'].make(docs)
             self.schedulers['main'].schedule(job)
 
@@ -3721,19 +3788,19 @@ class MainWindow(object):
                 _('Page %d') % (page.page_nb + 1),
                 self.default_thumbnail,
                 page.page_nb
-            ] for page in self.doc[1].pages
+            ] for page in self.doc.pages
         ]
         self.lists['pages'].set_model(model)
 
         self.indicators['total_pages'].set_text(
-            _("/ %d") % (self.doc[1].nb_pages))
+            _("/ %d") % (self.doc.nb_pages))
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc[1].can_edit)
+            widget.set_sensitive(self.doc.can_edit)
         for widget in self.need_page_widgets:
             widget.set_sensitive(False)
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
-        job = self.job_factories['page_thumbnailer'].make(self.doc[1], search)
+        job = self.job_factories['page_thumbnailer'].make(self.doc, search)
         self.schedulers['main'].schedule(job)
 
     def refresh_label_list(self):
@@ -3741,7 +3808,7 @@ class MainWindow(object):
         Reload and refresh the label list
         """
         self.lists['labels']['model'].clear()
-        labels = self.doc[1].labels
+        labels = self.doc.labels
         for label in self.docsearch.label_list:
             self.lists['labels']['model'].append([
                 label.get_html(),
@@ -3785,7 +3852,7 @@ class MainWindow(object):
         for widget in self.need_page_widgets:
             widget.set_sensitive(True)
         for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc[1].can_edit)
+            widget.set_sensitive(self.doc.can_edit)
 
         if page.page_nb >= 0:
             # we are going to select the current page in the list
@@ -3810,9 +3877,9 @@ class MainWindow(object):
         self.schedulers['main'].schedule(job)
 
     def show_doc(self, doc_idx, doc, force_refresh=False):
-        if (self.doc is not None and self.doc[1] == doc and not force_refresh):
+        if (self.doc is not None and self.doc == doc and not force_refresh):
             return
-        self.doc = (doc_idx, doc)
+        self.doc = doc
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3952,8 +4019,8 @@ class MainWindow(object):
 
         drag_context.finish(True, False, time)
         GObject.idle_add(self.refresh_page_list)
-        doc = (self.lists['doclist'].index(obj.doc), obj.doc)
-        GObject.idle_add(self.refresh_docs, [doc])
+        doc = obj.doc
+        GObject.idle_add(self.refresh_docs, {doc})
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):

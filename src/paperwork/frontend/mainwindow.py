@@ -1921,11 +1921,19 @@ class ActionDeleteDoc(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
         SimpleAction.do(self)
+        doc = self.__main_win.doc
+        docid = doc.docid
+
         logger.info("Deleting ...")
-        self.__main_win.doc.destroy()
+        doc.destroy()
+        index_upd = self.__main_win.docsearch.get_index_updater(
+            optimize=False)
+        index_upd.del_doc(docid)
+        index_upd.commit()
         logger.info("Deleted")
+
         self.__main_win.actions['new_doc'][1].do()
-        self.__main_win.actions['reindex'][1].do()
+        self.__main_win.refresh_docs({doc})
 
 
 class ActionDeletePage(SimpleAction):
@@ -3669,6 +3677,7 @@ class MainWindow(object):
         self.lists['matches'].insert(doc_idx, doc_line)
 
     def __remove_doc(self, doc_idx):
+        doc_list = self.lists['doclist']
         doc_list.pop(doc_idx)
         self.lists['matches'].pop(doc_idx)
 

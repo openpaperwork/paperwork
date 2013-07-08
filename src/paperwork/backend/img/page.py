@@ -259,8 +259,6 @@ class ImgPage(BasicPage):
         """
         logger.info("Scanner resolution: %d" % (scan_res))
         logger.info("Scanner calibration: %s" % str(scanner_calibration))
-        logger.info("Calibration resolution: %d"
-               % scanner_calibration[0])
         if scan_res != 0 and scanner_calibration is not None:
             cropping = (scanner_calibration[1][0][0]
                         * scan_res

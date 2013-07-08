@@ -677,9 +677,11 @@ class DocSearch(object):
         """
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
-        self.__docs_by_id[docid] = self.__inst_doc(docid,
-                                                   doc_type_name)
-        return self.__docs_by_id[docid]
+        doc = self.__inst_doc(docid, doc_type_name)
+        if doc is None:
+            return None
+        self.__docs_by_id[docid] = doc
+        return doc
 
     def reload_index(self, progress_cb=dummy_progress_cb):
         """
@@ -729,6 +731,7 @@ class DocSearch(object):
         updater.commit()
         if not page.doc.docid in self.__docs_by_id:
             logger.info("Adding document '%s' to the index" % page.doc.docid)
+            assert(page.doc is not None)
             self.__docs_by_id[page.doc.docid] = page.doc
 
     def __get_all_docs(self):

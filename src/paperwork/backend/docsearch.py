@@ -211,7 +211,6 @@ class DocIndexUpdater(GObject.GObject):
         self.__need_reload = False
 
     def _update_doc_in_index(self, index_writer, doc,
-                             predicted_label_list=None,
                              fit_label_estimator=True):
         """
         Add/Update a document in the index
@@ -222,24 +221,12 @@ class DocIndexUpdater(GObject.GObject):
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
         docid = unicode(doc.docid)
         label = doc.get_index_labels()
-        # try to predict some labels if there is none
-        if label == u"":
-            if predicted_label_list is None:
-                doc.predicted_label_name_list = self.docsearch.predict_label_list(doc)
-            else:
-                doc.predicted_label_name_list = predicted_label_list
-            predicted_labels = u",".join([strip_accents(unicode(predicted_label_name))
-                                          for predicted_label_name in doc.predicted_label_name_list])
-        else:
-            predicted_labels = u""
-
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
             docfilehash=unicode(doc.get_docfilehash(), "utf-8"),
             content=doc.get_index_text(),
             label=doc.get_index_labels(),
-            predicted_label=predicted_labels,
             date=doc.date,
             last_read=last_mod
         )
@@ -262,15 +249,12 @@ class DocIndexUpdater(GObject.GObject):
                                   fit_label_estimator=fit_label_estimator)
         self.__need_reload = True
 
-    def upd_doc(self, doc,
-                predicted_label_list=None,
-                fit_label_estimator=True):
+    def upd_doc(self, doc, fit_label_estimator=True):
         """
         Update a document in the index
         """
         logger.info("Updating modified doc: %s" % doc)
         self._update_doc_in_index(self.writer, doc,
-                                  predicted_label_list,
                                   fit_label_estimator=fit_label_estimator)
 
     def del_doc(self, docid, fit_label_estimator=True):
@@ -337,12 +321,11 @@ class DocSearch(object):
                 content=whoosh.fields.TEXT(spelling=True),
                 label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                             spelling=True, scorable=True),
-                predicted_label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                            spelling=True, scorable=True),
                 date=whoosh.fields.DATETIME(stored=True),
                 last_read=whoosh.fields.DATETIME(stored=True),
             )
     LABEL_ESTIMATOR_TEMPLATE = PassiveAggressiveClassifier(n_iter=50)
+
     """
     Label_estimators is a dict with one estimator per label.
     Each label is predicted with its own estimator (OneVsAll strategy)
@@ -416,19 +399,6 @@ class DocSearch(object):
                                             termclass=CustomFuzzy),
                                        "sortedby" : facets})
 
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
-                                            schema=self.index.schema,
-                                            termclass=Term),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
-                                            schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("predicted_label",
-                                            schema=self.index.schema,
-                                            termclass=CustomFuzzy),
-                                       "sortedby" : facets})
-
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
                                             termclass=Term),
@@ -472,9 +442,6 @@ class DocSearch(object):
             logger.error("Exception was: %s" % exc)
             logger.info("Will create new label_estimators")
             self.label_estimators = {}
-
-        # redo prediction on all documents
-        self.reindex_label_predictions()
 
     def save_label_estimators(self):
         if not os.path.exists(self.label_estimators_dir):
@@ -583,7 +550,7 @@ class DocSearch(object):
                                             [doc_has_label],
                                             numpy.array(['labelled','unlabelled']))
             elif removed_label:
-                l_estimator =  self.label_estimators[removed_label.name]
+                l_estimator = self.label_estimators[removed_label.name]
                 l_estimator.partial_fit(doc.get_features(),
                                         ['unlabelled'],
                                         numpy.array(['labelled','unlabelled']))
@@ -592,52 +559,34 @@ class DocSearch(object):
         """
         return a prediction of label names
         """
+        if doc.nb_pages <= 0:
+            return []
+
         # if there is only one label, or not enough document fitted prediction is not possible
         if len(self.label_estimators) < 2:
             return []
 
-        predicted_label_list=[]
+        predicted_label_list = []
         for label_name in self.label_estimators:
             features = doc.get_features()
             # check that the estimator will not throw an error because its not fitted
-            if self.label_estimators[label_name].coef_ is not None:
-                prediction = self.label_estimators[label_name].predict(features)
-                if prediction == 'labelled':
-                    predicted_label_list.append(label_name)
-                logger.debug("%s %s %s with decision %s "
-                             % (doc, prediction, label_name,
-                                self.label_estimators[label_name].
-                                    decision_function(features)))
+            if self.label_estimators[label_name].coef_ is None:
+                logger.warning("Label estimator '%s' not fitted yet"
+                               % label_name)
+                continue
+            prediction = self.label_estimators[label_name].predict(features)
+            if prediction == 'labelled':
+                predicted_label_list.append(label_name)
+            logger.info("%s %s %s with decision %s "
+                         % (doc, prediction, label_name,
+                            self.label_estimators[label_name].
+                            decision_function(features)))
         return predicted_label_list
 
-    def reindex_label_predictions(self, docs=None):
-        logger.info("reindexing label predictions")
-
-        if docs is None:
-            docs = self.docs
-
-        updater = None
-        for doc in docs:
-            # check the labels prediction for non labeled documents
-            if not doc.labels:
-                estimator_list = self.predict_label_list(doc)
-                if not estimator_list:
-                    estimator_list = [u''] # whoosh return u'' for empty results
-                if set(estimator_list) != set(doc.predicted_label_name_list):
-                    logger.info("doc %s needs label prediction index update" % doc)
-
-                    if updater is None:
-                        updater = self.get_index_updater(optimize=False)
-                    updater.upd_doc(doc, predicted_label_list = estimator_list)
-
-        if updater:
-            updater.commit()
-
-    def __inst_doc(self, docid, doc_type_name=None, predicted_label_names=None):
+    def __inst_doc(self, docid, doc_type_name=None):
         """
         Instantiate a document based on its document id.
         The information are taken from the whoosh index.
-        The predicted labels are checked
         """
         doc = None
         docpath = os.path.join(self.rootdir, docid)
@@ -657,17 +606,8 @@ class DocSearch(object):
                 if is_doc_type(docpath):
                     doc = doc_type(docpath, docid)
         if not doc:
-            logger.warn("Warning: unknown doc type for doc %s" % docid)
-            return doc
+            logger.warn("Warning: unknown doc type for doc '%s'" % docid)
 
-
-        if predicted_label_names:
-            doc.predicted_label_name_list = predicted_label_names
-        else:
-            # search in the index for the predicted_labels
-            results = self.__searcher.search(Term('docid', docid))
-            if results and results[0]['docid'] == docid:
-                doc.predicted_label_name_list = results[0]['predicted_label'].split(',')
         return doc
 
     def get_doc_from_docid(self, docid, doc_type_name=None):
@@ -703,7 +643,7 @@ class DocSearch(object):
         for result in results:
             docid = result['docid']
             doctype = result['doctype']
-            doc = self.__inst_doc(docid, doctype, predicted_label_names=result['predicted_label'].split(','))
+            doc = self.__inst_doc(docid, doctype)
             if doc is None:
                 continue
             progress_cb(progress, nb_results, self.INDEX_STEP_LOADING, doc)
@@ -773,9 +713,14 @@ class DocSearch(object):
         for query_parser in self.search_param_list:
             query = query_parser["query_parser"].parse(sentence)
             if "sortedby" in query_parser:
-                result_list_list.append(self.__searcher.search(query, limit=None, sortedby = query_parser["sortedby"]))
+                result_list_list.append(
+                    self.__searcher.search(
+                        query, limit=None,
+                        sortedby = query_parser["sortedby"]))
             else:
-                result_list_list.append(self.__searcher.search(query, limit=None))
+                result_list_list.append(
+                    self.__searcher.search(
+                        query, limit=None))
 
         # merging results
         results = result_list_list[0]

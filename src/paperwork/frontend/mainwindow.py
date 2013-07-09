@@ -3829,8 +3829,11 @@ class MainWindow(object):
         """
         self.lists['labels']['model'].clear()
         labels = self.doc.labels
+
+        predicted = self.docsearch.predict_label_list(self.doc)
+
         for label in self.docsearch.label_list:
-            in_predicted_label = (label.name in self.doc.predicted_label_name_list)
+            in_predicted_label = (label.name in predicted)
             in_label = (label in labels)
             if in_predicted_label or in_label:
                 label_html = ("<b>%s</b>"

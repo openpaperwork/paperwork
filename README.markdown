@@ -75,8 +75,9 @@ If you're installing Paperwork yourself, you will probably need to install first
 * python-setuptools (required by the setup.py script of Paperwork)
 * python-dev (required to build some dependencies)
 * libjpeg-dev (required to have JPEG support built in the Pillow library)
-* blas-dev (required to build scipy)
-* atlas-dev (required to build scipy)
+* libblas-dev (required to build scipy)
+* libatlas-dev (required to build scipy)
+* liblapack-dev (required to build scipy)
 * gcc-gfortran (required to build scipy)
 * g++ (required to build scikit-learn)
 

@@ -226,20 +226,21 @@ Let the machine do most of the work.
       ],
       scripts=['scripts/paperwork'],
       install_requires=[
+          "Cython",
+          'joblib',
           "nltk",
           "Pillow",
           "pycountry",
           # "pycairo",  # doesn't work ?
           "pyenchant",
           "python-Levenshtein",
-          "Whoosh",
           "pyinsane >= 1.1.0",
           "pyocr",
           "numpy",
           "scipy",
           "scikit-learn",
           "scikit-image",
-          "Cython",
+          "Whoosh",
           # "PyGObject",  # doesn't work with virtualenv
           # Missing due to the use of gobject introspection:
           # - gtk

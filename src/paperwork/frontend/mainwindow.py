@@ -122,16 +122,18 @@ class JobIndexLoader(Job):
             self.started = True
         try:
             docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
+            if not self.can_run:
+                return
             self.emit('index-loading-end', docsearch)
             self.done = True
         except StopIteration:
             logger.info("Index loading interrupted")
 
     def stop(self, will_resume=False):
-        self.can_run = False
         if not will_resume and not self.done:
             self.emit('index-loading-end', None)
             self.done = True
+        self.can_run = False
 
 
 GObject.type_register(JobIndexLoader)

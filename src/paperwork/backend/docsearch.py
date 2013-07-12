@@ -215,12 +215,21 @@ class DocIndexUpdater(GObject.GObject):
         """
         Add/Update a document in the index
         """
+        all_labels = set(self.docsearch.label_list)
+        doc_labels = set(doc.labels)
+        new_labels = doc_labels.difference(all_labels)
+
+        if new_labels != set():
+            for label in new_labels:
+                self.docsearch.label_list += [label]
+            self.docsearch.label_list.sort()
+            if fit_label_estimator:
+                self.docsearch.fit_label_estimator(labels=new_labels)
+
         if fit_label_estimator:
-            self.docsearch.fit_label_estimator(
-                [doc], labels=self.docsearch.label_list + doc.labels)
+            self.docsearch.fit_label_estimator([doc])
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
         docid = unicode(doc.docid)
-        label = doc.get_index_labels()
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
@@ -519,10 +528,13 @@ class DocSearch(object):
         if docs is None:
             docs = self.docs
 
+
         if labels is None:
-            labels = []
+            labels = set(self.label_list)
             for doc in docs:
-                labels += doc.labels
+                labels.union(set(doc.labels))
+        else:
+            labels = set(labels)
 
         label_name_set = set([label.name for label in labels])
 
@@ -605,6 +617,7 @@ class DocSearch(object):
             for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
                 if is_doc_type(docpath):
                     doc = doc_type(docpath, docid)
+                    break
         if not doc:
             logger.warn("Warning: unknown doc type for doc '%s'" % docid)
 

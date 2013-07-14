@@ -32,6 +32,97 @@ if python_ver[0] != "2" or python_ver[1] != "7":
          % ".".join(python_ver))
     sys.exit(1)
 
+setup(name="Paperwork",
+      version="0.2-unstable",
+      description="Grep for dead trees",
+      long_description="""
+Paperwork is a tool to make papers searchable.
+
+The basic idea behind Paperwork is "scan & forget" : You should be able to
+just scan a new document and forget about it until the day you need it again.
+Let the machine do most of the work.
+""",
+      keywords="scanner ocr gui",
+      url="https://github.com/jflesch/paperwork",
+      download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Environment :: X11 Applications :: GTK",
+          "Intended Audience :: End Users/Desktop",
+          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+          "Operating System :: POSIX :: Linux",
+          "Programming Language :: Python :: 2.7",
+          "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
+          "Topic :: Multimedia :: Graphics :: Graphics Conversion",
+          "Topic :: Scientific/Engineering :: Image Recognition",
+          "Topic :: Text Processing :: Indexing",
+      ],
+      license="GPLv3+",
+      author="Jerome Flesch",
+      author_email="jflesch@gmail.com",
+      packages=[
+          'paperwork',
+          'paperwork.frontend',
+          'paperwork.backend',
+          'paperwork.backend.common',
+          'paperwork.backend.pdf',
+          'paperwork.backend.img',
+      ],
+      package_dir={
+          'paperwork': 'src/paperwork',
+          'paperwork.frontend': 'src/paperwork/frontend',
+          'paperwork.backend': 'src/paperwork/backend',
+          'paperwork.backend.common': 'src/paperwork/backend/common',
+          'paperwork.backend.pdf': 'src/paperwork/backend/pdf',
+          'paperwork.backend.img': 'src/paperwork/backend/img',
+          },
+      data_files=[
+          (os.path.join(sys.prefix, 'share/paperwork'), [
+            'src/paperwork/frontend/aboutdialog.glade',
+            'src/paperwork/frontend/doceditdialog.glade',
+            'src/paperwork/frontend/import.glade',
+            'src/paperwork/frontend/import_select.glade',
+            'src/paperwork/frontend/mainwindow.glade',
+            'src/paperwork/frontend/multiscan.glade',
+            'src/paperwork/frontend/pageeditingdialog.glade',
+            'src/paperwork/frontend/settingswindow.glade',
+            'src/paperwork/frontend/labeledit.glade',
+            ]),
+          (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
+           ['locale/fr/LC_MESSAGES/paperwork.mo']),
+          (os.path.join(sys.prefix, 'share/applications'),
+           ['data/paperwork.desktop']),
+          (os.path.join(sys.prefix, 'share/icons'),
+           ['data/paperwork.svg']),
+      ],
+      scripts=['scripts/paperwork'],
+      install_requires=[
+          "Cython",
+          'joblib',
+          "nltk",
+          "Pillow",
+          "pycountry",
+          # "pycairo",  # doesn't work ?
+          "pyenchant",
+          "python-Levenshtein",
+          "pyinsane >= 1.1.0",
+          "pyocr",
+          "numpy",
+          "scipy",
+          "scikit-learn",
+          "scikit-image",
+          "Whoosh",
+          # "PyGObject",  # doesn't work with virtualenv
+          # Missing due to the use of gobject introspection:
+          # - gtk
+          # - glade
+          # - poppler
+          # Missing because non-python libraries:
+          # - sane
+          # - tesseract/cuneiform
+      ],
+     )
+
 # look for dependency that setuptools cannot check or that are too painful to
 # install with setuptools
 print("")
@@ -161,93 +252,3 @@ else:
         print("==============================")
     sys.exit(1)
 
-setup(name="Paperwork",
-      version="0.2-unstable",
-      description="Grep for dead trees",
-      long_description="""
-Paperwork is a tool to make papers searchable.
-
-The basic idea behind Paperwork is "scan & forget" : You should be able to
-just scan a new document and forget about it until the day you need it again.
-Let the machine do most of the work.
-""",
-      keywords="scanner ocr gui",
-      url="https://github.com/jflesch/paperwork",
-      download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
-      classifiers=[
-          "Development Status :: 4 - Beta",
-          "Environment :: X11 Applications :: GTK",
-          "Intended Audience :: End Users/Desktop",
-          "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-          "Operating System :: POSIX :: Linux",
-          "Programming Language :: Python :: 2.7",
-          "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
-          "Topic :: Multimedia :: Graphics :: Graphics Conversion",
-          "Topic :: Scientific/Engineering :: Image Recognition",
-          "Topic :: Text Processing :: Indexing",
-      ],
-      license="GPLv3+",
-      author="Jerome Flesch",
-      author_email="jflesch@gmail.com",
-      packages=[
-          'paperwork',
-          'paperwork.frontend',
-          'paperwork.backend',
-          'paperwork.backend.common',
-          'paperwork.backend.pdf',
-          'paperwork.backend.img',
-      ],
-      package_dir={
-          'paperwork': 'src/paperwork',
-          'paperwork.frontend': 'src/paperwork/frontend',
-          'paperwork.backend': 'src/paperwork/backend',
-          'paperwork.backend.common': 'src/paperwork/backend/common',
-          'paperwork.backend.pdf': 'src/paperwork/backend/pdf',
-          'paperwork.backend.img': 'src/paperwork/backend/img',
-          },
-      data_files=[
-          (os.path.join(sys.prefix, 'share/paperwork'), [
-            'src/paperwork/frontend/aboutdialog.glade',
-            'src/paperwork/frontend/doceditdialog.glade',
-            'src/paperwork/frontend/import.glade',
-            'src/paperwork/frontend/import_select.glade',
-            'src/paperwork/frontend/mainwindow.glade',
-            'src/paperwork/frontend/multiscan.glade',
-            'src/paperwork/frontend/pageeditingdialog.glade',
-            'src/paperwork/frontend/settingswindow.glade',
-            'src/paperwork/frontend/labeledit.glade',
-            ]),
-          (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
-           ['locale/fr/LC_MESSAGES/paperwork.mo']),
-          (os.path.join(sys.prefix, 'share/applications'),
-           ['data/paperwork.desktop']),
-          (os.path.join(sys.prefix, 'share/icons'),
-           ['data/paperwork.svg']),
-      ],
-      scripts=['scripts/paperwork'],
-      install_requires=[
-          "Cython",
-          'joblib',
-          "nltk",
-          "Pillow",
-          "pycountry",
-          # "pycairo",  # doesn't work ?
-          "pyenchant",
-          "python-Levenshtein",
-          "pyinsane >= 1.1.0",
-          "pyocr",
-          "numpy",
-          "scipy",
-          "scikit-learn",
-          "scikit-image",
-          "Whoosh",
-          # "PyGObject",  # doesn't work with virtualenv
-          # Missing due to the use of gobject introspection:
-          # - gtk
-          # - glade
-          # - poppler
-          # Missing because non-python libraries:
-          # - sane
-          # - tesseract/cuneiform
-      ],
-     )

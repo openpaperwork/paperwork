@@ -162,33 +162,10 @@ manner.
 
 ## Contact
 
-### Mailing-list
-
-[paperwork-gui@googlegroups.com](https://groups.google.com/d/forum/paperwork-gui)
-
-This is the place to go if you have any questions regarding Paperwork, Pyocr, or Pyinsane.
-Please write your emails in English.
-
-
-### Bug tracker
-
-[https://github.com/jflesch/paperwork/issues](https://github.com/jflesch/paperwork/issues)
-
-Please write bug reports in English.
-
-Here is some information usually useful in a good bug report:
-
-* How to reproduce the problem ?
-* What is the expected behavior ?
-* What behavior did you get ?
-* What version of Paperwork are you using ? (stable / testing / unstable)
-* When run in a terminal, is there any uncatched Python exception raised ?
-* How did you install Paperwork ? (virtualenv / setup.py / distribution package)
-* What GNU/Linux distribution are you using ?
-
-Additionally, the logging output of Paperwork may be useful.
+* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
+* [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 
 
 ## Development
 
-See [the hacking guide](HACKING.markdown#HACKING)
+All the information can be found on [the wiki](https://github.com/jflesch/paperwork/wiki#for-developers)

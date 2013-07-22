@@ -396,7 +396,7 @@ class MultiscanDialog(GObject.GObject):
             'scan': (
                 [widget_tree.get_object("buttonOk")],
                 ActionScan(self, config, main_window.docsearch,
-                           main_window.doc[1]),
+                           main_window.doc),
             ),
         }
 
@@ -413,9 +413,9 @@ class MultiscanDialog(GObject.GObject):
         ]
 
         self.lists['docs']['model'].clear()
-        if len(main_window.doc[1].pages) > 0 and main_window.doc[1].can_edit:
+        if len(main_window.doc.pages) > 0 and main_window.doc.can_edit:
             self.lists['docs']['model'].append([
-                _("Current document (%s)") % (str(main_window.doc[1])),
+                _("Current document (%s)") % (str(main_window.doc)),
                 "0",  # nb_pages
                 True,  # can_edit (nb_pages)
                 0,  # scan_progress_int

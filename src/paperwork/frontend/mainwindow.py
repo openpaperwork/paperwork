@@ -1825,7 +1825,7 @@ class ActionMultiScan(SimpleAction):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
             return
-        ms = MultiscanDialog(self.__main_win, self__config)
+        ms = MultiscanDialog(self.__main_win, self.__config)
         ms.connect("need-show-page",
                    lambda ms_dialog, page:
                    GObject.idle_add(self.__show_page, page))

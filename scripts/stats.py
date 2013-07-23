@@ -7,9 +7,10 @@ import paperwork.backend.docsearch as docsearch
 import paperwork.util as util
 
 def main():
-    print "Opening index"
-    print "============="
     pconfig = config.PaperworkConfig()
+    pconfig.read()
+    print "Opening docs (%s)" % pconfig.workdir
+    print "===================="
     dsearch = docsearch.DocSearch(pconfig.workdir)
 
     nb_words = 0

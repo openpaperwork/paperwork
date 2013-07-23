@@ -79,6 +79,7 @@ Let the machine do most of the work.
       data_files=[
           (os.path.join(sys.prefix, 'share/paperwork'), [
             'src/paperwork/frontend/aboutdialog.glade',
+            'src/paperwork/frontend/appmenu.xml',
             'src/paperwork/frontend/doceditdialog.glade',
             'src/paperwork/frontend/import.glade',
             'src/paperwork/frontend/import_select.glade',

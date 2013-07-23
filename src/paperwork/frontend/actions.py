@@ -16,6 +16,7 @@
 
 import logging
 
+from gi.repository import Gio
 from gi.repository import Gtk
 
 logger = logging.getLogger(__name__)
@@ -41,6 +42,7 @@ class SimpleAction(object):
             (Gtk.ComboBox, "changed", self.on_combobox_changed_cb, -1),
             (Gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
             (Gtk.Range, "value-changed", self.on_value_changed_cb, -1),
+            (Gio.Action, "activate", self.on_action_activated_cb, -1),
         ]
         self.enabled = True
 
@@ -80,6 +82,9 @@ class SimpleAction(object):
         return self.__do()
 
     def on_value_changed_cb(self, widget_range=None):
+        return self.__do()
+
+    def on_action_activated_cb(self, action, parameter):
         return self.__do()
 
     def connect(self, buttons):

@@ -36,9 +36,9 @@ then
 	mkdir -p locale
 
 	rm -f locale/messages.pot
-	for glade_file in src/paperwork/frontend/*.glade
+	for glade_file in src/paperwork/frontend/*.glade src/paperwork/frontend/*.xml
 	do
-		echo "${glade_file} --> .glade.h ..."
+		echo "${glade_file} --> .(glade|xml).h ..."
 		intltool-extract --type=gettext/glade ${glade_file} > /dev/null
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
@@ -48,8 +48,10 @@ then
 		src/paperwork/backend/common/*.py \
 		src/paperwork/frontend/*.py \
 		src/paperwork/frontend/*.glade.h \
+		src/paperwork/frontend/*.xml.h
 		> /dev/null
 	rm -f src/paperwork/frontend/*.glade.h
+	rm -f src/paperwork/frontend/*.xml.h
 
 	for lang in ${LANGS}
 	do

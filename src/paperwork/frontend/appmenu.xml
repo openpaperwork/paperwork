@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+	<menu id='menubar'>
+		<submenu id='app-menu'>
+			<attribute name='label' translatable='yes'>_Fichier</attribute>
+			<section>
+				<item>
+					<attribute name='label' translatable='yes'>_About</attribute>
+					<attribute name='action'>app.about</attribute>
+					<attribute name='accel'>&lt;Primary&gt;c</attribute>
+				</item>
+				<item>
+					<attribute name='label' translatable='yes'>_Quit</attribute>
+					<attribute name='action'>app.quit</attribute>
+					<attribute name='accel'>&lt;Primary&gt;v</attribute>
+				</item>
+			</section>
+		</submenu>
+	</menu>
+</interface>

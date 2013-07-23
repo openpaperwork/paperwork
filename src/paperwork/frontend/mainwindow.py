@@ -25,10 +25,12 @@ import PIL.Image
 import gettext
 import logging
 import cairo
-from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GObject
 from gi.repository import GdkPixbuf
+from gi.repository import GLib
+from gi.repository import Gio
+from gi.repository import GObject
+from gi.repository import Gtk
 
 import pyinsane.abstract_th as pyinsane
 
@@ -2197,21 +2199,6 @@ class ActionCancelExport(BasicActionEndExport):
         BasicActionEndExport.do(self)
 
 
-class ActionSetToolbarVisibility(SimpleAction):
-    def __init__(self, main_window, config):
-        SimpleAction.__init__(self, "Set toolbar visibility")
-        self.__main_win = main_window
-        self.__config = config
-
-    def do(self):
-        SimpleAction.do(self)
-        visible = self.__main_win.show_toolbar.get_active()
-        if self.__config.toolbar_visible != visible:
-            self.__config.toolbar_visible = visible
-        for toolbar in self.__main_win.toolbars:
-            toolbar.set_visible(visible)
-
-
 class ActionZoomChange(SimpleAction):
     def __init__(self, main_window, offset):
         SimpleAction.__init__(self, "Zoom += %d" % offset)
@@ -2645,6 +2632,28 @@ GObject.type_register(ProgressiveList)
 
 class MainWindow(object):
     def __init__(self, config):
+        GLib.set_application_name(_("Paperwork"))
+        GLib.set_prgname("paperwork")
+
+        self.app = Gtk.Application(
+            application_id="app.paperwork",
+            flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.app.register(None)
+        Gtk.Application.set_default(self.app)
+
+        gactions = {
+            'about': Gio.SimpleAction.new("about", None),
+            'quit': Gio.SimpleAction.new("quit", None),
+        }
+
+        for action in gactions.values():
+            self.app.add_action(action)
+
+        app_menu = load_uifile("appmenu.xml")
+        self.app.set_app_menu(app_menu.get_object("app-menu"))
+
+        widget_tree = load_uifile("mainwindow.glade")
+
         self.schedulers = {
             'main' : JobScheduler("Main"),
             'progress' : JobScheduler("Progress"),
@@ -2661,9 +2670,8 @@ class MainWindow(object):
         img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
         self.default_thumbnail = image2pixbuf(img)
 
-        widget_tree = load_uifile("mainwindow.glade")
-
         self.window = widget_tree.get_object("mainWindow")
+        self.window.set_application(self.app)
 
         self.__config = config
         self.__scan_start = 0.0
@@ -2774,11 +2782,9 @@ class MainWindow(object):
             ),
         }
 
-        self.show_all_boxes = \
-            widget_tree.get_object("checkmenuitemShowAllBoxes")
-        self.show_toolbar = \
-            widget_tree.get_object("menuitemToolbarVisible")
-        self.show_toolbar.set_active(config.toolbar_visible)
+        # TODO
+        #self.show_all_boxes = \
+        #    widget_tree.get_object("checkmenuitemShowAllBoxes")
 
         self.toolbars = [
             widget_tree.get_object("toolbarMainWin"),
@@ -2849,7 +2855,6 @@ class MainWindow(object):
         self.actions = {
             'new_doc': (
                 [
-                    widget_tree.get_object("menuitemNew"),
                     widget_tree.get_object("toolbuttonNew"),
                 ],
                 ActionNewDocument(self, config),
@@ -2874,7 +2879,6 @@ class MainWindow(object):
             ),
             'single_scan': (
                 [
-                    widget_tree.get_object("imagemenuitemScanSingle"),
                     widget_tree.get_object("toolbuttonScan"),
                     widget_tree.get_object("menuitemScanSingle"),
                 ],
@@ -2882,7 +2886,6 @@ class MainWindow(object):
             ),
             'multi_scan': (
                 [
-                    widget_tree.get_object("imagemenuitemScanFeeder"),
                     widget_tree.get_object("menuitemScanFeeder"),
                 ],
                 ActionMultiScan(self, config)
@@ -2890,13 +2893,11 @@ class MainWindow(object):
             'import': (
                 [
                     widget_tree.get_object("menuitemImport"),
-                    widget_tree.get_object("menuitemImport1"),
                 ],
                 ActionImport(self, config)
             ),
             'print': (
                 [
-                    widget_tree.get_object("menuitemPrint"),
                     widget_tree.get_object("menuitemPrint1"),
                     widget_tree.get_object("toolbuttonPrint"),
                 ],
@@ -2906,7 +2907,6 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemExportDoc"),
                     widget_tree.get_object("menuitemExportDoc1"),
-                    widget_tree.get_object("menuitemExportDoc2"),
                 ],
                 ActionOpenExportDocDialog(self)
             ),
@@ -2914,7 +2914,6 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("menuitemExportPage"),
                     widget_tree.get_object("menuitemExportPage1"),
-                    widget_tree.get_object("menuitemExportPage2"),
                     widget_tree.get_object("menuitemExportPage3"),
                 ],
                 ActionOpenExportPageDialog(self)
@@ -2944,14 +2943,13 @@ class MainWindow(object):
             ),
             'open_settings': (
                 [
-                    widget_tree.get_object("menuitemSettings"),
                     widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)
             ),
             'quit': (
                 [
-                    widget_tree.get_object("menuitemQuit"),
+                    gactions['quit'],
                     widget_tree.get_object("toolbuttonQuit"),
                 ],
                 ActionQuit(self, config),
@@ -2979,7 +2977,6 @@ class MainWindow(object):
             ),
             'open_doc_dir': (
                 [
-                    widget_tree.get_object("menuitemOpenParentDir"),
                     widget_tree.get_object("menuitemOpenDocDir"),
                     widget_tree.get_object("toolbuttonOpenDocDir"),
                 ],
@@ -2987,7 +2984,6 @@ class MainWindow(object):
             ),
             'del_doc': (
                 [
-                    widget_tree.get_object("menuitemDestroyDoc"),
                     widget_tree.get_object("menuitemDestroyDoc2"),
                     widget_tree.get_object("toolbuttonDeleteDoc"),
                 ],
@@ -2996,7 +2992,6 @@ class MainWindow(object):
             'edit_page': (
                 [
                     widget_tree.get_object("menuitemEditPage"),
-                    widget_tree.get_object("menuitemEditPage1"),
                     widget_tree.get_object("menuitemEditPage2"),
                     widget_tree.get_object("toolbuttonEditPage"),
                 ],
@@ -3004,38 +2999,23 @@ class MainWindow(object):
             ),
             'del_page': (
                 [
-                    widget_tree.get_object("menuitemDestroyPage"),
                     widget_tree.get_object("menuitemDestroyPage1"),
                     widget_tree.get_object("menuitemDestroyPage2"),
                     widget_tree.get_object("buttonDeletePage"),
                 ],
                 ActionDeletePage(self),
             ),
-            'first_page': (
-                [
-                    widget_tree.get_object("menuitemFirstPage"),
-                ],
-                ActionMovePageIndex(self, False, 0),
-            ),
             'prev_page': (
                 [
-                    widget_tree.get_object("menuitemPrevPage"),
                     widget_tree.get_object("toolbuttonPrevPage"),
                 ],
                 ActionMovePageIndex(self, True, -1),
             ),
             'next_page': (
                 [
-                    widget_tree.get_object("menuitemNextPage"),
                     widget_tree.get_object("toolbuttonNextPage"),
                 ],
                 ActionMovePageIndex(self, True, 1),
-            ),
-            'last_page': (
-                [
-                    widget_tree.get_object("menuitemLastPage"),
-                ],
-                ActionMovePageIndex(self, False, -1),
             ),
             'set_current_page': (
                 [
@@ -3048,36 +3028,6 @@ class MainWindow(object):
                     widget_tree.get_object("comboboxZoom"),
                 ],
                 ActionRebuildPage(self)
-            ),
-            'zoom_in': (
-                [
-                    widget_tree.get_object("menuitemZoomIn"),
-                ],
-                ActionZoomChange(self, 1)
-            ),
-            'zoom_out': (
-                [
-                    widget_tree.get_object("menuitemZoomOut"),
-                ],
-                ActionZoomChange(self, -1)
-            ),
-            'zoom_best_fit': (
-                [
-                    widget_tree.get_object("menuitemZoomBestFit"),
-                ],
-                ActionZoomSet(self, 0.0)
-            ),
-            'zoom_normal': (
-                [
-                    widget_tree.get_object("menuitemZoomNormal"),
-                ],
-                ActionZoomSet(self, 1.0)
-            ),
-            'start_search': (
-                [
-                    widget_tree.get_object("menuitemFindTxt"),
-                ],
-                ActionStartSearch(self)
             ),
             'search': (
                 [
@@ -3100,41 +3050,38 @@ class MainWindow(object):
             ),
             'show_all_boxes': (
                 [
-                    self.show_all_boxes
+                    # TODO
+                    #self.show_all_boxes
                 ],
                 ActionRefreshBoxes(self)
             ),
-            'show_toolbar': (
-                [
-                    self.show_toolbar,
-                ],
-                ActionSetToolbarVisibility(self, config),
-            ),
             'redo_ocr_doc': (
                 [
-                    widget_tree.get_object("menuitemReOcr"),
+                    # TODO
+                    #widget_tree.get_object("menuitemReOcr"),
                 ],
                 ActionRedoDocOCR(self),
             ),
             'redo_ocr_all': (
                 [
-                    widget_tree.get_object("menuitemReOcrAll"),
+                    # TODO
+                    #widget_tree.get_object("menuitemReOcrAll"),
                 ],
                 ActionRedoAllOCR(self),
+            ),
+            'reindex_from_scratch': (
+                [
+                    # TODO
+                    #widget_tree.get_object("menuitemReindexAll"),
+                ],
+                ActionRefreshIndex(self, config, force=True),
             ),
             'reindex': (
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
-            'reindex_from_scratch': (
-                [
-                    widget_tree.get_object("menuitemReindexAll"),
-                ],
-                ActionRefreshIndex(self, config, force=True),
-            ),
             'edit_doc': (
                 [
-                    widget_tree.get_object("menuitemEditDoc1"),
                     widget_tree.get_object("toolbuttonEditDoc"),
                     widget_tree.get_object("menuitemEditDoc")
                 ],
@@ -3142,7 +3089,7 @@ class MainWindow(object):
             ),
             'about': (
                 [
-                    widget_tree.get_object("menuitemAbout"),
+                    gactions['about'],
                 ],
                 ActionAbout(self),
             ),
@@ -3178,10 +3125,8 @@ class MainWindow(object):
 
         self.need_page_widgets = set(
             self.actions['del_page'][0]
-            + self.actions['first_page'][0]
             + self.actions['prev_page'][0]
             + self.actions['next_page'][0]
-            + self.actions['last_page'][0]
             + self.actions['open_export_page_dialog'][0]
             + self.actions['edit_page'][0]
         )

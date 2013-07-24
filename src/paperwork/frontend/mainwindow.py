@@ -3800,7 +3800,11 @@ class MainWindow(object):
         prev_highlighted = set(self.img['boxes']['highlighted'])
         self.img['boxes']['highlighted'] = highlighted
 
-        if self.show_all_boxes.get_active():
+        # TODO
+        # show_all = self.show_all_boxes.get_active()
+        show_all = False
+
+        if show_all:
             self.img['boxes']['visible'] = self.img['boxes']['all']
             to_refresh = self.img['boxes']['all']
         else:

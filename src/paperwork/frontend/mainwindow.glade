@@ -317,14 +317,6 @@
                                 <attribute name="pixbuf">1</attribute>
                               </attributes>
                             </child>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext5">
-                                <property name="xpad">10</property>
-                              </object>
-                              <attributes>
-                                <attribute name="markup">0</attribute>
-                              </attributes>
-                            </child>
                           </object>
                         </child>
                       </object>

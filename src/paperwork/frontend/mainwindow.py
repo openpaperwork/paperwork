@@ -2630,6 +2630,29 @@ class ProgressiveList(GObject.GObject):
 GObject.type_register(ProgressiveList)
 
 
+class CellRendererDocTxt(Gtk.CellRenderer):
+    doc = GObject.property(type=object, default=None,
+                           flags=GObject.PARAM_READWRITE)
+
+    def __init__(self):
+        Gtk.CellRenderer.__init__(self)
+
+    def do_get_size(self, widget, cell_area):
+        return (0, 0, 50, 50)
+
+    def do_render(self, cairo_ctx, widget,
+                  bg_area_gdk_rect, cell_area_gdk_rect,
+                  flags):
+        # TODO
+        # if doc.is_new --> "New document"
+        # if !doc.is_new --> "<docname> + <label>"
+        # if doc is None --> "Chargement ..."
+        pass
+
+
+GObject.type_register(CellRendererDocTxt)
+
+
 class MainWindow(object):
     def __init__(self, config):
         GLib.set_application_name(_("Paperwork"))
@@ -2672,6 +2695,11 @@ class MainWindow(object):
 
         self.window = widget_tree.get_object("mainWindow")
         self.window.set_application(self.app)
+
+        iconview_matches = widget_tree.get_object("iconviewMatch")
+        cellrenderer_doc_txt = CellRendererDocTxt()
+        iconview_matches.pack_end(cellrenderer_doc_txt, True)
+        iconview_matches.add_attribute(cellrenderer_doc_txt, 'doc', 2)
 
         self.__config = config
         self.__scan_start = 0.0
@@ -3590,27 +3618,16 @@ class MainWindow(object):
                 cairo_context.rectangle(a, b, c-a, d-b)
                 cairo_context.stroke()
 
-    @staticmethod
-    def __get_doc_txt(doc):
-        if doc is None:
-            return ""
-        labels = doc.labels
-        final_str = "%s" % (doc.name)
-        nb_pages = doc.nb_pages
-        if nb_pages > 1:
-            final_str += (_(" (%d pages)") % (doc.nb_pages))
-        if len(labels) > 0:
-            final_str += "\n  "
-            final_str += "\n  ".join([x.get_html() for x in labels])
-        return final_str
-
     def __get_doc_model_line(self, doc):
-        doc_txt = self.__get_doc_txt(doc)
+        assert(doc is not None)
         thumbnail = self.default_thumbnail
         if doc.nb_pages <= 0:
             thumbnail = None
         return ([
-            doc_txt,
+            # The first element is unused (see CellRendererDocTxt)
+            # It is kept just to keep ProgressiveList code consistent
+            # for both the doc list and the page list
+            "",
             thumbnail,
             doc,
         ])

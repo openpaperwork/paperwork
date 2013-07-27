@@ -89,7 +89,7 @@ class DummyDocSearch(object):
         return []
 
     @staticmethod
-    def find_documents(sentence, limit=None, must_sort=True):
+    def find_documents(sentence, limit=None, must_sort=True, search_type='full'):
         """ Do nothing """
         sentence = sentence  # to make pylint happy
         return []
@@ -385,7 +385,6 @@ class DocSearch(object):
 
         self.__searcher = self.index.searcher()
 
-        self.search_param_list = []
 
         class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
             def __init__(self, fieldname, text, boost=1.0, maxdist=1,
@@ -394,45 +393,56 @@ class DocSearch(object):
                                                         prefixlength, constantscore=True)
 
         facets = [whoosh.sorting.ScoreFacet(), whoosh.sorting.FieldFacet("date", reverse=True)]
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "label", schema=self.index.schema, termclass=whoosh.query.Term),
-                "sortedby" : facets
-            })
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "label", schema=self.index.schema,
-                    termclass=whoosh.qparser.query.Prefix),
-                "sortedby" : facets
-            })
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "label", schema=self.index.schema, termclass=CustomFuzzy),
-                "sortedby" : facets
-            })
 
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "content", schema=self.index.schema, termclass=whoosh.query.Term),
-                "sortedby" : facets
-            })
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "content", schema=self.index.schema, termclass=CustomFuzzy),
-                "sortedby" : facets
-            })
-        self.search_param_list.append(
-            {
-                "query_parser" : whoosh.qparser.QueryParser(
-                    "content", schema=self.index.schema,
-                    termclass=whoosh.qparser.query.Prefix),
-                "sortedby" : facets
-            })
+        self.search_param_list = {
+            'full': [
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "label", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "sortedby" : facets
+                },
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "label", schema=self.index.schema,
+                        termclass=whoosh.qparser.query.Prefix),
+                    "sortedby" : facets
+                },
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "label", schema=self.index.schema, termclass=CustomFuzzy),
+                    "sortedby" : facets
+                },
+
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "content", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "sortedby" : facets
+                },
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "content", schema=self.index.schema, termclass=CustomFuzzy),
+                    "sortedby" : facets
+                },
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "content", schema=self.index.schema,
+                        termclass=whoosh.qparser.query.Prefix),
+                    "sortedby" : facets
+                },
+            ],
+            'fast': [
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "label", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "sortedby" : facets
+                },
+                {
+                    "query_parser" : whoosh.qparser.QueryParser(
+                        "content", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "sortedby" : facets
+                },
+            ],
+        }
 
         self.check_workdir()
         self.cleanup_rootdir(callback)
@@ -719,7 +729,8 @@ class DocSearch(object):
             return self.__docs_by_id[docid].pages[page_nb]
         return self.__docs_by_id[obj_id]
 
-    def find_documents(self, sentence, limit=None, must_sort=True):
+    def find_documents(self, sentence, limit=None, must_sort=True,
+                       search_type='full'):
         """
         Returns all the documents matching the given keywords
 
@@ -738,7 +749,7 @@ class DocSearch(object):
         result_list_list=[]
         total_results = 0
 
-        for query_parser in self.search_param_list:
+        for query_parser in self.search_param_list[search_type]:
             query = query_parser["query_parser"].parse(sentence)
             if must_sort and "sortedby" in query_parser:
                 result_list = self.__searcher.search(
@@ -799,7 +810,8 @@ class DocSearch(object):
                 new_suggestion[keyword_idx] = keyword_suggestion
                 new_suggestion = u" ".join(new_suggestion)
 
-                docs = self.find_documents(new_suggestion, limit=1, must_sort=False)
+                docs = self.find_documents(new_suggestion, limit=1,
+                                           must_sort=False, search_type='fast')
                 if len(docs) <= 0:
                     continue
                 final_suggestions.append(new_suggestion)

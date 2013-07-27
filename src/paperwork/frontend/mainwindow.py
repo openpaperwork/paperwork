@@ -3427,6 +3427,7 @@ class MainWindow(object):
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
         self.refresh_label_list()
+        self.refresh_doc_list()
 
     def on_redo_ocr_start_cb(self, src):
         self.set_search_availability(False)

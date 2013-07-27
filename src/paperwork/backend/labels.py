@@ -110,5 +110,4 @@ class Label(object):
 
     def __str__(self):
         return ("Color: %s ; Text: %s"
-                % (self.get_html_color(),
-                   self.name.encode('utf-8', 'replace')))
+                % (self.get_html_color(), self.name))

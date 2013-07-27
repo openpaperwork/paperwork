@@ -426,10 +426,12 @@ class JobDocSearcher(Job):
 
     __gsignals__ = {
         'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        # first obj: array of documents
-        # second obj: array of suggestions
+        # array of documents
         'search-result': (GObject.SignalFlags.RUN_LAST, None,
-                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                          (GObject.TYPE_PYOBJECT,)),
+        # array of suggestions
+        'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
+                               (GObject.TYPE_PYOBJECT,)),
     }
 
     can_stop = True
@@ -465,12 +467,12 @@ class JobDocSearcher(Job):
             self.__sort_func(documents)
         if not self.can_run:
             return
+        self.emit('search-result', documents)
 
         suggestions = self.__docsearch.find_suggestions(self.search)
         if not self.can_run:
             return
-
-        self.emit('search-result', documents, suggestions)
+        self.emit('search-suggestions', suggestions)
 
     def stop(self, will_resume=False):
         self.can_run = False
@@ -490,9 +492,13 @@ class JobFactoryDocSearcher(JobFactory):
         job = JobDocSearcher(self, next(self.id_generator), self.__config,
                              docsearch, sort_func, search_sentence)
         job.connect('search-result',
-            lambda searcher, documents, suggestions:
+            lambda searcher, documents:
             GObject.idle_add(self.__main_win.on_search_result_cb,
-                             documents, suggestions))
+                             documents))
+        job.connect('search-suggestions',
+            lambda searcher, suggestions:
+            GObject.idle_add(self.__main_win.on_search_suggestions_cb,
+                             suggestions))
         return job
 
 
@@ -1529,7 +1535,6 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_doc_list()
 
         if self.__refresh_pages:
-
             # Don't call self.__main_win.refresh_page_list():
             # it will redo the list from scratch. We just want to update
             # the thumbnails of the pages. There is no new or removed pages.
@@ -3360,18 +3365,8 @@ class MainWindow(object):
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
 
-    def on_search_result_cb(self, documents, suggestions):
+    def on_search_result_cb(self, documents):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
-
-
-        logger.debug("Got %d suggestions" % len(suggestions))
-        self.lists['suggestions']['gui'].freeze_child_notify()
-        try:
-            self.lists['suggestions']['model'].clear()
-            for suggestion in suggestions:
-                self.lists['suggestions']['model'].append([suggestion])
-        finally:
-            self.lists['suggestions']['gui'].thaw_child_notify()
 
         logger.debug("Got %d documents" % len(documents))
 
@@ -3390,6 +3385,16 @@ class MainWindow(object):
         self.lists['matches'].set_model([self.__get_doc_model_line(doc)
                                          for doc in documents])
         self.lists['matches'].select_idx(active_idx)
+
+    def on_search_suggestions_cb(self, suggestions):
+        logger.debug("Got %d suggestions" % len(suggestions))
+        self.lists['suggestions']['gui'].freeze_child_notify()
+        try:
+            self.lists['suggestions']['model'].clear()
+            for suggestion in suggestions:
+                self.lists['suggestions']['model'].append([suggestion])
+        finally:
+            self.lists['suggestions']['gui'].thaw_child_notify()
 
     def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))

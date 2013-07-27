@@ -1665,11 +1665,11 @@ class ActionToggleLabel(object):
         label = self.__main_win.lists['labels']['model'][objpath][2]
         if not label in self.__main_win.doc.labels:
             logger.info("Action: Adding label '%s' on document '%s'"
-                   % (str(label), str(self.__main_win.doc)))
+                   % (label.name, str(self.__main_win.doc)))
             self.__main_win.docsearch.add_label(self.__main_win.doc, label)
         else:
             logger.info("Action: Removing label '%s' on document '%s'"
-                   % (label, self.__main_win.doc))
+                   % (label.name, self.__main_win.doc))
             self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs({self.__main_win.doc},

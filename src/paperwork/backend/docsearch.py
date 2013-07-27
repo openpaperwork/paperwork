@@ -390,9 +390,9 @@ class DocSearch(object):
 
         class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
             def __init__(self, fieldname, text, boost=1.0, maxdist=1,
-                 prefixlength=0, constantscore=True):
+                         prefixlength=0, constantscore=True):
                 whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
-                 prefixlength, constantscore=True)
+                                                        prefixlength, constantscore=True)
 
         facets = [sorting.ScoreFacet(),sorting.FieldFacet("date", reverse=True)]
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",

@@ -399,7 +399,7 @@ class DocSearch(object):
                 {
                     "query_parser" : whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
-                        termclass=whoosh.query.Term),
+                        termclass=CustomFuzzy),
                     "sortedby" : facets
                 },
                 {
@@ -408,13 +408,6 @@ class DocSearch(object):
                         termclass=whoosh.qparser.query.Prefix),
                     "sortedby" : facets
                 },
-                {
-                    "query_parser" : whoosh.qparser.MultifieldParser(
-                        ["label", "content"], schema=self.index.schema,
-                        termclass=CustomFuzzy),
-                    "sortedby" : facets
-                },
-
             ],
             'fast': [
                 {

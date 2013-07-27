@@ -397,48 +397,30 @@ class DocSearch(object):
         self.search_param_list = {
             'full': [
                 {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "label", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "query_parser" : whoosh.qparser.MultifieldParser(
+                        ["label", "content"], schema=self.index.schema,
+                        termclass=whoosh.query.Term),
                     "sortedby" : facets
                 },
                 {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "label", schema=self.index.schema,
+                    "query_parser" : whoosh.qparser.MultifieldParser(
+                        ["label", "content"], schema=self.index.schema,
                         termclass=whoosh.qparser.query.Prefix),
                     "sortedby" : facets
                 },
                 {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "label", schema=self.index.schema, termclass=CustomFuzzy),
+                    "query_parser" : whoosh.qparser.MultifieldParser(
+                        ["label", "content"], schema=self.index.schema,
+                        termclass=CustomFuzzy),
                     "sortedby" : facets
                 },
 
-                {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "content", schema=self.index.schema, termclass=whoosh.query.Term),
-                    "sortedby" : facets
-                },
-                {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "content", schema=self.index.schema, termclass=CustomFuzzy),
-                    "sortedby" : facets
-                },
-                {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "content", schema=self.index.schema,
-                        termclass=whoosh.qparser.query.Prefix),
-                    "sortedby" : facets
-                },
             ],
             'fast': [
                 {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "label", schema=self.index.schema, termclass=whoosh.query.Term),
-                    "sortedby" : facets
-                },
-                {
-                    "query_parser" : whoosh.qparser.QueryParser(
-                        "content", schema=self.index.schema, termclass=whoosh.query.Term),
+                    "query_parser" : whoosh.qparser.MultifieldParser(
+                        ["label", "content"], schema=self.index.schema,
+                        termclass=whoosh.query.Term),
                     "sortedby" : facets
                 },
             ],

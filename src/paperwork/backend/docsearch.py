@@ -89,7 +89,7 @@ class DummyDocSearch(object):
         return []
 
     @staticmethod
-    def find_documents(sentence):
+    def find_documents(sentence, limit=None, must_sort=True):
         """ Do nothing """
         sentence = sentence  # to make pylint happy
         return []
@@ -719,7 +719,7 @@ class DocSearch(object):
             return self.__docs_by_id[docid].pages[page_nb]
         return self.__docs_by_id[obj_id]
 
-    def find_documents(self, sentence):
+    def find_documents(self, sentence, limit=None, must_sort=True):
         """
         Returns all the documents matching the given keywords
 
@@ -736,17 +736,22 @@ class DocSearch(object):
         sentence = strip_accents(sentence)
 
         result_list_list=[]
+        total_results = 0
+
         for query_parser in self.search_param_list:
             query = query_parser["query_parser"].parse(sentence)
-            if "sortedby" in query_parser:
-                result_list_list.append(
-                    self.__searcher.search(
-                        query, limit=None,
-                        sortedby = query_parser["sortedby"]))
+            if must_sort and "sortedby" in query_parser:
+                result_list = self.__searcher.search(
+                    query, limit=limit, sortedby=query_parser["sortedby"])
             else:
-                result_list_list.append(
-                    self.__searcher.search(
-                        query, limit=None))
+                result_list = self.__searcher.search(
+                    query, limit=limit)
+
+            result_list_list.append(result_list)
+            total_results += len(result_list)
+
+            if not must_sort and total_results >= limit:
+                break
 
         # merging results
         results = result_list_list[0]
@@ -760,6 +765,10 @@ class DocSearch(object):
         except ValueError:
             pass
         assert (not None in docs)
+
+        if limit is not None:
+            docs = docs[:limit]
+
         return docs
 
     def find_suggestions(self, sentence):
@@ -789,7 +798,9 @@ class DocSearch(object):
                 new_suggestion = keywords[:]
                 new_suggestion[keyword_idx] = keyword_suggestion
                 new_suggestion = u" ".join(new_suggestion)
-                if len(self.find_documents(new_suggestion)) <= 0:
+
+                docs = self.find_documents(new_suggestion, limit=1, must_sort=False)
+                if len(docs) <= 0:
                     continue
                 final_suggestions.append(new_suggestion)
         final_suggestions.sort()

@@ -37,8 +37,7 @@ import whoosh.fields
 import whoosh.index
 import whoosh.qparser
 import whoosh.query
-from whoosh.query import Term
-from whoosh import sorting
+import whoosh.sorting
 
 from paperwork.backend import img
 from paperwork.backend.common.doc import BasicDoc
@@ -394,10 +393,10 @@ class DocSearch(object):
                 whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
                                                         prefixlength, constantscore=True)
 
-        facets = [sorting.ScoreFacet(),sorting.FieldFacet("date", reverse=True)]
+        facets = [whoosh.sorting.ScoreFacet(), whoosh.sorting.FieldFacet("date", reverse=True)]
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
                                             schema=self.index.schema,
-                                            termclass=Term),
+                                            termclass=whoosh.query.Term),
                                        "sortedby" : facets})
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
                                             schema=self.index.schema,
@@ -410,7 +409,7 @@ class DocSearch(object):
 
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,
-                                            termclass=Term),
+                                            termclass=whoosh.query.Term),
                                        "sortedby" : facets})
         self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
                                             schema=self.index.schema,

@@ -1690,7 +1690,7 @@ class ActionCreateLabel(SimpleAction):
         labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window):
             logger.info("Adding label %s to doc %s"
-                        % (labeleditor.label, self.__main_win.doc))
+                        % (labeleditor.label.name, self.__main_win.doc))
             self.__main_win.docsearch.add_label(self.__main_win.doc,
                                                 labeleditor.label)
         self.__main_win.refresh_label_list()

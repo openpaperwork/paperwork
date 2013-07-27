@@ -565,7 +565,7 @@ class DocSearch(object):
                                         ['unlabelled'],
                                         numpy.array(['labelled','unlabelled']))
 
-    def predict_label_list(self, doc):
+    def predict_label_list(self, doc, progress_cb=dummy_progress_cb):
         """
         return a prediction of label names
         """
@@ -577,7 +577,12 @@ class DocSearch(object):
             return []
 
         predicted_label_list = []
-        for label_name in self.label_estimators:
+        label_names = self.label_estimators.keys()
+
+        for label_name_idx in xrange(0, len(label_names)):
+            progress_cb(label_name_idx, len(label_names))
+
+            label_name = label_names[label_name_idx]
             features = doc.get_features()
             # check that the estimator will not throw an error because its not fitted
             if self.label_estimators[label_name].coef_ is None:
@@ -587,7 +592,7 @@ class DocSearch(object):
             prediction = self.label_estimators[label_name].predict(features)
             if prediction == 'labelled':
                 predicted_label_list.append(label_name)
-            logger.info("%s %s %s with decision %s "
+            logger.debug("%s %s %s with decision %s "
                          % (doc, prediction, label_name,
                             self.label_estimators[label_name].
                             decision_function(features)))

@@ -502,6 +502,59 @@ class JobFactoryDocSearcher(JobFactory):
         return job
 
 
+class JobLabelPredictor(Job):
+    """
+    Search the documents
+    """
+
+    __gsignals__ = {
+        # array of labels (strings)
+        'predicted-labels': (GObject.SignalFlags.RUN_LAST, None,
+                          (GObject.TYPE_PYOBJECT,)),
+    }
+
+    can_stop = True
+    priority = 10
+
+    def __init__(self, factory, id, docsearch, doc):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__doc = doc
+
+    def _progress_cb(self, current, total):
+        if not self.can_run:
+            raise StopIteration()
+
+    def do(self):
+        self.can_run = True
+        try:
+            predicted_labels = self.__docsearch.predict_label_list(
+                self.__doc, progress_cb=self._progress_cb)
+            self.emit('predicted-labels', predicted_labels)
+        except StopIteration:
+            return
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+
+
+GObject.type_register(JobLabelPredictor)
+
+
+class JobFactoryLabelPredictor(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "Search")
+        self.__main_win = main_win
+
+    def make(self, doc):
+        job = JobLabelPredictor(self, next(self.id_generator),
+                                self.__main_win.docsearch, doc)
+        job.connect('predicted-labels',
+            lambda predictor, labels:
+            GObject.idle_add(self.__main_win.on_label_prediction_cb, labels))
+        return job
+
+
 class JobPageThumbnailer(Job):
     """
     Generate page thumbnails
@@ -2951,8 +3004,9 @@ class MainWindow(object):
             'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
-            'label_deleter': JobFactoryLabelDeleter(self),
             'label_updater': JobFactoryLabelUpdater(self),
+            'label_predictor': JobFactoryLabelPredictor(self),
+            'label_deleter': JobFactoryLabelDeleter(self),
             'match_list': self.lists['matches'].job_factory,
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
@@ -3395,6 +3449,14 @@ class MainWindow(object):
                 self.lists['suggestions']['model'].append([suggestion])
         finally:
             self.lists['suggestions']['gui'].thaw_child_notify()
+
+    def on_label_prediction_cb(self, predicted_labels):
+        label_model = self.lists['labels']['model']
+        for label_line in xrange(0, len(label_model)):
+            label = label_model[label_line][2]
+            line_iter = label_model.get_iter(label_line)
+            predicted = label.name in predicted_labels
+            label_model.set_value(line_iter, 4, predicted)
 
     def on_page_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -3872,22 +3934,25 @@ class MainWindow(object):
         """
         Reload and refresh the label list
         """
+        self.schedulers['main'].cancel_all(
+            self.job_factories['label_predictor'])
+
         self.lists['labels']['model'].clear()
         labels = self.doc.labels
 
-        predicted = self.docsearch.predict_label_list(self.doc)
-
         for label in self.docsearch.label_list:
-            in_predicted_label = (label.name in predicted)
             self.lists['labels']['model'].append([
                 [label],
                 (label in labels),
                 label,
-                True,
-                in_predicted_label,
+                True,  # enabled
+                False,  # predicted (will be updated)
             ])
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)
+
+        job = self.job_factories['label_predictor'].make(self.doc)
+        self.schedulers['main'].schedule(job)
 
     def on_highlighted_boxes(self, highlighted):
         prev_highlighted = set(self.img['boxes']['highlighted'])

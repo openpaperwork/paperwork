@@ -394,31 +394,45 @@ class DocSearch(object):
                                                         prefixlength, constantscore=True)
 
         facets = [whoosh.sorting.ScoreFacet(), whoosh.sorting.FieldFacet("date", reverse=True)]
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
-                                            schema=self.index.schema,
-                                            termclass=whoosh.query.Term),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
-                                            schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("label",
-                                            schema=self.index.schema,
-                                            termclass=CustomFuzzy),
-                                       "sortedby" : facets})
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "label", schema=self.index.schema, termclass=whoosh.query.Term),
+                "sortedby" : facets
+            })
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "label", schema=self.index.schema,
+                    termclass=whoosh.qparser.query.Prefix),
+                "sortedby" : facets
+            })
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "label", schema=self.index.schema, termclass=CustomFuzzy),
+                "sortedby" : facets
+            })
 
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
-                                            schema=self.index.schema,
-                                            termclass=whoosh.query.Term),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
-                                            schema=self.index.schema,
-                                            termclass=CustomFuzzy),
-                                       "sortedby" : facets})
-        self.search_param_list.append({"query_parser" : whoosh.qparser.QueryParser("content",
-                                            schema=self.index.schema,
-                                            termclass=whoosh.qparser.query.Prefix),
-                                       "sortedby" : facets})
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "content", schema=self.index.schema, termclass=whoosh.query.Term),
+                "sortedby" : facets
+            })
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "content", schema=self.index.schema, termclass=CustomFuzzy),
+                "sortedby" : facets
+            })
+        self.search_param_list.append(
+            {
+                "query_parser" : whoosh.qparser.QueryParser(
+                    "content", schema=self.index.schema,
+                    termclass=whoosh.qparser.query.Prefix),
+                "sortedby" : facets
+            })
 
         self.check_workdir()
         self.cleanup_rootdir(callback)

@@ -279,6 +279,8 @@ class BasicDoc(object):
 
         Will go on each document, and replace 'old_label' by 'new_label'
         """
+        logger.info("%s : Updating label ([%s] -> [%s])"
+                    % (str(self), old_label.name, new_label.name))
         labels = self.labels
         try:
             labels.remove(old_label)

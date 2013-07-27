@@ -3774,7 +3774,6 @@ class MainWindow(object):
             doc_idx = doc_list[doc]
             logger.info("Doc list refresh: %d:%s refreshed"
                         % (doc_idx, doc.docid))
-            doc_txt = self.__get_doc_txt(doc)
             doc_line = self.__get_doc_model_line(doc)
             if redo_thumbnails:
                 must_rethumbnail.add(doc)

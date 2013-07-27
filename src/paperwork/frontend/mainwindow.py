@@ -16,6 +16,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
+import math
 import os
 import sys
 import threading
@@ -2462,7 +2463,8 @@ class ProgressiveList(GObject.GObject):
 
     def __init__(self, name,
                  main_win,
-                 gui, scrollbars, model):
+                 gui, scrollbars, model,
+                 model_nb_columns):
         GObject.GObject.__init__(self)
         self.name = name
         self.__main_win = main_win
@@ -2473,6 +2475,7 @@ class ProgressiveList(GObject.GObject):
 
         self.model = model
         self.model_content = []
+        self.model_nb_columns = model_nb_columns
 
         self.nb_displayed = 0
 
@@ -2545,8 +2548,10 @@ class ProgressiveList(GObject.GObject):
         self.emit('lines-shown', newly_displayed)
 
         if nb_elements < len(self.model_content):
-            self.model.append([_("Loading ..."),
-                               self.__main_win.default_thumbnail, None])
+            padding = [None] * (self.model_nb_columns - 2)
+            model_line = [_("Loading ..."), self.__main_win.default_thumbnail]
+            model_line += padding
+            self.model.append(model_line)
 
         logger.info("List '%s' : %d elements displayed (%d additionnal)"
                     % (self.name, self.nb_displayed, len(newly_displayed)))
@@ -2630,27 +2635,80 @@ class ProgressiveList(GObject.GObject):
 GObject.type_register(ProgressiveList)
 
 
-class CellRendererDocTxt(Gtk.CellRenderer):
-    doc = GObject.property(type=object, default=None,
-                           flags=GObject.PARAM_READWRITE)
+class CellRendererLabels(Gtk.CellRenderer):
+    LABEL_HEIGHT = 25
+    LABEL_SPACING = 3
+    LABEL_TEXT_SIZE = 13
+    LABEL_CORNER_RADIUS = 10
+
+    labels = GObject.property(type=object, default=None,
+                              flags=GObject.PARAM_READWRITE)
 
     def __init__(self):
         Gtk.CellRenderer.__init__(self)
 
     def do_get_size(self, widget, cell_area):
-        return (0, 0, 50, 50)
+        if self.labels is None or len(self.labels) == 0:
+            return (0, 0, 0, 0)
+        xpad = self.get_property('xpad')
+        ypad = self.get_property('ypad')
+        width = 50  # meh, not really used
+        height = len(self.labels) * (self.LABEL_HEIGHT + self.LABEL_SPACING)
+        return (xpad, ypad, width+(2*ypad), height+(2*ypad))
+
+    @staticmethod
+    def _rectangle_rounded(cairo_ctx, area, radius):
+        (x, y, w, h) = area
+        cairo_ctx.new_sub_path()
+        cairo_ctx.arc(x + w - radius, y + radius, radius, -1.0 * math.pi / 2, 0)
+        cairo_ctx.arc(x + w - radius, y + h - radius, radius, 0, math.pi / 2)
+        cairo_ctx.arc(x + radius, y + h - radius, radius, math.pi / 2, math.pi)
+        cairo_ctx.arc(x + radius, y + radius, radius, math.pi,
+                      3.0 * math.pi / 2)
+        cairo_ctx.close_path()
 
     def do_render(self, cairo_ctx, widget,
                   bg_area_gdk_rect, cell_area_gdk_rect,
                   flags):
-        # TODO
-        # if doc.is_new --> "New document"
-        # if !doc.is_new --> "<docname> + <label>"
-        # if doc is None --> "Chargement ..."
-        pass
+        if self.labels is None or len(self.labels) == 0:
+            return
+
+        txt_offset = (self.LABEL_HEIGHT - self.LABEL_TEXT_SIZE) / 2
+        cairo_ctx.set_font_size(self.LABEL_TEXT_SIZE)
+
+        xpad = self.get_property('xpad')
+        ypad = self.get_property('ypad')
+        (x, y, w, h) = (cell_area_gdk_rect.x + xpad,
+                        cell_area_gdk_rect.y + ypad,
+                        cell_area_gdk_rect.width - (2*xpad),
+                        cell_area_gdk_rect.height - (2*ypad))
+
+        for label_idx in xrange(0, len(self.labels)):
+            label = self.labels[label_idx]
+
+            (label_x, label_y, label_w, label_h) = \
+                    (x,
+                     y + (label_idx * (self.LABEL_HEIGHT + self.LABEL_SPACING)),
+                     w, self.LABEL_HEIGHT)
+
+            # background rectangle
+            bg = label.get_rgb_bg()
+            cairo_ctx.set_source_rgb(bg[0], bg[1], bg[2])
+            cairo_ctx.set_line_width(1)
+            self._rectangle_rounded(cairo_ctx,
+                                    (label_x, label_y, label_w, label_h),
+                                    self.LABEL_CORNER_RADIUS)
+            cairo_ctx.fill()
+
+            # foreground text
+            fg = label.get_rgb_fg()
+            cairo_ctx.set_source_rgb(fg[0], fg[1], fg[2])
+            cairo_ctx.move_to(label_x + self.LABEL_CORNER_RADIUS,
+                              label_y + self.LABEL_HEIGHT - txt_offset)
+            cairo_ctx.show_text(label.name)
 
 
-GObject.type_register(CellRendererDocTxt)
+GObject.type_register(CellRendererLabels)
 
 
 class MainWindow(object):
@@ -2697,9 +2755,11 @@ class MainWindow(object):
         self.window.set_application(self.app)
 
         iconview_matches = widget_tree.get_object("iconviewMatch")
-        cellrenderer_doc_txt = CellRendererDocTxt()
-        iconview_matches.pack_end(cellrenderer_doc_txt, True)
-        iconview_matches.add_attribute(cellrenderer_doc_txt, 'doc', 2)
+        cellrenderer_labels = CellRendererLabels()
+        cellrenderer_labels.set_property('xpad', 10)
+        cellrenderer_labels.set_property('ypad', 0)
+        iconview_matches.pack_end(cellrenderer_labels, True)
+        iconview_matches.add_attribute(cellrenderer_labels, 'labels', 3)
 
         self.__config = config
         self.__scan_start = 0.0
@@ -2724,6 +2784,7 @@ class MainWindow(object):
                 gui=widget_tree.get_object("iconviewMatch"),
                 scrollbars=widget_tree.get_object("scrolledwindowMatch"),
                 model=widget_tree.get_object("liststoreMatch"),
+                model_nb_columns=4,
             ),
             'pages': ProgressiveList(
                 name='pages',
@@ -2731,6 +2792,7 @@ class MainWindow(object):
                 gui=widget_tree.get_object("iconviewPage"),
                 scrollbars=widget_tree.get_object("scrolledwindowPage"),
                 model=widget_tree.get_object("liststorePage"),
+                model_nb_columns=3,
             ),
             'labels': {
                 'gui': widget_tree.get_object("treeviewLabel"),
@@ -3624,12 +3686,10 @@ class MainWindow(object):
         if doc.nb_pages <= 0:
             thumbnail = None
         return ([
-            # The first element is unused (see CellRendererDocTxt)
-            # It is kept just to keep ProgressiveList code consistent
-            # for both the doc list and the page list
-            "",
+            doc.name,
             thumbnail,
             doc,
+            doc.labels,
         ])
 
     def __pop_new_doc(self):

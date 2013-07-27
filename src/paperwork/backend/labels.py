@@ -93,6 +93,21 @@ class Label(object):
         return ("<span bgcolor=\"%s\">    </span> %s"
                 % (self.get_html_color(), self.name))
 
+    def get_rgb_fg(self):
+        bg_color = self.get_rgb_bg()
+        brightness = (((bg_color[0] * 255) * 0.299)
+                      + ((bg_color[1] * 255) * 0.587)
+                      + ((bg_color[2] * 255) * 0.114))
+        if brightness > 186:
+            return (0.0, 0.0, 0.0) # black
+        else:
+            return (1.0, 1.0, 1.0) # white
+
+    def get_rgb_bg(self):
+        return (float((self.color.red >> 8) & 0xFF) / 0xFF,
+                float((self.color.green >> 8) & 0xFF) / 0xFF,
+                float((self.color.blue >> 8) & 0xFF) / 0xFF)
+
     def __str__(self):
         return ("Color: %s ; Text: %s"
                 % (self.get_html_color(),

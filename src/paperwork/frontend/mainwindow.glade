@@ -53,6 +53,8 @@
       <column type="GdkPixbuf"/>
       <!-- column-name doc -->
       <column type="PyObject"/>
+      <!-- column-name labels -->
+      <column type="PyObject"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststorePage">
@@ -300,24 +302,32 @@
                         <property name="shadow_type">in</property>
                         <property name="kinetic_scrolling">False</property>
                         <child>
-                          <object class="GtkIconView" id="iconviewMatch">
-                            <property name="width_request">100</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="model">liststoreMatch</property>
-                            <property name="columns">1</property>
-                            <property name="row_spacing">25</property>
-                            <property name="column_spacing">0</property>
-                            <property name="item_padding">0</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="cellrendererthumb">
-                                <property name="xpad">10</property>
-                              </object>
-                              <attributes>
-                                <attribute name="pixbuf">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
+							<object class="GtkIconView" id="iconviewMatch">
+								<property name="width_request">100</property>
+								<property name="visible">True</property>
+								<property name="can_focus">True</property>
+								<property name="model">liststoreMatch</property>
+								<property name="columns">1</property>
+								<property name="row_spacing">25</property>
+								<property name="column_spacing">0</property>
+								<property name="item_padding">0</property>
+								<child>
+									<object class="GtkCellRendererPixbuf" id="cellrendererthumb">
+										<property name="xpad">10</property>
+									</object>
+									<attributes>
+										<attribute name="pixbuf">1</attribute>
+									</attributes>
+								</child>
+								<child>
+									<object class="GtkCellRendererText" id="cellrenderertext5">
+										<property name="xpad">10</property>
+									</object>
+									<attributes>
+										<attribute name="text">0</attribute>
+									</attributes>
+								</child>
+							</object>
                         </child>
                       </object>
                       <packing>

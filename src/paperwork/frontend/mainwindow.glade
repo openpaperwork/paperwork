@@ -35,13 +35,15 @@
   </object>
   <object class="GtkListStore" id="liststoreLabel">
     <columns>
-      <!-- column-name labelName -->
-      <column type="gchararray"/>
+      <!-- column-name labels (only one in each) -->
+      <column type="PyObject"/>
       <!-- column-name labelSelected -->
       <column type="gboolean"/>
       <!-- column-name label -->
       <column type="PyObject"/>
       <!-- column-name enabled -->
+      <column type="gboolean"/>
+      <!-- column-name highlight -->
       <column type="gboolean"/>
     </columns>
   </object>
@@ -443,14 +445,6 @@
                                     <property name="sizing">autosize</property>
                                     <property name="title">Label</property>
                                     <property name="expand">True</property>
-                                    <child>
-                                      <object class="GtkCellRendererText" id="cellrenderertextLabel"/>
-                                      <attributes>
-                                        <attribute name="editable">0</attribute>
-                                        <attribute name="markup">0</attribute>
-                                        <attribute name="text">0</attribute>
-                                      </attributes>
-                                    </child>
                                   </object>
                                 </child>
                                 <child>

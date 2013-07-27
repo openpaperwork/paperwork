@@ -2643,6 +2643,8 @@ class CellRendererLabels(Gtk.CellRenderer):
 
     labels = GObject.property(type=object, default=None,
                               flags=GObject.PARAM_READWRITE)
+    highlight = GObject.property(type=bool, default=False,
+                                 flags=GObject.PARAM_READWRITE)
 
     def __init__(self):
         Gtk.CellRenderer.__init__(self)
@@ -2675,6 +2677,13 @@ class CellRendererLabels(Gtk.CellRenderer):
 
         txt_offset = (self.LABEL_HEIGHT - self.LABEL_TEXT_SIZE) / 2
         cairo_ctx.set_font_size(self.LABEL_TEXT_SIZE)
+
+        if not self.highlight:
+            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+                                       cairo.FONT_WEIGHT_NORMAL)
+        else:
+            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+                                       cairo.FONT_WEIGHT_BOLD)
 
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
@@ -2760,6 +2769,14 @@ class MainWindow(object):
         cellrenderer_labels.set_property('ypad', 0)
         iconview_matches.pack_end(cellrenderer_labels, True)
         iconview_matches.add_attribute(cellrenderer_labels, 'labels', 3)
+
+        label_column = widget_tree.get_object("treeviewcolumnLabels")
+        cellrenderer_labels = CellRendererLabels()
+        cellrenderer_labels.set_property('xpad', 0)
+        cellrenderer_labels.set_property('ypad', 0)
+        label_column.pack_end(cellrenderer_labels, True)
+        label_column.add_attribute(cellrenderer_labels, 'labels', 0)
+        label_column.add_attribute(cellrenderer_labels, 'highlight', 4)
 
         self.__config = config
         self.__scan_start = 0.0
@@ -3857,17 +3874,12 @@ class MainWindow(object):
 
         for label in self.docsearch.label_list:
             in_predicted_label = (label.name in predicted)
-            in_label = (label in labels)
-            if in_predicted_label or in_label:
-                label_html = ("<b>%s</b>"
-                              % label.get_html())
-            else:
-                label_html = label.get_html()
             self.lists['labels']['model'].append([
-                label_html,
+                [label],
                 (label in labels),
                 label,
-                True
+                True,
+                in_predicted_label,
             ])
         for widget in self.need_label_widgets:
             widget.set_sensitive(False)

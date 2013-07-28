@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import gettext
 import logging
@@ -17,7 +18,8 @@ class DocEditDialog(object):
         self.__config = config
         self.doc = doc
 
-        widget_tree = load_uifile("doceditdialog.glade")
+        widget_tree = load_uifile(
+            os.path.join("doceditdialog", "doceditdialog.glade"))
         self.date = {
             'year': {
                 'view': widget_tree.get_object("spinbuttonYear"),

@@ -29,7 +29,7 @@ import locale
 import pyocr.pyocr
 import pyinsane.abstract_th  # Just to start the Sane thread
 
-from frontend import mainwindow
+from frontend.mainwindow import ActionRefreshIndex, MainWindow
 from backend.config import PaperworkConfig
 
 
@@ -93,8 +93,8 @@ def main():
         config = PaperworkConfig()
         config.read()
 
-        main_win = mainwindow.MainWindow(config)
-        mainwindow.ActionRefreshIndex(main_win, config).do()
+        main_win = MainWindow(config)
+        ActionRefreshIndex(main_win, config).do()
         Gtk.main()
     finally:
         logger.info("Good bye")

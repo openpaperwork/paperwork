@@ -18,6 +18,8 @@ Contains the code relative to the about dialog (the one you get when you click
 on Help->About)
 """
 
+import os
+
 from paperwork.util import load_uifile
 
 
@@ -30,7 +32,8 @@ class AboutDialog(object):
     """
 
     def __init__(self, main_window):
-        self.__widget_tree = load_uifile("aboutdialog.glade")
+        self.__widget_tree = load_uifile(
+            os.path.join("aboutdialog", "aboutdialog.glade"))
 
         self.__dialog = self.__widget_tree.get_object("aboutdialog")
         assert(self.__dialog)

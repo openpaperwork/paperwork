@@ -17,25 +17,26 @@
 Settings window.
 """
 
-import PIL.Image
 import os
 import sys
 import time
 
 import gettext
-import logging
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
+import logging
+import PIL.Image
 import pycountry
 import pyocr.pyocr as pyocr
 
 import pyinsane.abstract_th as pyinsane
 
 from paperwork.backend.config import PaperworkConfig
-from paperwork.frontend.actions import SimpleAction
-from paperwork.frontend.img_cutting import ImgGripHandler
-from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
+from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.imgcutting import ImgGripHandler
+from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import set_scanner_opt
@@ -456,7 +457,8 @@ class SettingsWindow(GObject.GObject):
             self.schedulers['progress'],
         ]
 
-        widget_tree = load_uifile("settingswindow.glade")
+        widget_tree = load_uifile(
+            os.path.join("settingswindow", "settingswindow.glade"))
 
         self.window = widget_tree.get_object("windowSettings")
         self.window.set_transient_for(mainwindow_gui)

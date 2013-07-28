@@ -14,13 +14,15 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import PIL.Image
 import gettext
 import logging
 
 from gi.repository import GObject
 
-from paperwork.frontend.img_cutting import ImgGripHandler
+from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 
@@ -95,7 +97,8 @@ class PageEditingDialog(object):
     def __init__(self, main_window, page):
         self.page = page
 
-        widget_tree = load_uifile("pageeditingdialog.glade")
+        widget_tree = load_uifile(
+            os.path.join("pageeditor", "pageeditor.glade"))
 
         self.__dialog = widget_tree.get_object("dialogPageEditing")
         self.__dialog.set_transient_for(main_window.window)

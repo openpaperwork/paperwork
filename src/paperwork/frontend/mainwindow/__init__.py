@@ -36,13 +36,14 @@ from gi.repository import Gtk
 import pyinsane.abstract_th as pyinsane
 
 from paperwork.frontend.aboutdialog import AboutDialog
-from paperwork.frontend.actions import SimpleAction
 from paperwork.frontend.doceditdialog import DocEditDialog
-from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
-from paperwork.frontend.label_editor import LabelEditor
+from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
-from paperwork.frontend.page_edit import PageEditingDialog
+from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -1917,7 +1918,8 @@ class ActionImport(SimpleAction):
         self.__config = config
 
     def __select_file(self):
-        widget_tree = load_uifile("import.glade")
+        widget_tree = load_uifile(
+            os.path.join("import", "importaction.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
@@ -1933,7 +1935,8 @@ class ActionImport(SimpleAction):
         return file_uri
 
     def __select_importer(self, importers):
-        widget_tree = load_uifile("import_select.glade")
+        widget_tree = load_uifile(
+            os.path.join("import", "importfileselector.glade"))
         combobox = widget_tree.get_object("comboboxImportAction")
         importer_list = widget_tree.get_object("liststoreImportAction")
         dialog = widget_tree.get_object("dialogImportSelect")
@@ -2817,7 +2820,8 @@ class MainWindow(object):
         app_menu = load_uifile("appmenu.xml")
         self.app.set_app_menu(app_menu.get_object("app-menu"))
 
-        widget_tree = load_uifile("mainwindow.glade")
+        widget_tree = load_uifile(
+            os.path.join("mainwindow", "mainwindow.glade"))
 
         self.schedulers = {
             'main' : JobScheduler("Main"),

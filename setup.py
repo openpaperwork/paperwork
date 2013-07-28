@@ -63,6 +63,15 @@ Let the machine do most of the work.
       packages=[
           'paperwork',
           'paperwork.frontend',
+          'paperwork.frontend.aboutdialog',
+          'paperwork.frontend.doceditdialog',
+          'paperwork.frontend.import',
+          'paperwork.frontend.labeleditor',
+          'paperwork.frontend.mainwindow',
+          'paperwork.frontend.multiscan',
+          'paperwork.frontend.pageeditor',
+          'paperwork.frontend.settingswindow',
+          'paperwork.frontend.util',
           'paperwork.backend',
           'paperwork.backend.common',
           'paperwork.backend.pdf',
@@ -71,24 +80,84 @@ Let the machine do most of the work.
       package_dir={
           'paperwork': 'src/paperwork',
           'paperwork.frontend': 'src/paperwork/frontend',
+          'paperwork.frontend.aboutdialog': 'src/paperwork/frontend/aboutdialog',
+          'paperwork.frontend.doceditdialog':
+              'src/paperwork/frontend/doceditdialog',
+          'paperwork.frontend.import': 'src/paperwork/frontend/import',
+          'paperwork.frontend.labeleditor': 'src/paperwork/frontend/labeleditor',
+          'paperwork.frontend.mainwindow': 'src/paperwork/frontend/mainwindow',
+          'paperwork.frontend.multiscan': 'src/paperwork/frontend/multiscan',
+          'paperwork.frontend.pageeditor': 'src/paperwork/frontend/pageeditor',
+          'paperwork.frontend.settingswindow':
+              'src/paperwork/frontend/settingswindow',
+          'paperwork.frontend.util': 'src/paperwork/frontend/util',
           'paperwork.backend': 'src/paperwork/backend',
           'paperwork.backend.common': 'src/paperwork/backend/common',
           'paperwork.backend.pdf': 'src/paperwork/backend/pdf',
           'paperwork.backend.img': 'src/paperwork/backend/img',
           },
       data_files=[
-          (os.path.join(sys.prefix, 'share/paperwork'), [
-            'src/paperwork/frontend/aboutdialog.glade',
-            'src/paperwork/frontend/appmenu.xml',
-            'src/paperwork/frontend/doceditdialog.glade',
-            'src/paperwork/frontend/import.glade',
-            'src/paperwork/frontend/import_select.glade',
-            'src/paperwork/frontend/mainwindow.glade',
-            'src/paperwork/frontend/multiscan.glade',
-            'src/paperwork/frontend/pageeditingdialog.glade',
-            'src/paperwork/frontend/settingswindow.glade',
-            'src/paperwork/frontend/labeledit.glade',
-            ]),
+          # glade files
+          (
+              os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
+              [
+                  'src/paperwork/frontend/aboutdialog/aboutdialog.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/settingswindow'),
+              [
+                  'src/paperwork/frontend/settingswindow/settingswindow.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/doceditdialog'),
+              [
+                  'src/paperwork/frontend/doceditdialog/doceditdialog.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/import'),
+              [
+                  'src/paperwork/frontend/import/importaction.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/import'),
+              [
+                  'src/paperwork/frontend/import/importfileselector.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/labeleditor'),
+              [
+                  'src/paperwork/frontend/labeleditor/labeleditor.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
+              [
+                  'src/paperwork/frontend/mainwindow/appmenu.xml',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
+              [
+                  'src/paperwork/frontend/mainwindow/mainwindow.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/multiscan'),
+              [
+                  'src/paperwork/frontend/multiscan/multiscan.glade',
+              ]
+          ),
+          (
+              os.path.join(sys.prefix, 'share/paperwork/pageeditor'),
+              [
+                  'src/paperwork/frontend/pageeditor/pageeditor.glade',
+              ]
+          ),
           (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
            ['locale/fr/LC_MESSAGES/paperwork.mo']),
           (os.path.join(sys.prefix, 'share/applications'),

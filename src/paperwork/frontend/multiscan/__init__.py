@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 import gettext
 import logging
 from gi.repository import GObject
@@ -22,8 +24,9 @@ from gi.repository import Gtk
 
 import pyinsane.abstract_th as pyinsane
 
-from paperwork.frontend.actions import SimpleAction
-from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryProgressUpdater
+from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.util import load_uifile
@@ -346,7 +349,8 @@ class MultiscanDialog(GObject.GObject):
 
         self.__config = config
 
-        widget_tree = load_uifile("multiscan.glade")
+        widget_tree = load_uifile(
+            os.path.join("multiscan", "multiscan.glade"))
 
         self.lists = {
             'docs': {

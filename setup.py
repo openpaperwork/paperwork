@@ -120,11 +120,6 @@ Let the machine do most of the work.
               os.path.join(sys.prefix, 'share/paperwork/import'),
               [
                   'src/paperwork/frontend/import/importaction.glade',
-              ]
-          ),
-          (
-              os.path.join(sys.prefix, 'share/paperwork/import'),
-              [
                   'src/paperwork/frontend/import/importfileselector.glade',
               ]
           ),

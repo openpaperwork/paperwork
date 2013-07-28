@@ -390,6 +390,23 @@ class PaperworkConfig(object):
 
     toolbar_visible = property(__get_toolbar_visible, __set_toolbar_visible)
 
+    def __get_result_sorting(self):
+        """
+        How to sort the results
+        """
+        try:
+            return self._configparser.get("GUI", "Sorting")
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            return "relevance"
+
+    def __set_result_sorting(self, sorting):
+        """
+        Set the result sorting
+        """
+        self._configparser.set("GUI", "Sorting", sorting)
+
+    result_sorting = property(__get_result_sorting, __set_result_sorting)
+
     def write(self):
         """
         Rewrite the configuration file. It rewrites the same file than

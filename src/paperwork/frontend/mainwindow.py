@@ -1608,6 +1608,23 @@ class ActionUpdateSearchResults(SimpleAction):
             entry.set_text("")
 
 
+class ActionSwitchSorting(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Switch sorting")
+        self.__main_win = main_window
+        self.__config = config
+        self.__upd_search_results_action = \
+            ActionUpdateSearchResults(main_window, refresh_pages=False)
+
+    def do(self):
+        SimpleAction.do(self)
+        (sorting_name, unused) = self.__main_win.get_doc_sorting()
+        logger.info("Document sorting: %s" % sorting_name)
+        self.__config.result_sorting = sorting_name
+        self.__config.write()
+        self.__upd_search_results_action.do()
+
+
 class ActionOpenPageSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self,
@@ -2989,10 +3006,15 @@ class MainWindow(object):
 
         self.sortings = [
             (widget_tree.get_object("radiomenuitemSortByRelevance"),
-             lambda docs: None),
+             lambda docs: None, "relevance"),
             (widget_tree.get_object("radiomenuitemSortByScanDate"),
-             sort_documents_by_date),
+             sort_documents_by_date, "scan_date"),
         ]
+
+        config_sorting_name = config.result_sorting
+        for (sorting_widget, unused, sorting_name) in self.sortings:
+            if sorting_name == config_sorting_name:
+                sorting_widget.set_active(True)
 
         self.job_factories = {
             'boxes_refresher': JobFactoryBoxesRefresher(self),
@@ -3206,7 +3228,7 @@ class MainWindow(object):
                     widget_tree.get_object("radiomenuitemSortByRelevance"),
                     widget_tree.get_object("radiomenuitemSortByScanDate"),
                 ],
-                ActionUpdateSearchResults(self, refresh_pages=False),
+                ActionSwitchSorting(self, config),
             ),
             'toggle_label': (
                 [
@@ -3901,7 +3923,7 @@ class MainWindow(object):
         self.schedulers['main'].cancel_all(self.job_factories['searcher'])
         search = unicode(self.search_field.get_text(), encoding='utf-8')
         job = self.job_factories['searcher'].make(
-            self.docsearch, self.get_doc_sort_func(), search)
+            self.docsearch, self.get_doc_sorting()[1], search)
         self.schedulers['main'].schedule(job)
 
     def refresh_page_list(self):
@@ -4222,8 +4244,8 @@ class MainWindow(object):
         job = self.job_factories['doc_thumbnailer'].make(docs)
         self.schedulers['main'].schedule(job)
 
-    def get_doc_sort_func(self):
-        for (widget, sort_func) in self.sortings:
+    def get_doc_sorting(self):
+        for (widget, sort_func, sorting_name) in self.sortings:
             if widget.get_active():
-                return sort_func
-        return self.sortings[0][1]
+                return (sorting_name, sort_func)
+        return (self.sortings[0][0], self.sortings[0][1])

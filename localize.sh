@@ -36,15 +36,12 @@ then
 	mkdir -p locale
 
 	rm -f locale/messages.pot
-	for glade_file in $(find src/paperwork/frontend -name \*.glade)
+	for glade_file in \
+		$(find src/paperwork/frontend -name \*.glade) \
+		$(find src/paperwork/frontend -name \*.xml)
 	do
-		echo "${glade_file} --> .glade.h ..."
+		echo "${glade_file} --> .(glade|xml).h ..."
 		intltool-extract --type=gettext/glade ${glade_file} > /dev/null
-	done
-	for xml_file in $(find src/paperwork/frontend -name \*.xml)
-	do
-		echo "${xml_file} --> .xml.h ..."
-		intltool-extract --type=gettext/xml ${xml_file} > /dev/null
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \

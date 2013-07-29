@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-29 13:10+0200\n"
+"POT-Creation-Date: 2013-07-29 13:29+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -583,6 +583,18 @@ msgstr "Depuis le bac"
 #: src/paperwork/frontend/multiscan/multiscan.glade.h:4
 msgid "Number of pages"
 msgstr "Nombre de pages"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:1
+msgid "_File"
+msgstr "_Fichier"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:2
+msgid "_About"
+msgstr "_À propos"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:3
+msgid "_Quit"
+msgstr "_Quitter"
 
 #~ msgid "Import File(s)"
 #~ msgstr "Importer un ou plusieurs fichier(s)"

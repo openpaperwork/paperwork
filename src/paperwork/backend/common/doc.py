@@ -23,7 +23,6 @@ import time
 import hashlib
 
 from scipy import sparse
-from sklearn.externals import joblib
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.preprocessing import normalize
 

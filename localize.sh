@@ -36,22 +36,24 @@ then
 	mkdir -p locale
 
 	rm -f locale/messages.pot
-	for glade_file in src/paperwork/frontend/*.glade src/paperwork/frontend/*.xml
+	for glade_file in $(find src/paperwork/frontend -name \*.glade)
 	do
-		echo "${glade_file} --> .(glade|xml).h ..."
+		echo "${glade_file} --> .glade.h ..."
 		intltool-extract --type=gettext/glade ${glade_file} > /dev/null
+	done
+	for xml_file in $(find src/paperwork/frontend -name \*.xml)
+	do
+		echo "${xml_file} --> .xml.h ..."
+		intltool-extract --type=gettext/xml ${xml_file} > /dev/null
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \
-		src/paperwork/*.py \
-		src/paperwork/backend/*.py \
-		src/paperwork/backend/common/*.py \
-		src/paperwork/frontend/*.py \
-		src/paperwork/frontend/*.glade.h \
-		src/paperwork/frontend/*.xml.h
+		$(find src/paperwork -name \*.py) \
+		$(find src/paperwork/frontend -name \*.glade.h) \
+		$(find src/paperwork/frontend -name \*.xml.h) \
 		> /dev/null
-	rm -f src/paperwork/frontend/*.glade.h
-	rm -f src/paperwork/frontend/*.xml.h
+	rm -f $(find src/paperwork/frontend -name \*.glade.h)
+	rm -f $(find src/paperwork/frontend -name \*.xml.h)
 
 	for lang in ${LANGS}
 	do

@@ -250,12 +250,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="has_tooltip">True</property>
-                <property name="tooltip_markup" translatable="yes">Search documents
-* To search documents with a specific label: label:[label]
-* Only the documents with a specific keyword: &amp;quot;[keyword]&amp;quot;
-* Ignore documents containing a specific keyword: NOT [keyword]
-* Find documents with one word or another: [keyword] OR [keyword]
-* Documents with a specific date: date:YYYYMMDD or date:[YYYYMMDD to YYYYMMDD]</property>
                 <property name="tooltip_text" translatable="yes">Search documents
 * To search documents with a specific label: label:[label]
 * Only the documents with a specific keyword: "[keyword]"
@@ -625,7 +619,6 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip_markup" translatable="yes">Edit page</property>
                     <property name="tooltip_text" translatable="yes">Edit page</property>
                     <property name="use_action_appearance">False</property>
                     <property name="label" translatable="yes">Modify</property>

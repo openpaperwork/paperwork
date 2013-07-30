@@ -2506,7 +2506,7 @@ class MainWindow(object):
         for action in gactions.values():
             self.app.add_action(action)
 
-        app_menu = load_uifile("appmenu.xml")
+        app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         self.app.set_app_menu(app_menu.get_object("app-menu"))
 
         widget_tree = load_uifile(

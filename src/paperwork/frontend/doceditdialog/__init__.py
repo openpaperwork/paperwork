@@ -6,7 +6,8 @@ import logging
 import locale
 from gi.repository import Gtk
 
-from paperwork.util import load_uifile
+from paperwork.frontend.util import load_uifile
+
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)

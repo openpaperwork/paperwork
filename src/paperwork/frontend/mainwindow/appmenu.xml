@@ -5,6 +5,33 @@
 			<attribute name="label" translatable="yes">_File</attribute>
 			<section>
 				<item>
+					<attribute name="label" translatable="yes">_Settings</attribute>
+					<attribute name="action">app.settings</attribute>
+					<attribute name="accel">&lt;Primary&gt;c</attribute>
+				</item>
+			</section>
+			<section>
+				<submenu>
+					<attribute name="label" translatable="yes">_Advanced</attribute>
+					<item>
+						<attribute name="label" translatable="yes">Show all _boxes</attribute>
+						<attribute name="action">app.show_all_boxes</attribute>
+						<attribute name="accel">&lt;Primary&gt;c</attribute>
+					</item>
+					<item>
+						<attribute name="label" translatable="yes">Redo OCR on the document</attribute>
+						<attribute name="action">app.redo_ocr_doc</attribute>
+						<attribute name="accel">&lt;Primary&gt;c</attribute>
+					</item>
+					<item>
+						<attribute name="label" translatable="yes">Redo OCR on all the documents</attribute>
+						<attribute name="action">app.redo_ocr_all</attribute>
+						<attribute name="accel">&lt;Primary&gt;c</attribute>
+					</item>
+				</submenu>
+			</section>
+			<section>
+				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>
 					<attribute name="accel">&lt;Primary&gt;c</attribute>

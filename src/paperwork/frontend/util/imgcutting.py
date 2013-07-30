@@ -19,7 +19,7 @@ import PIL.ImageDraw
 from gi.repository import Gdk
 from gi.repository import GObject
 
-from paperwork.util import image2pixbuf
+from paperwork.frontend.util.img import image2pixbuf
 
 
 class ImgGrip(object):

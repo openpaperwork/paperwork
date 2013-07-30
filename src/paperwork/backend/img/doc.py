@@ -33,10 +33,10 @@ from gi.repository import Poppler
 
 from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.util import dummy_progress_cb
-from paperwork.util import surface2image
-from paperwork.util import image2surface
-from paperwork.util import mkdir_p
+from paperwork.backend.util import dummy_progress_cb
+from paperwork.backend.util import image2surface
+from paperwork.backend.util import surface2image
+from paperwork.backend.util import mkdir_p
 
 logger = logging.getLogger(__name__)
 

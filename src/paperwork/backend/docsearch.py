@@ -45,11 +45,11 @@ from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.pdf.doc import is_pdf_doc
-from paperwork.util import dummy_progress_cb
-from paperwork.util import MIN_KEYWORD_LEN
-from paperwork.util import mkdir_p
-from paperwork.util import rm_rf
-from paperwork.util import strip_accents
+from paperwork.backend.util import dummy_progress_cb
+from paperwork.backend.util import MIN_KEYWORD_LEN
+from paperwork.backend.util import mkdir_p
+from paperwork.backend.util import rm_rf
+
 
 logger = logging.getLogger(__name__)
 
@@ -724,8 +724,6 @@ class DocSearch(object):
         if sentence == u"":
             return self.docs
 
-        sentence = strip_accents(sentence)
-
         result_list_list=[]
         total_results = 0
 
@@ -780,7 +778,7 @@ class DocSearch(object):
         corrector = self.__searcher.corrector("content")
         label_corrector = self.__searcher.corrector("label")
         for keyword_idx in range(0, len(keywords)):
-            keyword = strip_accents(keywords[keyword_idx])
+            keyword = keywords[keyword_idx]
             if (len(keyword) <= MIN_KEYWORD_LEN):
                 continue
             keyword_suggestions = label_corrector.suggest(keyword, limit=2)[:]

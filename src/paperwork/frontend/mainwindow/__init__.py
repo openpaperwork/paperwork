@@ -39,26 +39,26 @@ from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.dialog import ask_confirmation
+from paperwork.frontend.util.dialog import popup_no_scanner_found
+from paperwork.frontend.util.img import add_img_border
+from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.progressivelist import JobProgressiveList
 from paperwork.frontend.util.progressivelist import JobFactoryProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
+from paperwork.frontend.util.scanner import set_scanner_opt
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.util import add_img_border
-from paperwork.util import ask_confirmation
-from paperwork.util import image2pixbuf
-from paperwork.util import load_uifile
-from paperwork.util import popup_no_scanner_found
-from paperwork.util import set_scanner_opt
-from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -74,6 +74,15 @@ def check_scanner(main_win, config):
 def sort_documents_by_date(documents):
     documents.sort()
     documents.reverse()
+
+
+def set_widget_state(widgets, state, cond=lambda widget: True):
+    for widget in widgets:
+        if cond(widget):
+            if isinstance(widget, Gio.Action):
+                widget.set_enabled(state)
+            else:
+                widget.set_sensitive(state)
 
 
 class JobIndexLoader(Job):
@@ -1722,6 +1731,18 @@ class ActionRefreshBoxes(SimpleAction):
         self.__main_win.refresh_boxes()
 
 
+class ActionToggleAllBoxes(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Toggle all boxes visibility")
+        self.__main_win = main_window
+        self.__refresh_boxes = ActionRefreshBoxes(main_window)
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.show_all_boxes = not self.__main_win.show_all_boxes
+        self.__refresh_boxes.do()
+
+
 class ActionLabelSelected(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Label selected")
@@ -1729,8 +1750,7 @@ class ActionLabelSelected(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        for widget in self.__main_win.need_label_widgets:
-            widget.set_sensitive(True)
+        set_widget_state(self.__main_win.need_label_widgets, True)
         return True
 
 
@@ -2033,8 +2053,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.page.destroy()
         logger.info("Deleted")
         self.__main_win.page = None
-        for widget in self.__main_win.need_page_widgets:
-            widget.set_sensitive(False)
+        set_widget_state(self.__main_win.need_page_widgets, False)
         self.__main_win.refresh_docs({self.__main_win.doc})
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
@@ -2175,8 +2194,7 @@ class ActionSelectExportFormat(SimpleAction):
              ]),
         ]
         for (sensitive, widgets) in widgets:
-            for widget in widgets:
-                widget.set_sensitive(sensitive)
+            set_widget_state(widgets, sensitive)
 
         if exporter.can_change_quality or exporter.can_select_format:
             self.__main_win.actions['change_export_property'][1].do()
@@ -2500,13 +2518,17 @@ class MainWindow(object):
 
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'open_settings': Gio.SimpleAction.new("settings", None),
+            'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
+            'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
+            'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
 
         for action in gactions.values():
             self.app.add_action(action)
 
-        app_menu = load_uifile("appmenu.xml")
+        app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         self.app.set_app_menu(app_menu.get_object("app-menu"))
 
         widget_tree = load_uifile(
@@ -2657,9 +2679,7 @@ class MainWindow(object):
             ),
         }
 
-        # TODO
-        #self.show_all_boxes = \
-        #    widget_tree.get_object("checkmenuitemShowAllBoxes")
+        self.show_all_boxes = False
 
         self.toolbars = [
             widget_tree.get_object("toolbarMainWin"),
@@ -2824,6 +2844,7 @@ class MainWindow(object):
             ),
             'open_settings': (
                 [
+                    gactions['open_settings'],
                     widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)
@@ -2931,22 +2952,19 @@ class MainWindow(object):
             ),
             'show_all_boxes': (
                 [
-                    # TODO
-                    #self.show_all_boxes
+                    gactions['show_all_boxes'],
                 ],
-                ActionRefreshBoxes(self)
+                ActionToggleAllBoxes(self)
             ),
             'redo_ocr_doc': (
                 [
-                    # TODO
-                    #widget_tree.get_object("menuitemReOcr"),
+                    gactions['redo_ocr_doc'],
                 ],
                 ActionRedoDocOCR(self),
             ),
             'redo_ocr_all': (
                 [
-                    # TODO
-                    #widget_tree.get_object("menuitemReOcrAll"),
+                    gactions['redo_ocr_all'],
                 ],
                 ActionRedoAllOCR(self),
             ),
@@ -3023,8 +3041,7 @@ class MainWindow(object):
             + self.actions['edit_page'][0]
         )
 
-        for widget in self.need_doc_widgets.union(self.need_page_widgets):
-            widget.set_sensitive(False)
+        set_widget_state(self.need_page_widgets, False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             assert(not popup_menu[0] is None)
@@ -3067,8 +3084,7 @@ class MainWindow(object):
 
 
     def set_search_availability(self, enabled):
-        for list_view in self.doc_browsing.values():
-            list_view.set_sensitive(enabled)
+        set_widget_state(self.doc_browsing.values(), enabled)
 
     def set_mouse_cursor(self, cursor):
         offset = {
@@ -3282,8 +3298,7 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
-        for widget in self.doc_edit_widgets:
-            widget.set_sensitive(False)
+        set_widget_state(self.doc_edit_widgets, False)
         self.__scan_start = time.time()
 
         self.__scan_progress_job = self.job_factories['progress_updater'].make(
@@ -3309,8 +3324,8 @@ class MainWindow(object):
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
 
-        for widget in self.need_doc_widgets.union(self.doc_edit_widgets):
-            widget.set_sensitive(True)
+        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
+                         True)
 
         self.set_progression(job, 0.0, None)
         self.set_mouse_cursor("Normal")
@@ -3327,8 +3342,8 @@ class MainWindow(object):
 
     def on_single_scan_error(self, src, error):
         logger.error("Error while scanning: %s: %s" % (type(error), error))
-        for widget in self.need_doc_widgets.union(self.doc_edit_widgets):
-            widget.set_sensitive(True)
+        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
+                         True)
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
@@ -3365,8 +3380,7 @@ class MainWindow(object):
         # Note: don't update scan time here: OCR is not required for all
         # imports
 
-        for widget in self.need_doc_widgets:
-            widget.set_sensitive(True)
+        set_widget_state(self.need_doc_widgets, True)
 
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
@@ -3637,10 +3651,8 @@ class MainWindow(object):
 
         self.indicators['total_pages'].set_text(
             _("/ %d") % (self.doc.nb_pages))
-        for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
-        for widget in self.need_page_widgets:
-            widget.set_sensitive(False)
+        set_widget_state(self.doc_edit_widgets, self.doc.can_edit)
+        set_widget_state(self.need_page_widgets, False)
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
         job = self.job_factories['page_thumbnailer'].make(self.doc, search)
@@ -3664,8 +3676,7 @@ class MainWindow(object):
                 True,  # enabled
                 False,  # predicted (will be updated)
             ])
-        for widget in self.need_label_widgets:
-            widget.set_sensitive(False)
+        set_widget_state(self.need_label_widgets, False)
 
         job = self.job_factories['label_predictor'].make(self.doc)
         self.schedulers['main'].schedule(job)
@@ -3674,11 +3685,7 @@ class MainWindow(object):
         prev_highlighted = set(self.img['boxes']['highlighted'])
         self.img['boxes']['highlighted'] = highlighted
 
-        # TODO
-        # show_all = self.show_all_boxes.get_active()
-        show_all = False
-
-        if show_all:
+        if self.show_all_boxes:
             self.img['boxes']['visible'] = self.img['boxes']['all']
             to_refresh = self.img['boxes']['all']
         else:
@@ -3704,10 +3711,8 @@ class MainWindow(object):
             logging.info("Canceling export")
             self.actions['cancel_export'][1].do()
 
-        for widget in self.need_page_widgets:
-            widget.set_sensitive(True)
-        for widget in self.doc_edit_widgets:
-            widget.set_sensitive(self.doc.can_edit)
+        set_widget_state(self.need_page_widgets, True)
+        set_widget_state(self.doc_edit_widgets, self.doc.can_edit)
 
         if page.page_nb >= 0:
             # we are going to select the current page in the list
@@ -3739,16 +3744,12 @@ class MainWindow(object):
         is_new = doc.is_new
         can_edit = doc.can_edit
 
-        for widget in self.need_doc_widgets:
-            widget.set_sensitive(True)
-        for widget in self.doc_edit_widgets:
-            widget.set_sensitive(True)
-        for widget in self.need_doc_widgets:
-            if is_new:
-                widget.set_sensitive(False)
-        for widget in self.doc_edit_widgets:
-            if not can_edit:
-                widget.set_sensitive(False)
+        set_widget_state(self.need_doc_widgets, True)
+        set_widget_state(self.doc_edit_widgets, True)
+        set_widget_state(self.need_doc_widgets, False,
+                         cond=lambda widget: is_new)
+        set_widget_state(self.doc_edit_widgets, False,
+                         cond=lambda widget: not can_edit)
 
         pages_gui = self.lists['pages']['gui']
         if doc.can_edit:

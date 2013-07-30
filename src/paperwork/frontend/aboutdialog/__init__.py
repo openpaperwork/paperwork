@@ -20,7 +20,7 @@ on Help->About)
 
 import os
 
-from paperwork.util import load_uifile
+from paperwork.frontend.util import load_uifile
 
 
 class AboutDialog(object):

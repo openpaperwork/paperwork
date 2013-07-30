@@ -37,9 +37,10 @@ import pyocr.pyocr
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.common.page import PageExporter
 from paperwork.backend.config import PaperworkConfig
-from paperwork.util import check_spelling
-from paperwork.util import dummy_progress_cb
-from paperwork.util import image2surface
+from paperwork.backend.util import check_spelling
+from paperwork.backend.util import dummy_progress_cb
+from paperwork.backend.util import image2surface
+
 
 logger = logging.getLogger(__name__)
 

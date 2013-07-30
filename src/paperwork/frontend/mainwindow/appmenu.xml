@@ -5,6 +5,11 @@
 			<attribute name="label" translatable="yes">_File</attribute>
 			<section>
 				<item>
+					<attribute name="label" translatable="yes">_Settings</attribute>
+					<attribute name="action">app.settings</attribute>
+					<attribute name="accel">&lt;Primary&gt;c</attribute>
+				</item>
+				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>
 					<attribute name="accel">&lt;Primary&gt;c</attribute>

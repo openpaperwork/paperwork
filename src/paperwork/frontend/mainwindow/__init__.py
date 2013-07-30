@@ -2500,6 +2500,7 @@ class MainWindow(object):
 
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'open_settings': Gio.SimpleAction.new("settings", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
 
@@ -2824,6 +2825,7 @@ class MainWindow(object):
             ),
             'open_settings': (
                 [
+                    gactions['open_settings'],
                     widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)

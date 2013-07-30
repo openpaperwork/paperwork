@@ -22,8 +22,8 @@ import pyocr.builders
 import pyocr.pyocr
 
 from paperwork.backend.common.page import BasicPage
-from paperwork.util import split_words
-from paperwork.util import surface2image
+from paperwork.backend.util import split_words
+from paperwork.backend.util import surface2image
 
 
 # By default, PDF are too small for a good image rendering

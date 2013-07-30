@@ -45,11 +45,12 @@ from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.pdf.doc import is_pdf_doc
-from paperwork.util import dummy_progress_cb
-from paperwork.util import MIN_KEYWORD_LEN
-from paperwork.util import mkdir_p
-from paperwork.util import rm_rf
-from paperwork.util import strip_accents
+from paperwork.backend.util import dummy_progress_cb
+from paperwork.backend.util import MIN_KEYWORD_LEN
+from paperwork.backend.util import mkdir_p
+from paperwork.backend.util import rm_rf
+from paperwork.backend.util import strip_accents
+
 
 logger = logging.getLogger(__name__)
 

@@ -33,13 +33,14 @@ import pyocr.pyocr as pyocr
 import pyinsane.abstract_th as pyinsane
 
 from paperwork.backend.config import PaperworkConfig
+from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
-from paperwork.util import image2pixbuf
-from paperwork.util import load_uifile
-from paperwork.util import set_scanner_opt
+from paperwork.frontend.util.scanner import set_scanner_opt
+
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)

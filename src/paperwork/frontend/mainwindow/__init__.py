@@ -39,26 +39,26 @@ from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.dialog import ask_confirmation
+from paperwork.frontend.util.dialog import popup_no_scanner_found
+from paperwork.frontend.util.img import add_img_border
+from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.progressivelist import JobProgressiveList
 from paperwork.frontend.util.progressivelist import JobFactoryProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
+from paperwork.frontend.util.scanner import set_scanner_opt
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.util import add_img_border
-from paperwork.util import ask_confirmation
-from paperwork.util import image2pixbuf
-from paperwork.util import load_uifile
-from paperwork.util import popup_no_scanner_found
-from paperwork.util import set_scanner_opt
-from paperwork.util import sizeof_fmt
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)

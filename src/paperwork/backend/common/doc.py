@@ -29,13 +29,14 @@ from sklearn.preprocessing import normalize
 
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
-from paperwork.util import dummy_progress_cb
-from paperwork.util import rm_rf
-from paperwork.util import strip_accents
+from paperwork.backend.util import dummy_progress_cb
+from paperwork.backend.util import rm_rf
+from paperwork.backend.util import strip_accents
 
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
 
 class BasicDoc(object):
     LABEL_FILE = "labels"

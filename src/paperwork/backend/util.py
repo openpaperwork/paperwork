@@ -12,47 +12,26 @@
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
-"""
-Various tiny functions that didn't fit anywhere else.
-"""
+#    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>
 
 import errno
+import logging
 import os
 import re
-import logging
 import StringIO
 import threading
 import unicodedata
 
-import cairo
 import enchant
 import enchant.tokenize
-import gettext
-from gi.repository import GLib
-from gi.repository import Gtk
-from gi.repository import GdkPixbuf
 import nltk.metrics.distance
-import PIL.Image
-import PIL.ImageDraw
 
-import pyinsane.abstract_th as pyinsane
 
-_ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 MIN_KEYWORD_LEN = 3
-
-PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
-
-UI_FILES_DIRS = [
-    ".",
-    "src/paperwork/frontend",
-    PREFIX + "/share/paperwork",
-    PREFIX + "/local/share/paperwork",
-]
 
 
 def strip_accents(string):
@@ -119,162 +98,11 @@ def split_words(sentence):
             yield word
 
 
-def load_uifile(filename):
-    """
-    Load a .glade file and return the corresponding widget tree
-
-    Arguments:
-        filename -- glade filename to load. Must not contain any directory
-            name, just the filename. This function will (try to) figure out
-            where it must be found.
-
-    Returns:
-        GTK Widget tree
-
-    Throws:
-        Exception -- If the file cannot be found
-    """
-    widget_tree = Gtk.Builder()
-    has_ui_file = False
-    for ui_dir in UI_FILES_DIRS:
-        ui_file = os.path.join(ui_dir, filename)
-        if os.access(ui_file, os.R_OK):
-            logging.info("UI file used: " + ui_file)
-            widget_tree.add_from_file(ui_file)
-            has_ui_file = True
-            break
-    if not has_ui_file:
-        logging.error("Can't find resource file '%s'. Aborting" % filename)
-        raise Exception("Can't find resource file '%s'. Aborting" % filename)
-    return widget_tree
-
-
-def image2surface(img):
-    """
-    Convert a PIL image into a Cairo surface
-    """
-    if img is None:
-        return None
-    file_desc = StringIO.StringIO()
-    img.save(file_desc, format="PNG")
-    file_desc.seek(0)
-    surface = cairo.ImageSurface.create_from_png(file_desc)
-    return surface
-
-
-def surface2image(surface):
-    """
-    Convert a cairo surface into a PIL image
-    """
-    if surface is None:
-        return None
-    dimension = (surface.get_width(), surface.get_height())
-    img = PIL.Image.frombuffer("RGBA", dimension,
-                           surface.get_data(), "raw", "BGRA", 0, 1)
-
-    background = PIL.Image.new("RGB", img.size, (255, 255, 255))
-    background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
-    return background
-
-
-def image2pixbuf(img):
-    """
-    Convert an image object to a gdk pixbuf
-    """
-    if img is None:
-        return None
-    file_desc = StringIO.StringIO()
-    try:
-        img.save(file_desc, "ppm")
-        contents = file_desc.getvalue()
-    finally:
-        file_desc.close()
-    loader = GdkPixbuf.PixbufLoader.new_with_type("pnm")
-    try:
-        loader.write(contents)
-        pixbuf = loader.get_pixbuf()
-    finally:
-        loader.close()
-    return pixbuf
-
-
 def dummy_progress_cb(progression, total, step=None, doc=None):
     """
     Dummy progression callback. Do nothing.
     """
     pass
-
-
-def popup_no_scanner_found(parent):
-    """
-    Show a popup to the user to tell them no scanner has been found
-    """
-    # TODO(Jflesch): should be in paperwork.frontend
-    # Pyinsane doesn't return any specific exception :(
-    logger.info("Showing popup !")
-    msg = _("No scanner found (is your scanner turned on ?)")
-    dialog = Gtk.MessageDialog(parent=parent,
-                               flags=Gtk.DialogFlags.MODAL,
-                               type=Gtk.MessageType.WARNING,
-                               buttons=Gtk.ButtonsType.OK,
-                               message_format=msg)
-    dialog.run()
-    dialog.destroy()
-
-
-def ask_confirmation(parent):
-    """
-    Ask the user "Are you sure ?"
-
-    Returns:
-        True --- if they are
-        False --- if they aren't
-    """
-    confirm = Gtk.MessageDialog(parent=parent,
-                                flags=Gtk.DialogFlags.MODAL
-                                | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                type=Gtk.MessageType.WARNING,
-                                buttons=Gtk.ButtonsType.YES_NO,
-                                message_format=_('Are you sure ?'))
-    response = confirm.run()
-    confirm.destroy()
-    if response != Gtk.ResponseType.YES:
-        logging.info("User cancelled")
-        return False
-    return True
-
-
-_SIZEOF_FMT_STRINGS = [
-    _('%3.1f bytes'),
-    _('%3.1f KB'),
-    _('%3.1f MB'),
-    _('%3.1f GB'),
-    _('%3.1f TB'),
-]
-
-
-def sizeof_fmt(num):
-    """
-    Format a number of bytes in a human readable way
-    """
-    for string in _SIZEOF_FMT_STRINGS:
-        if num < 1024.0:
-            return string % (num)
-        num /= 1024.0
-    return _SIZEOF_FMT_STRINGS[-1] % (num)
-
-
-def add_img_border(img, color="#a6a5a4", width=1):
-    """
-    Add a border of the specified color and width around a PIL image
-    """
-    img_draw = PIL.ImageDraw.Draw(img)
-    for line in range(0, width):
-        img_draw.rectangle([(line, line), (img.size[0]-1-line,
-                                           img.size[1]-1-line)],
-                           outline=color)
-    del img_draw
-    return img
 
 
 _ENCHANT_LOCK = threading.Lock()
@@ -374,34 +202,38 @@ def rm_rf(path):
         os.rmdir(path)
 
 
-def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
+def surface2image(surface):
     """
-    Set one of the scanner options
-
-    Arguments:
-        scanner_opt_name --- for verbose
-        scanner_opt --- the scanner option (its value, its constraints, etc)
-        possible_values --- a list of values considered valid (the first one
-                            being the preferred one)
+    Convert a cairo surface into a PIL image
     """
-    value = possible_values[0]
-    regexs = [re.compile(x) for x in possible_values]
+    import cairo
+    import PIL.Image
+    import PIL.ImageDraw
 
-    if (scanner_opt.constraint_type ==
-        pyinsane.SaneConstraintType.STRING_LIST):
-        value = None
-        for regex in regexs:
-            for constraint in scanner_opt.constraint:
-                if regex.match(constraint):
-                    value = constraint
-                    break
-            if value is not None:
-                break
-        if value is None:
-            raise pyinsane.SaneException(
-                "%s are not a valid values for option %s"
-                % (str(possible_values), scanner_opt_name))
+    if surface is None:
+        return None
+    dimension = (surface.get_width(), surface.get_height())
+    img = PIL.Image.frombuffer("RGBA", dimension,
+                           surface.get_data(), "raw", "BGRA", 0, 1)
 
-    logger.info("Setting scanner option '%s' to '%s'"
-                % (scanner_opt_name, str(value)))
-    scanner_opt.value = value
+    background = PIL.Image.new("RGB", img.size, (255, 255, 255))
+    background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
+    return background
+
+
+def image2surface(img):
+    """
+    Convert a PIL image into a Cairo surface
+    """
+
+    import cairo
+    import PIL.Image
+    import PIL.ImageDraw
+
+    if img is None:
+        return None
+    file_desc = StringIO.StringIO()
+    img.save(file_desc, format="PNG")
+    file_desc.seek(0)
+    surface = cairo.ImageSurface.create_from_png(file_desc)
+    return surface

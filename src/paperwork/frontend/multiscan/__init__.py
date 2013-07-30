@@ -24,14 +24,15 @@ from gi.repository import Gtk
 
 import pyinsane.abstract_th as pyinsane
 
-from paperwork.frontend.util.actions import SimpleAction
-from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
-from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.util import load_uifile
-from paperwork.util import popup_no_scanner_found
-from paperwork.util import set_scanner_opt
+from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.dialog import popup_no_scanner_found
+from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
+from paperwork.frontend.util.scanner import set_scanner_opt
+
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)

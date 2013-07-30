@@ -24,7 +24,7 @@ from scipy.sparse.csr import csr_matrix
 from skimage import feature
 from sklearn.preprocessing import normalize
 
-from paperwork.util import split_words
+from paperwork.backend.util import split_words
 
 
 class PageExporter(object):

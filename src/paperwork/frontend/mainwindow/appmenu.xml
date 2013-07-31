@@ -11,13 +11,8 @@
 				</item>
 			</section>
 			<section>
-				<submenu>
+				<submenu id="advanced">
 					<attribute name="label" translatable="yes">_Advanced</attribute>
-					<item>
-						<attribute name="label" translatable="yes">Show all _boxes</attribute>
-						<attribute name="action">app.show_all_boxes</attribute>
-						<attribute name="accel">&lt;Primary&gt;c</attribute>
-					</item>
 					<item>
 						<attribute name="label" translatable="yes">Redo OCR on the document</attribute>
 						<attribute name="action">app.redo_ocr_doc</attribute>

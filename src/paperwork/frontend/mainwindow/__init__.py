@@ -2521,6 +2521,7 @@ class MainWindow(object):
             'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
             'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
             'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
+            'reindex_all': Gio.SimpleAction.new("reindex_all", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
 
@@ -2975,8 +2976,7 @@ class MainWindow(object):
             ),
             'reindex_from_scratch': (
                 [
-                    # TODO
-                    #widget_tree.get_object("menuitemReindexAll"),
+                    gactions['reindex_all'],
                 ],
                 ActionRefreshIndex(self, config, force=True),
             ),

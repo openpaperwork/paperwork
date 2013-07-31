@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-31 13:57+0200\n"
+"POT-Creation-Date: 2013-07-31 22:10+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/paperwork/backend/common/doc.py:359
+msgid "New document"
+msgstr "Nouveau document"
+
+#: src/paperwork/backend/docimport.py:62
+msgid "Import PDF"
+msgstr "Importer un PDF"
+
+#: src/paperwork/backend/docimport.py:141
+msgid "Import each PDF in the folder as a new document"
+msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
+
+#: src/paperwork/backend/docimport.py:177
+msgid "Append the image to the current document"
+msgstr "Ajouter l'image au document actuellement ouvert"
 
 #: src/paperwork/frontend/mainwindow/__init__.py:121
 #: src/paperwork/frontend/util/progressivelist.py:156
@@ -68,7 +84,7 @@ msgstr " Enregistrer sous"
 msgid "Paperwork"
 msgstr "Paperwork"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2635
+#: src/paperwork/frontend/mainwindow/__init__.py:2636
 msgid "Search"
 msgstr "Rechercher"
 
@@ -154,38 +170,6 @@ msgstr "Mettre en évidence tout les mots"
 msgid "Unhighlight the words"
 msgstr "Ne plus mettre en évidence les mots"
 
-#: src/paperwork/frontend/doceditdialog/__init__.py:165
-msgid "Invalid date"
-msgstr "Date invalide"
-
-#: src/paperwork/frontend/settingswindow/__init__.py:155
-msgid " (recommended)"
-msgstr " (recommandée)"
-
-#: src/paperwork/frontend/settingswindow/__init__.py:555
-msgid "Disable OCR"
-msgstr "Désactiver l'OCR"
-
-#: src/paperwork/frontend/settingswindow/__init__.py:626
-msgid ""
-"Without OCR, Paperwork will not be able to guess automatically page "
-"orientation"
-msgstr ""
-"Sans OCR, Paperwork ne pourra pas deviner automatiquement l'orientation des "
-"pages"
-
-#: src/paperwork/frontend/labeleditor/__init__.py:44
-#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:13
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:2
-msgid "Cancel"
-msgstr "Annuler"
-
-#: src/paperwork/frontend/labeleditor/__init__.py:45
-#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:14
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:3
-msgid "Ok"
-msgstr "Ok"
-
 #: src/paperwork/frontend/pageeditor/__init__.py:65
 #, python-format
 msgid "Image rotation of %d degrees"
@@ -195,14 +179,6 @@ msgstr "Rotation de l'image de %d degrés"
 #, python-format
 msgid "Image cutting: %s"
 msgstr "Découpage de l'image: %s"
-
-#: src/paperwork/frontend/util/dialog.py:20
-msgid "No scanner found (is your scanner turned on ?)"
-msgstr "Aucun scanner trouvé (est-ce que votre scanner est allumé ?)"
-
-#: src/paperwork/frontend/util/dialog.py:43
-msgid "Are you sure ?"
-msgstr "Êtes-vous sûr ?"
 
 #: src/paperwork/frontend/util/__init__.py:56
 #, python-format
@@ -228,6 +204,46 @@ msgstr "%3.1f Go"
 #, python-format
 msgid "%3.1f TB"
 msgstr "%3.1f To"
+
+#: src/paperwork/frontend/util/dialog.py:20
+msgid "No scanner found (is your scanner turned on ?)"
+msgstr "Aucun scanner trouvé (est-ce que votre scanner est allumé ?)"
+
+#: src/paperwork/frontend/util/dialog.py:43
+msgid "Are you sure ?"
+msgstr "Êtes-vous sûr ?"
+
+#: src/paperwork/frontend/doceditdialog/__init__.py:165
+msgid "Invalid date"
+msgstr "Date invalide"
+
+#: src/paperwork/frontend/labeleditor/__init__.py:44
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:2
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:13
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/paperwork/frontend/labeleditor/__init__.py:45
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:3
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:14
+msgid "Ok"
+msgstr "Ok"
+
+#: src/paperwork/frontend/settingswindow/__init__.py:155
+msgid " (recommended)"
+msgstr " (recommandée)"
+
+#: src/paperwork/frontend/settingswindow/__init__.py:555
+msgid "Disable OCR"
+msgstr "Désactiver l'OCR"
+
+#: src/paperwork/frontend/settingswindow/__init__.py:626
+msgid ""
+"Without OCR, Paperwork will not be able to guess automatically page "
+"orientation"
+msgstr ""
+"Sans OCR, Paperwork ne pourra pas deviner automatiquement l'orientation des "
+"pages"
 
 #: src/paperwork/frontend/multiscan/__init__.py:190
 #: src/paperwork/frontend/multiscan/__init__.py:234
@@ -262,33 +278,17 @@ msgstr "Toutes les pages ont été scannée"
 msgid "Less pages than expected have been Img (got %d pages)"
 msgstr "Moins de pages qu'attendues ont été scannées (%d pages scannées)"
 
-#: src/paperwork/backend/common/doc.py:359
-msgid "New document"
-msgstr "Nouveau document"
+#: src/paperwork/frontend/import/importaction.glade.h:1
+msgid "Import file(s)"
+msgstr "Importer un ou plusieurs fichier(s)"
 
-#: src/paperwork/backend/docimport.py:62
-msgid "Import PDF"
-msgstr "Importer un PDF"
+#: src/paperwork/frontend/import/importaction.glade.h:2
+msgid "<b>Please select an action</b>"
+msgstr "<b>Veuillez sélectionner une action</b>"
 
-#: src/paperwork/backend/docimport.py:141
-msgid "Import each PDF in the folder as a new document"
-msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
-
-#: src/paperwork/backend/docimport.py:177
-msgid "Append the image to the current document"
-msgstr "Ajouter l'image au document actuellement ouvert"
-
-#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:1
-msgid "About"
-msgstr "À propos"
-
-#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:2
-msgid "\n"
-msgstr "\n"
-
-#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:4
-msgid "Grep for Dead Trees"
-msgstr "Grep pour les arbres morts"
+#: src/paperwork/frontend/import/importfileselector.glade.h:1
+msgid "Select a file or a directory to import"
+msgstr "Sélectionnez un fichier ou un dossier à importer"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:1
 msgid "Fit page width"
@@ -492,17 +492,37 @@ msgstr "Ouvrir le répertoire"
 msgid "Delete document"
 msgstr "Effacer le document"
 
-#: src/paperwork/frontend/import/importaction.glade.h:1
-msgid "Import file(s)"
-msgstr "Importer un ou plusieurs fichier(s)"
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:1
+msgid "Page editing"
+msgstr "Edition de la page"
 
-#: src/paperwork/frontend/import/importaction.glade.h:2
-msgid "<b>Please select an action</b>"
-msgstr "<b>Veuillez sélectionner une action</b>"
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:4
+msgid "<b>Rotation</b>"
+msgstr "<b>Rotation</b>"
 
-#: src/paperwork/frontend/import/importfileselector.glade.h:1
-msgid "Select a file or a directory to import"
-msgstr "Sélectionnez un fichier ou un dossier à importer"
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:5
+msgid "<b>Cutting</b>"
+msgstr "<b>Découpage</b>"
+
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:6
+msgid "<b>Original</b>"
+msgstr "<b>Original</b>"
+
+#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:7
+msgid "<b>Result</b>"
+msgstr "<b>Résultat</b>"
+
+#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:1
+msgid "About"
+msgstr "À propos"
+
+#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:2
+msgid "\n"
+msgstr "\n"
+
+#: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:4
+msgid "Grep for Dead Trees"
+msgstr "Grep pour les arbres morts"
 
 #: src/paperwork/frontend/doceditdialog/doceditdialog.glade.h:1
 msgid "Document edition"
@@ -515,6 +535,18 @@ msgstr "<b>Date</b>"
 #: src/paperwork/frontend/doceditdialog/doceditdialog.glade.h:3
 msgid "<b>Additional keywords</b>"
 msgstr "<b>Mot-clefs additionnels</b>"
+
+#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:1
+msgid "Label editor"
+msgstr "Éditeur de label"
+
+#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:2
+msgid "Label"
+msgstr "Label"
+
+#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:3
+msgid "Color"
+msgstr "Couleur"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:3
 msgid "Work directory"
@@ -552,38 +584,6 @@ msgstr "<b>OCR</b>"
 msgid "<b>Scanner calibration</b>"
 msgstr "<b>Calibration du scanner</b>"
 
-#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:1
-msgid "Label editor"
-msgstr "Éditeur de label"
-
-#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:2
-msgid "Label"
-msgstr "Label"
-
-#: src/paperwork/frontend/labeleditor/labeleditor.glade.h:3
-msgid "Color"
-msgstr "Couleur"
-
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:1
-msgid "Page editing"
-msgstr "Edition de la page"
-
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:4
-msgid "<b>Rotation</b>"
-msgstr "<b>Rotation</b>"
-
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:5
-msgid "<b>Cutting</b>"
-msgstr "<b>Découpage</b>"
-
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:6
-msgid "<b>Original</b>"
-msgstr "<b>Original</b>"
-
-#: src/paperwork/frontend/pageeditor/pageeditor.glade.h:7
-msgid "<b>Result</b>"
-msgstr "<b>Résultat</b>"
-
 #: src/paperwork/frontend/multiscan/multiscan.glade.h:1
 msgid "From scanner feeder"
 msgstr "Depuis le bac"
@@ -605,18 +605,22 @@ msgid "_Advanced"
 msgstr "_Avancé"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:4
+msgid "Reindex all the documents"
+msgstr "Reindexer tout les documents"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:5
 msgid "Redo OCR on the document"
 msgstr "Refaire l'OCR sur le document"
 
-#: src/paperwork/frontend/mainwindow/appmenu.xml.h:5
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:6
 msgid "Redo OCR on all the documents"
 msgstr "Refaire l'OCR sur tout les documents"
 
-#: src/paperwork/frontend/mainwindow/appmenu.xml.h:6
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:7
 msgid "_About"
 msgstr "_À propos"
 
-#: src/paperwork/frontend/mainwindow/appmenu.xml.h:7
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:8
 msgid "_Quit"
 msgstr "_Quitter"
 
@@ -628,6 +632,3 @@ msgstr "_Quitter"
 
 #~ msgid "Redo OCR Of All Documents"
 #~ msgstr "Refaire l'OCR sur tout les documents"
-
-#~ msgid "Reindex All Documents"
-#~ msgstr "Reindexer tout les documents"

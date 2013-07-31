@@ -2528,7 +2528,6 @@ class MainWindow(object):
             self.app.add_action(action)
 
         app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
-        self.app.set_app_menu(app_menu.get_object("app-menu"))
 
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
@@ -2548,6 +2547,13 @@ class MainWindow(object):
         ), color="#EEEEEE")
         img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
         self.default_thumbnail = image2pixbuf(img)
+
+        self.__advanced_menu = app_menu.get_object("advanced")
+        self.__show_all_boxes_widget = \
+                Gio.MenuItem.new("XXX", "app.show_all_boxes")
+        self.__advanced_menu.insert_item(0, self.__show_all_boxes_widget)
+
+        self.app.set_app_menu(app_menu.get_object("app-menu"))
 
         self.window = widget_tree.get_object("mainWindow")
         self.window.set_application(self.app)
@@ -3942,3 +3948,20 @@ class MainWindow(object):
             if widget.get_active():
                 return (sorting_name, sort_func)
         return (self.sortings[0][0], self.sortings[0][1])
+
+    def __get_show_all_boxes(self):
+        return self.__show_all_boxes
+
+    def __set_show_all_boxes(self, value):
+        LABELS = {
+            False: _("Highlight all the words"),
+            True: _("Unhighlight the words"),
+        }
+
+        self.__advanced_menu.remove(0)
+        self.__show_all_boxes_widget.set_label(LABELS[value])
+        self.__advanced_menu.insert_item(0, self.__show_all_boxes_widget)
+
+        self.__show_all_boxes = value
+
+    show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)

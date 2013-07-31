@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-07-30 13:41+0200\n"
+"POT-Creation-Date: 2013-07-31 13:57+0200\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -18,133 +18,141 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:112
+#: src/paperwork/frontend/mainwindow/__init__.py:121
 #: src/paperwork/frontend/util/progressivelist.py:156
 msgid "Loading ..."
 msgstr "Chargement ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:114
+#: src/paperwork/frontend/mainwindow/__init__.py:123
 msgid "Cleaning ..."
 msgstr "Nettoyage ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:203
+#: src/paperwork/frontend/mainwindow/__init__.py:212
 msgid "Checking ..."
 msgstr "Vérification ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:348
+#: src/paperwork/frontend/mainwindow/__init__.py:357
 msgid "Indexing new document ..."
 msgstr "Indexation de nouveaux documents ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:350
+#: src/paperwork/frontend/mainwindow/__init__.py:359
 msgid "Reindexing modified document ..."
 msgstr "Reindexation de documents modifiés ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:352
+#: src/paperwork/frontend/mainwindow/__init__.py:361
 msgid "Removing deleted document from index ..."
 msgstr "Suppression de l'index d'un document effacé"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:377
+#: src/paperwork/frontend/mainwindow/__init__.py:386
 msgid "Writing index ..."
 msgstr "Réecriture de l'index ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1967
+#: src/paperwork/frontend/mainwindow/__init__.py:1986
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Ne sait pas comment importer '%s'. Désolé."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2125
+#: src/paperwork/frontend/mainwindow/__init__.py:2143
 msgid "Export page"
 msgstr "Exporter la page"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2137
+#: src/paperwork/frontend/mainwindow/__init__.py:2155
 msgid "Export document"
 msgstr "Exporter le document"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2217
+#: src/paperwork/frontend/mainwindow/__init__.py:2234
 msgid "Save as"
 msgstr " Enregistrer sous"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2492
+#: src/paperwork/frontend/mainwindow/__init__.py:2509
 msgid "Paperwork"
 msgstr "Paperwork"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2609
+#: src/paperwork/frontend/mainwindow/__init__.py:2635
 msgid "Search"
 msgstr "Rechercher"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2995
+#: src/paperwork/frontend/mainwindow/__init__.py:3016
 msgid "Scan single page"
 msgstr "Scanner une seule page"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3179
-#: src/paperwork/frontend/mainwindow/__init__.py:3185
-#: src/paperwork/frontend/mainwindow/__init__.py:3192
 #: src/paperwork/frontend/mainwindow/__init__.py:3198
+#: src/paperwork/frontend/mainwindow/__init__.py:3204
+#: src/paperwork/frontend/mainwindow/__init__.py:3211
+#: src/paperwork/frontend/mainwindow/__init__.py:3217
 msgid "Loading thumbnails ..."
 msgstr "Chargement des vignettes ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3251
+#: src/paperwork/frontend/mainwindow/__init__.py:3270
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3255
+#: src/paperwork/frontend/mainwindow/__init__.py:3274
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Mise à jour du label (%s) ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3267
-#: src/paperwork/frontend/mainwindow/__init__.py:3829
+#: src/paperwork/frontend/mainwindow/__init__.py:3286
+#: src/paperwork/frontend/mainwindow/__init__.py:3833
 msgid "Redoing OCR ..."
 msgstr "Relecture (OCR) ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3271
+#: src/paperwork/frontend/mainwindow/__init__.py:3290
 #, python-format
 msgid "Redoing OCR (%s) ..."
 msgstr "Relecture (OCR) (%s) ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3283
+#: src/paperwork/frontend/mainwindow/__init__.py:3302
 msgid "Scanning ..."
 msgstr "Scan ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3301
+#: src/paperwork/frontend/mainwindow/__init__.py:3319
 msgid "Reading ..."
 msgstr "Lecture ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3342
+#: src/paperwork/frontend/mainwindow/__init__.py:3360
 #, python-format
 msgid "Error while scanning: %s"
 msgstr "Erreur lors du scan: %s"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3354
+#: src/paperwork/frontend/mainwindow/__init__.py:3372
 msgid "Importing ..."
 msgstr "Import en cours ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3381
+#: src/paperwork/frontend/mainwindow/__init__.py:3398
 msgid "No new document to import found"
 msgstr "Aucun nouveau document à importer trouvé"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3633
+#: src/paperwork/frontend/mainwindow/__init__.py:3650
 #, python-format
 msgid "Page %d"
 msgstr "Page %d"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3641
+#: src/paperwork/frontend/mainwindow/__init__.py:3658
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3770
+#: src/paperwork/frontend/mainwindow/__init__.py:3774
 msgid "Computing ..."
 msgstr "Calcul en cours ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3826
+#: src/paperwork/frontend/mainwindow/__init__.py:3830
 msgid "Updating the image ..."
 msgstr "Mise à jour de l'image ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3832
+#: src/paperwork/frontend/mainwindow/__init__.py:3836
 msgid "Updating the index ..."
 msgstr "Mise à jour de l'index ..."
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3957
+msgid "Highlight all the words"
+msgstr "Mettre en évidence tout les mots"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3958
+msgid "Unhighlight the words"
+msgstr "Ne plus mettre en évidence les mots"
 
 #: src/paperwork/frontend/doceditdialog/__init__.py:165
 msgid "Invalid date"
@@ -593,10 +601,22 @@ msgid "_Settings"
 msgstr "_Préférences"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:3
+msgid "_Advanced"
+msgstr "_Avancé"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:4
+msgid "Redo OCR on the document"
+msgstr "Refaire l'OCR sur le document"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:5
+msgid "Redo OCR on all the documents"
+msgstr "Refaire l'OCR sur tout les documents"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:6
 msgid "_About"
 msgstr "_À propos"
 
-#: src/paperwork/frontend/mainwindow/appmenu.xml.h:4
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:7
 msgid "_Quit"
 msgstr "_Quitter"
 
@@ -605,15 +625,6 @@ msgstr "_Quitter"
 
 #~ msgid "Print Document"
 #~ msgstr "Imprimer le document"
-
-#~ msgid "Advanced"
-#~ msgstr "Avancé"
-
-#~ msgid "Highlight All The Words"
-#~ msgstr "Mettre en évidence tout les mots"
-
-#~ msgid "Redo OCR On The Document"
-#~ msgstr "Refaire l'OCR sur le document"
 
 #~ msgid "Redo OCR Of All Documents"
 #~ msgstr "Refaire l'OCR sur tout les documents"

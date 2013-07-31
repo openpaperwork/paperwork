@@ -3954,8 +3954,8 @@ class MainWindow(object):
 
     def __set_show_all_boxes(self, value):
         LABELS = {
-            False: _("Show all boxes"),
-            True: _("Hide boxes"),
+            False: _("Highlight all the words"),
+            True: _("Unhighlight the words"),
         }
 
         self.__advanced_menu.remove(0)

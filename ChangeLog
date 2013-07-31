@@ -1,0 +1,4 @@
+0.1 -> 0.2:
+* Improved search : whoosh.FuzzyTerm is now used
+* Label look has been improved
+* Menubar has been removed and replaced by an application menu

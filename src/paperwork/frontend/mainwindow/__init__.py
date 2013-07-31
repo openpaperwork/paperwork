@@ -1735,12 +1735,11 @@ class ActionToggleAllBoxes(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Toggle all boxes visibility")
         self.__main_win = main_window
-        self.__refresh_boxes = ActionRefreshBoxes(main_window)
 
     def do(self):
         SimpleAction.do(self)
         self.__main_win.show_all_boxes = not self.__main_win.show_all_boxes
-        self.__refresh_boxes.do()
+        self.__main_win.show_page(self.__main_win.page, force_refresh=True)
 
 
 class ActionLabelSelected(SimpleAction):

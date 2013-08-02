@@ -587,6 +587,7 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitemScanSingle">
+							<property name="label" translatable="yes">Scan single page</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -594,6 +595,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitemScanFeeder">
+							<property name="label" translatable="yes">Scan from feeder</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -601,6 +603,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitemImport">
+							<property name="label" translatable="yes">Import file(s)</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -645,6 +648,7 @@
                         <property name="can_focus">False</property>
                         <child>
                           <object class="GtkMenuItem" id="menuitemPrint1">
+							<property name="label" translatable="yes">Print</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -652,6 +656,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitemExportDoc">
+							<property name="label" translatable="yes">Export the document</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -659,6 +664,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuItem" id="menuitemExportPage">
+							<property name="label" translatable="yes">Export the page</property>
                             <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>

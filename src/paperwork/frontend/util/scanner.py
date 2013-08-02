@@ -1,6 +1,10 @@
+import logging
 import re
 
 import pyinsane.abstract_th as pyinsane
+
+
+logger = logging.getLogger(__name__)
 
 
 def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):

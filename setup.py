@@ -32,7 +32,8 @@ if python_ver[0] != "2" or python_ver[1] != "7":
          % ".".join(python_ver))
     sys.exit(1)
 
-setup(name="Paperwork",
+
+setup(name="paperwork",
       version="0.2-unstable",
       description="Grep for dead trees",
       long_description="""

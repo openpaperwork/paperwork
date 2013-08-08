@@ -1,0 +1,7 @@
+recursive-include src *.py *.glade *.xml
+recursive-include data *.desktop *.svg
+recursive-include locale *.mo *.po
+include AUTHORS
+include *.markdown
+include example-paperwork.conf
+include COPYING

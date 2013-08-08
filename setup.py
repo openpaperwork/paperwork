@@ -47,7 +47,7 @@ Let the machine do most of the work.
       url="https://github.com/jflesch/paperwork",
       download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
       classifiers=[
-          "Development Status :: 4 - Beta",
+          "Development Status :: 5 - Production/Stable",
           "Environment :: X11 Applications :: GTK",
           "Intended Audience :: End Users/Desktop",
           "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",

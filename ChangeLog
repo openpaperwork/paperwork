@@ -2,3 +2,5 @@
 * Improved search : whoosh.FuzzyTerm is now used
 * Label look has been improved
 * Menubar has been removed and replaced by an application menu
+* Label prediction : when a new document is scanned, labels are automatically
+  set on it

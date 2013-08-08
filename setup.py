@@ -44,9 +44,9 @@ Let the machine do most of the work.
 """,
       keywords="scanner ocr gui",
       url="https://github.com/jflesch/paperwork",
-      download_url="https://github.com/jflesch/paperwork/archive/testing.zip",
+      download_url="https://github.com/jflesch/paperwork/archive/unstable.tar.gz",
       classifiers=[
-          "Development Status :: 4 - Beta",
+          "Development Status :: 3 - Alpha",
           "Environment :: X11 Applications :: GTK",
           "Intended Audience :: End Users/Desktop",
           "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",

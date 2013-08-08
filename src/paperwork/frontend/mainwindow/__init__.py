@@ -1940,7 +1940,7 @@ class ActionImport(SimpleAction):
 
     def __select_file(self):
         widget_tree = load_uifile(
-            os.path.join("import", "importaction.glade"))
+            os.path.join("import", "importfileselector.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
@@ -1957,7 +1957,7 @@ class ActionImport(SimpleAction):
 
     def __select_importer(self, importers):
         widget_tree = load_uifile(
-            os.path.join("import", "importfileselector.glade"))
+            os.path.join("import", "importaction.glade"))
         combobox = widget_tree.get_object("comboboxImportAction")
         importer_list = widget_tree.get_object("liststoreImportAction")
         dialog = widget_tree.get_object("dialogImportSelect")

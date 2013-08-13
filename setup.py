@@ -16,6 +16,7 @@ PACKAGE_TOOLS = {
     'fedora': 'yum install',
     'gentoo': 'emerge',
     'ubuntu': 'apt-get install',
+    'suse': 'zypper in',
 }
 
 distribution = platform.dist()
@@ -204,6 +205,7 @@ modules = [
          'fedora': 'pygobject3',
          'gentoo': 'dev-python/pygobject',
          'ubuntu': 'python-gi',
+         'suse': 'python-gobject',
      },
     ),
 
@@ -213,6 +215,7 @@ modules = [
          'fedora': 'gtk3',
          'gentoo': 'x11-libs/gtk+',
          'ubuntu': 'gir1.2-gtk-3.0',
+         'suse': 'python-gtk',
      },
     ),
 
@@ -223,6 +226,7 @@ modules = [
          'fedora': 'glade3-libgladeui',
          'gentoo': 'dev-util/glade',
          'ubuntu': 'gir1.2-gladeui-2.0',
+         'suse': 'typelib-1_0-Gladeui-2_0',
      },
     ),
 
@@ -234,6 +238,7 @@ modules = [
          'fedora': 'poppler-glib',
          'gentoo': 'app-text/poppler',
          'ubuntu': 'gir1.2-poppler-0.18',
+         'suse': 'typelib-1_0-Poppler-0_18',
      },
     ),
 
@@ -243,6 +248,7 @@ modules = [
          'fedora': 'pycairo',
          'gentoo': 'dev-python/pycairo',
          'ubuntu': 'python-gi-cairo',
+         'suse': 'python-cairo',
      },
     ),
 ]

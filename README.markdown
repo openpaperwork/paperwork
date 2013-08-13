@@ -161,8 +161,17 @@ manner.
 The setup.py will indicate what is required and how to install it.
 
 
-## Contact
+## Archives
 
+Github can automatically provides .tar.gz and .zip files if required. However, they are not required
+to install Paperwork.
+
+* [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
+
+
+## Contact/Help
+
+* [Extra documentation / Wiki](https://github.com/jflesch/paperwork/wiki)
 * [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
 * [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 

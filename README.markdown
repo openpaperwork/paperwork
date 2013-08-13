@@ -148,8 +148,9 @@ manner.
 The setup.py will indicate what is required and how to install it.
 
 
-## Contact
+## Contact/Help
 
+* [Extra documentation / Wiki](https://github.com/jflesch/paperwork/wiki)
 * [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
 * [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 

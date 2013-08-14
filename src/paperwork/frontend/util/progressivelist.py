@@ -67,12 +67,26 @@ class ProgressiveList(GObject.GObject):
     }
 
     def __init__(self, name,
-                 main_win,
+                 scheduler,
+                 default_thumbnail,
                  gui, scrollbars, model,
-                 model_nb_columns):
+                 model_nb_columns, actions=[]):
+        """
+        Arguments:
+            name --- Name of the progressive list (for verbose only)
+            scheduler --- Job scheduler to use to schedule list extension jobs
+            default_thumbnail --- default thumbnail to use until the new one is
+                                    loaded
+            gui --- list widget
+            scrollbars --- scrollpane widget
+            model -- liststore
+            actions --- actions to disabled while updating the list
+        """
         GObject.GObject.__init__(self)
         self.name = name
-        self.__main_win = main_win
+        self.scheduler = scheduler
+        self.default_thumbnail = default_thumbnail
+        self.actions = actions
         self.widget_gui = gui
 
         self.widget_scrollbars = scrollbars
@@ -104,7 +118,8 @@ class ProgressiveList(GObject.GObject):
             self.widget_gui.set_model(self.model)
 
     def display_extra(self):
-        self.__main_win.actions['open_doc'][1].enabled = False
+        for action in self.actions:
+            action.enabled = False
         try:
             selected = self.widget_gui.get_selected_items()
             if len(selected) <= 0:
@@ -131,7 +146,8 @@ class ProgressiveList(GObject.GObject):
             GLib.idle_add(self.widget_gui.scroll_to_path, last_visible,
                              False, 0.0, 0.0)
         finally:
-            self.__main_win.actions['open_doc'][1].enabled = True
+            for action in self.actions:
+                action.enabled = True
 
     def _display_up_to(self, nb_elements):
         l_model = len(self.model)
@@ -154,7 +170,7 @@ class ProgressiveList(GObject.GObject):
 
         if nb_elements < len(self.model_content):
             padding = [None] * (self.model_nb_columns - 2)
-            model_line = [_("Loading ..."), self.__main_win.default_thumbnail]
+            model_line = [_("Loading ..."), self.default_thumbnail]
             model_line += padding
             self.model.append(model_line)
 
@@ -171,9 +187,9 @@ class ProgressiveList(GObject.GObject):
         proportion = (val - lower) / (upper - lower)
 
         if proportion > self.NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN:
-            self.__main_win.schedulers['main'].cancel_all(self.job_factory)
+            self.scheduler.cancel_all(self.job_factory)
             job = self.job_factory.make()
-            self.__main_win.schedulers['main'].schedule(job)
+            self.scheduler.schedule(job)
 
     def set_model_value(self, line_idx, column_idx, value):
         self.model_content[line_idx][column_idx] = value
@@ -200,7 +216,8 @@ class ProgressiveList(GObject.GObject):
         if idx >= 0:
             # we are going to select the current page in the list
             # except we don't want to be called again because of it
-            self.__main_win.actions['open_doc'][1].enabled = False
+            for action in self.actions:
+                action.enabled = False
             try:
                 self.widget_gui.unselect_all()
 
@@ -208,7 +225,8 @@ class ProgressiveList(GObject.GObject):
                 self.widget_gui.select_path(path)
                 self.widget_gui.set_cursor(path, None, False)
             finally:
-                self.__main_win.actions['open_doc'][1].enabled = True
+                for action in self.actions:
+                    action.enabled = True
 
             # HACK(Jflesch): The Gtk documentation says that scroll_to_path()
             # should do nothing if the target cell is already visible (which

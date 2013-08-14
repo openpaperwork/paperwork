@@ -49,8 +49,6 @@ from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
-from paperwork.frontend.util.progressivelist import JobProgressiveList
-from paperwork.frontend.util.progressivelist import JobFactoryProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
 from paperwork.frontend.util.scanner import set_scanner_opt
 from paperwork.backend import docimport
@@ -2584,6 +2582,9 @@ class MainWindow(object):
 
         search_completion = Gtk.EntryCompletion()
 
+        open_doc_action = ActionOpenSelectedDocument(self)
+        open_page_action = ActionOpenPageSelected(self)
+
         self.lists = {
             'suggestions': {
                 'gui': widget_tree.get_object("entrySearch"),
@@ -2593,19 +2594,23 @@ class MainWindow(object):
             'doclist': [],
             'matches': ProgressiveList(
                 name='documents',
-                main_win=self,
+                scheduler=self.schedulers['main'],
+                default_thumbnail=self.default_thumbnail,
                 gui=widget_tree.get_object("iconviewMatch"),
                 scrollbars=widget_tree.get_object("scrolledwindowMatch"),
                 model=widget_tree.get_object("liststoreMatch"),
                 model_nb_columns=4,
+                actions=[open_doc_action],
             ),
             'pages': ProgressiveList(
                 name='pages',
-                main_win=self,
+                scheduler=self.schedulers['main'],
+                default_thumbnail=self.default_thumbnail,
                 gui=widget_tree.get_object("iconviewPage"),
                 scrollbars=widget_tree.get_object("scrolledwindowPage"),
                 model=widget_tree.get_object("liststorePage"),
                 model_nb_columns=3,
+                actions=[open_page_action],
             ),
             'labels': {
                 'gui': widget_tree.get_object("treeviewLabel"),
@@ -2620,6 +2625,7 @@ class MainWindow(object):
         self.lists['matches'].connect(
             'lines-shown',
             lambda x, docs: GLib.idle_add(self.__on_doc_lines_shown, docs))
+
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -2770,13 +2776,13 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("iconviewMatch"),
                 ],
-                ActionOpenSelectedDocument(self)
+                open_doc_action,
             ),
             'open_page': (
                 [
                     widget_tree.get_object("iconviewPage"),
                 ],
-                ActionOpenPageSelected(self)
+                open_page_action,
             ),
             'select_label': (
                 [

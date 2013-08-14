@@ -9,8 +9,8 @@ import paperwork.util as util
 def main():
     pconfig = config.PaperworkConfig()
     pconfig.read()
-    print "Opening docs (%s)" % pconfig.workdir
-    print "===================="
+    print("Opening docs (%s)" % pconfig.workdir)
+    print("====================")
     dsearch = docsearch.DocSearch(pconfig.workdir)
 
     nb_words = 0
@@ -24,9 +24,9 @@ def main():
     total_nb_unique_words = 0
     total_nb_unique_words_per_doc = 0
 
-    print ""
-    print "Analysis"
-    print "========"
+    print("")
+    print("Analysis")
+    print("========")
 
     for doc in dsearch.docs:
         sys.stdout.write(str(doc) + ": ")
@@ -58,17 +58,17 @@ def main():
 
         sys.stdout.write("\n")
 
-    print ""
-    print "Statistics"
-    print "=========="
-    print "Total number of documents: %d" % nb_docs
-    print "Total number of pages: %d" % nb_pages
-    print "Total number of words: %d" % total_word_len
-    print "Total number of unique words: %d" % total_nb_unique_words
-    print "==="
-    print "Maximum word length: %d" % max_word_len
-    print "Average word length: %f" % (float(total_word_len) / float(nb_words))
-    print ("Average number of words per page: %f"
+    print("")
+    print("Statistics")
+    print("==========")
+    print("Total number of documents: %d" % nb_docs)
+    print("Total number of pages: %d" % nb_pages)
+    print("Total number of words: %d" % total_word_len)
+    print("Total number of unique words: %d" % total_nb_unique_words)
+    print("===")
+    print("Maximum word length: %d" % max_word_len)
+    print("Average word length: %f" % (float(total_word_len) / float(nb_words)))
+    print("Average number of words per page: %f"
            % (float(nb_words) / float(nb_pages)))
     print ("Average number of words per document: %f"
            % (float(nb_words) / float(nb_docs)))

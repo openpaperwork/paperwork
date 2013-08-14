@@ -4,7 +4,7 @@ import sys
 
 import paperwork.backend.config as config
 import paperwork.backend.docsearch as docsearch
-import paperwork.util as util
+import paperwork.backend.util as util
 
 def main():
     pconfig = config.PaperworkConfig()
@@ -68,7 +68,7 @@ def main():
     print("===")
     print("Maximum word length: %d" % max_word_len)
     print("Average word length: %f" % (float(total_word_len) / float(nb_words)))
-    
+
     print ("Average number of words per page: %f"
            % (float(nb_words) / float(nb_pages)))
     print ("Average number of words per document: %f"

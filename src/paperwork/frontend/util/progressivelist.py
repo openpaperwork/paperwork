@@ -153,7 +153,7 @@ class ProgressiveList(GObject.GObject):
         l_model = len(self.model)
         if l_model > 0:
             doc = self.model[-1][2]
-            if doc is None:
+            if doc is None or doc == 0:
                 line_iter = self.model.get_iter(l_model-1)
                 self.model.remove(line_iter)
 

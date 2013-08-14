@@ -68,7 +68,8 @@ def main():
     print("===")
     print("Maximum word length: %d" % max_word_len)
     print("Average word length: %f" % (float(total_word_len) / float(nb_words)))
-    print("Average number of words per page: %f"
+    
+    print ("Average number of words per page: %f"
            % (float(nb_words) / float(nb_pages)))
     print ("Average number of words per document: %f"
            % (float(nb_words) / float(nb_docs)))

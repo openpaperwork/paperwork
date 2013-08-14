@@ -18,6 +18,7 @@ import os
 
 import gettext
 import logging
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -137,7 +138,7 @@ class JobFactoryDocScan(JobFactory):
     def make_head(self):
         job = JobSignalEmitter(self, next(self.id_generator))
         job.connect('signal', 
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__multiscan_win.on_global_scan_start_cb))
         return job
 
@@ -147,29 +148,29 @@ class JobFactoryDocScan(JobFactory):
                          doc, scan_src)
         job.connect("scan-start",
                     lambda job, page, total:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__multiscan_win.on_scan_start_cb, job, page,
                         total))
         job.connect("ocr-start",
                     lambda job, page, total:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__multiscan_win.on_ocr_start_cb, job, page,
                         total))
         job.connect("scan-done",
                     lambda job, page, total:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__multiscan_win.on_scan_done_cb, job, page,
                         total))
         job.connect("scan-error",
                     lambda job, exc:
-                    GObject.idle_add(self.__multiscan_win.on_scan_error_cb,
+                    GLib.idle_add(self.__multiscan_win.on_scan_error_cb,
                                      exc))
         return job
 
     def make_tail(self):
         job = JobSignalEmitter(self, next(self.id_generator))
         job.connect('signal', 
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__multiscan_win.on_global_scan_end_cb))
         return job
 
@@ -290,7 +291,7 @@ class ActionScan(SimpleAction):
                 scanner = self.__config.get_scanner_inst()
             except Exception:
                 logger.error("No scanner found !")
-                GObject.idle_add(popup_no_scanner_found,
+                GLib.idle_add(popup_no_scanner_found,
                                  self.__multiscan_win.dialog)
                 raise
 
@@ -304,7 +305,7 @@ class ActionScan(SimpleAction):
                 scan_src = scanner.scan(multiple=True)
             except Exception:
                 logger.error("No scanner found !")
-                GObject.idle_add(popup_no_scanner_found,
+                GLib.idle_add(popup_no_scanner_found,
                                  self.__multiscan_win.dialog)
                 raise
 

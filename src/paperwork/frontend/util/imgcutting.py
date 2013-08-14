@@ -17,6 +17,7 @@
 import PIL.ImageDraw
 
 from gi.repository import Gdk
+from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.frontend.util.img import image2pixbuf
@@ -124,7 +125,7 @@ class ImgGripHandler(GObject.GObject):
 
         img_widget.connect("size-allocate",
                            lambda widget, size:
-                           GObject.idle_add(self.__on_size_allocate_cb,
+                           GLib.idle_add(self.__on_size_allocate_cb,
                                             widget, size))
         self.__last_cursor_pos = None  # relative to the image size
 
@@ -200,7 +201,7 @@ class ImgGripHandler(GObject.GObject):
             # switch image
             img = self.imgs.pop()
             self.imgs.insert(0, img)
-        GObject.idle_add(self.redraw)
+        GLib.idle_add(self.redraw)
         self.emit('grip-moved')
 
     def __on_size_allocate_cb(self, viewport, new_size):

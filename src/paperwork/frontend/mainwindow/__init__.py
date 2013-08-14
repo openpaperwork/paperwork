@@ -163,14 +163,14 @@ class JobFactoryIndexLoader(JobFactory):
     def make(self):
         job = JobIndexLoader(self, next(self.id_generator), self.__config)
         job.connect('index-loading-start',
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__main_window.on_index_loading_start_cb, job))
         job.connect('index-loading-progression',
                     lambda job, progression, txt:
-                    GObject.idle_add(self.__main_window.set_progression,
+                    GLib.idle_add(self.__main_window.set_progression,
                                      job, progression, txt))
         job.connect('index-loading-end',
-                    lambda loader, docsearch: GObject.idle_add(
+                    lambda loader, docsearch: GLib.idle_add(
                         self.__main_window.on_index_loading_end_cb, loader,
                         docsearch))
         return job
@@ -271,15 +271,15 @@ class JobFactoryDocExaminer(JobFactory):
                              self.__config, docsearch)
         job.connect(
             'doc-examination-start',
-            lambda job: GObject.idle_add(
+            lambda job: GLib.idle_add(
                 self.__main_win.on_doc_examination_start_cb, job))
         job.connect(
             'doc-examination-progression',
-            lambda job, progression, txt: GObject.idle_add(
+            lambda job, progression, txt: GLib.idle_add(
                 self.__main_win.set_progression, job, progression, txt))
         job.connect(
             'doc-examination-end',
-            lambda job: GObject.idle_add(
+            lambda job: GLib.idle_add(
                 self.__main_win.on_doc_examination_end_cb, job))
         return job
 
@@ -330,7 +330,7 @@ class JobIndexUpdater(Job):
         # progress bar may not be updated at all until the index
         # update is finished
         self.__condition.acquire()
-        GObject.idle_add(self.__wakeup)
+        GLib.idle_add(self.__wakeup)
         self.__condition.wait()
         self.__condition.release()
 
@@ -396,7 +396,7 @@ class JobIndexUpdater(Job):
         if not will_resume:
             self.connect('index-update-interrupted',
                          lambda job:
-                         GObject.idle_add(self.index_updater.cancel))
+                         GLib.idle_add(self.index_updater.cancel))
 
 
 GObject.type_register(JobIndexUpdater)
@@ -414,19 +414,19 @@ class JobFactoryIndexUpdater(JobFactory):
                               docsearch, new_docs, upd_docs, del_docs, optimize)
         job.connect('index-update-start',
                     lambda updater:
-                    GObject.idle_add(self.__main_win.on_index_update_start_cb,
+                    GLib.idle_add(self.__main_win.on_index_update_start_cb,
                                      updater))
         job.connect('index-update-progression',
                     lambda updater, progression, txt:
-                    GObject.idle_add(self.__main_win.set_progression, updater,
+                    GLib.idle_add(self.__main_win.set_progression, updater,
                                      progression, txt))
         job.connect('index-update-write',
                     lambda updater:
-                    GObject.idle_add(self.__main_win.on_index_update_write_cb,
+                    GLib.idle_add(self.__main_win.on_index_update_write_cb,
                                      updater))
         job.connect('index-update-end',
                     lambda updater:
-                    GObject.idle_add(self.__main_win.on_index_update_end_cb,
+                    GLib.idle_add(self.__main_win.on_index_update_end_cb,
                                      updater))
         return job
 
@@ -505,11 +505,11 @@ class JobFactoryDocSearcher(JobFactory):
                              docsearch, sort_func, search_sentence)
         job.connect('search-result',
             lambda searcher, documents:
-            GObject.idle_add(self.__main_win.on_search_result_cb,
+            GLib.idle_add(self.__main_win.on_search_result_cb,
                              documents))
         job.connect('search-suggestions',
             lambda searcher, suggestions:
-            GObject.idle_add(self.__main_win.on_search_suggestions_cb,
+            GLib.idle_add(self.__main_win.on_search_suggestions_cb,
                              suggestions))
         return job
 
@@ -563,7 +563,7 @@ class JobFactoryLabelPredictor(JobFactory):
                                 self.__main_win.docsearch, doc)
         job.connect('predicted-labels',
             lambda predictor, labels:
-            GObject.idle_add(self.__main_win.on_label_prediction_cb, labels))
+            GLib.idle_add(self.__main_win.on_label_prediction_cb, labels))
         return job
 
 
@@ -650,15 +650,15 @@ class JobFactoryPageThumbnailer(JobFactory):
         job = JobPageThumbnailer(self, next(self.id_generator), doc, search)
         job.connect('page-thumbnailing-start',
                     lambda thumbnailer:
-                    GObject.idle_add(self.__main_win.on_page_thumbnailing_start_cb,
+                    GLib.idle_add(self.__main_win.on_page_thumbnailing_start_cb,
                                      thumbnailer))
         job.connect('page-thumbnailing-page-done',
                     lambda thumbnailer, page_idx, thumbnail:
-                    GObject.idle_add(self.__main_win.on_page_thumbnailing_page_done_cb,
+                    GLib.idle_add(self.__main_win.on_page_thumbnailing_page_done_cb,
                                      thumbnailer, page_idx, thumbnail))
         job.connect('page-thumbnailing-end',
                     lambda thumbnailer:
-                    GObject.idle_add(self.__main_win.on_page_thumbnailing_end_cb,
+                    GLib.idle_add(self.__main_win.on_page_thumbnailing_end_cb,
                                      thumbnailer))
         return job
 
@@ -764,18 +764,18 @@ class JobFactoryDocThumbnailer(JobFactory):
         job.connect(
             'doc-thumbnailing-start',
             lambda thumbnailer:
-            GObject.idle_add(self.__main_win.on_doc_thumbnailing_start_cb,
+            GLib.idle_add(self.__main_win.on_doc_thumbnailing_start_cb,
                              thumbnailer))
         job.connect(
             'doc-thumbnailing-doc-done',
             lambda thumbnailer, doc_idx, thumbnail, doc_nb, total_docs:
-            GObject.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
+            GLib.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
                              thumbnailer, doc_idx, thumbnail, doc_nb,
                              total_docs))
         job.connect(
             'doc-thumbnailing-end',
             lambda thumbnailer:
-            GObject.idle_add(self.__main_win.on_doc_thumbnailing_end_cb,
+            GLib.idle_add(self.__main_win.on_doc_thumbnailing_end_cb,
                              thumbnailer))
         return job
 
@@ -889,24 +889,24 @@ class JobFactoryImgBuilder(JobFactory):
                             warn_user)
         job.connect('img-building-start',
                     lambda builder, warn_user:
-                    GObject.idle_add(self.__main_win.on_img_building_start,
+                    GLib.idle_add(self.__main_win.on_img_building_start,
                                      warn_user))
         job.connect('img-building-canceled',
                     lambda builder, warned_user:
-                    GObject.idle_add(self.__main_win.on_img_building_canceled,
+                    GLib.idle_add(self.__main_win.on_img_building_canceled,
                                      warned_user))
         job.connect('img-building-result-pixbuf',
                     lambda builder, warned_user, factor, original_width, img, boxes:
-                    GObject.idle_add(self.__main_win.on_img_building_result_pixbuf,
+                    GLib.idle_add(self.__main_win.on_img_building_result_pixbuf,
                                      builder, warn_user,
                                      factor, original_width, img, boxes))
         job.connect('img-building-result-stock',
                     lambda builder, warned_user, img:
-                    GObject.idle_add(self.__main_win.on_img_building_result_stock,
+                    GLib.idle_add(self.__main_win.on_img_building_result_stock,
                                      warn_user, img))
         job.connect('img-building-result-clear',
                     lambda builder, warned_user:
-                    GObject.idle_add(self.__main_win.on_img_building_result_clear,
+                    GLib.idle_add(self.__main_win.on_img_building_result_clear,
                                      warned_user))
         return job
 
@@ -956,7 +956,7 @@ class JobFactoryBoxesRefresher(JobFactory):
         job = JobBoxesRefresher(self, next(self.id_generator), page, search)
         job.connect('highlighted-boxes',
                     lambda job, boxes:
-                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                    GLib.idle_add(self.__main_win.on_highlighted_boxes,
                                      boxes))
         return job
 
@@ -1029,7 +1029,7 @@ class JobFactoryBoxesSelecter(JobFactory):
                                boxes, mouse_position, get_box_pos_func)
         job.connect('selected-boxes',
                     lambda job, boxes:
-                    GObject.idle_add(self.__main_win.on_selected_boxes,
+                    GLib.idle_add(self.__main_win.on_selected_boxes,
                                      boxes))
         return job
 
@@ -1043,7 +1043,7 @@ class JobFactoryBoxesRefresher(JobFactory):
         job = JobBoxesRefresher(self, next(self.id_generator), page, search)
         job.connect('highlighted-boxes',
                     lambda job, boxes:
-                    GObject.idle_add(self.__main_win.on_highlighted_boxes,
+                    GLib.idle_add(self.__main_win.on_highlighted_boxes,
                                      boxes))
         return job
 
@@ -1092,17 +1092,17 @@ class JobFactoryLabelUpdater(JobFactory):
                               old_label, new_label)
         job.connect('label-updating-start',
                     lambda updater:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_label_updating_start_cb,
                         updater))
         job.connect('label-updating-doc-updated',
                     lambda updater, progression, doc_name:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_label_updating_doc_updated_cb,
                         updater, progression, doc_name))
         job.connect('label-updating-end',
                     lambda updater:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_label_updating_end_cb,
                         updater))
         return job
@@ -1149,16 +1149,16 @@ class JobFactoryLabelDeleter(JobFactory):
         job = JobLabelDeleter(self, next(self.id_generator), docsearch, label)
         job.connect('label-deletion-start',
                     lambda deleter:
-                    GObject.idle_add(self.__main_win.on_label_updating_start_cb,
+                    GLib.idle_add(self.__main_win.on_label_updating_start_cb,
                                      deleter))
         job.connect('label-deletion-doc-updated',
                     lambda deleter, progression, doc_name:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_label_deletion_doc_updated_cb,
                         deleter, progression, doc_name))
         job.connect('label-deletion-end',
                     lambda deleter:
-                    GObject.idle_add(self.__main_win.on_label_updating_end_cb,
+                    GLib.idle_add(self.__main_win.on_label_updating_end_cb,
                                      deleter))
         return job
 
@@ -1211,16 +1211,16 @@ class JobFactoryOCRRedoer(JobFactory):
                            target)
         job.connect('redo-ocr-start',
                     lambda ocr_redoer:
-                    GObject.idle_add(self.__main_win.on_redo_ocr_start_cb,
+                    GLib.idle_add(self.__main_win.on_redo_ocr_start_cb,
                                      ocr_redoer))
         job.connect('redo-ocr-doc-updated',
                     lambda ocr_redoer, progression, doc_name:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_redo_ocr_doc_updated_cb,
                         ocr_redoer, progression, doc_name))
         job.connect('redo-ocr-end',
                     lambda ocr_redoer:
-                    GObject.idle_add(self.__main_win.on_redo_ocr_end_cb,
+                    GLib.idle_add(self.__main_win.on_redo_ocr_end_cb,
                                      ocr_redoer))
         return job
 
@@ -1307,22 +1307,22 @@ class JobFactorySingleScan(JobFactory):
                             docsearch, target_doc)
         job.connect('single-scan-start',
                     lambda job:
-                    GObject.idle_add(self.__main_win.on_single_scan_start,
+                    GLib.idle_add(self.__main_win.on_single_scan_start,
                                      job))
         job.connect('single-scan-ocr',
                     lambda job:
-                    GObject.idle_add(self.__main_win.on_single_scan_ocr,
+                    GLib.idle_add(self.__main_win.on_single_scan_ocr,
                                      job))
         job.connect('single-scan-done',
                     lambda job, page:
-                    GObject.idle_add(self.__main_win.on_single_scan_done,
+                    GLib.idle_add(self.__main_win.on_single_scan_done,
                                      job, page))
         job.connect('single-scan-no-scanner-found',
                     lambda job:
-                    GObject.idle_add(popup_no_scanner_found, self.__main_win))
+                    GLib.idle_add(popup_no_scanner_found, self.__main_win))
         job.connect('single-scan-error',
                     lambda job, error:
-                    GObject.idle_add(self.__main_win.on_single_scan_error,
+                    GLib.idle_add(self.__main_win.on_single_scan_error,
                                      job, error))
         return job
 
@@ -1370,10 +1370,10 @@ class JobFactoryImporter(JobFactory):
                           importer, file_uri)
         job.connect('import-start',
                     lambda job:
-                    GObject.idle_add(self.__main_win.on_import_start, job))
+                    GLib.idle_add(self.__main_win.on_import_start, job))
         job.connect('import-done',
                     lambda job, doc, page:
-                    GObject.idle_add(self.__main_win.on_import_done, job, doc, page))
+                    GLib.idle_add(self.__main_win.on_import_done, job, doc, page))
         return job
 
 
@@ -1430,10 +1430,10 @@ class JobFactoryExportPreviewer(JobFactory):
         job = JobExportPreviewer(self, next(self.id_generator), exporter)
         job.connect('export-preview-start',
                     lambda job:
-                    GObject.idle_add(self.__main_win.on_export_preview_start))
+                    GLib.idle_add(self.__main_win.on_export_preview_start))
         job.connect('export-preview-done',
                     lambda job, size, pixbuf:
-                    GObject.idle_add(self.__main_win.on_export_preview_done,
+                    GLib.idle_add(self.__main_win.on_export_preview_done,
                                      size, pixbuf))
         return job
 
@@ -1493,21 +1493,21 @@ class JobFactoryPageEditor(JobFactory):
                             self.__config.langs, page, changes)
         job.connect('page-editing-img-edit',
                     lambda job, page:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_page_editing_img_edit_start_cb,
                         job, page))
         job.connect('page-editing-ocr',
                     lambda job, page:
-                    GObject.idle_add(self.__main_win.on_page_editing_ocr_cb,
+                    GLib.idle_add(self.__main_win.on_page_editing_ocr_cb,
                                      job, page))
         job.connect('page-editing-index-upd',
                     lambda job, page:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__main_win.on_page_editing_index_upd_cb,
                         job, page))
         job.connect('page-editing-done',
                     lambda job, page:
-                    GObject.idle_add(self.__main_win.on_page_editing_done_cb,
+                    GLib.idle_add(self.__main_win.on_page_editing_done_cb,
                                      job, page))
         return job
 
@@ -1924,7 +1924,7 @@ class ActionMultiScan(SimpleAction):
         ms = MultiscanDialog(self.__main_win, self.__config)
         ms.connect("need-show-page",
                    lambda ms_dialog, page:
-                   GObject.idle_add(self.__show_page, page))
+                   GLib.idle_add(self.__show_page, page))
 
     def __show_page(self, page):
         self.__main_win.refresh_doc_list()
@@ -2456,7 +2456,7 @@ class ActionRefreshIndex(SimpleAction):
         if docsearch is None:
             return
         job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
-        job.connect('doc-examination-end', lambda job: GObject.idle_add(
+        job.connect('doc-examination-end', lambda job: GLib.idle_add(
             self.__on_doc_exam_end, job))
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -2619,7 +2619,7 @@ class MainWindow(object):
 
         self.lists['matches'].connect(
             'lines-shown',
-            lambda x, docs: GObject.idle_add(self.__on_doc_lines_shown, docs))
+            lambda x, docs: GLib.idle_add(self.__on_doc_lines_shown, docs))
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -3879,9 +3879,9 @@ class MainWindow(object):
         obj.change_index(target_idx)
 
         drag_context.finish(True, False, time)
-        GObject.idle_add(self.refresh_page_list)
+        GLib.idle_add(self.refresh_page_list)
         doc = obj.doc
-        GObject.idle_add(self.refresh_docs, {doc})
+        GLib.idle_add(self.refresh_docs, {doc})
 
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):
@@ -3927,7 +3927,7 @@ class MainWindow(object):
             upd_docs = {obj.doc, target_doc}
 
         drag_context.finish(True, False, time)
-        GObject.idle_add(self.refresh_page_list)
+        GLib.idle_add(self.refresh_page_list)
 
         # the index update will start a doc list refresh when finished
         job = self.job_factories['index_updater'].make(

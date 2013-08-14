@@ -20,6 +20,7 @@ import PIL.Image
 import gettext
 import logging
 
+from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.frontend.util import load_uifile
@@ -125,19 +126,19 @@ class PageEditingDialog(object):
 
         self.__original_img_widgets['viewport'].connect(
             "size-allocate",
-            lambda widget, size: GObject.idle_add(self.__on_size_allocated_cb))
+            lambda widget, size: GLib.idle_add(self.__on_size_allocated_cb))
         self.__buttons['cutting'].connect(
             "toggled",
-            lambda widget: GObject.idle_add(
+            lambda widget: GLib.idle_add(
                 self.__on_cutting_button_toggled_cb))
         self.__buttons['rotate']['clockwise'][0].connect(
             "clicked",
             lambda widget:
-            GObject.idle_add(self.__on_rotate_activated_cb, widget))
+            GLib.idle_add(self.__on_rotate_activated_cb, widget))
         self.__buttons['rotate']['counter_clockwise'][0].connect(
             "clicked",
             lambda widget:
-            GObject.idle_add(self.__on_rotate_activated_cb, widget))
+            GLib.idle_add(self.__on_rotate_activated_cb, widget))
 
         self.page = page
         self.imgs = {

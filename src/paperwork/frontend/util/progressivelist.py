@@ -1,6 +1,7 @@
 import logging
 
 import gettext
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
@@ -24,7 +25,7 @@ class JobProgressiveList(Job):
         self._wait(0.5)
         if not self.can_run:
             return
-        GObject.idle_add(self.__progressive_list.display_extra)
+        GLib.idle_add(self.__progressive_list.display_extra)
 
     def stop(self, will_resume=True):
         self.can_run = False
@@ -85,7 +86,7 @@ class ProgressiveList(GObject.GObject):
 
         self._vadjustment.connect(
             "value-changed",
-            lambda widget: GObject.idle_add(self.__on_scrollbar_moved))
+            lambda widget: GLib.idle_add(self.__on_scrollbar_moved))
 
         self.job_factory = JobFactoryProgressiveList(self)
 
@@ -127,7 +128,7 @@ class ProgressiveList(GObject.GObject):
                 self.widget_gui.select_path(path)
                 self.widget_gui.set_cursor(path, None, False)
 
-            GObject.idle_add(self.widget_gui.scroll_to_path, last_visible,
+            GLib.idle_add(self.widget_gui.scroll_to_path, last_visible,
                              False, 0.0, 0.0)
         finally:
             self.__main_win.actions['open_doc'][1].enabled = True
@@ -217,7 +218,7 @@ class ProgressiveList(GObject.GObject):
             # not visible and move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything
             # has been displayed
-            GObject.idle_add(self.widget_gui.scroll_to_path,
+            GLib.idle_add(self.widget_gui.scroll_to_path,
                              path, False, 0.0, 0.0)
         else:
             self.unselect()
@@ -225,7 +226,7 @@ class ProgressiveList(GObject.GObject):
     def unselect(self):
         self.widget_gui.unselect_all()
         path = Gtk.TreePath(0)
-        GObject.idle_add(self.widget_gui.scroll_to_path,
+        GLib.idle_add(self.widget_gui.scroll_to_path,
                          path, False, 0.0, 0.0)
 
     def __getitem__(self, item):

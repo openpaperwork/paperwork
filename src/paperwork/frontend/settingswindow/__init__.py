@@ -22,6 +22,7 @@ import sys
 import time
 
 import gettext
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -105,15 +106,15 @@ class JobFactoryDeviceFinder(JobFactory):
         job = JobDeviceFinder(self, next(self.id_generator),
                               self.__selected_devid)
         job.connect('device-finding-start',
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__settings_win.on_device_finding_start_cb))
         job.connect('device-found',
                     lambda job, user_name, store_name, active:
-                    GObject.idle_add(self.__settings_win.on_value_found_cb,
+                    GLib.idle_add(self.__settings_win.on_value_found_cb,
                                      self.__settings_win.device_settings['devid'],
                                      user_name, store_name, active))
         job.connect('device-finding-end',
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_end_cb,
                         self.__settings_win.device_settings['devid']))
         return job
@@ -197,17 +198,17 @@ class JobFactoryResolutionFinder(JobFactory):
                                   self.__selected_resolution,
                                   self.__recommended_resolution, devid)
         job.connect('resolution-finding-start',
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_start_cb,
                         self.__settings_win.device_settings['resolution']))
         job.connect('resolution-found',
                     lambda job, user_name, store_name, active:
-                    GObject.idle_add(
+                    GLib.idle_add(
                         self.__settings_win.on_value_found_cb,
                         self.__settings_win.device_settings['resolution'],
                         user_name, store_name, active))
         job.connect('resolution-finding-end',
-                    lambda job: GObject.idle_add(
+                    lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_end_cb,
                         self.__settings_win.device_settings['resolution']))
         return job
@@ -330,14 +331,14 @@ class JobFactoryCalibrationScan(JobFactory):
                                  self.__target_viewport, devid)
         job.connect('calibration-scan-start',
                     lambda job:
-                    GObject.idle_add(self.__settings_win.on_scan_start))
+                    GLib.idle_add(self.__settings_win.on_scan_start))
         job.connect('calibration-scan-done',
                     lambda job, img, resolution:
-                    GObject.idle_add(self.__settings_win.on_scan_done, img,
+                    GLib.idle_add(self.__settings_win.on_scan_done, img,
                                      resolution))
         job.connect('calibration-resize-done',
                     lambda job, factor, img:
-                    GObject.idle_add(self.__settings_win.on_resize_done,
+                    GLib.idle_add(self.__settings_win.on_resize_done,
                                      factor, img))
         return job
 

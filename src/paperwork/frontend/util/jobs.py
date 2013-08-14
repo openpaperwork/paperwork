@@ -7,6 +7,7 @@ import threading
 import traceback
 import time
 
+from gi.repository import GLib
 from gi.repository import GObject
 
 """
@@ -341,7 +342,7 @@ class JobProgressUpdater(Job):
             val /= self.NB_UPDATES
             val += self.value_min
 
-            GObject.idle_add(self.progressbar.set_fraction, val)
+            GLib.idle_add(self.progressbar.set_fraction, val)
             self._wait(self.total_time / self.NB_UPDATES, force=True)
 
     def stop(self, will_resume=False):

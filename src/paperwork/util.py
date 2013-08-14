@@ -314,13 +314,13 @@ def check_spelling(spelling_lang, txt):
                 score += 100
                 continue
             suggestions = words_dict.suggest(word)
-            if (len(suggestions) <= 0):
+            if len(suggestions) <= 0:
                 # this word is useless. It may even indicates a bad orientation
                 score -= 10
                 continue
             main_suggestion = suggestions[0]
             lv_dist = nltk.metrics.distance.edit_distance(word, main_suggestion)
-            if (lv_dist > _MAX_LEVENSHTEIN_DISTANCE):
+            if lv_dist > _MAX_LEVENSHTEIN_DISTANCE:
                 # hm, this word looks like it's in a bad shape
                 continue
 

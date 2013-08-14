@@ -16,6 +16,7 @@ def main():
     nb_words = 0
     nb_docs = (len(dsearch.docs))
     nb_pages = 0
+    max_pages = 0
 
     total_word_len = 0
     max_word_len = 0
@@ -33,6 +34,9 @@ def main():
         sys.stdout.flush()
 
         doc_words = set()
+
+        if doc.nb_pages > max_pages:
+            max_pages = doc.nb_pages
 
         for page in doc.pages:
             sys.stdout.write("%d " % (page.page_nb + 1))
@@ -66,6 +70,7 @@ def main():
     print("Total number of words: %d" % total_word_len)
     print("Total number of unique words: %d" % total_nb_unique_words)
     print("===")
+    print("Maximum number of pages in one document: %d" % max_pages)
     print("Maximum word length: %d" % max_word_len)
     print("Average word length: %f" % (float(total_word_len) / float(nb_words)))
     

@@ -72,6 +72,7 @@ distribution doesn't already have a package for it.
 
 If you're installing Paperwork yourself, you will probably need to install first some build dependencies:
 
+* python-pip
 * python-setuptools (required by the setup.py script of Paperwork)
 * python-dev (required to build some dependencies)
 * libjpeg-dev (Pillow: JPEG support)

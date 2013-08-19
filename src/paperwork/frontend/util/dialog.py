@@ -20,7 +20,7 @@ def popup_no_scanner_found(parent):
     msg = _("No scanner found (is your scanner turned on ?)")
     dialog = Gtk.MessageDialog(parent=parent,
                                flags=Gtk.DialogFlags.MODAL,
-                               type=Gtk.MessageType.WARNING,
+                               message_type=Gtk.MessageType.WARNING,
                                buttons=Gtk.ButtonsType.OK,
                                message_format=msg)
     dialog.run()

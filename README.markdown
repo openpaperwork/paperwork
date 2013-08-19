@@ -82,6 +82,7 @@ If you're installing Paperwork yourself, you will probably need to install first
 * liblapack-dev (required to build scipy)
 * gcc-gfortran (required to build scipy)
 * g++ (required to build scikit-learn)
+* cython (required to build scikit-image)
 
 
 ### Runtime dependencies

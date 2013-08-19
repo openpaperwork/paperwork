@@ -1232,7 +1232,7 @@ class JobSingleScan(Job):
         'single-scan-no-scanner-found': (GObject.SignalFlags.RUN_LAST, None,
                                          ()),
         'single-scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                              (GObject.TYPE_STRING,)),
+                              (GObject.TYPE_PYOBJECT,)),
     }
 
     can_stop = False
@@ -1254,24 +1254,27 @@ class JobSingleScan(Job):
     def do(self):
         self.emit('single-scan-start')
 
+        self.__ocr_running = False
         try:
-            self.__ocr_running = False
+            scanner = self.__config.get_scanner_inst()
             try:
-                scanner = self.__config.get_scanner_inst()
-                try:
-                    # any source is actually fine. we just have a clearly defined
-                    # preferred order
-                    set_scanner_opt('source', scanner.options['source'],
-                                    ["Auto", "FlatBed",
-                                     ".*ADF.*", ".*Feeder.*"])
-                except (KeyError, pyinsane.SaneException), exc:
-                    logger.error("Warning: Unable to set scanner source: "
-                                 "%s" % exc)
-                scan_src = scanner.scan(multiple=False)
-            except pyinsane.SaneException, exc:
-                logger.error("No scanner found !")
-                self.emit('single-scan-no-scanner-found')
-                raise
+                # any source is actually fine. we just have a clearly defined
+                # preferred order
+                set_scanner_opt('source', scanner.options['source'],
+                                ["Auto", "FlatBed",
+                                 ".*ADF.*", ".*Feeder.*"])
+            except (KeyError, pyinsane.SaneException), exc:
+                logger.error("Warning: Unable to set scanner source: "
+                             "%s" % exc)
+            scan_src = scanner.scan(multiple=False)
+        except pyinsane.SaneException, exc:
+            logger.error("No scanner found !")
+            self.emit('single-scan-no-scanner-found')
+            raise
+        except Exception, exc:
+            self.emit('single-scan-error', exc)
+            raise
+        try:
             try:
                 resolution = scanner.options['resolution'].value
             except pyinsane.SaneException, exc:
@@ -1287,7 +1290,7 @@ class JobSingleScan(Job):
             self.__docsearch.index_page(page)
             self.emit('single-scan-done', page)
         except Exception, exc:
-            self.emit('single-scan-error', str(exc))
+            self.emit('single-scan-error', exc)
             raise
 
 
@@ -1322,7 +1325,7 @@ class JobFactorySingleScan(JobFactory):
         job.connect('single-scan-error',
                     lambda job, error:
                     GLib.idle_add(self.__main_win.on_single_scan_error,
-                                     job, error))
+                                  job, error))
         return job
 
 
@@ -3565,13 +3568,17 @@ class MainWindow(object):
         must_rethumbnail = set()
 
         for doc in set(docs):
-            if doc.is_new:  # ASSUMPTION: was actually deleted
-                doc_list = self.lists['doclist']
-                idx = doc_list.index(doc)
-                logger.info("Doc list refresh: %d:%s deleted"
-                            % (idx, doc.docid))
-                self.__remove_doc(idx)
-                docs.remove(doc)
+            try:
+                if doc.is_new:  # ASSUMPTION: was actually deleted
+                    doc_list = self.lists['doclist']
+                    idx = doc_list.index(doc)
+                    logger.info("Doc list refresh: %d:%s deleted"
+                                % (idx, doc.docid))
+                    self.__remove_doc(idx)
+                    docs.remove(doc)
+            except ValueError as exc:
+                logger.warning("Unable to find doc [%s] in the list" % str(doc))
+
 
         if self.__pop_new_doc():
             logger.info("Doc list refresh: 'new doc' popped out of the list")

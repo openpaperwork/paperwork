@@ -146,6 +146,9 @@ class BasicPage(object):
         img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
         return img
 
+    def _get_thumb_path(self):
+        return self._get_filepath(self.EXT_THUMB)
+
     def get_thumbnail(self, width):
         """
         thumbnail with a memory cache
@@ -156,14 +159,14 @@ class BasicPage(object):
         # get from the file
         try:
             if os.path.getmtime(self.get_doc_file_path()) < \
-               os.path.getmtime(self._get_filepath(self.EXT_THUMB)):
-                thumbnail = PIL.Image.open(self._get_filepath(self.EXT_THUMB))
+               os.path.getmtime(self._get_thumb_path()):
+                thumbnail = PIL.Image.open(self._get_thumb_path())
             else:
                 thumbnail = self.__make_thumbnail(width)
-                thumbnail.save(self._get_filepath(self.EXT_THUMB))
+                thumbnail.save(self._get_thumb_path())
         except:
             thumbnail = self.__make_thumbnail(width)
-            thumbnail.save(self._get_filepath(self.EXT_THUMB))
+            thumbnail.save(self._get_thumb_path())
 
         self.__thumbnail_cache = (thumbnail, width)
         return thumbnail

@@ -1270,7 +1270,7 @@ class JobSingleScan(Job):
         except pyinsane.SaneException, exc:
             logger.error("No scanner found !")
             self.emit('single-scan-no-scanner-found')
-            raise
+            return
         except Exception, exc:
             self.emit('single-scan-error', exc)
             raise
@@ -1317,11 +1317,10 @@ class JobFactorySingleScan(JobFactory):
         job.connect('single-scan-done',
                     lambda job, page:
                     GLib.idle_add(self.__main_win.on_single_scan_done,
-                                     job, page))
+                                  job, page))
         job.connect('single-scan-no-scanner-found',
                     lambda job:
-                    GLib.idle_add(popup_no_scanner_found,
-                                  self.__main_win.window))
+                    GLib.idle_add(self.__main_win.on_no_scanner_found, job))
         job.connect('single-scan-error',
                     lambda job, error:
                     GLib.idle_add(self.__main_win.on_single_scan_error,
@@ -3360,6 +3359,7 @@ class MainWindow(object):
         set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
                          True)
 
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         self.refresh_page_list()
@@ -3377,6 +3377,16 @@ class MainWindow(object):
         dialog.run()
         dialog.destroy()
 
+    def on_no_scanner_found(self, src):
+        logger.error("No scanner found")
+        popup_no_scanner_found(self.window)
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
+        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
+                         True)
+        self.set_progression(src, 0.0, None)
+        self.set_mouse_cursor("Normal")
+        self.refresh_page_list()
+        self.refresh_docs({self.doc})
 
     def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))

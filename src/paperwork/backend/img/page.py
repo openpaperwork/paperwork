@@ -430,7 +430,7 @@ class ImgPage(BasicPage):
         src = {}
         src["box"] = self.__get_box_path()
         src["img"] = self.__get_img_path()
-        src["thumb"] = self.__get_thumb_path()
+        src["thumb"] = self._get_thumb_path()
 
         page_nb = self.page_nb
 
@@ -445,7 +445,7 @@ class ImgPage(BasicPage):
         dst = {}
         dst["box"] = self.__get_box_path()
         dst["img"] = self.__get_img_path()
-        dst["thumb"] = self.__get_thumb_path()
+        dst["thumb"] = self._get_thumb_path()
 
         for key in src.keys():
             if os.access(src[key], os.F_OK):
@@ -504,7 +504,7 @@ class ImgPage(BasicPage):
         paths = [
             self.__get_box_path(),
             self.__get_img_path(),
-            self.__get_thumb_path(),
+            self._get_thumb_path(),
         ]
         for path in paths:
             if os.access(path, os.F_OK):
@@ -527,7 +527,7 @@ class ImgPage(BasicPage):
         to_move = [
             (other_page.__get_box_path(), self.__get_box_path()),
             (other_page.__get_img_path(), self.__get_img_path()),
-            (other_page.__get_thumb_path(), self.__get_thumb_path())
+            (other_page._get_thumb_path(), self._get_thumb_path())
         ]
         for (src, dst) in to_move:
             # sanity check

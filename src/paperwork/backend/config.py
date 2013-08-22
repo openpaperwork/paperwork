@@ -24,7 +24,7 @@ import pycountry
 
 import logging
 import pyinsane.abstract_th as pyinsane
-import pyocr.pyocr
+import pyocr
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,7 @@ class PaperworkConfig(object):
         # Try to guess based on the system locale what would be
         # the best OCR language
 
-        ocr_tools = pyocr.pyocr.get_available_tools()
+        ocr_tools = pyocr.get_available_tools()
         if (len(ocr_tools) < 0):
             return self.DEFAULT_OCR_LANG
         ocr_langs = ocr_tools[0].get_available_languages()

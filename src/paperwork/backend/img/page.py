@@ -31,8 +31,8 @@ import time
 
 import logging
 from gi.repository import Gtk
+import pyocr
 import pyocr.builders
-import pyocr.pyocr
 
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.common.page import PageExporter
@@ -280,7 +280,7 @@ class ImgPage(BasicPage):
 
         callback(0, 100, self.SCAN_STEP_OCR)
 
-        ocr_tools = pyocr.pyocr.get_available_tools()
+        ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) <= 0:
             # shouldn't happen: scan buttons should be disabled
             # in that case

@@ -173,7 +173,7 @@ Let the machine do most of the work.
           "pyenchant",
           "python-Levenshtein",
           "pyinsane >= 1.1.0",
-          "pyocr",
+          "pyocr >= 0.2.1",
           "numpy",
           "scipy",
           "scikit-learn",

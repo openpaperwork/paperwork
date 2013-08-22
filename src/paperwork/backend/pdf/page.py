@@ -18,8 +18,8 @@ import cairo
 import codecs
 import os
 import logging
+import pyocr
 import pyocr.builders
-import pyocr.pyocr
 
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.util import split_words
@@ -205,7 +205,7 @@ class PdfPage(BasicPage):
         txtfile = self.__get_txt_path()
         boxfile = self.__get_box_path()
 
-        ocr_tools = pyocr.pyocr.get_available_tools()
+        ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) <= 0:
             # shouldn't happen: scan buttons should be disabled
             # in that case

@@ -29,7 +29,7 @@ from gi.repository import Gtk
 import logging
 import PIL.Image
 import pycountry
-import pyocr.pyocr as pyocr
+import pyocr
 
 import pyinsane.abstract_th as pyinsane
 

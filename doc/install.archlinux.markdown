@@ -13,7 +13,7 @@ Please do **not** report issue with packages on Paperwork's bugtracker. It is
 
 ## Manual installation
 
-See the [Fedora](install.fedora) or [Debian](install.debian) installation
+See the [Fedora](install.fedora.markdown) or [Debian](install.debian.markdown) installation
 guides for reference.
 
 Please note that there is a key difference between ArchLinux and other

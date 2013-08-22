@@ -65,10 +65,10 @@ GPLv3 or later. See COPYING.
 
 ## Installation
 
-* [GNU/Linux Debian](doc/install.debian)
-* [GNU/Linux Fedora](doc/install.fedora)
-* [GNU/Linux Archlinux](doc/install.archlinux)
-* [Development](doc/install.devel)
+* [GNU/Linux Debian](doc/install.debian.markdown)
+* [GNU/Linux Fedora](doc/install.fedora.markdown)
+* [GNU/Linux Archlinux](doc/install.archlinux.markdown)
+* [Development](doc/install.devel.markdown)
 
 ## Archives
 

@@ -63,118 +63,26 @@ contain useful keywords, Paperwork allows also to put labels on each document.
 GPLv3 or later. See COPYING.
 
 
-## Manual Installation
+## Installation
 
-If you want to install a stable version of Paperwork, please first check that your Linux
-distribution doesn't already have a package for it.
-
-### Build dependencies
-
-If you're installing Paperwork yourself, you will probably need to install first some build dependencies:
-
-* python-pip
-* python-setuptools (required by the setup.py script of Paperwork)
-* python-dev (required to build some dependencies)
-* libjpeg-dev (Pillow: JPEG support)
-* zlib-dev (Pillow: PNG support ; zlib1g-dev on Debian/Ubuntu)
-* libblas-dev (required to build scipy)
-* libatlas-dev (required to build scipy)
-* liblapack-dev (required to build scipy)
-* gcc-gfortran (required to build scipy)
-* g++ (required to build scikit-learn)
-* cython (required to build scikit-image)
-
-
-### Runtime dependencies
-
-For some reason, [setuptools doesn't work well with Numpy](http://projects.scipy.org/numpy/ticket/1841),
-so you will have to install some dependencies yourself with python-pip:
-
-	sudo pip install numpy scikit-learn
-
-
-### System-wide installation
-
-This is the most convenient way to install Paperwork manually.
-
-Note that Paperwork depends on [Pillow](https://pypi.python.org/pypi/Pillow/).
-Pillow may conflict with python-imaging (aka PIL).
-
-You will need python-pip. Python-pip is invoked with 'pip' or 'python-pip',
-depending of your GNU/Linux distribution.
-
-	$ sudo pip install "git+git://github.com/jflesch/paperwork.git#egg=paperwork"
-	# This command will install Paperwork and tell you if some extra dependencies
-	# are required. (note that the dependencies list may be drown in the
-	# output ... :/)
-	<install the extra dependencies>
-
-To (re)start paperwork:
-
-	$ paperwork
-
-A shortcut should also be available in the menus of your window manager (you
-may have to log out first).
-
-Enjoy :-)
-
-
-### Installation in a virtualenv
-
-If you intend to work on Paperwork, this is probably the most convenient way
-to install a development version of Paperwork.
-
-Virtualenv allows to run Paperwork in a specific environment, with the latest
-versions of most of its dependencies. It also make it easier to remove it (you
-just have to delete the directory containing the virtualenv). However the user
-that did the installation will be the only one able to run Paperwork. No
-shortcut will be installed in the menus of your window manager. Paperwork
-won't be available directly on your PATH.
-
-You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtualenv).
-
-	$ virtualenv --system-site-packages paperwork-virtualenv
-	$ cd paperwork-virtualenv
-	$ source bin/activate
-	# you're now in a virtualenv
-	$ git clone git://github.com/jflesch/paperwork.git
-	$ cd paperwork
-	$ python ./setup.py install
-	# This script will install Paperwork and tell you if some extra dependencies
-	# are required
-	<install the extra dependencies>
-	$ src/launcher.py
-
-To restart paperwork:
-
-	$ cd paperwork-virtualenv
-	$ source bin/activate
-	$ cd paperwork
-	$ src/launcher.py
-
-Enjoy :-)
-
-
-### Note regarding the extra dependencies
-
-Many dependencies can't be installed from Pypi or in a virtualenv. For
-instance, all the libraries accessed through GObject introspection have
-no package on Pypi. This is why they can only be installed in a system-wide
-manner.
-The setup.py will indicate what is required and how to install it.
+* [GNU/Linux Debian](doc/install.debian.markdown)
+* [GNU/Linux Fedora](doc/install.fedora.markdown)
+* [GNU/Linux Archlinux](doc/install.archlinux.markdown)
+* [Development](doc/install.devel.markdown)
 
 
 ## Archives
 
-Github can automatically provides .tar.gz and .zip files if required. However, they are not required
-to install Paperwork.
+Github can automatically provides .tar.gz and .zip files if required. However,
+they are not required to install Paperwork. They are indicated here as a
+convenience for package maintainers.
 
 * [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
 
 
 ## Contact/Help
 
-* [Extra documentation / Wiki](https://github.com/jflesch/paperwork/wiki)
+* [Extra documentation / FAQ / Tips / Wiki](https://github.com/jflesch/paperwork/wiki)
 * [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
 * [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 

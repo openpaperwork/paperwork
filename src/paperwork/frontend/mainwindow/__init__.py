@@ -846,8 +846,9 @@ class JobImgBuilder(Job):
                 return
 
             original_width = pixbuf.get_width()
+            original_height = pixbuf.get_height()
 
-            factor = self.__zoom_factor_func(original_width)
+            factor = self.__zoom_factor_func(original_width, original_height)
             logger.info("Zoom: %f" % (factor))
 
             wanted_width = int(factor * pixbuf.get_width())
@@ -3804,16 +3805,26 @@ class MainWindow(object):
     def __get_img_area_width(self):
         return self.img['viewport']['widget'].get_allocation().width
 
-    def get_zoom_factor(self, pixbuf_width=None):
+    def __get_img_area_height(self):
+        return self.img['viewport']['widget'].get_allocation().height
+
+    def get_zoom_factor(self, pixbuf_width=None, pixbuf_height=None):
         el_idx = self.lists['zoom_levels']['gui'].get_active()
         el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
         factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
-        if factor != 0.0:
+        # factor is a postive float if user defined, 0 for full width and -1 for full page
+        if factor > 0.0:
             return factor
         wanted_width = self.__get_img_area_width()
         if pixbuf_width is None:
             pixbuf_width = self.img['original_width']
-        return float(wanted_width) / pixbuf_width
+        width_factor = float(wanted_width) / pixbuf_width
+        if factor == -1.0 and pixbuf_height is not None:
+            wanted_height = self.__get_img_area_height()
+            factor = min(width_factor, float(wanted_height) / pixbuf_height)
+            return factor
+        else:
+            return width_factor
 
     def refresh_export_preview(self):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
@@ -3841,7 +3852,7 @@ class MainWindow(object):
         el_idx = self.lists['zoom_levels']['gui'].get_active()
         el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
         factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
-        if factor != 0.0:
+        if factor > 0.0:
             return
 
         self.schedulers['main'].cancel_all(self.job_factories['img_builder'])

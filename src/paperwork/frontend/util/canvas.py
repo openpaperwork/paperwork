@@ -56,7 +56,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.connect("size-allocate", self.__on_size_allocate)
         self.connect("draw", self.__on_draw)
-        self.set_size_request(2000, 2000)
+        self.set_size_request(-1, -1)
 
     def get_hadjustment(self):
         return self.hadjustment

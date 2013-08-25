@@ -3,6 +3,7 @@
 import logging
 import os
 
+import heapq
 import gettext
 from gi.repository import GLib
 from gi.repository import Gtk
@@ -70,3 +71,37 @@ def sizeof_fmt(num):
             return string % (num)
         num /= 1024.0
     return _SIZEOF_FMT_STRINGS[-1] % (num)
+
+
+class PriorityQueueIter(object):
+    def __init__(self, queue):
+        """
+        Arguments:
+            queue --- must actually be an heapq
+        """
+        self.queue = queue[:]
+
+    def __next__(self):
+        return heapq.heappop(self.queue)[2]
+
+    def __iter__(self):
+        return self
+
+
+class PriorityQueue(object):
+    def __init__(self):
+        self.__last_idx = 0
+        self.elements = []
+
+    def purge(self):
+        self.elements = []
+
+    def add(self, priority, element):
+        """
+        Elements with a higher priority are returned first
+        """
+        heapq.heappush((-1 * priority, self.__last_idx, element))
+        self.__last_idx += 1
+
+    def __iter__(self):
+        return PriorityQueueIter(self.elements)

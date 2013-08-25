@@ -46,6 +46,7 @@ from paperwork.frontend.util.dialog import ask_confirmation
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.img import add_img_border
 from paperwork.frontend.util.img import image2pixbuf
+from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
@@ -2282,11 +2283,17 @@ class MainWindow(object):
             'search': self.search_field,
         }
 
+        img_scrollbars = widget_tree.get_object("scrolledwindowPageImg")
+        img_widget = Canvas(img_scrollbars.get_hadjustment(),
+                            img_scrollbars.get_vadjustment())
+        img_widget.set_visible(True)
+        img_scrollbars.add(img_widget)
+
         self.img = {
-            "image": widget_tree.get_object("imagePageImg"),
-            "scrollbar": widget_tree.get_object("scrolledwindowPageImg"),
+            "image": img_widget,
+            "scrollbar": img_scrollbars,
             "viewport": {
-                "widget": widget_tree.get_object("viewportImg"),
+                "widget": img_widget,
                 "size": (0, 0),
             },
             "eventbox": widget_tree.get_object("eventboxImg"),
@@ -2320,7 +2327,7 @@ class MainWindow(object):
                 widget_tree.get_object("popupmenuPages")
             ),
             'page': (
-                widget_tree.get_object("eventboxImg"),
+                img_widget,
                 widget_tree.get_object("popupmenuPage")
             ),
         }

@@ -1121,26 +1121,6 @@
                     <property name="can_focus">True</property>
                     <property name="hscrollbar_policy">always</property>
                     <property name="vscrollbar_policy">always</property>
-                    <child>
-                      <object class="GtkViewport" id="viewportImg">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="resize_mode">queue</property>
-                        <child>
-                          <object class="GtkEventBox" id="eventboxImg">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <child>
-                              <object class="GtkImage" id="imagePageImg">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="stock">gtk-missing-image</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
                   </object>
                   <packing>
                     <property name="expand">True</property>

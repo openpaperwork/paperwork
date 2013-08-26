@@ -90,7 +90,9 @@ class PillowImageDrawer(Drawer):
 
     def __init__(self, position, image):
         self.size = image.size
+        print "SIZE: %d, %d" % (self.size[0], self.size[1])
         self.position = position
+        print "POSITION: %d, %d" % (self.position[0], self.position[1])
         self.surface = image2surface(image)
 
     def do_draw(self, cairo_context, offset, size):
@@ -151,8 +153,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         h.set_lower(0.0)
         h.set_upper(float(self.full_size_x))
         h.set_step_increment(10.0)
-        h.set_page_increment(100.0)
-        h.set_page_size(500)  # TODO(Jflesch)
+        h.set_page_increment(100.0)  # TODO(Jflesch)
+        h.set_page_size(0.0)
         h.connect("value-changed", self.__on_adjustment_changed)
 
     def get_vadjustment(self):
@@ -164,8 +166,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         v.set_lower(0.0)
         v.set_upper(float(self.full_size_y))
         v.set_step_increment(10.0)
-        v.set_page_increment(100.0)
-        v.set_page_size(1000)  # TODO(Jflesch)
+        v.set_page_increment(100.0)  # TODO(Jflesch)
+        v.set_page_size(0.0)
         v.connect("value-changed", self.__on_adjustment_changed)
 
     def __on_adjustment_changed(self, adjustment):
@@ -174,11 +176,14 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __on_size_allocate(self, _, size_allocate):
         self.visible_size_x = size_allocate.width
         self.visible_size_y = size_allocate.height
+        self.upd_adjustments()
         self.queue_draw()
 
     def upd_adjustments(self):
         self.hadjustment.set_upper(float(self.full_size_x))
         self.vadjustment.set_upper(float(self.full_size_y))
+        self.hadjustment.set_page_size(self.visible_size_x)
+        self.vadjustment.set_page_size(self.visible_size_y)
 
     def __on_draw(self, _, cairo_ctx):
         x = int(self.hadjustment.get_value())

@@ -81,8 +81,11 @@ class PriorityQueueIter(object):
         """
         self.queue = queue[:]
 
-    def __next__(self):
-        return heapq.heappop(self.queue)[2]
+    def next(self):
+        try:
+            return heapq.heappop(self.queue)[2]
+        except IndexError:
+            raise StopIteration()
 
     def __iter__(self):
         return self
@@ -100,7 +103,7 @@ class PriorityQueue(object):
         """
         Elements with a higher priority are returned first
         """
-        heapq.heappush((-1 * priority, self.__last_idx, element))
+        heapq.heappush(self.elements, (-1 * priority, self.__last_idx, element))
         self.__last_idx += 1
 
     def __iter__(self):

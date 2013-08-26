@@ -47,6 +47,8 @@ from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.img import add_img_border
 from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.canvas import Canvas
+from paperwork.frontend.util.canvas import BackgroundDrawer
+from paperwork.frontend.util.canvas import PillowImageDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
@@ -2288,6 +2290,14 @@ class MainWindow(object):
                             img_scrollbars.get_vadjustment())
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
+
+        test_img = PIL.Image.open(
+            "/home/jflesch/SparkleShare/papers/20110312_0000_01/paper.1.jpg")
+
+        img_widget.add_drawer(BackgroundDrawer((1.0, 0.0, 1.0)))
+
+        test_drawer = PillowImageDrawer( (100, 200), test_img )
+        img_widget.add_drawer(test_drawer)
 
         self.img = {
             "image": img_widget,

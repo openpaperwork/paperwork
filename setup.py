@@ -76,6 +76,7 @@ Let the machine do most of the work.
           'paperwork.frontend.pageeditor',
           'paperwork.frontend.settingswindow',
           'paperwork.frontend.util',
+          'paperwork.frontend.util.canvas',
           'paperwork.backend',
           'paperwork.backend.common',
           'paperwork.backend.pdf',
@@ -95,6 +96,8 @@ Let the machine do most of the work.
           'paperwork.frontend.settingswindow':
               'src/paperwork/frontend/settingswindow',
           'paperwork.frontend.util': 'src/paperwork/frontend/util',
+          'paperwork.frontend.util.canvas':
+            'src/paperwork/frontend/util/canvas',
           'paperwork.backend': 'src/paperwork/backend',
           'paperwork.backend.common': 'src/paperwork/backend/common',
           'paperwork.backend.pdf': 'src/paperwork/backend/pdf',
@@ -325,4 +328,3 @@ else:
                  " ".join(pkgs)))
         print("==============================")
     sys.exit(1)
-

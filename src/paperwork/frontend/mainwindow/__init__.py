@@ -47,8 +47,8 @@ from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.img import add_img_border
 from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.canvas import Canvas
-from paperwork.frontend.util.canvas import BackgroundDrawer
-from paperwork.frontend.util.canvas import PillowImageDrawer
+from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList

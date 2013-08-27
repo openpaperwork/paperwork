@@ -76,13 +76,18 @@ class PillowImageDrawer(Drawer):
         self.surface = image2surface(image)
 
     def do_draw(self, cairo_context, offset, size):
+        img_offset = (max(0, offset[0] - self.position[0]),
+                      max(0, offset[1] - self.position[1]))
+        target_offset = (max(0, self.position[0] - offset[0]),
+                         max(0, self.position[1] - offset[1]))
+
+        size = (min(size[0] - target_offset[0], self.size[0]),
+                min(size[1] - target_offset[1], self.size[1]))
+
         cairo_context.set_source_surface(self.surface,
-                                         -1 * (offset[0] - self.position[0]),
-                                         -1 * (offset[1] - self.position[1]))
-        cairo_context.rectangle(self.position[0] - offset[0],
-                                self.position[1] - offset[1],
-                                self.size[0],
-                                self.size[1])
-        cairo_context.translate(self.position[0], self.position[1])
+                                         (-1 * (img_offset[0])) + target_offset[0],
+                                         (-1 * (img_offset[1])) + target_offset[1])
+        cairo_context.rectangle(target_offset[0], target_offset[1],
+                                size[0], size[1])
         cairo_context.clip()
         cairo_context.paint()

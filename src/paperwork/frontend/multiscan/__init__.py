@@ -32,6 +32,7 @@ from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
+from paperwork.frontend.util.scanner import maximize_scan_area
 from paperwork.frontend.util.scanner import set_scanner_opt
 
 
@@ -301,6 +302,7 @@ class ActionScan(SimpleAction):
             except (KeyError, pyinsane.SaneException), exc:
                 logger.error("Warning: Unable to set scanner source to 'Auto': %s"
                        % exc)
+            maximize_scan_area(scanner)
             try:
                 scan_src = scanner.scan(multiple=True)
             except Exception:

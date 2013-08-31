@@ -50,6 +50,7 @@ from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
+from paperwork.frontend.util.scanner import maximize_scan_area
 from paperwork.frontend.util.scanner import set_scanner_opt
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
@@ -1267,6 +1268,7 @@ class JobSingleScan(Job):
             except (KeyError, pyinsane.SaneException), exc:
                 logger.error("Warning: Unable to set scanner source: "
                              "%s" % exc)
+            maximize_scan_area(scanner)
             scan_src = scanner.scan(multiple=False)
         except pyinsane.SaneException, exc:
             logger.error("No scanner found !")

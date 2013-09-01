@@ -178,6 +178,10 @@ class _ImgPages(object):
         nb_pages = self.doc.nb_pages
         self.__pages = [ImgPage(doc, idx) for idx in range(0, nb_pages)]
 
+    def add(self, page):
+        self.__pages.append(page)
+        self.doc.drop_cache()
+
     def __getitem__(self, idx):
         return self.__pages[idx]
 

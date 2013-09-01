@@ -127,7 +127,9 @@ class ImgPage(BasicPage):
 
     OCR_THREADS_POLLING_TIME = 0.1
 
-    def __init__(self, doc, page_nb):
+    def __init__(self, doc, page_nb=None):
+        if page_nb is None:
+            page_nb = doc.nb_pages
         BasicPage.__init__(self, doc, page_nb)
 
     def __get_filepath(self, ext):
@@ -205,7 +207,14 @@ class ImgPage(BasicPage):
                     % (self.doc.docid, exc))
             return []
 
-    boxes = property(__get_boxes)
+    def __set_boxes(self, boxes):
+        boxfile = self.__box_path
+        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
+            pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
+        self.drop_cache()
+        self.doc.drop_cache()
+
+    boxes = property(__get_boxes, __set_boxes)
 
     def __get_img(self):
         """

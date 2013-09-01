@@ -145,14 +145,15 @@ if __name__ == "__main__":
         print("  out_dir : directory in which to write the anonymized version")
         print("")
         print("Images will be replaced by dummy")
-        print("Each character will be replaced by another one")
+        print("Each character will be replaced by another one (think Caesar"
+              " cypher but slightly more complex)")
         print("")
         print("Example:")
         print("  %s ~/papers/20100730_0000_01 ~/tmp/20100730_0000_01.anonymized"
               % sys.argv[0])
         print("")
         print("Warning:")
-        print("  Statistical analysis could be used to still guess the content"
+        print("  Frequential analysis could be used to guess the content"
               " of the document. Please censor manually really confidential"
               " informations before using this script.")
         sys.exit(1)

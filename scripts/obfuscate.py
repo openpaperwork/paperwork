@@ -144,7 +144,7 @@ if __name__ == "__main__":
         print("  src_dir : document to anonymize")
         print("  out_dir : directory in which to write the anonymized version")
         print("")
-        print("Images will be replaced by dummy")
+        print("Images will be replaced by a dummy image")
         print("Each character will be replaced by another one (think Caesar"
               " cypher but slightly more complex)")
         print("")
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         print("Warning:")
         print("  Frequential analysis could be used to guess the content"
               " of the document. Please censor manually really confidential"
-              " informations before using this script.")
+              " informations in .words before using this script.")
         sys.exit(1)
     src = sys.argv[1]
     dst = sys.argv[2]

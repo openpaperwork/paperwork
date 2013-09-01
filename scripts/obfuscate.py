@@ -152,10 +152,11 @@ if __name__ == "__main__":
         print("  %s ~/papers/20100730_0000_01 ~/tmp/20100730_0000_01.anonymized"
               % sys.argv[0])
         print("")
-        print("Warning:")
-        print("  Frequential analysis could be used to guess the content"
-              " of the document. Please censor manually really confidential"
-              " informations in .words before using this script.")
+        print("WARNING:")
+        print("  The obfuscation method used is NOT SAFE.")
+        print("  Please censor manually confidential"
+              " informations in .words *before* using this script.")
+        print("  DO NOT post the result of this script publicly.")
         sys.exit(1)
     src = sys.argv[1]
     dst = sys.argv[2]

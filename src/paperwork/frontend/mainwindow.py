@@ -3384,7 +3384,7 @@ class MainWindow(object):
         self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
                                          Gtk.IconSize.DIALOG)
 
-    def on_img_building_result_stock(self, img, warned_user):
+    def on_img_building_result_stock(self, warned_user, img):
         self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
         if warned_user:
             self.set_mouse_cursor("Normal")

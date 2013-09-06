@@ -1266,12 +1266,13 @@ class JobSingleScan(Job):
                                 ["Auto", "FlatBed",
                                  ".*ADF.*", ".*Feeder.*"])
             except (KeyError, pyinsane.SaneException), exc:
-                logger.error("Warning: Unable to set scanner source: "
-                             "%s" % exc)
+                logger.warning("Warning: Unable to set scanner source: "
+                               "%s" % exc)
             maximize_scan_area(scanner)
             scan_src = scanner.scan(multiple=False)
         except pyinsane.SaneException, exc:
             logger.error("No scanner found !")
+            logger.error("Error was: %s" % str(exc))
             self.emit('single-scan-no-scanner-found')
             return
         except Exception, exc:

@@ -358,12 +358,12 @@ class ImgDoc(BasicDoc):
     def get_docfilehash(self):
         if self._get_nb_pages() == 0:
             print "WARNING: Document %s is empty" % self.docid
-            hash = ''
+            dochash = ''
         else :
-            hash = '0'
-            for page in self.__get_pages():
-                hash += format(int(hash, 16) ^ int(page.get_docfilehash(), 16),"x")
-        return hash
+            dochash = 0
+            for page in self.pages:
+                dochash ^= page.get_docfilehash()
+        return dochash
 
 def is_img_doc(docpath):
     if not os.path.isdir(docpath):

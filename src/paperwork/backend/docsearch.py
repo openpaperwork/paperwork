@@ -229,10 +229,14 @@ class DocIndexUpdater(GObject.GObject):
             self.docsearch.fit_label_estimator([doc])
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
         docid = unicode(doc.docid)
+
+        dochash = doc.get_docfilehash()
+        dochash = (u"%X" % dochash)
+
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
-            docfilehash=unicode(doc.get_docfilehash(), "utf-8"),
+            docfilehash=dochash,
             content=doc.get_index_text(),
             label=doc.get_index_labels(),
             date=doc.date,
@@ -938,6 +942,7 @@ class DocSearch(object):
         """
         Check if there is a document using this file hash
         """
+        filehash = (u"%X" % filehash)
         results = self.__searcher.search(
-               Term('docfilehash', unicode(filehash, "utf-8")))
+               Term('docfilehash', filehash))
         return results

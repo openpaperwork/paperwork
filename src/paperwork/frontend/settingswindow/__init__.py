@@ -373,6 +373,16 @@ class ActionSelectScanner(SimpleAction):
         self.__settings_win.schedulers['main'].schedule(job)
 
 
+class ActionToggleOCRState(SimpleAction):
+    def __init__(self, settings_win):
+        SimpleAction.__init__(self, "Toggle OCR state")
+        self.__settings_win = settings_win
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__settings_win.set_ocr_opts_state()
+
+
 class ActionApplySettings(SimpleAction):
     def __init__(self, settings_win, config):
         SimpleAction.__init__(self, "Apply settings")
@@ -397,6 +407,15 @@ class ActionApplySettings(SimpleAction):
         if idx >= 0:
             resolution = setting['stores']['loaded'][idx][1]
             self.__config.scanner_resolution = resolution
+
+        setting = self.__settings_win.ocr_settings['enabled']
+        enabled = setting['gui'].get_active()
+        self.__config.ocr_enabled = enabled
+
+        setting = self.__settings_win.ocr_settings['angles']
+        idx = setting['gui'].get_active()
+        nb_angles = setting['store'][idx][1]
+        self.__config.ocr_nb_angles = nb_angles
 
         setting = self.__settings_win.ocr_settings['lang']
         idx = setting['gui'].get_active()
@@ -473,6 +492,20 @@ class SettingsWindow(GObject.GObject):
 
         self.workdir_chooser = widget_tree.get_object("filechooserbutton")
 
+        self.ocr_settings = {
+            "enabled": {
+                'gui': widget_tree.get_object("checkbuttonOcrEnabled")
+            },
+            "lang": {
+                'gui': widget_tree.get_object("comboboxLang"),
+                'store': widget_tree.get_object("liststoreOcrLang"),
+            },
+            "angles": {
+                'gui': widget_tree.get_object("comboboxOcrAngles"),
+                'store': widget_tree.get_object("liststoreOcrAngles"),
+            }
+        }
+
         actions = {
             "apply": (
                 [widget_tree.get_object("buttonSettingsOk")],
@@ -481,6 +514,10 @@ class SettingsWindow(GObject.GObject):
             "cancel": (
                 [widget_tree.get_object("buttonSettingsCancel")],
                 ActionCancelSettings(self, config)
+            ),
+            "toggle_ocr": (
+                [self.ocr_settings['enabled']['gui']],
+                ActionToggleOCRState(self),
             ),
             "select_scanner": (
                 [widget_tree.get_object("comboboxDevices")],
@@ -511,13 +548,6 @@ class SettingsWindow(GObject.GObject):
                 'nb_elements': 0,
                 'active_idx': -1,
             },
-        }
-
-        self.ocr_settings = {
-            "lang": {
-                'gui': widget_tree.get_object("comboboxLang"),
-                'store': widget_tree.get_object("liststoreOcrLang"),
-            }
         }
 
         self.calibration = {
@@ -563,11 +593,8 @@ class SettingsWindow(GObject.GObject):
         for (short_lang, long_lang) in ocr_langs:
             self.ocr_settings['lang']['store'].append([long_lang, short_lang])
 
-        action_names = [
-            "apply", "cancel", "select_scanner", "scan_calibration"
-        ]
-        for action in action_names:
-            actions[action][1].connect(actions[action][0])
+        for (k, v) in actions.iteritems():
+            v[1].connect(v[0])
 
         self.window.connect("destroy", self.__on_destroy)
 
@@ -710,12 +737,33 @@ class SettingsWindow(GObject.GObject):
 
     def display_config(self, config):
         self.workdir_chooser.set_current_folder(config.workdir)
+
+        ocr_enabled = config.ocr_enabled
+        if config.ocr_lang is None:
+            ocr_enabled = False
+        self.ocr_settings['enabled']['gui'].set_active(ocr_enabled)
+
+        idx = 0
+        ocr_nb_angles = config.ocr_nb_angles
+        for (_, nb_angles) in self.ocr_settings['angles']['store']:
+            if nb_angles == ocr_nb_angles:
+                self.ocr_settings['angles']['gui'].set_active(idx)
+            idx += 1
+
         idx = 0
         current_ocr_lang = config.ocr_lang
         for (long_lang, short_lang) in self.ocr_settings['lang']['store']:
             if short_lang == current_ocr_lang:
                 self.ocr_settings['lang']['gui'].set_active(idx)
             idx += 1
+        self.set_ocr_opts_state()
+
+    def set_ocr_opts_state(self):
+        ocr_enabled = self.ocr_settings['enabled']['gui'].get_active()
+        for (k, v) in self.ocr_settings.iteritems():
+            if k == "enabled":
+                continue
+            v['gui'].set_sensitive(ocr_enabled)
 
     def __on_destroy(self, window=None):
         logger.info("Settings window destroyed")

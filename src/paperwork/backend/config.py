@@ -135,6 +135,23 @@ class PaperworkConfig(object):
 
     workdir = property(__get_workdir, __set_workdir)
 
+    def __get_ocr_enabled(self):
+        try:
+            ocr_enabled = self._configparser.get("OCR", "Enabled")
+            return (ocr_enabled == "True")
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            return True
+
+    def __set_ocr_enabled(self, value):
+        value = bool(value)
+        if value:
+            value = "True"
+        else:
+            value = "False"
+        self._configparser.set("OCR", "Enabled", value)
+
+    ocr_enabled = property(__get_ocr_enabled, __set_ocr_enabled)
+
     def __get_ocr_lang(self):
         """
         OCR lang. This the lang specified to the OCR. The string here in the
@@ -220,6 +237,21 @@ class PaperworkConfig(object):
         self._configparser.set("SpellChecking", "Lang", lang)
 
     spelling_lang = property(__get_spelling_lang, __set_spelling_lang)
+
+    def __get_ocr_nb_angles(self):
+        try:
+            nb_angles = self._configparser.get("OCR", "Nb_Angles")
+            nb_angles = int(nb_angles)
+            return nb_angles
+        except (ConfigParser.NoOptionError,
+                ConfigParser.NoSectionError,
+                ValueError):
+            return 4  # (0, 90, 180, 270) degrees
+
+    def __set_ocr_nb_angles(self, nb_angles):
+        self._configparser.set("OCR", "Nb_Angles", str(nb_angles))
+
+    ocr_nb_angles = property(__get_ocr_nb_angles, __set_ocr_nb_angles)
 
     def __get_langs(self):
         """

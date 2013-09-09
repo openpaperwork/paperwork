@@ -1473,13 +1473,14 @@ class JobPageEditor(Job):
                 img = change.do(img, 1.0)
             self.__page.img = img
 
-            self.emit('page-editing-ocr', self.__page)
-            self.__page.redo_ocr(self.__langs)
+            if self.__langs is not None:
+                self.emit('page-editing-ocr', self.__page)
+                self.__page.redo_ocr(self.__langs)
 
-            self.emit('page-editing-index-upd', self.__page)
-            index_upd = self.__docsearch.get_index_updater(optimize=False)
-            index_upd.upd_doc(self.__page.doc)
-            index_upd.commit()
+                self.emit('page-editing-index-upd', self.__page)
+                index_upd = self.__docsearch.get_index_updater(optimize=False)
+                index_upd.upd_doc(self.__page.doc)
+                index_upd.commit()
         finally:
             self.emit('page-editing-done', self.__page)
 

@@ -654,16 +654,6 @@ class SettingsWindow(GObject.GObject):
     def __on_ocr_lang_changed(self, combobox):
         idx = self.ocr_settings['lang']['gui'].get_active()
         lang = self.ocr_settings['lang']['store'][idx][1]
-        if lang is None:
-            msg = _("Without OCR, Paperwork will not be able to guess"
-                    " automatically page orientation")
-            dialog = Gtk.MessageDialog(self.window,
-                                       flags=Gtk.DialogFlags.MODAL,
-                                       type=Gtk.MessageType.WARNING,
-                                       buttons=Gtk.ButtonsType.OK,
-                                       message_format=msg)
-            dialog.run()
-            dialog.destroy()
 
     def on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)

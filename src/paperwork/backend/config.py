@@ -200,8 +200,11 @@ class PaperworkConfig(object):
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             pass
 
-        # Try to guess the lang based on the ocr lang
         ocr_lang = self.ocr_lang
+        if ocr_lang is None:
+            return None
+
+        # Try to guess the lang based on the ocr lang
         try:
             language = pycountry.languages.get(terminology=ocr_lang[:3])
         except KeyError:
@@ -223,7 +226,10 @@ class PaperworkConfig(object):
         """
         Convenience property. Gives all the languages used as one dictionary
         """
-        return {'ocr': self.ocr_lang, 'spelling': self.spelling_lang}
+        ocr_lang = self.ocr_lang
+        if ocr_lang is None:
+            return None
+        return {'ocr': ocr_lang, 'spelling': self.spelling_lang}
 
     langs = property(__get_langs)
 

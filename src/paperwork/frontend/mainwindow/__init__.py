@@ -2294,11 +2294,6 @@ class MainWindow(object):
         test_img = PIL.Image.open(
             "/home/jflesch/SparkleShare/papers/20110312_0000_01/paper.1.jpg")
 
-        img_widget.add_drawer(BackgroundDrawer((1.0, 0.0, 1.0)))
-
-        test_drawer = PillowImageDrawer( (100, 200), test_img )
-        img_widget.add_drawer(test_drawer)
-
         self.img = {
             "image": img_widget,
             "scrollbar": img_scrollbars,

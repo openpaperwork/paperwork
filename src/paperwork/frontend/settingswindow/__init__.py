@@ -36,7 +36,8 @@ import pyocr
 from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
-from paperwork.frontend.util.img import image2pixbuf
+from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -222,6 +223,10 @@ class JobCalibrationScan(Job):
     __gsignals__ = {
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
+        'calibration-scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
+                                   # line where to put the image
+                                   (GObject.TYPE_INT,
+                                    GObject.TYPE_PYOBJECT,)),  # The PIL image
         'calibration-scan-done': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT,  # Pillow image
                                    GObject.TYPE_INT,  # scan resolution
@@ -282,14 +287,24 @@ class JobCalibrationScan(Job):
         else:
             logger.warn("WARNING: Unable to set scanner mode ! May be 'Lineart'")
         maximize_scan_area(dev)
-        scan_inst = dev.scan(multiple=False)
+        scan_session = dev.scan(multiple=False)
+
+        last_line = 0
         try:
             while True:
-                scan_inst.read()
+                scan_session.scan.read()
+
+                next_line = scan_session.scan.available_lines[1]
+                if (next_line > last_line):
+                    chunk = scan_session.scan.get_image(last_line, next_line)
+                    self.emit('calibration-scan-chunk', last_line, chunk)
+                    last_line = next_line
+
                 time.sleep(0)  # Give some CPU time to PyGtk
         except EOFError:
             pass
-        orig_img = scan_inst.get_img()
+
+        orig_img = scan_session.get_img()
         self.emit('calibration-scan-done', orig_img, resolution)
 
         # resize
@@ -695,9 +710,9 @@ class SettingsWindow(GObject.GObject):
     def on_scan_start(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.set_mouse_cursor("Busy")
-        self.calibration['image_gui'].set_alignment(0.5, 0.5)
-        self.calibration['image_gui'].set_from_stock(
-            Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+        #self.calibration['image_gui'].set_alignment(0.5, 0.5)
+        #self.calibration['image_gui'].set_from_stock(
+        #    Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
 
         self.__scan_start = time.time()
 

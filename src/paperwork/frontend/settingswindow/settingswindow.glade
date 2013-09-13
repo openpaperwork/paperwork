@@ -205,7 +205,6 @@
                                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
                                   <attributes>
                                     <attribute name="xpad">1</attribute>
-                                    <attribute name="sensitive">1</attribute>
                                     <attribute name="text">0</attribute>
                                   </attributes>
                                 </child>

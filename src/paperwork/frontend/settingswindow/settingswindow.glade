@@ -13,10 +13,13 @@
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
+      <!-- column-name devid -->
+      <column type="gchararray"/>
     </columns>
     <data>
       <row>
         <col id="0" translatable="yes" context="Scanner device detection &amp; Available resolution detection">Loading ...</col>
+        <col id="1" translatable="yes" context="Scanner device detection &amp; Available resolution detection">Loading ...</col>
       </row>
     </data>
   </object>

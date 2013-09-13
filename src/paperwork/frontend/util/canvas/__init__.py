@@ -8,6 +8,7 @@ Here are the elements that must drawn on it:
     - various overlay (progression line, etc)
 """
 
+import copy
 import heapq
 import sys
 
@@ -37,6 +38,15 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                                       default=Gtk.ScrollablePolicy.MINIMUM,
                                       flags=GObject.PARAM_READWRITE)
 
+    __gsignals__ = {
+        'absolute-button-press-event': (GObject.SignalFlags.RUN_LAST, None,
+                                        (GObject.TYPE_PYOBJECT,)),
+        'absolute-motion-notify-event': (GObject.SignalFlags.RUN_LAST, None,
+                                         (GObject.TYPE_PYOBJECT,)),
+        'absolute-button-release-event': (GObject.SignalFlags.RUN_LAST, None,
+                                          (GObject.TYPE_PYOBJECT,)),
+    }
+
     def __init__(self, hadj, vadj):
         Gtk.DrawingArea.__init__(self)
 
@@ -50,9 +60,15 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.set_vadjustment(vadj)
 
         self.add_events(Gdk.EventMask.SCROLL_MASK)
+        self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.connect("size-allocate", self.__on_size_allocate)
         self.connect("draw", self.__on_draw)
         self.connect("scroll-event", self.__on_scroll_event)
+        self.connect("button-press-event", self.__on_button_pressed)
+        self.connect("motion-notify-event", self.__on_motion)
+        self.connect("button-release-event", self.__on_button_released)
 
         self.set_size_request(-1, -1)
 
@@ -189,5 +205,24 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             if val != adj.get_value():
                 adj.set_value(val)
 
+    def __get_absolute_event(self, event):
+        off_x = int(self.hadjustment.get_value())
+        off_y = int(self.vadjustment.get_value())
+        event = event.copy()
+        event.x += off_x
+        event.y += off_y
+        return event;
+
+    def __on_button_pressed(self, _, event):
+        event = self.__get_absolute_event(event)
+        self.emit('absolute-button-press-event', event)
+
+    def __on_motion(self, _, event):
+        event = self.__get_absolute_event(event)
+        self.emit('absolute-motion-notify-event', event)
+
+    def __on_button_released(self, _, event):
+        event = self.__get_absolute_event(event)
+        self.emit('absolute-button-release-event', event)
 
 GObject.type_register(Canvas)

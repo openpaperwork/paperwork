@@ -160,15 +160,18 @@ class JobResolutionFinder(Job):
             device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
             resolutions = device.options['resolution'].constraint
-            logger.info("Resolutions found: %s" % resolutions)
+            logger.info("Resolutions found: %s" % str(resolutions))
             sys.stdout.flush()
             # Sometimes sane return the resolutions as a integer array,
             # sometimes as a range (-> tuple). So if it is a range, we turn
             # it into an array
             if isinstance(resolutions, tuple):
+                interval = resolutions[2]
+                if interval < 50:
+                    interval = 50
                 res_array = []
                 for res in range(resolutions[0], resolutions[1] + 1,
-                                 resolutions[2]):
+                                 interval):
                     res_array.append(res)
                 resolutions = res_array
 

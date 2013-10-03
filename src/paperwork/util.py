@@ -412,14 +412,9 @@ def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):
         missing_options.append(opt_name)
     constraint = options[opt_name].constraint
     if isinstance(constraint, tuple):
-        interval = constraint[2]
-        if interval <= 0:
-            interval = 1
-        possible_values = (xrange(constraint[0], constraint[1]+1,
-                                  interval))
-    else:
-        possible_values = constraint
-    value = select_value_func(possible_values)
+        value = select_value_func(constraint[0], constraint[1])
+    else:  # is an array
+        value = select_value_func(constraint)
     options[opt_name].value = value
 
 

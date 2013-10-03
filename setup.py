@@ -35,6 +35,8 @@ if python_ver[0] != "2" or python_ver[1] != "7":
 
 
 setup(name="paperwork",
+      # if you change the version, don't forget to change it also in
+      # src/paperwork/frontend/aboutdialog/aboutdialog.glade
       version="0.2-unstable",
       description="Grep for dead trees",
       long_description="""

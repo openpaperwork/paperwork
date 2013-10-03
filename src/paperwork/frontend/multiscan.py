@@ -164,8 +164,8 @@ class JobFactoryDocScan(JobFactory):
 
     def make_tail(self):
         job = JobSignalEmitter(self, next(self.id_generator))
-        job.connect('signal', 
-                    lambda job: GObject.idle_add(
+        job.connect('signal',
+                    lambda job: GLib.idle_add(
                         self.__multiscan_win.on_global_scan_end_cb))
         return job
 

@@ -39,6 +39,8 @@ from paperwork.frontend.jobs import Job, JobFactory, JobScheduler, JobFactoryPro
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
 from paperwork.util import set_scanner_opt
+from paperwork.util import maximize_scan_area
+
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -277,7 +279,7 @@ class JobCalibrationScan(Job):
             logger.info("Scanner mode set to 'Gray'")
         else:
             logger.warn("WARNING: Unable to set scanner mode ! May be 'Lineart'")
-
+        maximize_scan_area(dev)
         scan_inst = dev.scan(multiple=False)
         try:
             while True:

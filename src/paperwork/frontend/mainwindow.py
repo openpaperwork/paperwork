@@ -50,6 +50,7 @@ from paperwork.util import add_img_border
 from paperwork.util import ask_confirmation
 from paperwork.util import image2pixbuf
 from paperwork.util import load_uifile
+from paperwork.util import maximize_scan_area
 from paperwork.util import popup_no_scanner_found
 from paperwork.util import set_scanner_opt
 from paperwork.util import sizeof_fmt
@@ -1199,6 +1200,7 @@ class JobSingleScan(Job):
                 except (KeyError, pyinsane.SaneException), exc:
                     logger.error("Warning: Unable to set scanner source: "
                                  "%s" % exc)
+                maximize_scan_area(scanner)
                 scan_src = scanner.scan(multiple=False)
             except pyinsane.SaneException, exc:
                 logger.error("No scanner found !")

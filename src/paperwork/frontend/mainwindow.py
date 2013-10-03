@@ -1249,7 +1249,8 @@ class JobFactorySingleScan(JobFactory):
                                      job, page))
         job.connect('single-scan-no-scanner-found',
                     lambda job:
-                    GObject.idle_add(popup_no_scanner_found, self.__main_win))
+                    GObject.idle_add(popup_no_scanner_found,
+                                     self.__main_win.window))
         job.connect('single-scan-error',
                     lambda job, error:
                     GObject.idle_add(self.__main_win.on_single_scan_error,

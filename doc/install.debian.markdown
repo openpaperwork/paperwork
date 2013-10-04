@@ -23,7 +23,7 @@ Pillow may conflict with the package python-imaging (aka PIL).
     $ sudo apt-get install g++
 
     # Scikit-image dependency
-    $ sudo apt-get instlal cython
+    $ sudo apt-get install cython
 
 
 ## Runtime dependencies

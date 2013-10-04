@@ -4,3 +4,20 @@
 * Menubar has been removed and replaced by an application menu
 * Label prediction : when a new document is scanned, labels are automatically
   set on it
+
+
+2013/10/03 - 0.1.1:
+- Page list: fix display of page list longer than 100 pages
+- Scanner support:
+  - Fix support of scanners returning the supported resolutions as a range
+    instead of an array
+  - Fix: Always make sure the scan area is as big as it can be
+- Fix: When OCR is disabled, fix scan and page editing
+- Fix "no scanner found" popup (partial backport only, still slightly buggy)
+- Scripts:
+  - Add script scripts/obfuscate.py
+  - Fix/Improve the output of scripts/stats.py
+
+
+2013/08/08 - 0.1:
+- Initial release

@@ -25,6 +25,9 @@ Pillow may conflict with the package python-imaging (aka PIL).
     # Scikit-image dependency
     $ sudo apt-get install cython
 
+    # PyEnchant dependency
+    $ sudo apt-get install libenchant-dev
+
 
 ## Runtime dependencies
 

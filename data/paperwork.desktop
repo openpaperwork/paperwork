@@ -8,4 +8,4 @@ Terminal=false
 Comment=Make dead trees grepable
 Exec=paperwork
 Name=Paperwork
-Icon=paperwork.svg
+Icon=paperwork

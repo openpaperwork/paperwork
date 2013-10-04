@@ -16,14 +16,14 @@ Pillow may conflict with the package python-imaging (aka PIL).
     # Pillow build dependencies
     $ sudo apt-get install libjpeg-dev zlib1g-dev
 
-	# Scipy dependencies
-	$ sudo apt-get install libblas-dev libatlas-dev liblapack-dev gfortran
+    # Scipy dependencies
+    $ sudo apt-get install libblas-dev libatlas-dev liblapack-dev gfortran
 
-	# Sciki-lean dependency
-	$ sudo apt-get install g++
+    # Sciki-lean dependency
+    $ sudo apt-get install g++
 
-	# Scikit-image dependency
-	$ sudo apt-get instlal cython
+    # Scikit-image dependency
+    $ sudo apt-get instlal cython
 
 
 ## Runtime dependencies

@@ -16,14 +16,14 @@ Pillow may conflict with the package python-imaging (aka PIL).
     # Pillow build dependencies :
     $ sudo yum install libjpeg-turbo-devel zlib-devel
 
-	# Scipy dependencies
-	$ sudo yum install blas-devel atlas-devel lapack-devel gcc-fortran
+    # Scipy dependencies
+    $ sudo yum install blas-devel atlas-devel lapack-devel gcc-fortran
 
-	# Sciki-lean dependency
-	$ sudo yum install gcc-c++
+    # Sciki-lean dependency
+    $ sudo yum install gcc-c++
 
-	# Scikit-image dependency
-	$ sudo yum install cython
+    # Scikit-image dependency
+    $ sudo yum install cython
 
 
 ## System-wide installation

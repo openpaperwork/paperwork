@@ -147,6 +147,11 @@ class ImgPage(BasicPage):
 
     img = property(__get_img, __set_img)
 
+    def __get_size(self):
+        return self.img.size
+
+    size = property(__get_size)
+
     def print_page_cb(self, print_op, print_context):
         """
         Called for printing operation by Gtk

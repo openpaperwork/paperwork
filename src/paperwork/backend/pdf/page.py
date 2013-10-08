@@ -67,11 +67,10 @@ class PdfPage(BasicPage):
         self.pdf_page = doc.pdf.get_page(page_nb)
         assert(self.pdf_page is not None)
         size = self.pdf_page.get_size()
-        self.size = (int(size[0]), int(size[1]))
+        self._size = (int(size[0]), int(size[1]))
         self.__boxes = None
         self.__img_cache = {}
         doc = doc
-
 
     def get_doc_file_path(self):
         """
@@ -167,8 +166,8 @@ class PdfPage(BasicPage):
         if factor not in self.__img_cache:
             logger.debug('Building img from pdf with factor: %s'
                     % factor)
-            width = int(factor * self.size[0])
-            height = int(factor * self.size[1])
+            width = int(factor * self._size[0])
+            height = int(factor * self._size[1])
 
             surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
             ctx = cairo.Context(surface)
@@ -182,15 +181,21 @@ class PdfPage(BasicPage):
 
     img = property(__get_img)
 
+    def __get_size(self):
+        return (self._size[0] * PDF_RENDER_FACTOR,
+                self._size[1] * PDF_RENDER_FACTOR)
+
+    size = property(__get_size)
+
     def print_page_cb(self, print_op, print_context):
         ctx = print_context.get_cairo_context()
 
         logger.debug("Context: %d x %d" % (print_context.get_width(),
                                     print_context.get_height()))
-        logger.debug("Size: %d x %d" % (self.size[0], self.size[1]))
+        logger.debug("Size: %d x %d" % (self._size[0], self._size[1]))
 
-        factor_x = float(print_context.get_width()) / float(self.size[0])
-        factor_y = float(print_context.get_height()) / float(self.size[1])
+        factor_x = float(print_context.get_width()) / float(self._size[0])
+        factor_y = float(print_context.get_height()) / float(self._size[1])
         factor = min(factor_x, factor_y)
 
         logger.debug("Scale: %f x %f --> %f" % (factor_x, factor_y, factor))

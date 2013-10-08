@@ -103,6 +103,7 @@ class BasicPage(object):
 
     boxes = []
     img = None
+    size = (0, 0)
 
     def __init__(self, doc, page_nb):
         """

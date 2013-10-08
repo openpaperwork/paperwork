@@ -36,6 +36,10 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
+from paperwork.frontend.mainwindow.page import JobPageLoader
+from paperwork.frontend.mainwindow.page import JobFactoryPageLoader
+from paperwork.frontend.mainwindow.page import PageDrawer
+from paperwork.frontend.mainwindow.scan import ScanScene
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
@@ -1536,14 +1540,43 @@ class ActionSingleScan(SimpleAction):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
             return
-        doc = self.__main_win.doc
 
+        devid = self.__config.scanner_devid
+        logger.info("Will scan using %s" % str(devid))
+        resolution = self.__config.scanner_resolution
+        logger.info("Will scan at a resolution of %d" % resolution)
+
+        dev = pyinsane.Scanner(name=devid)
+
+        try:
+            # any source is actually fine. we just have a clearly defined
+            # preferred order
+            set_scanner_opt('source', dev.options['source'],
+                            ["Auto", "FlatBed",
+                             ".*ADF.*", ".*Feeder.*"])
+        except (KeyError, pyinsane.SaneException), exc:
+            logger.warn("Unable to set scanner source: %s" % exc)
+        try:
+            dev.options['resolution'].value = resolution
+        except pyinsane.SaneException:
+            logger.warn("Unable to set scanner resolution to %d: %s"
+                           % (resolution, exc))
+        if "Color" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Color"
+            logger.info("Scanner mode set to 'Color'")
+        elif "Gray" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Gray"
+            logger.info("Scanner mode set to 'Gray'")
+        else:
+            logger.warn("Unable to set scanner mode ! May be 'Lineart'")
+        maximize_scan_area(dev)
+
+        scan_session = dev.scan(multiple=False)
+        scan_scene = ScanScene(self.__config,
+                               self.__main_win.schedulers['scan'],
+                               self.__main_win.schedulers['ocr'])
+        scan_scene.scan_and_ocr(scan_session)
         # TODO(Jflesch)
-        #self.__main_win.schedulers['main'].cancel_all(
-        #    self.__main_win.job_factories['single_scan'])
-        #job = self.__main_win.job_factories['single_scan'].make(
-        #    self.__main_win.docsearch, doc)
-        #self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionMultiScan(SimpleAction):
@@ -2170,7 +2203,9 @@ class MainWindow(object):
 
         self.schedulers = {
             'main' : JobScheduler("Main"),
+            'ocr' : JobScheduler("OCR"),
             'progress' : JobScheduler("Progress"),
+            'scan' : JobScheduler("Scan"),
         }
 
         # used by the set_mouse_cursor() function to keep track of how many

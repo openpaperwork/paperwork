@@ -42,9 +42,6 @@ class Drawer(object):
             return
         self.do_draw(cairo_context, offset, visible_size)
 
-    def hide(self, canvas):
-        pass
-
 
 class BackgroundDrawer(Drawer):
     layer = Drawer.BACKGROUND_LAYER
@@ -69,8 +66,52 @@ class BackgroundDrawer(Drawer):
         cairo_context.clip()
         cairo_context.paint()
 
-    def hide(self, stage):
-        stage.remove_child(self.rectangle)
+
+class SimpleDrawer(Drawer):
+    def __init__(self, position=(0, 0)):
+        self.position = position
+        self.visible = False
+        self.actor = Clutter.Actor()  # must be filled in by child classes
+
+    def _get_size(self):
+        return self.actor.get_size()
+
+    def _set_size(self, size):
+        self.actor.set_size(size[0], size[1])
+
+    size = property(_get_size, _set_size)
+
+    @staticmethod
+    def compute_visibility(offset, visible_area_size, position, size):
+        should_be_visible = True
+        if (position[0] + size[0] < offset[0]):
+            should_be_visible = False
+        elif (offset[0] + visible_area_size[0] < position[0]):
+            should_be_visible = False
+        elif (position[1] + size[1] < offset[1]):
+            should_be_visible = False
+        elif (offset[1] + visible_area_size[1] < position[1]):
+            should_be_visible = False
+        return should_be_visible
+
+    def do_draw(self, cairo_context, offset, visible_area_size):
+        should_be_visible = self.compute_visibility(offset, visible_area_size,
+                                                    self.position, self.size)
+
+        pos_x = self.position[0] - offset[0]
+        pos_y = self.position[1] - offset[1]
+
+        if should_be_visible and not self.visible:
+            self.show()
+        elif not should_be_visible and self.visible:
+            self.hide()
+        self.visible = should_be_visible
+
+    def hide(self):
+        self.visible = False
+
+    def show(self):
+        self.visible = True
 
 
 class PillowImageDrawer(Drawer):

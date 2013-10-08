@@ -2215,7 +2215,11 @@ class MainWindow(object):
 
         self.docsearch = DummyDocSearch()
         self.doc = ImgDoc(self.__config.workdir)
+
+        # All the pages are displayed on the canvas,
+        # however, only one is the "active one"
         self.page = DummyPage(self.doc)
+        self.pages = [self.page]
 
         search_completion = Gtk.EntryCompletion()
 
@@ -2290,6 +2294,11 @@ class MainWindow(object):
                             img_scrollbars.get_vadjustment())
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
+
+        # TODO(Jflesch):
+        # Listen to scrollbars events: call self.show_page()
+        # accordingly so the active page is always
+        # selected in the page list (and the page number is up-to-date)
 
         self.img = {
             "image": img_widget,
@@ -2700,13 +2709,6 @@ class MainWindow(object):
             # This one doesn't take into account the key to access these menus
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
-
-        # TODO(Jflesch):
-        #self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
-        #self.img['eventbox'].connect("leave-notify-event",
-        #                             self.__on_img_mouse_leave)
-        #self.img['eventbox'].connect("motion-notify-event",
-        #                             self.__on_img_mouse_motion)
 
         for widget in [self.lists['pages']['gui'],
                        self.lists['matches']['gui']]:
@@ -3141,16 +3143,55 @@ class MainWindow(object):
         self.schedulers['main'].schedule(job)
 
     def refresh_boxes(self):
-        # TODO(Jflesch)
+        # TODO(Jflesch):
+        # Show boxes on the active pages
         pass
 
-    def show_page(self, page, force_refresh=False):
-        if (page == self.page and not force_refresh):
+    def show_doc(self, doc_idx, doc, force_refresh=False):
+        if (self.doc is not None and self.doc == doc and not force_refresh):
             return
+        logger.info("Showing document %s" % doc)
+        self.doc = doc
+        # we need the page list, but as an array we can modify
+        self.pages = [page for page in doc.pages]
+
+        is_new = doc.is_new
+        can_edit = doc.can_edit
+
+        set_widget_state(self.need_doc_widgets, True)
+        set_widget_state(self.doc_edit_widgets, True)
+        set_widget_state(self.need_doc_widgets, False,
+                         cond=lambda widget: is_new)
+        set_widget_state(self.doc_edit_widgets, False,
+                         cond=lambda widget: not can_edit)
+
+        pages_gui = self.lists['pages']['gui']
+        if doc.can_edit:
+            pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
+            pages_gui.drag_source_add_text_targets()
+        else:
+            pages_gui.unset_model_drag_source()
+        self.refresh_page_list()
+        self.refresh_label_list()
+
+        # TODO(Jflesch):
+        # Place all the pages on the canvas
+
+        if doc.nb_pages >= 0:
+            page = doc.pages[0]
+        else:
+            page = DummyPage(self.doc)
+            self.pages = [page]
+
+        self.show_page(page)
+
+    def show_page(self, page, force_refresh=False):
+        if (page.doc != self.doc or force_refresh):
+            self.show_doc(page.doc, force_refresh)
+
         logging.info("Showing page %s" % page)
 
-        # TODO(Jflesch)
-        #self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
+        self.page = page
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3173,8 +3214,6 @@ class MainWindow(object):
         self.actions['set_current_page'][1].enabled = False
         self.indicators['current_page'].set_text("%d" % (page.page_nb + 1))
         self.actions['set_current_page'][1].enabled = True
-
-        self.page = page
 
         self.export['dialog'].set_visible(False)
 
@@ -3205,11 +3244,9 @@ class MainWindow(object):
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
-        if doc.nb_pages > 0:
-            self.show_page(doc.pages[0])
-        else:
-            self.img['image'].set_from_stock(Gtk.STOCK_MISSING_IMAGE,
-                                             Gtk.IconSize.DIALOG)
+
+        # Scroll the img canvas up or down to the selected page
+        # Note: only scroll if required !
 
     def on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))

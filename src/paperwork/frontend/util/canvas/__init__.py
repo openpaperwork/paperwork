@@ -40,10 +40,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __init__(self, hadj, vadj):
         Gtk.DrawingArea.__init__(self)
 
-        self.full_size_x = 1
-        self.full_size_y = 1
-        self.visible_size_x = 1
-        self.visible_size_y = 1
+        self.size_forced = False
+        self.full_size = (1, 1)
+        self.visible_size = (1, 1)
 
         self.drawers = PriorityQueue()
 
@@ -92,6 +91,34 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.upd_adjustments()
         self.queue_draw()
 
+    def _recompute_size(self):
+        (full_x, full_y) = (1, 1)
+        for drawer in self.drawers:
+            x = drawer.position[0] + drawer.size[0]
+            y = drawer.position[1] + drawer.size[1]
+            if (full_x < x):
+                full_x = x
+            if (full_y < y):
+                full_y = y
+        new_size = (full_x, full_y)
+        if (new_size[0] != self.full_size[0]
+            or new_size[1] != self.full_size[1]):
+            self.full_size = new_size
+            self.set_size_request(new_size[0], new_size[1])
+            self.upd_adjustments()
+
+    def set_size(self, size):
+        size = (int(size[0]), int(size[1]))
+        self.full_size = size
+        self.size_forced = True
+        self.set_size_request(size[0], size[1])
+        self.upd_adjustments()
+        self.queue_draw()
+
+    def unforce_size(self):
+        self.size_forced = False
+        self._recompute_size()
+
     def upd_adjustments(self):
         self.hadjustment.set_upper(float(self.full_size_x))
         self.vadjustment.set_upper(float(self.full_size_y))
@@ -116,20 +143,20 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         x = drawer.position[0] + drawer.size[0]
         y = drawer.position[1] + drawer.size[1]
 
-        full_size_changed = False
-        if (x > self.full_size_x):
-            self.full_size_x = x
-            full_size_changed = True
-        if (y > self.full_size_y):
-            self.full_size_y = y
-            full_size_changed = True
-        if full_size_changed:
-            self.set_size_request(self.full_size_x, self.full_size_y)
-            self.upd_adjustments()
-
         self.drawers.add(drawer.layer, drawer)
-
+        if not self.size_forced:
+            self._recompute_size()
         self.queue_draw()
+
+    def remove_drawer(self, drawer):
+        self.drawers.remove(drawer)
+        if not self.size_forced:
+            self._recompute_size()
+
+    def remove_all_drawers(self):
+        self.drawers.purge()
+        if not self.size_forced:
+            self._recompute_size()
 
     def __on_scroll_event(self, _, event):
         ops = {

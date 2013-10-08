@@ -234,9 +234,11 @@ class JobCalibrationScan(Job):
         'calibration-resize-done': (GObject.SignalFlags.RUN_LAST, None,
                                     (GObject.TYPE_FLOAT,  # resize factor
                                      GObject.TYPE_PYOBJECT, )),  # Pillow image
+        'calibration-scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
+                                      ()),
     }
 
-    can_stop = False
+    can_stop = True
     priority = 495
 
     def __init__(self, factory, id, resolutions_store, target_viewport, devid):
@@ -244,8 +246,10 @@ class JobCalibrationScan(Job):
         self.__target_viewport = target_viewport
         self.__resolutions_store = resolutions_store
         self.__devid = devid
+        self.can_run = False
 
     def do(self):
+        self.can_run = True
         self.emit('calibration-scan-start')
 
         # find the best resolution : the default calibration resolution
@@ -290,7 +294,7 @@ class JobCalibrationScan(Job):
 
         last_line = 0
         try:
-            while True:
+            while self.can_run:
                 scan_session.scan.read()
 
                 next_line = scan_session.scan.available_lines[1]
@@ -300,6 +304,9 @@ class JobCalibrationScan(Job):
                     last_line = next_line
 
                 time.sleep(0)  # Give some CPU time to PyGtk
+            if not self.can_run:
+                self.emit('calibration-scan-canceled')
+                scan_session.scan.cancel()
         except EOFError:
             pass
 
@@ -332,6 +339,10 @@ class JobCalibrationScan(Job):
         resized_img = orig_img.resize(target, PIL.Image.BILINEAR)
         self.emit('calibration-resize-done', factor, resized_img)
 
+    def stop(self, will_resume=False):
+        assert(not will_resume)
+        self.can_run = False
+        self._stop_wait()
 
 GObject.type_register(JobCalibrationScan)
 
@@ -357,7 +368,10 @@ class JobFactoryCalibrationScan(JobFactory):
         job.connect('calibration-resize-done',
                     lambda job, factor, img:
                     GLib.idle_add(self.__settings_win.on_resize_done,
-                                     factor, img))
+                                  factor, img))
+        job.connect('calibration-scan-canceled',
+                    lambda job:
+                    GLib.idle_add(self.__settings_win.on_scan_canceled))
         return job
 
 
@@ -736,6 +750,16 @@ class SettingsWindow(GObject.GObject):
                                     self.calibration['image_eventbox'],
                                     self.calibration['image_gui'])
         self.grips.visible = True
+        self.set_mouse_cursor("Normal")
+        self.calibration["scan_button"].set_sensitive(True)
+
+    def on_scan_canceled(self):
+        scan_stop = time.time()
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
+
+        self.calibration['image_gui'].unforce_size()
+        self.calibration['image_gui'].remove_all_drawers()
+        self.calibration['scan_drawer'] = None
         self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)
 

@@ -107,7 +107,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.upd_adjustments()
         self.queue_draw()
 
-    def _recompute_size(self):
+    def recompute_size(self):
+        if self.size_forced:
+            return
         (full_x, full_y) = (1, 1)
         for drawer in self.drawers:
             x = drawer.position[0] + drawer.size[0]
@@ -133,15 +135,25 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def unforce_size(self):
         self.size_forced = False
-        self._recompute_size()
+        self.recompute_size()
 
     def upd_adjustments(self):
-        self.hadjustment.set_upper(float(self.full_size_x))
-        self.vadjustment.set_upper(float(self.full_size_y))
-        self.hadjustment.set_page_size(self.visible_size_x)
-        self.vadjustment.set_page_size(self.visible_size_y)
+        val_h = float(self.hadjustment.get_value())
+        val_v = float(self.vadjustment.get_value())
+        if val_h > self.full_size[0]:
+            val_h = self.full_size[0]
+        if val_v > self.full_size[1]:
+            val_v = self.full_size[1]
+        self.hadjustment.set_upper(float(self.full_size[0]))
+        self.vadjustment.set_upper(float(self.full_size[1]))
+        self.hadjustment.set_page_size(self.visible_size[0])
+        self.vadjustment.set_page_size(self.visible_size[1])
+        self.hadjustment.set_value(int(val_h))
+        self.vadjustment.set_value(int(val_v))
 
     def __on_draw(self, _, cairo_ctx):
+        self.recompute_size()
+
         x = int(self.hadjustment.get_value())
         y = int(self.vadjustment.get_value())
 
@@ -160,19 +172,19 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         y = drawer.position[1] + drawer.size[1]
 
         self.drawers.add(drawer.layer, drawer)
-        if not self.size_forced:
-            self._recompute_size()
+        self._recompute_size()
         self.queue_draw()
 
     def remove_drawer(self, drawer):
+        drawer.hide(self.get_stage())
         self.drawers.remove(drawer)
-        if not self.size_forced:
-            self._recompute_size()
+        self.recompute_size()
 
     def remove_all_drawers(self):
+        for drawer in self.drawers:
+            drawer.hide(self.get_stage())
         self.drawers.purge()
-        if not self.size_forced:
-            self._recompute_size()
+        self.recompute_size()
 
     def __on_scroll_event(self, _, event):
         ops = {

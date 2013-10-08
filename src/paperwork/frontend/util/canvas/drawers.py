@@ -42,6 +42,9 @@ class Drawer(object):
             return
         self.do_draw(cairo_context, offset, visible_size)
 
+    def hide(self, canvas):
+        pass
+
 
 class BackgroundDrawer(Drawer):
     layer = Drawer.BACKGROUND_LAYER
@@ -65,6 +68,9 @@ class BackgroundDrawer(Drawer):
         cairo_context.rectangle(0, 0, size[0], size[1])
         cairo_context.clip()
         cairo_context.paint()
+
+    def hide(self, stage):
+        stage.remove_child(self.rectangle)
 
 
 class PillowImageDrawer(Drawer):
@@ -91,3 +97,12 @@ class PillowImageDrawer(Drawer):
                                 size[0], size[1])
         cairo_context.clip()
         cairo_context.paint()
+
+    def __get_size(self):
+        return self.size
+
+    def __set_size(self, size):
+        # TODO
+        pass
+
+    size = property(__get_size, __set_size)

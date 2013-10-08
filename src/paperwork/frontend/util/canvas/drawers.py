@@ -68,18 +68,11 @@ class BackgroundDrawer(Drawer):
 
 
 class SimpleDrawer(Drawer):
+    size = (0, 0)
+
     def __init__(self, position=(0, 0)):
         self.position = position
         self.visible = False
-        self.actor = Clutter.Actor()  # must be filled in by child classes
-
-    def _get_size(self):
-        return self.actor.get_size()
-
-    def _set_size(self, size):
-        self.actor.set_size(size[0], size[1])
-
-    size = property(_get_size, _set_size)
 
     @staticmethod
     def compute_visibility(offset, visible_area_size, position, size):

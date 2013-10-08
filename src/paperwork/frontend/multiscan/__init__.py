@@ -23,8 +23,6 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 
-import pyinsane.abstract_th as pyinsane
-
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.frontend.util import load_uifile
@@ -76,31 +74,8 @@ class JobDocScan(Job):
             self.emit('ocr-start', self.current_page, self.nb_pages)
 
     def do(self):
-        if self.doc is None:
-            self.doc = ImgDoc(self.__config.workdir)
-        for self.current_page in range(0, self.nb_pages):
-            self.emit('scan-start', self.current_page, self.nb_pages)
-            try:
-                self.doc.scan_single_page(self.__scan_src,
-                                          self.__config.scanner_resolution,
-                                          self.__config.scanner_calibration,
-                                          self.__config.langs,
-                                          self.__progress_cb)
-                page = self.doc.pages[self.doc.nb_pages - 1]
-                self.docsearch.index_page(page)
-                self.emit('scan-done', page, self.nb_pages)
-            except StopIteration, exc:
-                logger.warning("Feeder appears to be empty and we "
-                               "haven't scanned all the pages yet !")
-                self.emit('scan-error', exc)
-                self._wait(5.0, force=True)  # wait for all the jobs to be cancelled
-                return
-            except Exception, exc:
-                logger.error("Error: Exception: %s" % str(exc))
-                self.emit('scan-error', exc)
-                self._wait(5.0, force=True)  # wait for all the jobs to be cancelled
-                return
-        self.current_page = None
+        # TODO(Jflesch)
+        pass
 
     def stop(self, will_resume=False):
         if will_resume == False:
@@ -138,7 +113,7 @@ class JobFactoryDocScan(JobFactory):
 
     def make_head(self):
         job = JobSignalEmitter(self, next(self.id_generator))
-        job.connect('signal', 
+        job.connect('signal',
                     lambda job: GLib.idle_add(
                         self.__multiscan_win.on_global_scan_start_cb))
         return job
@@ -287,42 +262,7 @@ class ActionScan(SimpleAction):
 
         job = self.__multiscan_win.job_factories['scan'].make_head()
         self.__multiscan_win.schedulers['main'].schedule(job)
-        try:
-            try:
-                scanner = self.__config.get_scanner_inst()
-            except Exception:
-                logger.error("No scanner found !")
-                GLib.idle_add(popup_no_scanner_found,
-                                 self.__multiscan_win.dialog)
-                raise
-
-            try:
-                set_scanner_opt('source', scanner.options['source'],
-                                ["ADF", ".*ADF.*", ".*Feeder.*"])
-            except (KeyError, pyinsane.SaneException), exc:
-                logger.error("Warning: Unable to set scanner source to 'Auto': %s"
-                       % exc)
-            maximize_scan_area(scanner)
-            try:
-                scan_src = scanner.scan(multiple=True)
-            except Exception:
-                logger.error("No scanner found !")
-                GLib.idle_add(popup_no_scanner_found,
-                                 self.__multiscan_win.dialog)
-                raise
-
-            rng = xrange(0, len(self.__multiscan_win.lists['docs']['model']))
-            for line_idx in rng:
-                line = self.__multiscan_win.lists['docs']['model'][line_idx]
-                doc = None
-                if line_idx == 0:
-                    doc = self.__main_win_doc
-                job = self.__multiscan_win.job_factories['scan'].make(
-                    int(line[1]), line_idx, self.__docsearch, doc, scan_src)
-                self.__multiscan_win.schedulers['main'].schedule(job)
-        finally:
-            job = self.__multiscan_win.job_factories['scan'].make_tail()
-            self.__multiscan_win.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
 
 
 class ActionCancel(SimpleAction):

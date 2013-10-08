@@ -29,9 +29,9 @@ from gi.repository import Gtk
 import logging
 import PIL.Image
 import pycountry
+import pyinsane.abstract_th as pyinsane
 import pyocr
 
-import pyinsane.abstract_th as pyinsane
 
 from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.util import load_uifile

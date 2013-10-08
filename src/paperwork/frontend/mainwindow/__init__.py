@@ -779,275 +779,6 @@ class JobFactoryDocThumbnailer(JobFactory):
         return job
 
 
-class JobImgBuilder(Job):
-    """
-    Resize and paint on the page
-    """
-    __gsignals__ = {
-        'img-building-start': (GObject.SignalFlags.RUN_LAST, None,
-                               (GObject.TYPE_BOOLEAN,  # True == warn the user
-                               )),
-        'img-building-canceled': (GObject.SignalFlags.RUN_LAST, None,
-                                  (GObject.TYPE_BOOLEAN,  # True == warned the user
-                                  )),
-        'img-building-result-pixbuf': (GObject.SignalFlags.RUN_LAST, None,
-                                       (GObject.TYPE_BOOLEAN,  # True == warned the user
-                                        GObject.TYPE_FLOAT, GObject.TYPE_INT,
-                                        GObject.TYPE_PYOBJECT,  # pixbuf
-                                        # array of boxes
-                                        GObject.TYPE_PYOBJECT,
-                                       )),
-        'img-building-result-clear': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_BOOLEAN,  # True == warned the user
-                                      )),
-        'img-building-result-stock': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_BOOLEAN,  # True == warned the user
-                                       GObject.TYPE_STRING, )),
-    }
-
-    can_stop = True
-    priority = 450
-
-    def __init__(self, factory, id, page, zoom_factor_func, warn_user):
-        Job.__init__(self, factory, id)
-        self.__page = page
-        self.__zoom_factor_func = zoom_factor_func
-        self.__started_once = False
-        self.done = False
-        self.warn_user = warn_user
-
-    def do(self):
-        if self.done:
-            return
-        self.can_run = True
-
-        try:
-            if (not self.__started_once and self.warn_user):
-                # warn_user == True is the normal mode where we change the
-                # GUI to show the user we have taken its request into account
-                # and we are loading the new image
-                # warn_user == False is a sneaky mode where we don't warn
-                # them
-                self.emit('img-building-start', self.warn_user)
-                self.__started_once = True
-
-            if not self.can_run:
-                return
-
-            img = self.__page.img  # load the image
-            if img is None:
-                self.emit('img-building-result-clear', self.warn_user)
-                self.done = True
-                return
-            if not self.can_run:
-                return
-
-            pixbuf = image2pixbuf(img)
-            if not self.can_run:
-                return
-
-            original_width = pixbuf.get_width()
-            original_height = pixbuf.get_height()
-
-            factor = self.__zoom_factor_func(original_width, original_height)
-            logger.info("Zoom: %f" % (factor))
-
-            wanted_width = int(factor * pixbuf.get_width())
-            wanted_height = int(factor * pixbuf.get_height())
-            pixbuf = pixbuf.scale_simple(wanted_width, wanted_height,
-                                         GdkPixbuf.InterpType.BILINEAR)
-            if not self.can_run:
-                return
-            self.emit('img-building-result-pixbuf', self.warn_user, factor,
-                      original_width, pixbuf, self.__page.boxes)
-            self.done = True
-        except Exception:
-            self.emit('img-building-result-stock', self.warn_user,
-                      Gtk.STOCK_DIALOG_ERROR)
-            self.done = True
-            raise
-
-    def stop(self, will_resume=False):
-        self.can_run = False
-        self._stop_wait()
-        if not will_resume and not self.done:
-            self.emit('img-building-canceled', self.warn_user)
-            self.done = True
-
-
-GObject.type_register(JobImgBuilder)
-
-
-class JobFactoryImgBuilder(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "ImgBuilder")
-        self.__main_win = main_win
-
-    def make(self, page, warn_user=True):
-        job = JobImgBuilder(self, next(self.id_generator), page,
-                            self.__main_win.get_zoom_factor,
-                            warn_user)
-        job.connect('img-building-start',
-                    lambda builder, warn_user:
-                    GLib.idle_add(self.__main_win.on_img_building_start,
-                                     warn_user))
-        job.connect('img-building-canceled',
-                    lambda builder, warned_user:
-                    GLib.idle_add(self.__main_win.on_img_building_canceled,
-                                     warned_user))
-        job.connect('img-building-result-pixbuf',
-                    lambda builder, warned_user, factor, original_width, img, boxes:
-                    GLib.idle_add(self.__main_win.on_img_building_result_pixbuf,
-                                     builder, warn_user,
-                                     factor, original_width, img, boxes))
-        job.connect('img-building-result-stock',
-                    lambda builder, warned_user, img:
-                    GLib.idle_add(self.__main_win.on_img_building_result_stock,
-                                     warn_user, img))
-        job.connect('img-building-result-clear',
-                    lambda builder, warned_user:
-                    GLib.idle_add(self.__main_win.on_img_building_result_clear,
-                                     warned_user))
-        return job
-
-
-class JobBoxesRefresher(Job):
-    __gsignals__ = {
-        'highlighted-boxes': (GObject.SignalFlags.RUN_LAST, None,
-                              (
-                                  # highlighted boxes
-                                  GObject.TYPE_PYOBJECT,
-                              )),
-    }
-
-    can_stop = True
-    priority = 30
-
-    def __init__(self, factory, id, page, search):
-        Job.__init__(self, factory, id)
-        self.__page = page
-        self.__search = search
-
-    def do(self):
-        self.can_run = True
-        if not self.can_run:
-            return
-
-        highlighted = self.__page.get_boxes(self.__search)
-        if not self.can_run:
-            return
-
-        self.emit('highlighted-boxes', highlighted)
-
-    def stop(self, will_resume=False):
-        self.can_run = False
-        self._stop_wait()
-
-
-GObject.type_register(JobBoxesRefresher)
-
-
-class JobFactoryBoxesRefresher(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "BoxesRefresher")
-        self.__main_win = main_win
-
-    def make(self, page, search):
-        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
-        job.connect('highlighted-boxes',
-                    lambda job, boxes:
-                    GLib.idle_add(self.__main_win.on_highlighted_boxes,
-                                     boxes))
-        return job
-
-
-class JobBoxesSelecter(Job):
-    __gsignals__ = {
-        'selected-boxes': (GObject.SignalFlags.RUN_LAST, None,
-                           (
-                               # selected boxes
-                               GObject.TYPE_PYOBJECT,
-                           )),
-    }
-
-    can_stop = True
-    priority = 30
-
-    def __init__(self, factory, id, boxes, mouse_position, get_box_pos_func):
-        Job.__init__(self, factory, id)
-        self.__boxes = boxes
-        self.__mouse_pos = mouse_position
-        self.__get_box_pos_func = get_box_pos_func
-
-    def do(self):
-        self.can_run = True
-        self._wait(0.5)
-        if not self.can_run:
-            return
-
-        mouse_x, mouse_y = self.__mouse_pos
-        selected = set()
-
-        for line in self.__boxes:
-            if not self.can_run:
-                return
-
-            pos = self.__get_box_pos_func(line)
-            ((a, b), (c, d)) = pos
-            if (mouse_x < a or mouse_y < b
-                    or mouse_x > c or mouse_y > d):
-                continue
-
-            for box in line.word_boxes:
-                if not self.can_run:
-                    return
-
-                pos = self.__get_box_pos_func(box)
-                ((a, b), (c, d)) = pos
-                if (mouse_x < a or mouse_y < b
-                        or mouse_x > c or mouse_y > d):
-                    continue
-                selected.add(box)
-
-        self.emit('selected-boxes', selected)
-
-    def stop(self, will_resume=False):
-        self.can_run = False
-        self._stop_wait()
-
-
-GObject.type_register(JobBoxesSelecter)
-
-
-class JobFactoryBoxesSelecter(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "BoxesSelecter")
-        self.__main_win = main_win
-
-    def make(self, boxes, mouse_position, get_box_pos_func):
-        job = JobBoxesSelecter(self, next(self.id_generator),
-                               boxes, mouse_position, get_box_pos_func)
-        job.connect('selected-boxes',
-                    lambda job, boxes:
-                    GLib.idle_add(self.__main_win.on_selected_boxes,
-                                     boxes))
-        return job
-
-
-class JobFactoryBoxesRefresher(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "BoxesRefresher")
-        self.__main_win = main_win
-
-    def make(self, page, search):
-        job = JobBoxesRefresher(self, next(self.id_generator), page, search)
-        job.connect('highlighted-boxes',
-                    lambda job, boxes:
-                    GLib.idle_add(self.__main_win.on_highlighted_boxes,
-                                     boxes))
-        return job
-
-
 class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1222,113 +953,6 @@ class JobFactoryOCRRedoer(JobFactory):
                     lambda ocr_redoer:
                     GLib.idle_add(self.__main_win.on_redo_ocr_end_cb,
                                      ocr_redoer))
-        return job
-
-
-class JobSingleScan(Job):
-    __gsignals__ = {
-        'single-scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        'single-scan-ocr': (GObject.SignalFlags.RUN_LAST, None, ()),
-        'single-scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_PYOBJECT,)),  # ImgPage
-        'single-scan-no-scanner-found': (GObject.SignalFlags.RUN_LAST, None,
-                                         ()),
-        'single-scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                              (GObject.TYPE_PYOBJECT,)),
-    }
-
-    can_stop = False
-    priority = 5
-
-    def __init__(self, factory, id, config, docsearch, target_doc):
-        Job.__init__(self, factory, id)
-        self.__config = config
-        self.doc = target_doc
-        self.__docsearch = docsearch
-        self.__ocr_running = False
-        self.done = False
-
-    def __scan_progress_cb(self, progression, total, step, doc=None):
-        if (step == ImgPage.SCAN_STEP_OCR) and (not self.__ocr_running):
-            self.emit('single-scan-ocr')
-            self.__ocr_running = True
-
-    def do(self):
-        self.emit('single-scan-start')
-
-        self.__ocr_running = False
-        try:
-            scanner = self.__config.get_scanner_inst()
-            try:
-                # any source is actually fine. we just have a clearly defined
-                # preferred order
-                set_scanner_opt('source', scanner.options['source'],
-                                ["Auto", "FlatBed",
-                                 ".*ADF.*", ".*Feeder.*"])
-            except (KeyError, pyinsane.SaneException), exc:
-                logger.warning("Warning: Unable to set scanner source: "
-                               "%s" % exc)
-            maximize_scan_area(scanner)
-            scan_src = scanner.scan(multiple=False)
-        except pyinsane.SaneException, exc:
-            logger.error("No scanner found !")
-            logger.error("Error was: %s" % str(exc))
-            self.emit('single-scan-no-scanner-found')
-            return
-        except Exception, exc:
-            self.emit('single-scan-error', exc)
-            raise
-        try:
-            try:
-                resolution = scanner.options['resolution'].value
-            except pyinsane.SaneException, exc:
-                resolution = self.__config.scanner_resolution
-                logger.warning("Failed to read the resolution set on"
-                               " the scanner: %s. Assuming %d"
-                               % (str(exc), resolution))
-            self.doc.scan_single_page(scan_src, resolution,
-                                      self.__config.scanner_calibration,
-                                      self.__config.langs,
-                                      self.__scan_progress_cb)
-            page = self.doc.pages[self.doc.nb_pages - 1]
-            self.__docsearch.index_page(page)
-            self.emit('single-scan-done', page)
-        except Exception, exc:
-            self.emit('single-scan-error', exc)
-            raise
-
-
-GObject.type_register(JobSingleScan)
-
-
-class JobFactorySingleScan(JobFactory):
-    def __init__(self, main_win, config):
-        JobFactory.__init__(self, "SingleScan")
-        self.__main_win = main_win
-        self.__config = config
-
-    def make(self, docsearch, target_doc):
-        job = JobSingleScan(self, next(self.id_generator), self.__config,
-                            docsearch, target_doc)
-        job.connect('single-scan-start',
-                    lambda job:
-                    GLib.idle_add(self.__main_win.on_single_scan_start,
-                                     job))
-        job.connect('single-scan-ocr',
-                    lambda job:
-                    GLib.idle_add(self.__main_win.on_single_scan_ocr,
-                                     job))
-        job.connect('single-scan-done',
-                    lambda job, page:
-                    GLib.idle_add(self.__main_win.on_single_scan_done,
-                                  job, page))
-        job.connect('single-scan-no-scanner-found',
-                    lambda job:
-                    GLib.idle_add(self.__main_win.on_no_scanner_found, job))
-        job.connect('single-scan-error',
-                    lambda job, error:
-                    GLib.idle_add(self.__main_win.on_single_scan_error,
-                                  job, error))
         return job
 
 
@@ -1720,11 +1344,12 @@ class ActionRebuildPage(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.schedulers['main'].cancel_all(
-            self.__main_win.job_factories['img_builder'])
-        job = self.__main_win.job_factories['img_builder'].make(
-            self.__main_win.page)
-        self.__main_win.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
+        #self.__main_win.schedulers['main'].cancel_all(
+        #    self.__main_win.job_factories['img_builder'])
+        #job = self.__main_win.job_factories['img_builder'].make(
+        #    self.__main_win.page)
+        #self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -1745,7 +1370,7 @@ class ActionToggleAllBoxes(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.show_all_boxes = not self.__main_win.show_all_boxes
-        self.__main_win.show_page(self.__main_win.page, force_refresh=True)
+        self.__main_win.refresh_boxes()
 
 
 class ActionLabelSelected(SimpleAction):
@@ -1910,11 +1535,12 @@ class ActionSingleScan(SimpleAction):
             return
         doc = self.__main_win.doc
 
-        self.__main_win.schedulers['main'].cancel_all(
-            self.__main_win.job_factories['single_scan'])
-        job = self.__main_win.job_factories['single_scan'].make(
-            self.__main_win.docsearch, doc)
-        self.__main_win.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
+        #self.__main_win.schedulers['main'].cancel_all(
+        #    self.__main_win.job_factories['single_scan'])
+        #job = self.__main_win.job_factories['single_scan'].make(
+        #    self.__main_win.docsearch, doc)
+        #self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionMultiScan(SimpleAction):
@@ -2750,12 +2376,9 @@ class MainWindow(object):
                 sorting_widget.set_active(True)
 
         self.job_factories = {
-            'boxes_refresher': JobFactoryBoxesRefresher(self),
-            'boxes_selecter': JobFactoryBoxesSelecter(self),
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'export_previewer': JobFactoryExportPreviewer(self),
-            'img_builder': JobFactoryImgBuilder(self),
             'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
@@ -2770,7 +2393,6 @@ class MainWindow(object):
             'progress_updater': JobFactoryProgressUpdater(
                 self.status['progress']),
             'searcher': JobFactoryDocSearcher(self, config),
-            'single_scan': JobFactorySingleScan(self, config),
         }
 
         self.actions = {
@@ -3070,11 +2692,12 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
-        self.img['eventbox'].connect("leave-notify-event",
-                                     self.__on_img_mouse_leave)
-        self.img['eventbox'].connect("motion-notify-event",
-                                     self.__on_img_mouse_motion)
+        # TODO(Jflesch):
+        #self.img['eventbox'].add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+        #self.img['eventbox'].connect("leave-notify-event",
+        #                             self.__on_img_mouse_leave)
+        #self.img['eventbox'].connect("motion-notify-event",
+        #                             self.__on_img_mouse_motion)
 
         for widget in [self.lists['pages']['gui'],
                        self.lists['matches']['gui']]:
@@ -3090,8 +2713,6 @@ class MainWindow(object):
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
-
-        self.img['image'].connect_after('draw', self.__on_img_draw)
 
         self.img['viewport']['widget'].connect("size-allocate",
                                                self.__on_img_resize_cb)
@@ -3238,43 +2859,6 @@ class MainWindow(object):
         self.img['boxes']['highlighted'] = []
         self.img['boxes']['visible'] = []
 
-    def on_img_building_start(self, warn_user):
-        if not warn_user:
-            return
-        self.drop_boxes()
-        self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
-                                         Gtk.IconSize.DIALOG)
-
-    def on_img_building_result_stock(self, warned_user, img):
-        self.img['image'].set_from_stock(img, Gtk.IconSize.DIALOG)
-        if warned_user:
-            self.set_mouse_cursor("Normal")
-
-    def on_img_building_result_clear(self, warned_user):
-        self.img['image'].clear()
-        if warned_user:
-            self.set_mouse_cursor("Normal")
-
-    def on_img_building_canceled(self, warned_user):
-        if warned_user:
-            self.set_mouse_cursor("Normal")
-
-    def on_img_building_result_pixbuf(self, builder, warned_user, factor,
-                                      original_width, pixbuf, boxes):
-        self.img['boxes']['all'] = boxes
-
-        self.img['factor'] = factor
-        self.img['pixbuf'] = pixbuf
-        self.img['original_width'] = original_width
-
-        self.img['image'].set_from_pixbuf(pixbuf)
-
-        self.refresh_boxes()
-
-        if warned_user:
-            self.set_mouse_cursor("Normal")
-
     def on_label_updating_start_cb(self, src):
         self.set_search_availability(False)
         self.set_mouse_cursor("Busy")
@@ -3311,87 +2895,6 @@ class MainWindow(object):
         # in case the keywords were highlighted
         self.show_page(self.page, force_refresh=True)
         self.actions['reindex'][1].do()
-
-    def on_single_scan_start(self, job):
-        self.set_progression(job, 0.0, _("Scanning ..."))
-        self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
-                                         Gtk.IconSize.DIALOG)
-        set_widget_state(self.doc_edit_widgets, False)
-        self.__scan_start = time.time()
-
-        self.__scan_progress_job = self.job_factories['progress_updater'].make(
-            value_min=0.0, value_max=0.5,
-            total_time=self.__config.scan_time['normal'])
-        self.schedulers['progress'].schedule(self.__scan_progress_job)
-
-    def on_single_scan_ocr(self, job):
-        scan_stop = time.time()
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
-        self.__config.scan_time['normal'] = scan_stop - self.__scan_start
-
-        self.set_progression(job, 0.5, _("Reading ..."))
-
-        self.__scan_start = time.time()
-        self.__scan_progress_job = self.job_factories['progress_updater'].make(
-            value_min=0.5, value_max=1.0,
-            total_time=self.__config.scan_time['ocr'])
-        self.schedulers['progress'].schedule(self.__scan_progress_job)
-
-    def on_single_scan_done(self, job, page):
-        scan_stop = time.time()
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
-        self.__config.scan_time['ocr'] = scan_stop - self.__scan_start
-
-        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
-                         True)
-
-        self.set_progression(job, 0.0, None)
-        self.set_mouse_cursor("Normal")
-        self.refresh_page_list()
-
-        assert(page is not None)
-        self.doc = job.doc  # no need to call show_doc() here
-        self.show_page(page, force_refresh=True)
-
-        if job.doc.nb_pages <= 1:
-            self.refresh_docs({job.doc}, redo_thumbnails=True)
-        else:
-            self.refresh_docs({job.doc}, redo_thumbnails=False)
-
-    def on_single_scan_error(self, src, error):
-        logger.error("Error while scanning: %s: %s" % (type(error), error))
-        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
-                         True)
-
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
-        self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Normal")
-        self.refresh_page_list()
-        self.refresh_docs({self.doc})
-
-        flags = (Gtk.DialogFlags.MODAL
-                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-        msg = _("Error while scanning: %s") % (error)
-        dialog = Gtk.MessageDialog(
-            parent=self.window,
-            flags=flags,
-            type=Gtk.MessageType.ERROR,
-            buttons=Gtk.ButtonsType.OK,
-            message_format=msg)
-        dialog.run()
-        dialog.destroy()
-
-    def on_no_scanner_found(self, src):
-        logger.error("No scanner found")
-        popup_no_scanner_found(self.window)
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
-        set_widget_state(self.need_doc_widgets.union(self.doc_edit_widgets),
-                         True)
-        self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Normal")
-        self.refresh_page_list()
-        self.refresh_docs({self.doc})
 
     def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
@@ -3436,93 +2939,6 @@ class MainWindow(object):
         if event.button != 3 or event.type != Gdk.EventType.BUTTON_PRESS:
             return
         popup_menu.popup(None, None, None, None, event.button, event.time)
-
-    def __on_img_mouse_motion(self, event_box, event):
-        self.schedulers['main'].cancel_all(
-            self.job_factories['boxes_selecter'])
-        job = self.job_factories['boxes_selecter'].make(
-            self.img['boxes']['all'], event.get_coords(),
-            lambda box: self.__get_box_position(box, window=self.img['image'],
-                                                width=0))
-        self.schedulers['main'].schedule(job)
-
-    def __queue_box_draw(self, boxes):
-        for box in boxes:
-            position = self.__get_box_position(
-                box, window=self.img['image'], width=5)
-            self.img['image'].queue_draw_area(position[0][0], position[0][1],
-                                              position[1][0] - position[0][0],
-                                              position[1][1] - position[0][1])
-
-    def on_selected_boxes(self, selected):
-        selected = set(selected)  # copy
-        to_refresh = set(self.img['boxes']['selected'])
-        to_refresh = to_refresh.union(selected)
-
-        self.img['boxes']['selected'] = [x for x in selected]
-
-        if len(selected) > 0:
-            box = selected.pop()
-            self.img['image'].set_tooltip_text(box.content)
-        else:
-            self.img['image'].set_has_tooltip(False)
-
-        self.__queue_box_draw(to_refresh)
-
-    def __on_img_mouse_leave(self, event_box, event):
-        to_refresh = self.img['boxes']['selected']
-
-        self.img['boxes']['selected'] = []
-        self.img['image'].set_has_tooltip(False)
-
-        for box in to_refresh:
-            position = self.__get_box_position(
-                box, window=self.img['image'], width=5)
-            self.img['image'].queue_draw_area(position[0][0], position[0][1],
-                                              position[1][0] - position[0][0],
-                                              position[1][1] - position[0][1])
-
-    def __get_box_position(self, box, window=None, width=1):
-        ((a, b), (c, d)) = box.position
-        a *= self.img['factor']
-        b *= self.img['factor']
-        c *= self.img['factor']
-        d *= self.img['factor']
-        if window:
-            (win_w, win_h) = (window.get_allocation().width,
-                              window.get_allocation().height)
-            (pic_w, pic_h) = (self.img['pixbuf'].get_width(),
-                              self.img['pixbuf'].get_height())
-            (margin_x, margin_y) = ((win_w-pic_w)/2, (win_h-pic_h)/2)
-            a += margin_x
-            b += margin_y
-            c += margin_x
-            d += margin_y
-        a -= width
-        b -= width
-        c += width
-        d += width
-        return ((int(a), int(b)), (int(c), int(d)))
-
-    def __on_img_draw(self, imgwidget, cairo_context):
-        visible = []
-        for line in self.img['boxes']['visible']:
-            visible += line.word_boxes
-        colors = [
-            ((0.421875, 0.36328125, 0.81640625), 1, visible),
-            ((0.421875, 0.36328125, 0.81640625), 2,
-             self.img['boxes']['selected']),
-            ((0.0, 0.62109375, 0.0), 2, self.img['boxes']['highlighted'])
-        ]
-        for ((color_r, color_b, color_g), line_width, boxes) in colors:
-            cairo_context.set_source_rgb(color_r, color_b, color_g)
-            cairo_context.set_line_width(line_width)
-
-            for box in boxes:
-                ((a, b), (c, d)) = self.__get_box_position(box, imgwidget,
-                                                           width=line_width)
-                cairo_context.rectangle(a, b, c-a, d-b)
-                cairo_context.stroke()
 
     def __get_doc_model_line(self, doc):
         assert(doc is not None)
@@ -3715,31 +3131,17 @@ class MainWindow(object):
         job = self.job_factories['label_predictor'].make(self.doc)
         self.schedulers['main'].schedule(job)
 
-    def on_highlighted_boxes(self, highlighted):
-        prev_highlighted = set(self.img['boxes']['highlighted'])
-        self.img['boxes']['highlighted'] = highlighted
-
-        if self.show_all_boxes:
-            self.img['boxes']['visible'] = self.img['boxes']['all']
-            to_refresh = self.img['boxes']['all']
-        else:
-            self.img['boxes']['visible'] = []
-            to_refresh = prev_highlighted.union(set(highlighted))
-
-        self.__queue_box_draw(to_refresh)
-
     def refresh_boxes(self):
-        self.schedulers['main'].cancel_all(self.job_factories['boxes_refresher'])
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
-        job = self.job_factories['boxes_refresher'].make(self.page, search)
-        self.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
+        pass
 
     def show_page(self, page, force_refresh=False):
         if (page == self.page and not force_refresh):
             return
         logging.info("Showing page %s" % page)
 
-        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
+        # TODO(Jflesch)
+        #self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3767,8 +3169,9 @@ class MainWindow(object):
 
         self.export['dialog'].set_visible(False)
 
-        job = self.job_factories['img_builder'].make(page)
-        self.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
+        #job = self.job_factories['img_builder'].make(page)
+        #self.schedulers['main'].schedule(job)
 
     def show_doc(self, doc_idx, doc, force_refresh=False):
         if (self.doc is not None and self.doc == doc and not force_refresh):
@@ -3859,10 +3262,11 @@ class MainWindow(object):
         if factor > 0.0:
             return
 
-        self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
-        job = self.job_factories['img_builder'].make(self.page,
-                                                     warn_user=False)
-        self.schedulers['main'].schedule(job)
+        # TODO(Jflesch)
+        #self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
+        #job = self.job_factories['img_builder'].make(self.page,
+        #                                             warn_user=False)
+        #self.schedulers['main'].schedule(job)
 
     def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")

@@ -98,8 +98,6 @@ class BasicPage(object):
     DEFAULT_THUMB_WIDTH = 150
     DEFAULT_THUMB_HEIGHT = 220
 
-    SCAN_STEP_SCAN = "scanning"
-    SCAN_STEP_OCR = "ocr"
     EXT_THUMB = "thumb.jpg"
     FILE_PREFIX = "paper."
 
@@ -184,9 +182,6 @@ class BasicPage(object):
     text = property(__get_text)
 
     def print_page_cb(self, print_op, print_context):
-        raise NotImplementedError()
-
-    def redo_ocr(self, langs):
         raise NotImplementedError()
 
     def destroy(self):
@@ -321,9 +316,6 @@ class DummyPage(object):
 
     def print_page_cb(self, print_op, print_context):
         raise NotImplementedError()
-
-    def redo_ocr(self, langs):
-        pass
 
     def destroy(self):
         pass

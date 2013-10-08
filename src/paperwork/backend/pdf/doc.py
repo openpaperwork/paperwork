@@ -28,7 +28,6 @@ from paperwork.backend.pdf.page import PdfPage
 
 
 PDF_FILENAME = "doc.pdf"
-PDF_IMPORT_MIN_KEYWORDS = 5
 logger = logging.getLogger(__name__)
 
 
@@ -178,13 +177,6 @@ class PdfDoc(BasicDoc):
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
         self._open_pdf()
-        nb_keywords = 0
-        for keyword in self.keywords:
-            nb_keywords += 1
-            if nb_keywords >= PDF_IMPORT_MIN_KEYWORDS:
-                break
-        if nb_keywords < PDF_IMPORT_MIN_KEYWORDS:
-            self.redo_ocr(config.langs)
 
     @staticmethod
     def get_export_formats():

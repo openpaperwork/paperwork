@@ -101,14 +101,6 @@ class DummyDocSearch(object):
         assert()
 
     @staticmethod
-    def redo_ocr(langs, progress_callback):
-        """ Do nothing """
-        # to make pylint happy
-        langs = langs
-        progress_callback = progress_callback
-        assert()
-
-    @staticmethod
     def update_label(old_label, new_label, cb_progress=None):
         """ Do nothing """
         # to make pylint happy
@@ -325,7 +317,6 @@ class DocSearch(object):
     INDEX_STEP_COMMIT = "commit"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
-    OCR_THREADS_POLLING_TIME = 0.5
     WHOOSH_SCHEMA = whoosh.fields.Schema( #static up to date schema
                 docid=whoosh.fields.ID(stored=True, unique=True),
                 doctype=whoosh.fields.ID(stored=True, unique=False),
@@ -890,43 +881,6 @@ class DocSearch(object):
         searcher = self.__searcher
         self.__searcher = self.index.searcher()
         del(searcher)
-
-    def redo_ocr(self, langs, progress_callback=dummy_progress_cb):
-        """
-        Rerun the OCR on *all* the documents. Can be a *really* long process,
-        which is why progress_callback is a mandatory argument.
-
-        Arguments:
-            progress_callback --- See util.dummy_progress_cb for a
-                prototype. The only step returned is "INDEX_STEP_READING"
-            langs --- Languages to use with the spell checker and the OCR tool
-                ( { 'ocr' : 'fra', 'spelling' : 'fr' } )
-        """
-        logger.info("Redoing OCR of all documents ...")
-
-        dlist = self.docs
-        threads = []
-        remaining = dlist[:]
-
-        max_threads = multiprocessing.cpu_count()
-
-        while (len(remaining) > 0 or len(threads) > 0):
-            for thread in threads:
-                if not thread.is_alive():
-                    threads.remove(thread)
-            while (len(threads) < max_threads and len(remaining) > 0):
-                doc = remaining.pop()
-                if not doc.can_edit:
-                    continue
-                thread = threading.Thread(target=doc.redo_ocr,
-                                          args=[langs], name=doc.docid)
-                thread.start()
-                threads.append(thread)
-                progress_callback(len(dlist) - len(remaining),
-                                  len(dlist), self.INDEX_STEP_READING,
-                                  doc)
-            time.sleep(self.OCR_THREADS_POLLING_TIME)
-        logger.info("OCR of all documents done")
 
     def destroy_index(self):
         """

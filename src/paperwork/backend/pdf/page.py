@@ -199,26 +199,3 @@ class PdfPage(BasicPage):
 
         self.pdf_page.render_for_printing(ctx)
         return None
-
-    def redo_ocr(self, langs):
-        img = self.img
-        txtfile = self.__get_txt_path()
-        boxfile = self.__get_box_path()
-
-        ocr_tools = pyocr.get_available_tools()
-        if len(ocr_tools) <= 0:
-            # shouldn't happen: scan buttons should be disabled
-            # in that case
-            raise Exception("No OCR tool available")
-
-        txt = ocr_tools[0].image_to_string(img, lang=langs['ocr'])
-        builder = pyocr.builders.LineBoxBuilder()
-        boxes = ocr_tools[0].image_to_string(img, lang=langs['ocr'],
-                                             builder=builder)
-
-        # save the text
-        with codecs.open(txtfile, 'w', encoding='utf-8') as file_desc:
-            file_desc.write(txt)
-        # save the boxes
-        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
-            pyocr.builders.LineBoxBuilder.write_file(file_desc, boxes)

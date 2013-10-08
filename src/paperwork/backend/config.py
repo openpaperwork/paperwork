@@ -23,7 +23,6 @@ import os
 import pycountry
 
 import logging
-import pyinsane.abstract_th as pyinsane
 import pyocr
 
 logger = logging.getLogger(__name__)
@@ -355,24 +354,6 @@ class PaperworkConfig(object):
         self._configparser.set("Scanner", "Sources", str_list)
 
     scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
-
-    def get_scanner_inst(self):
-        """
-        Instantiate a pyinsance scanner and preconfigure it according to the
-        configuration
-        """
-        scanner = pyinsane.Scanner(self.scanner_devid)
-        scanner.options['resolution'].value = self.scanner_resolution
-        if "Color" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Color"
-            logger.info("Scanner mode set to 'Color'")
-        elif "Gray" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Gray"
-            logger.info("Scanner mode set to 'Gray'")
-        else:
-            logger.warn("WARNING: "
-                    "Unable to set scanner mode ! May be 'Lineart'")
-        return scanner
 
     def __get_toolbar_visible(self):
         """

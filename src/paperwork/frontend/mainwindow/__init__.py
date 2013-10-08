@@ -36,10 +36,6 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
-from paperwork.frontend.mainwindow.page import JobPageLoader
-from paperwork.frontend.mainwindow.page import JobFactoryPageLoader
-from paperwork.frontend.mainwindow.page import PageDrawer
-from paperwork.frontend.mainwindow.scan import ScanScene
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow

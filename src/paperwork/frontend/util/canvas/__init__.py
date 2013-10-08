@@ -78,11 +78,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def set_hadjustment(self, h):
         Gtk.Scrollable.set_hadjustment(self, h)
         self.set_property("hadjustment", h)
-        h.set_lower(0.0)
-        h.set_upper(float(self.full_size_x))
-        h.set_step_increment(10.0)
-        h.set_page_increment(100.0)  # TODO(Jflesch)
-        h.set_page_size(0.0)
+        self.upd_adjustments()
         h.connect("value-changed", self.__on_adjustment_changed)
 
     def get_vadjustment(self):
@@ -91,19 +87,15 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def set_vadjustment(self, v):
         Gtk.Scrollable.set_vadjustment(self, v)
         self.set_property("vadjustment", v)
-        v.set_lower(0.0)
-        v.set_upper(float(self.full_size_y))
-        v.set_step_increment(10.0)
-        v.set_page_increment(100.0)  # TODO(Jflesch)
-        v.set_page_size(0.0)
+        self.upd_adjustments()
         v.connect("value-changed", self.__on_adjustment_changed)
 
     def __on_adjustment_changed(self, adjustment):
         self.queue_draw()
 
     def __on_size_allocate(self, _, size_allocate):
-        self.visible_size_x = size_allocate.width
-        self.visible_size_y = size_allocate.height
+        self.visible_size = (size_allocate.width,
+                             size_allocate.height)
         self.upd_adjustments()
         self.queue_draw()
 
@@ -125,27 +117,21 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             self.set_size_request(new_size[0], new_size[1])
             self.upd_adjustments()
 
-    def set_size(self, size):
-        size = (int(size[0]), int(size[1]))
-        self.full_size = size
-        self.size_forced = True
-        self.set_size_request(size[0], size[1])
-        self.upd_adjustments()
-        self.queue_draw()
-
-    def unforce_size(self):
-        self.size_forced = False
-        self.recompute_size()
-
     def upd_adjustments(self):
         val_h = float(self.hadjustment.get_value())
         val_v = float(self.vadjustment.get_value())
+        max_h = max(float(self.visible_size[0]),
+                    float(self.full_size[0]), 100.0)
+        max_v = max(float(self.visible_size[1]),
+                    float(self.full_size[1]), 100.0)
         if val_h > self.full_size[0]:
             val_h = self.full_size[0]
         if val_v > self.full_size[1]:
             val_v = self.full_size[1]
-        self.hadjustment.set_upper(float(self.full_size[0]))
-        self.vadjustment.set_upper(float(self.full_size[1]))
+        self.hadjustment.set_lower(0)
+        self.vadjustment.set_lower(0)
+        self.hadjustment.set_upper(max_h)
+        self.vadjustment.set_upper(max_v)
         self.hadjustment.set_page_size(self.visible_size[0])
         self.vadjustment.set_page_size(self.visible_size[1])
         self.hadjustment.set_value(int(val_h))
@@ -172,7 +158,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         y = drawer.position[1] + drawer.size[1]
 
         self.drawers.add(drawer.layer, drawer)
-        self._recompute_size()
+        self.recompute_size()
         self.queue_draw()
 
     def remove_drawer(self, drawer):

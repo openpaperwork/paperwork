@@ -7,6 +7,14 @@ Instructions to use this overlay are available on
 [its Github repository wiki](https://github.com/bignaux/lorelei-overlay/wiki)
 
 
+## Runtime dependencies
+
+Optional:
+Spell checking is used to improve page orientation detection, so:
+
+    $ sudo emerge -av aspell-<your language>
+
+
 ## Running Paperwork
 
 A shortcut should be available in the menus of your window manager (you may

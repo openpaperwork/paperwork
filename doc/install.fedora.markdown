@@ -38,6 +38,14 @@ Pillow may conflict with the package python-imaging (aka PIL).
     # may miss it.
 
 
+## Runtime dependencies
+
+Optional:
+Spell checking is used to improve page orientation detection, so:
+
+    $ sudo apt-get install aspell-<your language>
+
+
 ## Running Paperwork
 
 A shortcut should be available in the menus of your window manager (you may

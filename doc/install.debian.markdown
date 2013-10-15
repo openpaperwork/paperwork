@@ -37,9 +37,6 @@ so you will have to install some dependencies yourself with python-pip:
 
     $ sudo pip install numpy scikit-learn
 
-
-## Runtime dependencies
-
 Optional:
 Spell checking is used to improve page orientation detection, so:
 

@@ -47,8 +47,11 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                                           (GObject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, hadj, vadj):
+    def __init__(self, scrollbars):
         Gtk.DrawingArea.__init__(self)
+
+        hadj = scrollbars.get_hadjustment()
+        vadj = scrollbars.get_vadjustment()
 
         self.size_forced = False
         self.full_size = (1, 1)
@@ -91,13 +94,13 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         v.connect("value-changed", self.__on_adjustment_changed)
 
     def __on_adjustment_changed(self, adjustment):
-        self.queue_draw()
+        self.redraw()
 
     def __on_size_allocate(self, _, size_allocate):
         self.visible_size = (size_allocate.width,
                              size_allocate.height)
         self.upd_adjustments()
-        self.queue_draw()
+        self.redraw()
 
     def recompute_size(self):
         if self.size_forced:
@@ -159,18 +162,23 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.drawers.add(drawer.layer, drawer)
         self.recompute_size()
-        self.queue_draw()
+        self.redraw()
 
     def remove_drawer(self, drawer):
         drawer.hide(self.get_stage())
         self.drawers.remove(drawer)
         self.recompute_size()
+        self.redraw()
 
     def remove_all_drawers(self):
         for drawer in self.drawers:
             drawer.hide(self.get_stage())
         self.drawers.purge()
         self.recompute_size()
+        self.redraw()
+
+    def redraw(self):
+        self.queue_draw()
 
     def __on_scroll_event(self, _, event):
         ops = {

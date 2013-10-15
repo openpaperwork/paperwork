@@ -36,8 +36,9 @@ import pyocr
 from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
-from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
+from paperwork.frontend.util.canvas.drawers import ScanDrawer
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -223,6 +224,11 @@ class JobCalibrationScan(Job):
     __gsignals__ = {
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
+        'calibration-scan-info': (GObject.SignalFlags.RUN_LAST, None,
+                                   (  # expected size
+                                    GObject.TYPE_INT,
+                                    GObject.TYPE_INT,
+                                   )),
         'calibration-scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
                                    # line where to put the image
                                    (GObject.TYPE_INT,
@@ -231,9 +237,6 @@ class JobCalibrationScan(Job):
                                   (GObject.TYPE_PYOBJECT,  # Pillow image
                                    GObject.TYPE_INT,  # scan resolution
                                   )),
-        'calibration-resize-done': (GObject.SignalFlags.RUN_LAST, None,
-                                    (GObject.TYPE_FLOAT,  # resize factor
-                                     GObject.TYPE_PYOBJECT, )),  # Pillow image
         'calibration-scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                                       ()),
     }
@@ -241,9 +244,8 @@ class JobCalibrationScan(Job):
     can_stop = True
     priority = 495
 
-    def __init__(self, factory, id, resolutions_store, target_viewport, devid):
+    def __init__(self, factory, id, resolutions_store, devid):
         Job.__init__(self, factory, id)
-        self.__target_viewport = target_viewport
         self.__resolutions_store = resolutions_store
         self.__devid = devid
         self.can_run = False
@@ -290,7 +292,10 @@ class JobCalibrationScan(Job):
         else:
             logger.warn("Unable to set scanner mode ! May be 'Lineart'")
         maximize_scan_area(dev)
+
         scan_session = dev.scan(multiple=False)
+        scan_size = scan_session.scan.expected_size
+        self.emit('calibration-scan-info', scan_size[0], scan_size[1])
 
         last_line = 0
         try:
@@ -310,35 +315,8 @@ class JobCalibrationScan(Job):
         except EOFError:
             pass
 
-        orig_img = scan_session.get_img()
-        self.emit('calibration-scan-done', orig_img, resolution)
-
-        # resize
-        orig_img_size = orig_img.getbbox()
-        orig_img_size = (orig_img_size[2], orig_img_size[3])
-        logger.info("Calibration: Got an image of size '%s'"
-				% str(orig_img_size))
-
-        target_alloc = self.__target_viewport.get_allocation()
-        max_width = target_alloc.width
-        max_height = target_alloc.height
-
-        factor_width = (float(max_width) / orig_img_size[0])
-        factor_height = (float(max_height) / orig_img_size[1])
-        factor = min(factor_width, factor_height)
-        if factor > 1.0:
-            factor = 1.0
-
-        target_width = int(factor * orig_img_size[0])
-        target_height = int(factor * orig_img_size[1])
-        target = (target_width, target_height)
-
-        logger.info("Calibration: Will resize it to: (%s) (ratio: %f)"
-               % (target, factor))
-
-        resized_img = orig_img.resize(target, PIL.Image.BILINEAR)
-        self.emit('calibration-resize-done', factor, resized_img)
-
+        img = scan_session.get_img()
+        self.emit('calibration-scan-done', img, resolution)
     def stop(self, will_resume=False):
         assert(not will_resume)
         self.can_run = False
@@ -348,27 +326,29 @@ GObject.type_register(JobCalibrationScan)
 
 
 class JobFactoryCalibrationScan(JobFactory):
-    def __init__(self, settings_win, target_viewport, resolutions_store):
+    def __init__(self, settings_win, resolutions_store):
         JobFactory.__init__(self, "CalibrationScan")
         self.__settings_win = settings_win
-        self.__target_viewport = target_viewport
         self.__resolutions_store = resolutions_store
 
     def make(self, devid):
         job = JobCalibrationScan(self, next(self.id_generator),
                                  self.__resolutions_store,
-                                 self.__target_viewport, devid)
+                                 devid)
         job.connect('calibration-scan-start',
                     lambda job:
                     GLib.idle_add(self.__settings_win.on_scan_start))
+        job.connect('calibration-scan-info',
+                    lambda job, size_x, size_y:
+                    GLib.idle_add(self.__settings_win.on_scan_info,
+                                 (size_x, size_y)))
+        job.connect('calibration-scan-chunk',
+                    lambda job, line, img:
+                    GLib.idle_add(self.__settings_win.on_scan_chunk, line, img))
         job.connect('calibration-scan-done',
                     lambda job, img, resolution:
                     GLib.idle_add(self.__settings_win.on_scan_done, img,
                                      resolution))
-        job.connect('calibration-resize-done',
-                    lambda job, factor, img:
-                    GLib.idle_add(self.__settings_win.on_resize_done,
-                                  factor, img))
         job.connect('calibration-scan-canceled',
                     lambda job:
                     GLib.idle_add(self.__settings_win.on_scan_canceled))
@@ -578,16 +558,17 @@ class SettingsWindow(GObject.GObject):
             },
         }
 
+        img_scrollbars = widget_tree.get_object("scrolledwindowCalibration")
+        img_canvas = Canvas(img_scrollbars)
+        img_scrollbars.add(img_canvas)
+
         self.calibration = {
             "scan_button": widget_tree.get_object("buttonScanCalibration"),
-            "image_gui": widget_tree.get_object("imageCalibration"),
-            "image_viewport": widget_tree.get_object("viewportCalibration"),
+            "image_gui": img_canvas,
             "images": [],  # array of tuples: (resize factor, PIL image)
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
-            "image_scrollbars":
-            widget_tree.get_object("scrolledwindowCalibration"),
-            "resolution":
-            PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION,
+            "image_scrollbars": img_scrollbars,
+            "resolution": PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION,
         }
 
         self.grips = None
@@ -602,7 +583,6 @@ class SettingsWindow(GObject.GObject):
                 config.RECOMMENDED_RESOLUTION),
             "scan": JobFactoryCalibrationScan(
                 self,
-                self.calibration['image_viewport'],
                 self.device_settings['resolution']['stores']['loaded']
             ),
             "progress_updater": JobFactoryProgressUpdater(self.progressbar),
@@ -723,9 +703,8 @@ class SettingsWindow(GObject.GObject):
     def on_scan_start(self):
         self.calibration["scan_button"].set_sensitive(False)
         self.set_mouse_cursor("Busy")
-        #self.calibration['image_gui'].set_alignment(0.5, 0.5)
-        #self.calibration['image_gui'].set_from_stock(
-        #    Gtk.STOCK_EXECUTE, Gtk.IconSize.DIALOG)
+
+        self.calibration['image_gui'].remove_all_drawers()
 
         self.__scan_start = time.time()
 
@@ -733,6 +712,14 @@ class SettingsWindow(GObject.GObject):
             value_min=0.0, value_max=1.0,
             total_time=self.__config.scan_time['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
+
+    def on_scan_info(self, size):
+        self.calibration['scan_drawer'] = ScanDrawer((0, 0), size)
+        self.calibration['image_gui'].add_drawer(
+            self.calibration['scan_drawer'])
+
+    def on_scan_chunk(self, line, img):
+        self.calibration['scan_drawer'].add_chunk(line, img)
 
     def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()
@@ -742,9 +729,6 @@ class SettingsWindow(GObject.GObject):
         self.calibration['images'] = [(1.0, img)]
         self.calibration['resolution'] = scan_resolution
         self.progressbar.set_fraction(0.0)
-
-    def on_resize_done(self, factor, img):
-        self.calibration['images'].insert(0, (factor, img))
         self.grips = ImgGripHandler(self.calibration['images'],
                                     self.calibration['image_scrollbars'],
                                     self.calibration['image_eventbox'],

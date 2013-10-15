@@ -2322,8 +2322,7 @@ class MainWindow(object):
         }
 
         img_scrollbars = widget_tree.get_object("scrolledwindowPageImg")
-        img_widget = Canvas(img_scrollbars.get_hadjustment(),
-                            img_scrollbars.get_vadjustment())
+        img_widget = Canvas(img_scrollbars)
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
 

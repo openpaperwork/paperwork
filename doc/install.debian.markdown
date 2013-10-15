@@ -37,6 +37,11 @@ so you will have to install some dependencies yourself with python-pip:
 
     $ sudo pip install numpy scikit-learn
 
+Optional:
+Spell checking is used to improve page orientation detection, so:
+
+    $ sudo apt-get install aspell-<your language>
+
 
 ## System-wide installation
 

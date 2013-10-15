@@ -385,7 +385,7 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
                             being the preferred one)
     """
     value = possible_values[0]
-    regexs = [re.compile(x) for x in possible_values]
+    regexs = [re.compile(x, flags=re.IGNORECASE) for x in possible_values]
 
     if (scanner_opt.constraint_type ==
         pyinsane.SaneConstraintType.STRING_LIST):

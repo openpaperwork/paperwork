@@ -17,6 +17,14 @@ Pillow may conflict with the package python-imaging (aka PIL).
     $ sudo apt-get install libjpeg-dev zlib1g-dev
 
 
+## Runtime dependencies
+
+Optional:
+Spell checking is used to improve page orientation detection, so:
+
+    $ sudo apt-get install aspell-<your language>
+
+
 ## System-wide installation
 
     $ sudo pip install paperwork

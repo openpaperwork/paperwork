@@ -3204,10 +3204,16 @@ class MainWindow(object):
         self.doc = doc
         self.img['canvas'].remove_all_drawers()
 
+        factories = {
+            'page_loader': self.job_factories['page_loader']
+        }
+        schedulers = {
+            'page_loader': self.schedulers['main']
+        }
+
         self.page_drawers = []
         for page in doc.pages:
-            drawer = PageDrawer((0, 0), page, self.job_factories['page_loader'],
-                               self.schedulers['main'])
+            drawer = PageDrawer((0, 0), page, factories, schedulers)
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
         self.update_page_sizes()

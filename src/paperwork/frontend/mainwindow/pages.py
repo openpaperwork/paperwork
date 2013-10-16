@@ -18,8 +18,6 @@ class JobPageLoader(Job):
         'page-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-loading-img': (GObject.SignalFlags.RUN_LAST, None,
                              (GObject.TYPE_PYOBJECT,)),
-        'page-loading-boxes': (GObject.SignalFlags.RUN_LAST, None,
-                               (GObject.TYPE_PYOBJECT,)),  # array of boxes
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -33,6 +31,7 @@ class JobPageLoader(Job):
             img = self.page.img
             img.load()
             self.emit('page-loading-img', image2surface(img))
+
         finally:
             self.emit('page-loading-done')
 
@@ -49,7 +48,6 @@ class JobFactoryPageLoader(JobFactory):
                     lambda job, img:
                     GLib.idle_add(drawer.on_page_loading_img,
                                   job.page, img))
-        # TODO(Jflesch): boxes
         return job
 
 
@@ -57,8 +55,8 @@ class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
 
     def __init__(self, position, page,
-                 job_page_loader_factory,
-                 job_scheduler):
+                 job_factories,
+                 job_schedulers):
         self.position = position
         self.page = page
         self.size = page.size
@@ -67,8 +65,8 @@ class PageDrawer(Drawer):
         self.visible = False
         self.loading = False
 
-        self.job_page_loader_factory = job_page_loader_factory
-        self.job_scheduler = job_scheduler
+        self.factories = job_factories
+        self.schedulers = job_schedulers
 
     def set_size_ratio(self, factor):
         self.size = (int(factor * self.max_size[0]),
@@ -78,8 +76,8 @@ class PageDrawer(Drawer):
         if self.loading:
             return
         self.loading = True
-        job = self.job_page_loader_factory.make(self, self.page)
-        self.job_scheduler.schedule(job)
+        job = self.factories['page_loader'].make(self, self.page)
+        self.schedulers['page_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):
         self.loading = False

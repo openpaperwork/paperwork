@@ -87,13 +87,15 @@ class PageDrawer(Drawer):
         self.canvas.redraw()
 
     def unload_img(self):
-        del(self.surface)
+        if self.surface is not None:
+            del(self.surface)
+            self.surface = None
 
     def hide(self):
         self.unload_img()
         self.visible = False
 
-    def do_draw(self, cairo_context, canvas_offset, canvas_visible_size):
+    def draw(self, cairo_context, canvas_offset, canvas_visible_size):
         should_be_visible = self.compute_visibility(
             canvas_offset, canvas_visible_size,
             self.position, self.size)
@@ -103,8 +105,18 @@ class PageDrawer(Drawer):
             self.unload_img()
         self.visible = should_be_visible
 
-        if not self.visible or not self.surface:
+        if not self.visible:
             return
 
-        self.draw_surface(cairo_context, canvas_offset, canvas_visible_size,
-                          self.surface, self.position, self.size)
+        if not self.surface:
+            cairo_context.set_source_rgb(0.75, 0.75, 0.75)
+            cairo_context.rectangle(self.position[0] - canvas_offset[0],
+                                    self.position[1] - canvas_offset[1],
+                                    self.size[0], self.size[1])
+            cairo_context.clip()
+            cairo_context.paint()
+        else:
+            self.draw_surface(cairo_context, canvas_offset,
+                              canvas_visible_size,
+                              self.surface, self.position,
+                              self.size)

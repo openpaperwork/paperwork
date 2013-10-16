@@ -76,6 +76,7 @@ class Drawer(object):
         cairo_context.clip()
         cairo_context.paint()
 
+
     def do_draw(self, cairo_context, offset, size):
         """
         Arguments:

@@ -112,3 +112,6 @@ class PriorityQueue(object):
 
     def __iter__(self):
         return PriorityQueueIter(self.elements)
+
+    def __str__(self):
+        return "PW[%s]" % (", ".join([str(x) for x in self.elements]))

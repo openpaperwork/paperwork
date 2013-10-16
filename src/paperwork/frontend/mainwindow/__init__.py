@@ -36,6 +36,8 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
+from paperwork.frontend.mainwindow.pages import PageDrawer
+from paperwork.frontend.mainwindow.pages import JobFactoryPageLoader
 from paperwork.frontend.mainwindow.scan import ScanScene
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
@@ -2170,6 +2172,8 @@ class ActionEditPage(SimpleAction):
 
 
 class MainWindow(object):
+    PAGE_MARGIN = 50
+
     def __init__(self, config):
         GLib.set_application_name(_("Paperwork"))
         GLib.set_prgname("paperwork")
@@ -2251,7 +2255,7 @@ class MainWindow(object):
         # All the pages are displayed on the canvas,
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
-        self.pages = [self.page]
+        self.page_drawers = []
 
         search_completion = Gtk.EntryCompletion()
 
@@ -2332,7 +2336,7 @@ class MainWindow(object):
         # selected in the page list (and the page number is up-to-date)
 
         self.img = {
-            "image": img_widget,
+            "canvas": img_widget,
             "scrollbar": img_scrollbars,
             "viewport": {
                 "widget": img_widget,
@@ -2438,6 +2442,7 @@ class MainWindow(object):
             'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
             'page_list': self.lists['pages'].job_factory,
+            'page_loader': JobFactoryPageLoader(),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'progress_updater': JobFactoryProgressUpdater(
                 self.status['progress']),
@@ -2941,8 +2946,6 @@ class MainWindow(object):
     def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
         self.set_mouse_cursor("Busy")
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
-                                         Gtk.IconSize.DIALOG)
         self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=0.75,
             total_time=self.__config.scan_time['ocr'])
@@ -3178,13 +3181,36 @@ class MainWindow(object):
         # Show boxes on the active pages
         pass
 
+    def __resize_page(self, drawer):
+        factor = self.get_zoom_factor(drawer.max_size)
+        drawer.set_size_ratio(factor)
+
+    def __update_page_position(self):
+        position = 0
+        for drawer in self.page_drawers:
+            drawer.position = (0, position)
+            position += drawer.size[1] + self.PAGE_MARGIN
+
+    def update_page_sizes(self):
+        for page in self.page_drawers:
+            self.__resize_page(page)
+        self.__update_page_position()
+
     def show_doc(self, doc_idx, doc, force_refresh=False):
         if (self.doc is not None and self.doc == doc and not force_refresh):
+            logger.info("Doc is already shown")
             return
         logger.info("Showing document %s" % doc)
         self.doc = doc
-        # we need the page list, but as an array we can modify
-        self.pages = [page for page in doc.pages]
+        self.img['canvas'].remove_all_drawers()
+
+        self.page_drawers = []
+        for page in doc.pages:
+            drawer = PageDrawer((0, 0), page, self.job_factories['page_loader'],
+                               self.schedulers['main'])
+            self.page_drawers.append(drawer)
+            self.img['canvas'].add_drawer(drawer)
+        self.update_page_sizes()
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3205,28 +3231,15 @@ class MainWindow(object):
         self.refresh_page_list()
         self.refresh_label_list()
 
-        # TODO(Jflesch):
-        # Place all the pages on the canvas
-
         if doc.nb_pages >= 0:
             page = doc.pages[0]
         else:
             page = DummyPage(self.doc)
-            self.pages = [page]
 
         self.show_page(page)
 
-    def show_page(self, page, force_refresh=False):
-        if (page.doc != self.doc or force_refresh):
-            self.show_doc(page.doc, force_refresh)
-
-        logging.info("Showing page %s" % page)
-
+    def __select_page(self, page):
         self.page = page
-
-        if self.export['exporter'] is not None:
-            logging.info("Canceling export")
-            self.actions['cancel_export'][1].do()
 
         set_widget_state(self.need_page_widgets, True)
         set_widget_state(self.doc_edit_widgets, self.doc.can_edit)
@@ -3246,45 +3259,34 @@ class MainWindow(object):
         self.indicators['current_page'].set_text("%d" % (page.page_nb + 1))
         self.actions['set_current_page'][1].enabled = True
 
+    def show_page(self, page, force_refresh=False):
+        if (page.doc != self.doc or force_refresh):
+            self.show_doc(page.doc, force_refresh)
+
+        logging.info("Showing page %s" % page)
+
+        drawer = None
+        for d in self.page_drawers:
+            if d.page == page:
+                drawer = d
+                break
+        if drawer is not None:
+            self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
+
+        if self.export['exporter'] is not None:
+            logging.info("Canceling export")
+            self.actions['cancel_export'][1].do()
+
         self.export['dialog'].set_visible(False)
 
-        # TODO(Jflesch)
-        #job = self.job_factories['img_builder'].make(page)
-        #self.schedulers['main'].schedule(job)
-
-    def show_doc(self, doc_idx, doc, force_refresh=False):
-        if (self.doc is not None and self.doc == doc and not force_refresh):
-            return
-        self.doc = doc
-
-        is_new = doc.is_new
-        can_edit = doc.can_edit
-
-        set_widget_state(self.need_doc_widgets, True)
-        set_widget_state(self.doc_edit_widgets, True)
-        set_widget_state(self.need_doc_widgets, False,
-                         cond=lambda widget: is_new)
-        set_widget_state(self.doc_edit_widgets, False,
-                         cond=lambda widget: not can_edit)
-
-        pages_gui = self.lists['pages']['gui']
-        if doc.can_edit:
-            pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
-            pages_gui.drag_source_add_text_targets()
-        else:
-            pages_gui.unset_model_drag_source()
-        self.refresh_page_list()
-        self.refresh_label_list()
-
-        # Scroll the img canvas up or down to the selected page
-        # Note: only scroll if required !
+        self.img['canvas'].redraw()
 
     def on_export_preview_start(self):
         self.export['estimated_size'].set_text(_("Computing ..."))
 
     def on_export_preview_done(self, img_size, pixbuf):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
-        self.img['image'].set_from_pixbuf(pixbuf)
+        # TODO
 
     def __get_img_area_width(self):
         return self.img['viewport']['widget'].get_allocation().width
@@ -3292,7 +3294,7 @@ class MainWindow(object):
     def __get_img_area_height(self):
         return self.img['viewport']['widget'].get_allocation().height
 
-    def get_zoom_factor(self, pixbuf_width=None, pixbuf_height=None):
+    def get_zoom_factor(self, img_size):
         el_idx = self.lists['zoom_levels']['gui'].get_active()
         el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
         factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
@@ -3300,19 +3302,16 @@ class MainWindow(object):
         if factor > 0.0:
             return factor
         wanted_width = self.__get_img_area_width()
-        if pixbuf_width is None:
-            pixbuf_width = self.img['original_width']
-        width_factor = float(wanted_width) / pixbuf_width
-        if factor == -1.0 and pixbuf_height is not None:
+        width_factor = float(wanted_width) / img_size[0]
+        if factor == -1.0:
             wanted_height = self.__get_img_area_height()
-            factor = min(width_factor, float(wanted_height) / pixbuf_height)
+            factor = min(width_factor, float(wanted_height) / img_size[1])
             return factor
         else:
             return width_factor
 
     def refresh_export_preview(self):
-        self.img['image'].set_from_stock(Gtk.STOCK_EXECUTE,
-                                         Gtk.IconSize.DIALOG)
+        # TODO
         self.schedulers['main'].cancel_all(self.job_factories['export_previewer'])
         job = self.job_factories['export_previewer'].make(
             self.export['exporter'])

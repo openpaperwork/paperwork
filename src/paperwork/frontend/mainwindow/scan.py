@@ -12,7 +12,7 @@ import pyocr.builders
 from paperwork.backend.util import check_spelling
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
-from paperwork.frontend.util.canvas.drawers import SimpleDrawer
+from paperwork.frontend.util.canvas.drawers import Drawer
 
 
 logger = logging.getLogger(__name__)
@@ -295,9 +295,9 @@ class JobFactoryOCR(JobFactory):
         return job
 
 
-class ScanSceneDrawer(SimpleDrawer):
+class ScanSceneDrawer(Drawer):
     def __init__(self, scan_scene):
-        SimpleDrawer.__init__(self)
+        Drawer.__init__(self)
         self.scan_scene = scan_scene
         # TODO
 

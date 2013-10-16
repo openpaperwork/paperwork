@@ -21,56 +21,6 @@ class Drawer(object):
     def set_canvas(self, canvas):
         self.canvas = canvas
 
-    def do_draw(self, cairo_context, offset, size):
-        """
-        Arguments:
-            offset --- Position of the area in which to draw:
-                       (offset_x, offset_y)
-            size --- Size of the area in which to draw: (width, height) = size
-        """
-        assert()
-
-    def draw(self, cairo_context, offset, visible_size):
-        # don't bother drawing if it's not visible
-        if offset[0] + visible_size[0] < self.position[0]:
-            return
-        if offset[1] + visible_size[1] < self.position[1]:
-            return
-        if self.position[0] + self.size[0] < offset[0]:
-            return
-        if self.position[1] + self.size[1] < offset[1]:
-            return
-        self.do_draw(cairo_context, offset, visible_size)
-
-
-class BackgroundDrawer(Drawer):
-    layer = Drawer.BACKGROUND_LAYER
-
-    def __init__(self, rgb):
-        self.rgb = rgb
-        self.canvas = None
-        self.position = (0, 0)
-
-    def __get_size(self):
-        assert(self.canvas is not None)
-        return (self.canvas.full_size_x, self.canvas.full_size_y)
-
-    size = property(__get_size)
-
-    def do_draw(self, cairo_context, offset, size):
-        cairo_context.set_source_rgb(self.rgb[0], self.rgb[1], self.rgb[2])
-        cairo_context.rectangle(0, 0, size[0], size[1])
-        cairo_context.clip()
-        cairo_context.paint()
-
-
-class SimpleDrawer(Drawer):
-    size = (0, 0)
-
-    def __init__(self, position=(0, 0)):
-        self.position = position
-        self.visible = False
-
     @staticmethod
     def compute_visibility(offset, visible_area_size, position, size):
         should_be_visible = True
@@ -95,6 +45,10 @@ class SimpleDrawer(Drawer):
 
         # scaling is applied *after* all the other transformations
         # of user space.
+        canvas_offset = (
+            canvas_offset[0] / scaling[0],
+            canvas_offset[1] / scaling[1],
+        )
         img_position = (
             img_position[0] / scaling[0],
             img_position[1] / scaling[1],
@@ -109,46 +63,68 @@ class SimpleDrawer(Drawer):
         target_offset = (max(0, img_position[0] - canvas_offset[0]),
                          max(0, img_position[1] - canvas_offset[1]))
 
-        cairo_context.save()
-        try:
-            cairo_context.scale(scaling[0], scaling[1])
-            cairo_context.set_source_surface(
-                surface,
-                (target_offset[0] - img_offset[0]),
-                (target_offset[1] - img_offset[1]),
-            )
-            cairo_context.rectangle(target_offset[0],
-                                    target_offset[1],
-                                    img_size[0],
-                                    img_size[1])
-            cairo_context.clip()
-            cairo_context.paint()
-        finally:
-            cairo_context.restore()
+        cairo_context.scale(scaling[0], scaling[1])
+        cairo_context.set_source_surface(
+            surface,
+            (target_offset[0] - img_offset[0]),
+            (target_offset[1] - img_offset[1]),
+        )
+        cairo_context.rectangle(target_offset[0],
+                                target_offset[1],
+                                img_size[0],
+                                img_size[1])
+        cairo_context.clip()
+        cairo_context.paint()
 
+    def do_draw(self, cairo_context, offset, size):
+        """
+        Arguments:
+            offset --- Position of the area in which to draw:
+                       (offset_x, offset_y)
+            size --- Size of the area in which to draw: (width, height) = size
+        """
+        assert()
 
-    def do_draw(self, cairo_context, offset, visible_area_size):
-        should_be_visible = self.compute_visibility(offset, visible_area_size,
-                                                    self.position, self.size)
-
-        pos_x = self.position[0] - offset[0]
-        pos_y = self.position[1] - offset[1]
-
-        if should_be_visible and not self.visible:
-            self.show()
-        elif not should_be_visible and self.visible:
-            self.hide()
-        self.visible = should_be_visible
+    def draw(self, cairo_context, offset, visible_size):
+        # don't bother drawing if it's not visible
+        if offset[0] + visible_size[0] < self.position[0]:
+            return
+        if offset[1] + visible_size[1] < self.position[1]:
+            return
+        if self.position[0] + self.size[0] < offset[0]:
+            return
+        if self.position[1] + self.size[1] < offset[1]:
+            return
+        self.do_draw(cairo_context, offset, visible_size)
 
     def hide(self):
-        self.visible = False
+        pass
 
-    def show(self):
-        self.visible = True
+
+class BackgroundDrawer(Drawer):
+    layer = Drawer.BACKGROUND_LAYER
+
+    def __init__(self, rgb):
+        self.rgb = rgb
+        self.canvas = None
+        self.position = (0, 0)
+
+    def __get_size(self):
+        assert(self.canvas is not None)
+        return (self.canvas.full_size[0], self.canvas.full_size[1])
+
+    size = property(__get_size)
+
+    def do_draw(self, cairo_context, offset, size):
+        cairo_context.set_source_rgb(self.rgb[0], self.rgb[1], self.rgb[2])
+        cairo_context.rectangle(0, 0, size[0], size[1])
+        cairo_context.clip()
+        cairo_context.paint()
 
 
 class PillowImageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
+    visible = True
 
     def __init__(self, position, image):
         self.size = image.size
@@ -160,8 +136,10 @@ class PillowImageDrawer(Drawer):
                           self.surface, self.position, self.size)
 
 
-class ScanDrawer(SimpleDrawer):
+class ScanDrawer(Drawer):
     layer = Drawer.IMG_LAYER
+
+    visible = True
 
     def __init__(self, position, scan_size, visible_size):
         self.ratio = min(

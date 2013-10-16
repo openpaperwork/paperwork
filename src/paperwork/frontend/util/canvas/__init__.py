@@ -85,7 +85,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         h.connect("value-changed", self.__on_adjustment_changed)
 
     def get_vadjustment(self):
-        return self.hadjustment
+        return self.vadjustment
 
     def set_vadjustment(self, v):
         Gtk.Scrollable.set_vadjustment(self, v)
@@ -145,7 +145,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         x = int(self.hadjustment.get_value())
         y = int(self.vadjustment.get_value())
-
         for drawer in self.drawers:
             cairo_ctx.save()
             try:
@@ -165,14 +164,14 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.redraw()
 
     def remove_drawer(self, drawer):
-        drawer.hide(self.get_stage())
+        drawer.hide()
         self.drawers.remove(drawer)
         self.recompute_size()
         self.redraw()
 
     def remove_all_drawers(self):
         for drawer in self.drawers:
-            drawer.hide(self.get_stage())
+            drawer.hide()
         self.drawers.purge()
         self.recompute_size()
         self.redraw()

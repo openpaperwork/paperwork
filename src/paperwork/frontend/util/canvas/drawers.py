@@ -90,25 +90,37 @@ class SimpleDrawer(Drawer):
         surface_size = (surface.get_width(), surface.get_height())
         scaling = (
             (float(img_size[0]) / float(surface_size[0])),
-            (float(img_size[1]) / float(surface_size[1]))
+            (float(img_size[1]) / float(surface_size[1])),
         )
 
-        img_offset = (max(0, offset[0] - img_position[0]),
-                      max(0, offset[1] - img_position[1]))
-        target_offset = (max(0, img_position[0] - offset[0]),
-                         max(0, img_position[1] - offset[1]))
+        # scaling is applied *after* all the other transformations
+        # of user space.
+        img_position = (
+            img_position[0] / scaling[0],
+            img_position[1] / scaling[1],
+        )
+        img_size = (
+            img_size[0] / scaling[0],
+            img_size[1] / scaling[1]
+        )
 
-        size = (min(img_size[0] - target_offset[0], img_size[0]),
-                min(img_size[1] - target_offset[1], img_size[1]))
+        img_offset = (max(0, canvas_offset[0] - img_position[0]),
+                      max(0, canvas_offset[1] - img_position[1]))
+        target_offset = (max(0, img_position[0] - canvas_offset[0]),
+                         max(0, img_position[1] - canvas_offset[1]))
 
         cairo_context.save()
         try:
-            cairo_context.set_source_surface(surface,
-                                             (-1 * (img_offset[0])) + target_offset[0],
-                                             (-1 * (img_offset[1])) + target_offset[1])
-            cairo_context.rectangle(target_offset[0], target_offset[1],
-                                    size[0], size[1])
             cairo_context.scale(scaling[0], scaling[1])
+            cairo_context.set_source_surface(
+                surface,
+                (target_offset[0] - img_offset[0]),
+                (target_offset[1] - img_offset[1]),
+            )
+            cairo_context.rectangle(target_offset[0],
+                                    target_offset[1],
+                                    img_size[0],
+                                    img_size[1])
             cairo_context.clip()
             cairo_context.paint()
         finally:
@@ -147,7 +159,8 @@ class PillowImageDrawer(Drawer):
         self.draw_surface(cairo_context, offset, size,
                           self.surface, self.position, self.size)
 
-class ScanDrawer(Drawer):
+
+class ScanDrawer(SimpleDrawer):
     layer = Drawer.IMG_LAYER
 
     def __init__(self, position, expected_size):
@@ -157,15 +170,16 @@ class ScanDrawer(Drawer):
 
     def add_chunk(self, line, img_chunk):
         surface = image2surface(img_chunk)
-        ratio = (float(self.size[0]) / float(img_chunk.size[0]))
+        ratio = float(self.size[0]) / float(img_chunk.size[0])
         self.surfaces.append((line, ratio, surface))
         self.canvas.redraw()
 
     def do_draw(self, cairo_context, canvas_offset, canvas_size):
         for (line, ratio, surface) in self.surfaces:
-            line /= ratio
-            chunk_size = (surface.get_width() / ratio,
-                          surface.get_height() / ratio)
+            line *= ratio
+            chunk_size = (surface.get_width() * ratio,
+                          surface.get_height() * ratio)
             self.draw_surface(cairo_context, canvas_offset, canvas_size,
-                              surface, (self.position[0], self.position[1] + line),
+                              surface, (float(self.position[0]),
+                                        float(self.position[1]) + line),
                               chunk_size)

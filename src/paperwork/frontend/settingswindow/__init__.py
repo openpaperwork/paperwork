@@ -560,6 +560,7 @@ class SettingsWindow(GObject.GObject):
 
         img_scrollbars = widget_tree.get_object("scrolledwindowCalibration")
         img_canvas = Canvas(img_scrollbars)
+        img_canvas.set_visible(True)
         img_scrollbars.add(img_canvas)
 
         self.calibration = {
@@ -714,7 +715,8 @@ class SettingsWindow(GObject.GObject):
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_info(self, size):
-        self.calibration['scan_drawer'] = ScanDrawer((0, 0), size)
+        self.calibration['scan_drawer'] = ScanDrawer(
+            (0, 0), self.calibration['image_gui'].visible_size)
         self.calibration['image_gui'].add_drawer(
             self.calibration['scan_drawer'])
 

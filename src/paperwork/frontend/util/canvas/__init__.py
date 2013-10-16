@@ -150,7 +150,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             cairo_ctx.save()
             try:
                 drawer.draw(cairo_ctx, (x, y),
-                            (self.visible_size_x, self.visible_size_y))
+                            (self.visible_size[0], self.visible_size[1]))
             finally:
                 cairo_ctx.restore()
 

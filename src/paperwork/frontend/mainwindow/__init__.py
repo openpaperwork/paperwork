@@ -1343,19 +1343,15 @@ class ActionOpenPageNb(SimpleAction):
         self.__main_win.show_page(page)
 
 
-class ActionRebuildPage(SimpleAction):
+class ActionUpdPageSizes(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Reload current page")
         self.__main_win = main_window
 
     def do(self):
         SimpleAction.do(self)
-        # TODO(Jflesch)
-        #self.__main_win.schedulers['main'].cancel_all(
-        #    self.__main_win.job_factories['img_builder'])
-        #job = self.__main_win.job_factories['img_builder'].make(
-        #    self.__main_win.page)
-        #self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.update_page_sizes()
+        self.__main_win.show_page(self.__main_win.page)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -2624,7 +2620,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("comboboxZoom"),
                 ],
-                ActionRebuildPage(self)
+                ActionUpdPageSizes(self)
             ),
             'search': (
                 [
@@ -3337,19 +3333,16 @@ class MainWindow(object):
                % (old_size[0], old_size[1], new_size[0], new_size[1]))
         self.img['viewport']['size'] = new_size
 
-        # check if zoom level is set to adjusted, if yes,
-        # we must resize the image
         el_idx = self.lists['zoom_levels']['gui'].get_active()
         el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
         factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
         if factor > 0.0:
             return
 
-        # TODO(Jflesch)
-        #self.schedulers['main'].cancel_all(self.job_factories['img_builder'])
-        #job = self.job_factories['img_builder'].make(self.page,
-        #                                             warn_user=False)
-        #self.schedulers['main'].schedule(job)
+        for page in self.page_drawers:
+            self.__resize_page(page)
+        self.__update_page_position()
+        self.show_page(self.page)
 
     def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")

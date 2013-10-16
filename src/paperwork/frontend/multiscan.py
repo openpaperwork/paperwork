@@ -134,7 +134,7 @@ class JobFactoryDocScan(JobFactory):
 
     def make_head(self):
         job = JobSignalEmitter(self, next(self.id_generator))
-        job.connect('signal', 
+        job.connect('signal',
                     lambda job: GObject.idle_add(
                         self.__multiscan_win.on_global_scan_start_cb))
         return job
@@ -167,7 +167,7 @@ class JobFactoryDocScan(JobFactory):
     def make_tail(self):
         job = JobSignalEmitter(self, next(self.id_generator))
         job.connect('signal',
-                    lambda job: GLib.idle_add(
+                    lambda job: GObject.idle_add(
                         self.__multiscan_win.on_global_scan_end_cb))
         return job
 

@@ -12,6 +12,7 @@ import copy
 import heapq
 import sys
 
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -45,6 +46,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                                          (GObject.TYPE_PYOBJECT,)),
         'absolute-button-release-event': (GObject.SignalFlags.RUN_LAST, None,
                                           (GObject.TYPE_PYOBJECT,)),
+        'window-moved': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self, scrollbars):
@@ -74,6 +76,12 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.connect("button-release-event", self.__on_button_released)
 
         self.set_size_request(-1, -1)
+
+        GLib.timeout_add(1000.0 / 30, self._tick)
+
+    def _tick(self):
+        for drawer in self.drawers:
+            drawer.on_tick()
 
     def get_hadjustment(self):
         return self.hadjustment
@@ -163,6 +171,19 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.recompute_size()
         self.redraw()
 
+    def get_drawer_at(self, position):
+        (x, y) = position
+
+        for drawer in self.drawers:
+            pt_a = drawer.position
+            pt_b = (drawer.position[0] + drawer.size[0],
+                    drawer.position[1] + drawer.size[1])
+            if (x >= pt_a[0] and x < pt_b[0]
+                and y >= pt_a[1] and y < pt_b[1]):
+                return drawer
+
+        return None
+
     def remove_drawer(self, drawer):
         drawer.hide()
         self.drawers.remove(drawer)
@@ -209,6 +230,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                 val = adj.get_upper() - 1
             if val != adj.get_value():
                 adj.set_value(val)
+        self.emit('window-moved')
 
     def __get_absolute_event(self, event):
         off_x = int(self.hadjustment.get_value())
@@ -229,5 +251,11 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __on_button_released(self, _, event):
         event = self.__get_absolute_event(event)
         self.emit('absolute-button-release-event', event)
+
+    def __get_position(self):
+        return (int(self.hadjustment.get_value()),
+                int(self.vadjustment.get_value()))
+
+    position = property(__get_position)
 
 GObject.type_register(Canvas)

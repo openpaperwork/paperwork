@@ -2330,10 +2330,9 @@ class MainWindow(object):
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
 
-        # TODO(Jflesch):
-        # Listen to scrollbars events: call self.show_page()
-        # accordingly so the active page is always
-        # selected in the page list (and the page number is up-to-date)
+        img_widget.connect(
+            'window-moved',
+            lambda x: GLib.idle_add(self.__on_img_window_moved))
 
         self.img = {
             "canvas": img_widget,
@@ -3279,6 +3278,8 @@ class MainWindow(object):
         if drawer is not None:
             self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
 
+        self.__select_page(page)
+
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
             self.actions['cancel_export'][1].do()
@@ -3490,3 +3491,13 @@ class MainWindow(object):
         self.__show_all_boxes = value
 
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
+
+    def __on_img_window_moved(self):
+        pos = self.img['canvas'].position
+        size = self.img['canvas'].visible_size
+        pos = (0, pos[1] + (size[1] / 2))
+        drawer = self.img['canvas'].get_drawer_at(pos)
+        if drawer is None:
+            return
+        page = drawer.page
+        self.__select_page(page)

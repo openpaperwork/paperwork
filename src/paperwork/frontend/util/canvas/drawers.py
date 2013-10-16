@@ -85,6 +85,12 @@ class Drawer(object):
         """
         assert()
 
+    def on_tick(self):
+        """
+        Called every 1/27 second
+        """
+        pass
+
     def draw(self, cairo_context, offset, visible_size):
         # don't bother drawing if it's not visible
         if offset[0] + visible_size[0] < self.position[0]:

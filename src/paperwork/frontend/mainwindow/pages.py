@@ -32,7 +32,7 @@ class JobPageLoader(Job):
         try:
             img = self.page.img
             img.load()
-            self.emit('page-loading-img', img)
+            self.emit('page-loading-img', image2surface(img))
         finally:
             self.emit('page-loading-done')
 
@@ -81,11 +81,11 @@ class PageDrawer(Drawer):
         job = self.job_page_loader_factory.make(self, self.page)
         self.job_scheduler.schedule(job)
 
-    def on_page_loading_img(self, page, img):
+    def on_page_loading_img(self, page, surface):
         self.loading = False
         if not self.visible:
             return
-        self.surface = image2surface(img)
+        self.surface = surface
         self.canvas.redraw()
 
     def unload_img(self):

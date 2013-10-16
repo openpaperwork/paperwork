@@ -716,7 +716,8 @@ class SettingsWindow(GObject.GObject):
 
     def on_scan_info(self, size):
         self.calibration['scan_drawer'] = ScanDrawer(
-            (0, 0), self.calibration['image_gui'].visible_size)
+            (0, 0),
+            size, self.calibration['image_gui'].visible_size)
         self.calibration['image_gui'].add_drawer(
             self.calibration['scan_drawer'])
 

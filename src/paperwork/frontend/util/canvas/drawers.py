@@ -163,22 +163,28 @@ class PillowImageDrawer(Drawer):
 class ScanDrawer(SimpleDrawer):
     layer = Drawer.IMG_LAYER
 
-    def __init__(self, position, expected_size):
-        self.size = expected_size
+    def __init__(self, position, scan_size, visible_size):
+        self.ratio = min(
+            float(visible_size[0]) / float(scan_size[0]),
+            float(visible_size[1]) / float(scan_size[1]),
+        )
+        self.size = (
+            int(self.ratio * scan_size[0]),
+            int(self.ratio * scan_size[1]),
+        )
         self.position = position
         self.surfaces = []
 
     def add_chunk(self, line, img_chunk):
         surface = image2surface(img_chunk)
-        ratio = float(self.size[0]) / float(img_chunk.size[0])
-        self.surfaces.append((line, ratio, surface))
+        self.surfaces.append((line, surface))
         self.canvas.redraw()
 
     def do_draw(self, cairo_context, canvas_offset, canvas_size):
-        for (line, ratio, surface) in self.surfaces:
-            line *= ratio
-            chunk_size = (surface.get_width() * ratio,
-                          surface.get_height() * ratio)
+        for (line, surface) in self.surfaces:
+            line *= self.ratio
+            chunk_size = (surface.get_width() * self.ratio,
+                          surface.get_height() * self.ratio)
             self.draw_surface(cairo_context, canvas_offset, canvas_size,
                               surface, (float(self.position[0]),
                                         float(self.position[1]) + line),

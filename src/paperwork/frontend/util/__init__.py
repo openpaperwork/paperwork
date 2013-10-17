@@ -106,8 +106,15 @@ class PriorityQueue(object):
         heapq.heappush(self.elements, (-1 * priority, self.__last_idx, element))
         self.__last_idx += 1
 
-    def remove(self, element):
-        self.elements.remove(element)
+    def remove(self, target):
+        to_remove = None
+        for element in self.elements:
+            if element[2] == target:
+                to_remove = element
+                break
+        if to_remove is None:
+            raise ValueError()
+        self.elements.remove(to_remove)
         heapq.heapify(self.elements)
 
     def __iter__(self):

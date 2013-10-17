@@ -1,3 +1,6 @@
+from gi.repository import Gdk
+from gi.repository import Gtk
+
 from paperwork.backend.util import image2surface
 
 
@@ -182,3 +185,66 @@ class ScanDrawer(Drawer):
                               surface, (float(self.position[0]),
                                         float(self.position[1]) + line),
                               chunk_size)
+
+
+class SpinnerDrawer(Drawer):
+    ICON_SIZE = 48
+
+    layer = Drawer.SPINNER_LAYER
+
+    def __init__(self, position):
+        self.position = position
+        self.size = (self.ICON_SIZE, self.ICON_SIZE)
+
+        icon_theme = Gtk.IconTheme.get_default()
+        icon_info = icon_theme.lookup_icon("process-working", self.ICON_SIZE,
+                                           Gtk.IconLookupFlags.NO_SVG)
+        self.icon_pixbuf = icon_info.load_icon()
+        self.frame = 1
+        self.nb_frames = (
+            (self.icon_pixbuf.get_width() / self.ICON_SIZE),
+            (self.icon_pixbuf.get_height() / self.ICON_SIZE),
+        )
+
+    def on_tick(self):
+        self.frame += 1
+        self.frame %= (self.nb_frames[0] * self.nb_frames[1])
+        if self.frame == 0:
+            # XXX(Jflesch): skip the first frame:
+            # in gnome-spinner.png, the first frame is empty.
+            # don't know why.
+            self.frame += 1
+
+    def draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+        frame = (
+            (self.frame % self.nb_frames[0]),
+            (self.frame / self.nb_frames[0]),
+        )
+        frame = (
+            (frame[0] * self.ICON_SIZE),
+            (frame[1] * self.ICON_SIZE),
+        )
+
+        img_offset = (max(0, canvas_offset[0] - self.position[0]),
+                      max(0, canvas_offset[1] - self.position[1]))
+        img_offset = (
+            img_offset[0] + frame[0],
+            img_offset[1] + frame[1],
+        )
+        target_offset = (max(0, self.position[0] - canvas_offset[0]),
+                         max(0, self.position[1] - canvas_offset[1]))
+
+        cairo_ctx.save()
+        try:
+            Gdk.cairo_set_source_pixbuf(cairo_ctx, self.icon_pixbuf,
+                                        (target_offset[0] - img_offset[0]),
+                                        (target_offset[1] - img_offset[1]),
+                                       )
+            cairo_ctx.rectangle(target_offset[0],
+                                target_offset[1],
+                                self.ICON_SIZE,
+                                self.ICON_SIZE)
+            cairo_ctx.clip()
+            cairo_ctx.paint()
+        finally:
+            cairo_ctx.restore()

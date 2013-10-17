@@ -5,6 +5,7 @@ from gi.repository import GObject
 
 from paperwork.backend.util import image2surface
 from paperwork.frontend.util.canvas.drawers import Drawer
+from paperwork.frontend.util.canvas.drawers import SpinnerDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
@@ -59,16 +60,53 @@ class PageDrawer(Drawer):
                  job_schedulers):
         Drawer.__init__(self)
 
-        self.position = position
+        self.max_size = page.size
         self.page = page
-        self.size = page.size
-        self.max_size = self.size
         self.surface = None
         self.visible = False
         self.loading = False
 
         self.factories = job_factories
         self.schedulers = job_schedulers
+
+        self._position = position
+        self._size = self.max_size
+        self.spinner = SpinnerDrawer((0, 0))
+        self.upd_spinner_position()
+
+    def set_canvas(self, canvas):
+        Drawer.set_canvas(self, canvas)
+        self.spinner.set_canvas(canvas)
+
+    def on_tick(self):
+        Drawer.on_tick(self)
+        self.spinner.on_tick()
+
+    def upd_spinner_position(self):
+        self.spinner.position = (
+            (self._position[0] + (self._size[0] / 2)
+             - (SpinnerDrawer.ICON_SIZE / 2)),
+            (self._position[1] + (self._size[1] / 2)
+             - (SpinnerDrawer.ICON_SIZE / 2)),
+        )
+
+    def _get_position(self):
+        return self._position
+
+    def _set_position(self, position):
+        self._position = position
+        self.upd_spinner_position()
+
+    position = property(_get_position, _set_position)
+
+    def _get_size(self):
+        return self._size
+
+    def _set_size(self, size):
+        self._size = size
+        self.upd_spinner_position()
+
+    size = property(_get_size, _set_size)
 
     def set_size_ratio(self, factor):
         self.size = (int(factor * self.max_size[0]),
@@ -97,6 +135,19 @@ class PageDrawer(Drawer):
         self.unload_img()
         self.visible = False
 
+    def draw_tmp(self, cairo_context, canvas_offset, canvas_visible_size):
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(0.85, 0.85, 0.85)
+            cairo_context.rectangle(self.position[0] - canvas_offset[0],
+                                    self.position[1] - canvas_offset[1],
+                                    self.size[0], self.size[1])
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+        self.spinner.draw(cairo_context, canvas_offset, canvas_visible_size)
+
     def draw(self, cairo_context, canvas_offset, canvas_visible_size):
         should_be_visible = self.compute_visibility(
             canvas_offset, canvas_visible_size,
@@ -111,12 +162,7 @@ class PageDrawer(Drawer):
             return
 
         if not self.surface:
-            cairo_context.set_source_rgb(0.75, 0.75, 0.75)
-            cairo_context.rectangle(self.position[0] - canvas_offset[0],
-                                    self.position[1] - canvas_offset[1],
-                                    self.size[0], self.size[1])
-            cairo_context.clip()
-            cairo_context.paint()
+            self.draw_tmp(cairo_context, canvas_offset, canvas_visible_size)
         else:
             self.draw_surface(cairo_context, canvas_offset,
                               canvas_visible_size,

@@ -26,7 +26,7 @@ import unicodedata
 import enchant
 import enchant.tokenize
 import nltk.metrics.distance
-
+import numpy
 
 logger = logging.getLogger(__name__)
 
@@ -192,15 +192,10 @@ def image2surface(img):
     """
     Convert a PIL image into a Cairo surface
     """
-
     import cairo
-    import PIL.Image
-    import PIL.ImageDraw
 
-    if img is None:
-        return None
-    file_desc = StringIO.StringIO()
-    img.save(file_desc, format="PNG")
-    file_desc.seek(0)
-    surface = cairo.ImageSurface.create_from_png(file_desc)
-    return surface
+    img.putalpha(256)
+    arr = numpy.array(img)
+    (height, width, channels) = arr.shape
+    return cairo.ImageSurface.create_for_data(
+        arr, cairo.FORMAT_RGB24, width, height)

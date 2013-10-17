@@ -114,6 +114,9 @@ class Drawer(object):
             return
         self.do_draw(cairo_context, offset, visible_size)
 
+    def show(self):
+        pass
+
     def hide(self):
         pass
 
@@ -205,6 +208,14 @@ class SpinnerDrawer(Drawer):
             (self.icon_pixbuf.get_width() / self.ICON_SIZE),
             (self.icon_pixbuf.get_height() / self.ICON_SIZE),
         )
+
+    def show(self):
+        Drawer.show(self)
+        self.canvas.start_ticks()
+
+    def hide(self):
+        Drawer.hide(self)
+        self.canvas.stop_ticks()
 
     def on_tick(self):
         self.frame += 1

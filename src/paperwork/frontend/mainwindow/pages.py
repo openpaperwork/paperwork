@@ -74,10 +74,6 @@ class PageDrawer(Drawer):
         self.spinner = SpinnerDrawer((0, 0))
         self.upd_spinner_position()
 
-    def set_canvas(self, canvas):
-        Drawer.set_canvas(self, canvas)
-        self.spinner.set_canvas(canvas)
-
     def on_tick(self):
         Drawer.on_tick(self)
         self.spinner.on_tick()
@@ -115,18 +111,24 @@ class PageDrawer(Drawer):
     def load_img(self):
         if self.loading:
             return
+        self.canvas.add_drawer(self.spinner)
         self.loading = True
         job = self.factories['page_loader'].make(self, self.page)
         self.schedulers['page_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):
-        self.loading = False
+        if self.loading:
+            self.canvas.remove_drawer(self.spinner)
+            self.loading = False
         if not self.visible:
             return
         self.surface = surface
         self.canvas.redraw()
 
     def unload_img(self):
+        if self.loading:
+            self.canvas.remove_drawer(self.spinner)
+            self.loading = False
         if self.surface is not None:
             del(self.surface)
             self.surface = None
@@ -146,7 +148,6 @@ class PageDrawer(Drawer):
             cairo_context.paint()
         finally:
             cairo_context.restore()
-        self.spinner.draw(cairo_context, canvas_offset, canvas_visible_size)
 
     def draw(self, cairo_context, canvas_offset, canvas_visible_size):
         should_be_visible = self.compute_visibility(

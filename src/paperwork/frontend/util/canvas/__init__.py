@@ -77,13 +77,23 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.set_size_request(-1, -1)
 
-        GLib.timeout_add(1000 / 30, self._tick)
+        self.need_ticks = 0
 
     def _tick(self):
         for drawer in self.drawers:
             drawer.on_tick()
         self.redraw()
-        GLib.timeout_add(1000 / 30, self._tick)
+        if self.need_ticks > 0:
+            GLib.timeout_add(1000 / 15, self._tick)
+
+    def start_ticks(self):
+        if self.need_ticks == 0:
+            GLib.timeout_add(1000 / 15, self._tick)
+        self.need_ticks += 1
+
+    def stop_ticks(self):
+        self.need_ticks -= 1
+        assert(self.need_ticks >= 0)
 
     def get_hadjustment(self):
         return self.hadjustment
@@ -170,6 +180,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         y = drawer.position[1] + drawer.size[1]
 
         self.drawers.add(drawer.layer, drawer)
+        drawer.show()
         self.recompute_size()
         self.redraw()
 

@@ -3225,6 +3225,12 @@ class MainWindow(object):
         set_widget_state(self.doc_edit_widgets, False,
                          cond=lambda widget: not can_edit)
 
+        if doc.nb_pages >= 0:
+            page = doc.pages[0]
+        else:
+            page = DummyPage(self.doc)
+        self.show_page(page)
+
         pages_gui = self.lists['pages']['gui']
         if doc.can_edit:
             pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
@@ -3233,13 +3239,6 @@ class MainWindow(object):
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         self.refresh_label_list()
-
-        if doc.nb_pages >= 0:
-            page = doc.pages[0]
-        else:
-            page = DummyPage(self.doc)
-
-        self.show_page(page)
 
     def __select_page(self, page):
         self.page = page

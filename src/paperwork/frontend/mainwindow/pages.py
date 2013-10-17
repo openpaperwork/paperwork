@@ -13,7 +13,7 @@ from paperwork.frontend.util.jobs import JobScheduler
 
 class JobPageLoader(Job):
     can_stop = False
-    priority = 350
+    priority = 500
 
     __gsignals__ = {
         'page-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),

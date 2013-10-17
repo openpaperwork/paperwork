@@ -63,18 +63,24 @@ class Drawer(object):
         target_offset = (max(0, img_position[0] - canvas_offset[0]),
                          max(0, img_position[1] - canvas_offset[1]))
 
-        cairo_context.scale(scaling[0], scaling[1])
-        cairo_context.set_source_surface(
-            surface,
-            (target_offset[0] - img_offset[0]),
-            (target_offset[1] - img_offset[1]),
-        )
-        cairo_context.rectangle(target_offset[0],
-                                target_offset[1],
-                                img_size[0],
-                                img_size[1])
-        cairo_context.clip()
-        cairo_context.paint()
+        # some drawer call draw_surface() many times, so we save the
+        # context here
+        cairo_context.save()
+        try:
+            cairo_context.scale(scaling[0], scaling[1])
+            cairo_context.set_source_surface(
+                surface,
+                (target_offset[0] - img_offset[0]),
+                (target_offset[1] - img_offset[1]),
+            )
+            cairo_context.rectangle(target_offset[0],
+                                    target_offset[1],
+                                    img_size[0],
+                                    img_size[1])
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
 
 
     def do_draw(self, cairo_context, offset, size):

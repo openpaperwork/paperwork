@@ -196,6 +196,7 @@ class SpinnerDrawer(Drawer):
     layer = Drawer.SPINNER_LAYER
 
     def __init__(self, position):
+        self.visible = False
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 
@@ -211,11 +212,15 @@ class SpinnerDrawer(Drawer):
 
     def show(self):
         Drawer.show(self)
-        self.canvas.start_ticks()
+        if not self.visible:
+            self.visible = True
+            self.canvas.start_ticks()
 
     def hide(self):
         Drawer.hide(self)
-        self.canvas.stop_ticks()
+        if self.visible:
+            self.visible = False
+            self.canvas.stop_ticks()
 
     def on_tick(self):
         self.frame += 1

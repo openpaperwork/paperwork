@@ -7,6 +7,7 @@ class Drawer(object):
     IMG_LAYER = 200
     PROGRESSION_INDICATOR_LAYER = 100
     BOX_LAYER = 50
+    SPINNER_LAYER = 25
     FADDING_EFFECT_LAYER = 0
     # layer number == priority --> lower is drawn last
 
@@ -118,8 +119,8 @@ class BackgroundDrawer(Drawer):
     layer = Drawer.BACKGROUND_LAYER
 
     def __init__(self, rgb):
+        Drawer.__init__(self)
         self.rgb = rgb
-        self.canvas = None
         self.position = (0, 0)
 
     def __get_size(self):
@@ -155,6 +156,7 @@ class ScanDrawer(Drawer):
     visible = True
 
     def __init__(self, position, scan_size, visible_size):
+        Drawer.__init__(self)
         self.ratio = min(
             float(visible_size[0]) / float(scan_size[0]),
             float(visible_size[1]) / float(scan_size[1]),

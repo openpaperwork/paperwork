@@ -57,6 +57,8 @@ class PageDrawer(Drawer):
     def __init__(self, position, page,
                  job_factories,
                  job_schedulers):
+        Drawer.__init__(self)
+
         self.position = position
         self.page = page
         self.size = page.size

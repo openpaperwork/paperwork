@@ -77,7 +77,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.set_size_request(-1, -1)
 
-        GLib.timeout_add(1000.0 / 30, self._tick)
+        GLib.timeout_add(1000 / 30, self._tick)
 
     def _tick(self):
         for drawer in self.drawers:

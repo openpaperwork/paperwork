@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>
 
+import array
 import errno
 import logging
 import nltk
@@ -195,7 +196,9 @@ def image2surface(img):
     import cairo
 
     img.putalpha(256)
-    arr = numpy.array(img)
-    (height, width, channels) = arr.shape
+    (width, height) = img.size
+    imgd = img.tobytes('raw', 'BGRA')
+    imga = array.array('B', imgd)
+    stride = width * 4
     return cairo.ImageSurface.create_for_data(
-        arr, cairo.FORMAT_RGB24, width, height)
+        imga, cairo.FORMAT_ARGB32, width, height, stride)

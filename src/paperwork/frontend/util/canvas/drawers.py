@@ -1,7 +1,12 @@
+import math
+
+import cairo
+
 from gi.repository import Gdk
 from gi.repository import Gtk
 
 from paperwork.backend.util import image2surface
+from paperwork.frontend.util.canvas import Canvas
 
 
 class Drawer(object):
@@ -39,7 +44,7 @@ class Drawer(object):
         return should_be_visible
 
     @staticmethod
-    def draw_surface(cairo_context, canvas_offset, canvas_size,
+    def draw_surface(cairo_ctx, canvas_offset, canvas_size,
                      surface, img_position, img_size):
         surface_size = (surface.get_width(), surface.get_height())
         scaling = (
@@ -69,25 +74,25 @@ class Drawer(object):
 
         # some drawer call draw_surface() many times, so we save the
         # context here
-        cairo_context.save()
+        cairo_ctx.save()
         try:
-            cairo_context.scale(scaling[0], scaling[1])
-            cairo_context.set_source_surface(
+            cairo_ctx.scale(scaling[0], scaling[1])
+            cairo_ctx.set_source_surface(
                 surface,
                 (target_offset[0] - img_offset[0]),
                 (target_offset[1] - img_offset[1]),
             )
-            cairo_context.rectangle(target_offset[0],
+            cairo_ctx.rectangle(target_offset[0],
                                     target_offset[1],
                                     img_size[0],
                                     img_size[1])
-            cairo_context.clip()
-            cairo_context.paint()
+            cairo_ctx.clip()
+            cairo_ctx.paint()
         finally:
-            cairo_context.restore()
+            cairo_ctx.restore()
 
 
-    def do_draw(self, cairo_context, offset, size):
+    def do_draw(self, cairo_ctx, offset, size):
         """
         Arguments:
             offset --- Position of the area in which to draw:
@@ -102,7 +107,7 @@ class Drawer(object):
         """
         pass
 
-    def draw(self, cairo_context, offset, visible_size):
+    def draw(self, cairo_ctx, offset, visible_size):
         # don't bother drawing if it's not visible
         if offset[0] + visible_size[0] < self.position[0]:
             return
@@ -112,13 +117,32 @@ class Drawer(object):
             return
         if self.position[1] + self.size[1] < offset[1]:
             return
-        self.do_draw(cairo_context, offset, visible_size)
+        self.do_draw(cairo_ctx, offset, visible_size)
 
     def show(self):
         pass
 
     def hide(self):
         pass
+
+
+class Animation(Drawer):
+    def __init__(self):
+        Drawer.__init__(self)
+        self.ticks_enabled = False
+
+    def show(self):
+        Drawer.show(self)
+        if not self.ticks_enabled:
+            self.ticks_enabled = True
+            self.canvas.start_ticks()
+
+    def hide(self):
+        Drawer.hide(self)
+        if self.ticks_enabled:
+            self.ticks_enabled = False
+            self.canvas.stop_ticks()
+
 
 
 class BackgroundDrawer(Drawer):
@@ -135,11 +159,11 @@ class BackgroundDrawer(Drawer):
 
     size = property(__get_size)
 
-    def do_draw(self, cairo_context, offset, size):
-        cairo_context.set_source_rgb(self.rgb[0], self.rgb[1], self.rgb[2])
-        cairo_context.rectangle(0, 0, size[0], size[1])
-        cairo_context.clip()
-        cairo_context.paint()
+    def do_draw(self, cairo_ctx, offset, size):
+        cairo_ctx.set_source_rgb(self.rgb[0], self.rgb[1], self.rgb[2])
+        cairo_ctx.rectangle(0, 0, size[0], size[1])
+        cairo_ctx.clip()
+        cairo_ctx.paint()
 
 
 class PillowImageDrawer(Drawer):
@@ -147,22 +171,26 @@ class PillowImageDrawer(Drawer):
     visible = True
 
     def __init__(self, position, image):
+        Drawer.__init__(self)
         self.size = image.size
         self.position = position
         self.surface = image2surface(image)
 
-    def do_draw(self, cairo_context, offset, size):
-        self.draw_surface(cairo_context, offset, size,
+    def do_draw(self, cairo_ctx, offset, size):
+        self.draw_surface(cairo_ctx, offset, size,
                           self.surface, self.position, self.size)
 
 
-class ScanDrawer(Drawer):
+class ScanDrawer(Animation):
     layer = Drawer.IMG_LAYER
 
     visible = True
 
+    ANIM_LENGTH = 1000  # mseconds
+    ANIM_HEIGHT = 5
+
     def __init__(self, position, scan_size, visible_size):
-        Drawer.__init__(self)
+        Animation.__init__(self)
         self.ratio = min(
             float(visible_size[0]) / float(scan_size[0]),
             float(visible_size[1]) / float(scan_size[1]),
@@ -174,28 +202,80 @@ class ScanDrawer(Drawer):
         self.position = position
         self.surfaces = []
 
+        self.anim = {
+            "position": 0,
+            "offset": (float(self.size[1])
+                       / (self.ANIM_LENGTH
+                          / Canvas.TICK_INTERVAL)),
+        }
+
+    def on_tick(self):
+        self.anim['position'] += self.anim['offset']
+        if self.anim['position'] < 0 or self.anim['position'] >= self.size[0]:
+            self.anim['position'] = max(0, self.anim['position'])
+            self.anim['position'] = min(self.size[0], self.anim['position'])
+            self.anim['offset'] *= -1
+
     def add_chunk(self, line, img_chunk):
         surface = image2surface(img_chunk)
         self.surfaces.append((line, surface))
         self.canvas.redraw()
 
-    def do_draw(self, cairo_context, canvas_offset, canvas_size):
+    def draw_chunks(self, cairo_ctx, canvas_offset, canvas_size):
         for (line, surface) in self.surfaces:
             line *= self.ratio
             chunk_size = (surface.get_width() * self.ratio,
                           surface.get_height() * self.ratio)
-            self.draw_surface(cairo_context, canvas_offset, canvas_size,
+            self.draw_surface(cairo_ctx, canvas_offset, canvas_size,
                               surface, (float(self.position[0]),
                                         float(self.position[1]) + line),
                               chunk_size)
 
+    def draw_animation(self, cairo_ctx, canvas_offset, canvas_size):
+        if len(self.surfaces) <= 0:
+            return
 
-class SpinnerDrawer(Drawer):
+        position = (
+            self.position[0] - canvas_offset[0],
+            (
+                self.position[1]
+                - canvas_offset[1]
+                + (self.ratio * self.surfaces[-1][0])
+                + (self.ratio * self.surfaces[-1][1].get_height())
+            ),
+        )
+
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_operator(cairo.OPERATOR_OVER)
+            cairo_ctx.set_source_rgb(0.5, 0.0, 0.0)
+            cairo_ctx.set_line_width(1.0)
+            cairo_ctx.move_to(position[0], position[1])
+            cairo_ctx.line_to(position[0] + self.size[0], position[1])
+            cairo_ctx.stroke()
+
+            cairo_ctx.set_source_rgb(1.0, 0.0, 0.0)
+            cairo_ctx.arc(position[0] + self.anim['position'],
+                          position[1],
+                          float(self.ANIM_HEIGHT) / 2,
+                          0.0, math.pi * 2)
+            cairo_ctx.stroke()
+
+        finally:
+            cairo_ctx.restore()
+
+    def do_draw(self, *args, **kwargs):
+        self.draw_chunks(*args, **kwargs)
+        self.draw_animation(*args, **kwargs)
+
+
+class SpinnerDrawer(Animation):
     ICON_SIZE = 48
 
     layer = Drawer.SPINNER_LAYER
 
     def __init__(self, position):
+        Animation.__init__(self)
         self.visible = False
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
@@ -209,18 +289,6 @@ class SpinnerDrawer(Drawer):
             (self.icon_pixbuf.get_width() / self.ICON_SIZE),
             (self.icon_pixbuf.get_height() / self.ICON_SIZE),
         )
-
-    def show(self):
-        Drawer.show(self)
-        if not self.visible:
-            self.visible = True
-            self.canvas.start_ticks()
-
-    def hide(self):
-        Drawer.hide(self)
-        if self.visible:
-            self.visible = False
-            self.canvas.stop_ticks()
 
     def on_tick(self):
         self.frame += 1

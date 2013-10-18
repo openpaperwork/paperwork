@@ -49,6 +49,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         'window-moved': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
+    TICK_INTERVAL = (1000 / 15)
+
     def __init__(self, scrollbars):
         Gtk.DrawingArea.__init__(self)
 
@@ -84,11 +86,11 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             drawer.on_tick()
         self.redraw()
         if self.need_ticks > 0:
-            GLib.timeout_add(1000 / 15, self._tick)
+            GLib.timeout_add(self.TICK_INTERVAL, self._tick)
 
     def start_ticks(self):
         if self.need_ticks == 0:
-            GLib.timeout_add(1000 / 15, self._tick)
+            GLib.timeout_add(self.TICK_INTERVAL, self._tick)
         self.need_ticks += 1
 
     def stop_ticks(self):

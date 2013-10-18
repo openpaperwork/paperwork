@@ -11,9 +11,8 @@ class Drawer(object):
     # layer number == priority --> higher is drawn first
     BACKGROUND_LAYER = 1000
     IMG_LAYER = 200
-    PROGRESSION_INDICATOR_LAYER = 100
     BOX_LAYER = 50
-    SPINNER_LAYER = 25
+    PROGRESSION_INDICATOR_LAYER = 25
     FADDING_EFFECT_LAYER = 0
     # layer number == priority --> lower is drawn last
 

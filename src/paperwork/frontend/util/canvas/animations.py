@@ -119,7 +119,7 @@ class ScanAnimation(Animation):
 class SpinnerAnimation(Animation):
     ICON_SIZE = 48
 
-    layer = Drawer.SPINNER_LAYER
+    layer = Drawer.PROGRESSION_INDICATOR_LAYER
 
     def __init__(self, position):
         Animation.__init__(self)

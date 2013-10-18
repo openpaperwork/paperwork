@@ -566,7 +566,7 @@ class SettingsWindow(GObject.GObject):
         self.calibration = {
             "scan_button": widget_tree.get_object("buttonScanCalibration"),
             "image_gui": img_canvas,
-            "images": [],  # array of tuples: (resize factor, PIL image)
+            "image": None,
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
             "image_scrollbars": img_scrollbars,
             "resolution": PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION,
@@ -729,12 +729,10 @@ class SettingsWindow(GObject.GObject):
         self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
 
-        self.calibration['images'] = [(1.0, img)]
+        self.calibration['image'] = img
         self.calibration['resolution'] = scan_resolution
         self.progressbar.set_fraction(0.0)
-        self.grips = ImgGripHandler(self.calibration['images'],
-                                    self.calibration['image_scrollbars'],
-                                    self.calibration['image_eventbox'],
+        self.grips = ImgGripHandler(self.calibration['image'],
                                     self.calibration['image_gui'])
         self.grips.visible = True
         self.set_mouse_cursor("Normal")

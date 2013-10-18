@@ -20,64 +20,97 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 
+from paperwork.frontend.util.canvas.drawers import Drawer
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.img import image2pixbuf
 
 
-class ImgGrip(object):
+class ImgGrip(Drawer):
     """
     Represents one of the grip that user can move to cut an image.
     """
+    layer = Drawer.BOX_LAYER
+
     GRIP_SIZE = 20
-    COLOR = (0x00, 0x00, 0xFF)
+    DEFAULT_COLOR = (0.0, 0.0, 1.0)
+    SELECTED_COLOR = (0.0, 1.0, 0.0)
 
-    def __init__(self, pos_x, pos_y):
-        self.position = (int(pos_x), int(pos_y))
+    def __init__(self, position, size, max_position):
+        self.position = position
+        self.size = size
+        self.max_position = max_position
+        self.scale = 1.0
+        self.selected = False
 
-    def draw(self, img, imgdraw, ratio):
-        """
-        Draw the grip on the image
+    def __get_on_screen_pos(self):
+        x = int(self.scale * self.position[0])
+        y = int(self.scale * self.position[1])
+        return (x, y)
 
-        Arguments:
-            imgdraw --- drawing area
-            ratio --- Scale at which the image is represented
-        """
-        bbox = img.getbbox()
-        img_x = bbox[2] / ratio
-        img_y = bbox[3] / ratio
-        (pos_x, pos_y) = self.position
-        # fix our position in case we are out the image
-        if pos_x < 0:
-            pos_x = 0
-        if pos_x >= img_x:
-            pos_x = img_x - 1
-        if pos_y < 0:
-            pos_y = 0
-        if pos_y >= img_y:
-            pos_y = img_y
-        self.position = (pos_x, pos_y)
-        pos_x = int(ratio * pos_x)
-        pos_y = int(ratio * pos_y)
-        imgdraw.rectangle(((pos_x - self.GRIP_SIZE, pos_y - self.GRIP_SIZE),
-                           (pos_x + self.GRIP_SIZE, pos_y + self.GRIP_SIZE)),
-                          outline=self.COLOR)
+    def __get_select_area(self):
+        (x, y) = self.__get_on_screen_pos(self.scale)
+        x_min = x - (self.GRIP_SIZE / 2)
+        y_min = y - (self.GRIP_SIZE / 2)
+        x_max = x + (self.GRIP_SIZE / 2)
+        y_max = y + (self.GRIP_SIZE / 2)
+        return ((x_min, y_min), (x_max, y_max))
 
-    def is_on_grip(self, position, ratio):
+    def is_on_grip(self, position):
         """
         Indicates if position is on the grip
 
         Arguments:
             position --- tuple (int, int)
-            ratio --- Scale at which the image is represented
+            scale --- Scale at which the image is represented
 
         Returns:
             True or False
         """
-        x_min = int(ratio * self.position[0]) - self.GRIP_SIZE
-        y_min = int(ratio * self.position[1]) - self.GRIP_SIZE
-        x_max = int(ratio * self.position[0]) + self.GRIP_SIZE
-        y_max = int(ratio * self.position[1]) + self.GRIP_SIZE
+        ((x_min, y_min), (x_max, y_max)) = self.__get_select_area(scale)
         return (x_min <= position[0] and position[0] <= x_max
                 and y_min <= position[1] and position[1] <= y_max)
+
+    on_screen_position = property(__get_on_screen_pos)
+
+    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+        ((a_x, a_y), (b_x, b_y)) = self.__get_select_area(scale)
+        a_x -= canvas_offset[0]
+        a_y -= canvas_offset[1]
+        b_x -= canvas_offset[0]
+        b_y -= canvas_offset[1]
+
+        color = {
+            False: self.DEFAULT_COLOR,
+            True: self.SELECTED_COLOR,
+        }[self.selected]
+
+        cairo_ctx.set_source_rgb(color[0], color[1], color[2])
+        cairo_ctx.set_line_width(1.0)
+        cairo_ctx.rectangle(a_x, a_y, b_x - a_x, b_y - a_y)
+        cairo_ctx.stroke()
+
+
+class ImgGripRectangle(Drawer):
+    layer = (Drawer.BOX_LAYER + 1)  # draw below/before the grips itself
+
+    COLOR = (0.0, 0.0, 1.0)
+
+    def __init__(self, size, grips):
+        self.size = size
+        self.grips = grips
+
+    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+        (a_x, a_y) = self.grips[0].on_screen_position
+        (b_x, b_y) = self.grips[1].on_screen_position
+        a_x -= canvas_offset[0]
+        a_y -= canvas_offset[1]
+        b_x -= canvas_offset[0]
+        b_y -= canvas_offset[1]
+
+        cairo_ctx.set_source_rgb(self.COLOR[0], self.COLOR[1], self.COLOR[2])
+        cairo_ctx.set_line_width(1.0)
+        cairo_ctx.rectangle(a_x, a_y, b_x - a_x, b_y - a_y)
+        cairo_ctx.stroke()
 
 
 class ImgGripHandler(GObject.GObject):
@@ -85,26 +118,23 @@ class ImgGripHandler(GObject.GObject):
         'grip-moved': (GObject.SignalFlags.RUN_LAST, None, ())
     }
 
-    def __init__(self, imgs, img_scrolledwindow, img_eventbox, img_widget):
-        """
-        Arguments:
-            imgs --- [(factor, PIL img), (factor, PIL img), ...]
-            img_eventbox --- Image area eventbox
-            img_widget --- Widget displaying the image
-        """
+    def __init__(self, img, canvas):
         GObject.GObject.__init__(self)
+
         self.__visible = False
 
-        self.imgs = imgs
-        self.img_scrolledwindow = img_scrolledwindow
-        self.img_eventbox = img_eventbox
-        self.img_widget = img_widget
+        self.img = img
+        self.scale = 1.0
+        self.img_size = self.img.size
+        self.canvas = canvas
 
-        bbox = imgs[0][1].getbbox()
-        factor = imgs[0][0]
-        self.__grips = (
-            ImgGrip(0, 0),
-            ImgGrip(bbox[2] / factor, bbox[3] / factor))
+        self.img_drawer = PillowImageDrawer((0, 0), img)
+        self.grips = (
+            ImgGrip((0, 0), self.img_size),
+            ImgGrip(self.img_size, self.img_size),
+        )
+        select_rectangle = ImgGripRectangle(self.img_size, self.grips)
+
         self.selected = None  # the grip being moved
 
         self.__cursors = {
@@ -113,48 +143,43 @@ class ImgGripHandler(GObject.GObject):
             'on_grip': Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         }
 
-        img_eventbox.connect("button-press-event",
-                             self.__on_mouse_button_pressed_cb)
-        img_eventbox.connect("motion-notify-event",
-                             self.__on_mouse_motion_cb)
-        img_eventbox.connect("button-release-event",
-                             self.__on_mouse_button_released_cb)
-        img_eventbox.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+        canvas.connect("absolute-button-press-event",
+                       self.__on_mouse_button_pressed_cb)
+        canvas.connect("absolute-motion-notify-event",
+                       self.__on_mouse_motion_cb)
+        canvas.connect("absolute-button-release-event",
+                       self.__on_mouse_button_released_cb)
 
-        img_widget.connect("size-allocate",
-                           lambda widget, size:
-                           GLib.idle_add(self.__on_size_allocate_cb,
-                                            widget, size))
-        self.__last_cursor_pos = None  # relative to the image size
+        toggle_zoom()
 
-        self.redraw()
+        self.canvas.remove_all_drawers()
+        self.canvas.add_drawer(self.img_drawer)
+        self.canvas.add_drawer(select_rectangle)
+        for grip in self.grips:
+            self.canvas.add_drawer(grip)
+
+    def toggle_zoom(self, relative_cursor_position=None):
+        # TODO
+        pass
 
     def __on_mouse_button_pressed_cb(self, widget, event):
-        if not self.__visible:
-            return
-
         (mouse_x, mouse_y) = event.get_coords()
-        factor = self.imgs[0][0]
 
         self.selected = None
-        for grip in self.__grips:
-            if grip.is_on_grip((mouse_x, mouse_y), factor):
+        for grip in self.grips:
+            if grip.is_on_grip((mouse_x, mouse_y)):
                 self.selected = grip
                 break
 
     def __on_mouse_motion_cb(self, widget, event):
-        if not self.__visible:
-            return
-
         (mouse_x, mouse_y) = event.get_coords()
-        factor = self.imgs[0][0]
 
         if self.selected:
             is_on_grip = True
         else:
             is_on_grip = False
-            for grip in self.__grips:
-                if grip.is_on_grip((mouse_x, mouse_y), factor):
+            for grip in self.grips:
+                if grip.is_on_grip((mouse_x, mouse_y)):
                     is_on_grip = True
                     break
 
@@ -169,70 +194,29 @@ class ImgGripHandler(GObject.GObject):
         Move a grip, based on the position
         """
         (mouse_x, mouse_y) = event_pos
-        (factor, img) = self.imgs[0]
 
         if not self.selected:
             return None
 
-        new_x = mouse_x / factor
-        new_y = mouse_y / factor
+        new_x = mouse_x / self.scale
+        new_y = mouse_y / self.scale
         self.selected.position = (new_x, new_y)
 
     def __on_mouse_button_released_cb(self, widget, event):
         if self.selected:
-            if not self.__visible:
-                return
             self.__move_grip(event.get_coords())
             self.selected = None
         else:
             # figure out the cursor position on the image
             (mouse_x, mouse_y) = event.get_coords()
-            img = self.imgs[0][1]
-            bbox = img.getbbox()
-            img_w = bbox[2]
-            img_h = bbox[3]
-            self.__last_cursor_pos = (
+            (img_w, img_h) = self.img_size
+            rel_cursor_pos = (
                 float(mouse_x) / img_w,
                 float(mouse_y) / img_h
             )
-
-            # switch image
-            img = self.imgs.pop()
-            self.imgs.insert(0, img)
-        GLib.idle_add(self.redraw)
+            self.toggle_zoom(rel_cursor_pos)
+        self.canvas.redraw()
         self.emit('grip-moved')
-
-    def __on_size_allocate_cb(self, viewport, new_size):
-        if self.__last_cursor_pos is None:
-            return
-        (x, y) = self.__last_cursor_pos
-        self.__last_cursor_pos = None
-        adjustements = [
-            (self.img_scrolledwindow.get_hadjustment(), x),
-            (self.img_scrolledwindow.get_vadjustment(), y),
-        ]
-        for (adjustment, val) in adjustements:
-            upper = adjustment.get_upper() - adjustment.get_page_size()
-            lower = adjustment.get_lower()
-            val = (val * (upper - lower) + lower)
-            adjustment.set_value(val)
-
-    def __draw_grips(self, img, imgdraw, factor):
-        for grip in self.__grips:
-            grip.draw(img, imgdraw, factor)
-        a = (int(factor * self.__grips[0].position[0]),
-             int(factor * self.__grips[0].position[1]))
-        b = (int(factor * self.__grips[1].position[0]),
-             int(factor * self.__grips[1].position[1]))
-        imgdraw.rectangle((a, b), outline=ImgGrip.COLOR)
-
-    def redraw(self):
-        (factor, img) = self.imgs[0]
-        if self.__visible:
-            img = img.copy()
-            self.__draw_grips(img, PIL.ImageDraw.Draw(img), factor)
-        img = image2pixbuf(img)
-        self.img_widget.set_from_pixbuf(img)
 
     def __get_visible(self):
         return self.__visible
@@ -240,15 +224,15 @@ class ImgGripHandler(GObject.GObject):
     def __set_visible(self, visible):
         self.__visible = visible
         self.img_widget.get_window().set_cursor(self.__cursors['default'])
-        self.redraw()
+        self.canvas.redraw()
 
     visible = property(__get_visible, __set_visible)
 
     def get_coords(self):
-        return ((int(self.__grips[0].position[0]),
-                 int(self.__grips[0].position[1])),
-                (int(self.__grips[1].position[0]),
-                 int(self.__grips[1].position[1])))
+        return ((int(self.grips[0].position[0]),
+                 int(self.grips[0].position[1])),
+                (int(self.grips[1].position[0]),
+                 int(self.grips[1].position[1])))
 
 
 GObject.type_register(ImgGripHandler)

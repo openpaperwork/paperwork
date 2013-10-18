@@ -3199,7 +3199,7 @@ class MainWindow(object):
         logger.info("Showing document %s" % doc)
         self.doc = doc
 
-        self.schedulers['main'].cancel_all(self.job_factories['page_loader'])
+        self.schedulers['page_loader'].cancel_all(self.job_factories['page_loader'])
         self.img['canvas'].remove_all_drawers()
 
         factories = {

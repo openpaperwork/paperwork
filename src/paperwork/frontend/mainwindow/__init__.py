@@ -2200,6 +2200,7 @@ class MainWindow(object):
 
         self.schedulers = {
             'main' : JobScheduler("Main"),
+            'page_loader': JobScheduler("Page Loader"),
             'ocr' : JobScheduler("OCR"),
             'progress' : JobScheduler("Progress"),
             'scan' : JobScheduler("Scan"),
@@ -3205,7 +3206,7 @@ class MainWindow(object):
             'page_loader': self.job_factories['page_loader']
         }
         schedulers = {
-            'page_loader': self.schedulers['main']
+            'page_loader': self.schedulers['page_loader']
         }
 
         self.page_drawers = []

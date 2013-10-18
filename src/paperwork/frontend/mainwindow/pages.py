@@ -4,8 +4,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.backend.util import image2surface
+from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
-from paperwork.frontend.util.canvas.drawers import SpinnerDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
@@ -71,7 +71,7 @@ class PageDrawer(Drawer):
 
         self._position = position
         self._size = self.max_size
-        self.spinner = SpinnerDrawer((0, 0))
+        self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
 
     def on_tick(self):
@@ -81,9 +81,9 @@ class PageDrawer(Drawer):
     def upd_spinner_position(self):
         self.spinner.position = (
             (self._position[0] + (self._size[0] / 2)
-             - (SpinnerDrawer.ICON_SIZE / 2)),
+             - (SpinnerAnimation.ICON_SIZE / 2)),
             (self._position[1] + (self._size[1] / 2)
-             - (SpinnerDrawer.ICON_SIZE / 2)),
+             - (SpinnerAnimation.ICON_SIZE / 2)),
         )
 
     def _get_position(self):

@@ -37,8 +37,8 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
+from paperwork.frontend.util.canvas.animations import ScanAnimation
 from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
-from paperwork.frontend.util.canvas.drawers import ScanDrawer
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -715,7 +715,7 @@ class SettingsWindow(GObject.GObject):
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_info(self, size):
-        self.calibration['scan_drawer'] = ScanDrawer(
+        self.calibration['scan_drawer'] = ScanAnimation(
             (0, 0),
             size, self.calibration['image_gui'].visible_size)
         self.calibration['image_gui'].add_drawer(

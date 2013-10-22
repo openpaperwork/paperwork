@@ -33,18 +33,31 @@ class ImgGrip(Drawer):
 
     GRIP_SIZE = 40
     DEFAULT_COLOR = (0.0, 0.0, 1.0)
-    SELECTED_COLOR = (0.0, 1.0, 0.0)
+    HOVER_COLOR = (0.0, 1.0, 0.0)
+    SELECTED_COLOR = (1.0, 0.0, 0.0)
 
     def __init__(self, position, max_position):
-        self.img_position = position
+        self._img_position = position
         self.max_position = max_position
-        self.size = (1, 1)  # won't be used: the image set the canvas size
+        self.size = (0, 0)
         self.scale = 1.0
         self.selected = False
+        self.hover = False
+
+    def __get_img_position(self):
+        return self._img_position
+
+    def __set_img_position(self, position):
+        self._img_position = (
+            min(max(0, position[0]), self.max_position[0]),
+            min(max(0, position[1]), self.max_position[1]),
+        )
+
+    img_position = property(__get_img_position, __set_img_position)
 
     def __get_on_screen_pos(self):
-        x = int(self.scale * self.img_position[0])
-        y = int(self.scale * self.img_position[1])
+        x = int(self.scale * self._img_position[0])
+        y = int(self.scale * self._img_position[1])
         return (x, y)
 
     position = property(__get_on_screen_pos)
@@ -79,10 +92,12 @@ class ImgGrip(Drawer):
         b_x -= canvas_offset[0]
         b_y -= canvas_offset[1]
 
-        color = {
-            False: self.DEFAULT_COLOR,
-            True: self.SELECTED_COLOR,
-        }[self.selected]
+        if self.selected:
+            color = self.SELECTED_COLOR
+        elif self.hover:
+            color = self.HOVER_COLOR
+        else:
+            color = self.DEFAULT_COLOR
         cairo_ctx.set_source_rgb(color[0], color[1], color[2])
         cairo_ctx.set_line_width(1.0)
         cairo_ctx.rectangle(a_x, a_y, b_x - a_x, b_y - a_y)
@@ -95,8 +110,16 @@ class ImgGripRectangle(Drawer):
     COLOR = (0.0, 0.0, 1.0)
 
     def __init__(self, grips):
-        self.size = (1, 1)  # won't be used: the image set the canvas size
         self.grips = grips
+
+    def __get_size(self):
+        positions = [grip.position for grip in self.grips]
+        return (
+            abs(positions[0][0] - positions[1][0]),
+            abs(positions[0][1] - positions[1][1]),
+        )
+
+    size = property(__get_size)
 
     def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
         (a_x, a_y) = self.grips[0].position
@@ -192,23 +215,8 @@ class ImgGripHandler(GObject.GObject):
         for grip in self.grips:
             if grip.is_on_grip((event.x, event.y)):
                 self.selected = grip
+                grip.selected = True
                 break
-
-    def __on_mouse_motion_cb(self, widget, event):
-        if self.selected:
-            is_on_grip = True
-        else:
-            is_on_grip = False
-            for grip in self.grips:
-                if grip.is_on_grip((event.x, event.y)):
-                    is_on_grip = True
-                    break
-
-        if is_on_grip:
-            cursor = self.__cursors['on_grip']
-        else:
-            cursor = self.__cursors['visible']
-        self.canvas.get_window().set_cursor(cursor)
 
     def __move_grip(self, event_pos):
         """
@@ -221,10 +229,32 @@ class ImgGripHandler(GObject.GObject):
         new_y = event_pos[1] / self.scale
         self.selected.img_position = (new_x, new_y)
 
-    def __on_mouse_button_released_cb(self, widget, event):
+    def __on_mouse_motion_cb(self, widget, event):
         if self.selected:
             self.__move_grip((event.x, event.y))
+            is_on_grip = True
+            self.canvas.redraw()
+        else:
+            is_on_grip = False
+            for grip in self.grips:
+                if grip.is_on_grip((event.x, event.y)):
+                    grip.hover = True
+                    is_on_grip = True
+                else:
+                    grip.hover = False
+            self.canvas.redraw()
+
+        if is_on_grip:
+            cursor = self.__cursors['on_grip']
+        else:
+            cursor = self.__cursors['visible']
+        self.canvas.get_window().set_cursor(cursor)
+
+    def __on_mouse_button_released_cb(self, widget, event):
+        if self.selected:
+            self.selected.selected = False
             self.selected = None
+            self.emit('grip-moved')
         else:
             # figure out the cursor position on the image
             (img_w, img_h) = self.img_size
@@ -234,7 +264,6 @@ class ImgGripHandler(GObject.GObject):
             )
             self.toggle_zoom(rel_cursor_pos)
         self.canvas.redraw()
-        self.emit('grip-moved')
 
     def __get_visible(self):
         return self.__visible
@@ -247,10 +276,15 @@ class ImgGripHandler(GObject.GObject):
     visible = property(__get_visible, __set_visible)
 
     def get_coords(self):
-        return ((int(self.grips[0].img_position[0]),
-                 int(self.grips[0].img_position[1])),
-                (int(self.grips[1].img_position[0]),
-                 int(self.grips[1].img_position[1])))
+        a_x = min(self.grips[0].img_position[0],
+                  self.grips[1].img_position[0])
+        a_y = min(self.grips[0].img_position[1],
+                  self.grips[1].img_position[1])
+        b_x = max(self.grips[0].img_position[0],
+                  self.grips[1].img_position[0])
+        b_y = max(self.grips[0].img_position[1],
+                  self.grips[1].img_position[1])
+        return ((int(a_x), int(a_y)), (int(b_x), int(b_y)))
 
 
 GObject.type_register(ImgGripHandler)

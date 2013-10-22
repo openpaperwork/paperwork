@@ -57,7 +57,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         hadj = scrollbars.get_hadjustment()
         vadj = scrollbars.get_vadjustment()
 
-        self.size_forced = False
         self.full_size = (1, 1)
         self.visible_size = (1, 1)
 
@@ -125,8 +124,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.redraw()
 
     def recompute_size(self):
-        if self.size_forced:
-            return
         (full_x, full_y) = (1, 1)
         for drawer in self.drawers:
             x = drawer.position[0] + drawer.size[0]

@@ -303,6 +303,26 @@ class PaperworkConfig(object):
     scanner_resolution = property(__get_scanner_resolution,
                                   __set_scanner_resolution)
 
+    def __get_scanner_source(self):
+        """
+        This is the source of the scannner used for scans.
+
+        String.
+        """
+        try:
+            return int(self._configparser.get("Scanner", "Source"))
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            return "Auto"
+
+    def __set_scanner_source(self, source):
+        """
+        Set the scanner resolution used for normal scans.
+        """
+        self._configparser.set("Scanner", "Source", str(source))
+
+    scanner_source = property(__get_scanner_source,
+                              __set_scanner_source)
+
     def __get_scanner_calibration(self):
         """
         Scanner calibration

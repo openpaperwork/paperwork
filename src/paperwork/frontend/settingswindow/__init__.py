@@ -114,12 +114,92 @@ class JobFactoryDeviceFinder(JobFactory):
         job.connect('device-found',
                     lambda job, user_name, store_name, active:
                     GLib.idle_add(self.__settings_win.on_value_found_cb,
-                                     self.__settings_win.device_settings['devid'],
-                                     user_name, store_name, active))
+                                  self.__settings_win.device_settings['devid'],
+                                  user_name, store_name, active))
         job.connect('device-finding-end',
                     lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_end_cb,
                         self.__settings_win.device_settings['devid']))
+        return job
+
+
+class JobSourceFinder(Job):
+    __gsignals__ = {
+        'source-finding-start': (GObject.SignalFlags.RUN_LAST,
+                                     None, ()),
+        'source-found': (GObject.SignalFlags.RUN_LAST, None,
+                             (GObject.TYPE_STRING,  # source name
+                              GObject.TYPE_STRING,  # user name (translated)
+                              GObject.TYPE_BOOLEAN,  # is the active one
+                             )
+                        ),
+        'source-finding-end': (GObject.SignalFlags.RUN_LAST,
+                                   None, ())
+    }
+
+    can_stop = False
+    priority = 490
+
+    def __init__(self, factory, id,
+                 selected_source,
+                 devid):
+        Job.__init__(self, factory, id)
+        self.__selected_source = selected_source
+        self.__devid = devid
+
+    def __get_source_name_translated(self, src_id):
+        TRANSLATIONS = {
+            'Flatbed': _("Flatbed"),
+            'ADF': _("Automatic Feeder"),
+        }
+        if src_id.lower() in TRANSLATIONS:
+            return TRANSLATIONS[src_id.lower()]
+        logger.warn("No translation for source [%s]" % src_id)
+        return src_id
+
+    def do(self):
+        self.emit("source-finding-start")
+        try:
+            logger.info("Looking for resolution of device [%s]" % (self.__devid))
+            device = pyinsane.Scanner(name=self.__devid)
+            sys.stdout.flush()
+            sources = device.options['source'].constraint
+            logger.info("Sources found: %s" % str(sources))
+            sys.stdout.flush()
+            for source in sources:
+                name = self.__get_source_name_translated(source)
+                self.emit('source-found', source, name,
+                          (source == self.__selected_source))
+        finally:
+            self.emit("source-finding-end")
+
+
+GObject.type_register(JobSourceFinder)
+
+
+class JobFactorySourceFinder(JobFactory):
+    def __init__(self, settings_win, selected_source):
+        JobFactory.__init__(self, "SourceFinder")
+        self.__settings_win = settings_win
+        self.__selected_source = selected_source
+
+    def make(self, devid):
+        job = JobSourceFinder(self, next(self.id_generator),
+                              self.__selected_source, devid)
+        job.connect('source-finding-start',
+                    lambda job: GLib.idle_add(
+                        self.__settings_win.on_finding_start_cb,
+                        self.__settings_win.device_settings['source']))
+        job.connect('source-found',
+                    lambda job, store_name, user_name, active:
+                    GLib.idle_add(
+                        self.__settings_win.on_value_found_cb,
+                        self.__settings_win.device_settings['source'],
+                        user_name, store_name, active))
+        job.connect('source-finding-end',
+                    lambda job: GLib.idle_add(
+                        self.__settings_win.on_finding_end_cb,
+                        self.__settings_win.device_settings['source']))
         return job
 
 
@@ -366,17 +446,20 @@ class ActionSelectScanner(SimpleAction):
         if idx < 0:
             # happens when the scanner list has been updated
             # but no scanner has been found
-            res_settings = self.__settings_win.device_settings['resolution']
-            res_settings['stores']['loaded'].clear()
-            res_settings['gui'].set_model(res_settings['stores']['loaded'])
-            res_settings['gui'].set_sensitive(False)
+            for setting in ['resolution', 'source']:
+                res_settings = self.__settings_win.device_settings['setting']
+                res_settings['stores']['loaded'].clear()
+                res_settings['gui'].set_model(res_settings['stores']['loaded'])
+                res_settings['gui'].set_sensitive(False)
             self.__settings_win.calibration["scan_button"].set_sensitive(False)
             return
         logger.info("Select scanner: %d" % idx)
-        self.__settings_win.calibration["scan_button"].set_sensitive(True)
+
         devid = settings['stores']['loaded'][idx][1]
 
         # no point in trying to stop the previous jobs, they are unstoppable
+        job = self.__settings_win.job_factories['source_finder'].make(devid)
+        self.__settings_win.schedulers['main'].schedule(job)
         job = self.__settings_win.job_factories['resolution_finder'].make(devid)
         self.__settings_win.schedulers['main'].schedule(job)
 
@@ -409,6 +492,12 @@ class ActionApplySettings(SimpleAction):
         if idx >= 0:
             devid = setting['stores']['loaded'][idx][1]
             self.__config.scanner_devid = devid
+
+        setting = self.__settings_win.device_settings['source']
+        idx = setting['gui'].get_active()
+        if idx >= 0:
+            source = setting['stores']['loaded'][idx][1]
+            self.__config.scanner_source = source
 
         setting = self.__settings_win.device_settings['resolution']
         idx = setting['gui'].get_active()
@@ -547,6 +636,15 @@ class SettingsWindow(GObject.GObject):
                 'nb_elements': 0,
                 'active_idx': -1,
             },
+            "source": {
+                'gui': widget_tree.get_object("comboboxScanSources"),
+                'stores': {
+                    'loading': widget_tree.get_object("liststoreLoading"),
+                    'loaded': widget_tree.get_object("liststoreScanSources"),
+                },
+                'nb_elements': 0,
+                'active_idx': -1,
+            },
             "resolution": {
                 'gui': widget_tree.get_object("comboboxResolution"),
                 'stores': {
@@ -579,6 +677,8 @@ class SettingsWindow(GObject.GObject):
 
         self.job_factories = {
             "device_finder": JobFactoryDeviceFinder(self, config.scanner_devid),
+            "source_finder": JobFactorySourceFinder(self,
+                                                    config.scanner_source),
             "resolution_finder": JobFactoryResolutionFinder(self,
                 config.scanner_resolution,
                 config.RECOMMENDED_RESOLUTION),

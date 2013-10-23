@@ -310,7 +310,7 @@ class PaperworkConfig(object):
         String.
         """
         try:
-            return int(self._configparser.get("Scanner", "Source"))
+            return self._configparser.get("Scanner", "Source")
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
             return "Auto"
 

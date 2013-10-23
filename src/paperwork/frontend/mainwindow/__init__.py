@@ -1539,7 +1539,7 @@ class ActionSingleScan(SimpleAction):
         devid = self.__config.scanner_devid
         logger.info("Will scan using %s" % str(devid))
         source = self.__config.scanner_source
-        logger.info("Will scan using source %s" % str(source)
+        logger.info("Will scan using source %s" % str(source))
         resolution = self.__config.scanner_resolution
         logger.info("Will scan at a resolution of %d" % resolution)
 

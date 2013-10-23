@@ -148,8 +148,9 @@ class JobSourceFinder(Job):
 
     def __get_source_name_translated(self, src_id):
         TRANSLATIONS = {
-            'Flatbed': _("Flatbed"),
-            'ADF': _("Automatic Feeder"),
+            'auto': _("Automatic"),
+            'flatbed': _("Flatbed"),
+            'adf': _("Automatic Feeder"),
         }
         if src_id.lower() in TRANSLATIONS:
             return TRANSLATIONS[src_id.lower()]

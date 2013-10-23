@@ -57,7 +57,6 @@ from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
 from paperwork.frontend.util.scanner import maximize_scan_area
-from paperwork.frontend.util.scanner import set_scanner_opt
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -70,7 +69,8 @@ logger = logging.getLogger(__name__)
 
 
 def check_scanner(main_win, config):
-    if config.scanner_devid is not None:
+    if (config.scanner_devid is not None
+        and config.scanner_source is not None):
         return True
     main_win.actions['open_settings'][1].do()
     return False
@@ -656,15 +656,15 @@ class JobFactoryPageThumbnailer(JobFactory):
         job.connect('page-thumbnailing-start',
                     lambda thumbnailer:
                     GLib.idle_add(self.__main_win.on_page_thumbnailing_start_cb,
-                                     thumbnailer))
+                                  thumbnailer))
         job.connect('page-thumbnailing-page-done',
                     lambda thumbnailer, page_idx, thumbnail:
                     GLib.idle_add(self.__main_win.on_page_thumbnailing_page_done_cb,
-                                     thumbnailer, page_idx, thumbnail))
+                                  thumbnailer, page_idx, thumbnail))
         job.connect('page-thumbnailing-end',
                     lambda thumbnailer:
                     GLib.idle_add(self.__main_win.on_page_thumbnailing_end_cb,
-                                     thumbnailer))
+                                  thumbnailer))
         return job
 
 
@@ -1538,19 +1538,14 @@ class ActionSingleScan(SimpleAction):
 
         devid = self.__config.scanner_devid
         logger.info("Will scan using %s" % str(devid))
+        source = self.__config.scanner_source
+        logger.info("Will scan using source %s" % str(source)
         resolution = self.__config.scanner_resolution
         logger.info("Will scan at a resolution of %d" % resolution)
 
         dev = pyinsane.Scanner(name=devid)
 
-        try:
-            # any source is actually fine. we just have a clearly defined
-            # preferred order
-            set_scanner_opt('source', dev.options['source'],
-                            ["Auto", "FlatBed",
-                             ".*ADF.*", ".*Feeder.*"])
-        except (KeyError, pyinsane.SaneException), exc:
-            logger.warn("Unable to set scanner source: %s" % exc)
+        dev.options['source'].value = source
         try:
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException:

@@ -31,7 +31,6 @@ from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.scanner import maximize_scan_area
-from paperwork.frontend.util.scanner import set_scanner_opt
 
 
 _ = gettext.gettext

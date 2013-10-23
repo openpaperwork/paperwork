@@ -43,7 +43,6 @@ from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.scanner import maximize_scan_area
-from paperwork.frontend.util.scanner import set_scanner_opt
 
 
 _ = gettext.gettext
@@ -128,8 +127,8 @@ class JobSourceFinder(Job):
         'source-finding-start': (GObject.SignalFlags.RUN_LAST,
                                      None, ()),
         'source-found': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_STRING,  # source name
-                              GObject.TYPE_STRING,  # user name (translated)
+                             (GObject.TYPE_STRING,  # user name (translated)
+                              GObject.TYPE_STRING,  # source name
                               GObject.TYPE_BOOLEAN,  # is the active one
                              )
                         ),
@@ -168,7 +167,7 @@ class JobSourceFinder(Job):
             sys.stdout.flush()
             for source in sources:
                 name = self.__get_source_name_translated(source)
-                self.emit('source-found', source, name,
+                self.emit('source-found', name, source,
                           (source == self.__selected_source))
         finally:
             self.emit("source-finding-end")
@@ -191,7 +190,7 @@ class JobFactorySourceFinder(JobFactory):
                         self.__settings_win.on_finding_start_cb,
                         self.__settings_win.device_settings['source']))
         job.connect('source-found',
-                    lambda job, store_name, user_name, active:
+                    lambda job, user_name, store_name, active:
                     GLib.idle_add(
                         self.__settings_win.on_value_found_cb,
                         self.__settings_win.device_settings['source'],
@@ -288,11 +287,11 @@ class JobFactoryResolutionFinder(JobFactory):
                         self.__settings_win.on_finding_start_cb,
                         self.__settings_win.device_settings['resolution']))
         job.connect('resolution-found',
-                    lambda job, user_name, store_name, active:
+                    lambda job, store_name, user_name, active:
                     GLib.idle_add(
                         self.__settings_win.on_value_found_cb,
                         self.__settings_win.device_settings['resolution'],
-                        user_name, store_name, active))
+                        store_name, user_name, active))
         job.connect('resolution-finding-end',
                     lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_end_cb,
@@ -324,10 +323,11 @@ class JobCalibrationScan(Job):
     can_stop = True
     priority = 495
 
-    def __init__(self, factory, id, resolutions_store, devid):
+    def __init__(self, factory, id, resolutions_store, devid, source):
         Job.__init__(self, factory, id)
         self.__resolutions_store = resolutions_store
         self.__devid = devid
+        self.__source = source
         self.can_run = False
 
     def do(self):
@@ -350,14 +350,8 @@ class JobCalibrationScan(Job):
 
         # scan
         dev = pyinsane.Scanner(name=self.__devid)
-        try:
-            # any source is actually fine. we just have a clearly defined
-            # preferred order
-            set_scanner_opt('source', dev.options['source'],
-                            ["Auto", "FlatBed",
-                             ".*ADF.*", ".*Feeder.*"])
-        except (KeyError, pyinsane.SaneException), exc:
-            logger.warn("Unable to set scanner source: %s" % exc)
+        dev.options['source'].value = self.__source
+        logger.info("Scanner source set to '%s'" % self.__source)
         try:
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException:
@@ -411,10 +405,10 @@ class JobFactoryCalibrationScan(JobFactory):
         self.__settings_win = settings_win
         self.__resolutions_store = resolutions_store
 
-    def make(self, devid):
+    def make(self, devid, source):
         job = JobCalibrationScan(self, next(self.id_generator),
                                  self.__resolutions_store,
-                                 devid)
+                                 devid, source)
         job.connect('calibration-scan-start',
                     lambda job:
                     GLib.idle_add(self.__settings_win.on_scan_start))
@@ -441,27 +435,48 @@ class ActionSelectScanner(SimpleAction):
         self.__settings_win = settings_win
 
     def do(self):
-        settings = self.__settings_win.device_settings['devid']
-        idx = settings['gui'].get_active()
+        devid_settings = self.__settings_win.device_settings['devid']
+        idx = devid_settings['gui'].get_active()
         if idx < 0:
             # happens when the scanner list has been updated
             # but no scanner has been found
             for setting in ['resolution', 'source']:
-                res_settings = self.__settings_win.device_settings['setting']
-                res_settings['stores']['loaded'].clear()
-                res_settings['gui'].set_model(res_settings['stores']['loaded'])
-                res_settings['gui'].set_sensitive(False)
+                settings = self.__settings_win.device_settings[setting]
+                settings['stores']['loaded'].clear()
+                settings['gui'].set_model(settings['stores']['loaded'])
+                settings['gui'].set_sensitive(False)
             self.__settings_win.calibration["scan_button"].set_sensitive(False)
             return
-        logger.info("Select scanner: %d" % idx)
+        logger.info("Selected scanner: %d" % idx)
 
-        devid = settings['stores']['loaded'][idx][1]
+        devid = devid_settings['stores']['loaded'][idx][1]
 
         # no point in trying to stop the previous jobs, they are unstoppable
         job = self.__settings_win.job_factories['source_finder'].make(devid)
         self.__settings_win.schedulers['main'].schedule(job)
         job = self.__settings_win.job_factories['resolution_finder'].make(devid)
         self.__settings_win.schedulers['main'].schedule(job)
+
+
+class ActionSelectSource(SimpleAction):
+    def __init__(self, settings_win):
+        SimpleAction.__init__(self, "New source selected")
+        self.__settings_win = settings_win
+
+    def do(self):
+        source_settings = self.__settings_win.device_settings['source']
+        idx = source_settings['gui'].get_active()
+        if idx < 0:
+            # happens when the scanner list has been updated
+            # but no source has been found
+            settings = self.__settings_win.device_settings['resolution']
+            settings['stores']['loaded'].clear()
+            settings['gui'].set_model(settings['stores']['loaded'])
+            settings['gui'].set_sensitive(False)
+            self.__settings_win.calibration["scan_button"].set_sensitive(False)
+            return
+        logger.info("Selected source: %d" % idx)
+        self.__settings_win.calibration["scan_button"].set_sensitive(True)
 
 
 class ActionToggleOCRState(SimpleAction):
@@ -555,7 +570,12 @@ class ActionScanCalibration(SimpleAction):
         assert(idx >= 0)
         devid = setting['stores']['loaded'][idx][1]
 
-        job = self.__settings_win.job_factories['scan'].make(devid)
+        setting = self.__settings_win.device_settings['source']
+        idx = setting['gui'].get_active()
+        assert(idx >= 0)
+        source = setting['stores']['loaded'][idx][1]
+
+        job = self.__settings_win.job_factories['scan'].make(devid, source)
         self.__settings_win.schedulers['main'].schedule(job)
 
 
@@ -619,6 +639,10 @@ class SettingsWindow(GObject.GObject):
             "select_scanner": (
                 [widget_tree.get_object("comboboxDevices")],
                 ActionSelectScanner(self)
+            ),
+            "select_source": (
+                [widget_tree.get_object("comboboxScanSources")],
+                ActionSelectSource(self)
             ),
             "scan_calibration": (
                 [widget_tree.get_object("buttonScanCalibration")],
@@ -779,7 +803,7 @@ class SettingsWindow(GObject.GObject):
             element['gui'].set_sensitive(False)
 
     def on_value_found_cb(self, settings,
-                            user_name, store_name, active):
+                          user_name, store_name, active):
         store_line = [user_name, store_name]
         logger.info("Got value [%s]" % store_line)
         settings['stores']['loaded'].append(store_line)

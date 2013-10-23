@@ -312,7 +312,7 @@ class PaperworkConfig(object):
         try:
             return self._configparser.get("Scanner", "Source")
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return "Auto"
+            return None
 
     def __set_scanner_source(self, source):
         """

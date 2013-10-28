@@ -12,7 +12,8 @@ import pyocr.builders
 from paperwork.backend.util import check_spelling
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
-from paperwork.frontend.util.canvas.drawers import Drawer
+from paperwork.frontend.util.canvas.animations import Animation
+from paperwork.frontend.util.canvas.animations import ScanAnimation
 
 
 logger = logging.getLogger(__name__)
@@ -295,11 +296,45 @@ class JobFactoryOCR(JobFactory):
         return job
 
 
-class ScanSceneDrawer(Drawer):
+class ScanSceneDrawer(Animation):
+    GLOBAL_MARGIN = 10
+
+    layer = Animation.IMG_LAYER
+
     def __init__(self, scan_scene):
-        Drawer.__init__(self)
+        Animation.__init__(self)
         self.scan_scene = scan_scene
-        # TODO
+        self.position = (0, 0)
+
+        # we are used as a page drawer, but our page is being built
+        self.page = None
+
+    def __get_size(self):
+        if self.canvas is None:
+            return (100, 100)
+        return (
+            self.canvas.visible_size[0] - 10,
+            self.canvas.visible_size[1] - 10,
+        )
+
+    size = property(__get_size)
+
+    def set_size_ratio(self, ratio):
+        # we are used as a page drawer, but we don't care about the scale/ratio
+        return
+
+    def do_draw(self, cairo_ctx, offset, size):
+        pos_x = self.position[0] - offset[0]
+        pos_y = self.position[1] - offset[1]
+
+        cairo_ctx.set_source_rgb(0.5, 0.5, 0.5)
+        cairo_ctx.rectangle(pos_x, pos_y, pos_x + size[0], pos_y + size[1])
+        cairo_ctx.clip()
+        cairo_ctx.paint()
+
+
+    def on_tick(self):
+        pass
 
 
 class ScanScene(GObject.GObject):
@@ -343,7 +378,6 @@ class ScanScene(GObject.GObject):
         """
         job = self.factories['scan'].make(scan_session)
         self.schedulers['scan'].schedule(job)
-
 
     def on_scan_start(self):
         # TODO

@@ -1565,8 +1565,8 @@ class ActionSingleScan(SimpleAction):
         scan_scene = ScanScene(self.__config,
                                self.__main_win.schedulers['scan'],
                                self.__main_win.schedulers['ocr'])
+        self.__main_win.add_scan_scene(self.__main_win.doc, scan_scene)
         scan_scene.scan_and_ocr(scan_session)
-        # TODO(Jflesch)
 
 
 class ActionMultiScan(SimpleAction):
@@ -2248,6 +2248,7 @@ class MainWindow(object):
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
         self.page_drawers = []
+        self.scan_drawers = {}  # docid --> extra drawer
 
         search_completion = Gtk.EntryCompletion()
 
@@ -2803,7 +2804,6 @@ class MainWindow(object):
         self.refresh_doc_list()
         self.refresh_label_list()
 
-
     def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)
 
@@ -3176,7 +3176,7 @@ class MainWindow(object):
         factor = self.get_zoom_factor(drawer.max_size)
         drawer.set_size_ratio(factor)
 
-    def __update_page_position(self):
+    def __update_page_positions(self):
         position = 0
         for drawer in self.page_drawers:
             drawer.position = (0, position)
@@ -3185,7 +3185,7 @@ class MainWindow(object):
     def update_page_sizes(self):
         for page in self.page_drawers:
             self.__resize_page(page)
-        self.__update_page_position()
+        self.__update_page_positions()
 
     def show_doc(self, doc_idx, doc, force_refresh=False):
         if (self.doc is not None and self.doc == doc and not force_refresh):
@@ -3209,6 +3209,10 @@ class MainWindow(object):
             drawer = PageDrawer((0, 0), page, factories, schedulers)
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
+        if self.doc.docid in self.scan_drawers:
+            drawer = self.scan_drawers[self.doc.docid]
+            self.page_drawers.append(drawer)
+            self.img['canvas'].add_drawer(drawer)
         self.update_page_sizes()
 
         is_new = doc.is_new
@@ -3221,7 +3225,7 @@ class MainWindow(object):
         set_widget_state(self.doc_edit_widgets, False,
                          cond=lambda widget: not can_edit)
 
-        if doc.nb_pages >= 0:
+        if doc.nb_pages > 0:
             page = doc.pages[0]
         else:
             page = DummyPage(self.doc)
@@ -3338,7 +3342,7 @@ class MainWindow(object):
 
         for page in self.page_drawers:
             self.__resize_page(page)
-        self.__update_page_position()
+        self.__update_page_positions()
         self.show_page(self.page)
 
     def on_page_editing_img_edit_start_cb(self, job, page):
@@ -3490,4 +3494,14 @@ class MainWindow(object):
         if drawer is None:
             return
         page = drawer.page
+        if page is None:
+            return
         self.__select_page(page)
+
+    def add_scan_scene(self, doc, scan_scene):
+        drawer = scan_scene.drawer
+        self.scan_drawers[doc.docid] = drawer
+        self.page_drawers.append(drawer)
+        self.img['canvas'].add_drawer(drawer)
+        self.__update_page_positions()
+        self.img['canvas'].get_vadjustment().set_value(drawer.position[1])

@@ -35,6 +35,7 @@ For some reason,
 [setuptools doesn't work well with Numpy](https://github.com/numpy/numpy/issues/2434),
 so you will have to install some dependencies yourself with python-pip:
 
+    $ sudo yum install python-pip
     $ sudo pip install numpy scikit-learn
 
 Optional:

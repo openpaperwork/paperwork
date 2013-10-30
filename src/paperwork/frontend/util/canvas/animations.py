@@ -33,6 +33,8 @@ class ScanAnimation(Animation):
 
     visible = True
 
+    BACKGROUND_COLOR = (1.0, 1.0, 1.0)
+
     ANIM_LENGTH = 1000  # mseconds
     ANIM_HEIGHT = 5
 
@@ -79,9 +81,6 @@ class ScanAnimation(Animation):
                               chunk_size)
 
     def draw_animation(self, cairo_ctx, canvas_offset, canvas_size):
-        if len(self.surfaces) <= 0:
-            return
-
         position = (
             self.position[0] - canvas_offset[0],
             (
@@ -91,6 +90,22 @@ class ScanAnimation(Animation):
                 + (self.ratio * self.surfaces[-1][1].get_height())
             ),
         )
+
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgb(self.BACKGROUND_COLOR[0],
+                                     self.BACKGROUND_COLOR[1],
+                                     self.BACKGROUND_COLOR[2])
+            cairo_ctx.rectangle(position[0], position[1],
+                                position[0] + self.size[0],
+                                position[1] + self.size[1])
+            cairo_ctx.clip()
+            cairo_ctx.paint()
+        finally:
+            cairo_ctx.restore()
+
+        if len(self.surfaces) <= 0:
+            return
 
         cairo_ctx.save()
         try:

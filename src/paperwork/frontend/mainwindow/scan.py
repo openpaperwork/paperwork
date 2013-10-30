@@ -303,38 +303,73 @@ class ScanSceneDrawer(Animation):
 
     def __init__(self, scan_scene):
         Animation.__init__(self)
+
+        self.scan_drawer = None
+        self._position = (0, 0)
+
         self.scan_scene = scan_scene
-        self.position = (0, 0)
 
         # we are used as a page drawer, but our page is being built
+        # --> no actual page
         self.page = None
 
     def __get_size(self):
-        if self.canvas is None:
-            return (100, 100)
-        return (
-            self.canvas.visible_size[0] - 10,
-            self.canvas.visible_size[1] - 10,
-        )
+        if self.scan_drawer:
+            return self.scan_drawer.size
+        if self.canvas:
+            return (
+                self.canvas.visible_size[0] - 10,
+                self.canvas.visible_size[1] - 10,
+            )
+        return (100, 100)
 
     size = property(__get_size)
+    max_size = property(__get_size)
+
+    def __get_position(self):
+        return self._position
+
+    def __set_position(self, position):
+        self._position = position
+        if self.scan_drawer:
+            self.scan_drawer.position = position
+
+    position = property(__get_position, __set_position)
 
     def set_size_ratio(self, ratio):
         # we are used as a page drawer, but we don't care about the scale/ratio
         return
 
     def do_draw(self, cairo_ctx, offset, size):
-        pos_x = self.position[0] - offset[0]
-        pos_y = self.position[1] - offset[1]
-
-        cairo_ctx.set_source_rgb(0.5, 0.5, 0.5)
-        cairo_ctx.rectangle(pos_x, pos_y, pos_x + size[0], pos_y + size[1])
-        cairo_ctx.clip()
-        cairo_ctx.paint()
-
+        if self.scan_drawer:
+            return self.scan_drawer.draw(cairo_ctx, offset, size)
 
     def on_tick(self):
+        if self.scan_drawer:
+            self.scan_drawer.on_tick()
+
+    def on_scan_started(self):
         pass
+
+    def on_scan_info(self, x, y):
+        print "POSITION: %s" % str(self.position)
+        self.scan_drawer = ScanAnimation(self.position, (x, y),
+                                         self.canvas.visible_size)
+        self.scan_drawer.set_canvas(self.canvas)
+        self.canvas.redraw()
+
+    def on_scan_chunk(self, line, img_chunk):
+        assert(self.scan_drawer)
+        self.scan_drawer.add_chunk(line, img_chunk)
+
+    def on_scan_done(self, img):
+        self.scan_drawer = None
+
+    def on_scan_error(self, error):
+        self.scan_drawer = None
+
+    def on_scan_canceled(self):
+        self.scan_drawer = None
 
 
 class ScanScene(GObject.GObject):
@@ -343,6 +378,11 @@ class ScanScene(GObject.GObject):
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # PIL image
                       )),
+        'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
+                          ()),
+        'scan-error': (GObject.SignalFlags.RUN_LAST, None,
+                       (GObject.TYPE_STRING,  # Error message
+                       )),
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # PIL image
                       )),
@@ -350,6 +390,8 @@ class ScanScene(GObject.GObject):
                      (GObject.TYPE_PYOBJECT,  # PIL image
                       GObject.TYPE_PYOBJECT,  # line + word boxes
                      )),
+        'ocr-canceled': (GObject.SignalFlags.RUN_LAST, None,
+                         ()),
     }
 
     STEP_SCAN = 0
@@ -380,21 +422,21 @@ class ScanScene(GObject.GObject):
         self.schedulers['scan'].schedule(job)
 
     def on_scan_start(self):
-        # TODO
+        self.drawer.on_scan_started()
         self.emit('scan-start')
 
     def on_scan_info(self, img_x, img_y):
-        pass
+        self.drawer.on_scan_info(img_x, img_y)
 
     def on_scan_chunk(self, line, img_chunk):
-        pass
+        self.drawer.on_scan_chunk(line, img_chunk)
 
     def on_scan_done(self, img):
-        # TODO
+        self.drawer.on_scan_done(img)
         self.emit('scan-done', img)
 
     def on_scan_canceled(self):
-        # TODO
+        self.drawer.on_scan_canceled()
         self.emit('scan-done', None)
 
     def ocr(self, img):

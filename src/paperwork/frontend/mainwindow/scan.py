@@ -352,7 +352,6 @@ class ScanSceneDrawer(Animation):
         pass
 
     def on_scan_info(self, x, y):
-        print "POSITION: %s" % str(self.position)
         self.scan_drawer = ScanAnimation(self.position, (x, y),
                                          self.canvas.visible_size)
         self.scan_drawer.set_canvas(self.canvas)

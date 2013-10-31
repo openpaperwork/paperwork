@@ -3177,10 +3177,15 @@ class MainWindow(object):
         drawer.set_size_ratio(factor)
 
     def __update_page_positions(self):
-        position = 0
+        position_h = 0
+        canvas_width = self.img['canvas'].visible_size[0]
         for drawer in self.page_drawers:
-            drawer.position = (0, position)
-            position += drawer.size[1] + self.PAGE_MARGIN
+            drawer_size = drawer.size
+            drawer.position = (
+                max(0, (canvas_width - drawer_size[0]) / 2),
+                position_h
+            )
+            position_h += drawer_size[1] + self.PAGE_MARGIN
 
     def update_page_sizes(self):
         for page in self.page_drawers:

@@ -50,11 +50,6 @@ class Drawer(object):
             (float(img_size[1]) / float(surface_size[1])),
         )
 
-        scaled_img_size = (
-            img_size[0] / scaling[0],
-            img_size[1] / scaling[1]
-        )
-
         # some drawer call draw_surface() many times, so we save the
         # context here
         cairo_ctx.save()
@@ -70,8 +65,8 @@ class Drawer(object):
             cairo_ctx.set_source_surface(
                 surface, 0, 0)
             cairo_ctx.rectangle(0, 0,
-                                scaled_img_size[0],
-                                scaled_img_size[1])
+                                surface_size[0],
+                                surface_size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

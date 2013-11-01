@@ -44,6 +44,7 @@ class Drawer(object):
     @staticmethod
     def draw_surface(cairo_ctx, canvas_offset, canvas_size,
                      surface, img_position, img_size, angle=0):
+        angle = math.pi * angle / 180
         surface_size = (surface.get_width(), surface.get_height())
         scaling = (
             (float(img_size[0]) / float(surface_size[0])),
@@ -55,11 +56,11 @@ class Drawer(object):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(img_position[0], img_position[1])
+            cairo_ctx.translate(-canvas_offset[0], -canvas_offset[1])
             if angle != 0:
                 cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
-                cairo_ctx.rotate(math.pi * angle / 180)
+                cairo_ctx.rotate(angle)
                 cairo_ctx.translate(-img_size[0] / 2, -img_size[1] / 2)
-            cairo_ctx.translate(-canvas_offset[0], -canvas_offset[1])
             cairo_ctx.scale(scaling[0], scaling[1])
 
             cairo_ctx.set_source_surface(

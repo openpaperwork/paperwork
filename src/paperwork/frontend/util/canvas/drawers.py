@@ -50,43 +50,28 @@ class Drawer(object):
             (float(img_size[1]) / float(surface_size[1])),
         )
 
-        # scaling is applied *after* all the other transformations
-        # of user space.
-        canvas_offset = (
-            canvas_offset[0] / scaling[0],
-            canvas_offset[1] / scaling[1],
-        )
-        img_position = (
-            img_position[0] / scaling[0],
-            img_position[1] / scaling[1],
-        )
-        img_size = (
+        scaled_img_size = (
             img_size[0] / scaling[0],
             img_size[1] / scaling[1]
         )
-
-        img_offset = (max(0, canvas_offset[0] - img_position[0]),
-                      max(0, canvas_offset[1] - img_position[1]))
-        target_offset = (max(0, img_position[0] - canvas_offset[0]),
-                         max(0, img_position[1] - canvas_offset[1]))
 
         # some drawer call draw_surface() many times, so we save the
         # context here
         cairo_ctx.save()
         try:
+            cairo_ctx.translate(img_position[0], img_position[1])
+            if angle != 0:
+                cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
+                cairo_ctx.rotate(math.pi * angle / 180)
+                cairo_ctx.translate(-img_size[0] / 2, -img_size[1] / 2)
+            cairo_ctx.translate(-canvas_offset[0], -canvas_offset[1])
             cairo_ctx.scale(scaling[0], scaling[1])
-            # TODO(Jflesch)
-            #if angle != 0:
-            #    cairo_ctx.rotate(math.pi * angle / 180)
+
             cairo_ctx.set_source_surface(
-                surface,
-                (target_offset[0] - img_offset[0]),
-                (target_offset[1] - img_offset[1]),
-            )
-            cairo_ctx.rectangle(target_offset[0],
-                                target_offset[1],
-                                img_size[0],
-                                img_size[1])
+                surface, 0, 0)
+            cairo_ctx.rectangle(0, 0,
+                                scaled_img_size[0],
+                                scaled_img_size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

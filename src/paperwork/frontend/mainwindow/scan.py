@@ -462,6 +462,11 @@ class ScanSceneDrawer(Animation):
         self.animators = []
         for (angle, drawer) in self.ocr_drawers.iteritems():
             drawer.fit(self.size)
+            logger.info("Animator: Angle %d: %s %s -> %s %s"
+                        % (angle,
+                           str(drawer.position), str(drawer.size),
+                           str(target_positions[angle]),
+                           str(target_sizes[0])))
             self.animators += [
                 LinearCoordAnimator(
                     drawer, target_positions[angle],

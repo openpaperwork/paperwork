@@ -326,12 +326,11 @@ class ScanSceneDrawer(Animation):
         self.page = None
 
     def __get_size(self):
-        if self.canvas:
-            return (
-                self.canvas.visible_size[0] - 10,
-                self.canvas.visible_size[1] - 10,
-            )
-        return (100, 100)
+        assert(self.canvas)
+        return (
+            self.canvas.visible_size[0],
+            self.canvas.visible_size[1],
+        )
 
     size = property(__get_size)
     max_size = property(__get_size)

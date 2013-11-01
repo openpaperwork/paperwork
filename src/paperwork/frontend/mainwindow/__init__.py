@@ -3508,4 +3508,5 @@ class MainWindow(object):
         self.page_drawers.append(drawer)
         self.img['canvas'].add_drawer(drawer)
         self.__update_page_positions()
+        self.img['canvas'].recompute_size()
         self.img['canvas'].get_vadjustment().set_value(drawer.position[1])

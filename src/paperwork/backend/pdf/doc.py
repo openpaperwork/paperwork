@@ -82,6 +82,8 @@ class PdfPages(object):
         self.page = {}
 
     def __getitem__(self, idx):
+        if idx < 0:
+            idx = self.pdfdoc.nb_pages + idx
         if idx not in self.page:
             self.page[idx] = PdfPage(self.pdfdoc, idx)
         return self.page[idx]

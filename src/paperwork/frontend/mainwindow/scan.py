@@ -522,7 +522,7 @@ class ScanSceneDrawer(Animation):
             self.ocr_spinner_drawers.pop(angle)
         # TODO(Jflesch): show score
 
-    def on_ocr_done(self, angle, img):
+    def on_ocr_done(self, angle, img, boxes):
         self.animators = []
 
         drawer = self.ocr_img_drawers[angle]
@@ -550,6 +550,9 @@ class ScanSceneDrawer(Animation):
                 self.SCAN_TO_OCR_ANIM_TIME,
                 attr_name='size', canvas=self.canvas),
         ]
+        self.animators[-1].connect('animator-end', lambda animator:
+                                   GLib.idle_add(self.scan_scene.on_ocr_anim_done,
+                                                 angle, img, boxes))
 
 
 class ScanScene(GObject.GObject):
@@ -638,7 +641,9 @@ class ScanScene(GObject.GObject):
         self.drawer.on_ocr_score(angle, score)
 
     def on_ocr_done(self, angle, img, boxes):
-        self.drawer.on_ocr_done(angle, img)
+        self.drawer.on_ocr_done(angle, img, boxes)
+
+    def on_ocr_anim_done(self, angle, img, boxes):
         self.emit('ocr-done', img, boxes)
 
     def scan_and_ocr(self, scan_session):

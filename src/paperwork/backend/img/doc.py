@@ -318,6 +318,13 @@ class ImgDoc(BasicDoc):
                 dochash ^= page.get_docfilehash()
         return dochash
 
+    def add_page(self, img, boxes):
+        mkdir_p(self.path)
+        page = ImgPage(self, self.nb_pages)
+        page.img = img
+        page.boxes = boxes
+        self.drop_cache()
+
 
 def is_img_doc(docpath):
     if not os.path.isdir(docpath):

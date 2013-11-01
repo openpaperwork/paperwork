@@ -307,7 +307,7 @@ class JobIndexUpdater(Job):
     priority = 15
 
     def __init__(self, factory, id, config, docsearch,
-                new_docs=[], upd_docs=[], del_docs=[],
+                new_docs=set(), upd_docs=set(), del_docs=set(),
                 optimize=True):
         Job.__init__(self, factory, id)
         self.__docsearch = docsearch
@@ -413,7 +413,8 @@ class JobFactoryIndexUpdater(JobFactory):
         self.__config = config
 
     def make(self, docsearch,
-            new_docs, upd_docs, del_docs, optimize=True):
+             new_docs=set(), upd_docs=set(), del_docs=set(),
+             optimize=True):
         job = JobIndexUpdater(self, next(self.id_generator), self.__config,
                               docsearch, new_docs, upd_docs, del_docs, optimize)
         job.connect('index-update-start',
@@ -1206,7 +1207,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         doc = self.__main_win.lists['matches']['model'][doc_idx][2]
 
         logger.info("Showing doc %s" % doc)
-        self.__main_win.show_doc(doc_idx, doc)
+        self.__main_win.show_doc(doc)
 
 
 class ActionStartSearch(SimpleAction):
@@ -1713,6 +1714,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.refresh_docs({self.__main_win.doc})
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
+        self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
 
 
 class ActionRedoDocOCR(SimpleAction):
@@ -2247,7 +2249,7 @@ class MainWindow(object):
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
         self.page_drawers = []
-        self.scan_drawers = {}  # docid --> extra drawer
+        self.scan_drawers = {}  # docid --> [extra drawers]
 
         search_completion = Gtk.EntryCompletion()
 
@@ -2953,7 +2955,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Normal")
         if doc is not None:
-            self.show_doc(0, doc)  # will refresh the page list
+            self.show_doc(doc)  # will refresh the page list
             self.refresh_doc_list()
             if page is not None:
                 self.show_page(page)
@@ -3191,7 +3193,7 @@ class MainWindow(object):
             self.__resize_page(page)
         self.__update_page_positions()
 
-    def show_doc(self, doc_idx, doc, force_refresh=False):
+    def show_doc(self, doc, force_refresh=False):
         if (self.doc is not None and self.doc == doc and not force_refresh):
             logger.info("Doc is already shown")
             return
@@ -3214,9 +3216,9 @@ class MainWindow(object):
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
         if self.doc.docid in self.scan_drawers:
-            drawer = self.scan_drawers[self.doc.docid]
-            self.page_drawers.append(drawer)
-            self.img['canvas'].add_drawer(drawer)
+            for drawer in self.scan_drawers[self.doc.docid]:
+                self.page_drawers.append(drawer)
+                self.img['canvas'].add_drawer(drawer)
         self.update_page_sizes()
 
         is_new = doc.is_new
@@ -3502,10 +3504,72 @@ class MainWindow(object):
             return
         self.__select_page(page)
 
+    def remove_scan_scene(self, scan_scene):
+        for (docid, drawers) in self.scan_drawers.iteritems():
+            if scan_scene.drawer in drawers:
+                drawers.remove(scan_scene.drawer)
+                return docid
+
+    def on_scan_ocr_canceled(self, scan_scene):
+        docid = self.remove_scan_scene(scan_scene)
+        if self.doc.docid == docid:
+            self.show_page(self.doc.pages[-1], force_refresh=True)
+
+    def on_scan_error(self, scan_scene, error):
+        # TODO
+        docid = self.remove_scan_scene(scan_scene)
+        if self.doc.docid == docid:
+            self.show_page(self.doc.pages[-1], force_refresh=True)
+
+    def on_ocr_done(self, scan_scene, img, line_boxes):
+        docid = self.remove_scan_scene(scan_scene)
+        doc = self.docsearch.get_doc_from_docid(docid)
+
+        new = False
+        if doc is None:
+            # new doc
+            new = True
+            if self.doc.is_new:
+                doc = self.doc
+            else:
+                doc = ImgDoc(self.__config.workdir)
+
+        doc.add_page(img, line_boxes)
+
+        if new:
+            self.refresh_doc_list()
+        if self.doc.docid == doc.docid:
+            self.show_page(self.doc.pages[-1], force_refresh=True)
+
+        if new:
+            job = self.job_factories['index_updater'].make(
+                self.docsearch, new_docs={doc}, optimize=False)
+        else:
+            job = self.job_factories['index_updater'].make(
+                self.docsearch, upd_docs={doc}, optimize=False)
+        self.schedulers['main'].schedule(job)
+
     def add_scan_scene(self, doc, scan_scene):
         drawer = scan_scene.drawer
-        self.scan_drawers[doc.docid] = drawer
+        if not doc.docid in self.scan_drawers:
+            self.scan_drawers[doc.docid] = [drawer]
+        else:
+            self.scan_drawers[doc.docid].append(drawer)
         self.page_drawers.append(drawer)
+
+        scan_scene.connect('scan-canceled', lambda scan_scene:
+                           GLib.idle_add(self.on_scan_ocr_canceled,
+                                         scan_scene))
+        scan_scene.connect('scan-error', lambda scan_scan, error:
+                           GLib.idle_add(self.on_scan_error, scan_scene,
+                                         error))
+        scan_scene.connect('ocr-canceled', lambda scan_scene:
+                           GLib.idle_add(self.on_scan_ocr_canceled,
+                                         scan_scene))
+        scan_scene.connect('ocr-done', lambda scan_scene, img, boxes:
+                           GLib.idle_add(self.on_ocr_done, scan_scene, img,
+                                         boxes))
+
         self.img['canvas'].add_drawer(drawer)
         self.__update_page_positions()
         self.img['canvas'].recompute_size()

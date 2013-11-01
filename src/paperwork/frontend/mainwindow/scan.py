@@ -341,7 +341,11 @@ class ScanSceneDrawer(Animation):
     def __set_position(self, position):
         self._position = position
         if self.scan_drawer:
-            self.scan_drawer.position = position
+            self.scan_drawer.position = (
+                position[0] + (self.canvas.visible_size[0] / 2)
+                - (self.scan_drawer.size[0] / 2),
+                position[1],
+            )
 
     position = property(__get_position, __set_position)
 

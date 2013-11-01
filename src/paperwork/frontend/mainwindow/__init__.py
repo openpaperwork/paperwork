@@ -3268,6 +3268,9 @@ class MainWindow(object):
         self.actions['set_current_page'][1].enabled = True
 
     def show_page(self, page, force_refresh=False):
+        if page is None:
+            return
+
         if (page.doc != self.doc or force_refresh):
             self.show_doc(page.doc, force_refresh)
 
@@ -3556,6 +3559,9 @@ class MainWindow(object):
         else:
             self.scan_drawers[doc.docid].append(drawer)
         self.page_drawers.append(drawer)
+
+        if self.doc.docid == doc.docid:
+            self.page = None
 
         scan_scene.connect('scan-canceled', lambda scan_scene:
                            GLib.idle_add(self.on_scan_ocr_canceled,

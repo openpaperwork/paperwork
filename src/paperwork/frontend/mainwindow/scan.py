@@ -392,16 +392,10 @@ class ScanSceneDrawer(Animation):
             float(visible_area[0]) / float(img_size[1]),
             float(visible_area[1]) / float(img_size[0]),
         )
-        size = (
+        return (
             int(ratio * img_size[0]),
             int(ratio * img_size[1]),
         )
-        return {
-            0: (size[0], size[1]),
-            90: (size[1], size[0]),
-            180: (size[0], size[1]),
-            270: (size[1], size[0]),
-        }
 
     def __compute_reduced_positions(self, visible_area, img_size,
                                     target_img_sizes):
@@ -417,25 +411,12 @@ class ScanSceneDrawer(Animation):
                   self.position[1] + (visible_area[1] * 3 / 4)),
         }
 
-        target_positions = {
-            # img positions
-            0: (
-                target_positions[0][0] - (target_img_sizes[0][0] / 2),
-                target_positions[0][1] - (target_img_sizes[0][1] / 2),
-            ),
-            90: (
-                target_positions[90][0] - (target_img_sizes[90][0] / 2),
-                target_positions[90][1] - (target_img_sizes[90][1] / 2),
-            ),
-            180: (
-                target_positions[180][0] - (target_img_sizes[180][0] / 2),
-                target_positions[180][1] - (target_img_sizes[180][1] / 2),
-            ),
-            270: (
-                target_positions[270][0] - (target_img_sizes[270][0] / 2),
-                target_positions[270][1] - (target_img_sizes[270][1] / 2),
-            ),
-        }
+        for key in target_positions.keys()[:]:
+            # image position
+            target_positions[key] = (
+                target_positions[key][0] - (target_img_sizes[0] / 2),
+                target_positions[key][1] - (target_img_sizes[1] / 2),
+            )
 
         return target_positions
 
@@ -463,16 +444,14 @@ class ScanSceneDrawer(Animation):
                         % (angle,
                            str(drawer.position), str(drawer.size),
                            str(target_positions[angle]),
-                           str(target_sizes[0])))
+                           str(target_sizes)))
             self.animators += [
                 LinearCoordAnimator(
                     drawer, target_positions[angle],
                     self.SCAN_TO_OCR_ANIM_TIME,
                     attr_name='position', canvas=self.canvas),
                 LinearCoordAnimator(
-                    # XXX(Jflesch): target size is actually always
-                    # the same. Rotation will take care of the rest
-                    drawer, target_sizes[0],
+                    drawer, target_sizes,
                     self.SCAN_TO_OCR_ANIM_TIME,
                     attr_name='size', canvas=self.canvas),
                 LinearSimpleAnimator(

@@ -44,6 +44,19 @@ class Drawer(object):
     @staticmethod
     def draw_surface(cairo_ctx, canvas_offset, canvas_size,
                      surface, img_position, img_size, angle=0):
+        """
+        Draw a surface
+
+        Arguments:
+            cairo_ctx --- cairo context to draw on
+            canvas_offset --- position of the visible area of the canvas
+            canvas_size --- size of the visible area of the canvas
+            surface --- surface to draw on the context
+            img_position --- target position for the surface once on the canvas
+            img_size --- target size for the surface once on the canvas
+            angle --- rotation to apply (WARNING: applied after positioning, and
+                      rotated at the center of the surface !)
+        """
         angle = math.pi * angle / 180
         surface_size = (surface.get_width(), surface.get_height())
         scaling = (

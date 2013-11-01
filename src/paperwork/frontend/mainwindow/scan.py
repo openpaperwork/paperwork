@@ -14,6 +14,7 @@ from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.canvas.animations import Animation
 from paperwork.frontend.util.canvas.animations import ScanAnimation
+from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.animators import LinearSimpleAnimator
 from paperwork.frontend.util.canvas.animators import LinearCoordAnimator
 from paperwork.frontend.util.canvas.drawers import fit
@@ -308,7 +309,10 @@ class ScanSceneDrawer(Animation):
         Animation.__init__(self)
 
         self.scan_drawer = None
-        self.ocr_drawers = {}
+
+        self.ocr_img_drawers = {}
+        self.ocr_spinner_drawers = {}
+
         self.animators = []
         self._position = (0, 0)
 
@@ -348,7 +352,9 @@ class ScanSceneDrawer(Animation):
     def do_draw(self, cairo_ctx, offset, size):
         if self.scan_drawer:
             return self.scan_drawer.draw(cairo_ctx, offset, size)
-        for drawer in self.ocr_drawers.values():
+        for drawer in self.ocr_img_drawers.values():
+            drawer.draw(cairo_ctx, offset, size)
+        for drawer in self.ocr_spinner_drawers.values():
             drawer.draw(cairo_ctx, offset, size)
 
     def on_tick(self):
@@ -433,19 +439,27 @@ class ScanSceneDrawer(Animation):
         target_positions = self.__compute_reduced_positions(
             self.canvas.visible_size, img_size, target_sizes)
 
-        self.ocr_drawers = {}
+        self.ocr_img_drawers = {}
+        self.ocr_spinner_drawers = {}
+
         for angle in target_positions.keys():
-            self.ocr_drawers[angle] = PillowImageDrawer(self.position, img)
+            self.ocr_img_drawers[angle] = PillowImageDrawer(self.position, img)
 
         self.animators = []
-        for (angle, drawer) in self.ocr_drawers.iteritems():
+        for (angle, drawer) in self.ocr_img_drawers.iteritems():
             drawer.fit(self.size)
             logger.info("Animator: Angle %d: %s %s -> %s %s"
                         % (angle,
                            str(drawer.position), str(drawer.size),
                            str(target_positions[angle]),
                            str(target_sizes)))
-            self.animators += [
+
+            # reduce the rotation to its minimum
+            anim_angle = angle % 360
+            if (anim_angle > 180):
+                anim_angle = -1 * (360 - anim_angle)
+
+            new_animators = [
                 LinearCoordAnimator(
                     drawer, target_positions[angle],
                     self.SCAN_TO_OCR_ANIM_TIME,
@@ -455,20 +469,71 @@ class ScanSceneDrawer(Animation):
                     self.SCAN_TO_OCR_ANIM_TIME,
                     attr_name='size', canvas=self.canvas),
                 LinearSimpleAnimator(
-                    drawer, angle,
+                    drawer, anim_angle,
                     self.SCAN_TO_OCR_ANIM_TIME,
                     attr_name='angle', canvas=self.canvas),
             ]
+            # all the animators last the same length of time
+            # so any of them is good enough for this signal
+            new_animators[0].connect(
+                'animator-end', lambda animator:
+                GLib.idle_add(self.on_ocr_rotation_anim_done))
+            self.animators += new_animators
 
     def on_ocr_angles(self, imgs):
-        pass
+        # disable all the angles not evaluated
+        for angle in self.ocr_spinner_drawers.keys()[:]:
+            if angle not in imgs:
+                self.ocr_spinner_drawers.pop(angle)
+        # TODO(Jflesch): Show it's disabled
+
+    def on_ocr_rotation_anim_done(self):
+        for (angle, drawer) in self.ocr_img_drawers.iteritems():
+            spinner = SpinnerAnimation(
+                (
+                    (drawer.position[0] + (drawer.size[0] / 2))
+                    - (SpinnerAnimation.ICON_SIZE / 2),
+                    (drawer.position[1] + (drawer.size[1] / 2))
+                    - (SpinnerAnimation.ICON_SIZE / 2)
+                )
+            )
+            self.ocr_spinner_drawers[angle] = spinner
+            self.animators.append(spinner)
+        # TODO(Jflesch): add a light gray rectangle on the image
+        # while the spinner is running
 
     def on_ocr_score(self, angle, score):
-        pass
+        if angle in self.ocr_spinner_drawers:
+            self.ocr_spinner_drawers.pop(angle)
+        # TODO(Jflesch): show score
 
     def on_ocr_done(self, angle, img):
-        self.ocr_drawers = {}
         self.animators = []
+
+        drawer = self.ocr_img_drawers[angle]
+
+        # we got out winner. Shoot the others
+        self.ocr_img_drawers = {
+            angle: drawer
+        }
+
+        new_size = fit(drawer.img_size, self.canvas.visible_size)
+        new_position = (
+            (self.position[0] + (self.canvas.visible_size[0] / 2)
+             - (new_size[0] / 2)),
+            (self.position[1]),
+        )
+
+        self.animators += [
+            LinearCoordAnimator(
+                drawer, new_position,
+                self.SCAN_TO_OCR_ANIM_TIME,
+                attr_name='position', canvas=self.canvas),
+            LinearCoordAnimator(
+                drawer, new_size,
+                self.SCAN_TO_OCR_ANIM_TIME,
+                attr_name='size', canvas=self.canvas),
+        ]
 
 
 class ScanScene(GObject.GObject):

@@ -1,22 +1,38 @@
+from gi.repository import GObject
+
 from paperwork.frontend.util.canvas import Canvas
 
 
-class Animator(object):
+class Animator(GObject.GObject):
+    __gsignals__ = {
+        'animator-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'animator-end': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
     def __init__(self,
                  drawer,
                  attr_name, attr_values,  # one value per canvas tick
                  canvas=None):
+        GObject.GObject.__init__(self)
         self.drawer = drawer
         self.attr_name = attr_name
         self.attr_values = attr_values
         self.canvas = canvas
+        self.started = False
+        self.stopped = False
 
     def set_canvas(self, canvas):
         self.canvas = canvas
 
     def on_tick(self):
         if len(self.attr_values) <= 0:
+            if not self.stopped:
+                self.stopped = True
+                self.emit('animator-end')
             return
+        if not self.started:
+            self.started = True
+            self.emit('animator-start')
         setattr(self.drawer, self.attr_name, self.attr_values[0])
         self.attr_values = self.attr_values[1:]
 
@@ -39,6 +55,9 @@ class LinearSimpleAnimator(Animator):
         Animator.__init__(self, drawer, attr_name, values, canvas)
 
 
+GObject.type_register(LinearSimpleAnimator)
+
+
 class LinearCoordAnimator(Animator):
     def __init__(self, drawer,
                  target_coord,
@@ -57,3 +76,6 @@ class LinearCoordAnimator(Animator):
             for i in xrange(0, nb_coords + 1)
         ]
         Animator.__init__(self, drawer, attr_name, coords, canvas)
+
+
+GObject.type_register(LinearCoordAnimator)

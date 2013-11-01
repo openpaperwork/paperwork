@@ -154,3 +154,18 @@ class PillowImageDrawer(Drawer):
     def do_draw(self, cairo_ctx, offset, size):
         self.draw_surface(cairo_ctx, offset, size,
                           self.surface, self.position, self.size, self.angle)
+
+def fit(element_size, area_size):
+    """
+    Return the size to give to the element so it fits in the area size.
+    Keep aspect ratio.
+    """
+    ratio = min(
+        1.0,
+        float(area_size[0]) / float(element_size[0]),
+        float(area_size[1]) / float(element_size[1]),
+    )
+    return (
+        int(element_size[0] * ratio),
+        int(element_size[1] * ratio),
+    )

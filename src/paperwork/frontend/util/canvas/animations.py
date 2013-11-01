@@ -8,6 +8,7 @@ from gi.repository import Gtk
 from paperwork.backend.util import image2surface
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import Drawer
+from paperwork.frontend.util.canvas.drawers import fit
 
 
 class Animation(Drawer):
@@ -66,8 +67,13 @@ class ScanAnimation(Animation):
             self.anim['offset'] *= -1
 
     def add_chunk(self, line, img_chunk):
+        # big images take more time to draw
+        # --> we resize it now
+        img_size = fit(img_chunk.size, self.size)
+        img_chunk = img_chunk.resize(img_size)
+
         surface = image2surface(img_chunk)
-        self.surfaces.append((line, surface))
+        self.surfaces.append((line * self.ratio, surface))
         self.canvas.redraw()
 
     def draw_chunks(self, cairo_ctx, canvas_offset, canvas_size):
@@ -90,9 +96,7 @@ class ScanAnimation(Animation):
             cairo_ctx.restore()
 
         for (line, surface) in self.surfaces:
-            line *= self.ratio
-            chunk_size = (surface.get_width() * self.ratio,
-                          surface.get_height() * self.ratio)
+            chunk_size = (surface.get_width(), surface.get_height())
             self.draw_surface(cairo_ctx, canvas_offset, canvas_size,
                               surface, (float(self.position[0]),
                                         float(self.position[1]) + line),
@@ -106,8 +110,8 @@ class ScanAnimation(Animation):
             self.position[0] - canvas_offset[0],
             (
                 self.position[1] - canvas_offset[1]
-                + (self.ratio * self.surfaces[-1][0])
-                + (self.ratio * self.surfaces[-1][1].get_height())
+                + (self.surfaces[-1][0])
+                + (self.surfaces[-1][1].get_height())
             ),
         )
 

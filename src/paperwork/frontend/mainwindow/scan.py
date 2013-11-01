@@ -16,6 +16,7 @@ from paperwork.frontend.util.canvas.animations import Animation
 from paperwork.frontend.util.canvas.animations import ScanAnimation
 from paperwork.frontend.util.canvas.animators import LinearSimpleAnimator
 from paperwork.frontend.util.canvas.animators import LinearCoordAnimator
+from paperwork.frontend.util.canvas.drawers import fit
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 
 
@@ -443,12 +444,8 @@ class ScanSceneDrawer(Animation):
 
         # animations with big images are too slow
         # --> reduce the image size
-        img = img.resize((
-            img.size[0] / 4,
-            img.size[1] / 4,
-        ))
-
-        img_size = img.size
+        img_size = fit(img.size, self.canvas.visible_size)
+        img = img.resize(img_size)
 
         target_sizes = self.__compute_reduced_sizes(
             self.canvas.visible_size, img_size)

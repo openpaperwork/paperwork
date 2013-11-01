@@ -1,4 +1,5 @@
 import cairo
+import math
 
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -42,7 +43,7 @@ class Drawer(object):
 
     @staticmethod
     def draw_surface(cairo_ctx, canvas_offset, canvas_size,
-                     surface, img_position, img_size):
+                     surface, img_position, img_size, angle=0):
         surface_size = (surface.get_width(), surface.get_height())
         scaling = (
             (float(img_size[0]) / float(surface_size[0])),
@@ -74,15 +75,18 @@ class Drawer(object):
         cairo_ctx.save()
         try:
             cairo_ctx.scale(scaling[0], scaling[1])
+            # TODO(Jflesch)
+            #if angle != 0:
+            #    cairo_ctx.rotate(math.pi * angle / 180)
             cairo_ctx.set_source_surface(
                 surface,
                 (target_offset[0] - img_offset[0]),
                 (target_offset[1] - img_offset[1]),
             )
             cairo_ctx.rectangle(target_offset[0],
-                                    target_offset[1],
-                                    img_size[0],
-                                    img_size[1])
+                                target_offset[1],
+                                img_size[0],
+                                img_size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:
@@ -151,9 +155,22 @@ class PillowImageDrawer(Drawer):
     def __init__(self, position, image):
         Drawer.__init__(self)
         self.size = image.size
+        self.img_size = self.size
         self.position = position
+        self.angle = 0
         self.surface = image2surface(image)
+
+    def fit(self, size_to_fit_in):
+        ratio = min(
+            1.0,
+            float(size_to_fit_in[0]) / float(self.img_size[0]),
+            float(size_to_fit_in[1]) / float(self.img_size[1]),
+        )
+        self.size = (
+            int(ratio * self.img_size[0]),
+            int(ratio * self.img_size[1]),
+        )
 
     def do_draw(self, cairo_ctx, offset, size):
         self.draw_surface(cairo_ctx, offset, size,
-                          self.surface, self.position, self.size)
+                          self.surface, self.position, self.size, self.angle)

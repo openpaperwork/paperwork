@@ -14,6 +14,9 @@ from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.canvas.animations import Animation
 from paperwork.frontend.util.canvas.animations import ScanAnimation
+from paperwork.frontend.util.canvas.animators import LinearSimpleAnimator
+from paperwork.frontend.util.canvas.animators import LinearCoordAnimator
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +70,7 @@ class JobScan(Job):
                     self.emit('scan-chunk', last_line, chunk)
                     last_line = next_line
 
-                time.sleep(0)  # Give some CPU time to PyGtk
+                time.sleep(0)  # Give some CPU time to Gtk
             if not self.can_run:
                 logger.info("Scan canceled")
                 self.emit('scan-canceled')
@@ -216,25 +219,23 @@ class JobOCR(Job):
         Job.__init__(self, factory, id)
         self.ocr_tool = ocr_tool
         self.langs = langs
-        self.angles = angles
-        self.img = img
+        self.imgs = {angle: img.rotate(angle) for angle in angles}
 
     def do(self):
-        self.emit('ocr-started', self.img)
-        imgs = {angle: self.img.rotate(angle) for angle in self.angles}
-        self.emit('ocr-angles', imgs)
+        self.emit('ocr-started', self.imgs[0])
+        self.emit('ocr-angles', self.imgs)
 
         max_threads = multiprocessing.cpu_count()
         threads = []
         scores = []
 
-        if len(imgs) > 1:
+        if len(self.imgs) > 1:
             logger.debug("Will use %d process(es) for OCR" % (max_threads))
 
         # Run the OCR tools in as many threads as there are processors/core
         # on the computer
         nb = 0
-        while (len(imgs) > 0 or len(threads) > 0):
+        while (len(self.imgs) > 0 or len(threads) > 0):
             # look for finished threads
             for thread in threads:
                 if not thread.is_alive():
@@ -245,8 +246,8 @@ class JobOCR(Job):
                                    thread.img, thread.boxes))
                     self.emit('ocr-score', thread.angle, thread.score)
             # start new threads if required
-            while (len(threads) < max_threads and len(imgs) > 0):
-                (angle, img) = imgs.popitem()
+            while (len(threads) < max_threads and len(self.imgs) > 0):
+                (angle, img) = self.imgs.popitem()
                 logger.info("Starting OCR on angle %d" % angle)
                 thread = _ImgOCRThread(str(nb), self.ocr_tool,
                                        self.langs, angle, img)
@@ -298,6 +299,7 @@ class JobFactoryOCR(JobFactory):
 
 class ScanSceneDrawer(Animation):
     GLOBAL_MARGIN = 10
+    SCAN_TO_OCR_ANIM_TIME = 2000  # ms
 
     layer = Animation.IMG_LAYER
 
@@ -305,6 +307,8 @@ class ScanSceneDrawer(Animation):
         Animation.__init__(self)
 
         self.scan_drawer = None
+        self.ocr_drawers = {}
+        self.animators = []
         self._position = (0, 0)
 
         self.scan_scene = scan_scene
@@ -343,10 +347,14 @@ class ScanSceneDrawer(Animation):
     def do_draw(self, cairo_ctx, offset, size):
         if self.scan_drawer:
             return self.scan_drawer.draw(cairo_ctx, offset, size)
+        for drawer in self.ocr_drawers.values():
+            drawer.draw(cairo_ctx, offset, size)
 
     def on_tick(self):
         if self.scan_drawer:
             self.scan_drawer.on_tick()
+        for animator in self.animators:
+            animator.on_tick()
 
     def on_scan_started(self):
         pass
@@ -369,6 +377,117 @@ class ScanSceneDrawer(Animation):
 
     def on_scan_canceled(self):
         self.scan_drawer = None
+
+    @staticmethod
+    def __compute_reduced_sizes(visible_area, img_size):
+        visible_area = (
+            visible_area[0] / 2,
+            visible_area[1] / 2,
+        )
+        ratio = min(
+            1.0,
+            float(visible_area[0]) / float(img_size[0]),
+            float(visible_area[1]) / float(img_size[1]),
+            float(visible_area[0]) / float(img_size[1]),
+            float(visible_area[1]) / float(img_size[0]),
+        )
+        size = (
+            int(ratio * img_size[0]),
+            int(ratio * img_size[1]),
+        )
+        return {
+            0: (size[0], size[1]),
+            90: (size[1], size[0]),
+            180: (size[0], size[1]),
+            270: (size[1], size[0]),
+        }
+
+    def __compute_reduced_positions(self, visible_area, img_size,
+                                    target_img_sizes):
+        target_positions = {
+            # center positions
+            0: (visible_area[0] / 4,
+                self.position[1] + (visible_area[1] / 4)),
+            90: (visible_area[0] * 3 / 4,
+                 self.position[1] + (visible_area[1] / 4)),
+            180: (visible_area[0] / 4,
+                  self.position[1] + (visible_area[1] * 3 / 4)),
+            270: (visible_area[0] * 3 / 4,
+                  self.position[1] + (visible_area[1] * 3 / 4)),
+        }
+
+        target_positions = {
+            # img positions
+            0: (
+                target_positions[0][0] - (target_img_sizes[0][0] / 2),
+                target_positions[0][1] - (target_img_sizes[0][1] / 2),
+            ),
+            90: (
+                target_positions[90][0] - (target_img_sizes[90][0] / 2),
+                target_positions[90][1] - (target_img_sizes[90][1] / 2),
+            ),
+            180: (
+                target_positions[180][0] - (target_img_sizes[180][0] / 2),
+                target_positions[180][1] - (target_img_sizes[180][1] / 2),
+            ),
+            270: (
+                target_positions[270][0] - (target_img_sizes[270][0] / 2),
+                target_positions[270][1] - (target_img_sizes[270][1] / 2),
+            ),
+        }
+
+        return target_positions
+
+    def on_ocr_started(self, img):
+        assert(self.canvas)
+
+        # animations with big images are too slow
+        # --> reduce the image size
+        img = img.resize((
+            img.size[0] / 4,
+            img.size[1] / 4,
+        ))
+
+        img_size = img.size
+
+        target_sizes = self.__compute_reduced_sizes(
+            self.canvas.visible_size, img_size)
+        target_positions = self.__compute_reduced_positions(
+            self.canvas.visible_size, img_size, target_sizes)
+
+        self.ocr_drawers = {}
+        for angle in target_positions.keys():
+            self.ocr_drawers[angle] = PillowImageDrawer(self.position, img)
+
+        self.animators = []
+        for (angle, drawer) in self.ocr_drawers.iteritems():
+            drawer.fit(self.size)
+            self.animators += [
+                LinearCoordAnimator(
+                    drawer, target_positions[angle],
+                    self.SCAN_TO_OCR_ANIM_TIME,
+                    attr_name='position', canvas=self.canvas),
+                LinearCoordAnimator(
+                    # XXX(Jflesch): target size is actually always
+                    # the same. Rotation will take care of the rest
+                    drawer, target_sizes[0],
+                    self.SCAN_TO_OCR_ANIM_TIME,
+                    attr_name='size', canvas=self.canvas),
+                LinearSimpleAnimator(
+                    drawer, angle,
+                    self.SCAN_TO_OCR_ANIM_TIME,
+                    attr_name='angle', canvas=self.canvas),
+            ]
+
+    def on_ocr_angles(self, imgs):
+        pass
+
+    def on_ocr_score(self, angle, score):
+        pass
+
+    def on_ocr_done(self, angle, img):
+        self.ocr_drawers = {}
+        self.animators = []
 
 
 class ScanScene(GObject.GObject):
@@ -447,17 +566,17 @@ class ScanScene(GObject.GObject):
         self.schedulers['ocr'].schedule(job)
 
     def on_ocr_started(self, img):
-        # TODO
+        self.drawer.on_ocr_started(img)
         self.emit('ocr-start', img)
 
     def on_ocr_angles(self, imgs):
-        pass
+        self.drawer.on_ocr_angles(imgs)
 
     def on_ocr_score(self, angle, score):
-        pass
+        self.drawer.on_ocr_score(angle, score)
 
     def on_ocr_done(self, angle, img, boxes):
-        # TODO
+        self.drawer.on_ocr_done(angle, img)
         self.emit('ocr-done', img, boxes)
 
     def scan_and_ocr(self, scan_session):

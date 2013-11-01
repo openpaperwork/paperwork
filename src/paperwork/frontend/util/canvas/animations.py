@@ -71,24 +71,9 @@ class ScanAnimation(Animation):
         self.canvas.redraw()
 
     def draw_chunks(self, cairo_ctx, canvas_offset, canvas_size):
-        for (line, surface) in self.surfaces:
-            line *= self.ratio
-            chunk_size = (surface.get_width() * self.ratio,
-                          surface.get_height() * self.ratio)
-            self.draw_surface(cairo_ctx, canvas_offset, canvas_size,
-                              surface, (float(self.position[0]),
-                                        float(self.position[1]) + line),
-                              chunk_size)
-
-    def draw_animation(self, cairo_ctx, canvas_offset, canvas_size):
         position = (
             self.position[0] - canvas_offset[0],
-            (
-                self.position[1]
-                - canvas_offset[1]
-                + (self.ratio * self.surfaces[-1][0])
-                + (self.ratio * self.surfaces[-1][1].get_height())
-            ),
+            self.position[1] - canvas_offset[1],
         )
 
         cairo_ctx.save()
@@ -104,8 +89,27 @@ class ScanAnimation(Animation):
         finally:
             cairo_ctx.restore()
 
+        for (line, surface) in self.surfaces:
+            line *= self.ratio
+            chunk_size = (surface.get_width() * self.ratio,
+                          surface.get_height() * self.ratio)
+            self.draw_surface(cairo_ctx, canvas_offset, canvas_size,
+                              surface, (float(self.position[0]),
+                                        float(self.position[1]) + line),
+                              chunk_size)
+
+    def draw_animation(self, cairo_ctx, canvas_offset, canvas_size):
         if len(self.surfaces) <= 0:
             return
+
+        position = (
+            self.position[0] - canvas_offset[0],
+            (
+                self.position[1] - canvas_offset[1]
+                + (self.ratio * self.surfaces[-1][0])
+                + (self.ratio * self.surfaces[-1][1].get_height())
+            ),
+        )
 
         cairo_ctx.save()
         try:

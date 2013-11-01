@@ -225,7 +225,7 @@ class JobOCR(Job):
 
     def do(self):
         self.emit('ocr-started', self.imgs[0])
-        self.emit('ocr-angles', self.imgs)
+        self.emit('ocr-angles', dict(self.imgs))
 
         max_threads = multiprocessing.cpu_count()
         threads = []
@@ -317,6 +317,8 @@ class ScanSceneDrawer(Animation):
         self._position = (0, 0)
 
         self.scan_scene = scan_scene
+
+        self.__used_angles = None  # == any
 
         # we are used as a page drawer, but our page is being built
         # --> no actual page
@@ -482,13 +484,16 @@ class ScanSceneDrawer(Animation):
 
     def on_ocr_angles(self, imgs):
         # disable all the angles not evaluated
+        self.__used_angles = imgs.keys()
         for angle in self.ocr_spinner_drawers.keys()[:]:
-            if angle not in imgs:
+            if angle not in self.__used_angles:
                 self.ocr_spinner_drawers.pop(angle)
         # TODO(Jflesch): Show it's disabled
 
     def on_ocr_rotation_anim_done(self):
         for (angle, drawer) in self.ocr_img_drawers.iteritems():
+            if self.__used_angles and angle not in self.__used_angles:
+                continue
             spinner = SpinnerAnimation(
                 (
                     (drawer.position[0] + (drawer.size[0] / 2))
@@ -516,6 +521,7 @@ class ScanSceneDrawer(Animation):
         self.ocr_img_drawers = {
             angle: drawer
         }
+        self.ocr_spinner_drawers = {}
 
         new_size = fit(drawer.img_size, self.canvas.visible_size)
         new_position = (

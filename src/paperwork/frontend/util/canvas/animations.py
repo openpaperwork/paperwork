@@ -88,8 +88,7 @@ class ScanAnimation(Animation):
                                      self.BACKGROUND_COLOR[1],
                                      self.BACKGROUND_COLOR[2])
             cairo_ctx.rectangle(position[0], position[1],
-                                position[0] + self.size[0],
-                                position[1] + self.size[1])
+                                self.size[0], self.size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

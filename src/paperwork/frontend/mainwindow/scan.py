@@ -302,6 +302,7 @@ class JobFactoryOCR(JobFactory):
 class ScanSceneDrawer(Animation):
     GLOBAL_MARGIN = 10
     SCAN_TO_OCR_ANIM_TIME = 2000  # ms
+    IMG_MARGIN = 20
 
     layer = Animation.IMG_LAYER
 
@@ -325,8 +326,6 @@ class ScanSceneDrawer(Animation):
         self.page = None
 
     def __get_size(self):
-        if self.scan_drawer:
-            return self.scan_drawer.size
         if self.canvas:
             return (
                 self.canvas.visible_size[0] - 10,
@@ -369,7 +368,13 @@ class ScanSceneDrawer(Animation):
         pass
 
     def on_scan_info(self, x, y):
-        self.scan_drawer = ScanAnimation(self.position, (x, y),
+        size = fit((x, y), self.canvas.visible_size)
+        position = (
+            self.position[0] + (self.canvas.visible_size[0] / 2)
+            - (size[0] / 2),
+            self.position[1],
+        )
+        self.scan_drawer = ScanAnimation(position, (x, y),
                                          self.canvas.visible_size)
         self.scan_drawer.set_canvas(self.canvas)
         self.canvas.redraw()
@@ -379,7 +384,7 @@ class ScanSceneDrawer(Animation):
         self.scan_drawer.add_chunk(line, img_chunk)
 
     def on_scan_done(self, img):
-        self.scan_drawer = None
+        pass
 
     def on_scan_error(self, error):
         self.scan_drawer = None
@@ -387,8 +392,7 @@ class ScanSceneDrawer(Animation):
     def on_scan_canceled(self):
         self.scan_drawer = None
 
-    @staticmethod
-    def __compute_reduced_sizes(visible_area, img_size):
+    def __compute_reduced_sizes(self, visible_area, img_size):
         visible_area = (
             visible_area[0] / 2,
             visible_area[1] / 2,
@@ -401,8 +405,8 @@ class ScanSceneDrawer(Animation):
             float(visible_area[1]) / float(img_size[0]),
         )
         return (
-            int(ratio * img_size[0]),
-            int(ratio * img_size[1]),
+            int(ratio * img_size[0]) - (2 * self.IMG_MARGIN),
+            int(ratio * img_size[1]) - (2 * self.IMG_MARGIN),
         )
 
     def __compute_reduced_positions(self, visible_area, img_size,
@@ -431,25 +435,32 @@ class ScanSceneDrawer(Animation):
     def on_ocr_started(self, img):
         assert(self.canvas)
 
+        if self.scan_drawer:
+            size = self.scan_drawer.size
+            position = self.scan_drawer.position
+            self.scan_drawer = None
+        else:
+            size = fit(img.size, self.canvas.visible_size)
+            position = self.position
+
         # animations with big images are too slow
         # --> reduce the image size
-        img_size = fit(img.size, self.canvas.visible_size)
-        img = img.resize(img_size)
+        img = img.resize(size)
 
         target_sizes = self.__compute_reduced_sizes(
-            self.canvas.visible_size, img_size)
+            self.canvas.visible_size, size)
         target_positions = self.__compute_reduced_positions(
-            self.canvas.visible_size, img_size, target_sizes)
+            self.canvas.visible_size, size, target_sizes)
 
         self.ocr_img_drawers = {}
         self.ocr_spinner_drawers = {}
 
         for angle in target_positions.keys():
-            self.ocr_img_drawers[angle] = PillowImageDrawer(self.position, img)
+            self.ocr_img_drawers[angle] = PillowImageDrawer(position, img)
 
         self.animators = []
         for (angle, drawer) in self.ocr_img_drawers.iteritems():
-            drawer.fit(self.size)
+            drawer.size = size
             logger.info("Animator: Angle %d: %s %s -> %s %s"
                         % (angle,
                            str(drawer.position), str(drawer.size),

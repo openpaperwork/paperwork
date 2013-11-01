@@ -154,17 +154,6 @@ class PillowImageDrawer(Drawer):
         self.angle = 0
         self.surface = image2surface(image)
 
-    def fit(self, size_to_fit_in):
-        ratio = min(
-            1.0,
-            float(size_to_fit_in[0]) / float(self.img_size[0]),
-            float(size_to_fit_in[1]) / float(self.img_size[1]),
-        )
-        self.size = (
-            int(ratio * self.img_size[0]),
-            int(ratio * self.img_size[1]),
-        )
-
     def do_draw(self, cairo_ctx, offset, size):
         self.draw_surface(cairo_ctx, offset, size,
                           self.surface, self.position, self.size, self.angle)

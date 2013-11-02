@@ -19,6 +19,7 @@ from paperwork.frontend.util.canvas.animators import LinearSimpleAnimator
 from paperwork.frontend.util.canvas.animators import LinearCoordAnimator
 from paperwork.frontend.util.canvas.drawers import fit
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
+from paperwork.frontend.util.canvas.drawers import TargetAreaDrawer
 
 
 logger = logging.getLogger(__name__)
@@ -301,7 +302,7 @@ class JobFactoryOCR(JobFactory):
 
 class ScanSceneDrawer(Animation):
     GLOBAL_MARGIN = 10
-    SCAN_TO_OCR_ANIM_TIME = 2000  # ms
+    SCAN_TO_OCR_ANIM_TIME = 1000  # ms
     IMG_MARGIN = 20
 
     layer = Animation.IMG_LAYER
@@ -309,7 +310,7 @@ class ScanSceneDrawer(Animation):
     def __init__(self, scan_scene):
         Animation.__init__(self)
 
-        self.scan_drawer = None
+        self.scan_drawers = []
 
         self.ocr_img_drawers = {}
         self.ocr_spinner_drawers = {}
@@ -340,10 +341,10 @@ class ScanSceneDrawer(Animation):
 
     def __set_position(self, position):
         self._position = position
-        if self.scan_drawer:
-            self.scan_drawer.position = (
+        for drawer in self.scan_drawers:
+            drawer.position = (
                 position[0] + (self.canvas.visible_size[0] / 2)
-                - (self.scan_drawer.size[0] / 2),
+                - (drawer.size[0] / 2),
                 position[1],
             )
 
@@ -354,16 +355,16 @@ class ScanSceneDrawer(Animation):
         return
 
     def do_draw(self, cairo_ctx, offset, size):
-        if self.scan_drawer:
-            return self.scan_drawer.draw(cairo_ctx, offset, size)
+        for drawer in self.scan_drawers:
+            drawer.draw(cairo_ctx, offset, size)
         for drawer in self.ocr_img_drawers.values():
             drawer.draw(cairo_ctx, offset, size)
         for drawer in self.ocr_spinner_drawers.values():
             drawer.draw(cairo_ctx, offset, size)
 
     def on_tick(self):
-        if self.scan_drawer:
-            self.scan_drawer.on_tick()
+        for drawer in self.scan_drawers:
+            drawer.on_tick()
         for animator in self.animators:
             animator.on_tick()
 
@@ -377,23 +378,45 @@ class ScanSceneDrawer(Animation):
             - (size[0] / 2),
             self.position[1],
         )
-        self.scan_drawer = ScanAnimation(position, (x, y),
-                                         self.canvas.visible_size)
-        self.scan_drawer.set_canvas(self.canvas)
+
+        scan_drawer = ScanAnimation(position, (x, y),
+                                    self.canvas.visible_size)
+        scan_drawer.set_canvas(self.canvas)
+        ratio = scan_drawer.ratio
+
+        self.scan_drawers = [scan_drawer]
+
+        calibration = self.scan_scene.calibration
+        if calibration:
+            calibration_drawer = TargetAreaDrawer(
+                position, size,
+                (
+                    int(position[0] + (ratio * calibration[0][0])),
+                    int(position[1] + (ratio * calibration[0][1])),
+                ),
+                (
+                    int(ratio * (calibration[1][0] - calibration[0][0])),
+                    int(ratio * (calibration[1][1] - calibration[0][1])),
+                ),
+            )
+            calibration_drawer.set_canvas(self.canvas)
+
+            self.scan_drawers.append(calibration_drawer)
+
         self.canvas.redraw()
 
     def on_scan_chunk(self, line, img_chunk):
-        assert(self.scan_drawer)
-        self.scan_drawer.add_chunk(line, img_chunk)
+        assert(len(self.scan_drawers) > 0)
+        self.scan_drawers[0].add_chunk(line, img_chunk)
 
     def on_scan_done(self, img):
         pass
 
     def on_scan_error(self, error):
-        self.scan_drawer = None
+        self.scan_drawers = []
 
     def on_scan_canceled(self):
-        self.scan_drawer = None
+        self.scan_drawers = []
 
     def __compute_reduced_sizes(self, visible_area, img_size):
         visible_area = (
@@ -438,10 +461,14 @@ class ScanSceneDrawer(Animation):
     def on_ocr_started(self, img):
         assert(self.canvas)
 
-        if self.scan_drawer:
-            size = self.scan_drawer.size
-            position = self.scan_drawer.position
-            self.scan_drawer = None
+        if len(self.scan_drawers) > 0:
+            if hasattr(self.scan_drawers[-1], 'target_size'):
+                size = self.scan_drawers[-1].target_size
+                position = self.scan_drawers[-1].target_position
+            else:
+                size = self.scan_drawers[-1].size
+                position = self.scan_drawers[-1].position
+            self.scan_drawers = []
         else:
             size = fit(img.size, self.canvas.visible_size)
             position = self.position
@@ -600,7 +627,7 @@ class ScanScene(GObject.GObject):
             'ocr': JobFactoryOCR(self, config),
         }
         self.__resolution = -1
-        self.__calibration = None
+        self.calibration = None
 
     def scan(self, resolution, scan_session):
         """
@@ -608,14 +635,17 @@ class ScanScene(GObject.GObject):
         Listen for the signal scan-scene-scan-done to get the result
         """
         self.__resolution = resolution
-        (calib_resolution, calibration) = self.config.scanner_calibration
 
-        self.__calibration = (
-            (calibration[0][0] * resolution / calib_resolution,
-             calibration[0][1] * resolution / calib_resolution),
-            (calibration[1][0] * resolution / calib_resolution,
-             calibration[1][1] * resolution / calib_resolution),
-        )
+        calibration = self.config.scanner_calibration
+        if calibration:
+            (calib_resolution, calibration) = calibration
+
+            self.calibration = (
+                (calibration[0][0] * resolution / calib_resolution,
+                 calibration[0][1] * resolution / calib_resolution),
+                (calibration[1][0] * resolution / calib_resolution,
+                 calibration[1][1] * resolution / calib_resolution),
+            )
 
         job = self.factories['scan'].make(scan_session)
         self.schedulers['scan'].schedule(job)
@@ -631,16 +661,15 @@ class ScanScene(GObject.GObject):
         self.drawer.on_scan_chunk(line, img_chunk)
 
     def on_scan_done(self, img):
-        assert(self.__calibration)
-
-        img = img.crop(
-            (
-                self.__calibration[0][0],
-                self.__calibration[0][1],
-                self.__calibration[1][0],
-                self.__calibration[1][1]
+        if self.calibration:
+            img = img.crop(
+                (
+                    self.calibration[0][0],
+                    self.calibration[0][1],
+                    self.calibration[1][0],
+                    self.calibration[1][1]
+                )
             )
-        )
 
         self.drawer.on_scan_done(img)
         self.emit('scan-done', img)

@@ -1,5 +1,6 @@
 import cairo
 import math
+import logging
 
 from gi.repository import Gdk
 from gi.repository import Gtk
@@ -8,14 +9,17 @@ from paperwork.backend.util import image2surface
 from paperwork.frontend.util.canvas import Canvas
 
 
+logger = logging.getLogger(__name__)
+
+
 class Drawer(object):
-    # layer number == priority --> higher is drawn first
+    # layer number == priority --> higher is drawn first (lower level)
     BACKGROUND_LAYER = 1000
     IMG_LAYER = 200
     BOX_LAYER = 50
     PROGRESSION_INDICATOR_LAYER = 25
     FADDING_EFFECT_LAYER = 0
-    # layer number == priority --> lower is drawn last
+    # layer number == priority --> lower is drawn last (higher level)
 
     layer = -1  # must be set by subclass
 
@@ -157,6 +161,158 @@ class PillowImageDrawer(Drawer):
     def do_draw(self, cairo_ctx, offset, size):
         self.draw_surface(cairo_ctx, offset, size,
                           self.surface, self.position, self.size, self.angle)
+
+
+class TargetAreaDrawer(Drawer):
+    layer = Drawer.BOX_LAYER
+    visible = True
+
+    def __init__(self,
+                 position, size,
+                 target_position, target_size,
+                 rect_color=(0.0, 0.0, 1.0, 1.0),
+                 out_color=(0.0, 0.0, 1.0, 0.1)):
+        Drawer.__init__(self)
+
+        assert(position[0] <= target_position[0])
+        assert(position[1] <= target_position[1])
+        assert(position[0] + size[0] >= target_position[0] + target_size[0])
+        assert(position[1] + size[1] >= target_position[1] + target_size[1])
+
+        self._position = position
+        self.size = size
+        self.target_position = target_position
+        self.target_size = target_size
+        self.rect_color = rect_color
+        self.out_color = out_color
+
+        logger.info("Drawer: Target area: %s (%s) << %s (%s)"
+                    % (str(self._position), str(self.size),
+                       str(self.target_position), str(self.target_size)))
+
+    def _get_position(self):
+        return self._position
+
+    def _set_position(self, new_position):
+        offset = (
+            new_position[0] - self._position[0],
+            new_position[1] - self._position[1],
+        )
+        self._position = new_position
+        self.target_position = (
+            self.target_position[0] + offset[0],
+            self.target_position[1] + offset[1],
+        )
+
+    position = property(_get_position, _set_position)
+
+    def _draw_rect(self, cairo_ctx, rect):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgba(self.rect_color[0], self.rect_color[1],
+                                      self.rect_color[2], self.rect_color[3])
+            cairo_ctx.set_line_width(2.0)
+            cairo_ctx.rectangle(rect[0][0], rect[0][1],
+                                rect[1][0] - rect[0][0],
+                                rect[1][1] - rect[0][1])
+            cairo_ctx.stroke()
+        finally:
+            cairo_ctx.restore()
+
+    def _draw_area(self, cairo_ctx, rect):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgba(self.out_color[0], self.out_color[1],
+                                      self.out_color[2], self.out_color[3])
+            cairo_ctx.rectangle(rect[0][0], rect[0][1],
+                                rect[1][0] - rect[0][0],
+                                rect[1][1] - rect[0][1])
+            cairo_ctx.clip()
+            cairo_ctx.paint()
+        finally:
+            cairo_ctx.restore()
+
+    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+        # we draw *outside* of the target but inside of the whole
+        # area
+        rects = [
+            (
+                # left
+                self._draw_area,
+                (
+                    (self._position[0], self._position[1]),
+                    (self.target_position[0], self._position[1] + self.size[1]),
+                )
+            ),
+            (
+                # top
+                self._draw_area,
+                (
+                    (self.target_position[0], self._position[1]),
+                    (
+                        self.target_position[0] + self.target_size[0],
+                        self.target_position[1]
+                    ),
+                )
+            ),
+            (
+                # right
+                self._draw_area,
+                (
+                    (
+                        self.target_position[0] + self.target_size[0],
+                        self._position[1]),
+                    (
+                        self._position[0] + self.size[0],
+                        self._position[1] + self.size[1]
+                    ),
+                )
+            ),
+            (
+                # bottom
+                self._draw_area,
+                (
+                    (self.target_position[0],
+                     self.target_position[1] + self.target_size[1]),
+                    (
+                        self.target_position[0] + self.target_size[0],
+                        self._position[1] + self.size[1]
+                    )
+                )
+            ),
+            (
+                # target area
+                self._draw_rect,
+                (
+                    (self.target_position[0], self.target_position[1]),
+                    (
+                        self.target_position[0] + self.target_size[0],
+                        self.target_position[1] + self.target_size[1]
+                    ),
+                )
+            ),
+        ]
+
+        rects = [
+            (
+                func,
+                (
+                    (
+                        rect[0][0] - canvas_offset[0],
+                        rect[0][1] - canvas_offset[1],
+                    ),
+                    (
+                        rect[1][0] - canvas_offset[0],
+                        rect[1][1] - canvas_offset[1],
+                    ),
+                )
+            )
+            for (func, rect) in rects
+        ]
+
+        for (func, rect) in rects:
+            func(cairo_ctx, rect)
+
 
 def fit(element_size, area_size):
     """

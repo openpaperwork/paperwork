@@ -1704,9 +1704,13 @@ class ActionDeletePage(SimpleAction):
         """
         if not ask_confirmation(self.__main_win.window):
             return
+
+        page = self.__main_win.page
+        doc = page.doc
+
         SimpleAction.do(self)
         logger.info("Deleting ...")
-        self.__main_win.page.destroy()
+        page.destroy()
         logger.info("Deleted")
         self.__main_win.page = None
         set_widget_state(self.__main_win.need_page_widgets, False)
@@ -1714,6 +1718,14 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.refresh_page_list()
         self.__main_win.refresh_label_list()
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
+
+        if doc.nb_pages <= 0:
+            job = self.__main_win.job_factories['index_updater'].make(
+                self.__main_win.docsearch, del_docs={doc}, optimize=False)
+        else:
+            job = self.__main_win.job_factories['index_updater'].make(
+                self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+        self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionRedoDocOCR(SimpleAction):

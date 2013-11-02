@@ -599,12 +599,24 @@ class ScanScene(GObject.GObject):
             'scan': JobFactoryScan(self),
             'ocr': JobFactoryOCR(self, config),
         }
+        self.__resolution = -1
+        self.__calibration = None
 
-    def scan(self, scan_session):
+    def scan(self, resolution, scan_session):
         """
         Returns immediately
         Listen for the signal scan-scene-scan-done to get the result
         """
+        self.__resolution = resolution
+        (calib_resolution, calibration) = self.config.scanner_calibration
+
+        self.__calibration = (
+            (calibration[0][0] * resolution / calib_resolution,
+             calibration[0][1] * resolution / calib_resolution),
+            (calibration[1][0] * resolution / calib_resolution,
+             calibration[1][1] * resolution / calib_resolution),
+        )
+
         job = self.factories['scan'].make(scan_session)
         self.schedulers['scan'].schedule(job)
 
@@ -619,6 +631,17 @@ class ScanScene(GObject.GObject):
         self.drawer.on_scan_chunk(line, img_chunk)
 
     def on_scan_done(self, img):
+        assert(self.__calibration)
+
+        img = img.crop(
+            (
+                self.__calibration[0][0],
+                self.__calibration[0][1],
+                self.__calibration[1][0],
+                self.__calibration[1][1]
+            )
+        )
+
         self.drawer.on_scan_done(img)
         self.emit('scan-done', img)
 
@@ -650,7 +673,7 @@ class ScanScene(GObject.GObject):
     def on_ocr_anim_done(self, angle, img, boxes):
         self.emit('ocr-done', img, boxes)
 
-    def scan_and_ocr(self, scan_session):
+    def scan_and_ocr(self, resolution, scan_session):
         """
         Convenience function.
         Returns immediately.
@@ -665,7 +688,7 @@ class ScanScene(GObject.GObject):
                 scan_scene.ocr(img)
 
         _ScanOcrChainer(self)
-        self.scan(scan_session)
+        self.scan(resolution, scan_session)
 
 
 GObject.type_register(ScanScene)

@@ -1566,7 +1566,7 @@ class ActionSingleScan(SimpleAction):
                                self.__main_win.schedulers['scan'],
                                self.__main_win.schedulers['ocr'])
         self.__main_win.add_scan_scene(self.__main_win.doc, scan_scene)
-        scan_scene.scan_and_ocr(scan_session)
+        scan_scene.scan_and_ocr(resolution, scan_session)
 
 
 class ActionMultiScan(SimpleAction):

@@ -1285,7 +1285,6 @@ class ActionOpenPageSelected(SimpleAction):
         gui_list = self.__main_win.lists['pages']['gui']
         selection_path = gui_list.get_selected_items()
         if len(selection_path) <= 0:
-            self.__main_win.show_page(DummyPage(self.__main_win.doc))
             return
         # TODO(Jflesch): We should get the page number from the list content,
         # not from the position of the element in the list
@@ -3498,7 +3497,8 @@ class MainWindow(object):
     def __on_img_window_moved(self):
         pos = self.img['canvas'].position
         size = self.img['canvas'].visible_size
-        pos = (0, pos[1] + (size[1] / 2))
+        pos = (pos[0] + (size[0] / 2),
+               pos[1] + (size[1] / 2))
         drawer = self.img['canvas'].get_drawer_at(pos)
         if drawer is None:
             return

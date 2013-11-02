@@ -18,7 +18,9 @@ from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.animators import LinearSimpleAnimator
 from paperwork.frontend.util.canvas.animators import LinearCoordAnimator
 from paperwork.frontend.util.canvas.drawers import fit
+from paperwork.frontend.util.canvas.drawers import LineDrawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
+from paperwork.frontend.util.canvas.drawers import RectangleDrawer
 from paperwork.frontend.util.canvas.drawers import TargetAreaDrawer
 
 
@@ -312,8 +314,7 @@ class ScanSceneDrawer(Animation):
 
         self.scan_drawers = []
 
-        self.ocr_img_drawers = {}
-        self.ocr_spinner_drawers = {}
+        self.ocr_drawers = {}  # angle --> [drawers]
 
         self.animators = []
         self._position = (0, 0)
@@ -325,6 +326,7 @@ class ScanSceneDrawer(Animation):
         # we are used as a page drawer, but our page is being built
         # --> no actual page
         self.page = None
+        self.rotation_done = False
 
     def __get_size(self):
         assert(self.canvas)
@@ -357,10 +359,9 @@ class ScanSceneDrawer(Animation):
     def do_draw(self, cairo_ctx, offset, size):
         for drawer in self.scan_drawers:
             drawer.draw(cairo_ctx, offset, size)
-        for drawer in self.ocr_img_drawers.values():
-            drawer.draw(cairo_ctx, offset, size)
-        for drawer in self.ocr_spinner_drawers.values():
-            drawer.draw(cairo_ctx, offset, size)
+        for drawers in self.ocr_drawers.values():
+            for drawer in drawers:
+                drawer.draw(cairo_ctx, offset, size)
 
     def on_tick(self):
         for drawer in self.scan_drawers:
@@ -482,14 +483,14 @@ class ScanSceneDrawer(Animation):
         target_positions = self.__compute_reduced_positions(
             self.canvas.visible_size, size, target_sizes)
 
-        self.ocr_img_drawers = {}
-        self.ocr_spinner_drawers = {}
+        self.ocr_drawers = {}
 
         for angle in target_positions.keys():
-            self.ocr_img_drawers[angle] = PillowImageDrawer(position, img)
+            self.ocr_drawers[angle] = [PillowImageDrawer(position, img)]
 
         self.animators = []
-        for (angle, drawer) in self.ocr_img_drawers.iteritems():
+        for (angle, drawers) in self.ocr_drawers.iteritems():
+            drawer = drawers[0]
             drawer.size = size
             logger.info("Animator: Angle %d: %s %s -> %s %s"
                         % (angle,
@@ -523,46 +524,71 @@ class ScanSceneDrawer(Animation):
                 GLib.idle_add(self.on_ocr_rotation_anim_done))
             self.animators += new_animators
 
+    def _disable_angle(self, angle):
+        img_drawer = self.ocr_drawers[angle][0]
+        # cross out the image
+        line_drawer = LineDrawer(
+            (
+                img_drawer.position[0],
+                img_drawer.position[1] + img_drawer.size[1]
+            ),
+            (
+                img_drawer.position[0] + img_drawer.size[0],
+                img_drawer.position[1]
+            ),
+            width=5.0
+        )
+        self.ocr_drawers[angle] = [
+            img_drawer,
+            line_drawer,
+        ]
+
     def on_ocr_angles(self, imgs):
         # disable all the angles not evaluated
         self.__used_angles = imgs.keys()
-        for angle in self.ocr_spinner_drawers.keys()[:]:
-            if angle not in self.__used_angles:
-                self.ocr_spinner_drawers.pop(angle)
-        # TODO(Jflesch): Show it's disabled
+        if self.rotation_done:
+            for angle in self.ocr_drawers.keys()[:]:
+                if angle not in self.__used_angles:
+                    self._disable_angle(angle)
 
     def on_ocr_rotation_anim_done(self):
-        for (angle, drawer) in self.ocr_img_drawers.iteritems():
+        self.rotation_done = True
+        for angle in self.ocr_drawers.keys()[:]:
             if self.__used_angles and angle not in self.__used_angles:
-                continue
-            spinner = SpinnerAnimation(
-                (
-                    (drawer.position[0] + (drawer.size[0] / 2))
-                    - (SpinnerAnimation.ICON_SIZE / 2),
-                    (drawer.position[1] + (drawer.size[1] / 2))
-                    - (SpinnerAnimation.ICON_SIZE / 2)
+                self._disable_angle(angle)
+            else:
+                img_drawer = self.ocr_drawers[angle][0]
+                spinner_bg = RectangleDrawer(
+                    img_drawer.position, img_drawer.size,
+                    inside_color=(0.0, 0.0, 0.0, 0.1),
+                    angle=angle,
                 )
-            )
-            self.ocr_spinner_drawers[angle] = spinner
-            self.animators.append(spinner)
-        # TODO(Jflesch): add a light gray rectangle on the image
-        # while the spinner is running
+                spinner = SpinnerAnimation(
+                    (
+                        (img_drawer.position[0] + (img_drawer.size[0] / 2))
+                        - (SpinnerAnimation.ICON_SIZE / 2),
+                        (img_drawer.position[1] + (img_drawer.size[1] / 2))
+                        - (SpinnerAnimation.ICON_SIZE / 2)
+                    )
+                )
+                self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
+                self.animators.append(spinner)
 
     def on_ocr_score(self, angle, score):
-        if angle in self.ocr_spinner_drawers:
-            self.ocr_spinner_drawers.pop(angle)
+        if angle in self.ocr_drawers:
+            self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
 
     def on_ocr_done(self, angle, img, boxes):
         self.animators = []
 
-        drawer = self.ocr_img_drawers[angle]
+        drawers = self.ocr_drawers[angle]
+        drawer = drawers[0]
 
         # we got out winner. Shoot the others
-        self.ocr_img_drawers = {
-            angle: drawer
+        self.ocr_drawers = {
+            angle: [drawer]
         }
-        self.ocr_spinner_drawers = {}
 
         new_size = fit(drawer.img_size, self.canvas.visible_size)
         new_position = (

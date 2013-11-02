@@ -146,6 +146,111 @@ class BackgroundDrawer(Drawer):
         cairo_ctx.paint()
 
 
+class RectangleDrawer(Drawer):
+    layer = Drawer.BOX_LAYER
+    visible = True
+
+    def __init__(self,
+                 position, size,
+                 inside_color=(0.0, 0.0, 1.0, 1.0),
+                 angle=0):
+        Drawer.__init__(self)
+        self.position = position
+        self.size = size
+        self.inside_color = inside_color
+        self.angle = angle
+
+    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgba(self.inside_color[0], self.inside_color[1],
+                                      self.inside_color[2], self.inside_color[3])
+            cairo_ctx.set_line_width(2.0)
+
+            if self.angle != 0:
+                angle = math.pi * self.angle / 180
+                cairo_ctx.translate(self.position[0] - canvas_offset[0]
+                                    + (self.size[0] / 2),
+                                    self.position[1] - canvas_offset[1]
+                                    + (self.size[1] / 2))
+                cairo_ctx.rotate(angle)
+                cairo_ctx.translate(-self.position[0] + canvas_offset[0]
+                                    - (self.size[0] / 2),
+                                    -self.position[1] + canvas_offset[1]
+                                    - (self.size[1] / 2))
+
+            cairo_ctx.rectangle(
+                self.position[0] - canvas_offset[0],
+                self.position[1] - canvas_offset[1],
+                self.size[0], self.size[1]
+            )
+            cairo_ctx.clip()
+            cairo_ctx.paint()
+        finally:
+            cairo_ctx.restore()
+
+
+class LineDrawer(Drawer):
+    layer = Drawer.BOX_LAYER
+    visible = True
+
+    def __init__(self,
+                 start_point, end_point,
+                 width=1.0,
+                 color=(0.0, 0.0, 0.0, 1.0)):
+        Drawer.__init__(self)
+
+        self.start = start_point
+        self.end = end_point
+        self.width = width
+        self.color = color
+
+    def _get_position(self):
+        return (
+            min(self.start[0], self.end[0]),
+            min(self.start[1], self.end[1]),
+        )
+
+    def _set_position(self, new):
+        old = self.position
+        offset = (
+            new[0] - old[0],
+            new[1] - old[1],
+        )
+        self.start = (
+            self.start[0] + offset[0],
+            self.start[1] + offset[1],
+        )
+        self.end = (
+            self.end[0] + offset[0],
+            self.end[1] + offset[1],
+        )
+
+    position = property(_get_position, _set_position)
+
+    def _get_size(self):
+        return (
+            max(self.start[0], self.end[0]) - min(self.start[0], self.end[0]),
+            max(self.start[1], self.end[1]) - min(self.start[1], self.end[1]),
+        )
+
+    size = property(_get_size)
+
+    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgba(self.color[0], self.color[1],
+                                      self.color[2], self.color[3])
+            cairo_ctx.set_line_width(self.width)
+            cairo_ctx.move_to(self.start[0] - canvas_offset[0],
+                              self.start[1] - canvas_offset[1])
+            cairo_ctx.line_to(self.end[0] - canvas_offset[0],
+                              self.end[1] - canvas_offset[1])
+            cairo_ctx.stroke()
+        finally:
+            cairo_ctx.restore()
+
+
 class PillowImageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     visible = True

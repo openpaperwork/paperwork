@@ -709,6 +709,7 @@ class ScanScene(GObject.GObject):
         Returns immediately.
         Listen for the signal scan-scene-ocr-done to get the result
         """
+        img.load()
         job = self.factories['ocr'].make(img)
         self.schedulers['ocr'].schedule(job)
 

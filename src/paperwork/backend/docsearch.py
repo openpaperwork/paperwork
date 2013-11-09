@@ -626,6 +626,7 @@ class DocSearch(object):
         Try to find a document based on its document id. If it hasn't been
         instantiated yet, it will be.
         """
+        assert(docid is not None)
         if docid in self.__docs_by_id:
             return self.__docs_by_id[docid]
         doc = self.__inst_doc(docid, doc_type_name)

@@ -2259,7 +2259,7 @@ class MainWindow(object):
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
         self.page_drawers = []
-        self.scan_drawers = {}  # docid --> [extra drawers]
+        self.scan_drawers = {}  # docid --> [(page_nb, extra drawers]
 
         search_completion = Gtk.EntryCompletion()
 
@@ -3221,14 +3221,28 @@ class MainWindow(object):
         }
 
         self.page_drawers = []
+        scan_drawers = {}
+        if self.doc.docid in self.scan_drawers:
+            scan_drawers = self.scan_drawers[self.doc.docid]
+            scan_drawers = {
+                page_nb: drawer
+                for (page_nb, drawer) in scan_drawers
+            }
         for page in doc.pages:
-            drawer = PageDrawer((0, 0), page, factories, schedulers)
+            if page.page_nb in scan_drawers:
+                drawer = scan_drawers[page.page_nb]
+            else:
+                drawer = PageDrawer((0, 0), page, factories, schedulers)
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
+
         if self.doc.docid in self.scan_drawers:
-            for drawer in self.scan_drawers[self.doc.docid]:
+            for (page_nb, drawer) in self.scan_drawers[self.doc.docid]:
+                if page_nb >= 0:
+                    continue
                 self.page_drawers.append(drawer)
                 self.img['canvas'].add_drawer(drawer)
+
         self.update_page_sizes()
 
         is_new = doc.is_new
@@ -3520,9 +3534,11 @@ class MainWindow(object):
 
     def remove_scan_scene(self, scan_scene):
         for (docid, drawers) in self.scan_drawers.iteritems():
-            if scan_scene.drawer in drawers:
-                drawers.remove(scan_scene.drawer)
-                return docid
+            for (page_nb, drawer) in drawers[:]:
+                if scan_scene.drawer == drawer:
+                    drawers.remove((page_nb, scan_scene.drawer))
+                    return docid
+        raise ValueError("Scan scene not found")
 
     def on_scan_ocr_canceled(self, scan_scene):
         docid = self.remove_scan_scene(scan_scene)
@@ -3563,16 +3579,11 @@ class MainWindow(object):
                 self.docsearch, upd_docs={doc}, optimize=False)
         self.schedulers['main'].schedule(job)
 
-    def add_scan_scene(self, doc, scan_scene):
+    def add_scan_scene(self, doc, scan_scene, page_nb=-1):
         drawer = scan_scene.drawer
         if not doc.docid in self.scan_drawers:
-            self.scan_drawers[doc.docid] = [drawer]
-        else:
-            self.scan_drawers[doc.docid].append(drawer)
-        self.page_drawers.append(drawer)
-
-        if self.doc.docid == doc.docid:
-            self.page = None
+            self.scan_drawers[doc.docid] = []
+        self.scan_drawers[doc.docid].append((page_nb, drawer))
 
         scan_scene.connect('scan-canceled', lambda scan_scene:
                            GLib.idle_add(self.on_scan_ocr_canceled,
@@ -3587,7 +3598,10 @@ class MainWindow(object):
                            GLib.idle_add(self.on_ocr_done, scan_scene, img,
                                          boxes))
 
+        if self.doc.docid == doc.docid:
+            self.page = None
+            self.show_doc(self.doc, force_refresh=True)
+
         self.img['canvas'].add_drawer(drawer)
-        self.__update_page_positions()
         self.img['canvas'].recompute_size()
         self.img['canvas'].get_vadjustment().set_value(drawer.position[1])

@@ -9,6 +9,8 @@ The basic idea behind Paperwork is "scan & forget" : You should be able to just
 scan a new document and forget about it until the day you need it again. Let the
 machine do most of the work.
 
+Paperwork also supports PDF and images import.
+
 
 ## Screenshots
 

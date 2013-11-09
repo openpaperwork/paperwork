@@ -9,6 +9,7 @@ Here are the elements that must drawn on it:
 """
 
 import copy
+import logging
 import heapq
 import sys
 
@@ -19,6 +20,9 @@ from gi.repository import Gtk
 
 from paperwork.backend.util import image2surface
 from paperwork.frontend.util import PriorityQueue
+
+
+logger = logging.getLogger(__name__)
 
 
 class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
@@ -91,9 +95,11 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         if self.need_ticks == 0:
             GLib.timeout_add(self.TICK_INTERVAL, self._tick)
         self.need_ticks += 1
+        logger.info("Animators: %d" % self.need_ticks)
 
     def stop_ticks(self):
         self.need_ticks -= 1
+        logger.info("Animators: %d" % self.need_ticks)
         assert(self.need_ticks >= 0)
 
     def get_hadjustment(self):

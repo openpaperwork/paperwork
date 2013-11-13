@@ -278,8 +278,8 @@ class JobFactoryOCR(JobFactory):
         self.__config = config
         self.scan_scene = scan_scene
 
-    def make(self, img):
-        angles = range(0, self.__config.ocr_nb_angles * 90, 90)
+    def make(self, img, nb_angles):
+        angles = range(0, nb_angles * 90, 90)
 
         ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) == 0:
@@ -639,7 +639,7 @@ class ScanScene(GObject.GObject):
 
     def __init__(self, config, scan_scheduler, ocr_scheduler):
         GObject.GObject.__init__(self)
-        self.config = config
+        self.__config = config
         self.schedulers = {
             'scan': scan_scheduler,
             'ocr': ocr_scheduler,
@@ -662,7 +662,7 @@ class ScanScene(GObject.GObject):
         """
         self.__resolution = resolution
 
-        calibration = self.config.scanner_calibration
+        calibration = self.__config.scanner_calibration
         if calibration:
             (calib_resolution, calibration) = calibration
 
@@ -675,6 +675,7 @@ class ScanScene(GObject.GObject):
 
         job = self.factories['scan'].make(scan_session)
         self.schedulers['scan'].schedule(job)
+        return job
 
     def on_scan_start(self):
         self.drawer.on_scan_started()
@@ -704,14 +705,17 @@ class ScanScene(GObject.GObject):
         self.drawer.on_scan_canceled()
         self.emit('scan-done', None)
 
-    def ocr(self, img):
+    def ocr(self, img, angles=None):
         """
         Returns immediately.
         Listen for the signal scan-scene-ocr-done to get the result
         """
+        if angles is None:
+            angles = self.__config.ocr_nb_angles
         img.load()
-        job = self.factories['ocr'].make(img)
+        job = self.factories['ocr'].make(img, angles)
         self.schedulers['ocr'].schedule(job)
+        return job
 
     def on_ocr_started(self, img):
         self.drawer.on_ocr_started(img)

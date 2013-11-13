@@ -900,68 +900,6 @@ class JobFactoryLabelDeleter(JobFactory):
         return job
 
 
-class JobOCRRedoer(Job):
-    __gsignals__ = {
-        'redo-ocr-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        'redo-ocr-doc-updated': (GObject.SignalFlags.RUN_LAST, None,
-                                 (GObject.TYPE_FLOAT, GObject.TYPE_STRING)),
-        'redo-ocr-end': (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
-
-    # we make it non-interruptible because there is no way for us to start
-    # back from where we stopped, and redoing all the docs may take far too
-    # much time
-    # TODO(Jflesch): Make it interruptible (use iter(target))
-    can_stop = False
-    priority = 5
-
-    def __init__(self, factory, id, langs, target):
-        Job.__init__(self, factory, id)
-        self.__target = target
-        self.__langs = langs
-
-    def __progress_cb(self, progression, total, step, doc):
-        logger.info("OCR progression: %s : %d / %d : %s"
-                    % (step, progression, total, doc.name))
-        self.emit('redo-ocr-doc-updated', float(progression) / (total + 1),
-                  doc.name)
-
-    def do(self):
-        self.emit('redo-ocr-start')
-        try:
-            self.__target.redo_ocr(self.__langs, self.__progress_cb)
-        finally:
-            self.emit('redo-ocr-end')
-
-
-GObject.type_register(JobOCRRedoer)
-
-
-class JobFactoryOCRRedoer(JobFactory):
-    def __init__(self, main_win, config):
-        JobFactory.__init__(self, "OCRRedoer")
-        self.__main_win = main_win
-        self.__config = config
-
-    def make(self, target):
-        job = JobOCRRedoer(self, next(self.id_generator), self.__config.langs,
-                           target)
-        job.connect('redo-ocr-start',
-                    lambda ocr_redoer:
-                    GLib.idle_add(self.__main_win.on_redo_ocr_start_cb,
-                                     ocr_redoer))
-        job.connect('redo-ocr-doc-updated',
-                    lambda ocr_redoer, progression, doc_name:
-                    GLib.idle_add(
-                        self.__main_win.on_redo_ocr_doc_updated_cb,
-                        ocr_redoer, progression, doc_name))
-        job.connect('redo-ocr-end',
-                    lambda ocr_redoer:
-                    GLib.idle_add(self.__main_win.on_redo_ocr_end_cb,
-                                     ocr_redoer))
-        return job
-
-
 class JobImporter(Job):
     __gsignals__ = {
         'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1530,6 +1468,48 @@ class ActionSingleScan(SimpleAction):
         self.__main_win = main_window
         self.__config = config
 
+    def __on_scan_ocr_canceled(self, scan_scene):
+        docid = self.__main_win.remove_scan_scene(scan_scene)
+        if self.__main_win.doc.docid == docid:
+            self.__main_win.show_page(self.__main_win.doc.pages[-1],
+                                      force_refresh=True)
+
+    def __on_scan_error(self, scan_scene, error):
+        # TODO
+        docid = self.__main_win.remove_scan_scene(scan_scene)
+        if self.__main_win.doc.docid == docid:
+            self.__main_win.show_page(self.__main_win.doc.pages[-1],
+                                      force_refresh=True)
+
+    def __on_ocr_done(self, scan_scene, img, line_boxes):
+        docid = self.__main_win.remove_scan_scene(scan_scene)
+        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+
+        new = False
+        if doc is None:
+            # new doc
+            new = True
+            if self.__main_win.doc.is_new:
+                doc = self.__main_win.doc
+            else:
+                doc = ImgDoc(self.__config.workdir)
+
+        doc.add_page(img, line_boxes)
+
+        if new:
+            self.__main_win.refresh_doc_list()
+        if self.doc.docid == doc.docid:
+            self.__main_win.show_page(self.__main_win.doc.pages[-1],
+                                      force_refresh=True)
+
+        if new:
+            job = self.__main_win.job_factories['index_updater'].make(
+                self.__main_win.docsearch, new_docs={doc}, optimize=False)
+        else:
+            job = self.__main_win.job_factories['index_updater'].make(
+                self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+        self.__main_win.schedulers['main'].schedule(job)
+
     def do(self):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
@@ -1561,9 +1541,20 @@ class ActionSingleScan(SimpleAction):
         maximize_scan_area(dev)
 
         scan_session = dev.scan(multiple=False)
-        scan_scene = ScanScene(self.__config,
-                               self.__main_win.schedulers['scan'],
-                               self.__main_win.schedulers['ocr'])
+        scan_scene = self.__main_win.make_scan_scene()
+        scan_scene.connect('scan-canceled', lambda scan_scene:
+                           GLib.idle_add(self.__on_scan_ocr_canceled,
+                                         scan_scene))
+        scan_scene.connect('scan-error', lambda scan_scan, error:
+                           GLib.idle_add(self.__on_scan_error, scan_scene,
+                                         error))
+        scan_scene.connect('ocr-canceled', lambda scan_scene:
+                           GLib.idle_add(self.__on_scan_ocr_canceled,
+                                         scan_scene))
+        scan_scene.connect('ocr-done', lambda scan_scene, img, boxes:
+                           GLib.idle_add(self.__on_ocr_done, scan_scene, img,
+                                         boxes))
+
         self.__main_win.add_scan_scene(self.__main_win.doc, scan_scene)
         scan_scene.scan_and_ocr(resolution, scan_session)
 
@@ -1728,36 +1719,82 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
-class ActionRedoDocOCR(SimpleAction):
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Redoing doc ocr")
-        self.__main_win = main_window
+class ActionRedoOCR(SimpleAction):
+    def __init__(self, name, main_window):
+        SimpleAction.__init__(self, name)
+        self._main_win = main_window
 
-    def do(self):
-        if not ask_confirmation(self.__main_win.window):
+    def _do_next_page(self, page_iterator):
+        try:
+            page = next(page_iterator)
+        except StopIteration:
+            logger.info("OCR has been redone on all the target pages")
+            return
+
+        logger.info("Redoing OCR on %s" % str(page))
+        scan_scene = self._main_win.make_scan_scene()
+        self._main_win.add_scan_scene(page.doc, scan_scene,
+                                       page_nb=page.page_nb)
+        scan_scene.connect('ocr-done',
+                           lambda scan_scene, img, boxes:
+                           GLib.idle_add(self._on_page_ocr_done, scan_scene, img,
+                                         boxes, page, page_iterator))
+        scan_scene.ocr(page.img, angles=1)
+
+    def _on_page_ocr_done(self, scan_scene, img, boxes, page, page_iterator):
+        page.img = img
+        page.boxes = boxes
+
+        docid = self._main_win.remove_scan_scene(scan_scene)
+
+        doc = self._main_win.docsearch.get_doc_from_docid(docid)
+        job = self._main_win.job_factories['index_updater'].make(
+            self._main_win.docsearch, upd_docs={doc}, optimize=False)
+        self._main_win.schedulers['main'].schedule(job)
+
+        self._do_next_page(page_iterator)
+
+    def do(self, pages_iterator):
+        if not ask_confirmation(self._main_win.window):
             return
         SimpleAction.do(self)
-
-        doc = self.__main_win.doc
-        job = self.__main_win.job_factories['ocr_redoer'].make(doc)
-        self.__main_win.schedulers['main'].schedule(job)
+        self._do_next_page(pages_iterator)
 
 
-class ActionRedoAllOCR(SimpleAction):
+class ActionRedoDocOCR(ActionRedoOCR):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Redoing doc ocr")
-        self.__main_win = main_window
+        ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
 
     def do(self):
-        if not ask_confirmation(self.__main_win.window):
-            return
-        SimpleAction.do(self)
+        doc = self._main_win.doc
+        ActionRedoOCR.do(self, iter(doc.pages))
 
-        self.__main_win.schedulers['main'].cancel_all(
-            self.__main_win.job_factories['ocr_redoer'])
-        job = self.__main_win.job_factories['ocr_redoer'].make(
-            self.__main_win.docsearch)
-        self.__main_win.schedulers['main'].schedule(job)
+
+class AllPagesIterator(object):
+    def __init__(self, docsearch):
+        self.__doc_iter = iter(docsearch.docs)
+        doc = self.__doc_iter.next()
+        self.__page_iter = iter(doc.pages)
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        while True:
+            try:
+                return next(self.__page_iter)
+            except StopIteration:
+                doc = next(self.__doc_iter)
+                self.__page_iter = iter(doc.pages)
+
+
+class ActionRedoAllOCR(ActionRedoOCR):
+    def __init__(self, main_window):
+        ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
+
+    def do(self):
+        all_page_iter = AllPagesIterator()
+        ActionRedoOCR.do(self, all_page_iter)
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -2442,7 +2479,6 @@ class MainWindow(object):
             'label_predictor': JobFactoryLabelPredictor(self),
             'label_deleter': JobFactoryLabelDeleter(self),
             'match_list': self.lists['matches'].job_factory,
-            'ocr_redoer': JobFactoryOCRRedoer(self, config),
             'page_editor': JobFactoryPageEditor(self, config),
             'page_list': self.lists['pages'].job_factory,
             'page_loader': JobFactoryPageLoader(),
@@ -2927,23 +2963,8 @@ class MainWindow(object):
         self.refresh_label_list()
         self.refresh_doc_list()
 
-    def on_redo_ocr_start_cb(self, src):
-        self.set_search_availability(False)
-        self.set_mouse_cursor("Busy")
-        self.set_progression(src, 0.0, _("Redoing OCR ..."))
-
-    def on_redo_ocr_doc_updated_cb(self, src, progression, doc_name):
-        self.set_progression(src, progression,
-                             _("Redoing OCR (%s) ...") % (doc_name))
-
     def on_redo_ocr_end_cb(self, src):
-        self.set_progression(src, 0.0, None)
-        self.set_search_availability(True)
-        self.set_mouse_cursor("Normal")
         self.refresh_label_list()
-        # in case the keywords were highlighted
-        self.show_page(self.page, force_refresh=True)
-        self.actions['reindex'][1].do()
 
     def on_import_start(self, src):
         self.set_progression(src, 0.0, _("Importing ..."))
@@ -3532,6 +3553,11 @@ class MainWindow(object):
             return
         self.__select_page(page)
 
+    def make_scan_scene(self):
+        return ScanScene(self.__config,
+                         self.schedulers['scan'],
+                         self.schedulers['ocr'])
+
     def remove_scan_scene(self, scan_scene):
         for (docid, drawers) in self.scan_drawers.iteritems():
             for (page_nb, drawer) in drawers[:]:
@@ -3540,63 +3566,11 @@ class MainWindow(object):
                     return docid
         raise ValueError("Scan scene not found")
 
-    def on_scan_ocr_canceled(self, scan_scene):
-        docid = self.remove_scan_scene(scan_scene)
-        if self.doc.docid == docid:
-            self.show_page(self.doc.pages[-1], force_refresh=True)
-
-    def on_scan_error(self, scan_scene, error):
-        # TODO
-        docid = self.remove_scan_scene(scan_scene)
-        if self.doc.docid == docid:
-            self.show_page(self.doc.pages[-1], force_refresh=True)
-
-    def on_ocr_done(self, scan_scene, img, line_boxes):
-        docid = self.remove_scan_scene(scan_scene)
-        doc = self.docsearch.get_doc_from_docid(docid)
-
-        new = False
-        if doc is None:
-            # new doc
-            new = True
-            if self.doc.is_new:
-                doc = self.doc
-            else:
-                doc = ImgDoc(self.__config.workdir)
-
-        doc.add_page(img, line_boxes)
-
-        if new:
-            self.refresh_doc_list()
-        if self.doc.docid == doc.docid:
-            self.show_page(self.doc.pages[-1], force_refresh=True)
-
-        if new:
-            job = self.job_factories['index_updater'].make(
-                self.docsearch, new_docs={doc}, optimize=False)
-        else:
-            job = self.job_factories['index_updater'].make(
-                self.docsearch, upd_docs={doc}, optimize=False)
-        self.schedulers['main'].schedule(job)
-
     def add_scan_scene(self, doc, scan_scene, page_nb=-1):
         drawer = scan_scene.drawer
         if not doc.docid in self.scan_drawers:
             self.scan_drawers[doc.docid] = []
         self.scan_drawers[doc.docid].append((page_nb, drawer))
-
-        scan_scene.connect('scan-canceled', lambda scan_scene:
-                           GLib.idle_add(self.on_scan_ocr_canceled,
-                                         scan_scene))
-        scan_scene.connect('scan-error', lambda scan_scan, error:
-                           GLib.idle_add(self.on_scan_error, scan_scene,
-                                         error))
-        scan_scene.connect('ocr-canceled', lambda scan_scene:
-                           GLib.idle_add(self.on_scan_ocr_canceled,
-                                         scan_scene))
-        scan_scene.connect('ocr-done', lambda scan_scene, img, boxes:
-                           GLib.idle_add(self.on_ocr_done, scan_scene, img,
-                                         boxes))
 
         if self.doc.docid == doc.docid:
             self.page = None

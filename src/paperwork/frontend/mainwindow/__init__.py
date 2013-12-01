@@ -420,19 +420,19 @@ class JobFactoryIndexUpdater(JobFactory):
         job.connect('index-update-start',
                     lambda updater:
                     GLib.idle_add(self.__main_win.on_index_update_start_cb,
-                                     updater))
+                                  updater))
         job.connect('index-update-progression',
                     lambda updater, progression, txt:
                     GLib.idle_add(self.__main_win.set_progression, updater,
-                                     progression, txt))
+                                  progression, txt))
         job.connect('index-update-write',
                     lambda updater:
                     GLib.idle_add(self.__main_win.on_index_update_write_cb,
-                                     updater))
+                                  updater))
         job.connect('index-update-end',
                     lambda updater:
                     GLib.idle_add(self.__main_win.on_index_update_end_cb,
-                                     updater))
+                                  updater))
         return job
 
 
@@ -897,56 +897,6 @@ class JobFactoryLabelDeleter(JobFactory):
                     lambda deleter:
                     GLib.idle_add(self.__main_win.on_label_updating_end_cb,
                                      deleter))
-        return job
-
-
-class JobImporter(Job):
-    __gsignals__ = {
-        'import-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        'import-done': (GObject.SignalFlags.RUN_LAST, None,
-                        (GObject.TYPE_PYOBJECT,  # Doc
-                         GObject.TYPE_PYOBJECT),),  # Page
-    }
-
-    can_stop = False
-    priority = 10
-
-    def __init__(self, factory, id,
-                 config, docsearch, doc,
-                 importer, file_uri):
-        Job.__init__(self, factory, id)
-        self.__config = config
-        self.__docsearch = docsearch
-        self.__doc = doc
-        self.__importer = importer
-        self.__file_uri = file_uri
-
-    def do(self):
-        self.emit('import-start')
-        (doc, page) = self.__importer.import_doc(
-            self.__file_uri, self.__config, self.__docsearch, self.__doc)
-        self.emit('import-done', doc, page)
-
-
-GObject.type_register(JobImporter)
-
-
-class JobFactoryImporter(JobFactory):
-    def __init__(self, main_win, config):
-        JobFactory.__init__(self, "Importer")
-        self.__main_win = main_win
-        self.__config = config
-
-    def make(self, docsearch, doc, importer, file_uri):
-        job = JobImporter(self, next(self.id_generator),
-                          self.__config, docsearch, doc,
-                          importer, file_uri)
-        job.connect('import-start',
-                    lambda job:
-                    GLib.idle_add(self.__main_win.on_import_start, job))
-        job.connect('import-done',
-                    lambda job, doc, page:
-                    GLib.idle_add(self.__main_win.on_import_done, job, doc, page))
         return job
 
 
@@ -1621,6 +1571,62 @@ class ActionImport(SimpleAction):
         active_idx = combobox.get_active()
         return import_list[active_idx][1]
 
+    def __no_importer(self, file_uri):
+        msg = (_("Don't know how to import '%s'. Sorry.") %
+               (os.path.basename(file_uri)))
+        flags = (Gtk.DialogFlags.MODAL
+                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(parent=self.__main_win.window,
+                                   flags=flags,
+                                   type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   message_format=msg)
+        dialog.run()
+        dialog.destroy()
+
+    def __no_doc_imported(self):
+        msg = _("No new document to import found")
+        flags = (Gtk.DialogFlags.MODAL
+                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(parent=self.__main_win.window,
+                                   flags=flags,
+                                   type=Gtk.MessageType.WARNING,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   message_format=msg)
+        dialog.run()
+        dialog.destroy()
+
+    def _on_page_ocr_done(self, scan_scene, img, boxes, page, page_iterator):
+        page.img = img
+        page.boxes = boxes
+
+        docid = self.__main_win.remove_scan_scene(scan_scene)
+
+        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+        # TODO(Jflesch): Should be done at the very end of the OCRs
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+        self.__main_win.schedulers['main'].schedule(job)
+
+        self._ocr_next_page(page_iterator)
+
+    def _ocr_next_page(self, page_iterator):
+        try:
+            page = next(page_iterator)
+        except StopIteration:
+            logger.info("OCR has been redone on all the target pages")
+            return
+
+        logger.info("Doing OCR on %s" % str(page))
+        scan_scene = self.__main_win.make_scan_scene()
+        self.__main_win.add_scan_scene(page.doc, scan_scene,
+                                       page_nb=page.page_nb)
+        scan_scene.connect('ocr-done',
+                           lambda scan_scene, img, boxes:
+                           GLib.idle_add(self._on_page_ocr_done, scan_scene, img,
+                                         boxes, page, page_iterator))
+        scan_scene.ocr(page.img, angles=1)
+
     def do(self):
         SimpleAction.do(self)
 
@@ -1628,33 +1634,51 @@ class ActionImport(SimpleAction):
         if file_uri is None:
             return
 
-        importers = docimport.get_possible_importers(file_uri,
-                                                     self.__main_win.doc)
+        importers = docimport.get_possible_importers(
+            file_uri, self.__main_win.doc)
         if len(importers) <= 0:
-            msg = (_("Don't know how to import '%s'. Sorry.") %
-                   (os.path.basename(file_uri)))
-            flags = (Gtk.DialogFlags.MODAL
-                     | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-            dialog = Gtk.MessageDialog(parent=self.__main_win.window,
-                                       flags=flags,
-                                       type=Gtk.MessageType.ERROR,
-                                       buttons=Gtk.ButtonsType.OK,
-                                       message_format=msg)
-            dialog.run()
-            dialog.destroy()
+            self.__no_importer(file_uri)
             return
-
-        if len(importers) > 1:
+        elif len(importers) > 1:
             importer = self.__select_importers(importers)
         else:
             importer = importers[0]
 
         Gtk.RecentManager().add_item(file_uri)
 
-        job = self.__main_win.job_factories['importer'].make(
-            self.__main_win.docsearch, self.__main_win.doc,
-            importer, file_uri)
+        self.__main_win.set_mouse_cursor("Busy")
+        (docs, page) = importer.import_doc(
+            file_uri, self.__config, self.__main_win.docsearch,
+            self.__main_win.doc)
+        self.__main_win.set_mouse_cursor("Normal")
+
+        if docs is None or len(docs) <= 0:
+            self.__no_doc_imported()
+            return
+
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch, upd_docs=set(docs), optimize=False)
+        job.connect('index-update-end', lambda job:
+                    GLib.idle_add(self.__main_win.refresh_doc_list))
         self.__main_win.schedulers['main'].schedule(job)
+        # ^ if the OCR is not done yet, it should go pretty fast
+
+        self.__main_win.show_doc(docs[-1], force_refresh=True)
+        if page is not None:
+            self.__main_win.show_page(page, force_refresh=True)
+        set_widget_state(self.__main_win.need_doc_widgets, True)
+
+        # OCR ?
+        if page is not None:
+            self._ocr_next_page(iter([page]))
+            return
+
+        pages = []
+        for doc in docs:
+            if doc.text != u"":
+                continue
+            pages += doc.pages[:]
+        self._ocr_next_page(iter(pages))
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1712,7 +1736,7 @@ class ActionDeletePage(SimpleAction):
 
         if doc.nb_pages <= 0:
             job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, del_docs={doc}, optimize=False)
+                self.__main_win.docsearch, del_docs={doc.docid}, optimize=False)
         else:
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch, upd_docs={doc}, optimize=False)
@@ -1761,15 +1785,6 @@ class ActionRedoOCR(SimpleAction):
         self._do_next_page(pages_iterator)
 
 
-class ActionRedoDocOCR(ActionRedoOCR):
-    def __init__(self, main_window):
-        ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
-
-    def do(self):
-        doc = self._main_win.doc
-        ActionRedoOCR.do(self, iter(doc.pages))
-
-
 class AllPagesIterator(object):
     def __init__(self, docsearch):
         self.__doc_iter = iter(docsearch.docs)
@@ -1795,6 +1810,15 @@ class ActionRedoAllOCR(ActionRedoOCR):
     def do(self):
         all_page_iter = AllPagesIterator()
         ActionRedoOCR.do(self, all_page_iter)
+
+
+class ActionRedoDocOCR(ActionRedoOCR):
+    def __init__(self, main_window):
+        ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
+
+    def do(self):
+        doc = self._main_win.doc
+        ActionRedoOCR.do(self, iter(doc.pages))
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -2472,7 +2496,6 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'export_previewer': JobFactoryExportPreviewer(self),
-            'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_updater': JobFactoryLabelUpdater(self),
@@ -2965,42 +2988,6 @@ class MainWindow(object):
 
     def on_redo_ocr_end_cb(self, src):
         self.refresh_label_list()
-
-    def on_import_start(self, src):
-        self.set_progression(src, 0.0, _("Importing ..."))
-        self.set_mouse_cursor("Busy")
-        self.__scan_progress_job = self.job_factories['progress_updater'].make(
-            value_min=0.0, value_max=0.75,
-            total_time=self.__config.scan_time['ocr'])
-        self.schedulers['progress'].schedule(self.__scan_progress_job)
-        self.__scan_start = time.time()
-
-    def on_import_done(self, src, doc, page=None):
-        scan_stop = time.time()
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
-        # Note: don't update scan time here: OCR is not required for all
-        # imports
-
-        set_widget_state(self.need_doc_widgets, True)
-
-        self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Normal")
-        if doc is not None:
-            self.show_doc(doc)  # will refresh the page list
-            self.refresh_doc_list()
-            if page is not None:
-                self.show_page(page)
-        else:
-            msg = _("No new document to import found")
-            flags = (Gtk.DialogFlags.MODAL
-                     | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-            dialog = Gtk.MessageDialog(parent=self.window,
-                                       flags=flags,
-                                       type=Gtk.MessageType.WARNING,
-                                       buttons=Gtk.ButtonsType.OK,
-                                       message_format=msg)
-            dialog.run()
-            dialog.destroy()
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks

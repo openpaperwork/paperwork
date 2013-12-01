@@ -23,6 +23,7 @@ import logging
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
+from PIL import Image
 
 from paperwork.backend.pdf.doc import PdfDoc
 from paperwork.backend.img.doc import ImgDoc
@@ -56,7 +57,7 @@ class SinglePdfImporter(object):
         for page in doc.pages:
             logger.info("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
             docsearch.index_page(page)
-        return (doc, doc.pages[0])
+        return ([doc], None)
 
     def __str__(self):
         return _("Import PDF")
@@ -111,6 +112,7 @@ class MultiplePdfImporter(object):
         logger.info("Importing PDF from '%s'" % (file_uri))
         parent = Gio.File.parse_name(file_uri)
         doc = None
+        docs = []
 
         idx = 0
 
@@ -119,7 +121,7 @@ class MultiplePdfImporter(object):
                 continue
             if docsearch.is_hash_in_index(PdfDoc.hash_file(child.get_path())):
                 logger.info("Document %s already found in the index. Skipped"
-						% (child.get_path()))
+                            % (child.get_path()))
                 continue
             try:
                 # make sure we can import it
@@ -131,11 +133,12 @@ class MultiplePdfImporter(object):
             doc.import_pdf(config, child.get_uri())
             for page in doc.pages:
                 docsearch.index_page(page)
+            docs.append(doc)
             idx += 1
         if doc is None:
             return (None, None)
         else :
-            return (doc, doc.pages[0])
+            return (docs, None)
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
@@ -168,10 +171,12 @@ class SingleImageImporter(object):
         logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(config.workdir)
-        current_doc.import_image(file_uri, config.langs)
-        page = current_doc.pages[current_doc.nb_pages-1]
-        docsearch.index_page(page)
-        return (current_doc, page)
+        if file_uri[:7] == "file://":
+            # XXX(Jflesch): bad bad bad
+            file_uri = file_uri[7:]
+        img = Image.open(file_uri)
+        page = current_doc.add_page(img, [])
+        return ([current_doc], page)
 
     def __str__(self):
         return _("Append the image to the current document")

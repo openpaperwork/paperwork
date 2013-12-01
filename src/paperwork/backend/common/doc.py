@@ -187,6 +187,15 @@ class BasicDoc(object):
             txt = u"empty"
         return txt
 
+    def _get_text(self):
+        txt = u""
+        for page in self.pages:
+            txt += u"\n".join([unicode(line) for line in page.text])
+        txt = txt.strip()
+        return txt
+
+    text = property(_get_text)
+
     def get_features(self):
         """
         return an array of features extracted from this doc for the sklearn estimators

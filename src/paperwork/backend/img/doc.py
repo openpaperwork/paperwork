@@ -324,6 +324,7 @@ class ImgDoc(BasicDoc):
         page.img = img
         page.boxes = boxes
         self.drop_cache()
+        return self.pages[-1]
 
 
 def is_img_doc(docpath):

@@ -43,6 +43,7 @@ class ImgGrip(Drawer):
         self.scale = 1.0
         self.selected = False
         self.hover = False
+        self.visible = True
 
     def __get_img_position(self):
         return self._img_position
@@ -86,6 +87,8 @@ class ImgGrip(Drawer):
                 and y_min <= position[1] and position[1] <= y_max)
 
     def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+        if not self.visible:
+            return
         ((a_x, a_y), (b_x, b_y)) = self.__get_select_area()
         a_x -= canvas_offset[0]
         a_y -= canvas_offset[1]
@@ -122,6 +125,10 @@ class ImgGripRectangle(Drawer):
     size = property(__get_size)
 
     def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+        for grip in self.grips:
+            if not grip.visible:
+                return
+
         (a_x, a_y) = self.grips[0].position
         (b_x, b_y) = self.grips[1].position
         a_x -= canvas_offset[0]
@@ -211,6 +218,8 @@ class ImgGripHandler(GObject.GObject):
         self.set_scale(scale, rel_cursor_pos)
 
     def __on_mouse_button_pressed_cb(self, widget, event):
+        if not self.visible:
+            return
         self.selected = None
         for grip in self.grips:
             if grip.is_on_grip((event.x, event.y)):
@@ -230,6 +239,8 @@ class ImgGripHandler(GObject.GObject):
         self.selected.img_position = (new_x, new_y)
 
     def __on_mouse_motion_cb(self, widget, event):
+        if not self.visible:
+            return
         if self.selected:
             self.__move_grip((event.x, event.y))
             is_on_grip = True
@@ -251,11 +262,7 @@ class ImgGripHandler(GObject.GObject):
         self.canvas.get_window().set_cursor(cursor)
 
     def __on_mouse_button_released_cb(self, widget, event):
-        if self.selected:
-            self.selected.selected = False
-            self.selected = None
-            self.emit('grip-moved')
-        else:
+        if not self.selected:
             # figure out the cursor position on the image
             (img_w, img_h) = self.img_size
             rel_cursor_pos = (
@@ -263,14 +270,27 @@ class ImgGripHandler(GObject.GObject):
                 float(event.y) / (img_h * self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
-        self.canvas.redraw()
+            self.canvas.redraw()
+            # TODO(Jflesch): Use a dedicated signal ...
+            self.emit('grip-moved')
+            return
+
+        if not self.visible:
+            return
+
+        self.selected.selected = False
+        self.selected = None
+        self.emit('grip-moved')
 
     def __get_visible(self):
         return self.__visible
 
     def __set_visible(self, visible):
         self.__visible = visible
-        self.canvas.get_window().set_cursor(self.__cursors['default'])
+        for grip in self.grips:
+            grip.visible = visible
+        if self.canvas.get_window():
+            self.canvas.get_window().set_cursor(self.__cursors['default'])
         self.canvas.redraw()
 
     visible = property(__get_visible, __set_visible)

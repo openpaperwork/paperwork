@@ -24,6 +24,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 
@@ -105,11 +106,15 @@ class PageEditingDialog(object):
         self.__dialog = widget_tree.get_object("dialogPageEditing")
         self.__dialog.set_transient_for(main_window.window)
 
+        img_scrollbars = widget_tree.get_object("scrolledwindowOriginal")
+        img_canvas = Canvas(img_scrollbars)
+        img_canvas.set_visible(True)
+        img_scrollbars.add(img_canvas)
+
         self.__original_img_widgets = {
-            'img': widget_tree.get_object("imageOriginal"),
-            'scrolledwindow': widget_tree.get_object("scrolledwindowOriginal"),
+            'img': img_canvas,
+            'scrolledwindow': img_scrollbars,
             'eventbox': widget_tree.get_object("eventboxOriginal"),
-            'viewport': widget_tree.get_object("viewportOriginal")
         }
         self.__result_img_widget = widget_tree.get_object("imageResult")
         self.__buttons = {
@@ -124,9 +129,8 @@ class PageEditingDialog(object):
 
         self.__cut_grips = None
 
-        self.__original_img_widgets['viewport'].connect(
-            "size-allocate",
-            lambda widget, size: GLib.idle_add(self.__on_size_allocated_cb))
+        self.__original_img_widgets['scrolledwindow'].connect("size-allocate",
+            lambda widget, size: GLib.idle_add(self.__on_size_allocate))
         self.__buttons['cutting'].connect(
             "toggled",
             lambda widget: GLib.idle_add(
@@ -141,32 +145,15 @@ class PageEditingDialog(object):
             GLib.idle_add(self.__on_rotate_activated_cb, widget))
 
         self.page = page
-        self.imgs = {
-            'orig': (1.0, self.page.img)
-        }
+        self.img = self.page.img
 
         self.__changes = []
 
-    def __on_size_allocated_cb(self):
-        if not self.__cut_grips is None:
+    def __on_size_allocate(self):
+        if self.__cut_grips is not None:
             return
-        (a, b, img_w, img_h) = self.imgs['orig'][1].getbbox()
-        orig_alloc = self.__original_img_widgets['viewport'].get_allocation()
-        (orig_alloc_w, orig_alloc_h) = (orig_alloc.width, orig_alloc.height)
-        factor_w = (float(orig_alloc_w) / img_w)
-        factor_h = (float(orig_alloc_h) / img_h)
-        factor = min(factor_w, factor_h)
-        if factor > 1.0:
-            factor = 1.0
-        target_size = (int(factor * img_w), int(factor * img_h))
-        copy = self.imgs['orig'][1].copy()
-        self.imgs['resized'] = (factor,
-                                copy.resize(target_size, PIL.Image.BILINEAR))
         self.__cut_grips = ImgGripHandler(
-            [self.imgs['resized'], self.imgs['orig']],
-            self.__original_img_widgets['scrolledwindow'],
-            self.__original_img_widgets['eventbox'],
-            self.__original_img_widgets['img'])
+            self.img, self.__original_img_widgets['img'])
         self.__cut_grips.visible = False
         self.__cut_grips.connect("grip-moved", self.__on_grip_moved_cb)
 
@@ -197,7 +184,12 @@ class PageEditingDialog(object):
         self.__redraw_result()
 
     def __redraw_result(self):
-        (scale, img) = self.imgs['resized']
+        scale = self.__cut_grips.scale
+        img = self.img
+        img = img.resize((
+            int(img.size[0] * scale),
+            int(img.size[1] * scale)
+        ))
         for action in self.__changes:
             img = action.do(img, scale)
         img = image2pixbuf(img)

@@ -965,10 +965,6 @@ class JobPageEditor(Job):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT, )),
-        'page-editing-ocr': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_PYOBJECT, )),
-        'page-editing-index-upd': (GObject.SignalFlags.RUN_LAST, None,
-                                   (GObject.TYPE_PYOBJECT, )),
         'page-editing-done': (GObject.SignalFlags.RUN_LAST, None,
                               (GObject.TYPE_PYOBJECT, )),
     }
@@ -976,10 +972,8 @@ class JobPageEditor(Job):
     can_stop = False
     priority = 10
 
-    def __init__(self, factory, id, docsearch, langs, page, changes=[]):
+    def __init__(self, factory, id, page, changes=[]):
         Job.__init__(self, factory, id)
-        self.__docsearch = docsearch
-        self.__langs = langs
         self.__page = page
         self.__changes = changes[:]
 
@@ -990,15 +984,6 @@ class JobPageEditor(Job):
             for change in self.__changes:
                 img = change.do(img, 1.0)
             self.__page.img = img
-
-            if self.__langs is not None:
-                self.emit('page-editing-ocr', self.__page)
-                self.__page.redo_ocr(self.__langs)
-
-                self.emit('page-editing-index-upd', self.__page)
-                index_upd = self.__docsearch.get_index_updater(optimize=False)
-                index_upd.upd_doc(self.__page.doc)
-                index_upd.commit()
         finally:
             self.emit('page-editing-done', self.__page)
 
@@ -1010,29 +995,19 @@ class JobFactoryPageEditor(JobFactory):
     def __init__(self, main_win, config):
         JobFactory.__init__(self, "PageEditor")
         self.__main_win = main_win
-        self.__config = config
 
-    def make(self, docsearch, page, changes):
-        job = JobPageEditor(self, next(self.id_generator), docsearch,
-                            self.__config.langs, page, changes)
+    def make(self, page, changes):
+        job = JobPageEditor(self, next(self.id_generator),
+                            page, changes)
         job.connect('page-editing-img-edit',
                     lambda job, page:
                     GLib.idle_add(
                         self.__main_win.on_page_editing_img_edit_start_cb,
                         job, page))
-        job.connect('page-editing-ocr',
-                    lambda job, page:
-                    GLib.idle_add(self.__main_win.on_page_editing_ocr_cb,
-                                     job, page))
-        job.connect('page-editing-index-upd',
-                    lambda job, page:
-                    GLib.idle_add(
-                        self.__main_win.on_page_editing_index_upd_cb,
-                        job, page))
         job.connect('page-editing-done',
                     lambda job, page:
                     GLib.idle_add(self.__main_win.on_page_editing_done_cb,
-                                     job, page))
+                                  job, page))
         return job
 
 
@@ -2231,7 +2206,31 @@ class ActionEditPage(SimpleAction):
             logger.info("- %s" % action)
 
         job = self.__main_win.job_factories['page_editor'].make(
-            self.__main_win.docsearch, self.__main_win.page, changes=todo)
+            self.__main_win.page, changes=todo)
+        job.connect("page-editing-done", lambda job, page:
+                    GLib.idle_add(self.__do_ocr, page))
+        self.__main_win.schedulers['main'].schedule(job)
+
+    def __do_ocr(self, page):
+        logger.info("Redoing OCR on %s" % str(page))
+        scan_scene = self.__main_win.make_scan_scene()
+        self.__main_win.add_scan_scene(page.doc, scan_scene,
+                                       page_nb=page.page_nb)
+        scan_scene.connect('ocr-done',
+                           lambda scan_scene, img, boxes:
+                           GLib.idle_add(self.__on_page_ocr_done, scan_scene, img,
+                                         boxes, page))
+        scan_scene.ocr(page.img, angles=1)
+
+    def __on_page_ocr_done(self, scan_scene, img, boxes, page):
+        page.img = img
+        page.boxes = boxes
+
+        docid = self.__main_win.remove_scan_scene(scan_scene)
+
+        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch, upd_docs={doc}, optimize=False)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -3389,12 +3388,6 @@ class MainWindow(object):
     def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")
         self.set_progression(job, 0.0, _("Updating the image ..."))
-
-    def on_page_editing_ocr_cb(self, job, page):
-        self.set_progression(job, 0.25, _("Redoing OCR ..."))
-
-    def on_page_editing_index_upd_cb(self, job, page):
-        self.set_progression(job, 0.75, _("Updating the index ..."))
 
     def on_page_editing_done_cb(self, job, page):
         self.set_progression(job, 0.0, "")

@@ -1411,7 +1411,7 @@ class ActionSingleScan(SimpleAction):
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
 
         new = False
-        if doc is None:
+        if doc is None or doc.nb_pages <= 0:
             # new doc
             new = True
             if self.__main_win.doc.is_new:
@@ -1421,9 +1421,7 @@ class ActionSingleScan(SimpleAction):
 
         doc.add_page(img, line_boxes)
 
-        if new:
-            self.__main_win.refresh_doc_list()
-        if self.doc.docid == doc.docid:
+        if self.__main_win.doc.docid == doc.docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
 
@@ -1433,6 +1431,8 @@ class ActionSingleScan(SimpleAction):
         else:
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+        job.connect("index-update-end", lambda job:
+                    GLib.idle_add(self.__main_win.refresh_doc_list))
         self.__main_win.schedulers['main'].schedule(job)
 
     def do(self):

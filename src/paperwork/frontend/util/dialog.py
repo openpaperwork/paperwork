@@ -17,7 +17,7 @@ def popup_no_scanner_found(parent):
     # TODO(Jflesch): should be in paperwork.frontend
     # Pyinsane doesn't return any specific exception :(
     logger.info("Showing popup !")
-    msg = _("No scanner found (is your scanner turned on ?)")
+    msg = _("Scanner not found (is your scanner turned on ?)")
     dialog = Gtk.MessageDialog(parent=parent,
                                flags=Gtk.DialogFlags.MODAL,
                                message_type=Gtk.MessageType.WARNING,

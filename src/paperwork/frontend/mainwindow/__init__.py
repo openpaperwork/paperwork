@@ -1655,7 +1655,8 @@ class ActionImport(SimpleAction):
             if doc.text != u"":
                 continue
             pages += doc.pages[:]
-        self._ocr_next_page(iter(pages))
+        if len(pages) > 0:
+            self._ocr_next_page(iter(pages))
 
 
 class ActionDeleteDoc(SimpleAction):

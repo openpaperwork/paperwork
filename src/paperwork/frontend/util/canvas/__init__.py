@@ -12,6 +12,7 @@ import copy
 import logging
 import heapq
 import sys
+import threading
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -65,6 +66,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.visible_size = (1, 1)
 
         self.drawers = PriorityQueue()
+        self.tick_counter_lock = threading.Lock()
 
         self.set_hadjustment(hadj)
         self.set_vadjustment(vadj)
@@ -88,19 +90,31 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         for drawer in self.drawers:
             drawer.on_tick()
         self.redraw()
-        if self.need_ticks > 0:
-            GLib.timeout_add(self.TICK_INTERVAL, self._tick)
+        self.tick_counter_lock.acquire()
+        try:
+            if self.need_ticks > 0:
+                GLib.timeout_add(self.TICK_INTERVAL, self._tick)
+        finally:
+            self.tick_counter_lock.release()
 
     def start_ticks(self):
-        if self.need_ticks == 0:
-            GLib.timeout_add(self.TICK_INTERVAL, self._tick)
-        self.need_ticks += 1
-        logger.info("Animators: %d" % self.need_ticks)
+        self.tick_counter_lock.acquire()
+        try:
+            self.need_ticks += 1
+            if self.need_ticks == 1:
+                GLib.timeout_add(self.TICK_INTERVAL, self._tick)
+            logger.info("Animators: %d" % self.need_ticks)
+        finally:
+            self.tick_counter_lock.release()
 
     def stop_ticks(self):
-        self.need_ticks -= 1
-        logger.info("Animators: %d" % self.need_ticks)
-        assert(self.need_ticks >= 0)
+        self.tick_counter_lock.acquire()
+        try:
+            self.need_ticks -= 1
+            logger.info("Animators: %d" % self.need_ticks)
+            assert(self.need_ticks >= 0)
+        finally:
+            self.tick_counter_lock.release()
 
     def get_hadjustment(self):
         return self.hadjustment

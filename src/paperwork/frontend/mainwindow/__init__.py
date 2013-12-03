@@ -3328,6 +3328,13 @@ class MainWindow(object):
         self.img['canvas'].redraw()
 
     def on_export_preview_start(self):
+        visible = self.img['canvas'].visible_size
+        spinner = SpinnerAnimation(
+            ((visible[0] - SpinnerAnimation.ICON_SIZE) / 2,
+             (visible[1] - SpinnerAnimation.ICON_SIZE) / 2)
+        )
+
+        self.img['canvas'].add_drawer(spinner)
         self.export['estimated_size'].set_text(_("Computing ..."))
 
     def on_export_preview_done(self, img_size, drawer):
@@ -3360,13 +3367,6 @@ class MainWindow(object):
 
     def refresh_export_preview(self):
         self.img['canvas'].remove_all_drawers()
-        visible = self.img['canvas'].visible_size
-        spinner = SpinnerAnimation(
-            ((visible[0] - SpinnerAnimation.ICON_SIZE) / 2,
-             (visible[1] - SpinnerAnimation.ICON_SIZE) / 2)
-        )
-        self.img['canvas'].add_drawer(spinner)
-
         self.schedulers['main'].cancel_all(self.job_factories['export_previewer'])
         job = self.job_factories['export_previewer'].make(
             self.export['exporter'])

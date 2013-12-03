@@ -156,6 +156,8 @@ class ImgPage(BasicPage):
         """
         Called for printing operation by Gtk
         """
+        ORIENTATION_PORTRAIT = 0
+        ORIENTATION_LANDSCAPE = 1
         SCALING = 2.0
 
         img = self.img
@@ -163,13 +165,13 @@ class ImgPage(BasicPage):
 
         # take care of rotating the image if required
         if print_context.get_width() <= print_context.get_height():
-            print_orientation = self.ORIENTATION_PORTRAIT
+            print_orientation = ORIENTATION_PORTRAIT
         else:
-            print_orientation = self.ORIENTATION_LANDSCAPE
+            print_orientation = ORIENTATION_LANDSCAPE
         if width <= height:
-            img_orientation = self.ORIENTATION_PORTRAIT
+            img_orientation = ORIENTATION_PORTRAIT
         else:
-            img_orientation = self.ORIENTATION_LANDSCAPE
+            img_orientation = ORIENTATION_LANDSCAPE
         if print_orientation != img_orientation:
             logger.info("Rotating the page ...")
             img = img.rotate(90)

@@ -4,6 +4,10 @@
 * Menubar has been removed and replaced by an application menu
 * Label prediction : when a new document is scanned, labels are automatically
   set on it
+* Pages are not displayed separately anymore
+* New settings: scan source, number of orientations to try, OCR can be
+  disabled
+* Scans are displayed in real time
 
 
 2013/10/03 - 0.1.1:

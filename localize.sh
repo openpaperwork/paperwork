@@ -3,7 +3,8 @@
 # List of langs supported by Paperwork. Langs are separated by spaces.
 # For each language, the most common system locale and its short writing
 # must be specified (separated by ':')
-LANGS="fr_FR.UTF-8:fr"
+LANGS="fr_FR.UTF-8:fr
+de_DE.UTF-8:de"
 
 usage()
 {

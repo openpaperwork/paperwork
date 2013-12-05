@@ -29,7 +29,7 @@ msgstr "Sind Sie sicher?"
 #: src/paperwork/util.py:248
 #, python-format
 msgid "%3.1f bytes"
-msgstr "§3.1f Bytes"
+msgstr "%3.1f Bytes"
 
 #: src/paperwork/util.py:249
 #, python-format

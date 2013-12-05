@@ -495,7 +495,7 @@ msgstr ""
 "*Ignoriere Dokumente mit einem bestimmten Schlagwort: NOT [Schlagwort]\n"
 "*Finde Dokumente mit Schlagwort1 oder Schlagwort2: [Schlagwort1] OR "
 "[Schlagwort2]\n"
-"*Dokumente mit einem bestimmten Daum: date:YYYMMDD oder date[YYYMMDD to "
+"*Dokumente mit einem bestimmten Daum: date:YYYMMDD oder date:[YYYMMDD to "
 "YYYMMDD]"
 
 #: src/paperwork/frontend/mainwindow.glade.h:56

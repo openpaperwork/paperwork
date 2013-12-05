@@ -92,6 +92,8 @@ Let the machine do most of the work.
             ]),
           (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
            ['locale/fr/LC_MESSAGES/paperwork.mo']),
+          (os.path.join(sys.prefix, 'share/locale/de/LC_MESSAGES'),
+           ['locale/de/LC_MESSAGES/paperwork.mo']),
           (os.path.join(sys.prefix, 'share/applications'),
            ['data/paperwork.desktop']),
           (os.path.join(sys.prefix, 'share/icons'),

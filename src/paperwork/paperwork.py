@@ -36,10 +36,17 @@ from backend.config import PaperworkConfig
 logger = logging.getLogger(__name__)
 
 LOCALE_PATHS = [
+    # French
     ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
     ('/usr/local/share/locale/fr/LC_MESSAGES/paperwork.mo',
      '/usr/local/share/locale'),
     ('/usr/share/locale/fr/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
+
+    # German
+    ('locale/de/LC_MESSAGES/paperwork.mo', 'locale'),
+    ('/usr/local/share/locale/de/LC_MESSAGES/paperwork.mo',
+     '/usr/local/share/locale'),
+    ('/usr/share/locale/de/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
 ]
 
 

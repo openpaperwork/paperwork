@@ -98,26 +98,26 @@ GObject.type_register(JobScan)
 
 
 class JobFactoryScan(JobFactory):
-    def __init__(self, scan_scene):
+    def __init__(self, scan_workflow):
         JobFactory.__init__(self, "Scan")
-        self.scan_scene = scan_scene
+        self.scan_workflow = scan_workflow
 
     def make(self, scan_session):
         job = JobScan(self, next(self.id_generator), scan_session)
         job.connect("scan-started",
-                    lambda job: GLib.idle_add(self.scan_scene.on_scan_start))
+                    lambda job: GLib.idle_add(self.scan_workflow.on_scan_start))
         job.connect("scan-info",
                     lambda job, x, y:
-                    GLib.idle_add(self.scan_scene.on_scan_info, x, y))
+                    GLib.idle_add(self.scan_workflow.on_scan_info, x, y))
         job.connect("scan-chunk",
                     lambda job, line, img_chunk:
-                    GLib.idle_add(self.scan_scene.on_scan_chunk, line,
+                    GLib.idle_add(self.scan_workflow.on_scan_chunk, line,
                                   img_chunk))
         job.connect("scan-done",
-                    lambda job, img: GLib.idle_add(self.scan_scene.on_scan_done,
+                    lambda job, img: GLib.idle_add(self.scan_workflow.on_scan_done,
                                                    img))
         job.connect("scan-canceled", lambda job:
-                    GLib.idle_add(self.scan_scene.on_scan_canceled))
+                    GLib.idle_add(self.scan_workflow.on_scan_canceled))
         return job
 
 
@@ -273,10 +273,10 @@ GObject.type_register(JobOCR)
 
 
 class JobFactoryOCR(JobFactory):
-    def __init__(self, scan_scene, config):
+    def __init__(self, scan_workflow, config):
         JobFactory.__init__(self, "OCR")
         self.__config = config
-        self.scan_scene = scan_scene
+        self.scan_workflow = scan_workflow
 
     def make(self, img, nb_angles):
         angles = range(0, nb_angles * 90, 90)
@@ -291,25 +291,25 @@ class JobFactoryOCR(JobFactory):
         job = JobOCR(self, next(self.id_generator), ocr_tool,
                      self.__config.langs, angles, img)
         job.connect("ocr-started", lambda job, img:
-                    GLib.idle_add(self.scan_scene.on_ocr_started, img))
+                    GLib.idle_add(self.scan_workflow.on_ocr_started, img))
         job.connect("ocr-angles", lambda job, imgs:
-                    GLib.idle_add(self.scan_scene.on_ocr_angles, imgs))
+                    GLib.idle_add(self.scan_workflow.on_ocr_angles, imgs))
         job.connect("ocr-score", lambda job, angle, score:
-                    GLib.idle_add(self.scan_scene.on_ocr_score, angle, score))
+                    GLib.idle_add(self.scan_workflow.on_ocr_score, angle, score))
         job.connect("ocr-done", lambda job, angle, img, boxes:
-                    GLib.idle_add(self.scan_scene.on_ocr_done, angle, img,
+                    GLib.idle_add(self.scan_workflow.on_ocr_done, angle, img,
                                   boxes))
         return job
 
 
-class ScanSceneDrawer(Animation):
+class ScanWorkflowDrawer(Animation):
     GLOBAL_MARGIN = 10
     SCAN_TO_OCR_ANIM_TIME = 1000  # ms
     IMG_MARGIN = 20
 
     layer = Animation.IMG_LAYER
 
-    def __init__(self, scan_scene):
+    def __init__(self, scan_workflow):
         Animation.__init__(self)
 
         self.scan_drawers = []
@@ -319,7 +319,7 @@ class ScanSceneDrawer(Animation):
         self.animators = []
         self._position = (0, 0)
 
-        self.scan_scene = scan_scene
+        self.scan_workflow = scan_workflow
 
         self.__used_angles = None  # == any
 
@@ -387,7 +387,7 @@ class ScanSceneDrawer(Animation):
 
         self.scan_drawers = [scan_drawer]
 
-        calibration = self.scan_scene.calibration
+        calibration = self.scan_workflow.calibration
         if calibration:
             calibration_drawer = TargetAreaDrawer(
                 position, size,
@@ -608,11 +608,11 @@ class ScanSceneDrawer(Animation):
                 attr_name='size', canvas=self.canvas),
         ]
         self.animators[-1].connect('animator-end', lambda animator:
-                                   GLib.idle_add(self.scan_scene.on_ocr_anim_done,
+                                   GLib.idle_add(self.scan_workflow.on_ocr_anim_done,
                                                  angle, img, boxes))
 
 
-class ScanScene(GObject.GObject):
+class ScanWorkflow(GObject.GObject):
     __gsignals__ = {
         'scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
@@ -646,7 +646,7 @@ class ScanScene(GObject.GObject):
         }
 
         self.current_step = -1
-        self.drawer = ScanSceneDrawer(self)
+        self.drawer = ScanWorkflowDrawer(self)
 
         self.factories = {
             'scan': JobFactoryScan(self),
@@ -658,7 +658,7 @@ class ScanScene(GObject.GObject):
     def scan(self, resolution, scan_session):
         """
         Returns immediately
-        Listen for the signal scan-scene-scan-done to get the result
+        Listen for the signal scan-done to get the result
         """
         self.__resolution = resolution
 
@@ -708,7 +708,7 @@ class ScanScene(GObject.GObject):
     def ocr(self, img, angles=None):
         """
         Returns immediately.
-        Listen for the signal scan-scene-ocr-done to get the result
+        Listen for the signal ocr-done to get the result
         """
         if angles is None:
             angles = self.__config.ocr_nb_angles
@@ -739,16 +739,16 @@ class ScanScene(GObject.GObject):
         Returns immediately.
         """
         class _ScanOcrChainer(object):
-            def __init__(self, scan_scene):
-                scan_scene.connect("scan-done", self.__start_ocr)
+            def __init__(self, scan_workflow):
+                scan_workflow.connect("scan-done", self.__start_ocr)
 
-            def __start_ocr(self, scan_scene, img):
+            def __start_ocr(self, scan_workflow, img):
                 if img is None:
                     return
-                scan_scene.ocr(img)
+                scan_workflow.ocr(img)
 
         _ScanOcrChainer(self)
         self.scan(resolution, scan_session)
 
 
-GObject.type_register(ScanScene)
+GObject.type_register(ScanWorkflow)

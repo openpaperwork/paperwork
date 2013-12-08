@@ -38,7 +38,7 @@ from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import JobFactoryPageLoader
-from paperwork.frontend.mainwindow.scan import ScanScene
+from paperwork.frontend.mainwindow.scan import ScanWorkflow
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
@@ -1395,21 +1395,21 @@ class ActionSingleScan(SimpleAction):
         self.__main_win = main_window
         self.__config = config
 
-    def __on_scan_ocr_canceled(self, scan_scene):
-        docid = self.__main_win.remove_scan_scene(scan_scene)
+    def __on_scan_ocr_canceled(self, scan_workflow):
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
         if self.__main_win.doc.docid == docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
 
-    def __on_scan_error(self, scan_scene, error):
+    def __on_scan_error(self, scan_workflow, error):
         # TODO
-        docid = self.__main_win.remove_scan_scene(scan_scene)
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
         if self.__main_win.doc.docid == docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
 
-    def __on_ocr_done(self, scan_scene, img, line_boxes):
-        docid = self.__main_win.remove_scan_scene(scan_scene)
+    def __on_ocr_done(self, scan_workflow, img, line_boxes):
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
 
         new = False
@@ -1468,22 +1468,22 @@ class ActionSingleScan(SimpleAction):
         maximize_scan_area(dev)
 
         scan_session = dev.scan(multiple=False)
-        scan_scene = self.__main_win.make_scan_scene()
-        scan_scene.connect('scan-canceled', lambda scan_scene:
+        scan_workflow = self.__main_win.make_scan_workflow()
+        scan_workflow.connect('scan-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,
-                                         scan_scene))
-        scan_scene.connect('scan-error', lambda scan_scan, error:
-                           GLib.idle_add(self.__on_scan_error, scan_scene,
+                                         scan_workflow))
+        scan_workflow.connect('scan-error', lambda scan_scan, error:
+                           GLib.idle_add(self.__on_scan_error, scan_workflow,
                                          error))
-        scan_scene.connect('ocr-canceled', lambda scan_scene:
+        scan_workflow.connect('ocr-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,
-                                         scan_scene))
-        scan_scene.connect('ocr-done', lambda scan_scene, img, boxes:
-                           GLib.idle_add(self.__on_ocr_done, scan_scene, img,
+                                         scan_workflow))
+        scan_workflow.connect('ocr-done', lambda scan_workflow, img, boxes:
+                           GLib.idle_add(self.__on_ocr_done, scan_workflow, img,
                                          boxes))
 
-        self.__main_win.add_scan_scene(self.__main_win.doc, scan_scene)
-        scan_scene.scan_and_ocr(resolution, scan_session)
+        self.__main_win.add_scan_workflow(self.__main_win.doc, scan_workflow)
+        scan_workflow.scan_and_ocr(resolution, scan_session)
 
 
 class ActionMultiScan(SimpleAction):
@@ -1573,11 +1573,11 @@ class ActionImport(SimpleAction):
         dialog.run()
         dialog.destroy()
 
-    def _on_page_ocr_done(self, scan_scene, img, boxes, page, page_iterator):
+    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
         page.img = img
         page.boxes = boxes
 
-        docid = self.__main_win.remove_scan_scene(scan_scene)
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
         # TODO(Jflesch): Should be done at the very end of the OCRs
@@ -1595,14 +1595,14 @@ class ActionImport(SimpleAction):
             return
 
         logger.info("Doing OCR on %s" % str(page))
-        scan_scene = self.__main_win.make_scan_scene()
-        self.__main_win.add_scan_scene(page.doc, scan_scene,
+        scan_workflow = self.__main_win.make_scan_workflow()
+        self.__main_win.add_scan_workflow(page.doc, scan_workflow,
                                        page_nb=page.page_nb)
-        scan_scene.connect('ocr-done',
-                           lambda scan_scene, img, boxes:
-                           GLib.idle_add(self._on_page_ocr_done, scan_scene, img,
+        scan_workflow.connect('ocr-done',
+                           lambda scan_workflow, img, boxes:
+                           GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
                                          boxes, page, page_iterator))
-        scan_scene.ocr(page.img, angles=1)
+        scan_workflow.ocr(page.img, angles=1)
 
     def do(self):
         SimpleAction.do(self)
@@ -1734,20 +1734,20 @@ class ActionRedoOCR(SimpleAction):
             return
 
         logger.info("Redoing OCR on %s" % str(page))
-        scan_scene = self._main_win.make_scan_scene()
-        self._main_win.add_scan_scene(page.doc, scan_scene,
+        scan_workflow = self._main_win.make_scan_workflow()
+        self._main_win.add_scan_workflow(page.doc, scan_workflow,
                                        page_nb=page.page_nb)
-        scan_scene.connect('ocr-done',
-                           lambda scan_scene, img, boxes:
-                           GLib.idle_add(self._on_page_ocr_done, scan_scene, img,
+        scan_workflow.connect('ocr-done',
+                           lambda scan_workflow, img, boxes:
+                           GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
                                          boxes, page, page_iterator))
-        scan_scene.ocr(page.img, angles=1)
+        scan_workflow.ocr(page.img, angles=1)
 
-    def _on_page_ocr_done(self, scan_scene, img, boxes, page, page_iterator):
+    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
         page.img = img
         page.boxes = boxes
 
-        docid = self._main_win.remove_scan_scene(scan_scene)
+        docid = self._main_win.remove_scan_workflow(scan_workflow)
 
         doc = self._main_win.docsearch.get_doc_from_docid(docid)
         job = self._main_win.job_factories['index_updater'].make(
@@ -2216,20 +2216,20 @@ class ActionEditPage(SimpleAction):
 
     def __do_ocr(self, page):
         logger.info("Redoing OCR on %s" % str(page))
-        scan_scene = self.__main_win.make_scan_scene()
-        self.__main_win.add_scan_scene(page.doc, scan_scene,
+        scan_workflow = self.__main_win.make_scan_workflow()
+        self.__main_win.add_scan_workflow(page.doc, scan_workflow,
                                        page_nb=page.page_nb)
-        scan_scene.connect('ocr-done',
-                           lambda scan_scene, img, boxes:
-                           GLib.idle_add(self.__on_page_ocr_done, scan_scene, img,
+        scan_workflow.connect('ocr-done',
+                           lambda scan_workflow, img, boxes:
+                           GLib.idle_add(self.__on_page_ocr_done, scan_workflow, img,
                                          boxes, page))
-        scan_scene.ocr(page.img, angles=1)
+        scan_workflow.ocr(page.img, angles=1)
 
-    def __on_page_ocr_done(self, scan_scene, img, boxes, page):
+    def __on_page_ocr_done(self, scan_workflow, img, boxes, page):
         page.img = img
         page.boxes = boxes
 
-        docid = self.__main_win.remove_scan_scene(scan_scene)
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
         job = self.__main_win.job_factories['index_updater'].make(
@@ -3545,21 +3545,21 @@ class MainWindow(object):
             return
         self.__select_page(page)
 
-    def make_scan_scene(self):
-        return ScanScene(self.__config,
-                         self.schedulers['scan'],
-                         self.schedulers['ocr'])
+    def make_scan_workflow(self):
+        return ScanWorkflow(self.__config,
+                            self.schedulers['scan'],
+                            self.schedulers['ocr'])
 
-    def remove_scan_scene(self, scan_scene):
+    def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():
             for (page_nb, drawer) in drawers[:]:
-                if scan_scene.drawer == drawer:
-                    drawers.remove((page_nb, scan_scene.drawer))
+                if scan_workflow.drawer == drawer:
+                    drawers.remove((page_nb, scan_workflow.drawer))
                     return docid
-        raise ValueError("Scan scene not found")
+        raise ValueError("ScanWorkflow not found")
 
-    def add_scan_scene(self, doc, scan_scene, page_nb=-1):
-        drawer = scan_scene.drawer
+    def add_scan_workflow(self, doc, scan_workflow, page_nb=-1):
+        drawer = scan_workflow.drawer
         if not doc.docid in self.scan_drawers:
             self.scan_drawers[doc.docid] = []
         self.scan_drawers[doc.docid].append((page_nb, drawer))

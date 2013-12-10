@@ -788,7 +788,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="model">liststoreZoom</property>
-                        <property name="active">0</property>
+                        <property name="active">1</property>
                         <child>
                           <object class="GtkCellRendererText" id="cellrenderertext1"/>
                           <attributes>

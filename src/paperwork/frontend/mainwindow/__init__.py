@@ -445,6 +445,8 @@ class JobDocSearcher(Job):
 
     __gsignals__ = {
         'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        # user made a typo
+        'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
         'search-result': (GObject.SignalFlags.RUN_LAST, None,
                           (GObject.TYPE_PYOBJECT,)),
@@ -472,7 +474,13 @@ class JobDocSearcher(Job):
 
         self.emit('search-start')
 
-        documents = self.__docsearch.find_documents(self.search)
+        try:
+            documents = self.__docsearch.find_documents(self.search)
+        except Exception, exc:
+            logger.error("Invalid search: [%s]" % self.search)
+            logger.error("Exception was: %s: %s" % (type(exc), str(exc)))
+            self.emit('search-invalid')
+            return
         if not self.can_run:
             return
 
@@ -510,10 +518,14 @@ class JobFactoryDocSearcher(JobFactory):
     def make(self, docsearch, sort_func, search_sentence):
         job = JobDocSearcher(self, next(self.id_generator), self.__config,
                              docsearch, sort_func, search_sentence)
+        job.connect('search-start', lambda searcher:
+                    GLib.idle_add(self.__main_win.on_search_start_cb))
         job.connect('search-result',
             lambda searcher, documents:
             GLib.idle_add(self.__main_win.on_search_result_cb,
-                             documents))
+                          documents))
+        job.connect('search-invalid',
+            lambda searcher: GLib.idle_add(self.__main_win.on_search_invalid_cb))
         job.connect('search-suggestions',
             lambda searcher, suggestions:
             GLib.idle_add(self.__main_win.on_search_suggestions_cb,
@@ -523,7 +535,7 @@ class JobFactoryDocSearcher(JobFactory):
 
 class JobLabelPredictor(Job):
     """
-    Search the documents
+    Predicts what labels should be on a document
     """
 
     __gsignals__ = {
@@ -2899,6 +2911,18 @@ class MainWindow(object):
 
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
+
+    def on_search_start_cb(self):
+        self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
+
+    def on_search_invalid_cb(self):
+        self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
+        self.search_field.override_color(
+            Gtk.StateFlags.NORMAL,
+            Gdk.RGBA(red=1.0, green=0.0, blue=0.0, alpha=1.0)
+        )
+        self.lists['doclist'] = []
+        self.lists['matches'].set_model([])
 
     def on_search_result_cb(self, documents):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])

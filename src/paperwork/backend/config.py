@@ -47,7 +47,7 @@ class _ScanTimes(object):
             return float(self.__config._configparser.get(
                 cfg[0], cfg[1]))
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return 30.0
+            return 60.0
 
     def __setitem__(self, item, value):
         cfg = self.__ITEM_2_CONFIG[item]

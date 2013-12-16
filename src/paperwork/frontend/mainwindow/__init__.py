@@ -448,8 +448,9 @@ class JobDocSearcher(Job):
         # user made a typo
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
-        'search-result': (GObject.SignalFlags.RUN_LAST, None,
-                          (GObject.TYPE_PYOBJECT,)),
+        'search-results': (GObject.SignalFlags.RUN_LAST, None,
+                          (GObject.TYPE_STRING,
+                           GObject.TYPE_PYOBJECT,)),
         # array of suggestions
         'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
                                (GObject.TYPE_PYOBJECT,)),
@@ -488,13 +489,11 @@ class JobDocSearcher(Job):
             # when no specific search has been done, the sorting is always
             # the same
             sort_documents_by_date(documents)
-            # append a new document to the list
-            documents.insert(0, ImgDoc(self.__config.workdir))
         else:
             self.__sort_func(documents)
         if not self.can_run:
             return
-        self.emit('search-result', documents)
+        self.emit('search-results', self.search, documents)
 
         suggestions = self.__docsearch.find_suggestions(self.search)
         if not self.can_run:
@@ -520,10 +519,10 @@ class JobFactoryDocSearcher(JobFactory):
                              docsearch, sort_func, search_sentence)
         job.connect('search-start', lambda searcher:
                     GLib.idle_add(self.__main_win.on_search_start_cb))
-        job.connect('search-result',
-            lambda searcher, documents:
-            GLib.idle_add(self.__main_win.on_search_result_cb,
-                          documents))
+        job.connect('search-results',
+            lambda searcher, search, documents:
+            GLib.idle_add(self.__main_win.on_search_results_cb,
+                          search, documents))
         job.connect('search-invalid',
             lambda searcher: GLib.idle_add(self.__main_win.on_search_invalid_cb))
         job.connect('search-suggestions',
@@ -1046,17 +1045,7 @@ class ActionNewDocument(SimpleAction):
             must_insert_new = not doclist[0].is_new
 
         if must_insert_new:
-            doc = ImgDoc(self.__config.workdir)
-            doclist.insert(0, doc)
-            self.__main_win.lists['matches']['model'].insert(
-                0,
-                [
-                    doc.name,
-                    doc,
-                    None,
-                    None,
-                    Gtk.IconSize.DIALOG,
-                ])
+            self.__main_win.insert_new_doc()
 
         path = Gtk.TreePath(0)
         self.__main_win.lists['matches']['gui'].select_path(path)
@@ -2329,6 +2318,7 @@ class MainWindow(object):
 
         self.docsearch = DummyDocSearch()
         self.doc = ImgDoc(self.__config.workdir)
+        self.new_doc = self.doc
 
         # All the pages are displayed on the canvas,
         # however, only one is the "active one"
@@ -2924,7 +2914,7 @@ class MainWindow(object):
         self.lists['doclist'] = []
         self.lists['matches'].set_model([])
 
-    def on_search_result_cb(self, documents):
+    def on_search_results_cb(self, search, documents):
         self.schedulers['main'].cancel_all(self.job_factories['doc_thumbnailer'])
 
         logger.debug("Got %d documents" % len(documents))
@@ -2940,6 +2930,9 @@ class MainWindow(object):
         if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
             active_idx = 0
 
+        if search == u"":
+            new_doc = self.get_new_doc()
+            documents = [new_doc] + documents
         self.lists['doclist'] = documents
         self.lists['matches'].set_model([self.__get_doc_model_line(doc)
                                          for doc in documents])
@@ -3052,23 +3045,18 @@ class MainWindow(object):
         doc_list.pop(doc_idx)
         self.lists['matches'].pop(doc_idx)
 
-    def __insert_new_doc(self):
-        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
+    def get_new_doc(self):
+        if not self.new_doc.is_new:
+            self.new_doc = ImgDoc(self.__config.workdir)
+        return self.new_doc
 
-        # When a scan is done, we try to refresh only the current document.
-        # However, the current document may be "New document". In which case
-        # it won't appear as "New document" anymore. So we have to add a new
-        # one to the list
-        if sentence != u"":
-            return False
+    def insert_new_doc(self):
         # append a new document to the list
         doc_list = self.lists['doclist']
-        new_doc = ImgDoc(self.__config.workdir)
+        new_doc = self.get_new_doc()
         doc_list.insert(0, new_doc)
         new_doc_line = self.__get_doc_model_line(new_doc)
         self.lists['matches'].insert(0, new_doc_line)
-        return True
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -3093,7 +3081,7 @@ class MainWindow(object):
 
 
         if self.__pop_new_doc():
-            logger.info("Doc list refresh: 'new doc' popped out of the list")
+            logger.info("Doc list refresh: 'new doc' (%s) popped out of the list")
 
         # make sure all the target docs are already in the list in a first
         # place
@@ -3108,7 +3096,15 @@ class MainWindow(object):
                 must_rethumbnail.add(doc)
                 docs.remove(doc)
 
-        if self.__insert_new_doc():
+        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
+        logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
+
+        # When a scan is done, we try to refresh only the current document.
+        # However, the current document may be "New document". In which case
+        # it won't appear as "New document" anymore. So we have to add a new
+        # one to the list
+        if sentence == u"":
+            self.insert_new_doc()
             logger.info("Doc list refresh: 'new doc' reinserted in the list")
 
         # Update the model of the remaining target docs

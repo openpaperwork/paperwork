@@ -662,7 +662,7 @@ class ScanWorkflow(GObject.GObject):
         """
         self.__resolution = resolution
 
-        calibration = self.__config.scanner_calibration
+        calibration = self.__config['scanner_calibration'].value
         if calibration:
             (calib_resolution, calibration) = calibration
 
@@ -711,7 +711,7 @@ class ScanWorkflow(GObject.GObject):
         Listen for the signal ocr-done to get the result
         """
         if angles is None:
-            angles = self.__config.ocr_nb_angles
+            angles = self.__config['ocr_nb_angles'].value
         img.load()
         job = self.factories['ocr'].make(img, angles)
         self.schedulers['ocr'].schedule(job)

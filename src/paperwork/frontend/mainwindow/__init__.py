@@ -70,8 +70,8 @@ logger = logging.getLogger(__name__)
 
 
 def check_scanner(main_win, config):
-    if (config.scanner_devid is not None
-        and config.scanner_source is not None):
+    if (config['scanner_devid'].value is not None
+        and config['scanner_source'].value is not None):
         return True
     main_win.actions['open_settings'][1].do()
     return False
@@ -142,7 +142,8 @@ class JobIndexLoader(Job):
             self.emit('index-loading-start')
             self.started = True
         try:
-            docsearch = DocSearch(self.__config.workdir, self.__progress_cb)
+            docsearch = DocSearch(self.__config['workdir'].value,
+                                  self.__progress_cb)
             if not self.can_run:
                 return
             self.emit('index-loading-end', docsearch)
@@ -1134,7 +1135,7 @@ class ActionSwitchSorting(SimpleAction):
         SimpleAction.do(self)
         (sorting_name, unused) = self.__main_win.get_doc_sorting()
         logger.info("Document sorting: %s" % sorting_name)
-        self.__config.result_sorting = sorting_name
+        self.__config['result_sorting'].value = sorting_name
         self.__config.write()
         self.__upd_search_results_action.do()
 
@@ -1420,7 +1421,7 @@ class ActionSingleScan(SimpleAction):
             if self.__main_win.doc.is_new:
                 doc = self.__main_win.doc
             else:
-                doc = ImgDoc(self.__config.workdir)
+                doc = ImgDoc(self.__config['workdir'].value)
 
         doc.add_page(img, line_boxes)
 
@@ -1443,11 +1444,11 @@ class ActionSingleScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
 
-        devid = self.__config.scanner_devid
+        devid = self.__config['scanner_devid'].value
         logger.info("Will scan using %s" % str(devid))
-        source = self.__config.scanner_source
+        source = self.__config['scanner_source'].value
         logger.info("Will scan using source %s" % str(source))
-        resolution = self.__config.scanner_resolution
+        resolution = self.__config['scanner_resolution'].value
         logger.info("Will scan at a resolution of %d" % resolution)
 
         dev = pyinsane.Scanner(name=devid)
@@ -2317,7 +2318,7 @@ class MainWindow(object):
         self.__scan_progress_job = None
 
         self.docsearch = DummyDocSearch()
-        self.doc = ImgDoc(self.__config.workdir)
+        self.doc = ImgDoc(self.__config['workdir'].value)
         self.new_doc = self.doc
 
         # All the pages are displayed on the canvas,
@@ -2448,13 +2449,6 @@ class MainWindow(object):
 
         self.show_all_boxes = False
 
-        self.toolbars = [
-            widget_tree.get_object("toolbarMainWin"),
-            widget_tree.get_object("toolbarPage"),
-        ]
-        for toolbar in self.toolbars:
-            toolbar.set_visible(config.toolbar_visible)
-
         self.export = {
             'dialog': widget_tree.get_object("infobarExport"),
             'fileFormat': {
@@ -2491,7 +2485,7 @@ class MainWindow(object):
              sort_documents_by_date, "scan_date"),
         ]
 
-        config_sorting_name = config.result_sorting
+        config_sorting_name = config['result_sorting'].value
         for (sorting_widget, unused, sorting_name) in self.sortings:
             if sorting_name == config_sorting_name:
                 sorting_widget.set_active(True)
@@ -3047,7 +3041,7 @@ class MainWindow(object):
 
     def get_new_doc(self):
         if not self.new_doc.is_new:
-            self.new_doc = ImgDoc(self.__config.workdir)
+            self.new_doc = ImgDoc(self.__config['workdir'].value)
         return self.new_doc
 
     def insert_new_doc(self):

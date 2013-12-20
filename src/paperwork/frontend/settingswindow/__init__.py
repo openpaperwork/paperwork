@@ -34,6 +34,7 @@ import pyocr
 
 
 from paperwork.backend.config import PaperworkConfig
+from paperwork.backend.config import PaperworkScannerCalibration
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
@@ -340,9 +341,9 @@ class JobCalibrationScan(Job):
         resolutions = [x[1] for x in self.__resolutions_store]
         resolutions.sort()
 
-        resolution = PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION
+        resolution = PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION
         for nresolution in resolutions:
-            if nresolution > PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION:
+            if nresolution > PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION:
                 break
             resolution = nresolution
 
@@ -499,46 +500,46 @@ class ActionApplySettings(SimpleAction):
     def do(self):
         need_reindex = False
         workdir = self.__settings_win.workdir_chooser.get_current_folder()
-        if workdir != self.__config.workdir:
-            self.__config.workdir = workdir
+        if workdir != self.__config['workdir'].value:
+            self.__config['workdir'].value = workdir
             need_reindex = True
 
         setting = self.__settings_win.device_settings['devid']
         idx = setting['gui'].get_active()
         if idx >= 0:
             devid = setting['stores']['loaded'][idx][1]
-            self.__config.scanner_devid = devid
+            self.__config['scanner_devid'].value = devid
 
         setting = self.__settings_win.device_settings['source']
         idx = setting['gui'].get_active()
         if idx >= 0:
             source = setting['stores']['loaded'][idx][1]
-            self.__config.scanner_source = source
+            self.__config['scanner_source'].value = source
 
         setting = self.__settings_win.device_settings['resolution']
         idx = setting['gui'].get_active()
         if idx >= 0:
             resolution = setting['stores']['loaded'][idx][1]
-            self.__config.scanner_resolution = resolution
+            self.__config['scanner_resolution'].value = resolution
 
         setting = self.__settings_win.ocr_settings['enabled']
         enabled = setting['gui'].get_active()
-        self.__config.ocr_enabled = enabled
+        self.__config['ocr_enabled'].value = enabled
 
         setting = self.__settings_win.ocr_settings['angles']
         idx = setting['gui'].get_active()
         nb_angles = setting['store'][idx][1]
-        self.__config.ocr_nb_angles = nb_angles
+        self.__config['ocr_nb_angles'].value = nb_angles
 
         setting = self.__settings_win.ocr_settings['lang']
         idx = setting['gui'].get_active()
         if idx >= 0:
             lang = setting['store'][idx][1]
-            self.__config.ocr_lang = lang
+            self.__config['ocr_lang'].value = lang
 
         if self.__settings_win.grips is not None:
             coords = self.__settings_win.grips.get_coords()
-            self.__config.scanner_calibration = (
+            self.__config['scanner_calibration'].value = (
                 self.__settings_win.calibration['resolution'], coords)
 
         self.__config.write()
@@ -692,7 +693,7 @@ class SettingsWindow(GObject.GObject):
             "image": None,
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
             "image_scrollbars": img_scrollbars,
-            "resolution": PaperworkConfig.DEFAULT_CALIBRATION_RESOLUTION,
+            "resolution": PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION,
         }
 
         self.grips = None
@@ -701,11 +702,12 @@ class SettingsWindow(GObject.GObject):
         self.__scan_start = 0.0
 
         self.job_factories = {
-            "device_finder": JobFactoryDeviceFinder(self, config.scanner_devid),
+            "device_finder": JobFactoryDeviceFinder(self,
+                                                    config['scanner_devid'].value),
             "source_finder": JobFactorySourceFinder(self,
-                                                    config.scanner_source),
+                                                    config['scanner_source'].value),
             "resolution_finder": JobFactoryResolutionFinder(self,
-                config.scanner_resolution,
+                config['scanner_resolution'].value,
                 config.RECOMMENDED_RESOLUTION),
             "scan": JobFactoryCalibrationScan(
                 self,
@@ -836,7 +838,7 @@ class SettingsWindow(GObject.GObject):
 
         self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=1.0,
-            total_time=self.__config.scan_time['calibration'])
+            total_time=self.__config['scan_time'].value['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_info(self, size):
@@ -852,7 +854,7 @@ class SettingsWindow(GObject.GObject):
     def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
-        self.__config.scan_time['calibration'] = scan_stop - self.__scan_start
+        self.__config['scan_time'].value['calibration'] = scan_stop - self.__scan_start
 
         self.calibration['image'] = img
         self.calibration['resolution'] = scan_resolution
@@ -874,22 +876,22 @@ class SettingsWindow(GObject.GObject):
         self.calibration["scan_button"].set_sensitive(True)
 
     def display_config(self, config):
-        self.workdir_chooser.set_current_folder(config.workdir)
+        self.workdir_chooser.set_current_folder(config['workdir'].value)
 
-        ocr_enabled = config.ocr_enabled
-        if config.ocr_lang is None:
+        ocr_enabled = config['ocr_enabled'].value
+        if config['ocr_lang'].value is None:
             ocr_enabled = False
         self.ocr_settings['enabled']['gui'].set_active(ocr_enabled)
 
         idx = 0
-        ocr_nb_angles = config.ocr_nb_angles
+        ocr_nb_angles = config['ocr_nb_angles'].value
         for (_, nb_angles) in self.ocr_settings['angles']['store']:
             if nb_angles == ocr_nb_angles:
                 self.ocr_settings['angles']['gui'].set_active(idx)
             idx += 1
 
         idx = 0
-        current_ocr_lang = config.ocr_lang
+        current_ocr_lang = config['ocr_lang'].value
         for (long_lang, short_lang) in self.ocr_settings['lang']['store']:
             if short_lang == current_ocr_lang:
                 self.ocr_settings['lang']['gui'].set_active(idx)

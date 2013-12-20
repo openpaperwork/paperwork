@@ -40,6 +40,7 @@ class _ScanTimes(object):
 
     def __init__(self, config):
         self.__config = config
+        self.section = self.__ITEM_2_CONFIG['normal'][0]
 
     def __getitem__(self, item):
         cfg = self.__ITEM_2_CONFIG[item]
@@ -53,6 +54,108 @@ class _ScanTimes(object):
         cfg = self.__ITEM_2_CONFIG[item]
         self.__config._configparser.set(cfg[0], cfg[1], str(value))
 
+    def __get_value(self):
+        return self
+
+    value = property(__get_value)
+
+    @staticmethod
+    def load(_):
+        pass
+
+    @staticmethod
+    def update(_):
+        pass
+
+
+def paperwork_cfg_boolean(string):
+    if string.lower() == "true":
+        return True
+    return False
+
+
+class PaperworkSetting(object):
+    def __init__(self, section, token, default_value_func=lambda: None,
+                 constructor=str):
+        self.section = section
+        self.token = token
+        self.default_value_func = default_value_func
+        self.constructor = constructor
+        self.value = None
+
+    def load(self, config):
+        try:
+            value = config.get(self.section, self.token)
+            if value != "None":
+                self.value = self.constructor(value)
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            pass
+        self.value = self.default_value_func()
+
+    def update(self, config):
+        config.set(self.section, self.token, str(self.value))
+
+
+class PaperworkScannerCalibration(object):
+    DEFAULT_CALIBRATION_RESOLUTION = 200
+
+    def __init__(self, section, token):
+        self.section = section
+        self.token = token
+        self.value = None
+
+    def load(self, config):
+        try:
+            pt_a_x = int(config.get(
+                "Scanner", "Calibration_Pt_A_X"))
+            pt_a_y = int(config.get(
+                "Scanner", "Calibration_Pt_A_Y"))
+            pt_b_x = int(config.get(
+                "Scanner", "Calibration_Pt_B_X"))
+            pt_b_y = int(config.get(
+                "Scanner", "Calibration_Pt_B_Y"))
+            if (pt_a_x > pt_b_x):
+                (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
+            if (pt_a_y > pt_b_y):
+                (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
+
+            resolution = self.DEFAULT_CALIBRATION_RESOLUTION
+            try:
+                resolution = int(config.get(
+                    "Scanner", "Calibration_Resolution"))
+            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+                logger.warning("Calibration resolution is not specified in the"
+                               " configuration. Will assume the calibration was"
+                               " done with a resolution of %ddpi" % resolution)
+
+            self.value = (resolution, ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)))
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            # no calibration -> no cropping -> we have to keep the whole image
+            # each time
+            self.value = None
+
+    def update(self, config):
+        config.set("Scanner", "Calibration_Resolution",
+                   str(self.value[0]))
+        config.set("Scanner", "Calibration_Pt_A_X",
+                   str(self.value[1][0][0]))
+        config.set("Scanner", "Calibration_Pt_A_Y",
+                   str(self.value[1][0][1]))
+        config.set("Scanner", "Calibration_Pt_B_X",
+                   str(self.value[1][1][0]))
+        config.set("Scanner", "Calibration_Pt_B_Y",
+                   str(self.value[1][1][1]))
+
+
+class PaperworkCfgStringList(list):
+    def __init__(self, string):
+        elements = string.split(",")
+        for element in elements:
+            self.append(element)
+
+    def __str__(self):
+        return ",".join(self)
+
 
 class PaperworkConfig(object):
     """
@@ -60,13 +163,37 @@ class PaperworkConfig(object):
     used.
     """
     RECOMMENDED_RESOLUTION = 300
-    DEFAULT_CALIBRATION_RESOLUTION = 200
     DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
     def __init__(self):
+        self.backend_settings = {
+            'workdir' : PaperworkSetting("Global", "WorkDirectory",
+                                         lambda: os.path.expanduser("~/papers"))
+        }
+
+        self.frontend_settings = {
+            'ocr_enabled' : PaperworkSetting("OCR", "Enabled", lambda: True,
+                                             paperwork_cfg_boolean),
+            'ocr_lang' : PaperworkSetting("OCR", "Lang", self.__get_default_ocr_lang),
+            'ocr_nb_angles' : PaperworkSetting("OCR", "Nb_Angles", lambda: 4, int),
+            'result_sorting' : PaperworkSetting("GUI", "Sorting", lambda: "relevance"),
+            'scanner_devid' : PaperworkSetting("Scanner", "Device"),
+            'scanner_resolution' : PaperworkSetting("Scanner", "Resolution",
+                                                    lambda: self.RECOMMENDED_RESOLUTION,
+                                                    int),
+            'scanner_source' : PaperworkSetting("Scanner", "Source"),
+            'scanner_sources' : PaperworkSetting("Scanner", "Sources",
+                                                 lambda: PaperworkCfgStringList(""),
+                                                 PaperworkCfgStringList),
+            'scan_time' : _ScanTimes(self),
+        }
+        self.frontend_settings['spelling_lang'] = (
+            PaperworkSetting("SpellChecking", "Lang",
+                             self.__get_default_spellcheck_lang)
+        )
+
         # values are stored directly in self._configparser
         self._configparser = ConfigParser.SafeConfigParser()
-        self.scan_time = _ScanTimes(self)
 
         # Possible config files are evaluated in the order they are in the
         # array. The last one of the list is the default one.
@@ -100,74 +227,20 @@ class PaperworkConfig(object):
         self._configparser = ConfigParser.SafeConfigParser()
         self._configparser.read([self.__configfile])
 
-        # make sure that all the sections exist
-        if not self._configparser.has_section("Global"):
-            self._configparser.add_section("Global")
-        if not self._configparser.has_section("OCR"):
-            self._configparser.add_section("OCR")
-        if not self._configparser.has_section("Scanner"):
-            self._configparser.add_section("Scanner")
-        if not self._configparser.has_section("GUI"):
-            self._configparser.add_section("GUI")
-        if not self._configparser.has_section("SpellChecking"):
-            self._configparser.add_section("SpellChecking")
+        sections = set()
+        for setting in (self.backend_settings.values()
+                        + self.frontend_settings.values()):
+            sections.add(setting.section)
+        for section in sections:
+            # make sure that all the sections exist
+            if not self._configparser.has_section(section):
+                self._configparser.add_section(section)
 
-    def __get_workdir(self):
-        """
-        Directory in which Paperwork must look for documents.
-        Reminder: Documents are directories containing files called
-        'paper.<X>.jpg', 'paper.<X>.txt' and possibly 'paper.<X>.words' ('<X>'
-        being the page number).
+        for setting in (self.backend_settings.values()
+                        + self.frontend_settings.values()):
+            setting.load(self._configparser)
 
-        Returns:
-            String.
-        """
-        try:
-            return self._configparser.get("Global", "WorkDirectory")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return os.path.expanduser("~/papers")
-
-    def __set_workdir(self, work_dir_str):
-        """
-        Set the work directory.
-        """
-        self._configparser.set("Global", "WorkDirectory", work_dir_str)
-
-    workdir = property(__get_workdir, __set_workdir)
-
-    def __get_ocr_enabled(self):
-        try:
-            ocr_enabled = self._configparser.get("OCR", "Enabled")
-            return (ocr_enabled == "True")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return True
-
-    def __set_ocr_enabled(self, value):
-        value = bool(value)
-        if value:
-            value = "True"
-        else:
-            value = "False"
-        self._configparser.set("OCR", "Enabled", value)
-
-    ocr_enabled = property(__get_ocr_enabled, __set_ocr_enabled)
-
-    def __get_ocr_lang(self):
-        """
-        OCR lang. This the lang specified to the OCR. The string here in the
-        configuration is identical to the one passed to the OCR tool on the
-        command line.
-
-        String.
-        """
-        try:
-            ocr_lang = self._configparser.get("OCR", "Lang")
-            if ocr_lang == "None":
-                return None
-            return ocr_lang
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            pass
-
+    def __get_default_ocr_lang(self):
         # Try to guess based on the system locale what would be
         # the best OCR language
 
@@ -191,32 +264,8 @@ class PaperworkConfig(object):
             logger.error('Exception was: %s' % exc)
         return self.DEFAULT_OCR_LANG
 
-    def __set_ocr_lang(self, lang):
-        """
-        Set the OCR lang
-        """
-        if lang is None:
-            lang = "None"
-        self._configparser.set("OCR", "Lang", lang)
-
-    ocr_lang = property(__get_ocr_lang, __set_ocr_lang)
-
-    def __get_spelling_lang(self):
-        """
-        Spell checking language.
-        This is the language used for spell checking documents.
-
-        String.
-        """
-        try:
-            lang = self._configparser.get("SpellChecking", "Lang")
-            if lang == "None":
-                return None
-            return lang
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            pass
-
-        ocr_lang = self.ocr_lang
+    def __get_default_spellcheck_lang(self):
+        ocr_lang = self.frontend_settings["ocr_lang"].value
         if ocr_lang is None:
             return None
 
@@ -228,231 +277,36 @@ class PaperworkConfig(object):
         spelling_lang = language.alpha2
         return spelling_lang
 
-    def __set_spelling_lang(self, lang):
-        """
-        Set the spell checking language
-        """
-        if lang is None:
-            lang = "None"
-        self._configparser.set("SpellChecking", "Lang", lang)
-
-    spelling_lang = property(__get_spelling_lang, __set_spelling_lang)
-
-    def __get_ocr_nb_angles(self):
-        try:
-            nb_angles = self._configparser.get("OCR", "Nb_Angles")
-            nb_angles = int(nb_angles)
-            return nb_angles
-        except (ConfigParser.NoOptionError,
-                ConfigParser.NoSectionError,
-                ValueError):
-            return 4  # (0, 90, 180, 270) degrees
-
-    def __set_ocr_nb_angles(self, nb_angles):
-        self._configparser.set("OCR", "Nb_Angles", str(nb_angles))
-
-    ocr_nb_angles = property(__get_ocr_nb_angles, __set_ocr_nb_angles)
-
     def __get_langs(self):
         """
         Convenience property. Gives all the languages used as one dictionary
         """
-        ocr_lang = self.ocr_lang
+        ocr_lang = self.frontend_settings["ocr_lang"].value
         if ocr_lang is None:
             return None
-        return {'ocr': ocr_lang, 'spelling': self.spelling_lang}
+        return {
+            'ocr': ocr_lang,
+            'spelling': self.frontend_settings["spelling_lang"].value
+        }
 
     langs = property(__get_langs)
-
-    def __get_scanner_devid(self):
-        """
-        This is the id of the device selected by the user.
-
-        String.
-        """
-        try:
-            return self._configparser.get("Scanner", "Device")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return None
-
-    def __set_scanner_devid(self, devid):
-        """
-        Set the device id selected by the user to use for scanning
-        """
-        self._configparser.set("Scanner", "Device", devid)
-
-    scanner_devid = property(__get_scanner_devid, __set_scanner_devid)
-
-    def __get_scanner_resolution(self):
-        """
-        This is the resolution of the scannner used for normal scans.
-
-        String.
-        """
-        try:
-            return int(self._configparser.get("Scanner", "Resolution"))
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return self.RECOMMENDED_RESOLUTION
-
-    def __set_scanner_resolution(self, resolution):
-        """
-        Set the scanner resolution used for normal scans.
-        """
-        self._configparser.set("Scanner", "Resolution", str(resolution))
-
-    scanner_resolution = property(__get_scanner_resolution,
-                                  __set_scanner_resolution)
-
-    def __get_scanner_source(self):
-        """
-        This is the source of the scannner used for scans.
-
-        String.
-        """
-        try:
-            return self._configparser.get("Scanner", "Source")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return None
-
-    def __set_scanner_source(self, source):
-        """
-        Set the scanner resolution used for normal scans.
-        """
-        self._configparser.set("Scanner", "Source", str(source))
-
-    scanner_source = property(__get_scanner_source,
-                              __set_scanner_source)
-
-    def __get_scanner_calibration(self):
-        """
-        Scanner calibration
-
-        Returns:
-            (calibration_resolution,
-             ((pt_a_x, pt_a_y),
-              (pt_b_x, pt_b_y)))
-        """
-        try:
-            pt_a_x = int(self._configparser.get(
-                "Scanner", "Calibration_Pt_A_X"))
-            pt_a_y = int(self._configparser.get(
-                "Scanner", "Calibration_Pt_A_Y"))
-            pt_b_x = int(self._configparser.get(
-                "Scanner", "Calibration_Pt_B_X"))
-            pt_b_y = int(self._configparser.get(
-                "Scanner", "Calibration_Pt_B_Y"))
-            if (pt_a_x > pt_b_x):
-                (pt_a_x, pt_b_x) = (pt_b_x, pt_a_x)
-            if (pt_a_y > pt_b_y):
-                (pt_a_y, pt_b_y) = (pt_b_y, pt_a_y)
-
-            resolution = self.DEFAULT_CALIBRATION_RESOLUTION
-            try:
-                resolution = int(self._configparser.get(
-                    "Scanner", "Calibration_Resolution"))
-            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-                logger.warning("Calibration resolution is not specified in the"
-                               " configuration. Will assume the calibration was"
-                               " done with a resolution of %ddpi" % resolution)
-
-            return (resolution, ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)))
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            # no calibration -> no cropping -> we have to keep the whole image
-            # each time
-            return None
-
-    def __set_scanner_calibration(self, calibration):
-        """
-        Set the scanner resolution used for normal scans.
-
-        Arguments:
-            calibration --- (calibration_resolution,
-                             ((pt_a_x, pt_a_y),
-                              (pt_b_x, pt_b_y)))
-        """
-        self._configparser.set("Scanner", "Calibration_Resolution",
-                               str(calibration[0]))
-        self._configparser.set("Scanner", "Calibration_Pt_A_X",
-                               str(calibration[1][0][0]))
-        self._configparser.set("Scanner", "Calibration_Pt_A_Y",
-                               str(calibration[1][0][1]))
-        self._configparser.set("Scanner", "Calibration_Pt_B_X",
-                               str(calibration[1][1][0]))
-        self._configparser.set("Scanner", "Calibration_Pt_B_Y",
-                               str(calibration[1][1][1]))
-
-    scanner_calibration = property(__get_scanner_calibration,
-                                   __set_scanner_calibration)
-
-    def __get_scanner_sources(self):
-        """
-        Indicates if the scanner source names
-
-        Array of string
-        """
-        try:
-            str_list = self._configparser.get("Scanner", "Sources")
-            return str_list.split(",")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return []
-
-    def __set_scanner_sources(self, sources):
-        """
-        Indicates if the scanner source names
-
-        Array of string
-        """
-        str_list = ",".join(sources)
-        self._configparser.set("Scanner", "Sources", str_list)
-
-    scanner_sources = property(__get_scanner_sources, __set_scanner_sources)
-
-    def __get_toolbar_visible(self):
-        """
-        Must the toolbar(s) be displayed ?
-
-        Boolean.
-        """
-        try:
-            val = int(self._configparser.get("GUI", "ToolbarVisible"))
-            if val == 0:
-                return False
-            return True
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return True
-
-    def __set_toolbar_visible(self, visible):
-        """
-        Set the OCR lang
-        """
-        self._configparser.set("GUI", "ToolbarVisible", str(int(visible)))
-
-    toolbar_visible = property(__get_toolbar_visible, __set_toolbar_visible)
-
-    def __get_result_sorting(self):
-        """
-        How to sort the results
-        """
-        try:
-            return self._configparser.get("GUI", "Sorting")
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
-            return "relevance"
-
-    def __set_result_sorting(self, sorting):
-        """
-        Set the result sorting
-        """
-        self._configparser.set("GUI", "Sorting", sorting)
-
-    result_sorting = property(__get_result_sorting, __set_result_sorting)
 
     def write(self):
         """
         Rewrite the configuration file. It rewrites the same file than
         PaperworkConfig.read() read.
         """
+        for setting in (self.backend_settings.values() +
+                        self.frontend_settings.values()):
+            setting.update(self._configparser)
+
         file_path = self.__configfile
         logger.info("Writing %s ... " % file_path)
         with open(file_path, 'wb') as file_descriptor:
             self._configparser.write(file_descriptor)
         logger.info("Done")
+
+    def __getitem__(self, item):
+        if item in self.frontend_settings:
+            return self.frontend_settings[item]
+        return self.backend_settings[item]

@@ -608,7 +608,7 @@ class DocSearch(object):
                 if doc_type_name_b == doc_type_name:
                     doc = doc_type(docpath, docid)
             if not doc:
-                logger.warn("Warning: unknown doc type found in the index: %s"
+                logger.warning("Warning: unknown doc type found in the index: %s"
                    % doc_type_name)
         # otherwise we guess the doc type
         if not doc:
@@ -617,7 +617,7 @@ class DocSearch(object):
                     doc = doc_type(docpath, docid)
                     break
         if not doc:
-            logger.warn("Warning: unknown doc type for doc '%s'" % docid)
+            logger.warning("Warning: unknown doc type for doc '%s'" % docid)
 
         return doc
 

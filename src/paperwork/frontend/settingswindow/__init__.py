@@ -34,12 +34,13 @@ import pyocr
 
 
 from paperwork.backend.config import PaperworkConfig
-from paperwork.backend.config import PaperworkScannerCalibration
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import ScanAnimation
 from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
+from paperwork.frontend.util.config import DEFAULT_CALIBRATION_RESOLUTION
+from paperwork.frontend.util.config import RECOMMENDED_SCAN_RESOLUTION
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -48,8 +49,6 @@ from paperwork.frontend.util.scanner import maximize_scan_area
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
-RECOMMENDED_RESOLUTION = 300
 
 
 class JobDeviceFinder(Job):
@@ -155,7 +154,7 @@ class JobSourceFinder(Job):
         }
         if src_id.lower() in TRANSLATIONS:
             return TRANSLATIONS[src_id.lower()]
-        logger.warn("No translation for source [%s]" % src_id)
+        logger.warning("No translation for source [%s]" % src_id)
         return src_id
 
     def do(self):
@@ -341,9 +340,9 @@ class JobCalibrationScan(Job):
         resolutions = [x[1] for x in self.__resolutions_store]
         resolutions.sort()
 
-        resolution = PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION
+        resolution = DEFAULT_CALIBRATION_RESOLUTION
         for nresolution in resolutions:
-            if nresolution > PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION:
+            if nresolution > DEFAULT_CALIBRATION_RESOLUTION:
                 break
             resolution = nresolution
 
@@ -357,7 +356,7 @@ class JobCalibrationScan(Job):
         try:
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException:
-            logger.warn("Unable to set scanner resolution to %d: %s"
+            logger.warning("Unable to set scanner resolution to %d: %s"
                            % (resolution, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
@@ -366,7 +365,7 @@ class JobCalibrationScan(Job):
             dev.options['mode'].value = "Gray"
             logger.info("Scanner mode set to 'Gray'")
         else:
-            logger.warn("Unable to set scanner mode ! May be 'Lineart'")
+            logger.warning("Unable to set scanner mode ! May be 'Lineart'")
         maximize_scan_area(dev)
 
         scan_session = dev.scan(multiple=False)
@@ -693,7 +692,7 @@ class SettingsWindow(GObject.GObject):
             "image": None,
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
             "image_scrollbars": img_scrollbars,
-            "resolution": PaperworkScannerCalibration.DEFAULT_CALIBRATION_RESOLUTION,
+            "resolution": DEFAULT_CALIBRATION_RESOLUTION,
         }
 
         self.grips = None
@@ -708,7 +707,7 @@ class SettingsWindow(GObject.GObject):
                                                     config['scanner_source'].value),
             "resolution_finder": JobFactoryResolutionFinder(self,
                 config['scanner_resolution'].value,
-                config.RECOMMENDED_RESOLUTION),
+                RECOMMENDED_SCAN_RESOLUTION),
             "scan": JobFactoryCalibrationScan(
                 self,
                 self.device_settings['resolution']['stores']['loaded']
@@ -783,7 +782,7 @@ class SettingsWindow(GObject.GObject):
             except KeyError, exc:
                 logger.error("Warning: Long name not found for language "
                         "'%s'." % short_lang)
-                logger.warn("  Will use short name as long name.")
+                logger.warning("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))
         return langs
 

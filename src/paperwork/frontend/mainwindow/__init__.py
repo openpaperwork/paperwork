@@ -1304,14 +1304,14 @@ class ActionEditLabel(SimpleAction):
         label_list = self.__main_win.lists['labels']['gui']
         selection_path = label_list.get_selection().get_selected()
         if selection_path[1] is None:
-            logger.warn("No label selected")
+            logger.warning("No label selected")
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
         new_label = copy(label)
         editor = LabelEditor(new_label)
         if not editor.edit(self.__main_win.window):
-            logger.warn("Label edition cancelled")
+            logger.warning("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
         job = self.__main_win.job_factories['label_updater'].make(
@@ -1333,7 +1333,7 @@ class ActionDeleteLabel(SimpleAction):
         label_list = self.__main_win.lists['labels']['gui']
         selection_path = label_list.get_selection().get_selected()
         if selection_path[1] is None:
-            logger.warn("No label selected")
+            logger.warning("No label selected")
             return True
         label = selection_path[0].get_value(selection_path[1], 2)
 
@@ -1457,7 +1457,7 @@ class ActionSingleScan(SimpleAction):
         try:
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException:
-            logger.warn("Unable to set scanner resolution to %d: %s"
+            logger.warning("Unable to set scanner resolution to %d: %s"
                            % (resolution, exc))
         if "Color" in dev.options['mode'].constraint:
             dev.options['mode'].value = "Color"
@@ -1466,7 +1466,7 @@ class ActionSingleScan(SimpleAction):
             dev.options['mode'].value = "Gray"
             logger.info("Scanner mode set to 'Gray'")
         else:
-            logger.warn("Unable to set scanner mode ! May be 'Lineart'")
+            logger.warning("Unable to set scanner mode ! May be 'Lineart'")
         maximize_scan_area(dev)
 
         scan_session = dev.scan(multiple=False)
@@ -1959,7 +1959,7 @@ class ActionSelectExportPath(SimpleAction):
         filepath = chooser.get_filename()
         chooser.destroy()
         if response != Gtk.ResponseType.OK:
-            logger.warn("File path for export canceled")
+            logger.warning("File path for export canceled")
             return
 
         valid_exts = self.__main_win.export['exporter'].get_file_extensions()
@@ -3433,12 +3433,12 @@ class MainWindow(object):
                                              selection_data, info, time):
         target = self.lists['pages']['gui'].get_dest_item_at_pos(x, y)
         if target is None:
-            logger.warn("[page list] drag-data-received: no target. aborting")
+            logger.warning("[page list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
         if target_path is None:
-            logger.warn("[page list] drag-data-received: no target. aborting")
+            logger.warning("[page list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         target = target_path.get_indices()[0]
@@ -3468,12 +3468,12 @@ class MainWindow(object):
         obj_id = selection_data.get_text()
         target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
         if target is None:
-            logger.warn("[doc list] drag-data-received: no target. aborting")
+            logger.warning("[doc list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         (target_path, position) = target
         if target_path is None:
-            logger.warn("[doc list] drag-data-received: no target. aborting")
+            logger.warning("[doc list] drag-data-received: no target. aborting")
             drag_context.finish(False, False, time)
             return
         target = target_path.get_indices()[0]
@@ -3482,7 +3482,7 @@ class MainWindow(object):
         obj = self.docsearch.get_by_id(obj_id)
 
         if not target_doc.can_edit:
-            logger.warn("[doc list] drag-data-received: Destination document"
+            logger.warning("[doc list] drag-data-received: Destination document"
                    " can't be modified")
             drag_context.finish(False, False, time)
             return

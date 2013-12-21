@@ -29,7 +29,7 @@ import locale
 import pyinsane.abstract_th  # Just to start the Sane thread
 
 from frontend.mainwindow import ActionRefreshIndex, MainWindow
-from backend.config import PaperworkConfig
+from frontend.util.config import load_config
 
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ def set_locale():
             got_locales = True
             break
     if not got_locales:
-        logger.warn("WARNING: Locales not found")
+        logger.warning("WARNING: Locales not found")
     else:
         for module in (gettext, locale):
             module.bindtextdomain('paperwork', locales_path)
@@ -96,7 +96,7 @@ def main():
     GObject.threads_init()
 
     try:
-        config = PaperworkConfig()
+        config = load_config()
         config.read()
 
         main_win = MainWindow(config)

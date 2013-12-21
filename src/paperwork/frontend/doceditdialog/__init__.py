@@ -92,8 +92,8 @@ class DocEditDialog(object):
             widget = widgets.pop(widget_name)
             new_order.append(widget)
         if len(widgets) > 0:
-            logger.warn("WARNING: Failed to figure out the correct order"
-                   " for the date widget")
+            logger.warning("WARNING: Failed to figure out the correct order"
+                           " for the date widget")
             logger.info("Will use ISO order")
             return
 

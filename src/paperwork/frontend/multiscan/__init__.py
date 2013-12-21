@@ -181,11 +181,11 @@ class ActionSelectDoc(SimpleAction):
         SimpleAction.do(self)
         selection = self.__dialog.lists['docs']['gui'].get_selection()
         if selection is None:
-            logger.warn("No doc selected")
+            logger.warning("No doc selected")
             return
         (model, selection_iter) = selection.get_selected()
         if selection_iter is None:
-            logger.warn("No doc selected")
+            logger.warning("No doc selected")
             return
         val = model.get_value(selection_iter, 5)
         self.__dialog.removeDocButton.set_sensitive(val)
@@ -201,7 +201,7 @@ class ActionRemoveDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            logger.warn("No doc selected")
+            logger.warning("No doc selected")
             return
         model.remove(selection_iter)
         for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
@@ -222,7 +222,7 @@ class ActionStartEditDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            logger.warn("No doc selected")
+            logger.warning("No doc selected")
             return
         self.__dialog.lists['docs']['gui'].set_cursor(
             model.get_path(selection_iter),
@@ -241,7 +241,7 @@ class ActionEndEditDoc(SimpleAction):
         docs_gui = self.__dialog.lists['docs']['gui']
         (model, selection_iter) = docs_gui.get_selection().get_selected()
         if selection_iter is None:
-            logger.warn("No doc selected")
+            logger.warning("No doc selected")
             return
         line = model[selection_iter]
         int(new_text)  # make sure it's a valid number

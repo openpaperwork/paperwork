@@ -39,6 +39,8 @@ from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import JobFactoryPageLoader
 from paperwork.frontend.mainwindow.scan import ScanWorkflow
+from paperwork.frontend.mainwindow.scan import MultiAnglesScanWorkflowDrawer
+from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
@@ -1482,11 +1484,12 @@ class ActionSingleScan(SimpleAction):
         scan_workflow.connect('ocr-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,
                                          scan_workflow))
-        scan_workflow.connect('ocr-done', lambda scan_workflow, img, boxes:
-                           GLib.idle_add(self.__on_ocr_done, scan_workflow, img,
-                                         boxes))
+        scan_workflow.connect('process-done', lambda scan_workflow, img, boxes:
+                              GLib.idle_add(self.__on_ocr_done, scan_workflow, img,
+                                            boxes))
 
-        self.__main_win.add_scan_workflow(self.__main_win.doc, scan_workflow)
+        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        self.__main_win.add_scan_workflow(self.__main_win.doc, drawer)
         scan_workflow.scan_and_ocr(resolution, scan_session)
 
 
@@ -1600,12 +1603,13 @@ class ActionImport(SimpleAction):
 
         logger.info("Doing OCR on %s" % str(page))
         scan_workflow = self.__main_win.make_scan_workflow()
-        self.__main_win.add_scan_workflow(page.doc, scan_workflow,
-                                       page_nb=page.page_nb)
-        scan_workflow.connect('ocr-done',
-                           lambda scan_workflow, img, boxes:
-                           GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
-                                         boxes, page, page_iterator))
+        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        self.__main_win.add_scan_workflow(page.doc, drawer,
+                                          page_nb=page.page_nb)
+        scan_workflow.connect('process-done',
+                              lambda scan_workflow, img, boxes:
+                              GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
+                                            boxes, page, page_iterator))
         scan_workflow.ocr(page.img, angles=1)
 
     def do(self):
@@ -1739,12 +1743,13 @@ class ActionRedoOCR(SimpleAction):
 
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self._main_win.make_scan_workflow()
-        self._main_win.add_scan_workflow(page.doc, scan_workflow,
-                                       page_nb=page.page_nb)
-        scan_workflow.connect('ocr-done',
-                           lambda scan_workflow, img, boxes:
-                           GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
-                                         boxes, page, page_iterator))
+        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        self._main_win.add_scan_workflow(page.doc, drawer,
+                                         page_nb=page.page_nb)
+        scan_workflow.connect('process-done',
+                              lambda scan_workflow, img, boxes:
+                              GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
+                                            boxes, page, page_iterator))
         scan_workflow.ocr(page.img, angles=1)
 
     def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
@@ -2152,12 +2157,13 @@ class ActionEditPage(SimpleAction):
     def __do_ocr(self, page):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self.__main_win.make_scan_workflow()
-        self.__main_win.add_scan_workflow(page.doc, scan_workflow,
+        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        self.__main_win.add_scan_workflow(page.doc, drawer,
                                        page_nb=page.page_nb)
-        scan_workflow.connect('ocr-done',
-                           lambda scan_workflow, img, boxes:
-                           GLib.idle_add(self.__on_page_ocr_done, scan_workflow, img,
-                                         boxes, page))
+        scan_workflow.connect('process-done',
+                              lambda scan_workflow, img, boxes:
+                              GLib.idle_add(self.__on_page_ocr_done, scan_workflow, img,
+                                            boxes, page))
         scan_workflow.ocr(page.img, angles=1)
 
     def __on_page_ocr_done(self, scan_workflow, img, boxes, page):
@@ -3527,21 +3533,23 @@ class MainWindow(object):
     def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():
             for (page_nb, drawer) in drawers[:]:
-                if scan_workflow.drawer == drawer:
-                    drawers.remove((page_nb, scan_workflow.drawer))
+                if (scan_workflow == drawer
+                    or scan_workflow == drawer.scan_workflow):
+                    drawers.remove((page_nb, drawer))
                     return docid
         raise ValueError("ScanWorkflow not found")
 
-    def add_scan_workflow(self, doc, scan_workflow, page_nb=-1):
-        drawer = scan_workflow.drawer
+    def add_scan_workflow(self, doc, scan_workflow_drawer, page_nb=-1):
+        scan_workflow = scan_workflow_drawer.scan_workflow
         if not doc.docid in self.scan_drawers:
             self.scan_drawers[doc.docid] = []
-        self.scan_drawers[doc.docid].append((page_nb, drawer))
+        self.scan_drawers[doc.docid].append((page_nb, scan_workflow_drawer))
 
         if self.doc.docid == doc.docid:
             self.page = None
             self.show_doc(self.doc, force_refresh=True)
 
-        self.img['canvas'].add_drawer(drawer)
+        self.img['canvas'].add_drawer(scan_workflow_drawer)
         self.img['canvas'].recompute_size()
-        self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
+        self.img['canvas'].get_vadjustment().set_value(
+            scan_workflow_drawer.position[1])

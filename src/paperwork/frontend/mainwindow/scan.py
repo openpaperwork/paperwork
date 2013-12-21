@@ -302,7 +302,7 @@ class JobFactoryOCR(JobFactory):
         return job
 
 
-class ScanWorkflowDrawer(Animation):
+class BasicScanWorkflowDrawer(Animation):
     GLOBAL_MARGIN = 10
     SCAN_TO_OCR_ANIM_TIME = 1000  # ms
     IMG_MARGIN = 20
@@ -327,6 +327,26 @@ class ScanWorkflowDrawer(Animation):
         # --> no actual page
         self.page = None
         self.rotation_done = False
+
+        scan_workflow.connect("scan-start",
+                              lambda gobj:
+                              GLib.idle_add(self.__on_scan_started_cb))
+        scan_workflow.connect("scan-info", lambda gobj, img_x, img_y:
+                              GLib.idle_add(self.__on_scan_info_cb,
+                                            img_x, img_y))
+        scan_workflow.connect("scan-chunk", lambda gobj, line, chunk:
+                              GLib.idle_add(self.__on_scan_chunk_cb, line, chunk))
+        scan_workflow.connect("scan-done", lambda gobj, img:
+                              GLib.idle_add(self.__on_scan_done_cb, img))
+        scan_workflow.connect("ocr-start", lambda gobj, img:
+                              GLib.idle_add(self.__on_ocr_started_cb, img))
+        scan_workflow.connect("ocr-angles", lambda gobj, imgs:
+                              GLib.idle_add(self.__on_ocr_angles_cb, imgs))
+        scan_workflow.connect("ocr-score", lambda gobj, angle, score:
+                              GLib.idle_add(self.__on_ocr_score_cb, angle, score))
+        scan_workflow.connect("ocr-done", lambda gobj, angle, img, boxes:
+                              GLib.idle_add(self.__on_ocr_done_cb, angle, img,
+                                            boxes))
 
     def __get_size(self):
         assert(self.canvas)
@@ -369,10 +389,10 @@ class ScanWorkflowDrawer(Animation):
         for animator in self.animators:
             animator.on_tick()
 
-    def on_scan_started(self):
+    def __on_scan_started_cb(self):
         pass
 
-    def on_scan_info(self, x, y):
+    def __on_scan_info_cb(self, x, y):
         size = fit((x, y), self.canvas.visible_size)
         position = (
             self.position[0] + (self.canvas.visible_size[0] / 2)
@@ -406,60 +426,23 @@ class ScanWorkflowDrawer(Animation):
 
         self.canvas.redraw()
 
-    def on_scan_chunk(self, line, img_chunk):
+    def __on_scan_chunk_cb(self, line, img_chunk):
         assert(len(self.scan_drawers) > 0)
         self.scan_drawers[0].add_chunk(line, img_chunk)
 
-    def on_scan_done(self, img):
+    def __on_scan_done_cb(self, img):
+        if img is None:
+            self.__on_scan_canceled()
+            return
         pass
 
-    def on_scan_error(self, error):
+    def __on_scan_error_cb(self, error):
         self.scan_drawers = []
 
-    def on_scan_canceled(self):
+    def __on_scan_canceled_cb(self):
         self.scan_drawers = []
 
-    def __compute_reduced_sizes(self, visible_area, img_size):
-        visible_area = (
-            visible_area[0] / 2,
-            visible_area[1] / 2,
-        )
-        ratio = min(
-            1.0,
-            float(visible_area[0]) / float(img_size[0]),
-            float(visible_area[1]) / float(img_size[1]),
-            float(visible_area[0]) / float(img_size[1]),
-            float(visible_area[1]) / float(img_size[0]),
-        )
-        return (
-            int(ratio * img_size[0]) - (2 * self.IMG_MARGIN),
-            int(ratio * img_size[1]) - (2 * self.IMG_MARGIN),
-        )
-
-    def __compute_reduced_positions(self, visible_area, img_size,
-                                    target_img_sizes):
-        target_positions = {
-            # center positions
-            0: (visible_area[0] / 4,
-                self.position[1] + (visible_area[1] / 4)),
-            90: (visible_area[0] * 3 / 4,
-                 self.position[1] + (visible_area[1] / 4)),
-            180: (visible_area[0] / 4,
-                  self.position[1] + (visible_area[1] * 3 / 4)),
-            270: (visible_area[0] * 3 / 4,
-                  self.position[1] + (visible_area[1] * 3 / 4)),
-        }
-
-        for key in target_positions.keys()[:]:
-            # image position
-            target_positions[key] = (
-                target_positions[key][0] - (target_img_sizes[0] / 2),
-                target_positions[key][1] - (target_img_sizes[1] / 2),
-            )
-
-        return target_positions
-
-    def on_ocr_started(self, img):
+    def __on_ocr_started_cb(self, img):
         assert(self.canvas)
 
         if len(self.scan_drawers) > 0:
@@ -478,9 +461,9 @@ class ScanWorkflowDrawer(Animation):
         # --> reduce the image size
         img = img.resize(size)
 
-        target_sizes = self.__compute_reduced_sizes(
+        target_sizes = self._compute_reduced_sizes(
             self.canvas.visible_size, size)
-        target_positions = self.__compute_reduced_positions(
+        target_positions = self._compute_reduced_positions(
             self.canvas.visible_size, size, target_sizes)
 
         self.ocr_drawers = {}
@@ -521,7 +504,7 @@ class ScanWorkflowDrawer(Animation):
             # so any of them is good enough for this signal
             new_animators[0].connect(
                 'animator-end', lambda animator:
-                GLib.idle_add(self.on_ocr_rotation_anim_done))
+                GLib.idle_add(self.__on_ocr_rotation_anim_done_cb))
             self.animators += new_animators
 
     def _disable_angle(self, angle):
@@ -543,7 +526,7 @@ class ScanWorkflowDrawer(Animation):
             line_drawer,
         ]
 
-    def on_ocr_angles(self, imgs):
+    def __on_ocr_angles_cb(self, imgs):
         # disable all the angles not evaluated
         self.__used_angles = imgs.keys()
         if self.rotation_done:
@@ -551,7 +534,7 @@ class ScanWorkflowDrawer(Animation):
                 if angle not in self.__used_angles:
                     self._disable_angle(angle)
 
-    def on_ocr_rotation_anim_done(self):
+    def __on_ocr_rotation_anim_done_cb(self):
         self.rotation_done = True
         for angle in self.ocr_drawers.keys()[:]:
             if self.__used_angles and angle not in self.__used_angles:
@@ -574,12 +557,12 @@ class ScanWorkflowDrawer(Animation):
                 self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
                 self.animators.append(spinner)
 
-    def on_ocr_score(self, angle, score):
+    def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
 
-    def on_ocr_done(self, angle, img, boxes):
+    def __on_ocr_done_cb(self, angle, img, boxes):
         self.animators = []
 
         drawers = self.ocr_drawers[angle]
@@ -612,9 +595,97 @@ class ScanWorkflowDrawer(Animation):
                                                  angle, img, boxes))
 
 
+class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
+    def __init__(self, workflow):
+        BasicScanWorkflowDrawer.__init__(self, workflow)
+
+    def _compute_reduced_sizes(self, visible_area, img_size):
+        ratio = min(
+            1.0,
+            float(visible_area[0]) / float(img_size[0]),
+            float(visible_area[1]) / float(img_size[1]),
+            float(visible_area[0]) / float(img_size[1]),
+            float(visible_area[1]) / float(img_size[0]),
+        )
+        return (
+            int(ratio * img_size[0]) - (self.IMG_MARGIN),
+            int(ratio * img_size[1]) - (self.IMG_MARGIN),
+        )
+
+    def _compute_reduced_positions(self, visible_area, img_size,
+                                    target_img_sizes):
+        target_positions = {
+            # center positions
+            0: (visible_area[0] / 2,
+                self.position[1] + (visible_area[1] / 2)),
+        }
+
+        for key in target_positions.keys()[:]:
+            # image position
+            target_positions[key] = (
+                target_positions[key][0] - (target_img_sizes[0] / 2),
+                target_positions[key][1] - (target_img_sizes[1] / 2),
+            )
+
+        return target_positions
+
+
+class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
+    def __init__(self, workflow):
+        BasicScanWorkflowDrawer.__init__(self, workflow)
+
+    def _compute_reduced_sizes(self, visible_area, img_size):
+        visible_area = (
+            visible_area[0] / 2,
+            visible_area[1] / 2,
+        )
+        ratio = min(
+            1.0,
+            float(visible_area[0]) / float(img_size[0]),
+            float(visible_area[1]) / float(img_size[1]),
+            float(visible_area[0]) / float(img_size[1]),
+            float(visible_area[1]) / float(img_size[0]),
+        )
+        return (
+            int(ratio * img_size[0]) - (2 * self.IMG_MARGIN),
+            int(ratio * img_size[1]) - (2 * self.IMG_MARGIN),
+        )
+
+    def _compute_reduced_positions(self, visible_area, img_size,
+                                    target_img_sizes):
+        target_positions = {
+            # center positions
+            0: (visible_area[0] / 4,
+                self.position[1] + (visible_area[1] / 4)),
+            90: (visible_area[0] * 3 / 4,
+                 self.position[1] + (visible_area[1] / 4)),
+            180: (visible_area[0] / 4,
+                  self.position[1] + (visible_area[1] * 3 / 4)),
+            270: (visible_area[0] * 3 / 4,
+                  self.position[1] + (visible_area[1] * 3 / 4)),
+        }
+
+        for key in target_positions.keys()[:]:
+            # image position
+            target_positions[key] = (
+                target_positions[key][0] - (target_img_sizes[0] / 2),
+                target_positions[key][1] - (target_img_sizes[1] / 2),
+            )
+
+        return target_positions
+
+
 class ScanWorkflow(GObject.GObject):
     __gsignals__ = {
         'scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'scan-info': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_INT,
+                       GObject.TYPE_INT,
+                      )),
+        'scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
+                       (GObject.TYPE_INT,  # line
+                        GObject.TYPE_PYOBJECT,  # img chunk
+                       )),
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # PIL image
                       )),
@@ -626,12 +697,24 @@ class ScanWorkflow(GObject.GObject):
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # PIL image
                       )),
+        'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT,  # array of PIL image
+                      )),
+        'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_INT,  # angle
+                       GObject.TYPE_INT,  # score
+                      )),
         'ocr-done': (GObject.SignalFlags.RUN_LAST, None,
-                     (GObject.TYPE_PYOBJECT,  # PIL image
+                     (GObject.TYPE_INT,  # angle
+                      GObject.TYPE_PYOBJECT,  # PIL image
                       GObject.TYPE_PYOBJECT,  # line + word boxes
                      )),
         'ocr-canceled': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
+        'process-done': (GObject.SignalFlags.RUN_LAST, None,
+                     (GObject.TYPE_PYOBJECT,  # PIL image
+                      GObject.TYPE_PYOBJECT,  # line + word boxes
+                     )),
     }
 
     STEP_SCAN = 0
@@ -646,7 +729,6 @@ class ScanWorkflow(GObject.GObject):
         }
 
         self.current_step = -1
-        self.drawer = ScanWorkflowDrawer(self)
 
         self.factories = {
             'scan': JobFactoryScan(self),
@@ -678,14 +760,13 @@ class ScanWorkflow(GObject.GObject):
         return job
 
     def on_scan_start(self):
-        self.drawer.on_scan_started()
         self.emit('scan-start')
 
     def on_scan_info(self, img_x, img_y):
-        self.drawer.on_scan_info(img_x, img_y)
+        self.emit("scan-info", img_x, img_y)
 
     def on_scan_chunk(self, line, img_chunk):
-        self.drawer.on_scan_chunk(line, img_chunk)
+        self.emit("scan-chunk", line, img_chunk)
 
     def on_scan_done(self, img):
         if self.calibration:
@@ -698,11 +779,9 @@ class ScanWorkflow(GObject.GObject):
                 )
             )
 
-        self.drawer.on_scan_done(img)
         self.emit('scan-done', img)
 
     def on_scan_canceled(self):
-        self.drawer.on_scan_canceled()
         self.emit('scan-done', None)
 
     def ocr(self, img, angles=None):
@@ -718,20 +797,19 @@ class ScanWorkflow(GObject.GObject):
         return job
 
     def on_ocr_started(self, img):
-        self.drawer.on_ocr_started(img)
         self.emit('ocr-start', img)
 
     def on_ocr_angles(self, imgs):
-        self.drawer.on_ocr_angles(imgs)
+        self.emit("ocr-angles", imgs)
 
     def on_ocr_score(self, angle, score):
-        self.drawer.on_ocr_score(angle, score)
+        self.emit("ocr-score", angle, score)
 
     def on_ocr_done(self, angle, img, boxes):
-        self.drawer.on_ocr_done(angle, img, boxes)
+        self.emit("ocr-done", angle, img, boxes)
 
     def on_ocr_anim_done(self, angle, img, boxes):
-        self.emit('ocr-done', img, boxes)
+        self.emit('process-done', img, boxes)
 
     def scan_and_ocr(self, resolution, scan_session):
         """

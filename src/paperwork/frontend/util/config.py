@@ -62,7 +62,6 @@ class _ScanTimes(object):
 
 
 class _PaperworkScannerCalibration(object):
-
     def __init__(self, section, token):
         self.section = section
         self.token = token
@@ -150,6 +149,36 @@ class _PaperworkLangs(object):
         pass
 
 
+class _PaperworkSize(object):
+    def __init__(self, section, base_token,
+                 default_size=(1024, 768),
+                 min_size=(400, 300)):
+        self.section = section
+        self.base_token = base_token
+        self.value = default_size
+        self.default_size = default_size
+        self.min_size = min_size
+
+    def load(self, config):
+        try:
+            w = config.get(self.section, self.base_token + "_w")
+            w = int(w)
+            if w < self.min_size[0]:
+                w = self.min_size[0]
+            h = config.get(self.section, self.base_token + "_h")
+            h = int(h)
+            if h < self.min_size[1]:
+                h = self.min_size[1]
+            self.value = (w, h)
+            return
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            self.value = self.default_size
+
+    def update(self, config):
+        config.set(self.section, self.base_token + "_w", str(self.value[0]))
+        config.set(self.section, self.base_token + "_h", str(self.value[1]))
+
+
 class _PaperworkFrontendConfigUtil:
     @staticmethod
     def get_default_ocr_lang():
@@ -195,6 +224,7 @@ def load_config():
     config = PaperworkConfig()
 
     settings = {
+        'main_win_size' : _PaperworkSize("GUI", "main_win_size"),
         'ocr_enabled' : PaperworkSetting("OCR", "Enabled", lambda: True,
                                          paperwork_cfg_boolean),
         'ocr_lang' : PaperworkSetting("OCR", "Lang",

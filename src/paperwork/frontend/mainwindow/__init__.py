@@ -2298,6 +2298,9 @@ class MainWindow(object):
         self.window = widget_tree.get_object("mainWindow")
         self.window.set_application(self.app)
 
+        self.window.set_default_size(config['main_win_size'].value[0],
+                                     config['main_win_size'].value[1])
+
         iconview_matches = widget_tree.get_object("iconviewMatch")
         cellrenderer_labels = CellRendererLabels()
         cellrenderer_labels.set_property('xpad', 10)
@@ -2372,7 +2375,6 @@ class MainWindow(object):
         self.lists['matches'].connect(
             'lines-shown',
             lambda x, docs: GLib.idle_add(self.__on_doc_lines_shown, docs))
-
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -2823,6 +2825,7 @@ class MainWindow(object):
 
         self.img['viewport']['widget'].connect("size-allocate",
                                                self.__on_img_resize_cb)
+        self.window.connect("size-allocate", self.__on_window_resized_cb)
 
         self.window.set_visible(True)
 
@@ -3522,6 +3525,10 @@ class MainWindow(object):
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)
         self.schedulers['main'].schedule(job)
+
+    def __on_window_resized_cb(self, _, rectangle):
+        (w, h) = (rectangle.width, rectangle.height)
+        self.__config['main_win_size'].value = (w, h)
 
     def get_doc_sorting(self):
         for (widget, sort_func, sorting_name) in self.sortings:

@@ -156,7 +156,14 @@ class PdfPage(BasicPage):
                 self.__boxes.append(line_box)
         return self.__boxes
 
-    boxes = property(__get_boxes)
+    def __set_boxes(self, boxes):
+        boxfile = self.__get_box_path()
+        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
+            pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
+        self.drop_cache()
+        self.doc.drop_cache()
+
+    boxes = property(__get_boxes, __set_boxes)
 
     def __render_img(self, factor):
         # TODO(Jflesch): In a perfect world, we shouldn't use ImageSurface.

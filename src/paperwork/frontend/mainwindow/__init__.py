@@ -1748,7 +1748,8 @@ class ActionRedoOCR(SimpleAction):
         scan_workflow.ocr(page.img, angles=1)
 
     def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
-        page.img = img
+        if page.can_edit:
+            page.img = img
         page.boxes = boxes
 
         docid = self._main_win.remove_scan_workflow(scan_workflow)

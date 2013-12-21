@@ -105,6 +105,8 @@ class BasicPage(object):
     img = None
     size = (0, 0)
 
+    can_edit = False
+
     def __init__(self, doc, page_nb):
         """
         Don't create directly. Please use ImgDoc.get_page()

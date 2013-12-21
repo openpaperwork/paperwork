@@ -56,6 +56,8 @@ class ImgPage(BasicPage):
 
     KEYWORD_HIGHLIGHT = 3
 
+    can_edit = True
+
     def __init__(self, doc, page_nb=None):
         if page_nb is None:
             page_nb = doc.nb_pages

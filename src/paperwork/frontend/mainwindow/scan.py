@@ -289,7 +289,7 @@ class JobFactoryOCR(JobFactory):
         print("Will use tool '%s'" % (ocr_tool.get_name()))
 
         job = JobOCR(self, next(self.id_generator), ocr_tool,
-                     self.__config.langs, angles, img)
+                     self.__config['langs'].value, angles, img)
         job.connect("ocr-started", lambda job, img:
                     GLib.idle_add(self.scan_workflow.on_ocr_started, img))
         job.connect("ocr-angles", lambda job, imgs:

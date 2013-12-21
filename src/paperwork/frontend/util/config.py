@@ -129,7 +129,7 @@ class _PaperworkLangs(object):
         self.spellcheck_lang_setting = spellcheck_lang_setting
         self.section = "OCR"
 
-    def __get_langs():
+    def __get_langs(self):
         ocr_lang = self.ocr_lang_setting.value
         if ocr_lang is None:
             return None
@@ -247,7 +247,7 @@ def load_config():
         PaperworkSetting("SpellChecking", "Lang",
                          lambda: ocr_lang(settings['ocr_lang']))
     )
-    settings['lang'] = (
+    settings['langs'] = (
         _PaperworkLangs(settings['ocr_lang'], settings['spelling_lang'])
     )
 

@@ -239,7 +239,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             Gdk.ScrollDirection.DOWN:
             lambda h, v: (0, -1 * v.get_step_increment()),
             Gdk.ScrollDirection.RIGHT:
-            lambda h, v: (h.get_step_incremented(), 0),
+            lambda h, v: (h.get_step_increment(), 0),
             Gdk.ScrollDirection.LEFT:
             lambda h, v: (-1 * h.get_step_increment(), 0),
         }

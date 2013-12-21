@@ -77,10 +77,12 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.connect("size-allocate", self.__on_size_allocate)
         self.connect("draw", self.__on_draw)
-        self.connect("scroll-event", self.__on_scroll_event)
         self.connect("button-press-event", self.__on_button_pressed)
         self.connect("motion-notify-event", self.__on_motion)
         self.connect("button-release-event", self.__on_button_released)
+
+        hadj.connect("value-changed", self.__on_adjustment_changed)
+        vadj.connect("value-changed", self.__on_adjustment_changed)
 
         self.set_size_request(-1, -1)
 
@@ -136,6 +138,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def __on_adjustment_changed(self, adjustment):
         self.redraw()
+        self.emit('window-moved')
 
     def __on_size_allocate(self, _, size_allocate):
         self.visible_size = (size_allocate.width,
@@ -231,38 +234,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def redraw(self):
         self.queue_draw()
-
-    def __on_scroll_event(self, _, event):
-        ops = {
-            Gdk.ScrollDirection.UP:
-            lambda h, v: (0, v.get_step_increment()),
-            Gdk.ScrollDirection.DOWN:
-            lambda h, v: (0, -1 * v.get_step_increment()),
-            Gdk.ScrollDirection.RIGHT:
-            lambda h, v: (h.get_step_increment(), 0),
-            Gdk.ScrollDirection.LEFT:
-            lambda h, v: (-1 * h.get_step_increment(), 0),
-        }
-
-        if not event.direction in ops:
-            return
-
-        ops = ops[event.direction]
-        ops = ops(self.hadjustment, self.vadjustment)
-
-        for (op, adj) in [
-                (ops[0], self.hadjustment),
-                (ops[1], self.vadjustment)
-            ]:
-            val = adj.get_value()
-            val += op
-            if val < adj.get_lower():
-                val = adj.get_lower()
-            if val >= adj.get_upper():
-                val = adj.get_upper() - 1
-            if val != adj.get_value():
-                adj.set_value(val)
-        self.emit('window-moved')
 
     def __get_absolute_event(self, event):
         off_x = int(self.hadjustment.get_value())

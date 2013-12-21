@@ -230,7 +230,7 @@ def load_config():
         'ocr_lang' : PaperworkSetting("OCR", "Lang",
                                       _PaperworkFrontendConfigUtil.get_default_ocr_lang),
         'ocr_nb_angles' : PaperworkSetting("OCR", "Nb_Angles", lambda: 4, int),
-        'result_sorting' : PaperworkSetting("GUI", "Sorting", lambda: "relevance"),
+        'result_sorting' : PaperworkSetting("GUI", "Sorting", lambda: "scan_date"),
         'scanner_devid' : PaperworkSetting("Scanner", "Device"),
         'scanner_resolution' : PaperworkSetting("Scanner", "Resolution",
                                                 lambda: RECOMMENDED_SCAN_RESOLUTION,

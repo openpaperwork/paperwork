@@ -1210,14 +1210,16 @@ class ActionOpenPageNb(SimpleAction):
 
 
 class ActionUpdPageSizes(SimpleAction):
-    def __init__(self, main_window):
+    def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Reload current page")
         self.__main_win = main_window
+        self.__config = config
 
     def do(self):
         SimpleAction.do(self)
         self.__main_win.update_page_sizes()
         self.__main_win.show_page(self.__main_win.page)
+        self.__config['zoom_level'].value = self.__main_win.get_raw_zoom_level()
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -2008,76 +2010,6 @@ class ActionCancelExport(BasicActionEndExport):
         BasicActionEndExport.do(self)
 
 
-class ActionZoomChange(SimpleAction):
-    def __init__(self, main_window, offset):
-        SimpleAction.__init__(self, "Zoom += %d" % offset)
-        self.__main_win = main_window
-        self.__offset = offset
-
-    def do(self):
-        SimpleAction.do(self)
-
-        zoom_liststore = self.__main_win.lists['zoom_levels']['model']
-
-        zoom_list = [
-            (zoom_liststore[zoom_idx][1], zoom_idx)
-            for zoom_idx in range(0, len(zoom_liststore))
-        ]
-        zoom_list.append((99999.0, -1))
-        zoom_list.sort()
-
-        current_zoom = self.__main_win.get_zoom_factor()
-
-        # figures out where the current zoom fits in the zoom list
-        current_idx = -1
-
-        for zoom_list_idx in range(0, len(zoom_list)):
-            if (zoom_list[zoom_list_idx][0] == 0.0):
-                continue
-            logger.info("%f <= %f < %f ?" % (zoom_list[zoom_list_idx][0],
-                                        current_zoom,
-                                        zoom_list[zoom_list_idx+1][0]))
-            if (zoom_list[zoom_list_idx][0] <= current_zoom
-                    and current_zoom < zoom_list[zoom_list_idx+1][0]):
-                current_idx = zoom_list_idx
-                break
-
-        assert(current_idx >= 0)
-
-        # apply the change
-        current_idx += self.__offset
-
-        if (current_idx < 0 or current_idx >= len(zoom_liststore)):
-            return
-
-        if zoom_list[current_idx][0] == 0.0:
-            return
-
-        self.__main_win.lists['zoom_levels']['gui'].set_active(
-            zoom_list[current_idx][1])
-
-
-class ActionZoomSet(SimpleAction):
-    def __init__(self, main_window, value):
-        SimpleAction.__init__(self, ("Zoom = %f" % value))
-        self.__main_win = main_window
-        self.__value = value
-
-    def do(self):
-        SimpleAction.do(self)
-
-        zoom_liststore = self.__main_win.lists['zoom_levels']['model']
-
-        new_idx = -1
-        for zoom_idx in range(0, len(zoom_liststore)):
-            if (zoom_liststore[zoom_idx][1] == self.__value):
-                new_idx = zoom_idx
-                break
-        assert(new_idx >= 0)
-
-        self.__main_win.lists['zoom_levels']['gui'].set_active(new_idx)
-
-
 class ActionEditDoc(SimpleAction):
     def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Edit doc")
@@ -2687,7 +2619,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("comboboxZoom"),
                 ],
-                ActionUpdPageSizes(self)
+                ActionUpdPageSizes(self, config)
             ),
             'search': (
                 [
@@ -2813,6 +2745,8 @@ class MainWindow(object):
             widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
             widget.drag_dest_add_text_targets()
 
+        self.set_raw_zoom_level(config['zoom_level'].value)
+
         self.lists['pages']['gui'].connect(
             "drag-data-get", self.__on_page_list_drag_data_get_cb)
         self.lists['pages']['gui'].connect(
@@ -2857,6 +2791,21 @@ class MainWindow(object):
         if (text is not None and text != ""):
             self.status['text'].push(context_id, text)
         self.status['progress'].set_fraction(progression)
+
+    def set_raw_zoom_level(self, level):
+        zoom_liststore = self.lists['zoom_levels']['model']
+
+        new_idx = -1
+        for zoom_idx in range(0, len(zoom_liststore)):
+            if (zoom_liststore[zoom_idx][1] == level):
+                new_idx = zoom_idx
+                break
+        if new_idx < 0:
+            logger.warning("Unknown zoom level: %f" % level)
+            return
+
+        self.lists['zoom_levels']['gui'].set_active(new_idx)
+
 
     def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3367,10 +3316,13 @@ class MainWindow(object):
     def __get_img_area_height(self):
         return self.img['viewport']['widget'].get_allocation().height
 
-    def get_zoom_factor(self, img_size):
+    def get_raw_zoom_level(self):
         el_idx = self.lists['zoom_levels']['gui'].get_active()
         el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
-        factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        return self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+
+    def get_zoom_factor(self, img_size):
+        factor = self.get_raw_zoom_level()
         # factor is a postive float if user defined, 0 for full width and -1 for full page
         if factor > 0.0:
             return factor

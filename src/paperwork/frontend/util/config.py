@@ -240,6 +240,7 @@ def load_config():
                                              lambda: _PaperworkCfgStringList(""),
                                              _PaperworkCfgStringList),
         'scan_time' : _ScanTimes(),
+        'zoom_level' : PaperworkSetting("GUI", "zoom_level", lambda: 0.0, float),
     }
     ocr_lang = _PaperworkFrontendConfigUtil.get_default_spellcheck_lang
     settings['spelling_lang'] = (

@@ -206,17 +206,17 @@ class BasicPage(object):
             assert(isinstance(sentence, list))
             keywords = sentence
 
-        output = []
+        output = set()
         for keyword in keywords:
             for line in self.boxes:
                 for box in line.word_boxes:
                     if keyword in box.content:
-                        output.append(box)
+                        output.add(box)
                         continue
                     # unfold generator output
                     words = [x for x in split_words(box.content)]
                     if keyword in words:
-                        output.append(box)
+                        output.add(box)
                         continue
         return output
 

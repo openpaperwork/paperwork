@@ -36,6 +36,7 @@ class JobPageImgLoader(Job):
         finally:
             self.emit('page-loading-done')
 
+
 GObject.type_register(JobPageImgLoader)
 
 
@@ -59,13 +60,17 @@ class JobPageBoxesLoader(Job):
     __gsignals__ = {
         'page-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-loading-boxes': (GObject.SignalFlags.RUN_LAST, None,
-                               (GObject.TYPE_PYOBJECT,)),
+                               (
+                                   GObject.TYPE_PYOBJECT,  # all boxes
+                                   GObject.TYPE_PYOBJECT,  # to highlight
+                               )),
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, factory, job_id, page):
+    def __init__(self, factory, job_id, page, sentence=u""):
         Job.__init__(self, factory, job_id)
         self.page = page
+        self.sentence = sentence
 
     def do(self):
         self.emit('page-loading-start')
@@ -93,12 +98,12 @@ class JobFactoryPageBoxesLoader(JobFactory):
     def __init__(self):
         JobFactory.__init__(self, "PageBoxesLoader")
 
-    def make(self, drawer, page):
-        job = JobPageBoxesLoader(self, next(self.id_generator), page)
+    def make(self, drawer, page, sentence):
+        job = JobPageBoxesLoader(self, next(self.id_generator), page, sentence)
         job.connect('page-loading-boxes',
-                    lambda job, boxes:
+                    lambda job, all_boxes, highlighted:
                     GLib.idle_add(drawer.on_page_loading_boxes,
-                                  job.page, boxes))
+                                  job.page, all_boxes, highlighted))
         return job
 
 
@@ -108,7 +113,8 @@ class PageDrawer(Drawer):
     def __init__(self, position, page,
                  job_factories,
                  job_schedulers,
-                 show_all_boxes=False):
+                 show_all_boxes=False,
+                 sentence=u""):
         Drawer.__init__(self)
 
         self.max_size = page.size
@@ -116,7 +122,12 @@ class PageDrawer(Drawer):
         self.show_all_boxes = show_all_boxes
 
         self.surface = None
-        self.boxes = []
+        self.boxes = {
+            'all': [],
+            'highlighted': [],
+            'mouse_over': None,
+        }
+        self.sentence = sentence
         self.visible = False
         self.loading = False
 
@@ -178,14 +189,21 @@ class PageDrawer(Drawer):
             return
         self.surface = surface
         self.canvas.redraw()
-        if len(self.boxes) <= 0:
-            job = self.factories['page_boxes_loader'].make(self, self.page)
-            self.schedulers['page_boxes_loader'].schedule(job)
+        if len(self.boxes['all']) <= 0:
+            self.reload_boxes()
 
-    def on_page_loading_boxes(self, page, boxes):
+    def reload_boxes(self, new_sentence=None):
+        if new_sentence:
+            self.sentence = new_sentence
+        job = self.factories['page_boxes_loader'].make(self, self.page,
+                                                       self.sentence)
+        self.schedulers['page_boxes_loader'].schedule(job)
+
+    def on_page_loading_boxes(self, page, all_boxes, highlighted):
         if not self.visible:
             return
-        self.boxes = boxes
+        self.boxes['all'] = all_boxes
+        self.boxes['highlighted'] = highlighted
         if self.show_all_boxes:
             self.canvas.redraw()
 
@@ -196,7 +214,11 @@ class PageDrawer(Drawer):
         if self.surface is not None:
             del(self.surface)
             self.surface = None
-        self.boxes = []
+        self.boxes = {
+            'all': [],
+            'highlighted': [],
+            'mouse_over': None,
+        }
 
     def hide(self):
         self.unload_content()
@@ -272,4 +294,6 @@ class PageDrawer(Drawer):
 
         if self.show_all_boxes:
             self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
-                self.boxes, color=(0.0, 0.85, 0.0))
+                self.boxes['all'], color=(0.0, 0.0, 0.5))
+        self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
+            self.boxes['highlighted'], color=(0.0, 0.85, 0.0))

@@ -3165,9 +3165,10 @@ class MainWindow(object):
         self.schedulers['main'].schedule(job)
 
     def refresh_boxes(self):
-        # TODO(Jflesch):
-        # Show boxes on the active pages
-        pass
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        for page in self.page_drawers:
+            page.show_all_boxes = self.show_all_boxes
+            page.reload_boxes(search)
 
     def __resize_page(self, drawer):
         factor = self.get_zoom_factor(drawer.max_size)
@@ -3217,12 +3218,16 @@ class MainWindow(object):
                 page_nb: drawer
                 for (page_nb, drawer) in scan_drawers
             }
+
+        search = unicode(self.search_field.get_text(), encoding='utf-8')
+
         for page in doc.pages:
             if page.page_nb in scan_drawers:
                 drawer = scan_drawers[page.page_nb]
             else:
                 drawer = PageDrawer((0, 0), page, factories, schedulers,
-                                    show_all_boxes=self.show_all_boxes)
+                                    show_all_boxes=self.show_all_boxes,
+                                    sentence=search)
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
 

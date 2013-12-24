@@ -1,3 +1,5 @@
+import time
+
 from paperwork.frontend.util.canvas.drawers import Drawer
 
 from gi.repository import GLib
@@ -54,7 +56,7 @@ class JobFactoryPageImgLoader(JobFactory):
 
 
 class JobPageBoxesLoader(Job):
-    can_stop = False
+    can_stop = True
     priority = 100
 
     __gsignals__ = {
@@ -73,9 +75,15 @@ class JobPageBoxesLoader(Job):
         self.sentence = sentence
 
     def do(self):
+        self.can_run = True
         self.emit('page-loading-start')
         try:
             line_boxes = self.page.boxes
+
+            for i in range(0, 20):
+                time.sleep(0.1)
+                if not self.can_run:
+                    self.emit('page-loading-done')
 
             boxes = []
             highlight = set()

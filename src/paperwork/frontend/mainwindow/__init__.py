@@ -37,7 +37,8 @@ from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.mainwindow.pages import PageDrawer
-from paperwork.frontend.mainwindow.pages import JobFactoryPageLoader
+from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
+from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
 from paperwork.frontend.mainwindow.scan import ScanWorkflow
 from paperwork.frontend.mainwindow.scan import MultiAnglesScanWorkflowDrawer
 from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
@@ -2212,6 +2213,7 @@ class MainWindow(object):
         self.schedulers = {
             'main' : JobScheduler("Main"),
             'ocr' : JobScheduler("OCR"),
+            'page_boxes_loader' : JobScheduler("Page boxes loader"),
             'progress' : JobScheduler("Progress"),
             'scan' : JobScheduler("Scan"),
         }
@@ -2443,7 +2445,8 @@ class MainWindow(object):
             'match_list': self.lists['matches'].job_factory,
             'page_editor': JobFactoryPageEditor(self, config),
             'page_list': self.lists['pages'].job_factory,
-            'page_loader': JobFactoryPageLoader(),
+            'page_img_loader': JobFactoryPageImgLoader(),
+            'page_boxes_loader': JobFactoryPageBoxesLoader(),
             'page_thumbnailer': JobFactoryPageThumbnailer(self),
             'progress_updater': JobFactoryProgressUpdater(
                 self.status['progress']),
@@ -3193,14 +3196,17 @@ class MainWindow(object):
         logger.info("Showing document %s" % doc)
         self.doc = doc
 
-        self.schedulers['main'].cancel_all(self.job_factories['page_loader'])
+        self.schedulers['main'].cancel_all(self.job_factories['page_img_loader'])
+        self.schedulers['main'].cancel_all(self.job_factories['page_boxes_loader'])
         self.img['canvas'].remove_all_drawers()
 
         factories = {
-            'page_loader': self.job_factories['page_loader']
+            'page_img_loader': self.job_factories['page_img_loader'],
+            'page_boxes_loader': self.job_factories['page_boxes_loader']
         }
         schedulers = {
-            'page_loader': self.schedulers['main']
+            'page_img_loader': self.schedulers['main'],
+            'page_boxes_loader': self.schedulers['page_boxes_loader'],
         }
 
         self.page_drawers = []
@@ -3215,7 +3221,8 @@ class MainWindow(object):
             if page.page_nb in scan_drawers:
                 drawer = scan_drawers[page.page_nb]
             else:
-                drawer = PageDrawer((0, 0), page, factories, schedulers)
+                drawer = PageDrawer((0, 0), page, factories, schedulers,
+                                    show_all_boxes=self.show_all_boxes)
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
 

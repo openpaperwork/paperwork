@@ -70,8 +70,19 @@ class JobPageBoxesLoader(Job):
     def do(self):
         self.emit('page-loading-start')
         try:
-            boxes = self.page.boxes
-            self.emit('page-loading-boxes', boxes)
+            line_boxes = self.page.boxes
+
+            boxes = []
+            highlight = set()
+
+            boxes = []
+            for line in line_boxes:
+                boxes += line.word_boxes
+
+            if len(self.sentence) > 0:
+                highlight = self.page.get_boxes(self.sentence)
+
+            self.emit('page-loading-boxes', boxes, highlight)
         finally:
             self.emit('page-loading-done')
 

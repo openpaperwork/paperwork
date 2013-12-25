@@ -632,7 +632,8 @@ class JobPageThumbnailer(Job):
 
         for page_idx in xrange(self.__current_idx, nb_pages):
             page = pages[page_idx]
-            img = page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+            img = page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
+                                     BasicPage.DEFAULT_THUMB_HEIGHT)
             img = img.copy()
 
             if self.__search != u"" and self.__search in page:
@@ -730,7 +731,8 @@ class JobDocThumbnailer(Job):
             if doc.nb_pages <= 0:
                 continue
 
-            img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+            img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
+                                             BasicPage.DEFAULT_THUMB_HEIGHT)
             if not self.can_run:
                 return
 

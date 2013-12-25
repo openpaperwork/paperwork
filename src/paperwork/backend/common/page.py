@@ -95,8 +95,11 @@ class PageExporter(object):
 
 class BasicPage(object):
 
+    # The width of the thumbnails is defined arbitrarily
     DEFAULT_THUMB_WIDTH = 150
-    DEFAULT_THUMB_HEIGHT = 220
+    # The height of the thumbnails is defined based on the A4 format
+    # proportions
+    DEFAULT_THUMB_HEIGHT = 212
 
     EXT_THUMB = "thumb.jpg"
     FILE_PREFIX = "paper."
@@ -135,14 +138,17 @@ class BasicPage(object):
         filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
         return os.path.join(self.doc.path, filename)
 
-    def __make_thumbnail(self, width):
+    def __make_thumbnail(self, width, height):
         """
         Create the page's thumbnail
         """
         img = self.img
         (w, h) = img.size
-        factor = (float(w) / width)
-        w = width
+        factor = max(
+            (float(w) / width),
+            (float(h) / height)
+        )
+        w /= factor
         h /= factor
         img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
         return img
@@ -150,11 +156,11 @@ class BasicPage(object):
     def _get_thumb_path(self):
         return self._get_filepath(self.EXT_THUMB)
 
-    def get_thumbnail(self, width):
+    def get_thumbnail(self, width, height):
         """
         thumbnail with a memory cache
         """
-        if (width == self.__thumbnail_cache[1]):
+        if ((width, height) == self.__thumbnail_cache[1]):
             return self.__thumbnail_cache[0]
 
         # get from the file
@@ -163,13 +169,13 @@ class BasicPage(object):
                os.path.getmtime(self._get_thumb_path()):
                 thumbnail = PIL.Image.open(self._get_thumb_path())
             else:
-                thumbnail = self.__make_thumbnail(width)
+                thumbnail = self.__make_thumbnail(width, height)
                 thumbnail.save(self._get_thumb_path())
         except:
-            thumbnail = self.__make_thumbnail(width)
+            thumbnail = self.__make_thumbnail(width, height)
             thumbnail.save(self._get_thumb_path())
 
-        self.__thumbnail_cache = (thumbnail, width)
+        self.__thumbnail_cache = (thumbnail, (width, height))
         return thumbnail
 
     def drop_cache(self):
@@ -266,7 +272,8 @@ class BasicPage(object):
         """
         compute image data to present features for the estimators
         """
-        image = self.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH)
+        image = self.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
+                                   BasicPage.DEFAULT_THUMB_HEIGHT)
         image = image.convert('RGB')
 
         # use the first two channels of color histogram

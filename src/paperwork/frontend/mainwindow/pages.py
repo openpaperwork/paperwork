@@ -1,12 +1,13 @@
 import threading
 import time
 
-from paperwork.frontend.util.canvas.drawers import Drawer
-
 from gi.repository import GLib
 from gi.repository import GObject
+import pango
+import pangocairo
 
 from paperwork.backend.util import image2surface
+from paperwork.backend.util import split_words
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.jobs import Job
@@ -76,6 +77,35 @@ class JobPageBoxesLoader(Job):
         self.sentence = sentence
         self.__cond = threading.Condition()
 
+    def _get_highlighted_boxes(self, boxes, sentence):
+        """
+        Get all the boxes corresponding the given sentence
+
+        Arguments:
+            sentence --- can be string (will be splited), or an array of
+                strings
+        Returns:
+            an array of boxes (see pyocr boxes)
+        """
+        if isinstance(sentence, unicode):
+            keywords = split_words(sentence)
+        else:
+            assert(isinstance(sentence, list))
+            keywords = sentence
+
+        output = set()
+        for keyword in keywords:
+            for box in boxes:
+                if keyword in box.content:
+                    output.add(box)
+                    continue
+                # unfold generator output
+                words = [x for x in split_words(box.content)]
+                if keyword in words:
+                    output.add(box)
+                    continue
+        return output
+
     def do(self):
         self.can_run = True
         self.emit('page-loading-start')
@@ -84,7 +114,7 @@ class JobPageBoxesLoader(Job):
 
             self.__cond.acquire()
             try:
-                self.__cond.wait(2.0)
+                self.__cond.wait(1.0)
             finally:
                 self.__cond.release()
             if not self.can_run:
@@ -98,7 +128,7 @@ class JobPageBoxesLoader(Job):
                 boxes += line.word_boxes
 
             if len(self.sentence) > 0:
-                highlight = self.page.get_boxes(self.sentence)
+                highlight = self._get_highlighted_boxes(boxes, self.sentence)
 
             self.emit('page-loading-boxes', boxes, highlight)
         finally:
@@ -231,7 +261,7 @@ class PageDrawer(Drawer):
             return
         self.boxes['all'] = all_boxes
         self.boxes['highlighted'] = highlighted
-        if self.show_all_boxes:
+        if self.show_all_boxes or len(highlighted) > 0:
             self.canvas.redraw()
 
     def unload_content(self):
@@ -269,29 +299,28 @@ class PageDrawer(Drawer):
             (float(self._size[1]) / self.max_size[1]),
         )
 
-    def draw_boxes(self, cairo_context, canvas_offset, canvas_visible_size,
-                   boxes, color):
+    def _get_real_box(self, box, canvas_offset):
         (x_factor, y_factor) = self._get_factors()
 
+        ((a, b), (c, d)) = box.position
+        (w, h) = (c - a, d - b)
+
+        a *= x_factor
+        b *= y_factor
+        w *= x_factor
+        h *= y_factor
+
+        a += self.position[0]
+        b += self.position[1]
+        a -= canvas_offset[0]
+        b -= canvas_offset[1]
+
+        return (int(a), int(b), int(w), int(h))
+
+    def draw_boxes(self, cairo_context, canvas_offset, canvas_visible_size,
+                   boxes, color):
         for box in boxes:
-            ((a, b), (c, d)) = box.position
-            (w, h) = (c - a, d - b)
-
-            a *= x_factor
-            b *= y_factor
-            w *= x_factor
-            h *= y_factor
-
-            a += self.position[0]
-            b += self.position[1]
-            a -= canvas_offset[0]
-            b -= canvas_offset[1]
-
-            a = int(a)
-            b = int(b)
-            w = int(w)
-            h = int(h)
-
+            (a, b, w, h) = self._get_real_box(box, canvas_offset)
             cairo_context.save()
             try:
                 cairo_context.set_source_rgb(color[0], color[1], color[2])
@@ -300,6 +329,41 @@ class PageDrawer(Drawer):
                 cairo_context.stroke()
             finally:
                 cairo_context.restore()
+
+    def draw_box_txt(self, cairo_context, canvas_offset, canvas_visible_size,
+                     box):
+        (a, b, w, h) = self._get_real_box(box, canvas_offset)
+
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(1.0, 1.0, 1.0)
+            cairo_context.rectangle(a, b, w, h)
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+
+        cairo_context.save()
+        try:
+            cairo_context.translate(a, b)
+            cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+            pangocairo_context = pangocairo.CairoContext(cairo_context)
+
+            layout = pangocairo_context.create_layout()
+            layout.set_text(box.content)
+
+            txt_size = layout.get_size()
+            txt_factor = min(
+                float(w) * pango.SCALE / txt_size[0],
+                float(h) * pango.SCALE / txt_size[1],
+            )
+
+            cairo_context.scale(txt_factor, txt_factor)
+
+            pangocairo_context.update_layout(layout)
+            pangocairo_context.show_layout(layout)
+        finally:
+            cairo_context.restore()
 
     def draw(self, cairo_context, canvas_offset, canvas_visible_size):
         should_be_visible = self.compute_visibility(
@@ -328,8 +392,19 @@ class PageDrawer(Drawer):
         if self.boxes["mouse_over"]:
             self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
                             [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
+            self.draw_box_txt(cairo_context, canvas_offset, canvas_visible_size,
+                              self.boxes['mouse_over'])
         self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
                         self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+
+    def _get_box_at(self, x, y):
+        for box in self.boxes["all"]:
+            if (x >= box.position[0][0]
+                and x <= box.position[1][0]
+                and y >= box.position[0][1]
+                and y <= box.position[1][1]):
+                return box
+        return None
 
     def _on_mouse_motion(self, event):
         position = self.position
@@ -348,7 +423,7 @@ class PageDrawer(Drawer):
             (event.y - position[1]) / y_factor,
         )
 
-        box = self.page.get_box_at(x, y)
+        box = self._get_box_at(x, y)
         if box != self.boxes["mouse_over"]:
             self.boxes["mouse_over"] = box
             self.canvas.redraw()

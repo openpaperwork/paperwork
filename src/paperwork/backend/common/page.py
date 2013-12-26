@@ -196,46 +196,6 @@ class BasicPage(object):
     def destroy(self):
         raise NotImplementedError()
 
-    def get_boxes(self, sentence):
-        """
-        Get all the boxes corresponding the given sentence
-
-        Arguments:
-            sentence --- can be string (will be splited), or an array of
-                strings
-        Returns:
-            an array of boxes (see pyocr boxes)
-        """
-        if isinstance(sentence, unicode):
-            keywords = split_words(sentence)
-        else:
-            assert(isinstance(sentence, list))
-            keywords = sentence
-
-        output = set()
-        for keyword in keywords:
-            for line in self.boxes:
-                for box in line.word_boxes:
-                    if keyword in box.content:
-                        output.add(box)
-                        continue
-                    # unfold generator output
-                    words = [x for x in split_words(box.content)]
-                    if keyword in words:
-                        output.add(box)
-                        continue
-        return output
-
-    def get_box_at(self, x, y):
-        for line in self.boxes:
-            for box in line.word_boxes:
-                if (x >= box.position[0][0]
-                    and x <= box.position[1][0]
-                    and y >= box.position[0][1]
-                    and y <= box.position[1][1]):
-                    return box
-        return None
-
     def get_export_formats(self):
         return self.__prototype_exporters.keys()
 

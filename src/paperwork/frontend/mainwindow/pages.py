@@ -66,45 +66,14 @@ class JobPageBoxesLoader(Job):
         'page-loading-boxes': (GObject.SignalFlags.RUN_LAST, None,
                                (
                                    GObject.TYPE_PYOBJECT,  # all boxes
-                                   GObject.TYPE_PYOBJECT,  # to highlight
                                )),
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, factory, job_id, page, sentence=u""):
+    def __init__(self, factory, job_id, page):
         Job.__init__(self, factory, job_id)
         self.page = page
-        self.sentence = sentence
         self.__cond = threading.Condition()
-
-    def _get_highlighted_boxes(self, boxes, sentence):
-        """
-        Get all the boxes corresponding the given sentence
-
-        Arguments:
-            sentence --- can be string (will be splited), or an array of
-                strings
-        Returns:
-            an array of boxes (see pyocr boxes)
-        """
-        if isinstance(sentence, unicode):
-            keywords = split_words(sentence)
-        else:
-            assert(isinstance(sentence, list))
-            keywords = sentence
-
-        output = set()
-        for keyword in keywords:
-            for box in boxes:
-                if keyword in box.content:
-                    output.add(box)
-                    continue
-                # unfold generator output
-                words = [x for x in split_words(box.content)]
-                if keyword in words:
-                    output.add(box)
-                    continue
-        return output
 
     def do(self):
         self.can_run = True
@@ -127,10 +96,7 @@ class JobPageBoxesLoader(Job):
             for line in line_boxes:
                 boxes += line.word_boxes
 
-            if len(self.sentence) > 0:
-                highlight = self._get_highlighted_boxes(boxes, self.sentence)
-
-            self.emit('page-loading-boxes', boxes, highlight)
+            self.emit('page-loading-boxes', boxes)
         finally:
             self.emit('page-loading-done')
 
@@ -150,12 +116,12 @@ class JobFactoryPageBoxesLoader(JobFactory):
     def __init__(self):
         JobFactory.__init__(self, "PageBoxesLoader")
 
-    def make(self, drawer, page, sentence):
-        job = JobPageBoxesLoader(self, next(self.id_generator), page, sentence)
+    def make(self, drawer, page):
+        job = JobPageBoxesLoader(self, next(self.id_generator), page)
         job.connect('page-loading-boxes',
-                    lambda job, all_boxes, highlighted:
+                    lambda job, all_boxes:
                     GLib.idle_add(drawer.on_page_loading_boxes,
-                                  job.page, all_boxes, highlighted))
+                                  job.page, all_boxes))
         return job
 
 
@@ -247,22 +213,50 @@ class PageDrawer(Drawer):
         self.surface = surface
         self.canvas.redraw()
         if len(self.boxes['all']) <= 0:
-            self.reload_boxes()
+            job = self.factories['page_boxes_loader'].make(self, self.page)
+            self.schedulers['page_boxes_loader'].schedule(job)
+
+    def _get_highlighted_boxes(self, sentence):
+        """
+        Get all the boxes corresponding the given sentence
+
+        Arguments:
+            sentence --- can be string (will be splited), or an array of
+                strings
+        Returns:
+            an array of boxes (see pyocr boxes)
+        """
+        if isinstance(sentence, unicode):
+            keywords = split_words(sentence)
+        else:
+            assert(isinstance(sentence, list))
+            keywords = sentence
+
+        output = set()
+        for keyword in keywords:
+            for box in self.boxes["all"]:
+                if keyword in box.content:
+                    output.add(box)
+                    continue
+                # unfold generator output
+                words = [x for x in split_words(box.content)]
+                if keyword in words:
+                    output.add(box)
+                    continue
+        return output
 
     def reload_boxes(self, new_sentence=None):
         if new_sentence:
             self.sentence = new_sentence
-        job = self.factories['page_boxes_loader'].make(self, self.page,
-                                                       self.sentence)
-        self.schedulers['page_boxes_loader'].schedule(job)
+        self.boxes["highlighted"] = \
+                self._get_highlighted_boxes(self.sentence)
+        self.canvas.redraw()
 
-    def on_page_loading_boxes(self, page, all_boxes, highlighted):
+    def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
             return
         self.boxes['all'] = all_boxes
-        self.boxes['highlighted'] = highlighted
-        if self.show_all_boxes or len(highlighted) > 0:
-            self.canvas.redraw()
+        self.reload_boxes()
 
     def unload_content(self):
         if self.loading:

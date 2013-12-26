@@ -147,6 +147,11 @@ class PageDrawer(Drawer):
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
 
+    def set_canvas(self, canvas):
+        Drawer.set_canvas(self, canvas)
+        canvas.connect("absolute-motion-notify-event", lambda canvas, event:
+                       GLib.idle_add(self._on_mouse_motion, event))
+
     def on_tick(self):
         Drawer.on_tick(self)
         self.spinner.on_tick()
@@ -244,12 +249,15 @@ class PageDrawer(Drawer):
         finally:
             cairo_context.restore()
 
-    def draw_boxes(self, cairo_context, canvas_offset, canvas_visible_size,
-                   boxes, color):
-        (x_factor, y_factor) = (
+    def _get_factors(self):
+        return (
             (float(self._size[0]) / self.max_size[0]),
             (float(self._size[1]) / self.max_size[1]),
         )
+
+    def draw_boxes(self, cairo_context, canvas_offset, canvas_visible_size,
+                   boxes, color):
+        (x_factor, y_factor) = self._get_factors()
 
         for box in boxes:
             ((a, b), (c, d)) = box.position
@@ -302,6 +310,31 @@ class PageDrawer(Drawer):
 
         if self.show_all_boxes:
             self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
-                self.boxes['all'], color=(0.0, 0.0, 0.5))
+                            self.boxes['all'], color=(0.0, 0.0, 0.5))
+        if self.boxes["mouse_over"]:
+            self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
+                            [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
         self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
-            self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+                        self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+
+    def _on_mouse_motion(self, event):
+        position = self.position
+        size = self.size
+
+        if (event.x < position[0]
+            or event.x > (position[0] + size[0])
+            or event.y < position[1]
+            or event.y >= (position[1] + size[1])):
+            return
+
+        (x_factor, y_factor) = self._get_factors()
+        # position on the whole page image
+        (x, y) = (
+            (event.x - position[0]) / x_factor,
+            (event.y - position[1]) / y_factor,
+        )
+
+        box = self.page.get_box_at(x, y)
+        if box != self.boxes["mouse_over"]:
+            self.boxes["mouse_over"] = box
+            self.canvas.redraw()

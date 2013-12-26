@@ -226,6 +226,16 @@ class BasicPage(object):
                         continue
         return output
 
+    def get_box_at(self, x, y):
+        for line in self.boxes:
+            for box in line.word_boxes:
+                if (x >= box.position[0][0]
+                    and x <= box.position[1][0]
+                    and y >= box.position[0][1]
+                    and y <= box.position[1][1]):
+                    return box
+        return None
+
     def get_export_formats(self):
         return self.__prototype_exporters.keys()
 

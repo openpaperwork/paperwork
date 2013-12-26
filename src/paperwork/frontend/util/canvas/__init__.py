@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     """
+    Canvas are area where Drawer can draw:
+
     The main canvas is where page(s) are drawn. This is the biggest and most
     important part of the main window.
     """

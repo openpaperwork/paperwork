@@ -1,3 +1,4 @@
+import threading
 import time
 
 from paperwork.frontend.util.canvas.drawers import Drawer
@@ -73,6 +74,7 @@ class JobPageBoxesLoader(Job):
         Job.__init__(self, factory, job_id)
         self.page = page
         self.sentence = sentence
+        self.__cond = threading.Condition()
 
     def do(self):
         self.can_run = True
@@ -80,10 +82,13 @@ class JobPageBoxesLoader(Job):
         try:
             line_boxes = self.page.boxes
 
-            for i in range(0, 20):
-                time.sleep(0.1)
-                if not self.can_run:
-                    self.emit('page-loading-done')
+            self.__cond.acquire()
+            try:
+                self.__cond.wait(2.0)
+            finally:
+                self.__cond.release()
+            if not self.can_run:
+                self.emit('page-loading-done')
 
             boxes = []
             highlight = set()
@@ -98,6 +103,15 @@ class JobPageBoxesLoader(Job):
             self.emit('page-loading-boxes', boxes, highlight)
         finally:
             self.emit('page-loading-done')
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self.__cond.acquire()
+        try:
+            self.__cond.notify_all()
+        finally:
+            self.__cond.release()
+
 
 GObject.type_register(JobPageBoxesLoader)
 

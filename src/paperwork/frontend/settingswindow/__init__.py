@@ -655,7 +655,6 @@ class SettingsWindow(GObject.GObject):
             "devid": {
                 'gui': widget_tree.get_object("comboboxDevices"),
                 'stores': {
-                    'loading': widget_tree.get_object("liststoreLoading"),
                     'loaded': widget_tree.get_object("liststoreDevice"),
                 },
                 'nb_elements': 0,
@@ -664,7 +663,6 @@ class SettingsWindow(GObject.GObject):
             "source": {
                 'gui': widget_tree.get_object("comboboxScanSources"),
                 'stores': {
-                    'loading': widget_tree.get_object("liststoreLoading"),
                     'loaded': widget_tree.get_object("liststoreScanSources"),
                 },
                 'nb_elements': 0,
@@ -673,7 +671,6 @@ class SettingsWindow(GObject.GObject):
             "resolution": {
                 'gui': widget_tree.get_object("comboboxResolution"),
                 'stores': {
-                    'loading': widget_tree.get_object("liststoreLoading"),
                     'loaded': widget_tree.get_object("liststoreResolution"),
                 },
                 'nb_elements': 0,
@@ -792,8 +789,6 @@ class SettingsWindow(GObject.GObject):
 
     def on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)
-        settings['gui'].set_model(settings['stores']['loading'])
-        settings['gui'].set_active(0)
         settings['stores']['loaded'].clear()
         settings['nb_elements'] = 0
         settings['active_idx'] = -1

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-04 16:55+0100\n"
+"POT-Creation-Date: 2013-12-29 15:44+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -451,35 +451,51 @@ msgid "Delete Page"
 msgstr "Effacer la page"
 
 #: src/paperwork/frontend/mainwindow.glade.h:43
+msgid "First Page"
+msgstr "Première page"
+
+#: src/paperwork/frontend/mainwindow.glade.h:44
+msgid "Previous Page"
+msgstr "Page précédente"
+
+#: src/paperwork/frontend/mainwindow.glade.h:45
+msgid "Next Page"
+msgstr "Page suivante"
+
+#: src/paperwork/frontend/mainwindow.glade.h:46
+msgid "Last Page"
+msgstr "Dernière page"
+
+#: src/paperwork/frontend/mainwindow.glade.h:47
 msgid "_Edit"
 msgstr "Édition"
 
-#: src/paperwork/frontend/mainwindow.glade.h:44
+#: src/paperwork/frontend/mainwindow.glade.h:48
 msgid "_Display"
 msgstr "Affichage"
 
-#: src/paperwork/frontend/mainwindow.glade.h:45
+#: src/paperwork/frontend/mainwindow.glade.h:49
 msgid "Toolbar"
 msgstr "Barre d'outils"
 
-#: src/paperwork/frontend/mainwindow.glade.h:46
+#: src/paperwork/frontend/mainwindow.glade.h:50
 msgid "_Help"
 msgstr "_Aide"
 
-#: src/paperwork/frontend/mainwindow.glade.h:47
+#: src/paperwork/frontend/mainwindow.glade.h:51
 msgid "Edit Document"
 msgstr "Editer le document"
 
-#: src/paperwork/frontend/mainwindow.glade.h:48
+#: src/paperwork/frontend/mainwindow.glade.h:52
 #: src/paperwork/frontend/settingswindow.glade.h:2
 msgid "Settings"
 msgstr "Réglages"
 
-#: src/paperwork/frontend/mainwindow.glade.h:49
+#: src/paperwork/frontend/mainwindow.glade.h:53
 msgid "Quit"
 msgstr "Quitter"
 
-#: src/paperwork/frontend/mainwindow.glade.h:50
+#: src/paperwork/frontend/mainwindow.glade.h:54
 msgid ""
 "Search documents\n"
 "* To search documents with a specific label: label:[label]\n"
@@ -497,107 +513,107 @@ msgstr ""
 "* Trouver des documents avec une date spécifique: date:AAAAMMJJ or date:"
 "[AAAAMMJJ to  AAAAMMJJ]"
 
-#: src/paperwork/frontend/mainwindow.glade.h:56
+#: src/paperwork/frontend/mainwindow.glade.h:60
 #: src/paperwork/frontend/multiscan.glade.h:3
 msgid "Documents"
 msgstr "Documents"
 
-#: src/paperwork/frontend/mainwindow.glade.h:57
+#: src/paperwork/frontend/mainwindow.glade.h:61
 msgid "Pages"
 msgstr "Pages"
 
-#: src/paperwork/frontend/mainwindow.glade.h:58
+#: src/paperwork/frontend/mainwindow.glade.h:62
 msgid "Labels"
 msgstr "Labels"
 
 # Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/paperwork/frontend/mainwindow.glade.h:59
+#: src/paperwork/frontend/mainwindow.glade.h:63
 #: src/paperwork/frontend/settingswindow.glade.h:11
 msgid "Scan"
 msgstr "Scanner"
 
-#: src/paperwork/frontend/mainwindow.glade.h:60
+#: src/paperwork/frontend/mainwindow.glade.h:64
 msgid "Scan From Feeder"
 msgstr "Scanner depuis le bac"
 
-#: src/paperwork/frontend/mainwindow.glade.h:61
+#: src/paperwork/frontend/mainwindow.glade.h:65
 msgid "Edit page"
 msgstr "Editer la page"
 
-#: src/paperwork/frontend/mainwindow.glade.h:62
+#: src/paperwork/frontend/mainwindow.glade.h:66
 msgid "Modify"
 msgstr "Modifier"
 
-#: src/paperwork/frontend/mainwindow.glade.h:63
+#: src/paperwork/frontend/mainwindow.glade.h:67
 msgid "Print"
 msgstr "Imprimer"
 
-#: src/paperwork/frontend/mainwindow.glade.h:64
+#: src/paperwork/frontend/mainwindow.glade.h:68
 msgid "Export Document"
 msgstr "Exporter le document"
 
-#: src/paperwork/frontend/mainwindow.glade.h:65
+#: src/paperwork/frontend/mainwindow.glade.h:69
 msgid "Export Page"
 msgstr "Exporter la page"
 
-#: src/paperwork/frontend/mainwindow.glade.h:66
+#: src/paperwork/frontend/mainwindow.glade.h:70
 msgid "Previous"
 msgstr "Précédente"
 
-#: src/paperwork/frontend/mainwindow.glade.h:67
+#: src/paperwork/frontend/mainwindow.glade.h:71
 msgid "Next"
 msgstr "Suivante"
 
-#: src/paperwork/frontend/mainwindow.glade.h:68
+#: src/paperwork/frontend/mainwindow.glade.h:72
 msgid "File format"
 msgstr "Format de fichier"
 
-#: src/paperwork/frontend/mainwindow.glade.h:69
+#: src/paperwork/frontend/mainwindow.glade.h:73
 msgid "Page format"
 msgstr "Format de page"
 
-#: src/paperwork/frontend/mainwindow.glade.h:70
+#: src/paperwork/frontend/mainwindow.glade.h:74
 msgid "Quality"
 msgstr "Qualité"
 
-#: src/paperwork/frontend/mainwindow.glade.h:71
+#: src/paperwork/frontend/mainwindow.glade.h:75
 msgid "Estimated Size"
 msgstr "Taille estimée"
 
-#: src/paperwork/frontend/mainwindow.glade.h:72
+#: src/paperwork/frontend/mainwindow.glade.h:76
 msgid " Save as ... "
 msgstr " Enregistrer sous ... "
 
-#: src/paperwork/frontend/mainwindow.glade.h:75
+#: src/paperwork/frontend/mainwindow.glade.h:79
 msgid "Destroy"
 msgstr "Détruire"
 
-#: src/paperwork/frontend/mainwindow.glade.h:76
+#: src/paperwork/frontend/mainwindow.glade.h:80
 msgid "Sort by"
 msgstr "Trier par"
 
-#: src/paperwork/frontend/mainwindow.glade.h:77
+#: src/paperwork/frontend/mainwindow.glade.h:81
 msgid "Relevance"
 msgstr "Pertinence"
 
 # Attention a faire la distinction l'objet "Scanner" du verbe "Scanner"
-#: src/paperwork/frontend/mainwindow.glade.h:78
+#: src/paperwork/frontend/mainwindow.glade.h:82
 msgid "Scan date"
 msgstr "Date du scan"
 
-#: src/paperwork/frontend/mainwindow.glade.h:79
+#: src/paperwork/frontend/mainwindow.glade.h:83
 msgid "Open the document in a file manager\n"
 msgstr "Ouvrir le document avec le gestionnaire de fichier\n"
 
-#: src/paperwork/frontend/mainwindow.glade.h:81
+#: src/paperwork/frontend/mainwindow.glade.h:85
 msgid "Open directory"
 msgstr "Ouvrir le répertoire"
 
-#: src/paperwork/frontend/mainwindow.glade.h:82
+#: src/paperwork/frontend/mainwindow.glade.h:86
 msgid "Delete document"
 msgstr "Effacer le document"
 
-#: src/paperwork/frontend/mainwindow.glade.h:83
+#: src/paperwork/frontend/mainwindow.glade.h:87
 msgid "Delete"
 msgstr "Effacer"
 

@@ -7,7 +7,6 @@
 				<item>
 					<attribute name="label" translatable="yes">_Settings</attribute>
 					<attribute name="action">app.settings</attribute>
-					<attribute name="accel">&lt;Primary&gt;c</attribute>
 				</item>
 			</section>
 			<section>
@@ -16,17 +15,14 @@
 					<item>
 						<attribute name="label" translatable="yes">Reindex all the documents</attribute>
 						<attribute name="action">app.reindex_all</attribute>
-						<attribute name="accel">&lt;Primary&gt;c</attribute>
 					</item>
 					<item>
 						<attribute name="label" translatable="yes">Redo OCR on the document</attribute>
 						<attribute name="action">app.redo_ocr_doc</attribute>
-						<attribute name="accel">&lt;Primary&gt;c</attribute>
 					</item>
 					<item>
 						<attribute name="label" translatable="yes">Redo OCR on all the documents</attribute>
 						<attribute name="action">app.redo_ocr_all</attribute>
-						<attribute name="accel">&lt;Primary&gt;c</attribute>
 					</item>
 				</submenu>
 			</section>
@@ -34,12 +30,10 @@
 				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>
-					<attribute name="accel">&lt;Primary&gt;c</attribute>
 				</item>
 				<item>
 					<attribute name="label" translatable="yes">_Quit</attribute>
 					<attribute name="action">app.quit</attribute>
-					<attribute name="accel">&lt;Primary&gt;v</attribute>
 				</item>
 			</section>
 		</submenu>

@@ -1799,7 +1799,8 @@ class ActionRedoAllOCR(ActionRedoOCR):
         ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
 
     def do(self):
-        all_page_iter = AllPagesIterator()
+        docsearch = self._main_win.docsearch
+        all_page_iter = AllPagesIterator(docsearch)
         ActionRedoOCR.do(self, all_page_iter)
 
 

@@ -446,7 +446,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemFirstPage">
-                        <property name="label">First Page</property>
+                        <property name="label" translatable="yes">First Page</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -456,7 +456,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemPrevPage">
-                        <property name="label">Previous Page</property>
+                        <property name="label" translatable="yes">Previous Page</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -466,7 +466,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemNextPage">
-                        <property name="label">Next Page</property>
+                        <property name="label" translatable="yes">Next Page</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -476,7 +476,7 @@
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitemLastPage">
-                        <property name="label">Last Page</property>
+                        <property name="label" translatable="yes">Last Page</property>
                         <property name="use_action_appearance">False</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

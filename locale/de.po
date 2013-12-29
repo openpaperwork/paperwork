@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-05 00:33+0100\n"
-"PO-Revision-Date: 2013-12-06 13:55+0100\n"
+"POT-Creation-Date: 2013-12-29 19:49+0100\n"
+"PO-Revision-Date: 2013-12-29 19:51+0100\n"
 "Last-Translator: Tristan Kohl <blobbyjj@ymail.com>\n"
 "Language-Team: German <>\n"
 "Language: de\n"
@@ -453,35 +453,51 @@ msgid "Delete Page"
 msgstr "Seite löschen"
 
 #: src/paperwork/frontend/mainwindow.glade.h:43
+msgid "First Page"
+msgstr "Erste Seite"
+
+#: src/paperwork/frontend/mainwindow.glade.h:44
+msgid "Previous Page"
+msgstr "Vorherige Seite"
+
+#: src/paperwork/frontend/mainwindow.glade.h:45
+msgid "Next Page"
+msgstr "Nächste Seite"
+
+#: src/paperwork/frontend/mainwindow.glade.h:46
+msgid "Last Page"
+msgstr "Letzte Seite"
+
+#: src/paperwork/frontend/mainwindow.glade.h:47
 msgid "_Edit"
 msgstr "_Bearbeiten"
 
-#: src/paperwork/frontend/mainwindow.glade.h:44
+#: src/paperwork/frontend/mainwindow.glade.h:48
 msgid "_Display"
 msgstr "_Darstellung"
 
-#: src/paperwork/frontend/mainwindow.glade.h:45
+#: src/paperwork/frontend/mainwindow.glade.h:49
 msgid "Toolbar"
 msgstr "Werkzeugleiste"
 
-#: src/paperwork/frontend/mainwindow.glade.h:46
+#: src/paperwork/frontend/mainwindow.glade.h:50
 msgid "_Help"
 msgstr "_Hilfe"
 
-#: src/paperwork/frontend/mainwindow.glade.h:47
+#: src/paperwork/frontend/mainwindow.glade.h:51
 msgid "Edit Document"
 msgstr "Dokument bearbeiten"
 
-#: src/paperwork/frontend/mainwindow.glade.h:48
+#: src/paperwork/frontend/mainwindow.glade.h:52
 #: src/paperwork/frontend/settingswindow.glade.h:2
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:49
+#: src/paperwork/frontend/mainwindow.glade.h:53
 msgid "Quit"
 msgstr "Beenden"
 
-#: src/paperwork/frontend/mainwindow.glade.h:50
+#: src/paperwork/frontend/mainwindow.glade.h:54
 msgid ""
 "Search documents\n"
 "* To search documents with a specific label: label:[label]\n"
@@ -495,110 +511,109 @@ msgstr ""
 "*Nach Dokumenten mit einem bestimmen Label suchen: label:[Label]\n"
 "*Nur Dokumente mit einem bestimmten Suchwort: \"[Suchwort]\"\n"
 "*Dokumente mit einem bestimmten Suchwort ignorieren: NOT [Suchwort]\n"
-"*Dokumente mit Suchwort1 oder Suchwort2 finden: [Suchwort1] OR "
-"[Suchwort2]\n"
+"*Dokumente mit Suchwort1 oder Suchwort2 finden: [Suchwort1] OR [Suchwort2]\n"
 "*Dokumente mit einem bestimmten Datum: date:JJJJMMTT oder date:[JJJJMMTT to "
 "JJJJMMTT]"
 
-#: src/paperwork/frontend/mainwindow.glade.h:56
+#: src/paperwork/frontend/mainwindow.glade.h:60
 #: src/paperwork/frontend/multiscan.glade.h:3
 msgid "Documents"
 msgstr "Dokumente"
 
-#: src/paperwork/frontend/mainwindow.glade.h:57
+#: src/paperwork/frontend/mainwindow.glade.h:61
 msgid "Pages"
 msgstr "Seiten"
 
-#: src/paperwork/frontend/mainwindow.glade.h:58
+#: src/paperwork/frontend/mainwindow.glade.h:62
 msgid "Labels"
 msgstr ""
 
-#: src/paperwork/frontend/mainwindow.glade.h:59
+#: src/paperwork/frontend/mainwindow.glade.h:63
 #: src/paperwork/frontend/settingswindow.glade.h:11
 msgid "Scan"
 msgstr "Scannen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:60
+#: src/paperwork/frontend/mainwindow.glade.h:64
 msgid "Scan From Feeder"
 msgstr "Vom Dokumenteneinzug scannen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:61
+#: src/paperwork/frontend/mainwindow.glade.h:65
 msgid "Edit page"
 msgstr "Seite bearbeiten"
 
-#: src/paperwork/frontend/mainwindow.glade.h:62
+#: src/paperwork/frontend/mainwindow.glade.h:66
 msgid "Modify"
 msgstr "Ändern"
 
-#: src/paperwork/frontend/mainwindow.glade.h:63
+#: src/paperwork/frontend/mainwindow.glade.h:67
 msgid "Print"
 msgstr "Drucken"
 
-#: src/paperwork/frontend/mainwindow.glade.h:64
+#: src/paperwork/frontend/mainwindow.glade.h:68
 msgid "Export Document"
 msgstr "Dokument exportieren"
 
-#: src/paperwork/frontend/mainwindow.glade.h:65
+#: src/paperwork/frontend/mainwindow.glade.h:69
 msgid "Export Page"
 msgstr "Seite exportieren"
 
-#: src/paperwork/frontend/mainwindow.glade.h:66
+#: src/paperwork/frontend/mainwindow.glade.h:70
 msgid "Previous"
 msgstr "Vorherige"
 
-#: src/paperwork/frontend/mainwindow.glade.h:67
+#: src/paperwork/frontend/mainwindow.glade.h:71
 msgid "Next"
 msgstr "Nächste"
 
-#: src/paperwork/frontend/mainwindow.glade.h:68
+#: src/paperwork/frontend/mainwindow.glade.h:72
 msgid "File format"
 msgstr "Dateiformat"
 
-#: src/paperwork/frontend/mainwindow.glade.h:69
+#: src/paperwork/frontend/mainwindow.glade.h:73
 msgid "Page format"
 msgstr "Seitenformat"
 
-#: src/paperwork/frontend/mainwindow.glade.h:70
+#: src/paperwork/frontend/mainwindow.glade.h:74
 msgid "Quality"
 msgstr "Qualität"
 
-#: src/paperwork/frontend/mainwindow.glade.h:71
+#: src/paperwork/frontend/mainwindow.glade.h:75
 msgid "Estimated Size"
 msgstr "Geschätzte Größe"
 
-#: src/paperwork/frontend/mainwindow.glade.h:72
+#: src/paperwork/frontend/mainwindow.glade.h:76
 msgid " Save as ... "
 msgstr " Speichern unter ... "
 
-#: src/paperwork/frontend/mainwindow.glade.h:75
+#: src/paperwork/frontend/mainwindow.glade.h:79
 msgid "Destroy"
 msgstr "Vollständig entfernen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:76
+#: src/paperwork/frontend/mainwindow.glade.h:80
 msgid "Sort by"
 msgstr "Sortieren nach"
 
-#: src/paperwork/frontend/mainwindow.glade.h:77
+#: src/paperwork/frontend/mainwindow.glade.h:81
 msgid "Relevance"
 msgstr "Relevanz"
 
-#: src/paperwork/frontend/mainwindow.glade.h:78
+#: src/paperwork/frontend/mainwindow.glade.h:82
 msgid "Scan date"
 msgstr "Scandatum"
 
-#: src/paperwork/frontend/mainwindow.glade.h:79
+#: src/paperwork/frontend/mainwindow.glade.h:83
 msgid "Open the document in a file manager\n"
 msgstr "Dokument in Dateimanager öffnen\n"
 
-#: src/paperwork/frontend/mainwindow.glade.h:81
+#: src/paperwork/frontend/mainwindow.glade.h:85
 msgid "Open directory"
 msgstr "Verzeichnis öffnen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:82
+#: src/paperwork/frontend/mainwindow.glade.h:86
 msgid "Delete document"
 msgstr "Dokument löschen"
 
-#: src/paperwork/frontend/mainwindow.glade.h:83
+#: src/paperwork/frontend/mainwindow.glade.h:87
 msgid "Delete"
 msgstr "Löschen"
 

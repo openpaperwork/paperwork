@@ -1737,12 +1737,15 @@ class ActionRedoOCR(SimpleAction):
         SimpleAction.__init__(self, name)
         self._main_win = main_window
 
-    def _do_next_page(self, page_iterator):
+    def _do_next_page(self, page_iterator, docs_done=None):
         try:
             page = next(page_iterator)
         except StopIteration:
             logger.info("OCR has been redone on all the target pages")
-            return
+            raise
+
+        if page.doc != self._main_win.doc:
+            self._main_win.show_doc(page.doc)
 
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self._main_win.make_scan_workflow()
@@ -1752,22 +1755,27 @@ class ActionRedoOCR(SimpleAction):
         scan_workflow.connect('process-done',
                               lambda scan_workflow, img, boxes:
                               GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
-                                            boxes, page, page_iterator))
+                                            boxes, page, page_iterator,
+                                            docs_done))
         scan_workflow.ocr(page.img, angles=1)
 
-    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
-        if page.can_edit:
-            page.img = img
+    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator,
+                          docs_done=None):
+        if docs_done is None:
+            docs_done = set()
         page.boxes = boxes
 
         docid = self._main_win.remove_scan_workflow(scan_workflow)
 
         doc = self._main_win.docsearch.get_doc_from_docid(docid)
-        job = self._main_win.job_factories['index_updater'].make(
-            self._main_win.docsearch, upd_docs={doc}, optimize=False)
-        self._main_win.schedulers['main'].schedule(job)
+        docs_done.add(doc)
 
-        self._do_next_page(page_iterator)
+        try:
+            self._do_next_page(page_iterator)
+        except StopIteration:
+            job = self._main_win.job_factories['index_updater'].make(
+                self._main_win.docsearch, upd_docs=docs_done, optimize=False)
+            self._main_win.schedulers['main'].schedule(job)
 
     def do(self, pages_iterator):
         if not ask_confirmation(self._main_win.window):
@@ -3563,8 +3571,7 @@ class MainWindow(object):
         if self.doc.docid == doc.docid:
             self.page = None
             self.show_doc(self.doc, force_refresh=True)
-
-        self.img['canvas'].add_drawer(scan_workflow_drawer)
-        self.img['canvas'].recompute_size()
-        self.img['canvas'].get_vadjustment().set_value(
-            scan_workflow_drawer.position[1])
+            self.img['canvas'].add_drawer(scan_workflow_drawer)
+            self.img['canvas'].recompute_size()
+            self.img['canvas'].get_vadjustment().set_value(
+                scan_workflow_drawer.position[1])

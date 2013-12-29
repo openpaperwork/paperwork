@@ -3,7 +3,7 @@
 
 ## Description
 
-Paperwork is a tool to make papers searchable.
+Paperwork is a tool to make easily papers searchable.
 
 The basic idea behind Paperwork is "scan & forget" : You should be able to just
 scan a new document and forget about it until the day you need it again. Let the
@@ -79,6 +79,7 @@ Github can automatically provides .tar.gz and .zip files if required. However,
 they are not required to install Paperwork. They are indicated here as a
 convenience for package maintainers.
 
+* [Paperwork 0.1.2](https://github.com/jflesch/paperwork/archive/0.1.2.tar.gz)
 * [Paperwork 0.1.1](https://github.com/jflesch/paperwork/archive/0.1.1.tar.gz)
 * [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
 

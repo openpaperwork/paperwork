@@ -602,16 +602,16 @@ class SettingsWindow(GObject.GObject):
         langs = []
         for short_lang in short_langs:
             try:
+                extra = short_lang[3:]
                 short_lang = short_lang[:3]
+                if extra != "" and (extra[0] == "-" or extra[0] == "_"):
+                    extra = extra[1:]
                 try:
                     country = pycountry.languages.get(terminology=short_lang)
                 except KeyError:
                     country = pycountry.languages.get(bibliographic=short_lang)
-                extra = None
-                if "_" in short_lang:
-                    extra = short_lang.split("_")[1]
                 long_lang = country.name
-                if extra is not None:
+                if extra != "":
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))
             except KeyError, exc:

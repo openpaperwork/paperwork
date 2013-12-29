@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-12-04 16:59+0100\n"
+"POT-Creation-Date: 2013-12-29 15:44+0100\n"
 "PO-Revision-Date: 2011-12-22 00:21+0100\n"
 "Last-Translator: jflesch@gmail.com\n"
 "Language-Team: none\n"
@@ -415,18 +415,34 @@ msgid "Delete Page"
 msgstr "Effacer"
 
 #: src/paperwork/frontend/mainwindow.glade.h:43
+msgid "First Page"
+msgstr "Première page"
+
+#: src/paperwork/frontend/mainwindow.glade.h:44
+msgid "Previous Page"
+msgstr "Page précédente"
+
+#: src/paperwork/frontend/mainwindow.glade.h:45
+msgid "Next Page"
+msgstr "Page suivante"
+
+#: src/paperwork/frontend/mainwindow.glade.h:46
+msgid "Last Page"
+msgstr "Dernière page"
+
+#: src/paperwork/frontend/mainwindow.glade.h:47
 msgid "_Edit"
 msgstr "_Édition"
 
-#: src/paperwork/frontend/mainwindow.glade.h:44
+#: src/paperwork/frontend/mainwindow.glade.h:48
 msgid "_Display"
 msgstr ""
 
-#: src/paperwork/frontend/mainwindow.glade.h:45
+#: src/paperwork/frontend/mainwindow.glade.h:49
 msgid "Toolbar"
 msgstr ""
 
-#: src/paperwork/frontend/mainwindow.glade.h:46
+#: src/paperwork/frontend/mainwindow.glade.h:50
 msgid "_Help"
 msgstr ""
 
@@ -489,7 +505,6 @@ msgid "Scan"
 msgstr "Scanner"
 
 #: src/paperwork/frontend/mainwindow.glade.h:60
-#, fuzzy
 msgid "Scan From Feeder"
 msgstr "Scanner depuis le bac"
 
@@ -509,12 +524,10 @@ msgid "Print"
 msgstr "Imprimer"
 
 #: src/paperwork/frontend/mainwindow.glade.h:64
-#, fuzzy
 msgid "Export Document"
 msgstr "Exporter le document"
 
 #: src/paperwork/frontend/mainwindow.glade.h:65
-#, fuzzy
 msgid "Export Page"
 msgstr "Exporter la page"
 

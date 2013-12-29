@@ -82,11 +82,13 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.connect("button-press-event", self.__on_button_pressed)
         self.connect("motion-notify-event", self.__on_motion)
         self.connect("button-release-event", self.__on_button_released)
+        self.connect("key-press-event", self.__on_key_pressed)
 
         hadj.connect("value-changed", self.__on_adjustment_changed)
         vadj.connect("value-changed", self.__on_adjustment_changed)
 
         self.set_size_request(-1, -1)
+        self.set_can_focus(True)
 
         self.need_ticks = 0
 
@@ -246,6 +248,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         return event;
 
     def __on_button_pressed(self, _, event):
+        self.grab_focus()
         event = self.__get_absolute_event(event)
         self.emit('absolute-button-press-event', event)
 
@@ -256,6 +259,39 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __on_button_released(self, _, event):
         event = self.__get_absolute_event(event)
         self.emit('absolute-button-release-event', event)
+
+    def __on_key_pressed(self, _, event):
+        h = self.hadjustment.get_value()
+        v = self.vadjustment.get_value()
+        h_offset = 100
+        v_offset = 100
+        v_page = self.vadjustment.get_page_size()
+
+        ops = {
+            Gdk.KEY_Left: lambda: (h - h_offset, v),
+            Gdk.KEY_Right: lambda: (h + h_offset, v),
+            Gdk.KEY_Up: lambda: (h, v - v_offset),
+            Gdk.KEY_Down: lambda: (h, v + v_offset),
+            Gdk.KEY_Page_Up: lambda: (h, v - v_page),
+            Gdk.KEY_Page_Down: lambda: (h, v + v_page),
+        }
+        if not event.keyval in ops:
+            return False
+
+        (h, v) = ops[event.keyval]()
+        if h != self.hadjustment.get_value():
+            if h < self.hadjustment.get_lower():
+                h = self.hadjustment.get_lower()
+            if h > self.hadjustment.get_upper():
+                h = self.hadjustment.get_upper()
+            self.hadjustment.set_value(h)
+        if v != self.vadjustment.get_value():
+            if v < self.vadjustment.get_lower():
+                v = self.vadjustment.get_lower()
+            if v > self.vadjustment.get_upper():
+                v = self.vadjustment.get_upper()
+            self.vadjustment.set_value(v)
+        return True
 
     def __get_position(self):
         return (int(self.hadjustment.get_value()),

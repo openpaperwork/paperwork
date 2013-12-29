@@ -38,7 +38,7 @@ def ask_confirmation(parent):
     confirm = Gtk.MessageDialog(parent=parent,
                                 flags=Gtk.DialogFlags.MODAL
                                 | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                type=Gtk.MessageType.WARNING,
+                                message_type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
                                 message_format=_('Are you sure ?'))
     response = confirm.run()

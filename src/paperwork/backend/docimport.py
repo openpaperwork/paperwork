@@ -51,7 +51,7 @@ class SinglePdfImporter(object):
         """
         Import the specified PDF file
         """
-        doc = PdfDoc(config.workdir)
+        doc = PdfDoc(config.settings['workdir'].value)
         logger.info("Importing doc '%s' ..." % file_uri)
         doc.import_pdf(config, file_uri)
         for page in doc.pages:
@@ -129,7 +129,7 @@ class MultiplePdfImporter(object):
                                                password=None)
             except Exception:
                 continue
-            doc = PdfDoc(config.workdir)
+            doc = PdfDoc(config.settings['workdir'].value)
             doc.import_pdf(config, child.get_uri())
             for page in doc.pages:
                 docsearch.index_page(page)
@@ -170,7 +170,7 @@ class SingleImageImporter(object):
         """
         logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
-            current_doc = ImgDoc(config.workdir)
+            current_doc = ImgDoc(config.settings['workdir'].value)
         if file_uri[:7] == "file://":
             # XXX(Jflesch): bad bad bad
             file_uri = file_uri[7:]

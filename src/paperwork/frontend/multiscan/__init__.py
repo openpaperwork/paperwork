@@ -425,7 +425,7 @@ class MultiscanDialog(GObject.GObject):
         msg = _("All the pages have been scanned")
         dialog = Gtk.MessageDialog(self.dialog,
                                    flags=Gtk.DialogFlags.MODAL,
-                                   type=Gtk.MessageType.INFO,
+                                   message_type=Gtk.MessageType.INFO,
                                    buttons=Gtk.ButtonsType.OK,
                                    message_format=msg)
         dialog.run()
@@ -442,7 +442,7 @@ class MultiscanDialog(GObject.GObject):
                     " (got %d pages)") % (self.scanned_pages)
             dialog = Gtk.MessageDialog(self.dialog,
                                        flags=Gtk.DialogFlags.MODAL,
-                                       type=Gtk.MessageType.WARNING,
+                                       message_type=Gtk.MessageType.WARNING,
                                        buttons=Gtk.ButtonsType.OK,
                                        message_format=msg)
             dialog.run()

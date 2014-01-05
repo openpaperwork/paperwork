@@ -1565,7 +1565,7 @@ class ActionImport(SimpleAction):
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(parent=self.__main_win.window,
                                    flags=flags,
-                                   type=Gtk.MessageType.ERROR,
+                                   message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    message_format=msg)
         dialog.run()
@@ -1577,7 +1577,7 @@ class ActionImport(SimpleAction):
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(parent=self.__main_win.window,
                                    flags=flags,
-                                   type=Gtk.MessageType.WARNING,
+                                   message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
                                    message_format=msg)
         dialog.run()

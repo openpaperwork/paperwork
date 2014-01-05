@@ -146,7 +146,7 @@ class DocEditDialog(object):
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(parent=self.dialog,
                                    flags=flags,
-                                   type=Gtk.MessageType.ERROR,
+                                   message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    message_format=msg)
         dialog.run()

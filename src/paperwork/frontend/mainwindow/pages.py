@@ -3,8 +3,8 @@ import time
 
 from gi.repository import GLib
 from gi.repository import GObject
-import pango
-import pangocairo
+from gi.repository import Pango
+from gi.repository import PangoCairo
 
 from paperwork.backend.util import image2surface
 from paperwork.backend.util import split_words
@@ -341,21 +341,20 @@ class PageDrawer(Drawer):
         try:
             cairo_context.translate(a, b)
             cairo_context.set_source_rgb(0.0, 0.0, 0.0)
-            pangocairo_context = pangocairo.CairoContext(cairo_context)
 
-            layout = pangocairo_context.create_layout()
-            layout.set_text(box.content)
+            layout = PangoCairo.create_layout(cairo_context)
+            layout.set_text(box.content, -1)
 
             txt_size = layout.get_size()
             txt_factor = min(
-                float(w) * pango.SCALE / txt_size[0],
-                float(h) * pango.SCALE / txt_size[1],
+                float(w) * Pango.SCALE / txt_size[0],
+                float(h) * Pango.SCALE / txt_size[1],
             )
 
             cairo_context.scale(txt_factor, txt_factor)
 
-            pangocairo_context.update_layout(layout)
-            pangocairo_context.show_layout(layout)
+            PangoCairo.update_layout(cairo_context, layout)
+            PangoCairo.show_layout(cairo_context, layout)
         finally:
             cairo_context.restore()
 

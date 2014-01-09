@@ -62,9 +62,8 @@ class _ScanTimes(object):
 
 
 class _PaperworkScannerCalibration(object):
-    def __init__(self, section, token):
+    def __init__(self, section):
         self.section = section
-        self.token = token
         self.value = None
 
     def load(self, config):
@@ -231,6 +230,7 @@ def load_config():
                                       _PaperworkFrontendConfigUtil.get_default_ocr_lang),
         'ocr_nb_angles' : PaperworkSetting("OCR", "Nb_Angles", lambda: 4, int),
         'result_sorting' : PaperworkSetting("GUI", "Sorting", lambda: "scan_date"),
+        'scanner_calibration' : _PaperworkScannerCalibration("Scanner"),
         'scanner_devid' : PaperworkSetting("Scanner", "Device"),
         'scanner_resolution' : PaperworkSetting("Scanner", "Resolution",
                                                 lambda: RECOMMENDED_SCAN_RESOLUTION,

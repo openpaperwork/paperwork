@@ -1491,7 +1491,7 @@ class ActionSingleScan(SimpleAction):
                               GLib.idle_add(self.__on_ocr_done, scan_workflow, img,
                                             boxes))
 
-        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        drawer = MultiAnglesScanWorkflowDrawer(scan_workflow)
         self.__main_win.add_scan_workflow(self.__main_win.doc, drawer)
         scan_workflow.scan_and_ocr(resolution, scan_session)
 

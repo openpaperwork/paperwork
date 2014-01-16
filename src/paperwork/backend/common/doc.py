@@ -278,6 +278,8 @@ class BasicDoc(object):
         """
         if other is None:
             return -1
+        if self.is_new and other.is_new:
+            return 0
         return cmp(self.__docid, other.__docid)
 
     def __lt__(self, other):
@@ -302,7 +304,10 @@ class BasicDoc(object):
         return hash(self.__docid)
 
     def __is_new(self):
-        return not os.access(self.path, os.F_OK)
+        if 'new' in self.__cache:
+            return self.__cache['new']
+        self.__cache['new'] = not os.access(self.path, os.F_OK)
+        return self.__cache['new']
 
     is_new = property(__is_new)
 

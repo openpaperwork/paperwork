@@ -2886,6 +2886,10 @@ class MainWindow(object):
 
         logger.debug("Got %d documents" % len(documents))
 
+        if search == u"":
+            new_doc = self.get_new_doc()
+            documents = [new_doc] + documents
+
         active_idx = -1
         idx = 0
         for doc in documents:
@@ -2897,9 +2901,6 @@ class MainWindow(object):
         if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
             active_idx = 0
 
-        if search == u"":
-            new_doc = self.get_new_doc()
-            documents = [new_doc] + documents
         self.lists['doclist'] = documents
         self.lists['matches'].set_model([self.__get_doc_model_line(doc)
                                          for doc in documents])

@@ -55,9 +55,10 @@ It uses mainly 3 other pieces of software:
 
 Page orientation is automatically guessed using OCR.
 
-Paperwork uses a custom indexation system to search documents and to provide
-keyword suggestions. Since OCR is not perfect, and since some documents don't
-contain useful keywords, Paperwork allows also to put labels on each document.
+Paperwork uses [Whoosh](https://pypi.python.org/pypi/Whoosh/) to search documents
+and to provide keyword suggestions. Since OCR is not perfect, and since some
+documents don't contain useful keywords, Paperwork allows also to put labels
+on each document.
 
 
 ## Licence

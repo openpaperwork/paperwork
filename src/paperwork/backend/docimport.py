@@ -57,7 +57,7 @@ class SinglePdfImporter(object):
         for page in doc.pages:
             logger.info("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
             docsearch.index_page(page)
-        return ([doc], None)
+        return ([doc], None, True)
 
     def __str__(self):
         return _("Import PDF")
@@ -136,9 +136,9 @@ class MultiplePdfImporter(object):
             docs.append(doc)
             idx += 1
         if doc is None:
-            return (None, None)
+            return (None, None, False)
         else :
-            return (docs, None)
+            return (docs, None, True)
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
@@ -171,12 +171,13 @@ class SingleImageImporter(object):
         logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(config.settings['workdir'].value)
+        new = current_doc.is_new
         if file_uri[:7] == "file://":
             # XXX(Jflesch): bad bad bad
             file_uri = file_uri[7:]
         img = Image.open(file_uri)
         page = current_doc.add_page(img, [])
-        return ([current_doc], page)
+        return ([current_doc], page, new)
 
     def __str__(self):
         return _("Append the image to the current document")

@@ -1611,21 +1611,46 @@ class ActionImport(SimpleAction):
         dialog.run()
         dialog.destroy()
 
-    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator):
+    def _on_page_ocr_done(self, scan_workflow, img, boxes, page, page_iterator,
+                          must_add_labels=False):
+        add_labels = must_add_labels
+        if add_labels:
+            # TODO(Jflesch):
+            # we add the labels once we treat the first page of the doc
+            # however it would be best to do it on the last one
+            add_labels = (page.page_nb <= 0)
+
         page.img = img
         page.boxes = boxes
 
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
-        # TODO(Jflesch): Should be done at the very end of the OCRs
+
+        if not add_labels:
+            # TODO(Jflesch): Should be done only at the very end of the OCRs
+            self._update_index(doc)
+        else:
+            factory = self.__main_win.job_factories['label_predictor_on_new_doc']
+            job = factory.make(doc)
+            job.connect("predicted-labels", lambda predictor, predicted:
+                        GLib.idle_add(self._on_predicted_labels, doc, predicted))
+            self.__main_win.schedulers['main'].schedule(job)
+
+        self._ocr_next_page(page_iterator, must_add_labels)
+
+    def _update_index(self, doc):
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={doc}, optimize=False)
         self.__main_win.schedulers['main'].schedule(job)
 
-        self._ocr_next_page(page_iterator)
+    def _on_predicted_labels(self, doc, predicted_labels):
+        for label in self.__main_win.docsearch.label_list:
+            if label.name in predicted_labels:
+                self.__main_win.docsearch.add_label(doc, label, update_index=False)
+        self._update_index(doc)
 
-    def _ocr_next_page(self, page_iterator):
+    def _ocr_next_page(self, page_iterator, must_add_labels=False):
         try:
             page = next(page_iterator)
         except StopIteration:
@@ -1640,7 +1665,8 @@ class ActionImport(SimpleAction):
         scan_workflow.connect('process-done',
                               lambda scan_workflow, img, boxes:
                               GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
-                                            boxes, page, page_iterator))
+                                            boxes, page, page_iterator,
+                                            must_add_labels))
         scan_workflow.ocr(page.img, angles=1)
 
     def do(self):
@@ -1663,7 +1689,7 @@ class ActionImport(SimpleAction):
         Gtk.RecentManager().add_item(file_uri)
 
         self.__main_win.set_mouse_cursor("Busy")
-        (docs, page) = importer.import_doc(
+        (docs, page, must_add_labels) = importer.import_doc(
             file_uri, self.__config, self.__main_win.docsearch,
             self.__main_win.doc)
         self.__main_win.set_mouse_cursor("Normal")
@@ -1686,7 +1712,7 @@ class ActionImport(SimpleAction):
 
         # OCR ?
         if page is not None:
-            self._ocr_next_page(iter([page]))
+            self._ocr_next_page(iter([page]), must_add_labels)
             return
 
         pages = []
@@ -1695,7 +1721,7 @@ class ActionImport(SimpleAction):
                 continue
             pages += doc.pages[:]
         if len(pages) > 0:
-            self._ocr_next_page(iter(pages))
+            self._ocr_next_page(iter(pages), must_add_labels)
 
 
 class ActionDeleteDoc(SimpleAction):

@@ -47,17 +47,17 @@ Paperwork also supports PDF and images import.
 
 Papers are organized into documents. Each document contains pages.
 
-It uses mainly 3 other pieces of software:
+It uses mainly 4 other pieces of software:
 
-* Sane: To scan the pages
-* Cuneiform or Tesseract: To extract the words from the pages (OCR)
-* GTK/Glade: For the user interface
+* [Sane](http://www.sane-project.org/): To scan the pages
+* [Tesseract](http://code.google.com/p/tesseract-ocr/): To extract the words from the pages (OCR)
+* [GTK](http://www.gtk.org/)/[Glade](https://glade.gnome.org/): For the user interface
+* [Whoosh](https://pypi.python.org/pypi/Whoosh/): To index and search documents, and provide keyword suggestions
 
 Page orientation is automatically guessed using OCR.
 
-Paperwork uses a custom indexation system to search documents and to provide
-keyword suggestions. Since OCR is not perfect, and since some documents don't
-contain useful keywords, Paperwork allows also to put labels on each document.
+Since OCR is not perfect, and since some documents don't contain useful keywords, 
+Paperwork allows also to put labels on each document.
 
 
 ## Licence

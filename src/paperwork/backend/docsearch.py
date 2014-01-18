@@ -792,7 +792,7 @@ class DocSearch(object):
         final_suggestions.sort()
         return final_suggestions
 
-    def add_label(self, doc, label):
+    def add_label(self, doc, label, update_index=True):
         """
         Add a label on a document.
 
@@ -807,13 +807,15 @@ class DocSearch(object):
             self.label_list.sort()
             new_label = True
         doc.add_label(label)
-        updater = self.get_index_updater(optimize=False)
-        updater.upd_doc(doc)
+        if update_index:
+            updater = self.get_index_updater(optimize=False)
+            updater.upd_doc(doc)
         if new_label:
             # its a brand new label, there is a new estimator.
             # we need to fit this new estimator.
             self.fit_label_estimator(labels=[label])
-        updater.commit()
+        if update_index:
+            updater.commit()
 
     def remove_label(self, doc, label):
         """

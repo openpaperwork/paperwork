@@ -553,7 +553,7 @@ class JobLabelPredictor(Job):
     def __init__(self, factory, id, docsearch, doc):
         Job.__init__(self, factory, id)
         self.__docsearch = docsearch
-        self.__doc = doc
+        self.doc = doc
 
     def _progress_cb(self, current, total):
         if not self.can_run:
@@ -563,7 +563,7 @@ class JobLabelPredictor(Job):
         self.can_run = True
         try:
             predicted_labels = self.__docsearch.predict_label_list(
-                self.__doc, progress_cb=self._progress_cb)
+                self.doc, progress_cb=self._progress_cb)
             self.emit('predicted-labels', predicted_labels)
         except StopIteration:
             return
@@ -575,9 +575,9 @@ class JobLabelPredictor(Job):
 GObject.type_register(JobLabelPredictor)
 
 
-class JobFactoryLabelPredictor(JobFactory):
+class JobFactoryLabelPredictorOnOpenDoc(JobFactory):
     def __init__(self, main_win):
-        JobFactory.__init__(self, "Search")
+        JobFactory.__init__(self, "Label predictor (on opened doc)")
         self.__main_win = main_win
 
     def make(self, doc):
@@ -586,6 +586,17 @@ class JobFactoryLabelPredictor(JobFactory):
         job.connect('predicted-labels',
             lambda predictor, labels:
             GLib.idle_add(self.__main_win.on_label_prediction_cb, labels))
+        return job
+
+
+class JobFactoryLabelPredictorOnNewDoc(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "Label predictor (on new doc)")
+        self.__main_win = main_win
+
+    def make(self, doc):
+        job = JobLabelPredictor(self, next(self.id_generator),
+                                self.__main_win.docsearch, doc)
         return job
 
 
@@ -1435,7 +1446,24 @@ class ActionSingleScan(SimpleAction):
         if self.__main_win.doc.docid == doc.docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
+        self.__main_win.refresh_page_list()
 
+        if new:
+            factory = self.__main_win.job_factories['label_predictor_on_new_doc']
+            job = factory.make(doc)
+            job.connect("predicted-labels", lambda predictor, predicted:
+                        GLib.idle_add(self.__on_predicted_labels, doc, predicted))
+            self.__main_win.schedulers['main'].schedule(job)
+        else:
+            self.__upd_index(doc, new=False)
+
+    def __on_predicted_labels(self, doc, predicted_labels):
+        for label in self.__main_win.docsearch.label_list:
+            if label.name in predicted_labels:
+                self.__main_win.docsearch.add_label(doc, label, update_index=False)
+        self.__upd_index(doc, new=True)
+
+    def __upd_index(self, doc, new=False):
         if new:
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch, new_docs={doc}, optimize=False)
@@ -2451,7 +2479,8 @@ class MainWindow(object):
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_updater': JobFactoryLabelUpdater(self),
-            'label_predictor': JobFactoryLabelPredictor(self),
+            'label_predictor_on_open_doc': JobFactoryLabelPredictorOnOpenDoc(self),
+            'label_predictor_on_new_doc': JobFactoryLabelPredictorOnNewDoc(self),
             'label_deleter': JobFactoryLabelDeleter(self),
             'match_list': self.lists['matches'].job_factory,
             'page_editor': JobFactoryPageEditor(self, config),
@@ -3158,7 +3187,7 @@ class MainWindow(object):
         Reload and refresh the label list
         """
         self.schedulers['main'].cancel_all(
-            self.job_factories['label_predictor'])
+            self.job_factories['label_predictor_on_open_doc'])
 
         self.lists['labels']['model'].clear()
         labels = self.doc.labels
@@ -3173,7 +3202,7 @@ class MainWindow(object):
             ])
         set_widget_state(self.need_label_widgets, False)
 
-        job = self.job_factories['label_predictor'].make(self.doc)
+        job = self.job_factories['label_predictor_on_open_doc'].make(self.doc)
         self.schedulers['main'].schedule(job)
 
     def refresh_boxes(self):

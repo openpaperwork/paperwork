@@ -1713,6 +1713,8 @@ class ActionDeleteDoc(SimpleAction):
         doc = self.__main_win.doc
         docid = doc.docid
 
+        self.__main_win.actions['new_doc'][1].do()
+
         logger.info("Deleting ...")
         doc.destroy()
         index_upd = self.__main_win.docsearch.get_index_updater(
@@ -1721,7 +1723,6 @@ class ActionDeleteDoc(SimpleAction):
         index_upd.commit()
         logger.info("Deleted")
 
-        self.__main_win.actions['new_doc'][1].do()
         self.__main_win.refresh_docs({doc})
 
 
@@ -3076,9 +3077,9 @@ class MainWindow(object):
             except ValueError as exc:
                 logger.warning("Unable to find doc [%s] in the list" % str(doc))
 
-
         if self.__pop_new_doc():
-            logger.info("Doc list refresh: 'new doc' (%s) popped out of the list")
+            logger.info("Doc list refresh: 'new doc' (%s) popped out"
+                        " of the  list" % doc)
 
         # make sure all the target docs are already in the list in a first
         # place

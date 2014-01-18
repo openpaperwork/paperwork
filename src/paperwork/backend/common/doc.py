@@ -122,6 +122,7 @@ class BasicDoc(object):
         rm_rf(self.path)
         logger.info("Done")
         self.drop_cache()
+        self.__cache['new'] = False
 
     def add_label(self, label):
         """

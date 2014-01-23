@@ -1660,7 +1660,8 @@ class ActionImport(SimpleAction):
                 GLib.idle_add(self._ocr_next_page)
 
         def _on_page_ocr_done(self, scan_workflow, img, boxes, page):
-            page.img = img
+            if page.can_edit:
+                page.img = img
             page.boxes = boxes
 
             docid = self._main_win.remove_scan_workflow(scan_workflow)

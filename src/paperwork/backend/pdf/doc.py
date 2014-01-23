@@ -156,6 +156,9 @@ class PdfDoc(BasicDoc):
 
     def _get_nb_pages(self):
         if self.__pdf is None:
+            if self.is_new:
+                # happens when a doc was recently deleted
+                return 0
             self._open_pdf()
         return self.__nb_pages
 

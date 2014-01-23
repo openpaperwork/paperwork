@@ -1486,25 +1486,33 @@ class ActionSingleScan(SimpleAction):
         resolution = self.__config['scanner_resolution'].value
         logger.info("Will scan at a resolution of %d" % resolution)
 
-        dev = pyinsane.Scanner(name=devid)
-
-        dev.options['source'].value = source
         try:
-            dev.options['resolution'].value = resolution
-        except pyinsane.SaneException:
-            logger.warning("Unable to set scanner resolution to %d: %s"
-                           % (resolution, exc))
-        if "Color" in dev.options['mode'].constraint:
-            dev.options['mode'].value = "Color"
-            logger.info("Scanner mode set to 'Color'")
-        elif "Gray" in dev.options['mode'].constraint:
-            dev.options['mode'].value = "Gray"
-            logger.info("Scanner mode set to 'Gray'")
-        else:
-            logger.warning("Unable to set scanner mode ! May be 'Lineart'")
-        maximize_scan_area(dev)
+            dev = pyinsane.Scanner(name=devid)
 
-        scan_session = dev.scan(multiple=False)
+            dev.options['source'].value = source
+            try:
+                dev.options['resolution'].value = resolution
+            except pyinsane.SaneException:
+                logger.warning("Unable to set scanner resolution to %d: %s"
+                               % (resolution, exc))
+            if "Color" in dev.options['mode'].constraint:
+                dev.options['mode'].value = "Color"
+                logger.info("Scanner mode set to 'Color'")
+            elif "Gray" in dev.options['mode'].constraint:
+                dev.options['mode'].value = "Gray"
+                logger.info("Scanner mode set to 'Gray'")
+            else:
+                logger.warning("Unable to set scanner mode ! May be 'Lineart'")
+            maximize_scan_area(dev)
+
+            scan_session = dev.scan(multiple=False)
+        except Exception, exc:
+            logger.warning("Exception while configuring scanner: %s: %s."
+                           " Assuming scanner is not connected",
+                           type(exc), exc)
+            popup_no_scanner_found(self.__main_win.window)
+            return
+
         scan_workflow = self.__main_win.make_scan_workflow()
         scan_workflow.connect('scan-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,

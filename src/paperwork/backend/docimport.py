@@ -54,9 +54,6 @@ class SinglePdfImporter(object):
         doc = PdfDoc(config.settings['workdir'].value)
         logger.info("Importing doc '%s' ..." % file_uri)
         doc.import_pdf(config, file_uri)
-        for page in doc.pages:
-            logger.info("Indexing page %s:p%d ..." % (file_uri, page.page_nb))
-            docsearch.index_page(page)
         return ([doc], None, True)
 
     def __str__(self):
@@ -131,8 +128,6 @@ class MultiplePdfImporter(object):
                 continue
             doc = PdfDoc(config.settings['workdir'].value)
             doc.import_pdf(config, child.get_uri())
-            for page in doc.pages:
-                docsearch.index_page(page)
             docs.append(doc)
             idx += 1
         if doc is None:

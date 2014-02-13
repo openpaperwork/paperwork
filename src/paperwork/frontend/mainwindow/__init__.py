@@ -1442,10 +1442,17 @@ class ActionSingleScan(SimpleAction):
                 doc = ImgDoc(self.__config['workdir'].value)
 
         doc.add_page(img, line_boxes)
+        doc.drop_cache()
+        self.__main_win.doc.drop_cache()
 
         if self.__main_win.doc.docid == doc.docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
+        print "REFRESH"
+        print "REFRESH"
+        print "REFRESH"
+        print "REFRESH"
+        print "REFRESH"
         self.__main_win.refresh_page_list()
 
         if new:

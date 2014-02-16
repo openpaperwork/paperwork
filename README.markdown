@@ -71,6 +71,7 @@ GPLv3 or later. See COPYING.
 * [GNU/Linux Debian](doc/install.debian.markdown)
 * [GNU/Linux Fedora](doc/install.fedora.markdown)
 * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
+* [GNU/Linux Ubuntu](doc/install.debian.markdown)
 * [Development](doc/install.devel.markdown)
 
 ## Archives

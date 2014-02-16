@@ -1,9 +1,9 @@
-# Paperwork installation on GNU/Linux Debian
+# Paperwork installation on GNU/Linux Debian or GNU/Linux Ubuntu
 
 
 ## Package
 
-Currently, there is no official Debian package for Paperwork.
+Currently, there is no official Debian or Ubuntu package for Paperwork.
 
 Note that Paperwork depends on [Pillow](https://pypi.python.org/pypi/Pillow/).
 Pillow may conflict with the package python-imaging (aka PIL).

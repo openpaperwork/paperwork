@@ -97,6 +97,8 @@ class _PaperworkScannerCalibration(object):
             self.value = None
 
     def update(self, config):
+        if self.value is None:
+            return
         config.set("Scanner", "Calibration_Resolution",
                    str(self.value[0]))
         config.set("Scanner", "Calibration_Pt_A_X",

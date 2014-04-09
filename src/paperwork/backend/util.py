@@ -17,7 +17,6 @@
 import array
 import errno
 import logging
-import nltk
 import os
 import re
 import StringIO
@@ -26,10 +25,12 @@ import unicodedata
 
 import enchant
 import enchant.tokenize
-import nltk.metrics.distance
+import Levenshtein
 import numpy
 
 logger = logging.getLogger(__name__)
+FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
+WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 
 MIN_KEYWORD_LEN = 3
 
@@ -60,10 +61,34 @@ def split_words(sentence):
     sentence = sentence.lower()
     sentence = strip_accents(sentence)
 
-    for word in nltk.word_tokenize(sentence):
-        if len(word) < MIN_KEYWORD_LEN:
-            continue
-        yield word
+    words = FORCED_SPLIT_KEYWORDS_REGEX.split(sentence)
+    for word in __cleanup_word_array(words):
+        can_split = True
+        can_yield = False
+        subwords = WISHED_SPLIT_KEYWORDS_REGEX.split(word)
+        for subword in subwords:
+            if subword == "":
+                continue
+            can_yield = True
+            if len(subword) < MIN_KEYWORD_LEN:
+                can_split = False
+                break
+        if can_split:
+            for subword in subwords:
+                if subword == "":
+                    continue
+                if subword[0] == '"':
+                    subword = subword[1:]
+                if subword[-1] == '"':
+                    subword = subword[:-1]
+                yield subword
+        elif can_yield:
+            if word[0] == '"':
+                word = word[1:]
+            if word[-1] == '"':
+                word = word[:-1]
+            yield word
+
 
 
 def dummy_progress_cb(progression, total, step=None, doc=None):
@@ -115,7 +140,7 @@ def check_spelling(spelling_lang, txt):
                 score -= 10
                 continue
             main_suggestion = suggestions[0]
-            lv_dist = nltk.metrics.distance.edit_distance(word, main_suggestion)
+            lv_dist = Levenshtein.distance(word, main_suggestion)
             if (lv_dist > _MAX_LEVENSHTEIN_DISTANCE):
                 # hm, this word looks like it's in a bad shape
                 continue

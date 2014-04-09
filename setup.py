@@ -173,7 +173,6 @@ Let the machine do most of the work.
       install_requires=[
           "Cython",
           'joblib',
-          "nltk",
           "Pillow",
           "pycountry",
           # "pycairo",  # doesn't work ?

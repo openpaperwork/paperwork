@@ -272,6 +272,26 @@ class PaperworkConfig(object):
     scanner_resolution = property(__get_scanner_resolution,
                                   __set_scanner_resolution)
 
+    def __get_scanner_mode(self):
+        """
+        This is the mode of the scannner used for normal scans.
+
+        String.
+        """
+        try:
+            return self._configparser.get("Scanner", "Mode")
+        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            return None
+
+    def __set_scanner_mode(self, mode):
+        """
+        Set the scanner mode used for normal scans.
+        """
+        self._configparser.set("Scanner", "Mode", str(mode))
+
+    scanner_mode = property(__get_scanner_mode,
+                            __set_scanner_mode)
+
     def __get_scanner_calibration(self):
         """
         Scanner calibration
@@ -363,15 +383,7 @@ class PaperworkConfig(object):
         """
         scanner = pyinsane.Scanner(self.scanner_devid)
         scanner.options['resolution'].value = self.scanner_resolution
-        if "Color" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Color"
-            logger.info("Scanner mode set to 'Color'")
-        elif "Gray" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Gray"
-            logger.info("Scanner mode set to 'Gray'")
-        else:
-            logger.warn("WARNING: "
-                    "Unable to set scanner mode ! May be 'Lineart'")
+        scanner.options['mode'].value = self.scanner_mode
         return scanner
 
     def __get_toolbar_visible(self):

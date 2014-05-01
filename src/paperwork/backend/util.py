@@ -44,6 +44,15 @@ def strip_accents(string):
          if unicodedata.category(character) != 'Mn'))
 
 
+def __cleanup_word_array(keywords):
+    """
+    Yield all the keywords long enough to be used
+    """
+    for word in keywords:
+        if len(word) >= MIN_KEYWORD_LEN:
+            yield word
+
+
 def split_words(sentence):
     """
     Extract and yield the keywords from the sentence:

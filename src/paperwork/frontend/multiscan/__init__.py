@@ -27,6 +27,11 @@ from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.canvas import Canvas
+from paperwork.frontend.util.canvas.animations import SpinnerAnimation
+from paperwork.frontend.util.canvas.animations import ScanAnimation
+from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -294,6 +299,11 @@ class MultiscanDialog(GObject.GObject):
 
         widget_tree = load_uifile(
             os.path.join("multiscan", "multiscan.glade"))
+
+        scan_scrollbars = widget_tree.get_object("scrolledwindowScan")
+        self.scan_canvas = Canvas(scan_scrollbars)
+        self.scan_canvas.set_visible(True)
+        scan_scrollbars.add(self.scan_canvas)
 
         self.lists = {
             'docs': {

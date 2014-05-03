@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
   <object class="GtkListStore" id="liststoreScanList">
     <columns>
       <!-- column-name doc_name -->
@@ -24,16 +25,16 @@
     <property name="border_width">5</property>
     <property name="title" translatable="yes">From scanner feeder</property>
     <property name="default_width">450</property>
-    <property name="default_height">300</property>
+    <property name="default_height">600</property>
     <property name="type_hint">normal</property>
     <child internal-child="vbox">
-      <object class="GtkBox" id="dialog-vbox1">
+      <object class="GtkBox" id="dialog-vboxGlobal">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">10</property>
         <child internal-child="action_area">
-          <object class="GtkButtonBox" id="dialog-action_area1">
+          <object class="GtkButtonBox" id="dialog-action_areaMultiScan">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
@@ -44,7 +45,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -60,7 +60,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -77,101 +76,92 @@
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="box1">
+          <object class="GtkBox" id="boxGlobal">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">20</property>
             <child>
-				<object class="GtkScrolledWindow" id="scrolledwindow1">
-				<property name="hscrollbar_policy">automatic</property>
-				<property name="vscrollbar_policy">automatic</property>
+              <object class="GtkBox" id="boxDocList">
+                <property name="height_request">250</property>
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="shadow_type">in</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkViewport" id="viewport1">
+                  <object class="GtkScrolledWindow" id="scrolledwindowDocList">
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+                    <property name="can_focus">True</property>
+                    <property name="shadow_type">in</property>
                     <child>
-                      <object class="GtkTreeView" id="treeviewScanList">
+                      <object class="GtkViewport" id="viewportDocList">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="model">liststoreScanList</property>
-                        <property name="headers_clickable">False</property>
-                        <property name="search_column">0</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection"/>
-                        </child>
+                        <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumnDocNames">
-                            <property name="title" translatable="yes">Documents</property>
-                            <property name="expand">True</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf2"/>
+                          <object class="GtkTreeView" id="treeviewScanList">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="model">liststoreScanList</property>
+                            <property name="headers_clickable">False</property>
+                            <property name="search_column">0</property>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection" id="treeview-selection"/>
                             </child>
                             <child>
-                              <object class="GtkCellRendererText" id="cellrenderertext1"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumnNbPages">
-                            <property name="fixed_width">100</property>
-                            <property name="min_width">100</property>
-                            <property name="max_width">143</property>
-                            <property name="title" translatable="yes">Number of pages</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
-                            </child>
-                            <child>
-                              <object class="GtkCellRendererText" id="cellrenderertextNbPages"/>
-                              <attributes>
-                                <attribute name="editable">2</attribute>
-                                <attribute name="text">1</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkTreeViewColumn" id="treeviewcolumnScanProgress">
-                            <property name="fixed_width">100</property>
-                            <property name="min_width">100</property>
-                            <property name="max_width">100</property>
-                            <child>
-                              <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf3"/>
-                            </child>
-                            <child>
-                              <object class="GtkCellRendererProgress" id="cellrendererprogress1">
-                                <property name="width">75</property>
+                              <object class="GtkTreeViewColumn" id="treeviewcolumnDocNames">
+                                <property name="title" translatable="yes">Documents</property>
+                                <property name="expand">True</property>
+                                <child>
+                                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf2"/>
+                                </child>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                                  <attributes>
+                                    <attribute name="text">0</attribute>
+                                  </attributes>
+                                </child>
                               </object>
-                              <attributes>
-                                <attribute name="text">4</attribute>
-                                <attribute name="value">3</attribute>
-                              </attributes>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="treeviewcolumnNbPages">
+                                <property name="fixed_width">100</property>
+                                <property name="min_width">100</property>
+                                <property name="max_width">143</property>
+                                <property name="title" translatable="yes">Number of pages</property>
+                                <child>
+                                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf1"/>
+                                </child>
+                                <child>
+                                  <object class="GtkCellRendererText" id="cellrenderertextNbPages"/>
+                                  <attributes>
+                                    <attribute name="editable">2</attribute>
+                                    <attribute name="text">1</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkTreeViewColumn" id="treeviewcolumnScanProgress">
+                                <property name="fixed_width">100</property>
+                                <property name="min_width">100</property>
+                                <property name="max_width">100</property>
+                                <child>
+                                  <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf3"/>
+                                </child>
+                                <child>
+                                  <object class="GtkCellRendererProgress" id="cellrendererprogress1">
+                                    <property name="width">75</property>
+                                  </object>
+                                  <attributes>
+                                    <attribute name="text">4</attribute>
+                                    <attribute name="value">3</attribute>
+                                  </attributes>
+                                </child>
+                              </object>
                             </child>
                           </object>
                         </child>
                       </object>
                     </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkHBox" id="box2">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <child>
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
                   </object>
                   <packing>
                     <property name="expand">True</property>
@@ -180,14 +170,65 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="buttonEditDoc">
-                    <property name="label">gtk-edit</property>
-                    <property name="use_action_appearance">False</property>
+                  <object class="GtkBox" id="boxDocListButtons">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="use_stock">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="labelEmpty">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="buttonEditDoc">
+                        <property name="label">gtk-edit</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="buttonRemoveDoc">
+                        <property name="label">gtk-remove</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="buttonAddDoc">
+                        <property name="label">gtk-add</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -195,48 +236,32 @@
                     <property name="position">1</property>
                   </packing>
                 </child>
-                <child>
-                  <object class="GtkButton" id="buttonRemoveDoc">
-                    <property name="label">gtk-remove</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="use_stock">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkButton" id="buttonAddDoc">
-                    <property name="label">gtk-add</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="use_stock">True</property>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">3</property>
-                  </packing>
-                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="scrolledwindowScan">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="vexpand">True</property>
+                <property name="shadow_type">in</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
@@ -247,5 +272,67 @@
       <action-widget response="0">buttonCancel</action-widget>
       <action-widget response="0">buttonOk</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkTreeView" id="treeviewScanList1">
+    <property name="visible">True</property>
+    <property name="can_focus">True</property>
+    <property name="model">liststoreScanList</property>
+    <property name="headers_clickable">False</property>
+    <property name="search_column">0</property>
+    <child internal-child="selection">
+      <object class="GtkTreeSelection" id="treeview-selection3"/>
+    </child>
+    <child>
+      <object class="GtkTreeViewColumn" id="treeviewcolumnDocNames1">
+        <property name="title" translatable="yes">Documents</property>
+        <property name="expand">True</property>
+        <child>
+          <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf4"/>
+        </child>
+        <child>
+          <object class="GtkCellRendererText" id="cellrenderertext2"/>
+          <attributes>
+            <attribute name="text">0</attribute>
+          </attributes>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkTreeViewColumn" id="treeviewcolumnNbPages1">
+        <property name="fixed_width">100</property>
+        <property name="min_width">100</property>
+        <property name="max_width">143</property>
+        <property name="title" translatable="yes">Number of pages</property>
+        <child>
+          <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf5"/>
+        </child>
+        <child>
+          <object class="GtkCellRendererText" id="cellrenderertextNbPages1"/>
+          <attributes>
+            <attribute name="editable">2</attribute>
+            <attribute name="text">1</attribute>
+          </attributes>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkTreeViewColumn" id="treeviewcolumnScanProgress1">
+        <property name="fixed_width">100</property>
+        <property name="min_width">100</property>
+        <property name="max_width">100</property>
+        <child>
+          <object class="GtkCellRendererPixbuf" id="cellrendererpixbuf6"/>
+        </child>
+        <child>
+          <object class="GtkCellRendererProgress" id="cellrendererprogress2">
+            <property name="width">75</property>
+          </object>
+          <attributes>
+            <attribute name="text">4</attribute>
+            <attribute name="value">3</attribute>
+          </attributes>
+        </child>
+      </object>
+    </child>
   </object>
 </interface>

@@ -35,7 +35,6 @@ from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
-from paperwork.frontend.util.scanner import maximize_scan_area
 
 
 _ = gettext.gettext

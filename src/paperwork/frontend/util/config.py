@@ -9,6 +9,7 @@ import pyinsane.abstract_th as pyinsane
 from paperwork.backend.config import PaperworkConfig
 from paperwork.backend.config import PaperworkSetting
 from paperwork.backend.config import paperwork_cfg_boolean
+from paperwork.frontend.util.scanner import maximize_scan_area
 
 
 logger = logging.getLogger(__name__)

@@ -58,7 +58,6 @@ from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
-from paperwork.frontend.util.scanner import maximize_scan_area
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch

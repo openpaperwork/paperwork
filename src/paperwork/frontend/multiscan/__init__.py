@@ -32,6 +32,7 @@ from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.animations import ScanAnimation
 from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
+from paperwork.frontend.util.config import get_scanner
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -39,119 +40,6 @@ from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
-
-class JobDocScan(Job):
-    __gsignals__ = {
-        'scan-start': (GObject.SignalFlags.RUN_LAST, None,
-                       # current page / total
-                       (GObject.TYPE_INT, GObject.TYPE_INT)),
-        'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
-                      # current page / total
-                      (GObject.TYPE_INT, GObject.TYPE_INT)),
-        'scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                      # current page, total
-                      (GObject.TYPE_PYOBJECT, GObject.TYPE_INT)),
-        'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       # exception
-                       (GObject.TYPE_PYOBJECT,)),
-    }
-
-    can_stop = True
-    priority = 500
-
-    def __init__(self, factory, id,
-                 config, nb_pages, line_in_treeview, docsearch, doc,
-                 scan_src):
-        Job.__init__(self, factory, id)
-        self.__config = config
-        self.__scan_src = scan_src
-        self.docsearch = docsearch
-        self.doc = doc
-        self.nb_pages = nb_pages
-        self.line_in_treeview = line_in_treeview
-        self.current_page = None
-
-    def __progress_cb(self, progression, total, step=None):
-        if progression == 0 and step == ImgPage.SCAN_STEP_OCR:
-            self.emit('ocr-start', self.current_page, self.nb_pages)
-
-    def do(self):
-        # TODO(Jflesch)
-        pass
-
-    def stop(self, will_resume=False):
-        if will_resume == False:
-            self._stop_wait()
-
-GObject.type_register(JobDocScan)
-
-
-class JobSignalEmitter(Job):
-    __gsignals__ = {
-        'signal': (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
-
-    can_stop = False
-    priority = 400
-
-    def __init__(self, factory, id):
-        Job.__init__(self, factory, id)
-
-    def do(self):
-        self.emit('signal')
-
-    def __str__(self):
-        return Job.__str__(self) + " (signal emitter)"
-
-
-GObject.type_register(JobSignalEmitter)
-
-
-class JobFactoryDocScan(JobFactory):
-    def __init__(self, multiscan_win, config, docsearch):
-        JobFactory.__init__(self, "MultiDocScan")
-        self.__config = config
-        self.__multiscan_win = multiscan_win
-
-    def make_head(self):
-        job = JobSignalEmitter(self, next(self.id_generator))
-        job.connect('signal',
-                    lambda job: GLib.idle_add(
-                        self.__multiscan_win.on_global_scan_start_cb))
-        return job
-
-    def make(self, nb_pages, line_in_treeview, docsearch, doc, scan_src):
-        job = JobDocScan(self, next(self.id_generator),
-                         self.__config, nb_pages, line_in_treeview, docsearch,
-                         doc, scan_src)
-        job.connect("scan-start",
-                    lambda job, page, total:
-                    GLib.idle_add(
-                        self.__multiscan_win.on_scan_start_cb, job, page,
-                        total))
-        job.connect("ocr-start",
-                    lambda job, page, total:
-                    GLib.idle_add(
-                        self.__multiscan_win.on_ocr_start_cb, job, page,
-                        total))
-        job.connect("scan-done",
-                    lambda job, page, total:
-                    GLib.idle_add(
-                        self.__multiscan_win.on_scan_done_cb, job, page,
-                        total))
-        job.connect("scan-error",
-                    lambda job, exc:
-                    GLib.idle_add(self.__multiscan_win.on_scan_error_cb,
-                                     exc))
-        return job
-
-    def make_tail(self):
-        job = JobSignalEmitter(self, next(self.id_generator))
-        job.connect('signal',
-                    lambda job: GLib.idle_add(
-                        self.__multiscan_win.on_global_scan_end_cb))
-        return job
 
 
 class ActionAddDoc(SimpleAction):
@@ -253,19 +141,89 @@ class ActionEndEditDoc(SimpleAction):
 
 
 class ActionScan(SimpleAction):
-    def __init__(self, multiscan_win, config, docsearch, main_win_doc):
+    def __init__(self, multiscan_win, config, docsearch, main_win):
         SimpleAction.__init__(self, "Start multi-scan")
         self.__multiscan_win = multiscan_win
         self.__config = config
         self.__docsearch = docsearch
-        self.__main_win_doc = main_win_doc
+        self.__main_win = main_win
+
+    def __start_scan_workflow(self, resolution, doc, scan_workflow, scan_session):
+        if not doc:
+            doc = ImgDoc(self.__config['workdir'].value)
+        drawer = self.__main_win.make_scan_workflow_drawer(
+            scan_workflow, single_angle=False)
+        self.__main_win.add_scan_workflow(doc, drawer)
+        scan_workflow.scan_and_ocr(resolution, scan_session)
+
+    def __on_ocr_done(self, scan_workflow, img, line_boxes):
+        docid = self.__main_win.remove_scan_workflow(scan_workflow)
+        self.__main_win.add_page(docid, img, line_boxes)
 
     def do(self):
         SimpleAction.do(self)
 
-        job = self.__multiscan_win.job_factories['scan'].make_head()
-        self.__multiscan_win.schedulers['main'].schedule(job)
-        # TODO(Jflesch)
+        try:
+            (dev, resolution) = get_scanner(self.__config,
+                                            preferred_sources=["ADF", ".*ADF.*", ".*Feeder.*"])
+            scan_session = dev.scan(multiple=True)
+        except Exception, exc:
+            logger.warning("Exception while configuring scanner: %s: %s."
+                           " Assuming scanner is not connected",
+                           type(exc), exc)
+            popup_no_scanner_found(self.__multiscan_win.window)
+            return
+
+        self.__multiscan_win.on_global_scan_start_cb()
+
+        scan_workflows = []
+
+        rng = xrange(0, len(self.__multiscan_win.lists['docs']['model']))
+        for line_idx in rng:
+            line = self.__multiscan_win.lists['docs']['model'][line_idx]
+            self.doc = None
+            if line_idx == 0:
+                doc = self.__main_win.doc
+            nb_pages = int(line[1])
+            total = nb_pages
+            if doc:
+                total += doc.nb_pages
+            for page_nb in xrange(doc.nb_pages, doc.nb_pages + nb_pages):
+                scan_workflow = self.__main_win.make_scan_workflow()
+                scan_workflows.append((doc, page_nb, line_idx, total, scan_workflow))
+
+        first_scan_workflow = None
+        last_scan_workflow = None
+        for (doc, page_nb, line_idx, total, scan_workflow) in scan_workflows:
+            if not first_scan_workflow:
+                first_scan_workflow = (doc, scan_workflow)
+            scan_workflow.connect("scan-start", lambda _: GLib.idle_add(
+                self.__multiscan_win.on_scan_start_cb, line_idx, page_nb,
+                total))
+            scan_workflow.connect("ocr-start", lambda _, a: GLib.idle_add(
+                self.__multiscan_win.on_ocr_start_cb, line_idx, page_nb, total))
+            scan_workflow.connect("process-done", lambda _, a, b: GLib.idle_add(
+                self.__multiscan_win.on_scan_done_cb, line_idx, page_nb, total))
+            scan_workflow.connect("process-done",
+                                  lambda scan_workflow, img, boxes:
+                                  GLib.idle_add(self.__on_ocr_done,
+                                                scan_workflow, img, boxes))
+            if last_scan_workflow:
+                last_scan_workflow.connect("process-done",
+                       lambda _, a, b: GLib.idle_add(
+                           self.__start_scan_workflow, resolution,
+                           doc, scan_workflow, scan_session))
+            last_scan_workflow = scan_workflow
+
+        if last_scan_workflow:
+            last_scan_workflow.connect("process-done",
+                lambda _, a, b: GLib.idle_add(
+                    self.__multiscan_win.on_global_scan_end_cb))
+        if first_scan_workflow:
+            self.__start_scan_workflow(resolution,
+                                       first_scan_workflow[0],
+                                       first_scan_workflow[1],
+                                       scan_session)
 
 
 class ActionCancel(SimpleAction):
@@ -288,6 +246,8 @@ class MultiscanDialog(GObject.GObject):
     def __init__(self, main_window, config):
         GObject.GObject.__init__(self)
 
+        self.main_window = main_window
+
         self.schedulers = {
             'main': main_window.schedulers['main'],
         }
@@ -298,6 +258,8 @@ class MultiscanDialog(GObject.GObject):
 
         widget_tree = load_uifile(
             os.path.join("multiscan", "multiscan.glade"))
+
+        self.window = widget_tree.get_object("dialogMultiscan")
 
         scan_scrollbars = widget_tree.get_object("scrolledwindowScan")
         self.scan_canvas = Canvas(scan_scrollbars)
@@ -318,11 +280,6 @@ class MultiscanDialog(GObject.GObject):
 
         self.removeDocButton = widget_tree.get_object("buttonRemoveDoc")
         self.removeDocButton.set_sensitive(False)
-
-        self.job_factories = {
-            'scan': JobFactoryDocScan(self, self.__config,
-                                      main_window.docsearch)
-        }
 
         actions = {
             'add_doc': (
@@ -352,7 +309,7 @@ class MultiscanDialog(GObject.GObject):
             'scan': (
                 [widget_tree.get_object("buttonOk")],
                 ActionScan(self, config, main_window.docsearch,
-                           main_window.doc),
+                           main_window),
             ),
         }
 
@@ -404,29 +361,25 @@ class MultiscanDialog(GObject.GObject):
             line[5] = False  # disable deletion
         self.set_mouse_cursor("Busy")
 
-    def on_scan_start_cb(self, job, current_page, total_pages):
-        line_idx = job.line_in_treeview
+    def on_scan_start_cb(self, line_idx, current_page, total_pages):
         progression = ("%d / %d" % (current_page, total_pages))
         self.lists['docs']['model'][line_idx][1] = progression
-        progression = (current_page*100/total_pages)
+        progression = (current_page * 100 / total_pages)
         self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Scanning")
 
-    def on_ocr_start_cb(self, job, current_page, total_pages):
-        line_idx = job.line_in_treeview
-        progression = ((current_page*100+50)/total_pages)
+    def on_ocr_start_cb(self, line_idx, current_page, total_pages):
+        progression = ((current_page * 100 + 50) / total_pages)
         self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Reading")
 
-    def on_scan_done_cb(self, job, page, total_pages):
-        line_idx = job.line_in_treeview
-        progression = ("%d / %d" % (page.page_nb + 1, total_pages))
+    def on_scan_done_cb(self, line_idx, current_page, total_pages):
+        progression = ("%d / %d" % (current_page + 1, total_pages))
         self.lists['docs']['model'][line_idx][1] = progression
-        progression = ((page.page_nb*100+100)/total_pages)
+        progression = ((current_page * 100 + 100) / total_pages)
         self.lists['docs']['model'][line_idx][3] = progression
         self.lists['docs']['model'][line_idx][4] = _("Done")
         self.scanned_pages += 1
-        self.emit('need-show-page', page)
 
     def on_global_scan_end_cb(self):
         self.emit('need-doclist-refresh')
@@ -443,7 +396,6 @@ class MultiscanDialog(GObject.GObject):
 
     def on_scan_error_cb(self, exception):
         logger.warning("Scan failed: %s" % str(exception))
-        self.schedulers['main'].cancel_all(self.job_factories['scan'])
         logger.info("Scan job cancelled")
 
         if isinstance(exception, StopIteration):
@@ -461,7 +413,6 @@ class MultiscanDialog(GObject.GObject):
         self.dialog.destroy()
 
     def __on_destroy(self, window=None):
-        self.schedulers['main'].cancel_all(self.job_factories['scan'])
         logger.info("Multi-scan dialog destroyed")
 
 GObject.type_register(MultiscanDialog)

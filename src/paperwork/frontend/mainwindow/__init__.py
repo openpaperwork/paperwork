@@ -1427,51 +1427,7 @@ class ActionSingleScan(SimpleAction):
 
     def __on_ocr_done(self, scan_workflow, img, line_boxes):
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
-        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
-
-        new = False
-        if doc is None or doc.nb_pages <= 0:
-            # new doc
-            new = True
-            if self.__main_win.doc.is_new:
-                doc = self.__main_win.doc
-            else:
-                doc = ImgDoc(self.__config['workdir'].value)
-
-        doc.add_page(img, line_boxes)
-        doc.drop_cache()
-        self.__main_win.doc.drop_cache()
-
-        if self.__main_win.doc.docid == doc.docid:
-            self.__main_win.show_page(self.__main_win.doc.pages[-1],
-                                      force_refresh=True)
-        self.__main_win.refresh_page_list()
-
-        if new:
-            factory = self.__main_win.job_factories['label_predictor_on_new_doc']
-            job = factory.make(doc)
-            job.connect("predicted-labels", lambda predictor, predicted:
-                        GLib.idle_add(self.__on_predicted_labels, doc, predicted))
-            self.__main_win.schedulers['main'].schedule(job)
-        else:
-            self.__upd_index(doc, new=False)
-
-    def __on_predicted_labels(self, doc, predicted_labels):
-        for label in self.__main_win.docsearch.label_list:
-            if label.name in predicted_labels:
-                self.__main_win.docsearch.add_label(doc, label, update_index=False)
-        self.__upd_index(doc, new=True)
-
-    def __upd_index(self, doc, new=False):
-        if new:
-            job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, new_docs={doc}, optimize=False)
-        else:
-            job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, upd_docs={doc}, optimize=False)
-        job.connect("index-update-end", lambda job:
-                    GLib.idle_add(self.__main_win.refresh_doc_list))
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.add_page(docid, img, line_boxes)
 
     def do(self):
         SimpleAction.do(self)
@@ -1502,7 +1458,8 @@ class ActionSingleScan(SimpleAction):
                               GLib.idle_add(self.__on_ocr_done, scan_workflow, img,
                                             boxes))
 
-        drawer = MultiAnglesScanWorkflowDrawer(scan_workflow)
+        drawer = self.__main_win.make_scan_workflow_drawer(
+            scan_workflow, single_angle=False)
         self.__main_win.add_scan_workflow(self.__main_win.doc, drawer)
         scan_workflow.scan_and_ocr(resolution, scan_session)
 
@@ -1621,7 +1578,8 @@ class ActionImport(SimpleAction):
             if len(page.boxes) <= 0:
                 logger.info("Doing OCR on %s" % str(page))
                 scan_workflow = self._main_win.make_scan_workflow()
-                drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+                drawer = self._main_win.make_scan_workflow_drawer(
+                    scan_workflow, single_angle=True)
                 self._main_win.add_scan_workflow(page.doc, drawer,
                                                   page_nb=page.page_nb)
                 scan_workflow.connect('process-done',
@@ -1805,7 +1763,8 @@ class ActionRedoOCR(SimpleAction):
 
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self._main_win.make_scan_workflow()
-        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        drawer = self._main_win.make_scan_workflow_drawer(
+            scan_workflow, single_angle=True)
         self._main_win.add_scan_workflow(page.doc, drawer,
                                          page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -2225,7 +2184,8 @@ class ActionEditPage(SimpleAction):
     def __do_ocr(self, page):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self.__main_win.make_scan_workflow()
-        drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        drawer = self.__main_win.make_scan_workflow_drawer(
+            scan_workflow, single_angle=True)
         self.__main_win.add_scan_workflow(page.doc, drawer,
                                        page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -3611,6 +3571,11 @@ class MainWindow(object):
                             self.schedulers['scan'],
                             self.schedulers['ocr'])
 
+    def make_scan_workflow_drawer(self, scan_workflow, single_angle=False):
+        if single_angle:
+            return SingleAngleScanWorkflowDrawer(scan_workflow)
+        return MultiAnglesScanWorkflowDrawer(scan_workflow)
+
     def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():
             for (page_nb, drawer) in drawers[:]:
@@ -3633,3 +3598,49 @@ class MainWindow(object):
             self.img['canvas'].recompute_size()
             self.img['canvas'].get_vadjustment().set_value(
                 scan_workflow_drawer.position[1])
+
+    def add_page(self, docid, img, line_boxes):
+        doc = self.docsearch.get_doc_from_docid(docid)
+
+        new = False
+        if doc is None or doc.nb_pages <= 0:
+            # new doc
+            new = True
+            if self.doc.is_new:
+                doc = self.doc
+            else:
+                doc = ImgDoc(self.__config['workdir'].value)
+
+        doc.add_page(img, line_boxes)
+        doc.drop_cache()
+        self.doc.drop_cache()
+
+        if self.doc.docid == doc.docid:
+            self.show_page(self.doc.pages[-1], force_refresh=True)
+        self.refresh_page_list()
+
+        if new:
+            factory = self.job_factories['label_predictor_on_new_doc']
+            job = factory.make(doc)
+            job.connect("predicted-labels", lambda predictor, predicted:
+                        GLib.idle_add(self.__on_predicted_labels, doc, predicted))
+            self.schedulers['main'].schedule(job)
+        else:
+            self.upd_index(doc, new=False)
+
+    def __on_predicted_labels(self, doc, predicted_labels):
+        for label in self.docsearch.label_list:
+            if label.name in predicted_labels:
+                self.docsearch.add_label(doc, label, update_index=False)
+        self.upd_index(doc, new=True)
+
+    def upd_index(self, doc, new=False):
+        if new:
+            job = self.job_factories['index_updater'].make(
+                self.docsearch, new_docs={doc}, optimize=False)
+        else:
+            job = self.job_factories['index_updater'].make(
+                self.docsearch, upd_docs={doc}, optimize=False)
+        job.connect("index-update-end", lambda job:
+                    GLib.idle_add(self.refresh_doc_list))
+        self.schedulers['main'].schedule(job)

@@ -712,9 +712,9 @@ class ScanWorkflow(GObject.GObject):
         'ocr-canceled': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
         'process-done': (GObject.SignalFlags.RUN_LAST, None,
-                     (GObject.TYPE_PYOBJECT,  # PIL image
-                      GObject.TYPE_PYOBJECT,  # line + word boxes
-                     )),
+                         (GObject.TYPE_PYOBJECT,  # PIL image
+                          GObject.TYPE_PYOBJECT,  # line + word boxes
+                         )),
     }
 
     STEP_SCAN = 0

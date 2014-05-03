@@ -7,16 +7,7 @@ import pyinsane.abstract_th as pyinsane
 logger = logging.getLogger(__name__)
 
 
-def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
-    """
-    Set one of the scanner options
-
-    Arguments:
-        scanner_opt_name --- for verbose
-        scanner_opt --- the scanner option (its value, its constraints, etc)
-        possible_values --- a list of values considered valid (the first one
-                            being the preferred one)
-    """
+def _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
     value = possible_values[0]
     regexs = [re.compile(x, flags=re.IGNORECASE) for x in possible_values]
 
@@ -38,6 +29,28 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
     logger.info("Setting scanner option '%s' to '%s'"
                 % (scanner_opt_name, str(value)))
     scanner_opt.value = value
+
+
+def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
+    """
+    Set one of the scanner options
+
+    Arguments:
+        scanner_opt_name --- for verbose
+        scanner_opt --- the scanner option (its value, its constraints, etc)
+        possible_values --- a list of values considered valid (the first one
+                            being the preferred one)
+    """
+    # WORKAROUND(Jflesch): For some reason, my crappy scanner returns
+    # I/O errors randomly for fun
+    for t in xrange(0, 5):
+        try:
+            _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values)
+            break
+        except Exception, exc:
+            logger.warning("Warning: Failed to set scanner option"
+                           " %s=%s: %s (try %d/5)"
+                           % (scanner_opt_name, possible_values, str(exc), t))
 
 
 def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):

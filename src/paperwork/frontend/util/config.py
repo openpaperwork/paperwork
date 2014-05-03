@@ -10,6 +10,7 @@ from paperwork.backend.config import PaperworkConfig
 from paperwork.backend.config import PaperworkSetting
 from paperwork.backend.config import paperwork_cfg_boolean
 from paperwork.frontend.util.scanner import maximize_scan_area
+from paperwork.frontend.util.scanner import set_scanner_opt
 
 
 logger = logging.getLogger(__name__)
@@ -261,16 +262,27 @@ def load_config():
     return config
 
 
-def get_scanner(config):
+def get_scanner(config, preferred_sources=None):
     devid = config['scanner_devid'].value
     logger.info("Will scan using %s" % str(devid))
-    source = config['scanner_source'].value
-    logger.info("Will scan using source %s" % str(source))
     resolution = config['scanner_resolution'].value
     logger.info("Will scan at a resolution of %d" % resolution)
 
     dev = pyinsane.Scanner(name=devid)
-    dev.options['source'].value = source
+
+    if preferred_sources:
+        try:
+            set_scanner_opt('source', dev.options['source'], preferred_sources)
+        except (KeyError, pyinsane.SaneException), exc:
+            config_source = config['scanner_source'].value
+            logger.error("Warning: Unable to set scanner source to '%s': %s"
+                         % (preferred_sources, exc))
+            dev.options['source'].value = config_source
+    else:
+        config_source = config['scanner_source'].value
+        dev.options['source'].value = config_source
+        logger.info("Will scan using source %s" % str(config_source))
+
     try:
         dev.options['resolution'].value = resolution
     except pyinsane.SaneException:

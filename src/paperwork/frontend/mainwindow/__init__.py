@@ -31,8 +31,6 @@ from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
 
-import pyinsane.abstract_th as pyinsane
-
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
@@ -48,13 +46,13 @@ from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.config import get_scanner
 from paperwork.frontend.util.dialog import ask_confirmation
 from paperwork.frontend.util.dialog import popup_no_scanner_found
 from paperwork.frontend.util.img import add_img_border
 from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
-from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
@@ -1481,32 +1479,8 @@ class ActionSingleScan(SimpleAction):
         if not check_scanner(self.__main_win, self.__config):
             return
 
-        devid = self.__config['scanner_devid'].value
-        logger.info("Will scan using %s" % str(devid))
-        source = self.__config['scanner_source'].value
-        logger.info("Will scan using source %s" % str(source))
-        resolution = self.__config['scanner_resolution'].value
-        logger.info("Will scan at a resolution of %d" % resolution)
-
         try:
-            dev = pyinsane.Scanner(name=devid)
-
-            dev.options['source'].value = source
-            try:
-                dev.options['resolution'].value = resolution
-            except pyinsane.SaneException:
-                logger.warning("Unable to set scanner resolution to %d: %s"
-                               % (resolution, exc))
-            if "Color" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Color"
-                logger.info("Scanner mode set to 'Color'")
-            elif "Gray" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Gray"
-                logger.info("Scanner mode set to 'Gray'")
-            else:
-                logger.warning("Unable to set scanner mode ! May be 'Lineart'")
-            maximize_scan_area(dev)
-
+            (dev, resolution) = get_scanner(self.__config)
             scan_session = dev.scan(multiple=False)
         except Exception, exc:
             logger.warning("Exception while configuring scanner: %s: %s."

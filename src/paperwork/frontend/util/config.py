@@ -4,6 +4,7 @@ import logging
 
 import pycountry
 import pyocr
+import pyinsane.abstract_th as pyinsane
 
 from paperwork.backend.config import PaperworkConfig
 from paperwork.backend.config import PaperworkSetting
@@ -257,3 +258,30 @@ def load_config():
         config.settings[k] = v
 
     return config
+
+
+def get_scanner(config):
+    devid = config['scanner_devid'].value
+    logger.info("Will scan using %s" % str(devid))
+    source = config['scanner_source'].value
+    logger.info("Will scan using source %s" % str(source))
+    resolution = config['scanner_resolution'].value
+    logger.info("Will scan at a resolution of %d" % resolution)
+
+    dev = pyinsane.Scanner(name=devid)
+    dev.options['source'].value = source
+    try:
+        dev.options['resolution'].value = resolution
+    except pyinsane.SaneException:
+        logger.warning("Unable to set scanner resolution to %d: %s"
+                       % (resolution, exc))
+    if "Color" in dev.options['mode'].constraint:
+        dev.options['mode'].value = "Color"
+        logger.info("Scanner mode set to 'Color'")
+    elif "Gray" in dev.options['mode'].constraint:
+        dev.options['mode'].value = "Gray"
+        logger.info("Scanner mode set to 'Gray'")
+    else:
+        logger.warning("Unable to set scanner mode ! May be 'Lineart'")
+    maximize_scan_area(dev)
+    return (dev, resolution)

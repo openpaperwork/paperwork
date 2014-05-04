@@ -140,6 +140,19 @@ class ActionEndEditDoc(SimpleAction):
         line[1] = new_text
 
 
+class PageScan(object):
+    def __init__(self, line_idx, scan_workflow, doc, page_nb, total_pages):
+        """
+        Arguments:
+            doc --- if None, new doc
+        """
+        self.line_idx = line_idx
+        self.scan_workflow = scan_workflow
+        self.doc = doc
+        self.page_nb = page_nb
+        self.total_pages = total_pages
+
+
 class ActionScan(SimpleAction):
     def __init__(self, multiscan_win, config, docsearch, main_win):
         SimpleAction.__init__(self, "Start multi-scan")
@@ -148,16 +161,16 @@ class ActionScan(SimpleAction):
         self.__docsearch = docsearch
         self.__main_win = main_win
 
-    def __start_scan_workflow(self, resolution, doc, scan_workflow, scan_session):
-        if not doc:
-            doc = ImgDoc(self.__config['workdir'].value)
+    def __start_scan_workflow(self, resolution, scan_session, page_scan):
+        if not page_scan.doc:
+            page_scan.doc = ImgDoc(self.__config['workdir'].value)
         drawer = self.__main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=False)
-        self.__main_win.add_scan_workflow(doc, drawer)
-        scan_workflow.scan_and_ocr(resolution, scan_session)
+            page_scan.scan_workflow, single_angle=False)
+        self.__main_win.add_scan_workflow(page_scan.doc, drawer)
+        page_scan.scan_workflow.scan_and_ocr(resolution, scan_session)
 
-    def __on_ocr_done(self, scan_workflow, img, line_boxes):
-        docid = self.__main_win.remove_scan_workflow(scan_workflow)
+    def __on_ocr_done(self, page_scan, img, line_boxes):
+        docid = self.__main_win.remove_scan_workflow(page_scan.scan_workflow)
         self.__main_win.add_page(docid, img, line_boxes)
 
     def do(self):
@@ -176,7 +189,7 @@ class ActionScan(SimpleAction):
 
         self.__multiscan_win.on_global_scan_start_cb()
 
-        scan_workflows = []
+        page_scans = []
 
         rng = xrange(0, len(self.__multiscan_win.lists['docs']['model']))
         for line_idx in rng:
@@ -185,45 +198,45 @@ class ActionScan(SimpleAction):
             if line_idx == 0:
                 doc = self.__main_win.doc
             nb_pages = int(line[1])
-            total = nb_pages
+            total_pages = nb_pages
             if doc:
-                total += doc.nb_pages
+                total_pages += doc.nb_pages
             for page_nb in xrange(doc.nb_pages, doc.nb_pages + nb_pages):
                 scan_workflow = self.__main_win.make_scan_workflow()
-                scan_workflows.append((doc, page_nb, line_idx, total, scan_workflow))
+                page_scans.append(PageScan(line_idx, scan_workflow, doc,
+                                           page_nb, total_pages))
 
-        first_scan_workflow = None
-        last_scan_workflow = None
-        for (doc, page_nb, line_idx, total, scan_workflow) in scan_workflows:
-            if not first_scan_workflow:
-                first_scan_workflow = (doc, scan_workflow)
+        first_page_scan = None
+        last_page_scan = None
+        for page_scan in page_scans:
+            if not first_page_scan:
+                first_page_scan = page_scan
+            scan_workflow = page_scan.scan_workflow
             scan_workflow.connect("scan-start", lambda _: GLib.idle_add(
-                self.__multiscan_win.on_scan_start_cb, line_idx, page_nb,
-                total))
+                self.__multiscan_win.on_scan_start_cb, page_scan))
             scan_workflow.connect("ocr-start", lambda _, a: GLib.idle_add(
-                self.__multiscan_win.on_ocr_start_cb, line_idx, page_nb, total))
+                self.__multiscan_win.on_ocr_start_cb, page_scan))
             scan_workflow.connect("process-done", lambda _, a, b: GLib.idle_add(
-                self.__multiscan_win.on_scan_done_cb, line_idx, page_nb, total))
+                self.__multiscan_win.on_scan_done_cb, page_scan))
             scan_workflow.connect("process-done",
                                   lambda scan_workflow, img, boxes:
-                                  GLib.idle_add(self.__on_ocr_done,
-                                                scan_workflow, img, boxes))
-            if last_scan_workflow:
-                last_scan_workflow.connect("process-done",
+                                  GLib.idle_add(self.__on_ocr_done, page_scan,
+                                                img, boxes))
+            if last_page_scan:
+                last_page_scan.scan_workflow.connect("process-done",
                        lambda _, a, b: GLib.idle_add(
-                           self.__start_scan_workflow, resolution,
-                           doc, scan_workflow, scan_session))
-            last_scan_workflow = scan_workflow
+                           self.__start_scan_workflow, resolution, scan_session,
+                           page_scan))
+            last_page_scan = page_scan
 
-        if last_scan_workflow:
-            last_scan_workflow.connect("process-done",
+        if last_page_scan:
+            last_page_scan.scan_workflow.connect("process-done",
                 lambda _, a, b: GLib.idle_add(
                     self.__multiscan_win.on_global_scan_end_cb))
-        if first_scan_workflow:
+        if first_page_scan:
             self.__start_scan_workflow(resolution,
-                                       first_scan_workflow[0],
-                                       first_scan_workflow[1],
-                                       scan_session)
+                                       scan_session,
+                                       first_page_scan)
 
 
 class ActionCancel(SimpleAction):
@@ -361,24 +374,24 @@ class MultiscanDialog(GObject.GObject):
             line[5] = False  # disable deletion
         self.set_mouse_cursor("Busy")
 
-    def on_scan_start_cb(self, line_idx, current_page, total_pages):
-        progression = ("%d / %d" % (current_page, total_pages))
-        self.lists['docs']['model'][line_idx][1] = progression
-        progression = (current_page * 100 / total_pages)
-        self.lists['docs']['model'][line_idx][3] = progression
-        self.lists['docs']['model'][line_idx][4] = _("Scanning")
+    def on_scan_start_cb(self, page_scan):
+        progression = ("%d / %d" % (page_scan.page_nb, page_scan.total_pages))
+        self.lists['docs']['model'][page_scan.line_idx][1] = progression
+        progression = (page_scan.page_nb * 100 / page_scan.total_pages)
+        self.lists['docs']['model'][page_scan.line_idx][3] = progression
+        self.lists['docs']['model'][page_scan.line_idx][4] = _("Scanning")
 
-    def on_ocr_start_cb(self, line_idx, current_page, total_pages):
-        progression = ((current_page * 100 + 50) / total_pages)
-        self.lists['docs']['model'][line_idx][3] = progression
-        self.lists['docs']['model'][line_idx][4] = _("Reading")
+    def on_ocr_start_cb(self, page_scan):
+        progression = ((page_scan.page_nb * 100 + 50) / page_scan.total_pages)
+        self.lists['docs']['model'][page_scan.line_idx][3] = progression
+        self.lists['docs']['model'][page_scan.line_idx][4] = _("Reading")
 
-    def on_scan_done_cb(self, line_idx, current_page, total_pages):
-        progression = ("%d / %d" % (current_page + 1, total_pages))
-        self.lists['docs']['model'][line_idx][1] = progression
-        progression = ((current_page * 100 + 100) / total_pages)
-        self.lists['docs']['model'][line_idx][3] = progression
-        self.lists['docs']['model'][line_idx][4] = _("Done")
+    def on_scan_done_cb(self, page_scan):
+        progression = ("%d / %d" % (page_scan.page_nb + 1, page_scan.total_pages))
+        self.lists['docs']['model'][page_scan.line_idx][1] = progression
+        progression = ((page_scan.page_nb * 100 + 100) / page_scan.total_pages)
+        self.lists['docs']['model'][page_scan.line_idx][3] = progression
+        self.lists['docs']['model'][page_scan.line_idx][4] = _("Done")
         self.scanned_pages += 1
 
     def on_global_scan_end_cb(self):

@@ -300,6 +300,75 @@ class JobFactoryResolutionFinder(JobFactory):
         return job
 
 
+class JobModeFinder(Job):
+    __gsignals__ = {
+        'mode-finding-start': (GObject.SignalFlags.RUN_LAST,
+                               None, ()),
+        'mode-found': (GObject.SignalFlags.RUN_LAST, None,
+                       (GObject.TYPE_STRING,  # user name
+                        GObject.TYPE_STRING,  # mode value
+                        GObject.TYPE_BOOLEAN)),  # is the active one
+        'mode-finding-end': (GObject.SignalFlags.RUN_LAST,
+                             None, ())
+    }
+
+    can_stop = False
+    priority = 490
+
+    def __init__(self, factory, id,
+                 selected_mode,
+                 devid):
+        Job.__init__(self, factory, id)
+        self.__selected_mode = selected_mode
+        self.__devid = devid
+
+    def do(self):
+        self.emit("mode-finding-start")
+        try:
+            logger.info("Looking for modes of device [%s]" % (self.__devid))
+            device = pyinsane.Scanner(name=self.__devid)
+            sys.stdout.flush()
+            modes = device.options['mode'].constraint
+            logger.info("modes found: %s" % str(modes))
+            sys.stdout.flush()
+
+            for mode in modes:
+                self.emit('mode-found', mode, mode,
+                          (mode == self.__selected_mode))
+        finally:
+            self.emit("mode-finding-end")
+
+
+GObject.type_register(JobModeFinder)
+
+
+class JobFactoryModeFinder(JobFactory):
+    def __init__(self, settings_win, selected_mode):
+        JobFactory.__init__(self, "ModeFinder")
+        self.__settings_win = settings_win
+        self.__selected_mode = selected_mode
+
+    def make(self, devid):
+        job = JobModeFinder(self, next(self.id_generator),
+                            self.__selected_mode,
+                            devid)
+        job.connect('mode-finding-start',
+                    lambda job: GLib.idle_add(
+                        self.__settings_win.on_finding_start_cb,
+                        self.__settings_win.device_settings['mode']))
+        job.connect('mode-found',
+                    lambda job, store_name, user_name, active:
+                    GLib.idle_add(
+                        self.__settings_win.on_value_found_cb,
+                        self.__settings_win.device_settings['mode'],
+                        store_name, user_name, active))
+        job.connect('mode-finding-end',
+                    lambda job: GLib.idle_add(
+                        self.__settings_win.on_finding_end_cb,
+                        self.__settings_win.device_settings['mode']))
+        return job
+
+
 class JobCalibrationScan(Job):
     __gsignals__ = {
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
@@ -457,6 +526,8 @@ class ActionSelectScanner(SimpleAction):
         self.__settings_win.schedulers['main'].schedule(job)
         job = self.__settings_win.job_factories['resolution_finder'].make(devid)
         self.__settings_win.schedulers['main'].schedule(job)
+        job = self.__settings_win.job_factories['mode_finder'].make(devid)
+        self.__settings_win.schedulers['main'].schedule(job)
 
 
 class ActionSelectSource(SimpleAction):
@@ -520,6 +591,12 @@ class ActionApplySettings(SimpleAction):
         if idx >= 0:
             resolution = setting['stores']['loaded'][idx][1]
             self.__config['scanner_resolution'].value = resolution
+
+        setting = self.__settings_win.device_settings['mode']
+        idx = setting['gui'].get_active()
+        if idx >= 0:
+            mode = setting['stores']['loaded'][idx][1]
+            self.__config['scanner_mode'].value = mode
 
         setting = self.__settings_win.ocr_settings['enabled']
         enabled = setting['gui'].get_active()
@@ -676,6 +753,14 @@ class SettingsWindow(GObject.GObject):
                 'nb_elements': 0,
                 'active_idx': -1,
             },
+            "mode": {
+                'gui': widget_tree.get_object("comboboxMode"),
+                'stores': {
+                    'loaded': widget_tree.get_object("liststoreMode"),
+                },
+                'nb_elements': 0,
+                'active_idx': -1,
+            },
         }
 
         img_scrollbars = widget_tree.get_object("scrolledwindowCalibration")
@@ -705,6 +790,8 @@ class SettingsWindow(GObject.GObject):
             "resolution_finder": JobFactoryResolutionFinder(self,
                 config['scanner_resolution'].value,
                 RECOMMENDED_SCAN_RESOLUTION),
+            "mode_finder": JobFactoryModeFinder(self,
+                config['scanner_mode'].value),
             "scan": JobFactoryCalibrationScan(
                 self,
                 self.device_settings['resolution']['stores']['loaded']

@@ -244,6 +244,10 @@ def load_config():
         'scanner_sources' : PaperworkSetting("Scanner", "Sources",
                                              lambda: _PaperworkCfgStringList(""),
                                              _PaperworkCfgStringList),
+        'scanner_mode' : PaperworkSetting("Scanner", "Mode"),
+        'scanner_modes' : PaperworkSetting("Scanner", "Modes",
+                                           lambda: _PaperworkCfgStringList(""),
+                                           _PaperworkCfgStringList),
         'scan_time' : _ScanTimes(),
         'zoom_level' : PaperworkSetting("GUI", "zoom_level", lambda: 0.0, float),
     }

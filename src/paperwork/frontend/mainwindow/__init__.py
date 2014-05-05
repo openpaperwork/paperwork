@@ -3573,8 +3573,12 @@ class MainWindow(object):
 
     def make_scan_workflow_drawer(self, scan_workflow, single_angle=False):
         if single_angle:
-            return SingleAngleScanWorkflowDrawer(scan_workflow)
-        return MultiAnglesScanWorkflowDrawer(scan_workflow)
+            drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+        else:
+            drawer = MultiAnglesScanWorkflowDrawer(scan_workflow)
+        # make sure the canvas is set even if we don't display it
+        drawer.set_canvas(self.img['canvas'])
+        return drawer
 
     def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():

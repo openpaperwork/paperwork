@@ -286,7 +286,7 @@ class JobFactoryOCR(JobFactory):
             print("No OCR tool found")
             sys.exit(1)
         ocr_tool = ocr_tools[0]
-        print("Will use tool '%s'" % (ocr_tool.get_name()))
+        logger.info("Will use tool '%s'" % (ocr_tool.get_name()))
 
         job = JobOCR(self, next(self.id_generator), ocr_tool,
                      self.__config['langs'].value, angles, img)

@@ -163,8 +163,12 @@ class RectangleDrawer(Drawer):
     def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
         cairo_ctx.save()
         try:
-            cairo_ctx.set_source_rgba(self.inside_color[0], self.inside_color[1],
-                                      self.inside_color[2], self.inside_color[3])
+            if (len(self.inside_color) > 3):
+                cairo_ctx.set_source_rgba(self.inside_color[0], self.inside_color[1],
+                                          self.inside_color[2], self.inside_color[3])
+            else:
+                cairo_ctx.set_source_rgb(self.inside_color[0], self.inside_color[1],
+                                         self.inside_color[2])
             cairo_ctx.set_line_width(2.0)
 
             if self.angle != 0:

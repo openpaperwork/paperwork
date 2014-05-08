@@ -25,6 +25,9 @@ from gi.repository import Gtk
 
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
+from paperwork.frontend.multiscan.scan import PageScan
+from paperwork.frontend.multiscan.scan import DocScan
+from paperwork.frontend.multiscan.scan import PageScanDrawer
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
@@ -140,81 +143,6 @@ class ActionEndEditDoc(SimpleAction):
         line[1] = new_text
 
 
-class DocScan(object):
-    def __init__(self, doc):
-        """
-        Arguments:
-            doc --- if None, new doc
-        """
-        self.doc = doc
-
-
-class PageScan(GObject.GObject):
-    __gsignals__ = {
-        'done': (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
-
-    def __init__(self, main_win, multiscan_win, config,
-                 resolution, scan_session,
-                 line_idx, doc_scan,
-                 page_nb, total_pages):
-        GObject.GObject.__init__(self)
-        self.__main_win = main_win
-        self.__multiscan_win = multiscan_win
-        self.__config = config
-        self.resolution = resolution
-        self.__scan_session = scan_session
-        self.line_idx = line_idx
-        self.doc_scan = doc_scan
-        self.page_nb = page_nb
-        self.total_pages = total_pages
-
-    def __on_ocr_done(self, img, line_boxes):
-        docid = self.__main_win.remove_scan_workflow(self.scan_workflow)
-        self.__main_win.add_page(docid, img, line_boxes)
-        self.emit("done")
-
-    def __on_error(self, exc):
-        logger.error("Scan failed: %s" % str(exc))
-        self.__main_win.remove_scan_workflow(self.scan_workflow)
-        self.__main_win.refresh_page_list()
-        self.__multiscan_win.on_scan_error_cb(self, exc)
-
-    def __make_scan_workflow(self):
-        self.scan_workflow = self.__main_win.make_scan_workflow()
-        self.scan_workflow.connect("scan-start", lambda _: GLib.idle_add(
-            self.__multiscan_win.on_scan_start_cb, self))
-        self.scan_workflow.connect("scan-error", lambda _, exc:
-                                   GLib.idle_add(self.__on_error, exc))
-        self.scan_workflow.connect("ocr-start", lambda _, a: GLib.idle_add(
-            self.__multiscan_win.on_ocr_start_cb, self))
-        self.scan_workflow.connect("process-done",
-                                   lambda _, a, b: GLib.idle_add(
-                                       self.__multiscan_win.on_scan_done_cb,
-                                       self))
-        self.scan_workflow.connect("process-done",
-                                   lambda scan_workflow, img, boxes:
-                                   GLib.idle_add(self.__on_ocr_done,
-                                                 img, boxes))
-
-    def start_scan_workflow(self):
-        self.__make_scan_workflow()
-        if not self.doc_scan.doc:
-            self.doc_scan.doc = ImgDoc(self.__config['workdir'].value)
-        self.__main_win.show_doc(self.doc_scan.doc)
-        drawer = self.__main_win.make_scan_workflow_drawer(
-            self.scan_workflow, single_angle=False)
-        self.__main_win.add_scan_workflow(self.doc_scan.doc, drawer)
-        self.scan_workflow.scan_and_ocr(self.resolution, self.__scan_session)
-
-    def connect_next_page_scan(self, next_page_scan):
-        self.connect("done", lambda _: GLib.idle_add(
-            next_page_scan.start_scan_workflow))
-
-
-GObject.type_register(PageScan)
-
-
 class ActionScan(SimpleAction):
     def __init__(self, multiscan_win, config, docsearch, main_win):
         SimpleAction.__init__(self, "Start multi-scan")
@@ -241,6 +169,9 @@ class ActionScan(SimpleAction):
 
         page_scans = []
 
+        MARGIN = 10
+        position = (MARGIN, MARGIN)
+
         rng = range(0, len(self.__multiscan_win.lists['docs']['model']))
         for line_idx in rng:
             line = self.__multiscan_win.lists['docs']['model'][line_idx]
@@ -254,13 +185,22 @@ class ActionScan(SimpleAction):
                 total_pages += doc.nb_pages
                 doc_nb_pages = doc.nb_pages
             doc_scan = DocScan(doc)
+            drawer = None
             for page_nb in xrange(doc_nb_pages, doc_nb_pages + nb_pages):
                 page_scan = PageScan(self.__main_win, self.__multiscan_win,
                                      self.__config,
                                      resolution, scan_session,
                                      line_idx, doc_scan,
                                      page_nb, total_pages)
+                drawer = PageScanDrawer(position)
+                self.__multiscan_win.scan_canvas.add_drawer(drawer)
+                page_scan.connect("scanworkflow-inst", drawer.set_scan_workflow)
                 page_scans.append(page_scan)
+                position = (position[0] + drawer.size[0] + MARGIN, position[1])
+            new_height = position[1] + MARGIN
+            if drawer:
+                new_height += drawer.size[1]
+            position = (MARGIN, new_height)
 
         first_page_scan = page_scans[0]
         last_page_scan = None

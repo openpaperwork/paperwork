@@ -70,6 +70,8 @@ class ScanAnimation(Animation):
         # big images take more time to draw
         # --> we resize it now
         img_size = fit(img_chunk.size, self.size)
+        if (img_size[0] <= 0 or img_size[1] <= 0):
+            return
         img_chunk = img_chunk.resize(img_size)
 
         surface = image2surface(img_chunk)

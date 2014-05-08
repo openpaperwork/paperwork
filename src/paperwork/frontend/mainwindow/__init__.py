@@ -1418,7 +1418,7 @@ class ActionSingleScan(SimpleAction):
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
                                       force_refresh=True)
 
-    def __on_scan_error(self, scan_workflow, error):
+    def __on_scan_error(self, scan_workflow, exc):
         # TODO
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
         if self.__main_win.doc.docid == docid:
@@ -1448,9 +1448,9 @@ class ActionSingleScan(SimpleAction):
         scan_workflow.connect('scan-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,
                                          scan_workflow))
-        scan_workflow.connect('scan-error', lambda scan_scan, error:
+        scan_workflow.connect('scan-error', lambda scan_scan, exc:
                            GLib.idle_add(self.__on_scan_error, scan_workflow,
-                                         error))
+                                         exc))
         scan_workflow.connect('ocr-canceled', lambda scan_workflow:
                            GLib.idle_add(self.__on_scan_ocr_canceled,
                                          scan_workflow))

@@ -174,10 +174,18 @@ class PageScan(GObject.GObject):
         self.__main_win.add_page(docid, img, line_boxes)
         self.emit("done")
 
+    def __on_error(self, exc):
+        logger.error("Scan failed: %s" % str(exc))
+        self.__main_win.remove_scan_workflow(self.scan_workflow)
+        self.__main_win.refresh_page_list()
+        self.__multiscan_win.on_scan_error_cb(self, exc)
+
     def __make_scan_workflow(self):
         self.scan_workflow = self.__main_win.make_scan_workflow()
         self.scan_workflow.connect("scan-start", lambda _: GLib.idle_add(
             self.__multiscan_win.on_scan_start_cb, self))
+        self.scan_workflow.connect("scan-error", lambda _, exc:
+                                   GLib.idle_add(self.__on_error, exc))
         self.scan_workflow.connect("ocr-start", lambda _, a: GLib.idle_add(
             self.__multiscan_win.on_ocr_start_cb, self))
         self.scan_workflow.connect("process-done",
@@ -437,9 +445,12 @@ class MultiscanDialog(GObject.GObject):
         dialog.destroy()
         self.dialog.destroy()
 
-    def on_scan_error_cb(self, exception):
+    def on_scan_error_cb(self, page_scan, exception):
         logger.warning("Scan failed: %s" % str(exception))
         logger.info("Scan job cancelled")
+
+        self.emit('need-doclist-refresh')
+        self.set_mouse_cursor("Normal")
 
         if isinstance(exception, StopIteration):
             msg = _("Less pages than expected have been Img"

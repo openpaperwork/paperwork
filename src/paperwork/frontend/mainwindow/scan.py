@@ -44,6 +44,9 @@ class JobScan(Job):
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # Pillow image
                       )),
+        'scan-error': (GObject.SignalFlags.RUN_LAST, None,
+                       (GObject.TYPE_PYOBJECT,  # Exception
+                       )),
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
     }
@@ -61,27 +64,31 @@ class JobScan(Job):
         logger.info("Scan started")
         self.emit('scan-started')
 
-        size = self.scan_session.scan.expected_size
-        self.emit('scan-info', size[0], size[1])
-
-        last_line = 0
         try:
-            while self.can_run:
-                self.scan_session.scan.read()
+            size = self.scan_session.scan.expected_size
+            self.emit('scan-info', size[0], size[1])
 
-                next_line = self.scan_session.scan.available_lines[1]
-                if (next_line > last_line):
-                    chunk = self.scan_session.scan.get_image(last_line, next_line)
-                    self.emit('scan-chunk', last_line, chunk)
-                    last_line = next_line
+            last_line = 0
+            try:
+                while self.can_run:
+                    self.scan_session.scan.read()
 
-                time.sleep(0)  # Give some CPU time to Gtk
-            if not self.can_run:
-                logger.info("Scan canceled")
-                self.emit('scan-canceled')
-                return
-        except EOFError:
-            pass
+                    next_line = self.scan_session.scan.available_lines[1]
+                    if (next_line > last_line):
+                        chunk = self.scan_session.scan.get_image(last_line, next_line)
+                        self.emit('scan-chunk', last_line, chunk)
+                        last_line = next_line
+
+                    time.sleep(0)  # Give some CPU time to Gtk
+                if not self.can_run:
+                    logger.info("Scan canceled")
+                    self.emit('scan-canceled')
+                    return
+            except EOFError:
+                pass
+        except Exception, exc:
+            self.emit('scan-error', exc)
+            raise
 
         img = self.scan_session.images[-1]
         self.emit('scan-done', img)
@@ -116,6 +123,9 @@ class JobFactoryScan(JobFactory):
         job.connect("scan-done",
                     lambda job, img: GLib.idle_add(self.scan_workflow.on_scan_done,
                                                    img))
+        job.connect("scan-error",
+                    lambda job, exc:
+                    GLib.idle_add(self.scan_workflow.on_scan_error, exc))
         job.connect("scan-canceled", lambda job:
                     GLib.idle_add(self.scan_workflow.on_scan_canceled))
         return job
@@ -692,7 +702,7 @@ class ScanWorkflow(GObject.GObject):
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
         'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       (GObject.TYPE_STRING,  # Error message
+                       (GObject.TYPE_PYOBJECT,  # Exception
                        )),
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,  # PIL image
@@ -780,6 +790,9 @@ class ScanWorkflow(GObject.GObject):
             )
 
         self.emit('scan-done', img)
+
+    def on_scan_error(self, exc):
+        self.emit('scan-error', exc)
 
     def on_scan_canceled(self):
         self.emit('scan-done', None)

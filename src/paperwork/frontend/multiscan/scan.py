@@ -1,7 +1,6 @@
 from gi.repository import GLib
 from gi.repository import GObject
 
-from paperwork.backend.img.doc import ImgDoc
 from paperwork.frontend.util.canvas.animations import Animation
 from paperwork.frontend.util.canvas.animations import ScanAnimation
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
@@ -74,7 +73,7 @@ class PageScan(GObject.GObject):
     def start_scan_workflow(self):
         self.__make_scan_workflow()
         if not self.doc_scan.doc:
-            self.doc_scan.doc = ImgDoc(self.__config['workdir'].value)
+            self.doc_scan.doc = self.__main_win.get_new_doc()
         self.__main_win.show_doc(self.doc_scan.doc)
         drawer = self.__main_win.make_scan_workflow_drawer(
             self.scan_workflow, single_angle=False)

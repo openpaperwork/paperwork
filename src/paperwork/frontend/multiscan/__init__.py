@@ -23,7 +23,6 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 
-from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.page import ImgPage
 from paperwork.frontend.multiscan.scan import PageScan
 from paperwork.frontend.multiscan.scan import DocScan

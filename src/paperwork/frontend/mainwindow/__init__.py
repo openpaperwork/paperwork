@@ -1708,7 +1708,9 @@ class ActionDeleteDoc(SimpleAction):
         index_upd.commit()
         logger.info("Deleted")
 
-        self.__main_win.refresh_docs({doc})
+        # TODO(Jflesch): this should be the correct thing to do
+        #self.__main_win.refresh_docs({doc})
+        self.__main_win.refresh_doc_list()
 
 
 class ActionDeletePage(SimpleAction):

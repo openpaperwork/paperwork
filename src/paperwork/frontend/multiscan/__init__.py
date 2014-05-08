@@ -156,15 +156,15 @@ class PageScan(GObject.GObject):
 
     def __init__(self, main_win, multiscan_win, config,
                  resolution, scan_session,
-                 line_idx, scan_workflow, doc_scan,
+                 line_idx, doc_scan,
                  page_nb, total_pages):
+        GObject.GObject.__init__(self)
         self.__main_win = main_win
         self.__multiscan_win = multiscan_win
         self.__config = config
         self.resolution = resolution
         self.__scan_session = scan_session
         self.line_idx = line_idx
-        self.scan_workflow = None
         self.doc_scan = doc_scan
         self.page_nb = page_nb
         self.total_pages = total_pages
@@ -201,7 +201,7 @@ class PageScan(GObject.GObject):
 
     def connect_next_page_scan(self, next_page_scan):
         self.connect("done", lambda _: GLib.idle_add(
-                   next_page_scan.start_scan_workflow))
+            next_page_scan.start_scan_workflow))
 
 
 GObject.type_register(PageScan)
@@ -250,7 +250,7 @@ class ActionScan(SimpleAction):
                 page_scan = PageScan(self.__main_win, self.__multiscan_win,
                                      self.__config,
                                      resolution, scan_session,
-                                     line_idx, scan_workflow, doc_scan,
+                                     line_idx, doc_scan,
                                      page_nb, total_pages)
                 page_scans.append(page_scan)
 

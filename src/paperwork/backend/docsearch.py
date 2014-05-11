@@ -817,15 +817,16 @@ class DocSearch(object):
         if update_index:
             updater.commit()
 
-    def remove_label(self, doc, label):
+    def remove_label(self, doc, label, update_index=True):
         """
         Remove a label from a doc. Takes care of updating the index
         """
         doc.remove_label(label)
-        updater = self.get_index_updater(optimize=False)
-        updater.upd_doc(doc)
-        self.fit_label_estimator(docs=[doc], removed_label=label)
-        updater.commit()
+        if update_index:
+            updater = self.get_index_updater(optimize=False)
+            updater.upd_doc(doc)
+            self.fit_label_estimator(docs=[doc], removed_label=label)
+            updater.commit()
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """

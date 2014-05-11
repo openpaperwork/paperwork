@@ -415,9 +415,19 @@ class JobFactoryIndexUpdater(JobFactory):
         self.__main_win = main_win
         self.__config = config
 
+    def __refresh_docs(self, new_docs, upd_docs, del_docs, reload_all, reload_thumbnails):
+        if reload_all:
+            job = self.__main_win.job_factories['index_reloader'].make()
+            self.__main_win.schedulers['main'].schedule(job)
+        else:
+            docs = new_docs
+            docs = docs.union(upd_docs)
+            docs = docs.union(del_docs)
+            self.__main_win.refresh_docs(docs, redo_thumbnails=reload_thumbnails)
+
     def make(self, docsearch,
              new_docs=set(), upd_docs=set(), del_docs=set(),
-             optimize=True):
+             optimize=True, reload_all=True, reload_thumbnails=True):
         job = JobIndexUpdater(self, next(self.id_generator), self.__config,
                               docsearch, new_docs, upd_docs, del_docs, optimize)
         job.connect('index-update-start',
@@ -436,6 +446,10 @@ class JobFactoryIndexUpdater(JobFactory):
                     lambda updater:
                     GLib.idle_add(self.__main_win.on_index_update_end_cb,
                                   updater))
+        job.connect('index-update-end',
+                    lambda updater:
+                    GLib.idle_add(self.__refresh_docs, new_docs, upd_docs,
+                                  del_docs, reload_all, reload_thumbnails))
         return job
 
 
@@ -1276,14 +1290,20 @@ class ActionToggleLabel(object):
         if not label in self.__main_win.doc.labels:
             logger.info("Action: Adding label '%s' on document '%s'"
                    % (label.name, str(self.__main_win.doc)))
-            self.__main_win.docsearch.add_label(self.__main_win.doc, label)
+            self.__main_win.docsearch.add_label(self.__main_win.doc, label,
+                                                update_index=False)
         else:
             logger.info("Action: Removing label '%s' on document '%s'"
                    % (label.name, self.__main_win.doc))
-            self.__main_win.docsearch.remove_label(self.__main_win.doc, label)
+            self.__main_win.docsearch.remove_label(self.__main_win.doc, label,
+                                                   update_index=False)
         self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs({self.__main_win.doc},
                                      redo_thumbnails=False)
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch, upd_docs={self.__main_win.doc},
+            optimize=False, reload_all=False, reload_thumbnails=False)
+        self.__main_win.schedulers['main'].schedule(job)
 
     def connect(self, cellrenderers):
         for cellrenderer in cellrenderers:
@@ -1625,7 +1645,8 @@ class ActionImport(SimpleAction):
 
         def _update_index(self):
             job = self._main_win.job_factories['index_updater'].make(
-                self._main_win.docsearch, upd_docs=self._docs_to_upd, optimize=False)
+                self._main_win.docsearch, upd_docs=self._docs_to_upd,
+                optimize=False, reload_all=False, reload_thumbnails=True)
             self._main_win.schedulers['main'].schedule(job)
             self._docs_to_upd = set()
 
@@ -1657,13 +1678,6 @@ class ActionImport(SimpleAction):
         if docs is None or len(docs) <= 0:
             self.__no_doc_imported()
             return
-
-        job = self.__main_win.job_factories['index_updater'].make(
-            self.__main_win.docsearch, upd_docs=set(docs), optimize=False)
-        job.connect('index-update-end', lambda job:
-                    GLib.idle_add(self.__main_win.refresh_doc_list))
-        self.__main_win.schedulers['main'].schedule(job)
-        # ^ if the OCR is not done yet, it should go pretty fast
 
         self.__main_win.show_doc(docs[-1], force_refresh=True)
         if page is not None:
@@ -1741,10 +1755,12 @@ class ActionDeletePage(SimpleAction):
 
         if doc.nb_pages <= 0:
             job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, del_docs={doc.docid}, optimize=False)
+                self.__main_win.docsearch, del_docs={doc.docid}, optimize=False,
+                reload_all=False, reload_thumbnails=False)
         else:
             job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+                self.__main_win.docsearch, upd_docs={doc}, optimize=False,
+                reload_all=False, reload_thumbnails=False)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -1791,7 +1807,8 @@ class ActionRedoOCR(SimpleAction):
             self._do_next_page(page_iterator)
         except StopIteration:
             job = self._main_win.job_factories['index_updater'].make(
-                self._main_win.docsearch, upd_docs=docs_done, optimize=False)
+                self._main_win.docsearch, upd_docs=docs_done, optimize=False,
+                reload_all=False, reload_thumbnails=False)
             self._main_win.schedulers['main'].schedule(job)
 
     def do(self, pages_iterator):
@@ -2155,6 +2172,7 @@ class ActionRefreshIndex(SimpleAction):
             new_docs=examiner.new_docs,
             upd_docs=examiner.docs_changed,
             del_docs=examiner.docs_missing,
+            reload_all=True, reload_thumbnails=True
         )
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -2204,7 +2222,8 @@ class ActionEditPage(SimpleAction):
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
         job = self.__main_win.job_factories['index_updater'].make(
-            self.__main_win.docsearch, upd_docs={doc}, optimize=False)
+            self.__main_win.docsearch, upd_docs={doc}, optimize=False,
+            reload_all=False, reload_thumbnails=True)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -2882,9 +2901,6 @@ class MainWindow(object):
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
 
-        job = self.job_factories['index_reloader'].make()
-        self.schedulers['main'].schedule(job)
-
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
 
@@ -3016,10 +3032,11 @@ class MainWindow(object):
     def __pop_new_doc(self):
         doc_list = self.lists['doclist']
         if (len(doc_list) <= 0 or not doc_list[0].is_new):
-            return False
+            return None
+        doc = doc_list[0]
         doc_list.pop(0)
         self.lists['matches'].pop(0)
-        return True
+        return doc
 
     def __insert_doc(self, doc_idx, doc):
         doc_list = self.lists['doclist']
@@ -3066,9 +3083,10 @@ class MainWindow(object):
             except ValueError as exc:
                 logger.warning("Unable to find doc [%s] in the list" % str(doc))
 
-        if self.__pop_new_doc():
+        new_doc = self.__pop_new_doc()
+        if new_doc:
             logger.info("Doc list refresh: 'new doc' (%s) popped out"
-                        " of the  list" % doc)
+                        " of the  list" % new_doc)
 
         # make sure all the target docs are already in the list in a first
         # place
@@ -3520,7 +3538,9 @@ class MainWindow(object):
             new_docs=set(),
             upd_docs=upd_docs,
             del_docs=del_docs,
-            optimize=False
+            optimize=False,
+            reload_all=False,
+            reload_thumbnails=True
         )
         self.schedulers['main'].schedule(job)
 
@@ -3643,10 +3663,12 @@ class MainWindow(object):
     def upd_index(self, doc, new=False):
         if new:
             job = self.job_factories['index_updater'].make(
-                self.docsearch, new_docs={doc}, optimize=False)
+                self.docsearch, new_docs={doc}, optimize=False,
+                reload_all=False, reload_thumbnails=True)
         else:
             job = self.job_factories['index_updater'].make(
-                self.docsearch, upd_docs={doc}, optimize=False)
+                self.docsearch, upd_docs={doc}, optimize=False,
+                reload_all=False, reload_thumbnails=True)
         job.connect("index-update-end", lambda job:
                     GLib.idle_add(self.refresh_doc_list))
         self.schedulers['main'].schedule(job)

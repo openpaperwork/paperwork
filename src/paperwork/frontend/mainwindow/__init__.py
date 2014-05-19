@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012  Jerome Flesch
+#    Copyright (C) 2012-2014  Jerome Flesch
 #    Copyright (C) 2012  Sebastien Maccagnoni-Munch
 #
 #    Paperwork is free software: you can redistribute it and/or modify

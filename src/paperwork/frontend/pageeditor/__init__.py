@@ -115,6 +115,7 @@ class PageEditingDialog(object):
             'img': img_canvas,
             'scrolledwindow': img_scrollbars,
             'eventbox': widget_tree.get_object("eventboxOriginal"),
+            'zoom': widget_tree.get_object("adjustmentZoom"),
         }
         self.__result_img_widget = widget_tree.get_object("imageResult")
         self.__buttons = {
@@ -153,9 +154,11 @@ class PageEditingDialog(object):
         if self.__cut_grips is not None:
             return
         self.__cut_grips = ImgGripHandler(
-            self.img, self.__original_img_widgets['img'])
+            self.img, self.__original_img_widgets['img'],
+            self.__original_img_widgets['zoom'])
         self.__cut_grips.visible = False
         self.__cut_grips.connect("grip-moved", self.__on_grip_moved_cb)
+        self.__cut_grips.connect("zoom-changed", self.__on_zoom_changed_cb)
 
         self.__redraw_result()
 
@@ -171,6 +174,9 @@ class PageEditingDialog(object):
         cut = self.__cut_grips.get_coords()
         action = PageCuttingAction(cut)
         action.add_to_action_queue(self.__changes)
+        self.__redraw_result()
+
+    def __on_zoom_changed_cb(self, griphandler):
         self.__redraw_result()
 
     def __on_rotate_activated_cb(self, widget):

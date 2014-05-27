@@ -144,16 +144,20 @@ class ImgGripRectangle(Drawer):
 
 class ImgGripHandler(GObject.GObject):
     __gsignals__ = {
-        'grip-moved': (GObject.SignalFlags.RUN_LAST, None, ())
+        'grip-moved': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'zoom-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, img, canvas):
+    def __init__(self, img, canvas, zoom_widget):
         GObject.GObject.__init__(self)
+
+        if zoom_widget is None:
+            zoom_widget = Gtk.Adjustment(1.0, 0.01, 1.0, 0.01, 0.10)
+        self.zoom_widget = zoom_widget
 
         self.__visible = False
 
         self.img = img
-        self.scale = 1.0
         self.img_size = self.img.size
         self.canvas = canvas
 
@@ -172,6 +176,8 @@ class ImgGripHandler(GObject.GObject):
             'on_grip': Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         }
 
+        zoom_widget.connect("value-changed", lambda x:
+                            GLib.idle_add(self.__on_zoom_changed))
         canvas.connect("absolute-button-press-event",
                        self.__on_mouse_button_pressed_cb)
         canvas.connect("absolute-motion-notify-event",
@@ -179,6 +185,7 @@ class ImgGripHandler(GObject.GObject):
         canvas.connect("absolute-button-release-event",
                        self.__on_mouse_button_released_cb)
 
+        self.last_rel_position = (False, 0, 0)
         self.toggle_zoom((0.0, 0.0))
 
         self.canvas.remove_all_drawers()
@@ -187,16 +194,41 @@ class ImgGripHandler(GObject.GObject):
         for grip in self.grips:
             self.canvas.add_drawer(grip)
 
-    def set_scale(self, scale, rel_cursor_pos):
-        self.scale = scale
+    def __on_zoom_changed(self):
         self.img_drawer.size = (
             self.img_size[0] * self.scale,
             self.img_size[1] * self.scale,
         )
+
         for grip in self.grips:
             grip.scale = self.scale
+
+        if self.last_rel_position[0]:
+            rel_pos = self.last_rel_position[1:]
+            self.last_rel_position = (False, 0, 0)
+        else:
+            h = self.canvas.get_hadjustment()
+            v = self.canvas.get_vadjustment()
+            adjs = [h, v]
+            rel_pos = []
+            for adj in adjs:
+                upper = adj.get_upper() - adj.get_page_size()
+                lower = adj.get_lower()
+                if (upper - lower) <= 0:
+                    # XXX(Jflesch): Weird bug ?
+                    break
+                val = adj.get_value()
+                val -= lower
+                val /= (upper - lower)
+                rel_pos.append(val)
+        if len(rel_pos) >= 2:
+            GLib.idle_add(self.__replace_scrollbars, rel_pos)
+
         self.canvas.recompute_size()
 
+        self.emit("zoom-changed")
+
+    def __replace_scrollbars(self, rel_cursor_pos):
         adjustements = [
             (self.canvas.get_hadjustment(), rel_cursor_pos[0]),
             (self.canvas.get_vadjustment(), rel_cursor_pos[1]),
@@ -207,6 +239,11 @@ class ImgGripHandler(GObject.GObject):
             val = (val * (upper - lower)) + lower
             adjustment.set_value(int(val))
 
+    def __get_scale(self):
+        return float(self.zoom_widget.get_value())
+
+    scale = property(__get_scale)
+
     def toggle_zoom(self, rel_cursor_pos):
         if self.scale != 1.0:
             scale = 1.0
@@ -215,7 +252,8 @@ class ImgGripHandler(GObject.GObject):
                 float(self.canvas.visible_size[0]) / self.img_size[0],
                 float(self.canvas.visible_size[1]) / self.img_size[1]
             )
-        self.set_scale(scale, rel_cursor_pos)
+        self.last_rel_position = (True, rel_cursor_pos[0], rel_cursor_pos[1])
+        self.zoom_widget.set_value(scale)
 
     def __on_mouse_button_pressed_cb(self, widget, event):
         if not self.visible:
@@ -271,8 +309,7 @@ class ImgGripHandler(GObject.GObject):
             )
             self.toggle_zoom(rel_cursor_pos)
             self.canvas.redraw()
-            # TODO(Jflesch): Use a dedicated signal ...
-            self.emit('grip-moved')
+            self.emit('zoom-changed')
             return
 
         if not self.visible:

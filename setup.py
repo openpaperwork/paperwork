@@ -15,6 +15,7 @@ PACKAGE_TOOLS = {
     'debian': 'apt-get install',
     'fedora': 'yum install',
     'gentoo': 'emerge',
+    'linuxmint': 'apt-get install',
     'ubuntu': 'apt-get install',
     'suse': 'zypper in',
 }
@@ -210,6 +211,7 @@ modules = [
          'debian': 'python-gi',
          'fedora': 'pygobject3',
          'gentoo': 'dev-python/pygobject',
+         'linuxmint': 'python-gi',
          'ubuntu': 'python-gi',
          'suse': 'python-gobject',
      },
@@ -220,6 +222,7 @@ modules = [
          'debian': 'gir1.2-gtk-3.0',
          'fedora': 'gtk3',
          'gentoo': 'x11-libs/gtk+',
+         'linuxmint': 'gir1.2-gtk-3.0',
          'ubuntu': 'gir1.2-gtk-3.0',
          'suse': 'python-gtk',
      },
@@ -231,6 +234,7 @@ modules = [
          'debian': 'gir1.2-gladeui-2.0',
          'fedora': 'glade3-libgladeui',
          'gentoo': 'dev-util/glade',
+         'linuxmint': 'gir1.2-gladeui-2.0',
          'ubuntu': 'gir1.2-gladeui-2.0',
          'suse': 'typelib-1_0-Gladeui-2_0',
      },
@@ -243,6 +247,7 @@ modules = [
          'debian': 'gir1.2-poppler-0.18',
          'fedora': 'poppler-glib',
          'gentoo': 'app-text/poppler',
+         'linuxmint': 'gir1.2-poppler-0.18',
          'ubuntu': 'gir1.2-poppler-0.18',
          'suse': 'typelib-1_0-Poppler-0_18',
      },
@@ -253,6 +258,7 @@ modules = [
          'debian': 'python-gi-cairo',
          'fedora': 'pycairo',
          'gentoo': 'dev-python/pycairo',
+         'linuxmint': 'python-gi-cairo',
          'ubuntu': 'python-gi-cairo',
          'suse': 'python-cairo',
      },
@@ -287,6 +293,7 @@ else:
              'debian': 'tesseract-ocr',
              'fedora': 'tesseract',
              'gentoo': 'app-text/tesseract',
+             'linuxmint': 'tesseract-ocr',
              'ubuntu': 'tesseract-ocr',
          },
         )
@@ -298,6 +305,7 @@ if (len(langs) <= 0):
          {
              'debian': 'tesseract-ocr-<your language>',
              'fedora': 'tesseract-langpack-<your language>',
+             'linuxmint': 'tesseract-ocr-<your language>',
              'ubuntu': 'tesseract-ocr-<your language>',
          },
         )

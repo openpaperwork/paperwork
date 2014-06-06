@@ -1052,6 +1052,28 @@ class JobFactoryPageEditor(JobFactory):
         return job
 
 
+class JobPageImgRenderer(Job):
+    __gsignals__ = {
+        'img': (GObject.SignalFlags.RUN_LAST, None,
+                (GObject.TYPE_PYOBJECT,)),
+    }
+
+    def __init__(self, factory, id, page):
+        Job.__init__(self, factory, id)
+        self.page = page
+
+    def do(self):
+        self.emit("img", self.page.img)
+
+
+class JobFactoryPageImgRenderer(JobFactory):
+    def __init__(self):
+        JobFactory.__init__(self, "PageImgRenderer")
+
+    def make(self, page):
+        return JobPageImgRenderer(self, next(self.id_generator), page)
+
+
 class ActionNewDocument(SimpleAction):
     """
     Starts a new document.
@@ -1571,7 +1593,6 @@ class ActionImport(SimpleAction):
         dialog.run()
         dialog.destroy()
 
-
     class IndexAdder(object):
         def __init__(self, main_win, page_iterator, must_add_labels=False):
             self._main_win = main_win
@@ -1606,11 +1627,19 @@ class ActionImport(SimpleAction):
                                       lambda scan_workflow, img, boxes:
                                       GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
                                                     boxes, page))
-                scan_workflow.ocr(page.img, angles=1)
+                renderer = self._main_win.job_factories['page_img_renderer']
+                renderer = renderer.make(page)
+                renderer.connect("img", lambda _, img:
+                                 GLib.idle_add(self._ocr,
+                                               scan_workflow, img))
+                self._main_win.schedulers['main'].schedule(renderer)
             else:
                 logger.info("Imported page %s already has text" % page)
                 self._add_doc_to_checklists(page.doc)
                 GLib.idle_add(self._ocr_next_page)
+
+        def _ocr(self, scan_workflow, page_img):
+            scan_workflow.ocr(page_img, angles=1)
 
         def _on_page_ocr_done(self, scan_workflow, img, boxes, page):
             if page.can_edit:
@@ -2493,6 +2522,7 @@ class MainWindow(object):
             'label_deleter': JobFactoryLabelDeleter(self),
             'match_list': self.lists['matches'].job_factory,
             'page_editor': JobFactoryPageEditor(self, config),
+            'page_img_renderer': JobFactoryPageImgRenderer(),
             'page_list': self.lists['pages'].job_factory,
             'page_img_loader': JobFactoryPageImgLoader(),
             'page_boxes_loader': JobFactoryPageBoxesLoader(),

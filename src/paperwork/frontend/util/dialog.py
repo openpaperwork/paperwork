@@ -38,7 +38,7 @@ def popup_no_scanner_found(parent):
                                flags=Gtk.DialogFlags.MODAL,
                                message_type=Gtk.MessageType.WARNING,
                                buttons=Gtk.ButtonsType.OK,
-                               message_format=msg)
+                               text=msg)
     dialog.run()
     dialog.destroy()
 
@@ -56,7 +56,7 @@ def ask_confirmation(parent):
                                 | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                 message_type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
-                                message_format=_('Are you sure ?'))
+                                text=_('Are you sure ?'))
     response = confirm.run()
     confirm.destroy()
     if response != Gtk.ResponseType.YES:

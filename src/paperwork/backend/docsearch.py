@@ -277,7 +277,7 @@ class DocIndexUpdater(GObject.GObject):
         """
         logger.info("Index: Commiting changes and saving estimators")
         self.docsearch.save_label_estimators()
-        self.writer.commit(optimize=self.optimize)
+        self.writer.commit()
         del self.writer
         self.docsearch.reload_searcher()
         if self.__need_reload:

@@ -1054,8 +1054,8 @@ class JobFactoryPageEditor(JobFactory):
 
 class JobPageImgRenderer(Job):
     __gsignals__ = {
-        'img': (GObject.SignalFlags.RUN_LAST, None,
-                (GObject.TYPE_PYOBJECT,)),
+        'rendered': (GObject.SignalFlags.RUN_LAST, None,
+                     (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
     def __init__(self, factory, id, page):
@@ -1063,7 +1063,7 @@ class JobPageImgRenderer(Job):
         self.page = page
 
     def do(self):
-        self.emit("img", self.page.img)
+        self.emit("rendered", self.page.img, self.page.boxes)
 
 
 class JobFactoryPageImgRenderer(JobFactory):
@@ -1072,6 +1072,150 @@ class JobFactoryPageImgRenderer(JobFactory):
 
     def make(self, page):
         return JobPageImgRenderer(self, next(self.id_generator), page)
+
+
+class JobImporter(Job):
+    __gsignals__ = {
+    }
+
+    def __init__(self, factory, id, main_win, config, importer, file_uri):
+        Job.__init__(self, factory, id)
+        self.__main_win = main_win
+        self.__config = config
+        self.importer = importer
+        self.file_uri = file_uri
+
+    class IndexAdder(object):
+        def __init__(self, main_win, page_iterator, must_add_labels=False):
+            self._main_win = main_win
+            self._page_iterator = page_iterator
+            self.must_add_labels = must_add_labels
+
+            self._docs_to_label_predict = set()
+            self._docs_to_upd = set()
+
+        def start(self):
+            self._ocr_next_page()
+
+        def _ocr_next_page(self):
+            try:
+                page = next(self._page_iterator)
+                logger.info("Examining page %s" % str(page))
+            except StopIteration:
+                logger.info("OCR has been redone on all the target pages")
+                if len(self._docs_to_label_predict) > 0:
+                    self._predict_labels()
+                else:
+                    self._update_index()
+                return
+
+            renderer = self._main_win.job_factories['page_img_renderer']
+            renderer = renderer.make(page)
+            renderer.connect("rendered", lambda _, img, boxes:
+                             GLib.idle_add(self._ocr,
+                                           page, img, boxes))
+            self._main_win.schedulers['main'].schedule(renderer)
+
+        def _ocr(self, page, page_img, boxes):
+            if len(boxes) <= 0:
+                logger.info("Doing OCR on %s" % str(page))
+                scan_workflow = self._main_win.make_scan_workflow()
+                drawer = self._main_win.make_scan_workflow_drawer(
+                    scan_workflow, single_angle=True)
+                self._main_win.add_scan_workflow(page.doc, drawer,
+                                                 page_nb=page.page_nb)
+                scan_workflow.connect('process-done',
+                                      lambda scan_workflow, img, boxes:
+                                      GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
+                                                    boxes, page))
+                scan_workflow.ocr(page_img, angles=1)
+            else:
+                logger.info("Imported page %s already has text" % page)
+                self._add_doc_to_checklists(page.doc)
+                GLib.idle_add(self._ocr_next_page)
+
+        def _on_page_ocr_done(self, scan_workflow, img, boxes, page):
+            if page.can_edit:
+                page.img = img
+            page.boxes = boxes
+
+            docid = self._main_win.remove_scan_workflow(scan_workflow)
+            self._add_doc_to_checklists(page.doc)
+            self._ocr_next_page()
+
+        def _add_doc_to_checklists(self, doc):
+            self._docs_to_upd.add(doc)
+            if self.must_add_labels:
+                self._docs_to_label_predict.add(doc)
+
+        def _predict_labels(self):
+            for doc in self._docs_to_label_predict:
+                logger.info("Predicting labels on doc %s"
+                            % str(doc))
+                factory = self._main_win.job_factories['label_predictor_on_new_doc']
+                job = factory.make(doc)
+                job.connect("predicted-labels", lambda predictor, predicted:
+                            GLib.idle_add(self._on_predicted_labels, doc, predicted))
+                self._main_win.schedulers['main'].schedule(job)
+
+        def _on_predicted_labels(self, doc, predicted_labels):
+            logger.info("Label predicted on doc %s" % str(doc))
+            for label in self._main_win.docsearch.label_list:
+                if label.name in predicted_labels:
+                    self._main_win.docsearch.add_label(doc, label, update_index=False)
+
+            self._docs_to_label_predict.remove(doc)
+            if len(self._docs_to_label_predict) <= 0:
+                self._update_index()
+
+        def _update_index(self):
+            logger.info("Updating index for %d docs"
+                        % len(self._docs_to_upd))
+            job = self._main_win.job_factories['index_updater'].make(
+                self._main_win.docsearch, upd_docs=self._docs_to_upd,
+                optimize=False, reload_all=True, reload_thumbnails=True)
+            self._main_win.schedulers['main'].schedule(job)
+            self._docs_to_upd = set()
+
+    def do(self):
+        self.__main_win.set_mouse_cursor("Busy")
+        (docs, page, must_add_labels) = self.importer.import_doc(
+            self.file_uri, self.__config, self.__main_win.docsearch,
+            self.__main_win.doc)
+        self.__main_win.set_mouse_cursor("Normal")
+
+        if docs is None or len(docs) <= 0:
+            self.__no_doc_imported()
+            return
+
+        self.__main_win.show_doc(docs[-1], force_refresh=True)
+        if page is not None:
+            self.__main_win.show_page(page, force_refresh=True)
+        set_widget_state(self.__main_win.need_doc_widgets, True)
+
+        # OCR ?
+        if page is not None:
+            self.IndexAdder(self.__main_win, iter([page]), must_add_labels).start()
+            return
+
+        pages = []
+        for doc in docs:
+            new_pages = [page for page in doc.pages]
+            pages += new_pages
+        if len(pages) > 0:
+            self.IndexAdder(self.__main_win, iter(pages), must_add_labels).start()
+
+
+class JobFactoryImporter(JobFactory):
+    def __init__(self, main_win, config):
+        JobFactory.__init__(self, "Importer")
+        self._main_win = main_win
+        self._config = config
+
+    def make(self, importer, file_uri):
+        return JobImporter(self, next(self.id_generator),
+                           self._main_win, self._config,
+                           importer, file_uri)
 
 
 class ActionNewDocument(SimpleAction):
@@ -1577,7 +1721,7 @@ class ActionImport(SimpleAction):
                                    flags=flags,
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
-                                   message_format=msg)
+                                   text=msg)
         dialog.run()
         dialog.destroy()
 
@@ -1589,95 +1733,9 @@ class ActionImport(SimpleAction):
                                    flags=flags,
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
-                                   message_format=msg)
+                                   text=msg)
         dialog.run()
         dialog.destroy()
-
-    class IndexAdder(object):
-        def __init__(self, main_win, page_iterator, must_add_labels=False):
-            self._main_win = main_win
-            self._page_iterator = page_iterator
-            self.must_add_labels = must_add_labels
-
-            self._docs_to_label_predict = set()
-            self._docs_to_upd = set()
-
-        def start(self):
-            self._ocr_next_page()
-
-        def _ocr_next_page(self):
-            try:
-                page = next(self._page_iterator)
-            except StopIteration:
-                logger.info("OCR has been redone on all the target pages")
-                if len(self._docs_to_label_predict) > 0:
-                    self._predict_labels()
-                else:
-                    self._update_index()
-                return
-
-            if len(page.boxes) <= 0:
-                logger.info("Doing OCR on %s" % str(page))
-                scan_workflow = self._main_win.make_scan_workflow()
-                drawer = self._main_win.make_scan_workflow_drawer(
-                    scan_workflow, single_angle=True)
-                self._main_win.add_scan_workflow(page.doc, drawer,
-                                                  page_nb=page.page_nb)
-                scan_workflow.connect('process-done',
-                                      lambda scan_workflow, img, boxes:
-                                      GLib.idle_add(self._on_page_ocr_done, scan_workflow, img,
-                                                    boxes, page))
-                renderer = self._main_win.job_factories['page_img_renderer']
-                renderer = renderer.make(page)
-                renderer.connect("img", lambda _, img:
-                                 GLib.idle_add(self._ocr,
-                                               scan_workflow, img))
-                self._main_win.schedulers['main'].schedule(renderer)
-            else:
-                logger.info("Imported page %s already has text" % page)
-                self._add_doc_to_checklists(page.doc)
-                GLib.idle_add(self._ocr_next_page)
-
-        def _ocr(self, scan_workflow, page_img):
-            scan_workflow.ocr(page_img, angles=1)
-
-        def _on_page_ocr_done(self, scan_workflow, img, boxes, page):
-            if page.can_edit:
-                page.img = img
-            page.boxes = boxes
-
-            docid = self._main_win.remove_scan_workflow(scan_workflow)
-            self._add_doc_to_checklists(page.doc)
-            self._ocr_next_page()
-
-        def _add_doc_to_checklists(self, doc):
-            self._docs_to_upd.add(doc)
-            if self.must_add_labels:
-                self._docs_to_label_predict.add(doc)
-
-        def _predict_labels(self):
-            for doc in self._docs_to_label_predict:
-                factory = self._main_win.job_factories['label_predictor_on_new_doc']
-                job = factory.make(doc)
-                job.connect("predicted-labels", lambda predictor, predicted:
-                            GLib.idle_add(self._on_predicted_labels, doc, predicted))
-                self._main_win.schedulers['main'].schedule(job)
-
-        def _on_predicted_labels(self, doc, predicted_labels):
-            for label in self._main_win.docsearch.label_list:
-                if label.name in predicted_labels:
-                    self._main_win.docsearch.add_label(doc, label, update_index=False)
-
-            self._docs_to_label_predict.remove(doc)
-            if len(self._docs_to_label_predict) <= 0:
-                self._update_index()
-
-        def _update_index(self):
-            job = self._main_win.job_factories['index_updater'].make(
-                self._main_win.docsearch, upd_docs=self._docs_to_upd,
-                optimize=False, reload_all=False, reload_thumbnails=True)
-            self._main_win.schedulers['main'].schedule(job)
-            self._docs_to_upd = set()
 
     def do(self):
         SimpleAction.do(self)
@@ -1698,32 +1756,9 @@ class ActionImport(SimpleAction):
 
         Gtk.RecentManager().add_item(file_uri)
 
-        self.__main_win.set_mouse_cursor("Busy")
-        (docs, page, must_add_labels) = importer.import_doc(
-            file_uri, self.__config, self.__main_win.docsearch,
-            self.__main_win.doc)
-        self.__main_win.set_mouse_cursor("Normal")
-
-        if docs is None or len(docs) <= 0:
-            self.__no_doc_imported()
-            return
-
-        self.__main_win.show_doc(docs[-1], force_refresh=True)
-        if page is not None:
-            self.__main_win.show_page(page, force_refresh=True)
-        set_widget_state(self.__main_win.need_doc_widgets, True)
-
-        # OCR ?
-        if page is not None:
-            self.IndexAdder(self.__main_win, iter([page]), must_add_labels).start()
-            return
-
-        pages = []
-        for doc in docs:
-            new_pages = [page for page in doc.pages]
-            pages += new_pages
-        if len(pages) > 0:
-            self.IndexAdder(self.__main_win, iter(pages), must_add_labels).start()
+        job_importer = self.__main_win.job_factories['importer']
+        job_importer = job_importer.make(importer, file_uri)
+        self.__main_win.schedulers['main'].schedule(job_importer)
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -2514,6 +2549,7 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
             'export_previewer': JobFactoryExportPreviewer(self),
+            'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
             'label_updater': JobFactoryLabelUpdater(self),

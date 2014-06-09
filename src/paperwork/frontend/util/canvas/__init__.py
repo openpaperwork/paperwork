@@ -72,7 +72,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         'window-moved': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    TICK_INTERVAL = (1000 / 15)
+    TICK_INTERVAL = (1000 / 10)
 
     def __init__(self, scrollbars):
         Gtk.DrawingArea.__init__(self)

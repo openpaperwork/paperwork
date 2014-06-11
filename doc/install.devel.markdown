@@ -17,9 +17,10 @@ indicate extra dependencies to install, so watch carefully the ouput of
     $ cd ~/git
     $ git clone https://github.com/jflesch/paperwork.git
     $ cd paperwork
-    $ git checkout [unstable](https://github.com/jflesch/paperwork/wiki/Branches)
+    $ git checkout unstable
     $ sudo python ./setup.py install
 
+(see [the wiki as to why you probably want to work on the branch 'unstable'](https://github.com/jflesch/paperwork/wiki/Branches))
 
 ## Paperwork in a Python Virtualenv
 

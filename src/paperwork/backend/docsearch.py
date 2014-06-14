@@ -105,18 +105,11 @@ class DummyDocSearch(object):
     @staticmethod
     def update_label(*args, **kwargs):
         """ Do nothing """
-        # to make pylint happy
-        old_label = old_label
-        new_label = new_label
-        cb_progress = cb_progress
         assert()
 
     @staticmethod
     def destroy_label(*args, **kwargs):
         """ Do nothing """
-        # to make pylint happy
-        label = label
-        cb_progress = cb_progress
         assert()
 
     @staticmethod

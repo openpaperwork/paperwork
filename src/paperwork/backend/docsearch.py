@@ -93,6 +93,11 @@ class DummyDocSearch(object):
         return []
 
     @staticmethod
+    def create_label(*args, **kwargs):
+        """ Do nothing """
+        assert()
+
+    @staticmethod
     def add_label(*args, **kwargs):
         """ Do nothing """
         assert()
@@ -501,7 +506,8 @@ class DocSearch(object):
         """
         return DocIndexUpdater(self, optimize)
 
-    def fit_label_estimator(self, docs=None, removed_label=None, labels=None):
+    def fit_label_estimator(self, docs=None, removed_label=None, labels=None,
+                            callback=dummy_progress_cb):
         """
         fit the estimator with the supervised documents
 
@@ -510,7 +516,7 @@ class DocSearch(object):
                 if none, all the docs are used
             removed_label --- if the fitting is done when a label is removed
                 a doc with no label is not used for learning (fitting), unless
-                the label has been explicitely removed
+                the label has been explicitly removed
             labels --- a collection a labels to operate with. If none, all
                 the labels are used
         """
@@ -788,6 +794,28 @@ class DocSearch(object):
         final_suggestions.sort()
         return final_suggestions
 
+    def create_label(self, label, doc=None):
+        """
+        Create a new label
+
+        Arguments:
+            doc --- first document on which the label must be added (required
+                    for now)
+        """
+        if doc is None:
+            raise NotImplementedError("no yet supported")
+        label = copy.copy(label)
+        assert(not label in self.label_list)
+        self.label_list.append(label)
+        self.label_list.sort()
+        doc.add_label(label)
+        if update_index:
+            updater = self.get_index_updater(optimize=False)
+            updater.upd_doc(doc)
+        self.fit_label_estimator(labels=[label])
+        if update_index:
+            updater.commit()
+
     def add_label(self, doc, label, update_index=True):
         """
         Add a label on a document.
@@ -797,19 +825,12 @@ class DocSearch(object):
             doc --- The first document on which this label has been added
         """
         label = copy.copy(label)
-        new_label = False
-        if not label in self.label_list:
-            self.label_list.append(label)
-            self.label_list.sort()
-            new_label = True
+        assert(label in self.label_list)
         doc.add_label(label)
         if update_index:
             updater = self.get_index_updater(optimize=False)
             updater.upd_doc(doc)
-        if new_label:
-            # its a brand new label, there is a new estimator.
-            # we need to fit this new estimator.
-            self.fit_label_estimator(labels=[label])
+        self.fit_label_estimator(docs=[doc], labels=[label])
         if update_index:
             updater.commit()
 

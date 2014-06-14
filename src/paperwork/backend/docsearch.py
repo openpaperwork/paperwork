@@ -83,25 +83,27 @@ class DummyDocSearch(object):
         assert()
 
     @staticmethod
-    def find_suggestions(sentence):
+    def find_suggestions(*args, **kwargs):
         """ Do nothing """
-        sentence = sentence  # to make pylint happy
         return []
 
     @staticmethod
-    def find_documents(sentence, limit=None, must_sort=True, search_type='full'):
+    def find_documents(*args, **kwargs):
         """ Do nothing """
-        sentence = sentence  # to make pylint happy
         return []
 
     @staticmethod
-    def add_label(label):
+    def add_label(*args, **kwargs):
         """ Do nothing """
-        label = label  # to make pylint happy
         assert()
 
     @staticmethod
-    def update_label(old_label, new_label, cb_progress=None):
+    def remove_label(*args, **kwargs):
+        """ Do nothing """
+        assert()
+
+    @staticmethod
+    def update_label(*args, **kwargs):
         """ Do nothing """
         # to make pylint happy
         old_label = old_label
@@ -110,7 +112,7 @@ class DummyDocSearch(object):
         assert()
 
     @staticmethod
-    def destroy_label(label, cb_progress=None):
+    def destroy_label(*args, **kwargs):
         """ Do nothing """
         # to make pylint happy
         label = label
@@ -123,9 +125,10 @@ class DummyDocSearch(object):
         assert()
 
     @staticmethod
-    def is_hash_in_index(filehash=None):
+    def is_hash_in_index(*args, **kwargs):
         """ Do nothing """
         assert()
+
 
 class DocDirExaminer(GObject.GObject):
     """

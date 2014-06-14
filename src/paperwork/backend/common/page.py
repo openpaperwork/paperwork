@@ -190,7 +190,7 @@ class BasicPage(object):
 
     text = property(__get_text)
 
-    def print_page_cb(self, print_op, print_context):
+    def print_page_cb(self, print_op, print_context, keep_refs={}):
         raise NotImplementedError()
 
     def destroy(self):

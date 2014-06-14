@@ -194,7 +194,7 @@ class PdfPage(BasicPage):
 
     size = property(__get_size)
 
-    def print_page_cb(self, print_op, print_context):
+    def print_page_cb(self, print_op, print_context, keep_refs={}):
         ctx = print_context.get_cairo_context()
 
         logger.debug("Context: %d x %d" % (print_context.get_width(),

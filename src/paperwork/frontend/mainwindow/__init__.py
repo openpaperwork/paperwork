@@ -1558,8 +1558,20 @@ class ActionPrintDoc(SimpleAction):
         SimpleAction.__init__(self, "Open print dialog")
         self.__main_win = main_window
 
+    class PrintPageCb(object):
+        def __init__(self, doc, keep_refs):
+            self.doc = doc
+            self.keep_refs = keep_refs
+
+        def print_page_cb(self, print_op, print_context, page_nb):
+            self.doc.print_page_cb(print_op, print_context, page_nb,
+                                   self.keep_refs)
+
     def do(self):
         SimpleAction.do(self)
+
+        keep_refs = {}
+        cb = self.PrintPageCb(self.__main_win.doc, keep_refs)
 
         print_settings = Gtk.PrintSettings()
         print_op = Gtk.PrintOperation()
@@ -1569,11 +1581,12 @@ class ActionPrintDoc(SimpleAction):
         print_op.set_use_full_page(False)
         print_op.set_job_name(str(self.__main_win.doc))
         print_op.set_export_filename(str(self.__main_win.doc) + ".pdf")
-        print_op.set_allow_async(True)
-        print_op.connect("draw-page", self.__main_win.doc.print_page_cb)
+        print_op.set_allow_async(False)
+        print_op.connect("draw-page", cb.print_page_cb)
         print_op.set_embed_page_setup(True)
         print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG,
                      self.__main_win.window)
+        del keep_refs
 
 
 class ActionOpenSettings(SimpleAction):

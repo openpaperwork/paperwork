@@ -273,12 +273,12 @@ class ImgDoc(BasicDoc):
                 raise
             return 0
 
-    def print_page_cb(self, print_op, print_context, page_nb):
+    def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
         Called for printing operation by Gtk
         """
         page = ImgPage(self, page_nb)
-        page.print_page_cb(print_op, print_context)
+        page.print_page_cb(print_op, print_context, keep_refs=keep_refs)
 
     @staticmethod
     def get_export_formats():

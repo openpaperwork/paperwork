@@ -162,11 +162,12 @@ class PdfDoc(BasicDoc):
             self._open_pdf()
         return self.__nb_pages
 
-    def print_page_cb(self, print_op, print_context, page_nb):
+    def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
         Called for printing operation by Gtk
         """
-        self.pages[page_nb].print_page_cb(print_op, print_context)
+        self.pages[page_nb].print_page_cb(print_op, print_context,
+                                          keep_refs=keep_refs)
 
     def import_pdf(self, config, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))

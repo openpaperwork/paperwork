@@ -62,6 +62,7 @@ class ImgPage(BasicPage):
         if page_nb is None:
             page_nb = doc.nb_pages
         BasicPage.__init__(self, doc, page_nb)
+        self.surface_cache = None
 
     def __get_box_path(self):
         """
@@ -154,7 +155,7 @@ class ImgPage(BasicPage):
 
     size = property(__get_size)
 
-    def print_page_cb(self, print_op, print_context):
+    def print_page_cb(self, print_op, print_context, keep_refs={}):
         """
         Called for printing operation by Gtk
         """
@@ -189,6 +190,7 @@ class ImgPage(BasicPage):
         img = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
 
         surface = image2surface(img)
+        keep_refs['surface_cache_' + str(self.page_nb)] = surface
 
         # .. and print !
         cairo_context = print_context.get_cairo_context()

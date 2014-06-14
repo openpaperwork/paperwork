@@ -93,7 +93,13 @@ class BasicDoc(object):
 
     nb_pages = property(__get_nb_pages)
 
-    def print_page_cb(self, print_op, print_context, page_nb):
+    def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
+        """
+        Arguments:
+            keep_refs --- Workaround ugly as fuck to some object alive (in other
+                          non-garbage-collected) during the whole printing
+                          process
+        """
         raise NotImplementedError()
 
     def __get_doctype(self):

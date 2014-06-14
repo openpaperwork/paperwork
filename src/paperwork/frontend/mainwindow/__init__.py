@@ -1058,6 +1058,9 @@ class JobPageImgRenderer(Job):
                      (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
     }
 
+    can_stop = False
+    priority = 100
+
     def __init__(self, factory, id, page):
         Job.__init__(self, factory, id)
         self.page = page
@@ -1077,6 +1080,9 @@ class JobFactoryPageImgRenderer(JobFactory):
 class JobImporter(Job):
     __gsignals__ = {
     }
+
+    can_stop = False
+    priority = 150
 
     def __init__(self, factory, id, main_win, config, importer, file_uri):
         Job.__init__(self, factory, id)

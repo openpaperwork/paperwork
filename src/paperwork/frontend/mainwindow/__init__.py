@@ -3230,8 +3230,8 @@ class MainWindow(object):
 
         new_doc = self.__pop_new_doc()
         if new_doc:
-            logger.info("Doc list refresh: 'new doc' (%s) popped out"
-                        " of the  list" % new_doc)
+            logger.debug("Doc list refresh: 'new doc' (%s) popped out"
+                         " of the  list" % new_doc)
 
         # make sure all the target docs are already in the list in a first
         # place
@@ -3255,7 +3255,7 @@ class MainWindow(object):
         # one to the list
         if sentence == u"":
             self.insert_new_doc()
-            logger.info("Doc list refresh: 'new doc' reinserted in the list")
+            logger.debug("Doc list refresh: 'new doc' reinserted in the list")
 
         # Update the model of the remaining target docs
         doc_list = self.lists['doclist']

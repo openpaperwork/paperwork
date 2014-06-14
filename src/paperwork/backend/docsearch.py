@@ -538,8 +538,13 @@ class DocSearch(object):
             if label_name not in self.label_estimators:
                 self.label_estimators[label_name] = copy.deepcopy(DocSearch.LABEL_ESTIMATOR_TEMPLATE)
 
+        i = 0
+        total = len(docs)
         for doc in docs:
             logger.info("Fitting estimator with doc: %s " % doc)
+            callback(i, total, step=self.LABEL_STEP_UPDATING, doc=doc)
+            time.sleep(0)  # give CPU time to other threads
+            i += 1
             # fit only with labelled documents
             if doc.labels:
                 for label_name in label_name_set:
@@ -794,7 +799,7 @@ class DocSearch(object):
         final_suggestions.sort()
         return final_suggestions
 
-    def create_label(self, label, doc=None):
+    def create_label(self, label, doc=None, callback=dummy_progress_cb):
         """
         Create a new label
 
@@ -809,12 +814,10 @@ class DocSearch(object):
         self.label_list.append(label)
         self.label_list.sort()
         doc.add_label(label)
-        if update_index:
-            updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(doc)
-        self.fit_label_estimator(labels=[label])
-        if update_index:
-            updater.commit()
+        updater = self.get_index_updater(optimize=False)
+        updater.upd_doc(doc)
+        self.fit_label_estimator(labels=[label], callback=callback)
+        updater.commit()
 
     def add_label(self, doc, label, update_index=True):
         """

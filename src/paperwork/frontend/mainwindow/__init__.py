@@ -826,6 +826,66 @@ class JobFactoryDocThumbnailer(JobFactory):
         return job
 
 
+class JobLabelCreator(Job):
+    __gsignals__ = {
+        'label-creation-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'label-creation-doc-read': (GObject.SignalFlags.RUN_LAST, None,
+                                    (GObject.TYPE_FLOAT,
+                                     GObject.TYPE_STRING)),
+        'label-creation-end': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
+    can_stop = False
+    priority = 5
+
+    def __init__(self, factory, id, docsearch, new_label, doc):
+        Job.__init__(self, factory, id)
+        self.__docsearch = docsearch
+        self.__new_label = new_label
+        self.__doc = doc
+
+    def __progress_cb(self, progression, total, step, doc):
+        self.emit('label-creation-doc-read', float(progression) / total,
+                  doc.name)
+
+    def do(self):
+        self.emit('label-creation-start')
+        try:
+            self.__docsearch.create_label(self.__new_label, self.__doc,
+                                          self.__progress_cb)
+        finally:
+            self.emit('label-creation-end')
+
+
+GObject.type_register(JobLabelCreator)
+
+
+class JobFactoryLabelCreator(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "LabelCreator")
+        self.__main_win = main_win
+
+    def make(self, docsearch, new_label, doc):
+        job = JobLabelCreator(self, next(self.id_generator), docsearch,
+                              new_label, doc)
+        job.connect('label-creation-start',
+                    lambda updater:
+                    GLib.idle_add(
+                        self.__main_win.on_label_updating_start_cb,
+                        updater))
+        job.connect('label-creation-doc-read',
+                    lambda updater, progression, doc_name:
+                    GLib.idle_add(
+                        self.__main_win.on_label_updating_doc_updated_cb,
+                        updater, progression, doc_name))
+        job.connect('label-creation-end',
+                    lambda updater:
+                    GLib.idle_add(
+                        self.__main_win.on_label_updating_end_cb,
+                        updater))
+        return job
+
+
 class JobLabelUpdater(Job):
     __gsignals__ = {
         'label-updating-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1493,11 +1553,10 @@ class ActionCreateLabel(SimpleAction):
         if labeleditor.edit(self.__main_win.window):
             logger.info("Adding label %s to doc %s"
                         % (labeleditor.label.name, self.__main_win.doc))
-            self.__main_win.docsearch.create_label(self.__main_win.doc,
-                                                   labeleditor.label)
-        self.__main_win.refresh_label_list()
-        self.__main_win.refresh_docs({self.__main_win.doc},
-                                     redo_thumbnails=False)
+            job = self.__main_win.job_factories['label_creator'].make(
+                self.__main_win.docsearch, labeleditor.label,
+                self.__main_win.doc)
+            self.__main_win.schedulers['main'].schedule(job)
 
 
 class ActionEditLabel(SimpleAction):
@@ -2571,6 +2630,7 @@ class MainWindow(object):
             'importer': JobFactoryImporter(self, config),
             'index_reloader' : JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
+            'label_creator': JobFactoryLabelCreator(self),
             'label_updater': JobFactoryLabelUpdater(self),
             'label_predictor_on_open_doc': JobFactoryLabelPredictorOnOpenDoc(self),
             'label_predictor_on_new_doc': JobFactoryLabelPredictorOnNewDoc(self),

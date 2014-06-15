@@ -2903,6 +2903,17 @@ class MainWindow(object):
             if isinstance(button, Gtk.ToolButton):
                 button.set_tooltip_text(_("Scan single page"))
 
+        accelerators = [
+            ('<Ctrl>e', widget_tree.get_object("toolbuttonEditDoc")),
+            ('<Ctrl>n', widget_tree.get_object("toolbuttonNew")),
+        ]
+        accel_group = Gtk.AccelGroup()
+        for (shortcut, widget) in accelerators:
+            (key, mod) = Gtk.accelerator_parse(shortcut)
+            widget.add_accelerator('clicked', accel_group, key, mod,
+                                   Gtk.AccelFlags.VISIBLE)
+        self.window.add_accel_group(accel_group)
+
         self.need_doc_widgets = set(
             self.actions['print'][0]
             + self.actions['create_label'][0]

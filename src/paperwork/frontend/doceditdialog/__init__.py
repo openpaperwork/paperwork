@@ -29,6 +29,17 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
+class OnSpinOutput(object):
+    def __init__(self, fmt):
+        self.fmt = fmt
+
+    def on_output(self, spinbutton):
+        adj = spinbutton.get_adjustment()
+        val = adj.get_value()
+        spinbutton.set_text(self.fmt % val)
+        return True
+
+
 class DocEditDialog(object):
     def __init__(self, main_window, config, doc):
         self.__main_win = main_window
@@ -41,14 +52,17 @@ class DocEditDialog(object):
             'year': {
                 'view': widget_tree.get_object("spinbuttonYear"),
                 'model': widget_tree.get_object("adjustmentYear"),
+                'fmt': '%04d',
             },
             'month': {
                 'view': widget_tree.get_object("spinbuttonMonth"),
                 'model': widget_tree.get_object("adjustmentMonth"),
+                'fmt': '%02d',
             },
             'day': {
                 'view': widget_tree.get_object("spinbuttonDay"),
                 'model': widget_tree.get_object("adjustmentDay"),
+                'fmt': '%02d',
             },
             'box': widget_tree.get_object("boxDate")
         }
@@ -56,6 +70,12 @@ class DocEditDialog(object):
             'view': widget_tree.get_object("textviewText"),
             'model': widget_tree.get_object("textbufferText"),
         }
+
+        for widgets in self.date.values():
+            if not 'fmt' in widgets:
+                continue
+            oso = OnSpinOutput(widgets['fmt'])
+            widgets['view'].connect("output", oso.on_output)
 
         self.__change_widget_order_according_to_locale()
 
@@ -130,7 +150,6 @@ class DocEditDialog(object):
         self.text['model'].set_text(self.doc.extra_text)
 
     def set_date(self):
-
         date = datetime.datetime(
             int(self.date['year']['model'].get_value()),
             int(self.date['month']['model'].get_value()),

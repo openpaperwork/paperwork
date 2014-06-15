@@ -106,6 +106,7 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">●</property>
                             <property name="adjustment">adjustmentYear</property>
+                            <property name="digits">0</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>

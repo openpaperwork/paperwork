@@ -65,6 +65,7 @@ class OnYearSpinButtonChange(OnSpinButtonChange):
                 value += 100
             self.spin_button.set_value(value)
 
+
 class DocEditDialog(object):
     def __init__(self, main_window, config, doc):
         self.__main_win = main_window
@@ -96,23 +97,26 @@ class DocEditDialog(object):
             'model': widget_tree.get_object("textbufferText"),
         }
 
+        self.dialog = widget_tree.get_object("dialogDocEdit")
+
         for widgets in self.date.values():
             if not 'fmt' in widgets:
                 continue
             widgets['fmt'](widgets['view'])
+            widgets['view'].connect("activate",
+                lambda _: self.dialog.response(Gtk.ResponseType.OK))
 
         self.__change_widget_order_according_to_locale()
 
         self.refresh_date()
         self.refresh_text()
 
-        self.dialog = widget_tree.get_object("dialogDocEdit")
         self.dialog.set_transient_for(self.__main_win.window)
 
         try:
             while True:
                 ret = self.dialog.run()
-                if ret != 0:
+                if int(ret) != int(Gtk.ResponseType.OK):
                     logger.info("Doc edit: Cancelling changes")
                     break
                 else:

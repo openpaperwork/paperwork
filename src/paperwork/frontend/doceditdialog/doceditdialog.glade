@@ -16,7 +16,6 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustmentYear">
-    <property name="lower">0</property>
     <property name="upper">2100</property>
     <property name="value">1985</property>
     <property name="step_increment">1</property>
@@ -40,7 +39,7 @@
             <property name="can_focus">False</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="button2">
+              <object class="GtkButton" id="buttonCancel">
                 <property name="label">gtk-cancel</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
@@ -56,7 +55,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="button1">
+              <object class="GtkButton" id="buttonOk">
                 <property name="label">gtk-ok</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
@@ -106,7 +105,6 @@
                             <property name="can_focus">True</property>
                             <property name="invisible_char">●</property>
                             <property name="adjustment">adjustmentYear</property>
-                            <property name="digits">0</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -232,8 +230,8 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="1">button2</action-widget>
-      <action-widget response="0">button1</action-widget>
+      <action-widget response="-6">buttonCancel</action-widget>
+      <action-widget response="-5">buttonOk</action-widget>
     </action-widgets>
   </object>
 </interface>

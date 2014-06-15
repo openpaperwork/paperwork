@@ -29,14 +29,15 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-class OnSpinOutput(object):
-    def __init__(self, fmt):
+class OnSpinButtonChange(object):
+    def __init__(self, spin_button, fmt='%02d'):
         self.fmt = fmt
+        spin_button.connect("output", self.__on_output)
 
-    def on_output(self, spinbutton):
-        adj = spinbutton.get_adjustment()
+    def __on_output(self, spin_button):
+        adj = spin_button.get_adjustment()
         val = adj.get_value()
-        spinbutton.set_text(self.fmt % val)
+        spin_button.set_text(self.fmt % val)
         return True
 
 
@@ -74,8 +75,7 @@ class DocEditDialog(object):
         for widgets in self.date.values():
             if not 'fmt' in widgets:
                 continue
-            oso = OnSpinOutput(widgets['fmt'])
-            widgets['view'].connect("output", oso.on_output)
+            OnSpinButtonChange(widgets['view'], widgets['fmt'])
 
         self.__change_widget_order_according_to_locale()
 

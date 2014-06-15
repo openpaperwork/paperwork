@@ -21,6 +21,7 @@ import gettext
 import logging
 import locale
 from gi.repository import Gtk
+from gi.repository import GLib
 
 from paperwork.frontend.util import load_uifile
 
@@ -41,6 +42,29 @@ class OnSpinButtonChange(object):
         return True
 
 
+class OnYearSpinButtonChange(OnSpinButtonChange):
+    def __init__(self, spin_button):
+        OnSpinButtonChange.__init__(self, spin_button, fmt='%04d')
+        self.spin_button = spin_button
+
+        # XXX(Jflesch): This is the wrong signal
+        # we should use 'input', but unfortunately, it seems we can't
+        # use it in Python ...
+        # Lucky for us, we should never loop by doing so.
+        spin_button.connect('value-changed', lambda _:
+                            GLib.idle_add(self.__on_value_changed))
+
+    def __on_value_changed(self):
+        value = self.spin_button.get_value()
+        current_y = datetime.datetime.now().year
+        min_y = (current_y - 100)
+        add_y = int(min_y / 100) * 100
+        if value < 100:
+            value += add_y
+            if value < min_y:
+                value += 100
+            self.spin_button.set_value(value)
+
 class DocEditDialog(object):
     def __init__(self, main_window, config, doc):
         self.__main_win = main_window
@@ -53,17 +77,17 @@ class DocEditDialog(object):
             'year': {
                 'view': widget_tree.get_object("spinbuttonYear"),
                 'model': widget_tree.get_object("adjustmentYear"),
-                'fmt': '%04d',
+                'fmt': OnYearSpinButtonChange,
             },
             'month': {
                 'view': widget_tree.get_object("spinbuttonMonth"),
                 'model': widget_tree.get_object("adjustmentMonth"),
-                'fmt': '%02d',
+                'fmt': OnSpinButtonChange,
             },
             'day': {
                 'view': widget_tree.get_object("spinbuttonDay"),
                 'model': widget_tree.get_object("adjustmentDay"),
-                'fmt': '%02d',
+                'fmt': OnSpinButtonChange,
             },
             'box': widget_tree.get_object("boxDate")
         }
@@ -75,7 +99,7 @@ class DocEditDialog(object):
         for widgets in self.date.values():
             if not 'fmt' in widgets:
                 continue
-            OnSpinButtonChange(widgets['view'], widgets['fmt'])
+            widgets['fmt'](widgets['view'])
 
         self.__change_widget_order_according_to_locale()
 

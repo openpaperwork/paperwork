@@ -57,11 +57,11 @@ class OnYearSpinButtonChange(OnSpinButtonChange):
     def __on_value_changed(self):
         value = self.spin_button.get_value()
         current_y = datetime.datetime.now().year
-        min_y = (current_y - 100)
+        min_y = current_y - 50
         add_y = int(min_y / 100) * 100
         if value < 100:
             value += add_y
-            if value < min_y:
+            if value <= min_y:
                 value += 100
             self.spin_button.set_value(value)
 

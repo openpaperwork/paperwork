@@ -3,13 +3,13 @@
 
 ## Description
 
-Paperwork is a tool to make easily papers searchable.
+Paperwork is a personal document manager for scanned documents (and PDFs).
 
-The basic idea behind Paperwork is "scan & forget" : You should be able to just
-scan a new document and forget about it until the day you need it again. Let the
-machine do most of the work.
+It's designed to be easy and fast to use. The basic idea behind Paperwork
+is "scan & forget": You should be able to just scan a new document and
+forget about it until the day you need it again.
 
-Paperwork also supports PDF and images import.
+In other words, let the machine do most of the work for you.
 
 
 ## Screenshots

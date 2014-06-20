@@ -17,6 +17,7 @@
 import PIL.ImageDraw
 
 from gi.repository import Gdk
+from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import GObject
 
@@ -152,7 +153,9 @@ class ImgGripHandler(GObject.GObject):
         GObject.GObject.__init__(self)
 
         if zoom_widget is None:
-            zoom_widget = Gtk.Adjustment(1.0, 0.01, 1.0, 0.01, 0.10)
+            zoom_widget = Gtk.Adjustment(value=1.0, lower=0.01, upper=1.0,
+                                         step_increment=0.01,
+                                         page_increment=0.10)
         self.zoom_widget = zoom_widget
 
         self.__visible = False

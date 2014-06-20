@@ -854,7 +854,8 @@ class SettingsWindow(GObject.GObject):
         self.calibration['resolution'] = scan_resolution
         self.progressbar.set_fraction(0.0)
         self.grips = ImgGripHandler(self.calibration['image'],
-                                    self.calibration['image_gui'])
+                                    self.calibration['image_gui'],
+                                    None)
         self.grips.visible = True
         self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)

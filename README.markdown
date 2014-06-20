@@ -17,29 +17,25 @@ In other words, let the machine do most of the work for you.
 ### Main window
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="384" />
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="347" />
 </a>
 
 ### Search suggestions
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png" width="512" height="384" />
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png" width="512" height="349" />
 </a>
 
 ### Labels
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png" width="402" height="358" />
-</a>
-
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/label_edit.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/label_edit.png" width="512" height="384" />
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png" width="450" height="557" />
 </a>
 
 ### Settings window
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png" width="512" height="384" />
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png" width="512" height="374" />
 </a>
 
 

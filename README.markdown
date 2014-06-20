@@ -16,30 +16,30 @@ In other words, let the machine do most of the work for you.
 
 ### Main window
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/main_window.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/main_window.png" width="512" height="384" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="384" />
 </a>
 
 ### Search suggestions
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/suggestions.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/suggestions.png" width="512" height="384" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png" width="512" height="384" />
 </a>
 
 ### Labels
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/multiple_labels.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/multiple_labels.png" width="402" height="358" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png" width="402" height="358" />
 </a>
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/label_edit.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/label_edit.png" width="512" height="384" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/label_edit.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/label_edit.png" width="512" height="384" />
 </a>
 
 ### Settings window
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/settings.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.1/settings.png" width="512" height="384" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png" width="512" height="384" />
 </a>
 
 

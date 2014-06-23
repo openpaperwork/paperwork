@@ -3120,6 +3120,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
+        if page_idx == self.page.page_nb:
+            self.__select_page(self.page)
         self.lists['pages'].set_model_value(page_idx, 1, thumbnail)
         self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
                              _("Loading thumbnails ..."))

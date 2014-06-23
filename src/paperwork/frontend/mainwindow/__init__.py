@@ -3817,6 +3817,7 @@ class MainWindow(object):
             if label.name in predicted_labels:
                 self.docsearch.add_label(doc, label, update_index=False)
         self.upd_index(doc, new=True)
+        self.refresh_label_list()
 
     def upd_index(self, doc, new=False):
         if new:

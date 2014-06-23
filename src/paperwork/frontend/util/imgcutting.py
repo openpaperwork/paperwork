@@ -149,7 +149,7 @@ class ImgGripHandler(GObject.GObject):
         'zoom-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, img, canvas, zoom_widget):
+    def __init__(self, img, canvas, zoom_widget, default_grips_positions=None):
         GObject.GObject.__init__(self)
 
         if zoom_widget is None:
@@ -165,9 +165,38 @@ class ImgGripHandler(GObject.GObject):
         self.canvas = canvas
 
         self.img_drawer = PillowImageDrawer((0, 0), img)
+
+        if default_grips_positions is None:
+            default_grips_positions = ((0, 0), self.img_size)
+        else:
+            default_grips_positions = (
+                (
+                    min(max(0, default_grips_positions[0][0]), self.img_size[0]),
+                    min(max(0, default_grips_positions[0][1]), self.img_size[1]),
+                ),
+                (
+                    min(max(0, default_grips_positions[1][0]), self.img_size[0]),
+                    min(max(0, default_grips_positions[1][1]), self.img_size[1]),
+                ),
+            )
+            default_grips_positions = (
+                (
+                    min(default_grips_positions[0][0],
+                        default_grips_positions[1][0]),
+                    min(default_grips_positions[0][1],
+                        default_grips_positions[1][1]),
+                ),
+                (
+                    max(default_grips_positions[0][0],
+                        default_grips_positions[1][0]),
+                    max(default_grips_positions[0][1],
+                        default_grips_positions[1][1]),
+                ),
+            )
+
         self.grips = (
-            ImgGrip((0, 0), self.img_size),
-            ImgGrip(self.img_size, self.img_size),
+            ImgGrip(default_grips_positions[0], self.img_size),
+            ImgGrip(default_grips_positions[1], self.img_size),
         )
         select_rectangle = ImgGripRectangle(self.grips)
 

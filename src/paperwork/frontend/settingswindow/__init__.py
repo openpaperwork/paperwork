@@ -690,6 +690,7 @@ class SettingsWindow(GObject.GObject):
             "image_eventbox": widget_tree.get_object("eventboxCalibration"),
             "image_scrollbars": img_scrollbars,
             "resolution": DEFAULT_CALIBRATION_RESOLUTION,
+            "zoom": widget_tree.get_object("adjustmentZoom"),
         }
 
         self.grips = None
@@ -855,7 +856,7 @@ class SettingsWindow(GObject.GObject):
         self.progressbar.set_fraction(0.0)
         self.grips = ImgGripHandler(self.calibration['image'],
                                     self.calibration['image_gui'],
-                                    None)
+                                    self.calibration['zoom'])
         self.grips.visible = True
         self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)

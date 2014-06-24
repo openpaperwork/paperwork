@@ -171,12 +171,24 @@ class ImgGripHandler(GObject.GObject):
         else:
             default_grips_positions = (
                 (
-                    min(max(0, default_grips_positions[0][0]), self.img_size[0]),
-                    min(max(0, default_grips_positions[0][1]), self.img_size[1]),
+                    min(
+                        max(0, default_grips_positions[0][0]),
+                        self.img_size[0]
+                    ),
+                    min(
+                        max(0, default_grips_positions[0][1]),
+                        self.img_size[1]
+                    ),
                 ),
                 (
-                    min(max(0, default_grips_positions[1][0]), self.img_size[0]),
-                    min(max(0, default_grips_positions[1][1]), self.img_size[1]),
+                    min(
+                        max(0, default_grips_positions[1][0]),
+                        self.img_size[0]
+                    ),
+                    min(
+                        max(0, default_grips_positions[1][1]),
+                        self.img_size[1]
+                    ),
                 ),
             )
             default_grips_positions = (

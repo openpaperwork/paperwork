@@ -58,11 +58,9 @@ class JobScan(Job):
                        (GObject.TYPE_INT,
                         GObject.TYPE_PYOBJECT,)),  # The PIL image
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # Pillow image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # Pillow image
         'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       (GObject.TYPE_PYOBJECT,  # Exception
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),  # Exception
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
     }
@@ -91,7 +89,9 @@ class JobScan(Job):
 
                     next_line = self.scan_session.scan.available_lines[1]
                     if (next_line > last_line):
-                        chunk = self.scan_session.scan.get_image(last_line, next_line)
+                        chunk = self.scan_session.scan.get_image(
+                            last_line, next_line
+                        )
                         self.emit('scan-chunk', last_line, chunk)
                         last_line = next_line
 
@@ -128,7 +128,8 @@ class JobFactoryScan(JobFactory):
     def make(self, scan_session):
         job = JobScan(self, next(self.id_generator), scan_session)
         job.connect("scan-started",
-                    lambda job: GLib.idle_add(self.scan_workflow.on_scan_start))
+                    lambda job: GLib.idle_add(
+                        self.scan_workflow.on_scan_start))
         job.connect("scan-info",
                     lambda job, x, y:
                     GLib.idle_add(self.scan_workflow.on_scan_info, x, y))
@@ -137,8 +138,9 @@ class JobFactoryScan(JobFactory):
                     GLib.idle_add(self.scan_workflow.on_scan_chunk, line,
                                   img_chunk))
         job.connect("scan-done",
-                    lambda job, img: GLib.idle_add(self.scan_workflow.on_scan_done,
-                                                   img))
+                    lambda job, img: GLib.idle_add(
+                        self.scan_workflow.on_scan_done,
+                        img))
         job.connect("scan-error",
                     lambda job, exc:
                     GLib.idle_add(self.scan_workflow.on_scan_error, exc))
@@ -204,11 +206,11 @@ class _ImgOCRThread(threading.Thread):
         for score_method in SCORE_METHODS:
             try:
                 logger.info("Evaluating score of page orientation (%s)"
-                             " using method '%s' ..."
-                             % (self.name, score_method[0]))
+                            " using method '%s' ..."
+                            % (self.name, score_method[0]))
                 (_, self.score) = score_method[1](txt)
-                # TODO(Jflesch): For now, we throw away the fixed version of the
-                # text:
+                # TODO(Jflesch): For now, we throw away the fixed version of
+                # the text:
                 # The original version may contain proper nouns, and spell
                 # checking could make them disappear
                 # However, it would be best if we could keep both versions
@@ -223,21 +225,17 @@ class _ImgOCRThread(threading.Thread):
 class JobOCR(Job):
     __gsignals__ = {
         'ocr-started': (GObject.SignalFlags.RUN_LAST, None,
-                        (GObject.TYPE_PYOBJECT,  # image to ocr
-                        )),
+                        (GObject.TYPE_PYOBJECT, )),  # image to ocr
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
                        # list of images to ocr: { angle: img }
-                       (GObject.TYPE_PYOBJECT,
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
-                       GObject.TYPE_FLOAT,  # score
-                      )),
+                       GObject.TYPE_FLOAT, )),  # score
         'ocr-done': (GObject.SignalFlags.RUN_LAST, None,
                      (GObject.TYPE_INT,   # angle
                       GObject.TYPE_PYOBJECT,  # image to ocr (rotated)
-                      GObject.TYPE_PYOBJECT,  # line + word boxes
-                     )),
+                      GObject.TYPE_PYOBJECT, )),  # line + word boxes
     }
 
     can_stop = False
@@ -321,9 +319,11 @@ class JobFactoryOCR(JobFactory):
         job.connect("ocr-angles", lambda job, imgs:
                     GLib.idle_add(self.scan_workflow.on_ocr_angles, imgs))
         job.connect("ocr-score", lambda job, angle, score:
-                    GLib.idle_add(self.scan_workflow.on_ocr_score, angle, score))
+                    GLib.idle_add(self.scan_workflow.on_ocr_score,
+                                  angle, score))
         job.connect("ocr-done", lambda job, angle, img, boxes:
-                    GLib.idle_add(self.scan_workflow.on_ocr_done, angle, img,
+                    GLib.idle_add(self.scan_workflow.on_ocr_done,
+                                  angle, img,
                                   boxes))
         return job
 
@@ -361,7 +361,8 @@ class BasicScanWorkflowDrawer(Animation):
                               GLib.idle_add(self.__on_scan_info_cb,
                                             img_x, img_y))
         scan_workflow.connect("scan-chunk", lambda gobj, line, chunk:
-                              GLib.idle_add(self.__on_scan_chunk_cb, line, chunk))
+                              GLib.idle_add(self.__on_scan_chunk_cb, line,
+                                            chunk))
         scan_workflow.connect("scan-done", lambda gobj, img:
                               GLib.idle_add(self.__on_scan_done_cb, img))
         scan_workflow.connect("ocr-start", lambda gobj, img:
@@ -369,7 +370,8 @@ class BasicScanWorkflowDrawer(Animation):
         scan_workflow.connect("ocr-angles", lambda gobj, imgs:
                               GLib.idle_add(self.__on_ocr_angles_cb, imgs))
         scan_workflow.connect("ocr-score", lambda gobj, angle, score:
-                              GLib.idle_add(self.__on_ocr_score_cb, angle, score))
+                              GLib.idle_add(self.__on_ocr_score_cb,
+                                            angle, score))
         scan_workflow.connect("ocr-done", lambda gobj, angle, img, boxes:
                               GLib.idle_add(self.__on_ocr_done_cb, angle, img,
                                             boxes))
@@ -616,9 +618,13 @@ class BasicScanWorkflowDrawer(Animation):
                 self.SCAN_TO_OCR_ANIM_TIME,
                 attr_name='size', canvas=self.canvas),
         ]
-        self.animators[-1].connect('animator-end', lambda animator:
-                                   GLib.idle_add(self.scan_workflow.on_ocr_anim_done,
-                                                 angle, img, boxes))
+        self.animators[-1].connect(
+            'animator-end',
+            lambda animator: GLib.idle_add(
+                self.scan_workflow.on_ocr_anim_done,
+                angle, img, boxes
+            )
+        )
 
 
 class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
@@ -639,7 +645,7 @@ class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
         )
 
     def _compute_reduced_positions(self, visible_area, img_size,
-                                    target_img_sizes):
+                                   target_img_sizes):
         target_positions = {
             # center positions
             0: (visible_area[0] / 2,
@@ -678,7 +684,7 @@ class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
         )
 
     def _compute_reduced_positions(self, visible_area, img_size,
-                                    target_img_sizes):
+                                   target_img_sizes):
         target_positions = {
             # center positions
             0: (visible_area[0] / 4,
@@ -706,41 +712,32 @@ class ScanWorkflow(GObject.GObject):
         'scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'scan-info': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,
-                       GObject.TYPE_INT,
-                      )),
+                       GObject.TYPE_INT, )),
         'scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
                        (GObject.TYPE_INT,  # line
-                        GObject.TYPE_PYOBJECT,  # img chunk
-                       )),
+                        GObject.TYPE_PYOBJECT, )),  # img chunk
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # PIL image
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
         'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       (GObject.TYPE_PYOBJECT,  # Exception
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),  # Exception
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # PIL image
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # array of PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # array of PIL image
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
-                       GObject.TYPE_INT,  # score
-                      )),
+                       GObject.TYPE_INT, )),  # score
         'ocr-done': (GObject.SignalFlags.RUN_LAST, None,
                      (GObject.TYPE_INT,  # angle
                       GObject.TYPE_PYOBJECT,  # PIL image
-                      GObject.TYPE_PYOBJECT,  # line + word boxes
-                     )),
+                      GObject.TYPE_PYOBJECT, )),  # line + word boxes
         'ocr-canceled': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
         'process-done': (GObject.SignalFlags.RUN_LAST, None,
                          (GObject.TYPE_PYOBJECT,  # PIL image
-                          GObject.TYPE_PYOBJECT,  # line + word boxes
-                         )),
+                          GObject.TYPE_PYOBJECT, )),  # line + word boxes
     }
 
     STEP_SCAN = 0

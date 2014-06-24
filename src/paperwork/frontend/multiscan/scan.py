@@ -25,6 +25,7 @@ from paperwork.frontend.util.canvas.drawers import RectangleDrawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.canvas.drawers import fit
 
+
 class DocScan(object):
     def __init__(self, doc):
         """

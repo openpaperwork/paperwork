@@ -118,7 +118,10 @@ class PriorityQueue(object):
         """
         Elements with a higher priority are returned first
         """
-        heapq.heappush(self.elements, (-1 * priority, self.__last_idx, element))
+        heapq.heappush(
+            self.elements,
+            (-1 * priority, self.__last_idx, element)
+        )
         self.__last_idx += 1
 
     def remove(self, target):

@@ -47,9 +47,11 @@ class CellRendererLabels(Gtk.CellRenderer):
     def _rectangle_rounded(cairo_ctx, area, radius):
         (x, y, w, h) = area
         cairo_ctx.new_sub_path()
-        cairo_ctx.arc(x + w - radius, y + radius, radius, -1.0 * math.pi / 2, 0)
+        cairo_ctx.arc(x + w - radius, y + radius, radius,
+                      -1.0 * math.pi / 2, 0)
         cairo_ctx.arc(x + w - radius, y + h - radius, radius, 0, math.pi / 2)
-        cairo_ctx.arc(x + radius, y + h - radius, radius, math.pi / 2, math.pi)
+        cairo_ctx.arc(x + radius, y + h - radius, radius,
+                      math.pi / 2, math.pi)
         cairo_ctx.arc(x + radius, y + radius, radius, math.pi,
                       3.0 * math.pi / 2)
         cairo_ctx.close_path()
@@ -80,10 +82,10 @@ class CellRendererLabels(Gtk.CellRenderer):
         for label_idx in xrange(0, len(self.labels)):
             label = self.labels[label_idx]
 
-            (label_x, label_y, label_w, label_h) = \
-                    (x,
-                     y + (label_idx * (self.LABEL_HEIGHT + self.LABEL_SPACING)),
-                     w, self.LABEL_HEIGHT)
+            (label_x, label_y, label_w, label_h) = (
+                x, y + (label_idx * (self.LABEL_HEIGHT + self.LABEL_SPACING)),
+                w, self.LABEL_HEIGHT
+            )
 
             # background rectangle
             bg = label.get_rgb_bg()
@@ -103,5 +105,3 @@ class CellRendererLabels(Gtk.CellRenderer):
 
 
 GObject.type_register(CellRendererLabels)
-
-

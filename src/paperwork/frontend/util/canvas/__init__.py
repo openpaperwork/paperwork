@@ -177,7 +177,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                 full_y = y
         new_size = (full_x, full_y)
         if (new_size[0] != self.full_size[0]
-            or new_size[1] != self.full_size[1]):
+                or new_size[1] != self.full_size[1]):
             self.full_size = new_size
             self.set_size_request(new_size[0], new_size[1])
             self.upd_adjustments()
@@ -234,7 +234,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             pt_b = (drawer.position[0] + drawer.size[0],
                     drawer.position[1] + drawer.size[1])
             if (x >= pt_a[0] and x < pt_b[0]
-                and y >= pt_a[1] and y < pt_b[1]):
+                    and y >= pt_a[1] and y < pt_b[1]):
                 return drawer
 
         return None
@@ -261,7 +261,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         event = event.copy()
         event.x += off_x
         event.y += off_y
-        return event;
+        return event
 
     def __on_button_pressed(self, _, event):
         self.grab_focus()

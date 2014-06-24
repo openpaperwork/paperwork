@@ -362,6 +362,8 @@ class PageDrawer(Drawer):
             layout.set_text(box.content, -1)
 
             txt_size = layout.get_size()
+            if 0 in txt_size:
+                return
             txt_factor = min(
                 float(w) * Pango.SCALE / txt_size[0],
                 float(h) * Pango.SCALE / txt_size[1],

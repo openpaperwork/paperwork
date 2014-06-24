@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.16.1 -->
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk+" version="3.0"/>
+  <object class="GtkAdjustment" id="adjustmentZoom">
+    <property name="lower">0.01</property>
+    <property name="upper">1</property>
+    <property name="value">1</property>
+    <property name="step_increment">0.01</property>
+    <property name="page_increment">0.10000000000000001</property>
+  </object>
   <object class="GtkListStore" id="liststoreDevice">
     <columns>
       <!-- column-name userName -->
@@ -39,22 +47,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststoreResolution">
-    <columns>
-      <!-- column-name userName -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststoreScanSources">
-    <columns>
-      <!-- column-name userName -->
-      <column type="gchararray"/>
-      <!-- column-name srcName -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkWindow" id="windowSettings">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Settings</property>
@@ -66,21 +58,20 @@
     <property name="icon_name">gtk-preferences</property>
     <child>
       <object class="GtkBox" id="vbox2">
-        <property name="orientation">vertical</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">10</property>
         <child>
           <object class="GtkBox" id="boxH2">
-            <property name="orientation">horizontal</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">20</property>
             <child>
               <object class="GtkBox" id="box1">
-                <property name="orientation">vertical</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <property name="spacing">30</property>
                 <child>
                   <object class="GtkFrame" id="frame1">
@@ -344,7 +335,6 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
@@ -447,40 +437,76 @@
                     <property name="can_focus">False</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <object class="GtkBox" id="box3">
-                        <property name="orientation">vertical</property>
+                      <object class="GtkBox" id="box2">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkBox" id="boxH4">
-                            <property name="orientation">horizontal</property>
+                          <object class="GtkBox" id="box3">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkLabel" id="label8">
+                              <object class="GtkBox" id="boxH4">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkLabel" id="label8">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="buttonScanCalibration">
+                                    <property name="label" translatable="yes">Scan</property>
+                                    <property name="use_action_appearance">False</property>
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="receives_default">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="buttonScanCalibration">
-                                <property name="label" translatable="yes">Scan</property>
-                                <property name="use_action_appearance">False</property>
+                              <object class="GtkScrolledWindow" id="scrolledwindowCalibration">
+                                <property name="width_request">350</property>
+                                <property name="height_request">450</property>
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
+                                <property name="hscrollbar_policy">always</property>
+                                <property name="vscrollbar_policy">always</property>
+                                <property name="shadow_type">in</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkProgressBar" id="progressbarScan">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                           </object>
@@ -491,30 +517,20 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow" id="scrolledwindowCalibration">
-                            <property name="width_request">350</property>
-                            <property name="height_request">450</property>
+                          <object class="GtkScale" id="scale1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">always</property>
-                            <property name="vscrollbar_policy">always</property>
-                            <property name="shadow_type">in</property>
+                            <property name="orientation">vertical</property>
+                            <property name="adjustment">adjustmentZoom</property>
+                            <property name="inverted">True</property>
+                            <property name="fill_level">100</property>
+                            <property name="round_digits">1</property>
+                            <property name="draw_value">False</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkProgressBar" id="progressbarScan">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="fill">True</property>
-                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>
@@ -546,7 +562,6 @@
         </child>
         <child>
           <object class="GtkButtonBox" id="hbuttonbox1">
-            <property name="orientation">horizontal</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="spacing">10</property>
@@ -558,7 +573,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -573,7 +587,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -591,5 +604,21 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="liststoreResolution">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststoreScanSources">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name srcName -->
+      <column type="gchararray"/>
+    </columns>
   </object>
 </interface>

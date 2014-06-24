@@ -63,8 +63,9 @@ class DummyDocSearch(object):
     """
     Dummy doc search object.
 
-    Instantiating a DocSearch object takes time (the time to rereard the index).
-    So you can use this object instead during this time as a placeholder
+    Instantiating a DocSearch object takes time (the time to rereard the
+    index). So you can use this object instead during this time as a
+    placeholder
     """
     docs = []
     label_list = []
@@ -318,16 +319,17 @@ class DocSearch(object):
     INDEX_STEP_COMMIT = "commit"
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
-    WHOOSH_SCHEMA = whoosh.fields.Schema( #static up to date schema
-                docid=whoosh.fields.ID(stored=True, unique=True),
-                doctype=whoosh.fields.ID(stored=True, unique=False),
-                docfilehash=whoosh.fields.ID(stored=True),
-                content=whoosh.fields.TEXT(spelling=True),
-                label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                            spelling=True, scorable=True),
-                date=whoosh.fields.DATETIME(stored=True),
-                last_read=whoosh.fields.DATETIME(stored=True),
-            )
+    WHOOSH_SCHEMA = whoosh.fields.Schema(
+        # static up to date schema
+        docid=whoosh.fields.ID(stored=True, unique=True),
+        doctype=whoosh.fields.ID(stored=True, unique=False),
+        docfilehash=whoosh.fields.ID(stored=True),
+        content=whoosh.fields.TEXT(spelling=True),
+        label=whoosh.fields.KEYWORD(stored=True, commas=True,
+                                    spelling=True, scorable=True),
+        date=whoosh.fields.DATETIME(stored=True),
+        last_read=whoosh.fields.DATETIME(stored=True),
+    )
     LABEL_ESTIMATOR_TEMPLATE = PassiveAggressiveClassifier(n_iter=50)
 
     """
@@ -381,36 +383,38 @@ class DocSearch(object):
 
         self.__searcher = self.index.searcher()
 
-
         class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
             def __init__(self, fieldname, text, boost=1.0, maxdist=1,
                          prefixlength=0, constantscore=True):
-                whoosh.qparser.query.FuzzyTerm.__init__(self, fieldname, text, boost, maxdist,
-                                                        prefixlength, constantscore=True)
+                whoosh.qparser.query.FuzzyTerm.__init__(
+                    self, fieldname, text, boost, maxdist,
+                    prefixlength, constantscore=True
+                )
 
-        facets = [whoosh.sorting.ScoreFacet(), whoosh.sorting.FieldFacet("date", reverse=True)]
+        facets = [whoosh.sorting.ScoreFacet(),
+                  whoosh.sorting.FieldFacet("date", reverse=True)]
 
         self.search_param_list = {
             'full': [
                 {
-                    "query_parser" : whoosh.qparser.MultifieldParser(
+                    "query_parser": whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
                         termclass=CustomFuzzy),
-                    "sortedby" : facets
+                    "sortedby": facets
                 },
                 {
-                    "query_parser" : whoosh.qparser.MultifieldParser(
+                    "query_parser": whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
                         termclass=whoosh.qparser.query.Prefix),
-                    "sortedby" : facets
+                    "sortedby": facets
                 },
             ],
             'fast': [
                 {
-                    "query_parser" : whoosh.qparser.MultifieldParser(
+                    "query_parser": whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
                         termclass=whoosh.query.Term),
-                    "sortedby" : facets
+                    "sortedby": facets
                 },
             ],
         }
@@ -419,15 +423,14 @@ class DocSearch(object):
         self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
-        self.label_estimators_dir = os.path.join(base_indexdir,
-                                                  "paperwork",
-                                                  "label_estimators")
-        self.label_estimators_file = os.path.join(self.label_estimators_dir,
-                                                  "label_estimators.jbl")
+        self.label_estimators_dir = os.path.join(
+            base_indexdir, "paperwork", "label_estimators")
+        self.label_estimators_file = os.path.join(
+            self.label_estimators_dir, "label_estimators.jbl")
         try:
             logger.info("Opening label_estimators file '%s' ..." %
                         self.label_estimators_file)
-            (l_estimators,ver) = joblib.load(self.label_estimators_file)
+            (l_estimators, ver) = joblib.load(self.label_estimators_file)
             if ver != BasicDoc.FEATURES_VER:
                 logger.info("Estimator version is not up to date")
                 self.label_estimators = {}
@@ -438,10 +441,11 @@ class DocSearch(object):
             for label_name in self.label_estimators:
                 params = self.label_estimators[label_name].get_params()
                 if params != self.LABEL_ESTIMATOR_TEMPLATE.get_params():
-                    raise IndexError('label_estimators params are not up to date')
+                    raise IndexError('label_estimators params are not up to'
+                                     + ' date')
         except Exception, exc:
-            logger.error("Failed to open label_estimator file '%s', or bad label_estimator structure"
-                   % self.indexdir)
+            logger.error(("Failed to open label_estimator file '%s', or bad"
+                          + " label_estimator structure") % self.indexdir)
             logger.error("Exception was: %s" % exc)
             logger.info("Will create new label_estimators")
             self.label_estimators = {}
@@ -523,7 +527,6 @@ class DocSearch(object):
         if docs is None:
             docs = self.docs
 
-
         if labels is None:
             labels = set(self.label_list)
             for doc in docs:
@@ -536,7 +539,9 @@ class DocSearch(object):
         # construct the estimators if not present in the list
         for label_name in label_name_set:
             if label_name not in self.label_estimators:
-                self.label_estimators[label_name] = copy.deepcopy(DocSearch.LABEL_ESTIMATOR_TEMPLATE)
+                self.label_estimators[label_name] = copy.deepcopy(
+                    DocSearch.LABEL_ESTIMATOR_TEMPLATE
+                )
 
         i = 0
         total = len(docs)
@@ -548,24 +553,28 @@ class DocSearch(object):
             # fit only with labelled documents
             if doc.labels:
                 for label_name in label_name_set:
-                    # check for this estimator if the document is labelled or not
+                    # check for this estimator if the document is labelled
+                    # or not
                     doc_has_label = 'unlabelled'
                     for label in doc.labels:
                         if label.name == label_name:
                             doc_has_label = 'labelled'
                             break
 
-                    # fit the estimators with the model class (labelled or unlabelled)
-                    # don't use True or False for the classes as it raises a casting bug in underlying library
-                    l_estimator =  self.label_estimators[label_name]
-                    l_estimator.partial_fit(doc.get_features(),
-                                            [doc_has_label],
-                                            numpy.array(['labelled','unlabelled']))
+                    # fit the estimators with the model class (labelled
+                    # or unlabelled). Don't use True or False for the classes
+                    # as it raises a casting bug in underlying library
+                    l_estimator = self.label_estimators[label_name]
+                    l_estimator.partial_fit(
+                        doc.get_features(), [doc_has_label],
+                        numpy.array(['labelled', 'unlabelled'])
+                    )
             elif removed_label:
                 l_estimator = self.label_estimators[removed_label.name]
-                l_estimator.partial_fit(doc.get_features(),
-                                        ['unlabelled'],
-                                        numpy.array(['labelled','unlabelled']))
+                l_estimator.partial_fit(
+                    doc.get_features(), ['unlabelled'],
+                    numpy.array(['labelled', 'unlabelled'])
+                )
 
     def predict_label_list(self, doc, progress_cb=dummy_progress_cb):
         """
@@ -574,7 +583,8 @@ class DocSearch(object):
         if doc.nb_pages <= 0:
             return []
 
-        # if there is only one label, or not enough document fitted prediction is not possible
+        # if there is only one label, or not enough document fitted prediction
+        # is not possible
         if len(self.label_estimators) < 2:
             return []
 
@@ -586,7 +596,8 @@ class DocSearch(object):
 
             label_name = label_names[label_name_idx]
             features = doc.get_features()
-            # check that the estimator will not throw an error because its not fitted
+            # check that the estimator will not throw an error because its
+            # not fitted
             if self.label_estimators[label_name].coef_ is None:
                 logger.warning("Label estimator '%s' not fitted yet"
                                % label_name)
@@ -615,8 +626,8 @@ class DocSearch(object):
                 if doc_type_name_b == doc_type_name:
                     doc = doc_type(docpath, docid)
             if not doc:
-                logger.warning("Warning: unknown doc type found in the index: %s"
-                   % doc_type_name)
+                logger.warning(("Warning: unknown doc type found in the index:"
+                                + " %s") % doc_type_name)
         # otherwise we guess the doc type
         if not doc:
             for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
@@ -727,7 +738,7 @@ class DocSearch(object):
         if sentence == u"":
             return self.docs
 
-        result_list_list=[]
+        result_list_list = []
         total_results = 0
 
         for query_parser in self.search_param_list[search_type]:
@@ -857,7 +868,8 @@ class DocSearch(object):
         assert(new_label)
         self.label_list.remove(old_label)
         if old_label.name in self.label_estimators:
-            self.label_estimators[new_label.name] = self.label_estimators.pop(old_label.name)
+            estimator = self.label_estimators.pop(old_label.name)
+            self.label_estimators[new_label.name] = estimator
         if new_label not in self.label_list:
             self.label_list.append(new_label)
             self.label_list.sort()
@@ -897,7 +909,8 @@ class DocSearch(object):
 
     def reload_searcher(self):
         """
-        When the index has been updated, it's safer to re-instantiate the Whoosh
+        When the index has been updated, it's safer to re-instantiate the
+        Whoosh.
         Searcher object used to browse it.
 
         You shouldn't have to call this method yourself.
@@ -922,5 +935,5 @@ class DocSearch(object):
         """
         filehash = (u"%X" % filehash)
         results = self.__searcher.search(
-               Term('docfilehash', filehash))
+            Term('docfilehash', filehash))
         return results

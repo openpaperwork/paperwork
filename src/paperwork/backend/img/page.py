@@ -126,7 +126,7 @@ class ImgPage(BasicPage):
             return boxes
         except IOError, exc:
             logger.error("Unable to get boxes for '%s': %s"
-                    % (self.doc.docid, exc))
+                         % (self.doc.docid, exc))
             return []
 
     def __set_boxes(self, boxes):
@@ -185,7 +185,7 @@ class ImgPage(BasicPage):
         new_h = int(SCALING * (print_context.get_height()))
 
         logger.info("DPI: %fx%f" % (print_context.get_dpi_x(),
-                              print_context.get_dpi_y()))
+                                    print_context.get_dpi_y()))
         logger.info("Scaling it down to %fx%f..." % (new_w, new_h))
         img = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
 
@@ -216,7 +216,7 @@ class ImgPage(BasicPage):
         page_nb *= factor
 
         logger.info("--> Moving page %d (+%d*%d) to index %d"
-               % (self.page_nb, offset, factor, page_nb))
+                    % (self.page_nb, offset, factor, page_nb))
 
         self.page_nb = page_nb
 

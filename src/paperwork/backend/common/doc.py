@@ -96,9 +96,9 @@ class BasicDoc(object):
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
         Arguments:
-            keep_refs --- Workaround ugly as fuck to some object alive (in other
-                          non-garbage-collected) during the whole printing
-                          process
+            keep_refs --- Workaround ugly as fuck to some object alive (in
+                          other non-garbage-collected) during the whole
+                          printing process
         """
         raise NotImplementedError()
 
@@ -205,17 +205,20 @@ class BasicDoc(object):
 
     def get_features(self):
         """
-        return an array of features extracted from this doc for the sklearn estimators
-        Concatenate features from the text and the image
+        return an array of features extracted from this doc for the sklearn
+        estimators. Concatenate features from the text and the image
         """
         if 'features' in self.__cache:
             return self.__cache['features']
 
         features = []
 
-        # add the words count. norm='l2', analyzer='char_wb', ngram_range=(3,3) are empirical
-        hash_vectorizer = HashingVectorizer(norm='l2', analyzer='char_wb', ngram_range=(3,3))
-        features.append(hash_vectorizer.fit_transform([self.get_index_text()]))
+        # add the words count. norm='l2', analyzer='char_wb', ngram_range=(3,3)
+        # are empirical
+        hash_vectorizer = HashingVectorizer(norm='l2', analyzer='char_wb',
+                                            ngram_range=(3, 3))
+        feature = hash_vectorizer.fit_transform([self.get_index_text()])
+        features.append(feature)
 
         # add image info
         image_features = normalize(self.pages[0].extract_features(), norm='l1')
@@ -234,7 +237,7 @@ class BasicDoc(object):
 
     def get_index_labels(self):
         return u",".join([strip_accents(unicode(label.name))
-                            for label in self.labels])
+                          for label in self.labels])
 
     def update_label(self, old_label, new_label):
         """
@@ -252,7 +255,7 @@ class BasicDoc(object):
             return
 
         logger.info("%s : Updating label ([%s] -> [%s])"
-               % (str(self), old_label.name, new_label.name))
+                    % (str(self), old_label.name, new_label.name))
         labels.append(new_label)
         with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
                          encoding='utf-8') as file_desc:
@@ -333,7 +336,7 @@ class BasicDoc(object):
             return final
         except Exception, exc:
             logger.error("Unable to parse document id [%s]: %s"
-                    % (self.docid, exc))
+                         % (self.docid, exc))
             return self.docid
 
     name = property(__get_name)

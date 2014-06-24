@@ -64,8 +64,9 @@ class PaperworkConfig(object):
     """
     def __init__(self):
         self.settings = {
-            'workdir' : PaperworkSetting("Global", "WorkDirectory",
-                                         lambda: os.path.expanduser("~/papers"))
+            'workdir': PaperworkSetting(
+                "Global", "WorkDirectory",
+                lambda: os.path.expanduser("~/papers"))
         }
 
         self._configparser = None
@@ -88,7 +89,7 @@ class PaperworkConfig(object):
                 break
         if not configfile_found:
             logger.info("Config file not found. Will use '%s'"
-                    % self.__configfile)
+                        % self.__configfile)
 
     def read(self):
         """

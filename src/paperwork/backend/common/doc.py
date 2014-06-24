@@ -368,7 +368,7 @@ class BasicDoc(object):
                 int(split[4:6]),
                 int(split[6:8])))
         except (IndexError, ValueError):
-            return (datetime.datetime())
+            return (datetime.datetime(1900, 1, 1))
 
     def __set_date(self, new_date):
         new_id = ("%02d%02d%02d_0000_01"

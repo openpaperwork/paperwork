@@ -214,7 +214,7 @@ class BasicDoc(object):
         features = []
 
         # add the words count. norm='l2', analyzer='char_wb', ngram_range=(3,3)
-        # are empirical
+        # are empirical
         hash_vectorizer = HashingVectorizer(norm='l2', analyzer='char_wb',
                                             ngram_range=(3, 3))
         feature = hash_vectorizer.fit_transform([self.get_index_text()])

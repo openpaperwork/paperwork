@@ -554,7 +554,7 @@ class DocSearch(object):
             if doc.labels:
                 for label_name in label_name_set:
                     # check for this estimator if the document is labelled
-                    # or not
+                    # or not
                     doc_has_label = 'unlabelled'
                     for label in doc.labels:
                         if label.name == label_name:
@@ -562,8 +562,8 @@ class DocSearch(object):
                             break
 
                     # fit the estimators with the model class (labelled
-                    # or unlabelled). Don't use True or False for the classes
-                    # as it raises a casting bug in underlying library
+                    # or unlabelled). Don't use True or False for the classes
+                    # as it raises a casting bug in underlying library
                     l_estimator = self.label_estimators[label_name]
                     l_estimator.partial_fit(
                         doc.get_features(), [doc_has_label],
@@ -584,7 +584,7 @@ class DocSearch(object):
             return []
 
         # if there is only one label, or not enough document fitted prediction
-        # is not possible
+        # is not possible
         if len(self.label_estimators) < 2:
             return []
 
@@ -597,7 +597,7 @@ class DocSearch(object):
             label_name = label_names[label_name_idx]
             features = doc.get_features()
             # check that the estimator will not throw an error because its
-            # not fitted
+            # not fitted
             if self.label_estimators[label_name].coef_ is None:
                 logger.warning("Label estimator '%s' not fitted yet"
                                % label_name)

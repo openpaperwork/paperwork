@@ -63,4 +63,3 @@ def ask_confirmation(parent):
         logging.info("User cancelled")
         return False
     return True
-

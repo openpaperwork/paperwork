@@ -131,7 +131,7 @@ class PdfDoc(BasicDoc):
     last_mod = property(__get_last_mod)
 
     def get_pdf_file_path(self):
-        return  ("%s/%s" % (self.path, PDF_FILENAME))
+        return ("%s/%s" % (self.path, PDF_FILENAME))
 
     def _open_pdf(self):
         self.__pdf = Poppler.Document.new_from_file(
@@ -176,7 +176,7 @@ class PdfDoc(BasicDoc):
             dest.make_directory(None)
         except GLib.GError, exc:
             logger.exception("Warning: Error while trying to create '%s': %s"
-                    % (self.path, exc))
+                             % (self.path, exc))
         f = Gio.File.parse_name(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest,
@@ -209,6 +209,6 @@ def is_pdf_doc(docpath):
         filelist = os.listdir(docpath)
     except OSError, exc:
         logger.exception("Warning: Failed to list files in %s: %s"
-                % (docpath, str(exc)))
+                         % (docpath, str(exc)))
         return False
     return PDF_FILENAME in filelist

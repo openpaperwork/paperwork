@@ -74,8 +74,8 @@ class Drawer(object):
             surface --- surface to draw on the context
             img_position --- target position for the surface once on the canvas
             img_size --- target size for the surface once on the canvas
-            angle --- rotation to apply (WARNING: applied after positioning, and
-                      rotated at the center of the surface !)
+            angle --- rotation to apply (WARNING: applied after positioning,
+                      and rotated at the center of the surface !)
         """
         angle = math.pi * angle / 180
         surface_size = (surface.get_width(), surface.get_height())
@@ -105,7 +105,6 @@ class Drawer(object):
             cairo_ctx.paint()
         finally:
             cairo_ctx.restore()
-
 
     def do_draw(self, cairo_ctx, offset, size):
         """
@@ -180,11 +179,15 @@ class RectangleDrawer(Drawer):
         cairo_ctx.save()
         try:
             if (len(self.inside_color) > 3):
-                cairo_ctx.set_source_rgba(self.inside_color[0], self.inside_color[1],
-                                          self.inside_color[2], self.inside_color[3])
+                cairo_ctx.set_source_rgba(
+                    self.inside_color[0], self.inside_color[1],
+                    self.inside_color[2], self.inside_color[3]
+                )
             else:
-                cairo_ctx.set_source_rgb(self.inside_color[0], self.inside_color[1],
-                                         self.inside_color[2])
+                cairo_ctx.set_source_rgb(
+                    self.inside_color[0], self.inside_color[1],
+                    self.inside_color[2]
+                )
             cairo_ctx.set_line_width(2.0)
 
             if self.angle != 0:
@@ -366,7 +369,8 @@ class TargetAreaDrawer(Drawer):
                 self._draw_area,
                 (
                     (self._position[0], self._position[1]),
-                    (self.target_position[0], self._position[1] + self.size[1]),
+                    (self.target_position[0],
+                     self._position[1] + self.size[1]),
                 )
             ),
             (

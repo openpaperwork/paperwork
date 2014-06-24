@@ -207,10 +207,11 @@ class SpinnerAnimation(Animation):
 
         cairo_ctx.save()
         try:
-            Gdk.cairo_set_source_pixbuf(cairo_ctx, self.icon_pixbuf,
-                                        (target_offset[0] - img_offset[0]),
-                                        (target_offset[1] - img_offset[1]),
-                                       )
+            Gdk.cairo_set_source_pixbuf(
+                cairo_ctx, self.icon_pixbuf,
+                (target_offset[0] - img_offset[0]),
+                (target_offset[1] - img_offset[1]),
+            )
             cairo_ctx.rectangle(target_offset[0],
                                 target_offset[1],
                                 self.ICON_SIZE,

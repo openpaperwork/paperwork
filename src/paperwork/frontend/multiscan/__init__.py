@@ -154,8 +154,10 @@ class ActionScan(SimpleAction):
         SimpleAction.do(self)
 
         try:
-            (dev, resolution) = get_scanner(self.__config,
-                                            preferred_sources=["ADF", ".*ADF.*", ".*Feeder.*"])
+            (dev, resolution) = get_scanner(
+                self.__config,
+                preferred_sources=["ADF", ".*ADF.*", ".*Feeder.*"]
+            )
             scan_session = dev.scan(multiple=True)
         except Exception, exc:
             logger.warning("Exception while configuring scanner: %s: %s."
@@ -193,9 +195,11 @@ class ActionScan(SimpleAction):
                                      page_nb, total_pages)
                 drawer = PageScanDrawer(position)
                 self.__multiscan_win.scan_canvas.add_drawer(drawer)
-                page_scan.connect("scanworkflow-inst", drawer.set_scan_workflow)
+                page_scan.connect("scanworkflow-inst",
+                                  drawer.set_scan_workflow)
                 page_scans.append(page_scan)
-                position = (position[0] + drawer.size[0] + MARGIN, position[1])
+                position = (position[0] + drawer.size[0] + MARGIN,
+                            position[1])
             new_height = position[1] + MARGIN
             if drawer:
                 new_height += drawer.size[1]
@@ -209,9 +213,11 @@ class ActionScan(SimpleAction):
             last_page_scan = page_scan
 
         if last_page_scan:
-            last_page_scan.connect("done",
+            last_page_scan.connect(
+                "done",
                 lambda _: GLib.idle_add(
-                    self.__multiscan_win.on_global_scan_end_cb))
+                    self.__multiscan_win.on_global_scan_end_cb)
+            )
         if first_page_scan:
             first_page_scan.start_scan_workflow()
 
@@ -364,7 +370,8 @@ class MultiscanDialog(GObject.GObject):
         self.lists['docs']['model'][page_scan.line_idx][4] = _("Reading")
 
     def on_scan_done_cb(self, page_scan):
-        progression = ("%d / %d" % (page_scan.page_nb + 1, page_scan.total_pages))
+        progression = ("%d / %d" % (page_scan.page_nb + 1,
+                                    page_scan.total_pages))
         self.lists['docs']['model'][page_scan.line_idx][1] = progression
         progression = ((page_scan.page_nb * 100 + 100) / page_scan.total_pages)
         self.lists['docs']['model'][page_scan.line_idx][3] = progression

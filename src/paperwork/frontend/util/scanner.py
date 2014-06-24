@@ -28,7 +28,7 @@ def _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
     regexs = [re.compile(x, flags=re.IGNORECASE) for x in possible_values]
 
     if (scanner_opt.constraint_type ==
-        pyinsane.SaneConstraintType.STRING_LIST):
+            pyinsane.SaneConstraintType.STRING_LIST):
         value = None
         for regex in regexs:
             for constraint in scanner_opt.constraint:

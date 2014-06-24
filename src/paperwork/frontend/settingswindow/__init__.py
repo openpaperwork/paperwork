@@ -125,15 +125,13 @@ class JobFactoryDeviceFinder(JobFactory):
 class JobSourceFinder(Job):
     __gsignals__ = {
         'source-finding-start': (GObject.SignalFlags.RUN_LAST,
-                                     None, ()),
+                                 None, ()),
         'source-found': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_STRING,  # user name (translated)
-                              GObject.TYPE_STRING,  # source name
-                              GObject.TYPE_BOOLEAN,  # is the active one
-                             )
-                        ),
+                         (GObject.TYPE_STRING,  # user name (translated)
+                          GObject.TYPE_STRING,  # source name
+                          GObject.TYPE_BOOLEAN, )),  # is the active one
         'source-finding-end': (GObject.SignalFlags.RUN_LAST,
-                                   None, ())
+                               None, ())
     }
 
     can_stop = False
@@ -160,7 +158,8 @@ class JobSourceFinder(Job):
     def do(self):
         self.emit("source-finding-start")
         try:
-            logger.info("Looking for resolution of device [%s]" % (self.__devid))
+            logger.info("Looking for resolution of device [%s]"
+                        % (self.__devid))
             device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
             sources = device.options['source'].constraint
@@ -242,7 +241,8 @@ class JobResolutionFinder(Job):
     def do(self):
         self.emit("resolution-finding-start")
         try:
-            logger.info("Looking for resolution of device [%s]" % (self.__devid))
+            logger.info("Looking for resolution of device [%s]"
+                        % (self.__devid))
             device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
             resolutions = device.options['resolution'].constraint
@@ -273,7 +273,8 @@ GObject.type_register(JobResolutionFinder)
 
 
 class JobFactoryResolutionFinder(JobFactory):
-    def __init__(self, settings_win, selected_resolution, recommended_resolution):
+    def __init__(self, settings_win, selected_resolution,
+                 recommended_resolution):
         JobFactory.__init__(self, "ResolutionFinder")
         self.__settings_win = settings_win
         self.__selected_resolution = selected_resolution
@@ -305,18 +306,18 @@ class JobCalibrationScan(Job):
         'calibration-scan-start': (GObject.SignalFlags.RUN_LAST, None,
                                    ()),
         'calibration-scan-info': (GObject.SignalFlags.RUN_LAST, None,
-                                   (  # expected size
-                                    GObject.TYPE_INT,
-                                    GObject.TYPE_INT,
-                                   )),
+                                  (
+                                      # expected size
+                                      GObject.TYPE_INT,
+                                      GObject.TYPE_INT,
+                                  )),
         'calibration-scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
                                    # line where to put the image
                                    (GObject.TYPE_INT,
-                                    GObject.TYPE_PYOBJECT,)),  # The PIL image
+                                    GObject.TYPE_PYOBJECT, )),  # PIL image
         'calibration-scan-done': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT,  # Pillow image
-                                   GObject.TYPE_INT,  # scan resolution
-                                  )),
+                                   GObject.TYPE_INT, )),  # scan resolution
         'calibration-scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                                       ()),
     }
@@ -392,6 +393,7 @@ class JobCalibrationScan(Job):
 
         img = scan_session.get_img()
         self.emit('calibration-scan-done', img, resolution)
+
     def stop(self, will_resume=False):
         assert(not will_resume)
         self.can_run = False
@@ -416,14 +418,15 @@ class JobFactoryCalibrationScan(JobFactory):
         job.connect('calibration-scan-info',
                     lambda job, size_x, size_y:
                     GLib.idle_add(self.__settings_win.on_scan_info,
-                                 (size_x, size_y)))
+                                  (size_x, size_y)))
         job.connect('calibration-scan-chunk',
                     lambda job, line, img:
-                    GLib.idle_add(self.__settings_win.on_scan_chunk, line, img))
+                    GLib.idle_add(self.__settings_win.on_scan_chunk, line,
+                                  img))
         job.connect('calibration-scan-done',
                     lambda job, img, resolution:
                     GLib.idle_add(self.__settings_win.on_scan_done, img,
-                                     resolution))
+                                  resolution))
         job.connect('calibration-scan-canceled',
                     lambda job:
                     GLib.idle_add(self.__settings_win.on_scan_canceled))
@@ -455,7 +458,9 @@ class ActionSelectScanner(SimpleAction):
         # no point in trying to stop the previous jobs, they are unstoppable
         job = self.__settings_win.job_factories['source_finder'].make(devid)
         self.__settings_win.schedulers['main'].schedule(job)
-        job = self.__settings_win.job_factories['resolution_finder'].make(devid)
+        job = self.__settings_win.job_factories['resolution_finder'].make(
+            devid
+        )
         self.__settings_win.schedulers['main'].schedule(job)
 
 
@@ -699,13 +704,17 @@ class SettingsWindow(GObject.GObject):
         self.__scan_start = 0.0
 
         self.job_factories = {
-            "device_finder": JobFactoryDeviceFinder(self,
-                                                    config['scanner_devid'].value),
-            "source_finder": JobFactorySourceFinder(self,
-                                                    config['scanner_source'].value),
-            "resolution_finder": JobFactoryResolutionFinder(self,
+            "device_finder": JobFactoryDeviceFinder(
+                self, config['scanner_devid'].value
+            ),
+            "source_finder": JobFactorySourceFinder(
+                self, config['scanner_source'].value
+            ),
+            "resolution_finder": JobFactoryResolutionFinder(
+                self,
                 config['scanner_resolution'].value,
-                RECOMMENDED_SCAN_RESOLUTION),
+                RECOMMENDED_SCAN_RESOLUTION
+            ),
             "scan": JobFactoryCalibrationScan(
                 self,
                 self.device_settings['resolution']['stores']['loaded']
@@ -748,7 +757,6 @@ class SettingsWindow(GObject.GObject):
         job = self.job_factories['device_finder'].make()
         self.schedulers['main'].schedule(job)
 
-
     @staticmethod
     def __get_short_to_long_langs(short_langs):
         """
@@ -779,7 +787,7 @@ class SettingsWindow(GObject.GObject):
                 langs.append((short_lang, long_lang))
             except KeyError, exc:
                 logger.error("Warning: Long name not found for language "
-                        "'%s'." % short_lang)
+                             "'%s'." % short_lang)
                 logger.warning("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))
         return langs
@@ -849,7 +857,9 @@ class SettingsWindow(GObject.GObject):
     def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
-        self.__config['scan_time'].value['calibration'] = scan_stop - self.__scan_start
+        self.__config['scan_time'].value['calibration'] = (
+            scan_stop - self.__scan_start
+        )
 
         self.calibration['image'] = img
         self.calibration['resolution'] = scan_resolution

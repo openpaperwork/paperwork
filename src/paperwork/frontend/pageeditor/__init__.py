@@ -130,8 +130,10 @@ class PageEditingDialog(object):
 
         self.__cut_grips = None
 
-        self.__original_img_widgets['scrolledwindow'].connect("size-allocate",
-            lambda widget, size: GLib.idle_add(self.__on_size_allocate))
+        self.__original_img_widgets['scrolledwindow'].connect(
+            "size-allocate",
+            lambda widget, size: GLib.idle_add(self.__on_size_allocate)
+        )
         self.__buttons['cutting'].connect(
             "toggled",
             lambda widget: GLib.idle_add(

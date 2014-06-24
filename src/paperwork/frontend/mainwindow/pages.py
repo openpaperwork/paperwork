@@ -264,8 +264,7 @@ class PageDrawer(Drawer):
     def reload_boxes(self, new_sentence=None):
         if new_sentence:
             self.sentence = new_sentence
-        self.boxes["highlighted"] = \
-                self._get_highlighted_boxes(self.sentence)
+        self.boxes["highlighted"] = self._get_highlighted_boxes(self.sentence)
         self.canvas.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes):
@@ -390,7 +389,8 @@ class PageDrawer(Drawer):
             return
 
         if not self.surface:
-            self.draw_tmp_area(cairo_context, canvas_offset, canvas_visible_size)
+            self.draw_tmp_area(cairo_context, canvas_offset,
+                               canvas_visible_size)
         else:
             self.draw_surface(cairo_context, canvas_offset,
                               canvas_visible_size,
@@ -403,7 +403,8 @@ class PageDrawer(Drawer):
         if self.boxes["mouse_over"]:
             self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
                             [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
-            self.draw_box_txt(cairo_context, canvas_offset, canvas_visible_size,
+            self.draw_box_txt(cairo_context, canvas_offset,
+                              canvas_visible_size,
                               self.boxes['mouse_over'])
         self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
                         self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
@@ -411,9 +412,9 @@ class PageDrawer(Drawer):
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
             if (x >= box.position[0][0]
-                and x <= box.position[1][0]
-                and y >= box.position[0][1]
-                and y <= box.position[1][1]):
+                    and x <= box.position[1][0]
+                    and y >= box.position[0][1]
+                    and y <= box.position[1][1]):
                 return box
         return None
 
@@ -422,9 +423,9 @@ class PageDrawer(Drawer):
         size = self.size
 
         if (event.x < position[0]
-            or event.x > (position[0] + size[0])
-            or event.y < position[1]
-            or event.y >= (position[1] + size[1])):
+                or event.x > (position[0] + size[0])
+                or event.y < position[1]
+                or event.y >= (position[1] + size[1])):
             return
 
         (x_factor, y_factor) = self._get_factors()

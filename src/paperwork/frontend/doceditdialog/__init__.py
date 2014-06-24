@@ -103,8 +103,10 @@ class DocEditDialog(object):
             if not 'fmt' in widgets:
                 continue
             widgets['fmt'](widgets['view'])
-            widgets['view'].connect("activate",
-                lambda _: self.dialog.response(Gtk.ResponseType.OK))
+            widgets['view'].connect(
+                "activate",
+                lambda _: self.dialog.response(Gtk.ResponseType.OK)
+            )
 
         self.__change_widget_order_according_to_locale()
 

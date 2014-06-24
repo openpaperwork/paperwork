@@ -89,8 +89,8 @@ class MultiplePdfImporter(object):
     @staticmethod
     def can_import(file_uri, current_doc=None):
         """
-        Check that the specified file looks like a directory containing many pdf
-        files
+        Check that the specified file looks like a directory containing many
+        pdf files
         """
         try:
             parent = Gio.File.parse_name(file_uri)
@@ -132,7 +132,7 @@ class MultiplePdfImporter(object):
             idx += 1
         if doc is None:
             return (None, None, False)
-        else :
+        else:
             return (docs, None, True)
 
     def __str__(self):

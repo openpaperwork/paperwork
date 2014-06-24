@@ -74,12 +74,13 @@ class ProgressiveList(GObject.GObject):
 
     NB_EL_DISPLAYED_INITIALLY = 100
     NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN = 0.85
-    NB_EL_DISPLAYED_ADDITIONNAL = int((1.0 - NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN)
-                                      * NB_EL_DISPLAYED_INITIALLY)
+    NB_EL_DISPLAYED_ADDITIONNAL = int(
+        (1.0 - NB_EL_DISPLAY_EXTRA_WHEN_LOWER_THAN) * NB_EL_DISPLAYED_INITIALLY
+    )
 
     __gsignals__ = {
         'lines-shown': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,) ),  # [(line_idx, obj), ... ]
+                        (GObject.TYPE_PYOBJECT, )),  # [(line_idx, obj), ... ]
     }
 
     def __init__(self, name,
@@ -160,7 +161,7 @@ class ProgressiveList(GObject.GObject):
                 self.widget_gui.set_cursor(path, None, False)
 
             GLib.idle_add(self.widget_gui.scroll_to_path, last_visible,
-                             False, 0.0, 0.0)
+                          False, 0.0, 0.0)
         finally:
             for action in self.actions:
                 action.enabled = True
@@ -248,12 +249,12 @@ class ProgressiveList(GObject.GObject):
             # should do nothing if the target cell is already visible (which
             # is the desired behavior here). Except we just emptied the
             # document list model and remade it from scratch. For some reason,
-            # it seems that  Gtk will then always consider that the cell is
+            # it seems that Gtk will then always consider that the cell is
             # not visible and move the scrollbar.
             # --> we use idle_add to move the scrollbar only once everything
             # has been displayed
             GLib.idle_add(self.widget_gui.scroll_to_path,
-                             path, False, 0.0, 0.0)
+                          path, False, 0.0, 0.0)
         else:
             self.unselect()
 
@@ -261,7 +262,7 @@ class ProgressiveList(GObject.GObject):
         self.widget_gui.unselect_all()
         path = Gtk.TreePath(0)
         GLib.idle_add(self.widget_gui.scroll_to_path,
-                         path, False, 0.0, 0.0)
+                      path, False, 0.0, 0.0)
 
     def __getitem__(self, item):
         return {
@@ -272,5 +273,3 @@ class ProgressiveList(GObject.GObject):
 
 
 GObject.type_register(ProgressiveList)
-
-

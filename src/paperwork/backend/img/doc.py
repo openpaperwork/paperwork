@@ -268,8 +268,8 @@ class ImgDoc(BasicDoc):
             return count
         except OSError, exc:
             if exc.errno != errno.ENOENT:
-                logging.error("Exception while trying to get the number of pages of "
-                       "'%s': %s" % (self.docid, exc))
+                logging.error("Exception while trying to get the number of"
+                              " pages of '%s': %s" % (self.docid, exc))
                 raise
             return 0
 
@@ -312,7 +312,7 @@ class ImgDoc(BasicDoc):
         if self._get_nb_pages() == 0:
             print "WARNING: Document %s is empty" % self.docid
             dochash = ''
-        else :
+        else:
             dochash = 0
             for page in self.pages:
                 dochash ^= page.get_docfilehash()
@@ -333,9 +333,11 @@ def is_img_doc(docpath):
     try:
         filelist = os.listdir(docpath)
     except OSError, exc:
-        logging.warn("Warning: Failed to list files in %s: %s" % (docpath, str(exc)))
+        logging.warn("Warning: Failed to list files in %s: %s"
+                     % (docpath, str(exc)))
         return False
     for filename in filelist:
-        if filename.lower().endswith(ImgPage.EXT_IMG) and not filename.lower().endswith(ImgPage.EXT_THUMB):
+        if (filename.lower().endswith(ImgPage.EXT_IMG)
+                and not filename.lower().endswith(ImgPage.EXT_THUMB)):
             return True
     return False

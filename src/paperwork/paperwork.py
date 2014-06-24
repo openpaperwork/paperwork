@@ -73,16 +73,16 @@ def set_locale():
 
 def init_logging():
     formatter = logging.Formatter(
-            '%(levelname)-6s %(name)-30s %(message)s')
+        '%(levelname)-6s %(name)-30s %(message)s')
     handler = logging.StreamHandler()
     logger = logging.getLogger()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel({
-        "DEBUG" : logging.DEBUG,
-        "INFO" : logging.INFO,
-        "WARNING" : logging.WARNING,
-        "ERROR" : logging.ERROR,
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
     }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
 
 

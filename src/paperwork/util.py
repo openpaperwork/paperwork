@@ -384,6 +384,11 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
         possible_values --- a list of values considered valid (the first one
                             being the preferred one)
     """
+    if not scanner_opt.capabilities.is_active():
+        logger.warning("Unable to set scanner option '%s': Option is not active"
+                       % scanner_opt_name)
+        return
+
     value = possible_values[0]
     regexs = [re.compile(x, flags=re.IGNORECASE) for x in possible_values]
 
@@ -408,6 +413,10 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
 
 
 def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):
+    if not options[opt_name].capabilities.is_active():
+        logger.warning("Unable to set scanner option '%s': Option is not active"
+                       % opt_name)
+        return
     if not opt_name in options:
         missing_options.append(opt_name)
     constraint = options[opt_name].constraint

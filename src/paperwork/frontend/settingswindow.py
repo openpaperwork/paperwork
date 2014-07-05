@@ -267,18 +267,20 @@ class JobCalibrationScan(Job):
             logger.error("Warning: Unable to set scanner source: %s"
                    % exc)
         try:
-            dev.options['resolution'].value = resolution
+            if dev.options['resolution'].capabilities.is_active():
+                dev.options['resolution'].value = resolution
         except pyinsane.SaneException:
             logger.error("Warning: Unable to set scanner resolution to %d: %s"
                          % (resolution, exc))
-        if "Color" in dev.options['mode'].constraint:
-            dev.options['mode'].value = "Color"
-            logger.info("Scanner mode set to 'Color'")
-        elif "Gray" in dev.options['mode'].constraint:
-            dev.options['mode'].value = "Gray"
-            logger.info("Scanner mode set to 'Gray'")
-        else:
-            logger.warn("WARNING: Unable to set scanner mode ! May be 'Lineart'")
+        if dev.options['mode'].capabilities.is_active():
+            if "Color" in dev.options['mode'].constraint:
+                dev.options['mode'].value = "Color"
+                logger.info("Scanner mode set to 'Color'")
+            elif "Gray" in dev.options['mode'].constraint:
+                dev.options['mode'].value = "Gray"
+                logger.info("Scanner mode set to 'Gray'")
+            else:
+                logger.warn("WARNING: Unable to set scanner mode ! May be 'Lineart'")
         maximize_scan_area(dev)
         scan_inst = dev.scan(multiple=False)
         try:

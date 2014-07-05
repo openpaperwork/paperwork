@@ -362,16 +362,18 @@ class PaperworkConfig(object):
         configuration
         """
         scanner = pyinsane.Scanner(self.scanner_devid)
-        scanner.options['resolution'].value = self.scanner_resolution
-        if "Color" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Color"
-            logger.info("Scanner mode set to 'Color'")
-        elif "Gray" in scanner.options['mode'].constraint:
-            scanner.options['mode'].value = "Gray"
-            logger.info("Scanner mode set to 'Gray'")
-        else:
-            logger.warn("WARNING: "
-                    "Unable to set scanner mode ! May be 'Lineart'")
+        if scanner.options['resolution'].capabilities.is_active():
+            scanner.options['resolution'].value = self.scanner_resolution
+        if scanner.options['mode'].capabilities.is_active():
+            if "Color" in scanner.options['mode'].constraint:
+                scanner.options['mode'].value = "Color"
+                logger.info("Scanner mode set to 'Color'")
+            elif "Gray" in scanner.options['mode'].constraint:
+                scanner.options['mode'].value = "Gray"
+                logger.info("Scanner mode set to 'Gray'")
+            else:
+                logger.warn("WARNING: "
+                            "Unable to set scanner mode ! May be 'Lineart'")
         return scanner
 
     def __get_toolbar_visible(self):

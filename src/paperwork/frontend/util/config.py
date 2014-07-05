@@ -302,10 +302,12 @@ def get_scanner(config, preferred_sources=None):
             config_source = config['scanner_source'].value
             logger.error("Warning: Unable to set scanner source to '%s': %s"
                          % (preferred_sources, exc))
-            dev.options['source'].value = config_source
+            if dev.options['source'].capabilities.is_active():
+                dev.options['source'].value = config_source
     else:
         config_source = config['scanner_source'].value
-        dev.options['source'].value = config_source
+        if dev.options['source'].capabilities.is_active():
+            dev.options['source'].value = config_source
         logger.info("Will scan using source %s" % str(config_source))
 
     try:
@@ -313,13 +315,14 @@ def get_scanner(config, preferred_sources=None):
     except pyinsane.SaneException:
         logger.warning("Unable to set scanner resolution to %d: %s"
                        % (resolution, exc))
-    if "Color" in dev.options['mode'].constraint:
-        dev.options['mode'].value = "Color"
-        logger.info("Scanner mode set to 'Color'")
-    elif "Gray" in dev.options['mode'].constraint:
-        dev.options['mode'].value = "Gray"
-        logger.info("Scanner mode set to 'Gray'")
-    else:
-        logger.warning("Unable to set scanner mode ! May be 'Lineart'")
+    if dev.options['mode'].capabilities.is_active():
+        if "Color" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Color"
+            logger.info("Scanner mode set to 'Color'")
+        elif "Gray" in dev.options['mode'].constraint:
+            dev.options['mode'].value = "Gray"
+            logger.info("Scanner mode set to 'Gray'")
+        else:
+            logger.warning("Unable to set scanner mode ! May be 'Lineart'")
     maximize_scan_area(dev)
     return (dev, resolution)

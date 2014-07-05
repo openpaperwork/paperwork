@@ -57,6 +57,12 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
         possible_values --- a list of values considered valid (the first one
                             being the preferred one)
     """
+    if not scanner_opt.capabilities.is_active():
+        logger.warning("Unable to set scanner option '%s':"
+                       " Option is not active"
+                       % scanner_opt_name)
+        return False
+
     # WORKAROUND(Jflesch): For some reason, my crappy scanner returns
     # I/O errors randomly for fun
     for t in xrange(0, 5):
@@ -67,17 +73,23 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
             logger.warning("Warning: Failed to set scanner option"
                            " %s=%s: %s (try %d/5)"
                            % (scanner_opt_name, possible_values, str(exc), t))
+    return True
 
 
 def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):
     if not opt_name in options:
         missing_options.append(opt_name)
-    constraint = options[opt_name].constraint
-    if isinstance(constraint, tuple):
-        value = select_value_func(constraint[0], constraint[1])
-    else:  # is an array
-        value = select_value_func(constraint)
-    options[opt_name].value = value
+    else:
+        if not options[opt_name].capabilities.is_active():
+            logger.warning("Unable to set scanner option '%s':"
+                           " Option is not active" % opt_name)
+            return
+        constraint = options[opt_name].constraint
+        if isinstance(constraint, tuple):
+            value = select_value_func(constraint[0], constraint[1])
+        else:  # is an array
+            value = select_value_func(constraint)
+        options[opt_name].value = value
 
 
 def maximize_scan_area(scanner):

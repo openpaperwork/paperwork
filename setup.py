@@ -36,7 +36,7 @@ if python_ver[0] != "2" or python_ver[1] != "7":
 
 
 setup(name="paperwork",
-      version="0.1.2",
+      version="0.1.3",
       description="Grep for dead trees",
       long_description="""
 Paperwork is a tool to make papers searchable.

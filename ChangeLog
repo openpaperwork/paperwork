@@ -1,3 +1,7 @@
+2014/07/08 - 0.1.3:
+- Fix scanner support : don't try to set scanner options that are not active
+
+
 2013/12/29 - 0.1.2:
 - Improve scanner support: option names and values cases are not always the
   same on all the scanners

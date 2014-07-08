@@ -3480,6 +3480,8 @@ class MainWindow(object):
                 self.img['canvas'].add_drawer(drawer)
 
         self.update_page_sizes()
+        self.img['canvas'].recompute_size()
+        self.img['canvas'].upd_adjustments()
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3541,6 +3543,7 @@ class MainWindow(object):
             if d.page == page:
                 drawer = d
                 break
+
         if drawer is not None:
             self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
 

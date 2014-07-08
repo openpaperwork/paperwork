@@ -14,11 +14,23 @@ In other words, let the machine do most of the work for you.
 
 ## Screenshots
 
-### Main window
+### Main window &amp; scan
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="347" />
-</a>
+<table border="0" cellspacing="30">
+  <tr>
+
+    <td>
+      <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png">
+        <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="347" />
+      </a>
+    </td>
+
+    <td>
+      <iframe width="560" height="315" src="//www.youtube.com/embed/goEgIiq2Tuc" frameborder="0" allowfullscreen></iframe>
+    </td>
+  </tr>
+</table>
+
 
 ### Search suggestions
 

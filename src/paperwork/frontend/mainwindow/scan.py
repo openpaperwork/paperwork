@@ -109,12 +109,14 @@ class JobScan(Job):
         img = self.scan_session.images[-1]
         self.emit('scan-done', img)
         logger.info("Scan done")
+        del self.scan_session
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
         if not will_resume:
             self.scan_session.scan.cancel()
+            del self.scan_session
 
 
 GObject.type_register(JobScan)
@@ -248,11 +250,17 @@ class JobOCR(Job):
         Job.__init__(self, factory, id)
         self.ocr_tool = ocr_tool
         self.langs = langs
+        self.img = img
         self.imgs = {angle: img.rotate(angle) for angle in angles}
 
     def do(self):
-        self.emit('ocr-started', self.imgs[0])
+        self.emit('ocr-started', self.img)
         self.emit('ocr-angles', dict(self.imgs))
+
+        if len(self.imgs) <= 0:
+            self.emit('ocr-score', 0, 0)
+            self.emit('ocr-done', 0, self.img, [])
+            return
 
         max_threads = multiprocessing.cpu_count()
         threads = []
@@ -815,7 +823,9 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         Listen for the signal ocr-done to get the result
         """
-        if angles is None:
+        if not self.__config['ocr_enabled'].value:
+            angles = 0
+        elif angles is None:
             angles = self.__config['ocr_nb_angles'].value
         img.load()
         job = self.factories['ocr'].make(img, angles)
@@ -848,7 +858,7 @@ class ScanWorkflow(GObject.GObject):
 
             def __start_ocr(self, scan_workflow, img):
                 if img is None:
-                    return
+                   return
                 scan_workflow.ocr(img)
 
         _ScanOcrChainer(self)

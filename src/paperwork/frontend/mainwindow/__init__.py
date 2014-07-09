@@ -16,6 +16,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
+import gc
 import os
 import sys
 import threading
@@ -3081,6 +3082,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
+        gc.collect()
 
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
@@ -3480,6 +3482,8 @@ class MainWindow(object):
                 self.img['canvas'].add_drawer(drawer)
 
         self.update_page_sizes()
+        self.img['canvas'].recompute_size()
+        self.img['canvas'].upd_adjustments()
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3541,6 +3545,7 @@ class MainWindow(object):
             if d.page == page:
                 drawer = d
                 break
+
         if drawer is not None:
             self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
 

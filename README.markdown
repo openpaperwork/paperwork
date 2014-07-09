@@ -14,13 +14,13 @@ In other words, let the machine do most of the work for you.
 
 ## Screenshots
 
-### Main window
+### Main Window &amp; Scan
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png">
+<a href="http://youtu.be/goEgIiq2Tuc">
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="347" />
 </a>
 
-### Search suggestions
+### Search Suggestions
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png">
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png" width="512" height="349" />

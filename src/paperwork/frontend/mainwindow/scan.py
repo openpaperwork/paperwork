@@ -109,12 +109,14 @@ class JobScan(Job):
         img = self.scan_session.images[-1]
         self.emit('scan-done', img)
         logger.info("Scan done")
+        del self.scan_session
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
         if not will_resume:
             self.scan_session.scan.cancel()
+            del self.scan_session
 
 
 GObject.type_register(JobScan)

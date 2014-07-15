@@ -23,7 +23,7 @@ Pillow may conflict with the package python-imaging (aka PIL).
     $ sudo yum install gcc-c++
 
     # Scikit-image dependency
-    $ sudo yum install cython
+    $ sudo yum install Cython
 
     # PyEnchant dependency
     $ sudo yum install enchant-devel

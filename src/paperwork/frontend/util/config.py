@@ -131,16 +131,6 @@ class _PaperworkScannerCalibration(object):
                    str(self.value[1][1][1]))
 
 
-class _PaperworkCfgStringList(list):
-    def __init__(self, string):
-        elements = string.split(",")
-        for element in elements:
-            self.append(element)
-
-    def __str__(self):
-        return ",".join(self)
-
-
 class _PaperworkLangs(object):
     """
     Convenience setting. Gives all the languages used as one dictionary
@@ -263,11 +253,6 @@ def load_config():
             lambda: RECOMMENDED_SCAN_RESOLUTION, int
         ),
         'scanner_source': PaperworkSetting("Scanner", "Source"),
-        'scanner_sources': PaperworkSetting(
-            "Scanner", "Sources",
-            lambda: _PaperworkCfgStringList(""),
-            _PaperworkCfgStringList
-        ),
         'scan_time': _ScanTimes(),
         'zoom_level': PaperworkSetting("GUI", "zoom_level",
                                        lambda: 0.0, float),

@@ -493,12 +493,13 @@ class BasicScanWorkflowDrawer(Animation):
             size = fit(img.size, self.canvas.visible_size)
             position = self.position
 
-        # animations with big images are too slow
-        # --> reduce the image size
-        img = img.resize(size)
-
         target_sizes = self._compute_reduced_sizes(
             self.canvas.visible_size, size)
+
+        # animations with big images are too slow
+        # --> reduce the image size
+        img = img.resize(target_sizes)
+
         target_positions = self._compute_reduced_positions(
             self.canvas.visible_size, size, target_sizes)
 

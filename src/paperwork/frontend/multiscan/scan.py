@@ -144,9 +144,9 @@ class PageScanDrawer(Animation):
         for drawer in self.drawers:
             drawer.on_tick()
 
-    def do_draw(self, cairo_ctx, offset, visible_size):
+    def do_draw(self, cairo_ctx):
         for drawer in self.drawers:
-            drawer.draw(cairo_ctx, offset, visible_size)
+            drawer.draw(cairo_ctx)
 
     def __on_scan_info(self, size):
         self.scan_animation = ScanAnimation(self.position, size, self.size)

@@ -412,12 +412,12 @@ class BasicScanWorkflowDrawer(Animation):
         # we are used as a page drawer, but we don't care about the scale/ratio
         return
 
-    def do_draw(self, cairo_ctx, offset, size):
+    def do_draw(self, cairo_ctx):
         for drawer in self.scan_drawers:
-            drawer.draw(cairo_ctx, offset, size)
+            drawer.draw(cairo_ctx)
         for drawers in self.ocr_drawers.values():
             for drawer in drawers:
-                drawer.draw(cairo_ctx, offset, size)
+                drawer.draw(cairo_ctx)
 
     def on_tick(self):
         for drawer in self.scan_drawers:
@@ -506,7 +506,9 @@ class BasicScanWorkflowDrawer(Animation):
         self.ocr_drawers = {}
 
         for angle in target_positions.keys():
-            self.ocr_drawers[angle] = [PillowImageDrawer(position, img)]
+            drawer = PillowImageDrawer(position, img)
+            drawer.set_canvas(self.canvas)
+            self.ocr_drawers[angle] = [drawer]
 
         self.animators = []
         for (angle, drawers) in self.ocr_drawers.iteritems():
@@ -558,6 +560,7 @@ class BasicScanWorkflowDrawer(Animation):
             ),
             width=5.0
         )
+        line_drawer.set_canvas(self.canvas)
         self.ocr_drawers[angle] = [
             img_drawer,
             line_drawer,
@@ -583,6 +586,7 @@ class BasicScanWorkflowDrawer(Animation):
                     inside_color=(0.0, 0.0, 0.0, 0.1),
                     angle=angle,
                 )
+                spinner_bg.set_canvas(self.canvas)
                 spinner = SpinnerAnimation(
                     (
                         (img_drawer.position[0] + (img_drawer.size[0] / 2))
@@ -591,6 +595,7 @@ class BasicScanWorkflowDrawer(Animation):
                         - (SpinnerAnimation.ICON_SIZE / 2)
                     )
                 )
+                spinner.set_canvas(self.canvas)
                 self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
                 self.animators.append(spinner)
 
@@ -627,6 +632,8 @@ class BasicScanWorkflowDrawer(Animation):
                 self.SCAN_TO_OCR_ANIM_TIME,
                 attr_name='size', canvas=self.canvas),
         ]
+        for animator in self.animators:
+            animator.set_canvas(self.canvas)
         self.animators[-1].connect(
             'animator-end',
             lambda animator: GLib.idle_add(

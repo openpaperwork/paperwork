@@ -175,6 +175,7 @@ class PageDrawer(Drawer):
 
     def set_canvas(self, canvas):
         Drawer.set_canvas(self, canvas)
+        self.spinner.set_canvas(canvas)
         canvas.connect("absolute-motion-notify-event", lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
 
@@ -290,12 +291,12 @@ class PageDrawer(Drawer):
         self.unload_content()
         self.visible = False
 
-    def draw_tmp_area(self, cairo_context, canvas_offset, canvas_visible_size):
+    def draw_tmp_area(self, cairo_context):
         cairo_context.save()
         try:
             cairo_context.set_source_rgb(0.85, 0.85, 0.85)
-            cairo_context.rectangle(self.position[0] - canvas_offset[0],
-                                    self.position[1] - canvas_offset[1],
+            cairo_context.rectangle(self.position[0] - self.canvas.offset[0],
+                                    self.position[1] - self.canvas.offset[1],
                                     self.size[0], self.size[1])
             cairo_context.clip()
             cairo_context.paint()
@@ -308,7 +309,7 @@ class PageDrawer(Drawer):
             (float(self._size[1]) / self.max_size[1]),
         )
 
-    def _get_real_box(self, box, canvas_offset):
+    def _get_real_box(self, box):
         (x_factor, y_factor) = self._get_factors()
 
         ((a, b), (c, d)) = box.position
@@ -321,15 +322,14 @@ class PageDrawer(Drawer):
 
         a += self.position[0]
         b += self.position[1]
-        a -= canvas_offset[0]
-        b -= canvas_offset[1]
+        a -= self.canvas.offset[0]
+        b -= self.canvas.offset[1]
 
         return (int(a), int(b), int(w), int(h))
 
-    def draw_boxes(self, cairo_context, canvas_offset, canvas_visible_size,
-                   boxes, color):
+    def draw_boxes(self, cairo_context, boxes, color):
         for box in boxes:
-            (a, b, w, h) = self._get_real_box(box, canvas_offset)
+            (a, b, w, h) = self._get_real_box(box, self.canvas.offset)
             cairo_context.save()
             try:
                 cairo_context.set_source_rgb(color[0], color[1], color[2])
@@ -339,9 +339,8 @@ class PageDrawer(Drawer):
             finally:
                 cairo_context.restore()
 
-    def draw_box_txt(self, cairo_context, canvas_offset, canvas_visible_size,
-                     box):
-        (a, b, w, h) = self._get_real_box(box, canvas_offset)
+    def draw_box_txt(self, cairo_context, box):
+        (a, b, w, h) = self._get_real_box(box, self.canvas.offset)
 
         cairo_context.save()
         try:
@@ -375,9 +374,9 @@ class PageDrawer(Drawer):
         finally:
             cairo_context.restore()
 
-    def draw(self, cairo_context, canvas_offset, canvas_visible_size):
+    def draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
-            canvas_offset, canvas_visible_size,
+            self.canvas.offset, self.canvas.size,
             self.position, self.size)
         if should_be_visible and not self.visible:
             self.load_content()
@@ -389,24 +388,21 @@ class PageDrawer(Drawer):
             return
 
         if not self.surface:
-            self.draw_tmp_area(cairo_context, canvas_offset,
-                               canvas_visible_size)
+            self.draw_tmp_area(cairo_context)
         else:
-            self.draw_surface(cairo_context, canvas_offset,
-                              canvas_visible_size,
+            self.draw_surface(cairo_context,
                               self.surface, self.position,
                               self.size)
 
         if self.show_all_boxes:
-            self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
+            self.draw_boxes(cairo_context,
                             self.boxes['all'], color=(0.0, 0.0, 0.5))
         if self.boxes["mouse_over"]:
-            self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
+            self.draw_boxes(cairo_context,
                             [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
-            self.draw_box_txt(cairo_context, canvas_offset,
-                              canvas_visible_size,
+            self.draw_box_txt(cairo_context,
                               self.boxes['mouse_over'])
-        self.draw_boxes(cairo_context, canvas_offset, canvas_visible_size,
+        self.draw_boxes(cairo_context,
                         self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
 
     def _get_box_at(self, x, y):

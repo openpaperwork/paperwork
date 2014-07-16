@@ -51,6 +51,7 @@ class Animator(GObject.GObject):
             self.emit('animator-start')
         setattr(self.drawer, self.attr_name, self.attr_values[0])
         self.attr_values = self.attr_values[1:]
+        self.canvas.redraw()
 
 
 class LinearSimpleAnimator(Animator):

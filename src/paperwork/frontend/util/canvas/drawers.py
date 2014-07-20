@@ -41,6 +41,7 @@ class Drawer(object):
 
     position = (0, 0)  # (x, y)
     size = (0, 0)  # (width, height)
+    angle = 0
 
     def __init__(self):
         self.canvas = None
@@ -130,8 +131,20 @@ class Drawer(object):
         self.do_draw(cairo_ctx)
 
     def _get_relative_position(self):
-        p = (max(0, self.position[0] - self.canvas.offset[0]),
-             max(0, self.position[1] - self.canvas.offset[1]))
+        position = self.position
+        if self.angle:
+            # enlarge the area
+            size = self.size
+            min_size = min(size)
+            max_size = max(size)
+            diff = max_size - min_size
+            if size[0] < size[1]:
+                position = (position[0] - (diff / 2), position[1])
+            else:
+                position = (position[0], position[1] - (diff / 2))
+
+        p = (max(0, position[0] - self.canvas.offset[0]),
+             max(0, position[1] - self.canvas.offset[1]))
         p = (min(p[0], self.canvas.size[0]),
              min(p[1], self.canvas.size[1]))
         return p
@@ -139,8 +152,21 @@ class Drawer(object):
     relative_position = property(_get_relative_position)
 
     def _get_relative_edge(self):
-        edge = (self.position[0] + self.size[0],
-                self.position[1] + self.size[1])
+        position = self.position
+        size = self.size
+        if self.angle:
+            # enlarge the area
+            min_size = min(size)
+            max_size = max(size)
+            diff = max_size - min_size
+            if size[0] < size[1]:
+                position = (position[0] - (diff / 2), position[1])
+            else:
+                position = (position[0], position[1] - (diff / 2))
+            size = (max_size, max_size)
+
+        edge = (position[0] + size[0],
+                position[1] + size[1])
         edge = (max(0, edge[0] - self.canvas.offset[0]),
                 max(0, edge[1] - self.canvas.offset[1]))
         edge = (min(edge[0], self.canvas.size[0]),
@@ -154,6 +180,10 @@ class Drawer(object):
         return size
 
     relative_size = property(_get_relative_size)
+
+    def redraw(self):
+        self.canvas.redraw((self.relative_position,
+                            self.relative_size))
 
     def show(self):
         pass

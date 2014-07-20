@@ -84,7 +84,7 @@ class ScanAnimation(Animation):
             self.anim['offset'] *= -1
         if len(self.surfaces) <= 0:
             return
-        self.canvas.redraw()
+        self.redraw()
 
     def add_chunk(self, line, img_chunk):
         # big images take more time to draw
@@ -189,7 +189,7 @@ class SpinnerAnimation(Animation):
             # in gnome-spinner.png, the first frame is empty.
             # don't know why.
             self.frame += 1
-        self.canvas.redraw()
+        self.redraw()
 
     def draw(self, cairo_ctx):
         frame = (

@@ -229,7 +229,7 @@ class PageDrawer(Drawer):
         if not self.visible:
             return
         self.surface = surface
-        self.canvas.redraw()
+        self.redraw()
         if len(self.boxes['all']) <= 0:
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
@@ -267,7 +267,7 @@ class PageDrawer(Drawer):
         if new_sentence:
             self.sentence = new_sentence
         self.boxes["highlighted"] = self._get_highlighted_boxes(self.sentence)
-        self.canvas.redraw()
+        self.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:

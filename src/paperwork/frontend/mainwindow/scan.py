@@ -460,7 +460,7 @@ class BasicScanWorkflowDrawer(Animation):
 
             self.scan_drawers.append(calibration_drawer)
 
-        self.canvas.redraw()
+        self.redraw()
 
     def __on_scan_chunk_cb(self, line, img_chunk):
         assert(len(self.scan_drawers) > 0)
@@ -587,6 +587,7 @@ class BasicScanWorkflowDrawer(Animation):
                     angle=angle,
                 )
                 spinner_bg.set_canvas(self.canvas)
+                spinner_bg.redraw()
                 spinner = SpinnerAnimation(
                     (
                         (img_drawer.position[0] + (img_drawer.size[0] / 2))
@@ -598,9 +599,15 @@ class BasicScanWorkflowDrawer(Animation):
                 spinner.set_canvas(self.canvas)
                 self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
                 self.animators.append(spinner)
+        # TODO(Jflesch): There are artefacts visible after the rotation
+        # -> this is just the lazy way of getting rid of them.
+        # there shouldn't be artefact in a first place
+        self.canvas.redraw()
 
     def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
+            (img_drawer, spinner_bg, spinner) = self.ocr_drawers[angle]
+            img_drawer.redraw()
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
 
@@ -621,6 +628,7 @@ class BasicScanWorkflowDrawer(Animation):
              - (new_size[0] / 2)),
             (self.position[1]),
         )
+        self.canvas.redraw()
 
         self.animators += [
             LinearCoordAnimator(

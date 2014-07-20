@@ -157,12 +157,12 @@ class PageScanDrawer(Animation):
         ]
         assert(self.canvas)
         self.set_canvas(self.canvas)  # reset canvas on all new drawers
-        self.canvas.redraw()
+        for drawer in self.drawers:
+            drawer.redraw()
 
     def __on_scan_chunk(self, line, img):
         assert(self.canvas)
         self.scan_animation.add_chunk(line, img)
-        self.canvas.redraw()
 
     def __on_scan_done(self, img):
         size = fit(img.size, self.size)

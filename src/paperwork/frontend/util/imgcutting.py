@@ -326,7 +326,7 @@ class ImgGripHandler(GObject.GObject):
         if self.selected:
             self.__move_grip((event.x, event.y))
             is_on_grip = True
-            self.canvas.redraw()
+            self.img_drawer.redraw()
         else:
             is_on_grip = False
             for grip in self.grips:
@@ -335,7 +335,7 @@ class ImgGripHandler(GObject.GObject):
                     is_on_grip = True
                 else:
                     grip.hover = False
-            self.canvas.redraw()
+            self.img_drawer.redraw()
 
         if is_on_grip:
             cursor = self.__cursors['on_grip']
@@ -352,7 +352,7 @@ class ImgGripHandler(GObject.GObject):
                 float(event.y) / (img_h * self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
-            self.canvas.redraw()
+            self.img_drawer.redraw()
             self.emit('zoom-changed')
             return
 
@@ -372,7 +372,7 @@ class ImgGripHandler(GObject.GObject):
             grip.visible = visible
         if self.canvas.get_window():
             self.canvas.get_window().set_cursor(self.__cursors['default'])
-        self.canvas.redraw()
+        self.img_drawer.redraw()
 
     visible = property(__get_visible, __set_visible)
 

@@ -254,6 +254,13 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.recompute_size()
         self.redraw()
 
+    def remove_drawers(self, drawers):
+        for drawer in drawers:
+            drawer.hide()
+            self.drawers.remove(drawer)
+        self.recompute_size()
+        self.redraw()
+
     def remove_all_drawers(self):
         for drawer in self.drawers:
             drawer.hide()

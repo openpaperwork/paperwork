@@ -37,6 +37,9 @@ class Animator(GObject.GObject):
         self.started = False
         self.stopped = False
 
+        self.previous_pos = self.drawer.relative_position
+        self.previous_size = self.drawer.relative_size
+
     def set_canvas(self, canvas):
         self.canvas = canvas
 
@@ -51,7 +54,11 @@ class Animator(GObject.GObject):
             self.emit('animator-start')
         setattr(self.drawer, self.attr_name, self.attr_values[0])
         self.attr_values = self.attr_values[1:]
-        self.canvas.redraw()
+
+        self.canvas.redraw((self.previous_pos, self.previous_size))
+        self.previous_pos = self.drawer.relative_position
+        self.previous_size = self.drawer.relative_size
+        self.canvas.redraw((self.previous_pos, self.previous_size))
 
 
 class LinearSimpleAnimator(Animator):

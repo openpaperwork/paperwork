@@ -109,12 +109,14 @@ class JobScan(Job):
         img = self.scan_session.images[-1]
         self.emit('scan-done', img)
         logger.info("Scan done")
+        del self.scan_session
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
         if not will_resume:
             self.scan_session.scan.cancel()
+            del self.scan_session
 
 
 GObject.type_register(JobScan)
@@ -248,11 +250,17 @@ class JobOCR(Job):
         Job.__init__(self, factory, id)
         self.ocr_tool = ocr_tool
         self.langs = langs
+        self.img = img
         self.imgs = {angle: img.rotate(angle) for angle in angles}
 
     def do(self):
-        self.emit('ocr-started', self.imgs[0])
+        self.emit('ocr-started', self.img)
         self.emit('ocr-angles', dict(self.imgs))
+
+        if len(self.imgs) <= 0:
+            self.emit('ocr-score', 0, 0)
+            self.emit('ocr-done', 0, self.img, [])
+            return
 
         max_threads = multiprocessing.cpu_count()
         threads = []
@@ -404,12 +412,12 @@ class BasicScanWorkflowDrawer(Animation):
         # we are used as a page drawer, but we don't care about the scale/ratio
         return
 
-    def do_draw(self, cairo_ctx, offset, size):
+    def do_draw(self, cairo_ctx):
         for drawer in self.scan_drawers:
-            drawer.draw(cairo_ctx, offset, size)
+            drawer.draw(cairo_ctx)
         for drawers in self.ocr_drawers.values():
             for drawer in drawers:
-                drawer.draw(cairo_ctx, offset, size)
+                drawer.draw(cairo_ctx)
 
     def on_tick(self):
         for drawer in self.scan_drawers:
@@ -452,7 +460,7 @@ class BasicScanWorkflowDrawer(Animation):
 
             self.scan_drawers.append(calibration_drawer)
 
-        self.canvas.redraw()
+        self.redraw()
 
     def __on_scan_chunk_cb(self, line, img_chunk):
         assert(len(self.scan_drawers) > 0)
@@ -485,19 +493,22 @@ class BasicScanWorkflowDrawer(Animation):
             size = fit(img.size, self.canvas.visible_size)
             position = self.position
 
-        # animations with big images are too slow
-        # --> reduce the image size
-        img = img.resize(size)
-
         target_sizes = self._compute_reduced_sizes(
             self.canvas.visible_size, size)
+
+        # animations with big images are too slow
+        # --> reduce the image size
+        img = img.resize(target_sizes)
+
         target_positions = self._compute_reduced_positions(
             self.canvas.visible_size, size, target_sizes)
 
         self.ocr_drawers = {}
 
         for angle in target_positions.keys():
-            self.ocr_drawers[angle] = [PillowImageDrawer(position, img)]
+            drawer = PillowImageDrawer(position, img)
+            drawer.set_canvas(self.canvas)
+            self.ocr_drawers[angle] = [drawer]
 
         self.animators = []
         for (angle, drawers) in self.ocr_drawers.iteritems():
@@ -549,6 +560,7 @@ class BasicScanWorkflowDrawer(Animation):
             ),
             width=5.0
         )
+        line_drawer.set_canvas(self.canvas)
         self.ocr_drawers[angle] = [
             img_drawer,
             line_drawer,
@@ -574,6 +586,8 @@ class BasicScanWorkflowDrawer(Animation):
                     inside_color=(0.0, 0.0, 0.0, 0.1),
                     angle=angle,
                 )
+                spinner_bg.set_canvas(self.canvas)
+                spinner_bg.redraw()
                 spinner = SpinnerAnimation(
                     (
                         (img_drawer.position[0] + (img_drawer.size[0] / 2))
@@ -582,11 +596,18 @@ class BasicScanWorkflowDrawer(Animation):
                         - (SpinnerAnimation.ICON_SIZE / 2)
                     )
                 )
+                spinner.set_canvas(self.canvas)
                 self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
                 self.animators.append(spinner)
+        # TODO(Jflesch): There are artefacts visible after the rotation
+        # -> this is just the lazy way of getting rid of them.
+        # there shouldn't be artefact in a first place
+        self.canvas.redraw()
 
     def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
+            (img_drawer, spinner_bg, spinner) = self.ocr_drawers[angle]
+            img_drawer.redraw()
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
 
@@ -601,12 +622,13 @@ class BasicScanWorkflowDrawer(Animation):
             angle: [drawer]
         }
 
-        new_size = fit(drawer.img_size, self.canvas.visible_size)
+        new_size = fit(drawer.img_size, self.canvas.visible_size, force=True)
         new_position = (
             (self.position[0] + (self.canvas.visible_size[0] / 2)
              - (new_size[0] / 2)),
             (self.position[1]),
         )
+        self.canvas.redraw()
 
         self.animators += [
             LinearCoordAnimator(
@@ -618,6 +640,8 @@ class BasicScanWorkflowDrawer(Animation):
                 self.SCAN_TO_OCR_ANIM_TIME,
                 attr_name='size', canvas=self.canvas),
         ]
+        for animator in self.animators:
+            animator.set_canvas(self.canvas)
         self.animators[-1].connect(
             'animator-end',
             lambda animator: GLib.idle_add(
@@ -815,7 +839,9 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         Listen for the signal ocr-done to get the result
         """
-        if angles is None:
+        if not self.__config['ocr_enabled'].value:
+            angles = 0
+        elif angles is None:
             angles = self.__config['ocr_nb_angles'].value
         img.load()
         job = self.factories['ocr'].make(img, angles)
@@ -848,7 +874,7 @@ class ScanWorkflow(GObject.GObject):
 
             def __start_ocr(self, scan_workflow, img):
                 if img is None:
-                    return
+                   return
                 scan_workflow.ocr(img)
 
         _ScanOcrChainer(self)

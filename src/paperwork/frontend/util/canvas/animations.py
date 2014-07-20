@@ -67,6 +67,7 @@ class ScanAnimation(Animation):
         )
         self.position = position
         self.surfaces = []
+        self.last_redraw_lines = 0
 
         self.anim = {
             "position": 0,
@@ -81,6 +82,9 @@ class ScanAnimation(Animation):
             self.anim['position'] = max(0, self.anim['position'])
             self.anim['position'] = min(self.size[0], self.anim['position'])
             self.anim['offset'] *= -1
+        if len(self.surfaces) <= 0:
+            return
+        self.redraw()
 
     def add_chunk(self, line, img_chunk):
         # big images take more time to draw
@@ -92,12 +96,12 @@ class ScanAnimation(Animation):
 
         surface = image2surface(img_chunk)
         self.surfaces.append((line * self.ratio, surface))
-        self.canvas.redraw()
+        self.on_tick()
 
-    def draw_chunks(self, cairo_ctx, canvas_offset, canvas_size):
+    def draw_chunks(self, cairo_ctx):
         position = (
-            self.position[0] - canvas_offset[0],
-            self.position[1] - canvas_offset[1],
+            self.position[0] - self.canvas.offset[0],
+            self.position[1] - self.canvas.offset[1],
         )
 
         cairo_ctx.save()
@@ -114,19 +118,19 @@ class ScanAnimation(Animation):
 
         for (line, surface) in self.surfaces:
             chunk_size = (surface.get_width(), surface.get_height())
-            self.draw_surface(cairo_ctx, canvas_offset, canvas_size,
+            self.draw_surface(cairo_ctx,
                               surface, (float(self.position[0]),
                                         float(self.position[1]) + line),
                               chunk_size)
 
-    def draw_animation(self, cairo_ctx, canvas_offset, canvas_size):
+    def draw_animation(self, cairo_ctx):
         if len(self.surfaces) <= 0:
             return
 
         position = (
-            self.position[0] - canvas_offset[0],
+            self.position[0] - self.canvas.offset[0],
             (
-                self.position[1] - canvas_offset[1]
+                self.position[1] - self.canvas.offset[1]
                 + (self.surfaces[-1][0])
                 + (self.surfaces[-1][1].get_height())
             ),
@@ -185,8 +189,9 @@ class SpinnerAnimation(Animation):
             # in gnome-spinner.png, the first frame is empty.
             # don't know why.
             self.frame += 1
+        self.redraw()
 
-    def draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+    def draw(self, cairo_ctx):
         frame = (
             (self.frame % self.nb_frames[0]),
             (self.frame / self.nb_frames[0]),
@@ -196,14 +201,14 @@ class SpinnerAnimation(Animation):
             (frame[1] * self.ICON_SIZE),
         )
 
-        img_offset = (max(0, canvas_offset[0] - self.position[0]),
-                      max(0, canvas_offset[1] - self.position[1]))
+        img_offset = (max(0, self.canvas.offset[0] - self.position[0]),
+                      max(0, self.canvas.offset[1] - self.position[1]))
         img_offset = (
             img_offset[0] + frame[0],
             img_offset[1] + frame[1],
         )
-        target_offset = (max(0, self.position[0] - canvas_offset[0]),
-                         max(0, self.position[1] - canvas_offset[1]))
+        target_offset = (max(0, self.position[0] - self.canvas.offset[0]),
+                         max(0, self.position[1] - self.canvas.offset[1]))
 
         cairo_ctx.save()
         try:

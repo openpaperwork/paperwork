@@ -87,14 +87,14 @@ class ImgGrip(Drawer):
         return (x_min <= position[0] and position[0] <= x_max
                 and y_min <= position[1] and position[1] <= y_max)
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+    def do_draw(self, cairo_ctx):
         if not self.visible:
             return
         ((a_x, a_y), (b_x, b_y)) = self.__get_select_area()
-        a_x -= canvas_offset[0]
-        a_y -= canvas_offset[1]
-        b_x -= canvas_offset[0]
-        b_y -= canvas_offset[1]
+        a_x -= self.canvas.offset[0]
+        a_y -= self.canvas.offset[1]
+        b_x -= self.canvas.offset[0]
+        b_y -= self.canvas.offset[1]
 
         if self.selected:
             color = self.SELECTED_COLOR
@@ -125,17 +125,17 @@ class ImgGripRectangle(Drawer):
 
     size = property(__get_size)
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+    def do_draw(self, cairo_ctx):
         for grip in self.grips:
             if not grip.visible:
                 return
 
         (a_x, a_y) = self.grips[0].position
         (b_x, b_y) = self.grips[1].position
-        a_x -= canvas_offset[0]
-        a_y -= canvas_offset[1]
-        b_x -= canvas_offset[0]
-        b_y -= canvas_offset[1]
+        a_x -= self.canvas.offset[0]
+        a_y -= self.canvas.offset[1]
+        b_x -= self.canvas.offset[0]
+        b_y -= self.canvas.offset[1]
 
         cairo_ctx.set_source_rgb(self.COLOR[0], self.COLOR[1], self.COLOR[2])
         cairo_ctx.set_line_width(1.0)
@@ -326,7 +326,7 @@ class ImgGripHandler(GObject.GObject):
         if self.selected:
             self.__move_grip((event.x, event.y))
             is_on_grip = True
-            self.canvas.redraw()
+            self.img_drawer.redraw()
         else:
             is_on_grip = False
             for grip in self.grips:
@@ -335,7 +335,7 @@ class ImgGripHandler(GObject.GObject):
                     is_on_grip = True
                 else:
                     grip.hover = False
-            self.canvas.redraw()
+            self.img_drawer.redraw()
 
         if is_on_grip:
             cursor = self.__cursors['on_grip']
@@ -352,7 +352,7 @@ class ImgGripHandler(GObject.GObject):
                 float(event.y) / (img_h * self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
-            self.canvas.redraw()
+            self.img_drawer.redraw()
             self.emit('zoom-changed')
             return
 
@@ -372,7 +372,7 @@ class ImgGripHandler(GObject.GObject):
             grip.visible = visible
         if self.canvas.get_window():
             self.canvas.get_window().set_cursor(self.__cursors['default'])
-        self.canvas.redraw()
+        self.img_drawer.redraw()
 
     visible = property(__get_visible, __set_visible)
 

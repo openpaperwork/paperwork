@@ -16,6 +16,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
+import gc
 import os
 import sys
 import threading
@@ -3081,6 +3082,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
+        gc.collect()
 
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)

@@ -144,9 +144,9 @@ class PageScanDrawer(Animation):
         for drawer in self.drawers:
             drawer.on_tick()
 
-    def do_draw(self, cairo_ctx, offset, visible_size):
+    def do_draw(self, cairo_ctx):
         for drawer in self.drawers:
-            drawer.draw(cairo_ctx, offset, visible_size)
+            drawer.draw(cairo_ctx)
 
     def __on_scan_info(self, size):
         self.scan_animation = ScanAnimation(self.position, size, self.size)
@@ -157,12 +157,12 @@ class PageScanDrawer(Animation):
         ]
         assert(self.canvas)
         self.set_canvas(self.canvas)  # reset canvas on all new drawers
-        self.canvas.redraw()
+        for drawer in self.drawers:
+            drawer.redraw()
 
     def __on_scan_chunk(self, line, img):
         assert(self.canvas)
         self.scan_animation.add_chunk(line, img)
-        self.canvas.redraw()
 
     def __on_scan_done(self, img):
         size = fit(img.size, self.size)

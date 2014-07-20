@@ -233,7 +233,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
         self.recompute_size()
-        self.redraw()
+        self.redraw((drawer.relative_position, drawer.relative_size))
 
     def get_drawer_at(self, position):
         (x, y) = position

@@ -129,6 +129,32 @@ class Drawer(object):
             return
         self.do_draw(cairo_ctx)
 
+    def _get_relative_position(self):
+        p = (max(0, self.position[0] - self.canvas.offset[0]),
+             max(0, self.position[1] - self.canvas.offset[1]))
+        p = (min(p[0], self.canvas.size[0]),
+             min(p[1], self.canvas.size[1]))
+        return p
+
+    relative_position = property(_get_relative_position)
+
+    def _get_relative_edge(self):
+        edge = (self.position[0] + self.size[0],
+                self.position[1] + self.size[1])
+        edge = (max(0, edge[0] - self.canvas.offset[0]),
+                max(0, edge[1] - self.canvas.offset[1]))
+        edge = (min(edge[0], self.canvas.size[0]),
+                min(edge[1], self.canvas.size[1]))
+        return edge
+
+    def _get_relative_size(self):
+        edge = self._get_relative_edge()
+        rel_p = self.relative_position
+        size = (edge[0] - rel_p[0], edge[1] - rel_p[1])
+        return size
+
+    relative_size = property(_get_relative_size)
+
     def show(self):
         pass
 

@@ -143,6 +143,7 @@ class JobFactoryPageBoxesLoader(JobFactory):
 
 class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
+    LINE_WIDTH = 1.0
 
     def __init__(self, position, page,
                  job_factories,
@@ -329,18 +330,18 @@ class PageDrawer(Drawer):
 
     def draw_boxes(self, cairo_context, boxes, color):
         for box in boxes:
-            (a, b, w, h) = self._get_real_box(box, self.canvas.offset)
+            (a, b, w, h) = self._get_real_box(box)
             cairo_context.save()
             try:
                 cairo_context.set_source_rgb(color[0], color[1], color[2])
-                cairo_context.set_line_width(1.0)
+                cairo_context.set_line_width(self.LINE_WIDTH)
                 cairo_context.rectangle(a, b, w, h)
                 cairo_context.stroke()
             finally:
                 cairo_context.restore()
 
     def draw_box_txt(self, cairo_context, box):
-        (a, b, w, h) = self._get_real_box(box, self.canvas.offset)
+        (a, b, w, h) = self._get_real_box(box)
 
         cairo_context.save()
         try:
@@ -415,8 +416,8 @@ class PageDrawer(Drawer):
         return None
 
     def _on_mouse_motion(self, event):
-        position = self.position
-        size = self.size
+        position = self.relative_position
+        size = self.relative_size
 
         if (event.x < position[0]
                 or event.x > (position[0] + size[0])
@@ -433,5 +434,19 @@ class PageDrawer(Drawer):
 
         box = self._get_box_at(x, y)
         if box != self.boxes["mouse_over"]:
+            # redraw previous box
+            if self.boxes["mouse_over"]:
+                box_pos = self._get_real_box(self.boxes["mouse_over"])
+                self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                     box_pos[1] - self.LINE_WIDTH),
+                                    (box_pos[2] + (2 * self.LINE_WIDTH),
+                                     box_pos[2] + (2 * self.LINE_WIDTH))))
+
+            # draw new one
             self.boxes["mouse_over"] = box
-            self.canvas.redraw()
+            if box:
+                box_pos = self._get_real_box(box)
+                self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                     box_pos[1] - self.LINE_WIDTH),
+                                    (box_pos[2] + (2 * self.LINE_WIDTH),
+                                     box_pos[2] + (2 * self.LINE_WIDTH))))

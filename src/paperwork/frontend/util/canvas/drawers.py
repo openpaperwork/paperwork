@@ -496,16 +496,23 @@ class TargetAreaDrawer(Drawer):
             func(cairo_ctx, rect)
 
 
-def fit(element_size, area_size):
+def fit(element_size, area_size, force=False):
     """
     Return the size to give to the element so it fits in the area size.
     Keep aspect ratio.
     """
-    ratio = min(
-        1.0,
-        float(area_size[0]) / float(element_size[0]),
-        float(area_size[1]) / float(element_size[1]),
-    )
+    if not force:
+        ratio = min(
+            1.0,
+            float(area_size[0]) / float(element_size[0]),
+            float(area_size[1]) / float(element_size[1]),
+        )
+    else:
+        ratio = min(
+            float(area_size[0]) / float(element_size[0]),
+            float(area_size[1]) / float(element_size[1]),
+        )
+
     return (
         int(element_size[0] * ratio),
         int(element_size[1] * ratio),

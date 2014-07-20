@@ -622,7 +622,7 @@ class BasicScanWorkflowDrawer(Animation):
             angle: [drawer]
         }
 
-        new_size = fit(drawer.img_size, self.canvas.visible_size)
+        new_size = fit(drawer.img_size, self.canvas.visible_size, force=True)
         new_position = (
             (self.position[0] + (self.canvas.visible_size[0] / 2)
              - (new_size[0] / 2)),

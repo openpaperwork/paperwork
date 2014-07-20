@@ -416,8 +416,8 @@ class PageDrawer(Drawer):
         return None
 
     def _on_mouse_motion(self, event):
-        position = self.relative_position
-        size = self.relative_size
+        position = self.position
+        size = self.size
 
         if (event.x < position[0]
                 or event.x > (position[0] + size[0])

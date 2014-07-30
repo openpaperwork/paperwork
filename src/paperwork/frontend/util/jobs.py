@@ -128,8 +128,8 @@ class JobScheduler(object):
         self.running = False
 
         # _job_queue_cond.acquire()/release() protect the job queue
-        # _job_queue_cond.notify_all() is called each time the queue is modified
-        #  (except on cancel())
+        # _job_queue_cond.notify_all() is called each time the queue is
+        # modified (except on cancel())
         self._job_queue_cond = threading.Condition()
         self._job_queue = []
         self._active_job = None
@@ -195,7 +195,7 @@ class JobScheduler(object):
 
             diff = stop - start
             if (self._active_job.can_stop
-                or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
+                    or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
                 logger.debug("Job %s took %dms"
                              % (str(self._active_job), diff * 1000))
             else:

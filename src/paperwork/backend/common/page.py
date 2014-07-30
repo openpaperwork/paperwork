@@ -257,17 +257,20 @@ class BasicPage(object):
         for histo in separated_histo:
             # flatten histograms
             window_len = 4
-            s = numpy.r_[histo[window_len-1:0:-1],histo,histo[-1:-window_len:-1]]
-            w = numpy.ones(window_len,'d')
-            separated_flat_histo.append(csr_matrix(numpy.convolve(w/w.sum(),
-                                                                  s,
-                                                                  mode='valid'))
-                                        .astype(numpy.float64))
+            s = numpy.r_[
+                histo[window_len-1:0:-1],
+                histo,
+                histo[-1:-window_len:-1]
+            ]
+            w = numpy.ones(window_len, 'd')
+            separated_flat_histo.append(csr_matrix(
+                numpy.convolve(w/w.sum(), s, mode='valid'))
+                .astype(numpy.float64))
         flat_histo = normalize(sparse.hstack(separated_flat_histo), norm='l1')
 
         # hog feature extraction
         # must resize to multiple of 8 because of skimage hog bug
-        hog_features = feature.hog(numpy.array(image.resize((144,144))
+        hog_features = feature.hog(numpy.array(image.resize((144, 144))
                                                .convert('L')),
                                    normalise=False)
         hog_features = csr_matrix(hog_features).astype(numpy.float64)
@@ -277,6 +280,7 @@ class BasicPage(object):
         features = sparse.hstack([flat_histo, hog_features * 3])
 
         return features
+
 
 class DummyPage(object):
     page_nb = -1

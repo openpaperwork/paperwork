@@ -99,9 +99,9 @@ class Label(object):
                       + ((bg_color[1] * 255) * 0.587)
                       + ((bg_color[2] * 255) * 0.114))
         if brightness > 186:
-            return (0.0, 0.0, 0.0) # black
+            return (0.0, 0.0, 0.0)  # black
         else:
-            return (1.0, 1.0, 1.0) # white
+            return (1.0, 1.0, 1.0)  # white
 
     def get_rgb_bg(self):
         return (float((self.color.red >> 8) & 0xFF) / 0xFF,

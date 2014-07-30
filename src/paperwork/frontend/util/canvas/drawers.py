@@ -41,6 +41,7 @@ class Drawer(object):
 
     position = (0, 0)  # (x, y)
     size = (0, 0)  # (width, height)
+    angle = 0
 
     def __init__(self):
         self.canvas = None
@@ -61,21 +62,17 @@ class Drawer(object):
             should_be_visible = False
         return should_be_visible
 
-    @staticmethod
-    def draw_surface(cairo_ctx, canvas_offset, canvas_size,
-                     surface, img_position, img_size, angle=0):
+    def draw_surface(self, cairo_ctx, surface, img_position, img_size, angle=0):
         """
         Draw a surface
 
         Arguments:
             cairo_ctx --- cairo context to draw on
-            canvas_offset --- position of the visible area of the canvas
-            canvas_size --- size of the visible area of the canvas
             surface --- surface to draw on the context
             img_position --- target position for the surface once on the canvas
             img_size --- target size for the surface once on the canvas
-            angle --- rotation to apply (WARNING: applied after positioning, and
-                      rotated at the center of the surface !)
+            angle --- rotation to apply (WARNING: applied after positioning,
+                      and rotated at the center of the surface !)
         """
         angle = math.pi * angle / 180
         surface_size = (surface.get_width(), surface.get_height())
@@ -89,7 +86,7 @@ class Drawer(object):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(img_position[0], img_position[1])
-            cairo_ctx.translate(-canvas_offset[0], -canvas_offset[1])
+            cairo_ctx.translate(-self.canvas.offset[0], -self.canvas.offset[1])
             if angle != 0:
                 cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
                 cairo_ctx.rotate(angle)
@@ -106,8 +103,7 @@ class Drawer(object):
         finally:
             cairo_ctx.restore()
 
-
-    def do_draw(self, cairo_ctx, offset, size):
+    def do_draw(self, cairo_ctx):
         """
         Arguments:
             offset --- Position of the area in which to draw:
@@ -122,17 +118,72 @@ class Drawer(object):
         """
         pass
 
-    def draw(self, cairo_ctx, offset, visible_size):
+    def draw(self, cairo_ctx):
         # don't bother drawing if it's not visible
-        if offset[0] + visible_size[0] < self.position[0]:
+        if self.canvas.offset[0] + self.canvas.size[0] < self.position[0]:
             return
-        if offset[1] + visible_size[1] < self.position[1]:
+        if self.canvas.offset[1] + self.canvas.size[1] < self.position[1]:
             return
-        if self.position[0] + self.size[0] < offset[0]:
+        if self.position[0] + self.size[0] < self.canvas.offset[0]:
             return
-        if self.position[1] + self.size[1] < offset[1]:
+        if self.position[1] + self.size[1] < self.canvas.offset[1]:
             return
-        self.do_draw(cairo_ctx, offset, visible_size)
+        self.do_draw(cairo_ctx)
+
+    def _get_relative_position(self):
+        position = self.position
+        if self.angle:
+            # enlarge the area
+            size = self.size
+            min_size = min(size)
+            max_size = max(size)
+            diff = max_size - min_size
+            if size[0] < size[1]:
+                position = (position[0] - (diff / 2), position[1])
+            else:
+                position = (position[0], position[1] - (diff / 2))
+
+        p = (max(0, position[0] - self.canvas.offset[0]),
+             max(0, position[1] - self.canvas.offset[1]))
+        p = (min(p[0], self.canvas.size[0]),
+             min(p[1], self.canvas.size[1]))
+        return p
+
+    relative_position = property(_get_relative_position)
+
+    def _get_relative_edge(self):
+        position = self.position
+        size = self.size
+        if self.angle:
+            # enlarge the area
+            min_size = min(size)
+            max_size = max(size)
+            diff = max_size - min_size
+            if size[0] < size[1]:
+                position = (position[0] - (diff / 2), position[1])
+            else:
+                position = (position[0], position[1] - (diff / 2))
+            size = (max_size, max_size)
+
+        edge = (position[0] + size[0],
+                position[1] + size[1])
+        edge = (max(0, edge[0] - self.canvas.offset[0]),
+                max(0, edge[1] - self.canvas.offset[1]))
+        edge = (min(edge[0], self.canvas.size[0]),
+                min(edge[1], self.canvas.size[1]))
+        return edge
+
+    def _get_relative_size(self):
+        edge = self._get_relative_edge()
+        rel_p = self.relative_position
+        size = (edge[0] - rel_p[0], edge[1] - rel_p[1])
+        return size
+
+    relative_size = property(_get_relative_size)
+
+    def redraw(self):
+        self.canvas.redraw((self.relative_position,
+                            self.relative_size))
 
     def show(self):
         pass
@@ -155,9 +206,9 @@ class BackgroundDrawer(Drawer):
 
     size = property(__get_size)
 
-    def do_draw(self, cairo_ctx, offset, size):
+    def do_draw(self, cairo_ctx):
         cairo_ctx.set_source_rgb(self.rgb[0], self.rgb[1], self.rgb[2])
-        cairo_ctx.rectangle(0, 0, size[0], size[1])
+        cairo_ctx.rectangle(0, 0, self.canvas.size[0], self.canvas.size[1])
         cairo_ctx.clip()
         cairo_ctx.paint()
 
@@ -176,32 +227,36 @@ class RectangleDrawer(Drawer):
         self.inside_color = inside_color
         self.angle = angle
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+    def do_draw(self, cairo_ctx):
         cairo_ctx.save()
         try:
             if (len(self.inside_color) > 3):
-                cairo_ctx.set_source_rgba(self.inside_color[0], self.inside_color[1],
-                                          self.inside_color[2], self.inside_color[3])
+                cairo_ctx.set_source_rgba(
+                    self.inside_color[0], self.inside_color[1],
+                    self.inside_color[2], self.inside_color[3]
+                )
             else:
-                cairo_ctx.set_source_rgb(self.inside_color[0], self.inside_color[1],
-                                         self.inside_color[2])
+                cairo_ctx.set_source_rgb(
+                    self.inside_color[0], self.inside_color[1],
+                    self.inside_color[2]
+                )
             cairo_ctx.set_line_width(2.0)
 
             if self.angle != 0:
                 angle = math.pi * self.angle / 180
-                cairo_ctx.translate(self.position[0] - canvas_offset[0]
+                cairo_ctx.translate(self.position[0] - self.canvas.offset[0]
                                     + (self.size[0] / 2),
-                                    self.position[1] - canvas_offset[1]
+                                    self.position[1] - self.canvas.offset[1]
                                     + (self.size[1] / 2))
                 cairo_ctx.rotate(angle)
-                cairo_ctx.translate(-self.position[0] + canvas_offset[0]
+                cairo_ctx.translate(-self.position[0] + self.canvas.offset[0]
                                     - (self.size[0] / 2),
-                                    -self.position[1] + canvas_offset[1]
+                                    -self.position[1] + self.canvas.offset[1]
                                     - (self.size[1] / 2))
 
             cairo_ctx.rectangle(
-                self.position[0] - canvas_offset[0],
-                self.position[1] - canvas_offset[1],
+                self.position[0] - self.canvas.offset[0],
+                self.position[1] - self.canvas.offset[1],
                 self.size[0], self.size[1]
             )
             cairo_ctx.clip()
@@ -256,16 +311,16 @@ class LineDrawer(Drawer):
 
     size = property(_get_size)
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+    def do_draw(self, cairo_ctx):
         cairo_ctx.save()
         try:
             cairo_ctx.set_source_rgba(self.color[0], self.color[1],
                                       self.color[2], self.color[3])
             cairo_ctx.set_line_width(self.width)
-            cairo_ctx.move_to(self.start[0] - canvas_offset[0],
-                              self.start[1] - canvas_offset[1])
-            cairo_ctx.line_to(self.end[0] - canvas_offset[0],
-                              self.end[1] - canvas_offset[1])
+            cairo_ctx.move_to(self.start[0] - self.canvas.offset[0],
+                              self.start[1] - self.canvas.offset[1])
+            cairo_ctx.line_to(self.end[0] - self.canvas.offset[0],
+                              self.end[1] - self.canvas.offset[1])
             cairo_ctx.stroke()
         finally:
             cairo_ctx.restore()
@@ -283,9 +338,10 @@ class PillowImageDrawer(Drawer):
         self.angle = 0
         self.surface = image2surface(image)
 
-    def do_draw(self, cairo_ctx, offset, size):
-        self.draw_surface(cairo_ctx, offset, size,
-                          self.surface, self.position, self.size, self.angle)
+    def do_draw(self, cairo_ctx):
+        self.draw_surface(cairo_ctx,
+                          self.surface, self.position,
+                          self.size, self.angle)
 
 
 class TargetAreaDrawer(Drawer):
@@ -357,7 +413,7 @@ class TargetAreaDrawer(Drawer):
         finally:
             cairo_ctx.restore()
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_visible_size):
+    def do_draw(self, cairo_ctx):
         # we draw *outside* of the target but inside of the whole
         # area
         rects = [
@@ -366,7 +422,8 @@ class TargetAreaDrawer(Drawer):
                 self._draw_area,
                 (
                     (self._position[0], self._position[1]),
-                    (self.target_position[0], self._position[1] + self.size[1]),
+                    (self.target_position[0],
+                     self._position[1] + self.size[1]),
                 )
             ),
             (
@@ -423,12 +480,12 @@ class TargetAreaDrawer(Drawer):
                 func,
                 (
                     (
-                        rect[0][0] - canvas_offset[0],
-                        rect[0][1] - canvas_offset[1],
+                        rect[0][0] - self.canvas.offset[0],
+                        rect[0][1] - self.canvas.offset[1],
                     ),
                     (
-                        rect[1][0] - canvas_offset[0],
-                        rect[1][1] - canvas_offset[1],
+                        rect[1][0] - self.canvas.offset[0],
+                        rect[1][1] - self.canvas.offset[1],
                     ),
                 )
             )
@@ -439,16 +496,23 @@ class TargetAreaDrawer(Drawer):
             func(cairo_ctx, rect)
 
 
-def fit(element_size, area_size):
+def fit(element_size, area_size, force=False):
     """
     Return the size to give to the element so it fits in the area size.
     Keep aspect ratio.
     """
-    ratio = min(
-        1.0,
-        float(area_size[0]) / float(element_size[0]),
-        float(area_size[1]) / float(element_size[1]),
-    )
+    if not force:
+        ratio = min(
+            1.0,
+            float(area_size[0]) / float(element_size[0]),
+            float(area_size[1]) / float(element_size[1]),
+        )
+    else:
+        ratio = min(
+            float(area_size[0]) / float(element_size[0]),
+            float(area_size[1]) / float(element_size[1]),
+        )
+
     return (
         int(element_size[0] * ratio),
         int(element_size[1] * ratio),

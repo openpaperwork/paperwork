@@ -111,7 +111,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def _tick(self):
         for drawer in self.drawers:
             drawer.on_tick()
-        self.redraw()
         self.tick_counter_lock.acquire()
         try:
             if self.need_ticks > 0:
@@ -177,7 +176,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                 full_y = y
         new_size = (full_x, full_y)
         if (new_size[0] != self.full_size[0]
-            or new_size[1] != self.full_size[1]):
+                or new_size[1] != self.full_size[1]):
             self.full_size = new_size
             self.set_size_request(new_size[0], new_size[1])
             self.upd_adjustments()
@@ -205,15 +204,25 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __on_draw(self, _, cairo_ctx):
         self.recompute_size()
 
-        x = int(self.hadjustment.get_value())
-        y = int(self.vadjustment.get_value())
         for drawer in self.drawers:
             cairo_ctx.save()
             try:
-                drawer.draw(cairo_ctx, (x, y),
-                            (self.visible_size[0], self.visible_size[1]))
+                drawer.draw(cairo_ctx)
             finally:
                 cairo_ctx.restore()
+
+    def __get_offset(self):
+        x = int(self.hadjustment.get_value())
+        y = int(self.vadjustment.get_value())
+        return (x, y)
+
+    offset = property(__get_offset)
+
+    def __get_visible_size(self):
+        return self.visible_size
+
+    size = property(__get_visible_size)
+
 
     def add_drawer(self, drawer):
         drawer.set_canvas(self)
@@ -224,7 +233,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
         self.recompute_size()
-        self.redraw()
+        self.redraw((drawer.relative_position, drawer.relative_size))
 
     def get_drawer_at(self, position):
         (x, y) = position
@@ -234,7 +243,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             pt_b = (drawer.position[0] + drawer.size[0],
                     drawer.position[1] + drawer.size[1])
             if (x >= pt_a[0] and x < pt_b[0]
-                and y >= pt_a[1] and y < pt_b[1]):
+                    and y >= pt_a[1] and y < pt_b[1]):
                 return drawer
 
         return None
@@ -245,6 +254,13 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.recompute_size()
         self.redraw()
 
+    def remove_drawers(self, drawers):
+        for drawer in drawers:
+            drawer.hide()
+            self.drawers.remove(drawer)
+        self.recompute_size()
+        self.redraw()
+
     def remove_all_drawers(self):
         for drawer in self.drawers:
             drawer.hide()
@@ -252,8 +268,11 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.recompute_size()
         self.redraw()
 
-    def redraw(self):
-        self.queue_draw()
+    def redraw(self, area=None):
+        if area is None:
+            self.queue_draw()
+        else:
+            self.queue_draw_area(area[0][0], area[0][1], area[1][0], area[1][1])
 
     def __get_absolute_event(self, event):
         off_x = int(self.hadjustment.get_value())
@@ -261,7 +280,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         event = event.copy()
         event.x += off_x
         event.y += off_y
-        return event;
+        return event
 
     def __on_button_pressed(self, _, event):
         self.grab_focus()

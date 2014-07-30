@@ -99,7 +99,6 @@ def split_words(sentence):
             yield word
 
 
-
 def dummy_progress_cb(progression, total, step=None, doc=None):
     """
     Dummy progression callback. Do nothing.
@@ -155,7 +154,7 @@ def check_spelling(spelling_lang, txt):
                 continue
 
             logging.debug("Spell checking: Replacing: %s -> %s"
-                   % (word, main_suggestion))
+                          % (word, main_suggestion))
 
             # let's replace the word by its suggestion
 
@@ -216,7 +215,7 @@ def surface2image(surface):
         return None
     dimension = (surface.get_width(), surface.get_height())
     img = PIL.Image.frombuffer("RGBA", dimension,
-                           surface.get_data(), "raw", "BGRA", 0, 1)
+                               surface.get_data(), "raw", "BGRA", 0, 1)
 
     background = PIL.Image.new("RGB", img.size, (255, 255, 255))
     background.paste(img, mask=img.split()[3])  # 3 is the alpha channel

@@ -133,7 +133,7 @@ class PdfPage(BasicPage):
                 return self.__boxes
             except IOError, exc:
                 logger.error("Unable to get boxes for '%s': %s"
-                       % (self.doc.docid, exc))
+                             % (self.doc.docid, exc))
                 # will fall back on pdf boxes
         except OSError, exc:  # os.stat() failed
             pass
@@ -172,7 +172,7 @@ class PdfPage(BasicPage):
 
         if factor not in self.__img_cache:
             logger.debug('Building img from pdf with factor: %s'
-                    % factor)
+                         % factor)
             width = int(factor * self._size[0])
             height = int(factor * self._size[1])
 
@@ -198,7 +198,7 @@ class PdfPage(BasicPage):
         ctx = print_context.get_cairo_context()
 
         logger.debug("Context: %d x %d" % (print_context.get_width(),
-                                    print_context.get_height()))
+                                           print_context.get_height()))
         logger.debug("Size: %d x %d" % (self._size[0], self._size[1]))
 
         factor_x = float(print_context.get_width()) / float(self._size[0])

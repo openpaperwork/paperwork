@@ -17,6 +17,7 @@
 import PIL.ImageDraw
 
 from gi.repository import Gdk
+from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import GObject
 
@@ -86,14 +87,14 @@ class ImgGrip(Drawer):
         return (x_min <= position[0] and position[0] <= x_max
                 and y_min <= position[1] and position[1] <= y_max)
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+    def do_draw(self, cairo_ctx):
         if not self.visible:
             return
         ((a_x, a_y), (b_x, b_y)) = self.__get_select_area()
-        a_x -= canvas_offset[0]
-        a_y -= canvas_offset[1]
-        b_x -= canvas_offset[0]
-        b_y -= canvas_offset[1]
+        a_x -= self.canvas.offset[0]
+        a_y -= self.canvas.offset[1]
+        b_x -= self.canvas.offset[0]
+        b_y -= self.canvas.offset[1]
 
         if self.selected:
             color = self.SELECTED_COLOR
@@ -124,17 +125,17 @@ class ImgGripRectangle(Drawer):
 
     size = property(__get_size)
 
-    def do_draw(self, cairo_ctx, canvas_offset, canvas_size):
+    def do_draw(self, cairo_ctx):
         for grip in self.grips:
             if not grip.visible:
                 return
 
         (a_x, a_y) = self.grips[0].position
         (b_x, b_y) = self.grips[1].position
-        a_x -= canvas_offset[0]
-        a_y -= canvas_offset[1]
-        b_x -= canvas_offset[0]
-        b_y -= canvas_offset[1]
+        a_x -= self.canvas.offset[0]
+        a_y -= self.canvas.offset[1]
+        b_x -= self.canvas.offset[0]
+        b_y -= self.canvas.offset[1]
 
         cairo_ctx.set_source_rgb(self.COLOR[0], self.COLOR[1], self.COLOR[2])
         cairo_ctx.set_line_width(1.0)
@@ -148,11 +149,13 @@ class ImgGripHandler(GObject.GObject):
         'zoom-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, img, canvas, zoom_widget):
+    def __init__(self, img, canvas, zoom_widget, default_grips_positions=None):
         GObject.GObject.__init__(self)
 
         if zoom_widget is None:
-            zoom_widget = Gtk.Adjustment(1.0, 0.01, 1.0, 0.01, 0.10)
+            zoom_widget = Gtk.Adjustment(value=1.0, lower=0.01, upper=1.0,
+                                         step_increment=0.01,
+                                         page_increment=0.10)
         self.zoom_widget = zoom_widget
 
         self.__visible = False
@@ -162,9 +165,50 @@ class ImgGripHandler(GObject.GObject):
         self.canvas = canvas
 
         self.img_drawer = PillowImageDrawer((0, 0), img)
+
+        if default_grips_positions is None:
+            default_grips_positions = ((0, 0), self.img_size)
+        else:
+            default_grips_positions = (
+                (
+                    min(
+                        max(0, default_grips_positions[0][0]),
+                        self.img_size[0]
+                    ),
+                    min(
+                        max(0, default_grips_positions[0][1]),
+                        self.img_size[1]
+                    ),
+                ),
+                (
+                    min(
+                        max(0, default_grips_positions[1][0]),
+                        self.img_size[0]
+                    ),
+                    min(
+                        max(0, default_grips_positions[1][1]),
+                        self.img_size[1]
+                    ),
+                ),
+            )
+            default_grips_positions = (
+                (
+                    min(default_grips_positions[0][0],
+                        default_grips_positions[1][0]),
+                    min(default_grips_positions[0][1],
+                        default_grips_positions[1][1]),
+                ),
+                (
+                    max(default_grips_positions[0][0],
+                        default_grips_positions[1][0]),
+                    max(default_grips_positions[0][1],
+                        default_grips_positions[1][1]),
+                ),
+            )
+
         self.grips = (
-            ImgGrip((0, 0), self.img_size),
-            ImgGrip(self.img_size, self.img_size),
+            ImgGrip(default_grips_positions[0], self.img_size),
+            ImgGrip(default_grips_positions[1], self.img_size),
         )
         select_rectangle = ImgGripRectangle(self.grips)
 
@@ -282,7 +326,7 @@ class ImgGripHandler(GObject.GObject):
         if self.selected:
             self.__move_grip((event.x, event.y))
             is_on_grip = True
-            self.canvas.redraw()
+            self.img_drawer.redraw()
         else:
             is_on_grip = False
             for grip in self.grips:
@@ -291,7 +335,7 @@ class ImgGripHandler(GObject.GObject):
                     is_on_grip = True
                 else:
                     grip.hover = False
-            self.canvas.redraw()
+            self.img_drawer.redraw()
 
         if is_on_grip:
             cursor = self.__cursors['on_grip']
@@ -308,7 +352,7 @@ class ImgGripHandler(GObject.GObject):
                 float(event.y) / (img_h * self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
-            self.canvas.redraw()
+            self.img_drawer.redraw()
             self.emit('zoom-changed')
             return
 
@@ -328,7 +372,7 @@ class ImgGripHandler(GObject.GObject):
             grip.visible = visible
         if self.canvas.get_window():
             self.canvas.get_window().set_cursor(self.__cursors['default'])
-        self.canvas.redraw()
+        self.img_drawer.redraw()
 
     visible = property(__get_visible, __set_visible)
 

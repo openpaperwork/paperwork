@@ -58,11 +58,9 @@ class JobScan(Job):
                        (GObject.TYPE_INT,
                         GObject.TYPE_PYOBJECT,)),  # The PIL image
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # Pillow image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # Pillow image
         'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       (GObject.TYPE_PYOBJECT,  # Exception
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),  # Exception
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
     }
@@ -91,7 +89,9 @@ class JobScan(Job):
 
                     next_line = self.scan_session.scan.available_lines[1]
                     if (next_line > last_line):
-                        chunk = self.scan_session.scan.get_image(last_line, next_line)
+                        chunk = self.scan_session.scan.get_image(
+                            last_line, next_line
+                        )
                         self.emit('scan-chunk', last_line, chunk)
                         last_line = next_line
 
@@ -109,12 +109,14 @@ class JobScan(Job):
         img = self.scan_session.images[-1]
         self.emit('scan-done', img)
         logger.info("Scan done")
+        del self.scan_session
 
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
         if not will_resume:
             self.scan_session.scan.cancel()
+            del self.scan_session
 
 
 GObject.type_register(JobScan)
@@ -128,7 +130,8 @@ class JobFactoryScan(JobFactory):
     def make(self, scan_session):
         job = JobScan(self, next(self.id_generator), scan_session)
         job.connect("scan-started",
-                    lambda job: GLib.idle_add(self.scan_workflow.on_scan_start))
+                    lambda job: GLib.idle_add(
+                        self.scan_workflow.on_scan_start))
         job.connect("scan-info",
                     lambda job, x, y:
                     GLib.idle_add(self.scan_workflow.on_scan_info, x, y))
@@ -137,8 +140,9 @@ class JobFactoryScan(JobFactory):
                     GLib.idle_add(self.scan_workflow.on_scan_chunk, line,
                                   img_chunk))
         job.connect("scan-done",
-                    lambda job, img: GLib.idle_add(self.scan_workflow.on_scan_done,
-                                                   img))
+                    lambda job, img: GLib.idle_add(
+                        self.scan_workflow.on_scan_done,
+                        img))
         job.connect("scan-error",
                     lambda job, exc:
                     GLib.idle_add(self.scan_workflow.on_scan_error, exc))
@@ -204,11 +208,11 @@ class _ImgOCRThread(threading.Thread):
         for score_method in SCORE_METHODS:
             try:
                 logger.info("Evaluating score of page orientation (%s)"
-                             " using method '%s' ..."
-                             % (self.name, score_method[0]))
+                            " using method '%s' ..."
+                            % (self.name, score_method[0]))
                 (_, self.score) = score_method[1](txt)
-                # TODO(Jflesch): For now, we throw away the fixed version of the
-                # text:
+                # TODO(Jflesch): For now, we throw away the fixed version of
+                # the text:
                 # The original version may contain proper nouns, and spell
                 # checking could make them disappear
                 # However, it would be best if we could keep both versions
@@ -223,21 +227,17 @@ class _ImgOCRThread(threading.Thread):
 class JobOCR(Job):
     __gsignals__ = {
         'ocr-started': (GObject.SignalFlags.RUN_LAST, None,
-                        (GObject.TYPE_PYOBJECT,  # image to ocr
-                        )),
+                        (GObject.TYPE_PYOBJECT, )),  # image to ocr
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
                        # list of images to ocr: { angle: img }
-                       (GObject.TYPE_PYOBJECT,
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
-                       GObject.TYPE_FLOAT,  # score
-                      )),
+                       GObject.TYPE_FLOAT, )),  # score
         'ocr-done': (GObject.SignalFlags.RUN_LAST, None,
                      (GObject.TYPE_INT,   # angle
                       GObject.TYPE_PYOBJECT,  # image to ocr (rotated)
-                      GObject.TYPE_PYOBJECT,  # line + word boxes
-                     )),
+                      GObject.TYPE_PYOBJECT, )),  # line + word boxes
     }
 
     can_stop = False
@@ -250,11 +250,17 @@ class JobOCR(Job):
         Job.__init__(self, factory, id)
         self.ocr_tool = ocr_tool
         self.langs = langs
+        self.img = img
         self.imgs = {angle: img.rotate(angle) for angle in angles}
 
     def do(self):
-        self.emit('ocr-started', self.imgs[0])
+        self.emit('ocr-started', self.img)
         self.emit('ocr-angles', dict(self.imgs))
+
+        if len(self.imgs) <= 0:
+            self.emit('ocr-score', 0, 0)
+            self.emit('ocr-done', 0, self.img, [])
+            return
 
         max_threads = multiprocessing.cpu_count()
         threads = []
@@ -321,9 +327,11 @@ class JobFactoryOCR(JobFactory):
         job.connect("ocr-angles", lambda job, imgs:
                     GLib.idle_add(self.scan_workflow.on_ocr_angles, imgs))
         job.connect("ocr-score", lambda job, angle, score:
-                    GLib.idle_add(self.scan_workflow.on_ocr_score, angle, score))
+                    GLib.idle_add(self.scan_workflow.on_ocr_score,
+                                  angle, score))
         job.connect("ocr-done", lambda job, angle, img, boxes:
-                    GLib.idle_add(self.scan_workflow.on_ocr_done, angle, img,
+                    GLib.idle_add(self.scan_workflow.on_ocr_done,
+                                  angle, img,
                                   boxes))
         return job
 
@@ -361,7 +369,8 @@ class BasicScanWorkflowDrawer(Animation):
                               GLib.idle_add(self.__on_scan_info_cb,
                                             img_x, img_y))
         scan_workflow.connect("scan-chunk", lambda gobj, line, chunk:
-                              GLib.idle_add(self.__on_scan_chunk_cb, line, chunk))
+                              GLib.idle_add(self.__on_scan_chunk_cb, line,
+                                            chunk))
         scan_workflow.connect("scan-done", lambda gobj, img:
                               GLib.idle_add(self.__on_scan_done_cb, img))
         scan_workflow.connect("ocr-start", lambda gobj, img:
@@ -369,7 +378,8 @@ class BasicScanWorkflowDrawer(Animation):
         scan_workflow.connect("ocr-angles", lambda gobj, imgs:
                               GLib.idle_add(self.__on_ocr_angles_cb, imgs))
         scan_workflow.connect("ocr-score", lambda gobj, angle, score:
-                              GLib.idle_add(self.__on_ocr_score_cb, angle, score))
+                              GLib.idle_add(self.__on_ocr_score_cb,
+                                            angle, score))
         scan_workflow.connect("ocr-done", lambda gobj, angle, img, boxes:
                               GLib.idle_add(self.__on_ocr_done_cb, angle, img,
                                             boxes))
@@ -402,12 +412,12 @@ class BasicScanWorkflowDrawer(Animation):
         # we are used as a page drawer, but we don't care about the scale/ratio
         return
 
-    def do_draw(self, cairo_ctx, offset, size):
+    def do_draw(self, cairo_ctx):
         for drawer in self.scan_drawers:
-            drawer.draw(cairo_ctx, offset, size)
+            drawer.draw(cairo_ctx)
         for drawers in self.ocr_drawers.values():
             for drawer in drawers:
-                drawer.draw(cairo_ctx, offset, size)
+                drawer.draw(cairo_ctx)
 
     def on_tick(self):
         for drawer in self.scan_drawers:
@@ -450,7 +460,7 @@ class BasicScanWorkflowDrawer(Animation):
 
             self.scan_drawers.append(calibration_drawer)
 
-        self.canvas.redraw()
+        self.redraw()
 
     def __on_scan_chunk_cb(self, line, img_chunk):
         assert(len(self.scan_drawers) > 0)
@@ -483,19 +493,22 @@ class BasicScanWorkflowDrawer(Animation):
             size = fit(img.size, self.canvas.visible_size)
             position = self.position
 
-        # animations with big images are too slow
-        # --> reduce the image size
-        img = img.resize(size)
-
         target_sizes = self._compute_reduced_sizes(
             self.canvas.visible_size, size)
+
+        # animations with big images are too slow
+        # --> reduce the image size
+        img = img.resize(target_sizes)
+
         target_positions = self._compute_reduced_positions(
             self.canvas.visible_size, size, target_sizes)
 
         self.ocr_drawers = {}
 
         for angle in target_positions.keys():
-            self.ocr_drawers[angle] = [PillowImageDrawer(position, img)]
+            drawer = PillowImageDrawer(position, img)
+            drawer.set_canvas(self.canvas)
+            self.ocr_drawers[angle] = [drawer]
 
         self.animators = []
         for (angle, drawers) in self.ocr_drawers.iteritems():
@@ -547,6 +560,7 @@ class BasicScanWorkflowDrawer(Animation):
             ),
             width=5.0
         )
+        line_drawer.set_canvas(self.canvas)
         self.ocr_drawers[angle] = [
             img_drawer,
             line_drawer,
@@ -572,6 +586,8 @@ class BasicScanWorkflowDrawer(Animation):
                     inside_color=(0.0, 0.0, 0.0, 0.1),
                     angle=angle,
                 )
+                spinner_bg.set_canvas(self.canvas)
+                spinner_bg.redraw()
                 spinner = SpinnerAnimation(
                     (
                         (img_drawer.position[0] + (img_drawer.size[0] / 2))
@@ -580,11 +596,18 @@ class BasicScanWorkflowDrawer(Animation):
                         - (SpinnerAnimation.ICON_SIZE / 2)
                     )
                 )
+                spinner.set_canvas(self.canvas)
                 self.ocr_drawers[angle] = [img_drawer, spinner_bg, spinner]
                 self.animators.append(spinner)
+        # TODO(Jflesch): There are artefacts visible after the rotation
+        # -> this is just the lazy way of getting rid of them.
+        # there shouldn't be artefact in a first place
+        self.canvas.redraw()
 
     def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
+            (img_drawer, spinner_bg, spinner) = self.ocr_drawers[angle]
+            img_drawer.redraw()
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
 
@@ -599,12 +622,13 @@ class BasicScanWorkflowDrawer(Animation):
             angle: [drawer]
         }
 
-        new_size = fit(drawer.img_size, self.canvas.visible_size)
+        new_size = fit(drawer.img_size, self.canvas.visible_size, force=True)
         new_position = (
             (self.position[0] + (self.canvas.visible_size[0] / 2)
              - (new_size[0] / 2)),
             (self.position[1]),
         )
+        self.canvas.redraw()
 
         self.animators += [
             LinearCoordAnimator(
@@ -616,9 +640,15 @@ class BasicScanWorkflowDrawer(Animation):
                 self.SCAN_TO_OCR_ANIM_TIME,
                 attr_name='size', canvas=self.canvas),
         ]
-        self.animators[-1].connect('animator-end', lambda animator:
-                                   GLib.idle_add(self.scan_workflow.on_ocr_anim_done,
-                                                 angle, img, boxes))
+        for animator in self.animators:
+            animator.set_canvas(self.canvas)
+        self.animators[-1].connect(
+            'animator-end',
+            lambda animator: GLib.idle_add(
+                self.scan_workflow.on_ocr_anim_done,
+                angle, img, boxes
+            )
+        )
 
 
 class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
@@ -639,7 +669,7 @@ class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
         )
 
     def _compute_reduced_positions(self, visible_area, img_size,
-                                    target_img_sizes):
+                                   target_img_sizes):
         target_positions = {
             # center positions
             0: (visible_area[0] / 2,
@@ -678,7 +708,7 @@ class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
         )
 
     def _compute_reduced_positions(self, visible_area, img_size,
-                                    target_img_sizes):
+                                   target_img_sizes):
         target_positions = {
             # center positions
             0: (visible_area[0] / 4,
@@ -706,41 +736,32 @@ class ScanWorkflow(GObject.GObject):
         'scan-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'scan-info': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,
-                       GObject.TYPE_INT,
-                      )),
+                       GObject.TYPE_INT, )),
         'scan-chunk': (GObject.SignalFlags.RUN_LAST, None,
                        (GObject.TYPE_INT,  # line
-                        GObject.TYPE_PYOBJECT,  # img chunk
-                       )),
+                        GObject.TYPE_PYOBJECT, )),  # img chunk
         'scan-done': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # PIL image
         'scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                           ()),
         'scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                       (GObject.TYPE_PYOBJECT,  # Exception
-                       )),
+                       (GObject.TYPE_PYOBJECT, )),  # Exception
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # PIL image
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT,  # array of PIL image
-                      )),
+                      (GObject.TYPE_PYOBJECT, )),  # array of PIL image
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
-                       GObject.TYPE_INT,  # score
-                      )),
+                       GObject.TYPE_INT, )),  # score
         'ocr-done': (GObject.SignalFlags.RUN_LAST, None,
                      (GObject.TYPE_INT,  # angle
                       GObject.TYPE_PYOBJECT,  # PIL image
-                      GObject.TYPE_PYOBJECT,  # line + word boxes
-                     )),
+                      GObject.TYPE_PYOBJECT, )),  # line + word boxes
         'ocr-canceled': (GObject.SignalFlags.RUN_LAST, None,
                          ()),
         'process-done': (GObject.SignalFlags.RUN_LAST, None,
                          (GObject.TYPE_PYOBJECT,  # PIL image
-                          GObject.TYPE_PYOBJECT,  # line + word boxes
-                         )),
+                          GObject.TYPE_PYOBJECT, )),  # line + word boxes
     }
 
     STEP_SCAN = 0
@@ -818,7 +839,9 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         Listen for the signal ocr-done to get the result
         """
-        if angles is None:
+        if not self.__config['ocr_enabled'].value:
+            angles = 0
+        elif angles is None:
             angles = self.__config['ocr_nb_angles'].value
         img.load()
         job = self.factories['ocr'].make(img, angles)
@@ -851,7 +874,7 @@ class ScanWorkflow(GObject.GObject):
 
             def __start_ocr(self, scan_workflow, img):
                 if img is None:
-                    return
+                   return
                 scan_workflow.ocr(img)
 
         _ScanOcrChainer(self)

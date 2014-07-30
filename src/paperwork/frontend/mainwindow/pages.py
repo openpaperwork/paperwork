@@ -21,6 +21,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 from gi.repository import PangoCairo
+import PIL.Image
 
 from paperwork.backend.util import image2surface
 from paperwork.backend.util import split_words
@@ -42,14 +43,17 @@ class JobPageImgLoader(Job):
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, factory, job_id, page):
+    def __init__(self, factory, job_id, page, size):
         Job.__init__(self, factory, job_id)
         self.page = page
+        self.size = size
 
     def do(self):
         self.emit('page-loading-start')
         try:
             img = self.page.img
+            if self.size:
+                img = img.resize(self.size, PIL.Image.ANTIALIAS)
             img.load()
             self.emit('page-loading-img', image2surface(img))
 
@@ -64,8 +68,8 @@ class JobFactoryPageImgLoader(JobFactory):
     def __init__(self):
         JobFactory.__init__(self, "PageImgLoader")
 
-    def make(self, drawer, page):
-        job = JobPageImgLoader(self, next(self.id_generator), page)
+    def make(self, drawer, page, size):
+        job = JobPageImgLoader(self, next(self.id_generator), page, size)
         job.connect('page-loading-img',
                     lambda job, img:
                     GLib.idle_add(drawer.on_page_loading_img,
@@ -206,7 +210,9 @@ class PageDrawer(Drawer):
 
     def _set_size(self, size):
         self._size = size
+        self.unload_content()
         self.upd_spinner_position()
+        self.load_content()
 
     size = property(_get_size, _set_size)
 
@@ -219,7 +225,8 @@ class PageDrawer(Drawer):
             return
         self.canvas.add_drawer(self.spinner)
         self.loading = True
-        job = self.factories['page_img_loader'].make(self, self.page)
+        job = self.factories['page_img_loader'].make(self, self.page,
+                                                     self.size)
         self.schedulers['page_img_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):

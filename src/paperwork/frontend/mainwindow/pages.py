@@ -212,7 +212,6 @@ class PageDrawer(Drawer):
         self._size = size
         self.unload_content()
         self.upd_spinner_position()
-        self.load_content()
 
     size = property(_get_size, _set_size)
 

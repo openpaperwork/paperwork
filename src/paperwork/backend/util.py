@@ -19,14 +19,12 @@ import errno
 import logging
 import os
 import re
-import StringIO
 import threading
 import unicodedata
 
 import enchant
 import enchant.tokenize
 import Levenshtein
-import numpy
 
 logger = logging.getLogger(__name__)
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
@@ -177,7 +175,7 @@ def mkdir_p(path):
     """
     try:
         os.makedirs(path)
-    except OSError, exc:
+    except OSError as exc:
         if exc.errno == errno.EEXIST and os.path.isdir(path):
             pass
         else:
@@ -207,7 +205,6 @@ def surface2image(surface):
     """
     Convert a cairo surface into a PIL image
     """
-    import cairo
     import PIL.Image
     import PIL.ImageDraw
 

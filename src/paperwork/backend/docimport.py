@@ -33,9 +33,11 @@ logger = logging.getLogger(__name__)
 
 
 class SinglePdfImporter(object):
+
     """
     Import a single PDF file as a document
     """
+
     def __init__(self):
         pass
 
@@ -61,9 +63,11 @@ class SinglePdfImporter(object):
 
 
 class MultiplePdfImporter(object):
+
     """
     Import many PDF files as many documents
     """
+
     def __init__(self):
         pass
 
@@ -140,11 +144,13 @@ class MultiplePdfImporter(object):
 
 
 class SingleImageImporter(object):
+
     """
     Import a single image file (in a format supported by PIL). It is either
     added to a document (if one is specified) or as a new document (--> with a
     single page)
     """
+
     def __init__(self):
         pass
 

@@ -18,22 +18,17 @@
 Code for managing documents (not page individually ! see page.py for that)
 """
 
-import codecs
-import datetime
 import errno
 import os
 import os.path
-import time
 import logging
 
 import cairo
-from gi.repository import Gio
 import PIL.Image
 from gi.repository import Poppler
 
 from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.page import ImgPage
-from paperwork.backend.util import dummy_progress_cb
 from paperwork.backend.util import image2surface
 from paperwork.backend.util import surface2image
 from paperwork.backend.util import mkdir_p
@@ -145,6 +140,7 @@ class ImgToPdfDocExporter(object):
 
 
 class _ImgPagesIterator(object):
+
     """
     Iterates on a page list
     """
@@ -168,6 +164,7 @@ class _ImgPagesIterator(object):
 
 
 class _ImgPages(object):
+
     """
     Page list. Page are accessed using [] operator.
     """
@@ -199,6 +196,7 @@ class _ImgPages(object):
 
 
 class ImgDoc(BasicDoc):
+
     """
     Represents a document (aka a set of pages + labels).
     """
@@ -230,14 +228,14 @@ class ImgDoc(BasicDoc):
             file_last_mod = os.stat(labels_path).st_mtime
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
-        except OSError, err:
+        except OSError:
             pass
         extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
         try:
             file_last_mod = os.stat(extra_txt_path).st_mtime
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
-        except OSError, err:
+        except OSError:
             pass
         return last_mod
 
@@ -294,8 +292,6 @@ class ImgDoc(BasicDoc):
         if page.doc == self:
             return
         mkdir_p(self.path)
-        other_doc = page.doc
-        other_doc_nb_pages = page.doc.nb_pages
 
         new_page = ImgPage(self, self.nb_pages)
         logger.info("%s --> %s" % (str(page), str(new_page)))

@@ -32,6 +32,7 @@ def paperwork_cfg_boolean(string):
 
 
 class PaperworkSetting(object):
+
     def __init__(self, section, token, default_value_func=lambda: None,
                  constructor=str):
         self.section = section
@@ -58,10 +59,12 @@ class PaperworkSetting(object):
 
 
 class PaperworkConfig(object):
+
     """
     Paperwork config. See each accessor to know for what purpose each value is
     used.
     """
+
     def __init__(self):
         self.settings = {
             'workdir': PaperworkSetting(

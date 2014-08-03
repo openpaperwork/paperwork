@@ -26,8 +26,6 @@ from gi.repository import GObject
 from gi.repository import Gtk
 import locale
 
-import pyinsane.abstract_th  # Just to start the Sane thread
-
 from frontend.mainwindow import ActionRefreshIndex, MainWindow
 from frontend.util.config import load_config
 

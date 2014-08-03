@@ -77,7 +77,7 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
 
 
 def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):
-    if not opt_name in options:
+    if opt_name not in options:
         missing_options.append(opt_name)
     else:
         if not options[opt_name].capabilities.is_active():

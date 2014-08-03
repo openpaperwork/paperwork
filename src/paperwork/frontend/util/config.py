@@ -36,6 +36,7 @@ RECOMMENDED_SCAN_RESOLUTION = 300
 
 
 class _ScanTimes(object):
+
     """
     Helper to find, load and rewrite the scan times stored in the configuration
     """
@@ -81,6 +82,7 @@ class _ScanTimes(object):
 
 
 class _PaperworkScannerCalibration(object):
+
     def __init__(self, section):
         self.section = section
         self.value = None
@@ -132,9 +134,11 @@ class _PaperworkScannerCalibration(object):
 
 
 class _PaperworkLangs(object):
+
     """
     Convenience setting. Gives all the languages used as one dictionary
     """
+
     def __init__(self, ocr_lang_setting, spellcheck_lang_setting):
         self.ocr_lang_setting = ocr_lang_setting
         self.spellcheck_lang_setting = spellcheck_lang_setting
@@ -161,6 +165,7 @@ class _PaperworkLangs(object):
 
 
 class _PaperworkSize(object):
+
     def __init__(self, section, base_token,
                  default_size=(1024, 768),
                  min_size=(400, 300)):
@@ -190,7 +195,8 @@ class _PaperworkSize(object):
         config.set(self.section, self.base_token + "_h", str(self.value[1]))
 
 
-class _PaperworkFrontendConfigUtil:
+class _PaperworkFrontendConfigUtil(object):
+
     @staticmethod
     def get_default_ocr_lang():
         # Try to guess based on the system locale what would be

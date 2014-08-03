@@ -21,7 +21,8 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
 
-from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
+from paperwork.frontend.util.jobs import Job
+from paperwork.frontend.util.jobs import JobFactory
 
 
 _ = gettext.gettext
@@ -52,6 +53,7 @@ GObject.type_register(JobProgressiveList)
 
 
 class JobFactoryProgressiveList(JobFactory):
+
     def __init__(self, progressive_list):
         JobFactory.__init__(self, "Progressive List")
         self.progressive_list = progressive_list
@@ -62,6 +64,7 @@ class JobFactoryProgressiveList(JobFactory):
 
 
 class ProgressiveList(GObject.GObject):
+
     """
     We use GtkIconView to display documents and pages. However this widget
     doesn't like having too many elements to display: it keeps redrawing the

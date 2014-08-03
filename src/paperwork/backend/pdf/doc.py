@@ -18,7 +18,6 @@ import os
 import shutil
 import logging
 
-import gi
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
@@ -116,14 +115,14 @@ class PdfDoc(BasicDoc):
             file_last_mod = os.stat(labels_path).st_mtime
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
-        except OSError, err:
+        except OSError:
             pass
         extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
         try:
             file_last_mod = os.stat(extra_txt_path).st_mtime
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
-        except OSError, err:
+        except OSError:
             pass
 
         return last_mod

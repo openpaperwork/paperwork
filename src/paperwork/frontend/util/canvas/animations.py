@@ -28,6 +28,7 @@ from paperwork.frontend.util.canvas.drawers import fit
 
 
 class Animation(Drawer):
+
     def __init__(self):
         Drawer.__init__(self)
         self.ticks_enabled = False

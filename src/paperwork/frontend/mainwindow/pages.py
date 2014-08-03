@@ -15,7 +15,6 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import threading
-import time
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -29,7 +28,6 @@ from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
-from paperwork.frontend.util.jobs import JobScheduler
 
 
 class JobPageImgLoader(Job):
@@ -65,6 +63,7 @@ GObject.type_register(JobPageImgLoader)
 
 
 class JobFactoryPageImgLoader(JobFactory):
+
     def __init__(self):
         JobFactory.__init__(self, "PageImgLoader")
 
@@ -110,9 +109,6 @@ class JobPageBoxesLoader(Job):
                 self.emit('page-loading-done')
 
             boxes = []
-            highlight = set()
-
-            boxes = []
             for line in line_boxes:
                 boxes += line.word_boxes
 
@@ -133,6 +129,7 @@ GObject.type_register(JobPageBoxesLoader)
 
 
 class JobFactoryPageBoxesLoader(JobFactory):
+
     def __init__(self):
         JobFactory.__init__(self, "PageBoxesLoader")
 

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class LabelEditor(object):
+
     """
     Dialog to create / edit labels
     """
@@ -84,5 +85,5 @@ class LabelEditor(object):
         txt = unicode(label_entry.get_text(), encoding='utf-8').strip()
         ok_enabled = True
         ok_enabled = ok_enabled and txt != u""
-        ok_enabled = ok_enabled and not u"," in txt
+        ok_enabled = ok_enabled and u"," not in txt
         self.__ok_button.set_sensitive(ok_enabled)

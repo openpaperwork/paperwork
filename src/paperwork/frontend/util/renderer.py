@@ -74,10 +74,9 @@ class CellRendererLabels(Gtk.CellRenderer):
 
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
-        (x, y, w, h) = (cell_area_gdk_rect.x + xpad,
-                        cell_area_gdk_rect.y + ypad,
-                        cell_area_gdk_rect.width - (2*xpad),
-                        cell_area_gdk_rect.height - (2*ypad))
+        (x, y, w) = (cell_area_gdk_rect.x + xpad,
+                     cell_area_gdk_rect.y + ypad,
+                     cell_area_gdk_rect.width - (2*xpad))
 
         for label_idx in xrange(0, len(self.labels)):
             label = self.labels[label_idx]

@@ -24,10 +24,7 @@ Here are the elements that must drawn on it:
     - various overlay (progression line, etc)
 """
 
-import copy
 import logging
-import heapq
-import sys
 import threading
 
 from gi.repository import GLib
@@ -35,7 +32,6 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 
-from paperwork.backend.util import image2surface
 from paperwork.frontend.util import PriorityQueue
 
 
@@ -43,12 +39,14 @@ logger = logging.getLogger(__name__)
 
 
 class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
+
     """
     Canvas are area where Drawer can draw:
 
     The main canvas is where page(s) are drawn. This is the biggest and most
     important part of the main window.
     """
+
     hadjustment = GObject.property(type=Gtk.Adjustment,
                                    default=Gtk.Adjustment(),
                                    flags=GObject.PARAM_READWRITE)
@@ -223,12 +221,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     size = property(__get_visible_size)
 
-
     def add_drawer(self, drawer):
         drawer.set_canvas(self)
-
-        x = drawer.position[0] + drawer.size[0]
-        y = drawer.position[1] + drawer.size[1]
 
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
@@ -310,7 +304,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             Gdk.KEY_Page_Up: lambda: (h, v - v_page),
             Gdk.KEY_Page_Down: lambda: (h, v + v_page),
         }
-        if not event.keyval in ops:
+        if event.keyval not in ops:
             return False
 
         (h, v) = ops[event.keyval]()

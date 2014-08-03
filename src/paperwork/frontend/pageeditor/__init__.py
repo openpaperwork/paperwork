@@ -16,12 +16,10 @@
 
 import os
 
-import PIL.Image
 import gettext
 import logging
 
 from gi.repository import GLib
-from gi.repository import GObject
 
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.canvas import Canvas
@@ -34,6 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 class PageEditionAction(object):
+
     def __init__(self):
         pass
 
@@ -48,6 +47,7 @@ class PageEditionAction(object):
 
 
 class PageRotationAction(PageEditionAction):
+
     def __init__(self, angle):
         PageEditionAction.__init__(self)
         self.angle = angle
@@ -68,6 +68,7 @@ class PageRotationAction(PageEditionAction):
 
 
 class PageCuttingAction(PageEditionAction):
+
     def __init__(self, cut):
         """
         Arguments:
@@ -97,6 +98,7 @@ class PageCuttingAction(PageEditionAction):
 
 
 class PageEditingDialog(object):
+
     def __init__(self, main_window, page):
         self.page = page
 

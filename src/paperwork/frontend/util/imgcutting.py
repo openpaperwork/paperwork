@@ -14,8 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import PIL.ImageDraw
-
 from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GLib
@@ -23,13 +21,14 @@ from gi.repository import GObject
 
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
-from paperwork.frontend.util.img import image2pixbuf
 
 
 class ImgGrip(Drawer):
+
     """
     Represents one of the grip that user can move to cut an image.
     """
+
     layer = Drawer.BOX_LAYER
 
     GRIP_SIZE = 40

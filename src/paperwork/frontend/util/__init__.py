@@ -20,9 +20,7 @@ import os
 
 import heapq
 import gettext
-from gi.repository import GLib
 from gi.repository import Gtk
-from gi.repository import GdkPixbuf
 
 
 _ = gettext.gettext
@@ -89,6 +87,7 @@ def sizeof_fmt(num):
 
 
 class PriorityQueueIter(object):
+
     def __init__(self, queue):
         """
         Arguments:
@@ -107,6 +106,7 @@ class PriorityQueueIter(object):
 
 
 class PriorityQueue(object):
+
     def __init__(self):
         self.__last_idx = 0
         self.elements = []

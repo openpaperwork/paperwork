@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class OnSpinButtonChange(object):
+
     def __init__(self, spin_button, fmt='%02d'):
         self.fmt = fmt
         spin_button.connect("output", self.__on_output)
@@ -43,6 +44,7 @@ class OnSpinButtonChange(object):
 
 
 class OnYearSpinButtonChange(OnSpinButtonChange):
+
     def __init__(self, spin_button):
         OnSpinButtonChange.__init__(self, spin_button, fmt='%04d')
         self.spin_button = spin_button
@@ -67,6 +69,7 @@ class OnYearSpinButtonChange(OnSpinButtonChange):
 
 
 class DocEditDialog(object):
+
     def __init__(self, main_window, config, doc):
         self.__main_win = main_window
         self.__config = config
@@ -100,7 +103,7 @@ class DocEditDialog(object):
         self.dialog = widget_tree.get_object("dialogDocEdit")
 
         for widgets in self.date.values():
-            if not 'fmt' in widgets:
+            if 'fmt' not in widgets:
                 continue
             widgets['fmt'](widgets['view'])
             widgets['view'].connect(
@@ -149,10 +152,10 @@ class DocEditDialog(object):
             if len(element) <= 0:
                 continue
             char = element[0]
-            if not char in char_to_widget:
+            if char not in char_to_widget:
                 continue
             widget_name = char_to_widget[char]
-            if not widget_name in widgets:
+            if widget_name not in widgets:
                 # already placed
                 continue
             widget = widgets.pop(widget_name)

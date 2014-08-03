@@ -16,7 +16,6 @@
 
 import heapq
 import logging
-import os
 import itertools
 import sys
 import threading
@@ -39,11 +38,13 @@ logger = logging.getLogger(__name__)
 
 
 class JobException(Exception):
+
     def __init__(self, reason):
         Exception.__init__(self, reason)
 
 
 class JobFactory(object):
+
     def __init__(self, name):
         self.name = name
         self.id_generator = itertools.count()
@@ -56,7 +57,8 @@ class JobFactory(object):
         return self is other
 
 
-class Job(GObject.GObject):  # inherits from GObject so it can send signals
+class Job(GObject.GObject):  # inherits from GObject so it can send signalsa
+
     MAX_TIME_FOR_UNSTOPPABLE_JOB = 0.5  # secs
     MAX_TIME_TO_STOP = 0.5  # secs
 
@@ -122,6 +124,7 @@ class Job(GObject.GObject):  # inherits from GObject so it can send signals
 
 
 class JobScheduler(object):
+
     def __init__(self, name):
         self.name = name
         self._thread = None
@@ -263,7 +266,7 @@ class JobScheduler(object):
                     # the active job may have already been re-queued
                     # previously. In which case we don't want to requeue
                     # it again
-                    if not active in self._job_queue:
+                    if active not in self._job_queue:
                         heapq.heappush(self._job_queue,
                                        (-1 * active.priority,
                                         next(self._job_idx_generator),
@@ -330,6 +333,7 @@ class JobScheduler(object):
 
 
 class JobProgressUpdater(Job):
+
     """
     Update a progress bar a predefined timing.
     """
@@ -370,6 +374,7 @@ GObject.type_register(JobProgressUpdater)
 
 
 class JobFactoryProgressUpdater(JobFactory):
+
     def __init__(self, progress_bar):
         JobFactory.__init__(self, "ProgressUpdater")
         self.progress_bar = progress_bar

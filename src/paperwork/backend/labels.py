@@ -22,6 +22,7 @@ from gi.repository import Gdk
 
 
 class Label(object):
+
     """
     Represents a Label (color + string).
     """

@@ -17,9 +17,7 @@
 import logging
 
 import gettext
-from gi.repository import GLib
 from gi.repository import Gtk
-from gi.repository import GdkPixbuf
 
 
 _ = gettext.gettext

@@ -62,6 +62,7 @@ class Animator(GObject.GObject):
 
 
 class LinearSimpleAnimator(Animator):
+
     def __init__(self, drawer,
                  target_value,
                  time_length,  # ms
@@ -83,6 +84,7 @@ GObject.type_register(LinearSimpleAnimator)
 
 
 class LinearCoordAnimator(Animator):
+
     def __init__(self, drawer,
                  target_coord,
                  time_length,  # ms

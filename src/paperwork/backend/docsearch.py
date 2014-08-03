@@ -22,10 +22,8 @@ suggestions)
 import logging
 import copy
 import datetime
-import multiprocessing
 import os.path
 import time
-import threading
 
 from gi.repository import GObject
 
@@ -39,7 +37,6 @@ import whoosh.qparser
 import whoosh.query
 import whoosh.sorting
 
-from paperwork.backend import img
 from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
@@ -699,7 +696,7 @@ class DocSearch(object):
         updater = self.get_index_updater(optimize=False)
         updater.upd_doc(page.doc)
         updater.commit()
-        if not page.doc.docid in self.__docs_by_id:
+        if page.doc.docid not in self.__docs_by_id:
             logger.info("Adding document '%s' to the index" % page.doc.docid)
             assert(page.doc is not None)
             self.__docs_by_id[page.doc.docid] = page.doc
@@ -767,7 +764,7 @@ class DocSearch(object):
                 docs.remove(None)
         except ValueError:
             pass
-        assert (not None in docs)
+        assert (None not in docs)
 
         if limit is not None:
             docs = docs[:limit]
@@ -821,7 +818,7 @@ class DocSearch(object):
         if doc is None:
             raise NotImplementedError("no yet supported")
         label = copy.copy(label)
-        assert(not label in self.label_list)
+        assert(label not in self.label_list)
         self.label_list.append(label)
         self.label_list.sort()
         doc.add_label(label)
@@ -935,5 +932,5 @@ class DocSearch(object):
         """
         filehash = (u"%X" % filehash)
         results = self.__searcher.search(
-            Term('docfilehash', filehash))
+            whoosh.query.Term('docfilehash', filehash))
         return results

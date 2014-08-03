@@ -14,6 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from gi.repository import GLib
 from gi.repository import GObject
 
@@ -25,8 +27,11 @@ from paperwork.frontend.util.canvas.drawers import RectangleDrawer
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.canvas.drawers import fit
 
+logger = logging.getLogger(__name__)
+
 
 class DocScan(object):
+
     def __init__(self, doc):
         """
         Arguments:

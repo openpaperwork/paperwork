@@ -18,15 +18,12 @@
 from copy import copy
 import gc
 import os
-import sys
 import threading
-import time
 
 import PIL.Image
 import gettext
 import logging
 from gi.repository import Gdk
-from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import GObject
@@ -64,7 +61,6 @@ from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
-from paperwork.backend.img.page import ImgPage
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -470,8 +466,8 @@ class JobDocSearcher(Job):
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
         'search-results': (GObject.SignalFlags.RUN_LAST, None,
-                          (GObject.TYPE_STRING,
-                           GObject.TYPE_PYOBJECT,)),
+                           (GObject.TYPE_STRING,
+                            GObject.TYPE_PYOBJECT,)),
         # array of suggestions
         'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
                                (GObject.TYPE_PYOBJECT,)),
@@ -745,6 +741,23 @@ class JobDocThumbnailer(Job):
         self.__doclist = doclist
         self.__current_idx = -1
 
+    def __resize(self, img):
+        (width, height) = img.size
+        # always make sure the thumbnail has a specific height
+        # otherwise the scrollbar keep moving while loading
+        if height > BasicPage.DEFAULT_THUMB_HEIGHT:
+            img = img.crop((0, 0, width, BasicPage.DEFAULT_THUMB_HEIGHT))
+            img = img.copy()
+        else:
+            new_img = PIL.Image.new(
+                'RGBA', (width, BasicPage.DEFAULT_THUMB_HEIGHT),
+                '#FFFFFF'
+            )
+            h = (BasicPage.DEFAULT_THUMB_HEIGHT - height) / 2
+            new_img.paste(img, (0, h, width, h+height))
+            img = new_img
+        return img
+
     def do(self):
         self.can_run = True
         if self.__current_idx >= len(self.__doclist):
@@ -768,20 +781,7 @@ class JobDocThumbnailer(Job):
             if not self.can_run:
                 return
 
-            (width, height) = img.size
-            # always make sure the thumbnail has a specific height
-            # otherwise the scrollbar keep moving while loading
-            if height > BasicPage.DEFAULT_THUMB_HEIGHT:
-                img = img.crop((0, 0, width, BasicPage.DEFAULT_THUMB_HEIGHT))
-                img = img.copy()
-            else:
-                new_img = PIL.Image.new(
-                    'RGBA', (width, BasicPage.DEFAULT_THUMB_HEIGHT),
-                    '#FFFFFF'
-                )
-                h = (BasicPage.DEFAULT_THUMB_HEIGHT - height) / 2
-                new_img.paste(img, (0, h, width, h+height))
-                img = new_img
+            img = self.__resize(img)
             if not self.can_run:
                 return
 
@@ -1218,7 +1218,7 @@ class JobImporter(Job):
                 page.img = img
             page.boxes = boxes
 
-            docid = self._main_win.remove_scan_workflow(scan_workflow)
+            self._main_win.remove_scan_workflow(scan_workflow)
             self._add_doc_to_checklists(page.doc)
             self._ocr_next_page()
 
@@ -1284,7 +1284,7 @@ class JobImporter(Job):
 
         pages = []
         for doc in docs:
-            new_pages = [page for page in doc.pages]
+            new_pages = [p for p in doc.pages]
             pages += new_pages
         if len(pages) > 0:
             self.IndexAdder(self.__main_win, iter(pages),
@@ -1540,7 +1540,7 @@ class ActionToggleLabel(object):
 
     def toggle_cb(self, renderer, objpath):
         label = self.__main_win.lists['labels']['model'][objpath][2]
-        if not label in self.__main_win.doc.labels:
+        if label not in self.__main_win.doc.labels:
             logger.info("Action: Adding label '%s' on document '%s'"
                         % (label.name, str(self.__main_win.doc)))
             self.__main_win.docsearch.add_label(self.__main_win.doc, label,
@@ -1810,7 +1810,7 @@ class ActionImport(SimpleAction):
             raise Exception("Import cancelled by user")
 
         active_idx = combobox.get_active()
-        return import_list[active_idx][1]
+        return importer_list[active_idx][1]
 
     def __no_importer(self, file_uri):
         msg = (_("Don't know how to import '%s'. Sorry.") %
@@ -1887,7 +1887,7 @@ class ActionDeleteDoc(SimpleAction):
         logger.info("Deleted")
 
         # TODO(Jflesch): this should be the correct thing to do
-        #self.__main_win.refresh_docs({doc})
+        # self.__main_win.refresh_docs({doc})
         self.__main_win.refresh_doc_list()
 
 
@@ -2397,64 +2397,23 @@ class MainWindow(object):
     PAGE_MARGIN = 50
 
     def __init__(self, config):
-        GLib.set_application_name(_("Paperwork"))
-        GLib.set_prgname("paperwork")
+        self.app = self.__init_app()
+        gactions = self.__init_gactions(self.app)
 
-        self.app = Gtk.Application(
-            application_id="app.paperwork",
-            flags=Gio.ApplicationFlags.FLAGS_NONE)
-        self.app.register(None)
-        Gtk.Application.set_default(self.app)
-
-        gactions = {
-            'about': Gio.SimpleAction.new("about", None),
-            'open_settings': Gio.SimpleAction.new("settings", None),
-            'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
-            'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
-            'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
-            'reindex_all': Gio.SimpleAction.new("reindex_all", None),
-            'quit': Gio.SimpleAction.new("quit", None),
-        }
-
-        for action in gactions.values():
-            self.app.add_action(action)
-
-        app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
-
-        widget_tree = load_uifile(
-            os.path.join("mainwindow", "mainwindow.glade"))
-
-        self.schedulers = {
-            'main': JobScheduler("Main"),
-            'ocr': JobScheduler("OCR"),
-            'page_boxes_loader': JobScheduler("Page boxes loader"),
-            'progress': JobScheduler("Progress"),
-            'scan': JobScheduler("Scan"),
-        }
+        self.schedulers = self.__init_schedulers()
+        self.default_thumbnail = self.__init_default_thumbnail()
 
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
 
-        img = PIL.Image.new("RGB", (
-            BasicPage.DEFAULT_THUMB_WIDTH,
-            BasicPage.DEFAULT_THUMB_HEIGHT,
-        ), color="#EEEEEE")
-        img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
-        self.default_thumbnail = image2pixbuf(img)
+        (self.__advanced_menu, self.__show_all_boxes_widget) = \
+            self.__init_app_menu(self.app)
 
-        self.__advanced_menu = app_menu.get_object("advanced")
-        self.__show_all_boxes_widget = Gio.MenuItem.new(
-            "XXX", "app.show_all_boxes")
-        self.__advanced_menu.insert_item(0, self.__show_all_boxes_widget)
+        widget_tree = load_uifile(
+            os.path.join("mainwindow", "mainwindow.glade"))
 
-        self.app.set_app_menu(app_menu.get_object("app-menu"))
-
-        self.window = widget_tree.get_object("mainWindow")
-        self.window.set_application(self.app)
-
-        self.window.set_default_size(config['main_win_size'].value[0],
-                                     config['main_win_size'].value[1])
+        self.window = self.__init_window(widget_tree, config)
 
         iconview_matches = widget_tree.get_object("iconviewMatch")
         cellrenderer_labels = CellRendererLabels()
@@ -3009,6 +2968,64 @@ class MainWindow(object):
         for scheduler in self.schedulers.values():
             scheduler.start()
 
+    def __init_app(self):
+        GLib.set_application_name(_("Paperwork"))
+        GLib.set_prgname("paperwork")
+
+        app = Gtk.Application(
+            application_id="app.paperwork",
+            flags=Gio.ApplicationFlags.FLAGS_NONE)
+        app.register(None)
+        Gtk.Application.set_default(app)
+        return app
+
+    def __init_gactions(self, app):
+        gactions = {
+            'about': Gio.SimpleAction.new("about", None),
+            'open_settings': Gio.SimpleAction.new("settings", None),
+            'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
+            'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
+            'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
+            'reindex_all': Gio.SimpleAction.new("reindex_all", None),
+            'quit': Gio.SimpleAction.new("quit", None),
+        }
+        for action in gactions.values():
+            app.add_action(action)
+        return gactions
+
+    def __init_schedulers(self):
+        return {
+            'main': JobScheduler("Main"),
+            'ocr': JobScheduler("OCR"),
+            'page_boxes_loader': JobScheduler("Page boxes loader"),
+            'progress': JobScheduler("Progress"),
+            'scan': JobScheduler("Scan"),
+        }
+
+    def __init_default_thumbnail(self):
+        img = PIL.Image.new("RGB", (
+            BasicPage.DEFAULT_THUMB_WIDTH,
+            BasicPage.DEFAULT_THUMB_HEIGHT,
+        ), color="#EEEEEE")
+        img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
+        return image2pixbuf(img)
+
+    def __init_app_menu(self, app):
+        app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
+        advanced_menu = app_menu.get_object("advanced")
+        show_all_boxes_widget = Gio.MenuItem.new(
+            "XXX", "app.show_all_boxes")
+        advanced_menu.insert_item(0, show_all_boxes_widget)
+        app.set_app_menu(app_menu.get_object("app-menu"))
+        return (advanced_menu, show_all_boxes_widget)
+
+    def __init_window(self, widget_tree, config):
+        window = widget_tree.get_object("mainWindow")
+        window.set_application(self.app)
+        window.set_default_size(config['main_win_size'].value[0],
+                                config['main_win_size'].value[1])
+        return window
+
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)
 
@@ -3267,7 +3284,7 @@ class MainWindow(object):
                                 % (idx, doc.docid))
                     self.__remove_doc(idx)
                     docs.remove(doc)
-            except ValueError as exc:
+            except ValueError:
                 logger.warning("Unable to find doc [%s] in the list"
                                % str(doc))
 
@@ -3282,7 +3299,7 @@ class MainWindow(object):
         doc_list = self.lists['doclist']
         doc_list = {doc_list[x]: x for x in xrange(0, len(doc_list))}
         for doc in set(docs):
-            if not doc in doc_list:
+            if doc not in doc_list:
                 logger.info("Doc list refresh: 0:%s added"
                             % doc.docid)
                 self.__insert_doc(0, doc)
@@ -3817,8 +3834,7 @@ class MainWindow(object):
         raise ValueError("ScanWorkflow not found")
 
     def add_scan_workflow(self, doc, scan_workflow_drawer, page_nb=-1):
-        scan_workflow = scan_workflow_drawer.scan_workflow
-        if not doc.docid in self.scan_drawers:
+        if doc.docid not in self.scan_drawers:
             self.scan_drawers[doc.docid] = []
         self.scan_drawers[doc.docid].append((page_nb, scan_workflow_drawer))
 

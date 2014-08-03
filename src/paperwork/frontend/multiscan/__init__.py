@@ -23,21 +23,14 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 
-from paperwork.backend.img.page import ImgPage
 from paperwork.frontend.multiscan.scan import PageScan
 from paperwork.frontend.multiscan.scan import DocScan
 from paperwork.frontend.multiscan.scan import PageScanDrawer
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
-from paperwork.frontend.util.canvas.animations import SpinnerAnimation
-from paperwork.frontend.util.canvas.animations import ScanAnimation
-from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
-from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.config import get_scanner
 from paperwork.frontend.util.dialog import popup_no_scanner_found
-from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
-from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
 
 
 _ = gettext.gettext
@@ -45,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class ActionAddDoc(SimpleAction):
+
     def __init__(self, multiscan_dialog, config):
         SimpleAction.__init__(self, "Add doc to the multi-scan list")
         self.__dialog = multiscan_dialog
@@ -67,6 +61,7 @@ class ActionAddDoc(SimpleAction):
 
 
 class ActionSelectDoc(SimpleAction):
+
     def __init__(self, multiscan_dialog):
         SimpleAction.__init__(self, "Doc selected in multi-scan list")
         self.__dialog = multiscan_dialog
@@ -86,6 +81,7 @@ class ActionSelectDoc(SimpleAction):
 
 
 class ActionRemoveDoc(SimpleAction):
+
     def __init__(self, multiscan_dialog):
         SimpleAction.__init__(self, "Add doc to the multi-scan list")
         self.__dialog = multiscan_dialog
@@ -107,6 +103,7 @@ class ActionRemoveDoc(SimpleAction):
 
 
 class ActionStartEditDoc(SimpleAction):
+
     def __init__(self, multiscan_dialog):
         SimpleAction.__init__(self, "Start doc edit in multi-scan list")
         self.__dialog = multiscan_dialog
@@ -125,6 +122,7 @@ class ActionStartEditDoc(SimpleAction):
 
 
 class ActionEndEditDoc(SimpleAction):
+
     def __init__(self, multiscan_dialog):
         SimpleAction.__init__(self, "End doc edit in multi-scan list")
         self.__dialog = multiscan_dialog
@@ -143,6 +141,7 @@ class ActionEndEditDoc(SimpleAction):
 
 
 class ActionScan(SimpleAction):
+
     def __init__(self, multiscan_win, config, docsearch, main_win):
         SimpleAction.__init__(self, "Start multi-scan")
         self.__multiscan_win = multiscan_win
@@ -159,7 +158,7 @@ class ActionScan(SimpleAction):
                 preferred_sources=["ADF", ".*ADF.*", ".*Feeder.*"]
             )
             scan_session = dev.scan(multiple=True)
-        except Exception, exc:
+        except Exception as exc:
             logger.warning("Exception while configuring scanner: %s: %s."
                            " Assuming scanner is not connected",
                            type(exc), exc)
@@ -223,6 +222,7 @@ class ActionScan(SimpleAction):
 
 
 class ActionCancel(SimpleAction):
+
     def __init__(self, multiscan_win):
         SimpleAction.__init__(self, "Cancel multi-scan")
         self.__multiscan_win = multiscan_win

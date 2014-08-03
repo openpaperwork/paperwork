@@ -38,11 +38,11 @@ class PdfWordBox(object):
         # XXX(Jflesch): Coordinates seem to come from the bottom left of the
         # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y2)
-                             * PDF_RENDER_FACTOR)),
-                        (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y1)
-                             * PDF_RENDER_FACTOR)))
+                          int((pdf_size[1] - rectangle.y2)
+                              * PDF_RENDER_FACTOR)),
+                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
+                          int((pdf_size[1] - rectangle.y1)
+                              * PDF_RENDER_FACTOR)))
 
 
 class PdfLineBox(object):
@@ -51,11 +51,11 @@ class PdfLineBox(object):
         # XXX(Jflesch): Coordinates seem to come from the bottom left of the
         # page instead of the top left !?
         self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y2)
-                             * PDF_RENDER_FACTOR)),
-                        (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                         int((pdf_size[1] - rectangle.y1)
-                             * PDF_RENDER_FACTOR)))
+                          int((pdf_size[1] - rectangle.y2)
+                              * PDF_RENDER_FACTOR)),
+                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
+                          int((pdf_size[1] - rectangle.y1)
+                              * PDF_RENDER_FACTOR)))
 
 
 class PdfPage(BasicPage):
@@ -87,7 +87,7 @@ class PdfPage(BasicPage):
     def __get_last_mod(self):
         try:
             return os.stat(self.__get_txt_path()).st_mtime
-        except OSError, exc:
+        except OSError:
             return 0.0
 
     last_mod = property(__get_last_mod)

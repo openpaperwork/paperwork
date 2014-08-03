@@ -25,20 +25,16 @@ import gettext
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gdk
-from gi.repository import Gtk
 import logging
-import PIL.Image
 import pycountry
 import pyinsane.abstract_th as pyinsane
 import pyocr
 
 
-from paperwork.backend.config import PaperworkConfig
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import ScanAnimation
-from paperwork.frontend.util.canvas.drawers import BackgroundDrawer
 from paperwork.frontend.util.config import DEFAULT_CALIBRATION_RESOLUTION
 from paperwork.frontend.util.config import RECOMMENDED_SCAN_RESOLUTION
 from paperwork.frontend.util.imgcutting import ImgGripHandler
@@ -99,6 +95,7 @@ GObject.type_register(JobDeviceFinder)
 
 
 class JobFactoryDeviceFinder(JobFactory):
+
     def __init__(self, settings_win, selected_devid):
         JobFactory.__init__(self, "DeviceFinder")
         self.__selected_devid = selected_devid
@@ -177,6 +174,7 @@ GObject.type_register(JobSourceFinder)
 
 
 class JobFactorySourceFinder(JobFactory):
+
     def __init__(self, settings_win, selected_source):
         JobFactory.__init__(self, "SourceFinder")
         self.__settings_win = settings_win
@@ -273,6 +271,7 @@ GObject.type_register(JobResolutionFinder)
 
 
 class JobFactoryResolutionFinder(JobFactory):
+
     def __init__(self, settings_win, selected_resolution,
                  recommended_resolution):
         JobFactory.__init__(self, "ResolutionFinder")
@@ -357,7 +356,7 @@ class JobCalibrationScan(Job):
         logger.info("Scanner source set to '%s'" % self.__source)
         try:
             dev.options['resolution'].value = resolution
-        except pyinsane.SaneException:
+        except pyinsane.SaneException as exc:
             logger.warning("Unable to set scanner resolution to %d: %s"
                            % (resolution, exc))
         if dev.options['mode'].capabilities.is_active():
@@ -405,6 +404,7 @@ GObject.type_register(JobCalibrationScan)
 
 
 class JobFactoryCalibrationScan(JobFactory):
+
     def __init__(self, settings_win, resolutions_store):
         JobFactory.__init__(self, "CalibrationScan")
         self.__settings_win = settings_win
@@ -436,6 +436,7 @@ class JobFactoryCalibrationScan(JobFactory):
 
 
 class ActionSelectScanner(SimpleAction):
+
     def __init__(self, settings_win):
         SimpleAction.__init__(self, "New scanner selected")
         self.__settings_win = settings_win
@@ -467,6 +468,7 @@ class ActionSelectScanner(SimpleAction):
 
 
 class ActionSelectSource(SimpleAction):
+
     def __init__(self, settings_win):
         SimpleAction.__init__(self, "New source selected")
         self.__settings_win = settings_win
@@ -488,6 +490,7 @@ class ActionSelectSource(SimpleAction):
 
 
 class ActionToggleOCRState(SimpleAction):
+
     def __init__(self, settings_win):
         SimpleAction.__init__(self, "Toggle OCR state")
         self.__settings_win = settings_win
@@ -498,6 +501,7 @@ class ActionToggleOCRState(SimpleAction):
 
 
 class ActionApplySettings(SimpleAction):
+
     def __init__(self, settings_win, config):
         SimpleAction.__init__(self, "Apply settings")
         self.__settings_win = settings_win
@@ -557,6 +561,7 @@ class ActionApplySettings(SimpleAction):
 
 
 class ActionCancelSettings(SimpleAction):
+
     def __init__(self, settings_win, config):
         SimpleAction.__init__(self, "Cancel settings")
         self.__settings_win = settings_win
@@ -568,6 +573,7 @@ class ActionCancelSettings(SimpleAction):
 
 
 class ActionScanCalibration(SimpleAction):
+
     def __init__(self, settings_win):
         SimpleAction.__init__(self, "Scan calibration sheet")
         self.__settings_win = settings_win
@@ -588,6 +594,7 @@ class ActionScanCalibration(SimpleAction):
 
 
 class SettingsWindow(GObject.GObject):
+
     """
     Settings window.
     """
@@ -746,13 +753,6 @@ class SettingsWindow(GObject.GObject):
 
         self.window.set_visible(True)
 
-        # Must be connected after the window has been displayed.
-        # Otherwise, if "disable OCR" is already selected in the config
-        # it will display a warning popup even before the dialog has been
-        # displayed
-        self.ocr_settings['lang']['gui'].connect(
-            "changed", self.__on_ocr_lang_changed)
-
         for scheduler in self.local_schedulers:
             scheduler.start()
 
@@ -787,16 +787,12 @@ class SettingsWindow(GObject.GObject):
                 if extra != "":
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))
-            except KeyError, exc:
+            except KeyError:
                 logger.error("Warning: Long name not found for language "
                              "'%s'." % short_lang)
                 logger.warning("  Will use short name as long name.")
                 langs.append((short_lang, short_lang))
         return langs
-
-    def __on_ocr_lang_changed(self, combobox):
-        idx = self.ocr_settings['lang']['gui'].get_active()
-        lang = self.ocr_settings['lang']['store'][idx][1]
 
     def on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)
@@ -879,7 +875,6 @@ class SettingsWindow(GObject.GObject):
         self.calibration["scan_button"].set_sensitive(True)
 
     def on_scan_canceled(self):
-        scan_stop = time.time()
         self.schedulers['progress'].cancel(self.__scan_progress_job)
 
         self.calibration['image_gui'].unforce_size()

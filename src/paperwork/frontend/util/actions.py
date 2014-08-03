@@ -23,9 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 class SimpleAction(object):
+
     """
     Template for all the actions started by buttons
     """
+
     def __init__(self, name):
         self.name = name
         self.__signal_handlers = [

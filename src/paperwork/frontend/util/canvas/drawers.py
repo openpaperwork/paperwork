@@ -14,15 +14,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import cairo
 import math
 import logging
 
-from gi.repository import Gdk
-from gi.repository import Gtk
-
 from paperwork.backend.util import image2surface
-from paperwork.frontend.util.canvas import Canvas
 
 
 logger = logging.getLogger(__name__)

@@ -26,9 +26,7 @@ from scipy import sparse
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.preprocessing import normalize
 
-from paperwork.backend.common.page import BasicPage
 from paperwork.backend.labels import Label
-from paperwork.backend.util import dummy_progress_cb
 from paperwork.backend.util import rm_rf
 from paperwork.backend.util import strip_accents
 
@@ -87,7 +85,7 @@ class BasicDoc(object):
     last_mod = property(__get_last_mod)
 
     def __get_nb_pages(self):
-        if not 'nb_pages' in self.__cache:
+        if 'nb_pages' not in self.__cache:
             self.__cache['nb_pages'] = self._get_nb_pages()
         return self.__cache['nb_pages']
 
@@ -145,7 +143,7 @@ class BasicDoc(object):
         """
         Remove a label from the document. (-> rewrite the label file)
         """
-        if not to_remove in self.labels:
+        if to_remove not in self.labels:
             return
         labels = self.labels
         labels.remove(to_remove)
@@ -163,7 +161,7 @@ class BasicDoc(object):
         Returns:
             An array of labels.Label objects
         """
-        if not 'labels' in self.__cache:
+        if 'labels' not in self.__cache:
             labels = []
             try:
                 with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'r',

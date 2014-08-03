@@ -123,6 +123,7 @@ GObject.type_register(JobScan)
 
 
 class JobFactoryScan(JobFactory):
+
     def __init__(self, scan_workflow):
         JobFactory.__init__(self, "Scan")
         self.scan_workflow = scan_workflow
@@ -305,6 +306,7 @@ GObject.type_register(JobOCR)
 
 
 class JobFactoryOCR(JobFactory):
+
     def __init__(self, scan_workflow, config):
         JobFactory.__init__(self, "OCR")
         self.__config = config
@@ -315,8 +317,7 @@ class JobFactoryOCR(JobFactory):
 
         ocr_tools = pyocr.get_available_tools()
         if len(ocr_tools) == 0:
-            print("No OCR tool found")
-            sys.exit(1)
+            raise Exception("No OCR tool found")
         ocr_tool = ocr_tools[0]
         logger.info("Will use tool '%s'" % (ocr_tool.get_name()))
 
@@ -652,6 +653,7 @@ class BasicScanWorkflowDrawer(Animation):
 
 
 class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
+
     def __init__(self, workflow):
         BasicScanWorkflowDrawer.__init__(self, workflow)
 
@@ -687,6 +689,7 @@ class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
 
 
 class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
+
     def __init__(self, workflow):
         BasicScanWorkflowDrawer.__init__(self, workflow)
 
@@ -749,7 +752,7 @@ class ScanWorkflow(GObject.GObject):
         'ocr-start': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT, )),  # PIL image
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT, )),  # array of PIL image
+                       (GObject.TYPE_PYOBJECT, )),  # array of PIL image
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
                        GObject.TYPE_INT, )),  # score
@@ -869,12 +872,13 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         """
         class _ScanOcrChainer(object):
+
             def __init__(self, scan_workflow):
                 scan_workflow.connect("scan-done", self.__start_ocr)
 
             def __start_ocr(self, scan_workflow, img):
                 if img is None:
-                   return
+                    return
                 scan_workflow.ocr(img)
 
         _ScanOcrChainer(self)

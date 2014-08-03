@@ -20,25 +20,15 @@ Code relative to page handling.
 """
 
 import codecs
-from copy import copy
 import PIL.Image
-import multiprocessing
 import os
 import os.path
-import re
-import threading
-import time
 
 import logging
-from gi.repository import Gtk
 import pyocr
 import pyocr.builders
 
 from paperwork.backend.common.page import BasicPage
-from paperwork.backend.common.page import PageExporter
-from paperwork.backend.config import PaperworkConfig
-from paperwork.backend.util import check_spelling
-from paperwork.backend.util import dummy_progress_cb
 from paperwork.backend.util import image2surface
 
 
@@ -46,9 +36,11 @@ logger = logging.getLogger(__name__)
 
 
 class ImgPage(BasicPage):
+
     """
     Represents a page. A page is a sub-element of ImgDoc.
     """
+
     FILE_PREFIX = "paper."
     EXT_TXT = "txt"
     EXT_BOX = "words"
@@ -89,7 +81,7 @@ class ImgPage(BasicPage):
     def __get_last_mod(self):
         try:
             return os.stat(self.__get_box_path()).st_mtime
-        except OSError, exc:
+        except OSError:
             return 0.0
 
     last_mod = property(__get_last_mod)

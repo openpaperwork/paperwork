@@ -24,6 +24,7 @@ from paperwork.frontend.util import load_uifile
 
 
 class AboutDialog(object):
+
     """
     Dialog that appears when you click Help->About.
 

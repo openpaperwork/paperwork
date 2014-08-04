@@ -1498,7 +1498,7 @@ class ActionUpdPageSizes(SimpleAction):
         SimpleAction.do(self)
         mw = self.__main_win
         mw.update_page_sizes()
-        mw.show_page(self.__main_win.page)
+        mw.show_page(self.__main_win.page, force_refresh=True)
         self.__config['zoom_level'].value = mw.get_raw_zoom_level()
 
 

@@ -280,7 +280,7 @@ try:
     print("Looking for OCR tool ...")
     ocr_tools = pyocr.get_available_tools()
 except ImportError:
-    print "Couldn't import Pyocr. Will assume OCR tool is not installed yet"
+    print ("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
     ocr_tools = []
 if len(ocr_tools) > 0:
     print ("Looking for OCR language data ...")

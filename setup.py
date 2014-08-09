@@ -179,8 +179,8 @@ Let the machine do most of the work.
           # "pycairo",  # doesn't work ?
           "pyenchant",
           "python-Levenshtein",
-          "pyinsane >= 1.3.0",
-          "pyocr >= 0.2.1",
+          "pyinsane >= 1.3.7",
+          "pyocr >= 0.2.3",
           "numpy",
           "scipy",
           "scikit-learn",

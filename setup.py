@@ -179,8 +179,8 @@ Let the machine do most of the work.
           # "pycairo",  # doesn't work ?
           "pyenchant",
           "python-Levenshtein",
-          "pyinsane >= 1.3.0",
-          "pyocr >= 0.2.1",
+          "pyinsane >= 1.3.7",
+          "pyocr >= 0.2.3",
           "numpy",
           "scipy",
           "scikit-learn",
@@ -280,7 +280,7 @@ try:
     print("Looking for OCR tool ...")
     ocr_tools = pyocr.get_available_tools()
 except ImportError:
-    print "Couldn't import Pyocr. Will assume OCR tool is not installed yet"
+    print ("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
     ocr_tools = []
 if len(ocr_tools) > 0:
     print ("Looking for OCR language data ...")

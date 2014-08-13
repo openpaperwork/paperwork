@@ -209,6 +209,7 @@ class PageDrawer(Drawer):
         if size != self._size:
             self._size = size
             self.unload_content()
+            self.visible = False  # will force a reload if visible
             self.upd_spinner_position()
 
     size = property(_get_size, _set_size)

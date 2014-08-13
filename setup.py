@@ -179,7 +179,7 @@ Let the machine do most of the work.
           # "pycairo",  # doesn't work ?
           "pyenchant",
           "python-Levenshtein",
-          "pyinsane >= 1.3.7",
+          "pyinsane >= 1.3.8",
           "pyocr >= 0.2.3",
           "numpy",
           "scipy",

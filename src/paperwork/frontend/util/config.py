@@ -203,11 +203,14 @@ class _PaperworkFrontendConfigUtil(object):
         # the best OCR language
 
         ocr_tools = pyocr.get_available_tools()
-        if (len(ocr_tools) < 0):
+        if len(ocr_tools) == 0:
             return DEFAULT_OCR_LANG
         ocr_langs = ocr_tools[0].get_available_languages()
 
         default_locale_long = locale.getdefaultlocale()[0]
+        if default_locale_long is None:
+            return self.DEFAULT_OCR_LANG
+
         # Usually something like "fr_FR" --> we just need the first part
         default_locale = default_locale_long.split("_")[0]
         try:
@@ -218,7 +221,7 @@ class _PaperworkFrontendConfigUtil(object):
         except Exception, exc:
             logger.error("Warning: Failed to figure out system language"
                          " (locale is [%s]). Will default to %s"
-                         % (default_locale_long, default_locale_long))
+                         % (default_locale_long, self.DEFAULT_OCR_LANG))
             logger.error('Exception was: %s' % exc)
         return DEFAULT_OCR_LANG
 

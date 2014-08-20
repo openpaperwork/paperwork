@@ -732,7 +732,7 @@ class SettingsWindow(GObject.GObject):
         }
 
         ocr_tools = pyocr.get_available_tools()
-        if len(ocr_tools) <= 0:
+        if len(ocr_tools) == 0:
             ocr_langs = []
         else:
             ocr_langs = ocr_tools[0].get_available_languages()

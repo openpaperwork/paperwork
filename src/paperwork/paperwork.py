@@ -21,10 +21,11 @@ Bootstrapping code
 import os
 
 import gettext
-import logging
 from gi.repository import GObject
 from gi.repository import Gtk
 import locale
+import logging
+import signal
 
 from frontend.mainwindow import ActionRefreshIndex, MainWindow
 from frontend.util.config import load_config
@@ -88,6 +89,9 @@ def main():
     """
     Where everything start.
     """
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
+
     init_logging()
     set_locale()
 

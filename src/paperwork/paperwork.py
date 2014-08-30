@@ -104,8 +104,6 @@ def main():
         main_win = MainWindow(config)
         ActionRefreshIndex(main_win, config).do()
         Gtk.main()
-    except:
-        Gtk.main_quit()
     finally:
         logger.info("Good bye")
 

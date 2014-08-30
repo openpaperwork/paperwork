@@ -165,8 +165,8 @@ class BasicPage(object):
 
         # get from the file
         try:
-            if os.path.getmtime(self.get_doc_file_path()) < \
-               os.path.getmtime(self._get_thumb_path()):
+            if (os.path.getmtime(self.get_doc_file_path()) <
+                    os.path.getmtime(self._get_thumb_path())):
                 thumbnail = PIL.Image.open(self._get_thumb_path())
             else:
                 thumbnail = self.__make_thumbnail(width, height)

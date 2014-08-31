@@ -18,12 +18,14 @@
 from copy import copy
 import gc
 import os
+import sys
 import threading
 
 import PIL.Image
 import gettext
 import logging
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import GObject
@@ -3024,6 +3026,11 @@ class MainWindow(object):
         window.set_application(self.app)
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
+
+        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
+        if os.access(logo_path, os.F_OK):
+            logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
+            window.set_icon(logo)
         return window
 
     def set_search_availability(self, enabled):
@@ -3127,6 +3134,13 @@ class MainWindow(object):
             new_doc = self.get_new_doc()
             documents = [new_doc] + documents
 
+        doc_cp = []
+        for doc in documents:
+            if doc == self.doc:
+                doc = self.doc
+            doc_cp.append(doc)
+        documents = doc_cp
+
         active_idx = -1
         idx = 0
         for doc in documents:
@@ -3223,6 +3237,9 @@ class MainWindow(object):
 
     def __get_doc_model_line(self, doc):
         assert(doc is not None)
+        if self.doc and self.doc == doc:
+            # make sure we use the exact same instance everywhere
+            doc = self.doc
         thumbnail = self.default_thumbnail
         if doc.nb_pages <= 0:
             thumbnail = None
@@ -3370,6 +3387,16 @@ class MainWindow(object):
             self.docsearch, self.get_doc_sorting()[1], search)
         self.schedulers['main'].schedule(job)
 
+    def __get_page_model_line(self, page):
+        if self.page and self.page == page:
+            # always use the very same instance to avoid troubles
+            page = self.page
+        return [
+            _('Page %d') % (page.page_nb + 1),
+            self.default_thumbnail,
+            page.page_nb
+        ]
+
     def refresh_page_list(self):
         """
         Reload and refresh the page list.
@@ -3380,11 +3407,8 @@ class MainWindow(object):
         )
 
         model = [
-            [
-                _('Page %d') % (page.page_nb + 1),
-                self.default_thumbnail,
-                page.page_nb
-            ] for page in self.doc.pages
+            self.__get_page_model_line(page)
+            for page in self.doc.pages
         ]
         self.lists['pages'].set_model(model)
 
@@ -3658,6 +3682,10 @@ class MainWindow(object):
     def on_page_editing_done_cb(self, job, page):
         self.set_progression(job, 0.0, "")
         self.set_mouse_cursor("Normal")
+        if self.page:
+            self.page.drop_cache()
+        if self.doc:
+            self.doc.drop_cache()
         if page.page_nb == 0:
             self.refresh_doc_list()
         self.refresh_page_list()

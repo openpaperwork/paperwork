@@ -20,6 +20,7 @@ Paperwork configuration management code
 import ConfigParser
 import logging
 import os
+import util
 
 
 logger = logging.getLogger(__name__)
@@ -93,6 +94,7 @@ class PaperworkConfig(object):
         if not configfile_found:
             logger.info("Config file not found. Will use '%s'"
                         % self.__configfile)
+        util.mkdir_p(os.path.dirname(self.__configfile))
 
     def read(self):
         """

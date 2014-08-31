@@ -18,12 +18,14 @@
 from copy import copy
 import gc
 import os
+import sys
 import threading
 
 import PIL.Image
 import gettext
 import logging
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import GObject
@@ -3024,6 +3026,11 @@ class MainWindow(object):
         window.set_application(self.app)
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
+
+        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
+        if os.access(logo_path, os.F_OK):
+            logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
+            window.set_icon(logo)
         return window
 
     def set_search_availability(self, enabled):

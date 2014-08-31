@@ -44,8 +44,9 @@ class AboutDialog(object):
         self.__dialog.set_transient_for(main_window)
 
         logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
-        logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
-        self.__dialog.set_logo(logo)
+        if os.access(logo_path, os.F_OK):
+            logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
+            self.__dialog.set_logo(logo)
         self.__dialog.connect("response", lambda x, y: x.destroy())
 
     def show(self):

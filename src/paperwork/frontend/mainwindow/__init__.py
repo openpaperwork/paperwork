@@ -2278,11 +2278,6 @@ class ActionRealQuit(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-
-        for scheduler in self.__main_win.schedulers.values():
-            scheduler.stop()
-
-        self.__config.write()
         Gtk.main_quit()
 
     def on_window_close_cb(self, window):

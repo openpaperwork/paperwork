@@ -131,10 +131,16 @@ class PaperworkConfig(object):
         for setting in self.settings.values():
             setting.update(self._configparser)
 
-        file_path = self.__configfile
-        with open(file_path, 'wb') as file_descriptor:
-            self._configparser.write(file_descriptor)
-        logger.info("Done")
+        try:
+            file_path = self.__configfile
+            with open(file_path, 'wb') as file_descriptor:
+                self._configparser.write(file_descriptor)
+            logger.info("Done")
+        except IOError as e:
+            logger.warn("Cannot write to configuration file %s : %s" % (self.__configfile, e.strerror))
+            return False
+
+        return True
 
     def __getitem__(self, item):
         return self.settings[item]

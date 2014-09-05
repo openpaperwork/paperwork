@@ -96,8 +96,11 @@ def main():
 
     GObject.threads_init()
 
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM, Gtk.main_quit)
+    if hasattr(GLib, "unix_signal_add"):
+        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
+                             Gtk.main_quit)
+        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
+                             Gtk.main_quit)
 
     try:
         config = load_config()

@@ -42,7 +42,10 @@ then
 		$(find src/paperwork/frontend -name \*.xml)
 	do
 		echo "${glade_file} --> .(glade|xml).h ..."
-		intltool-extract --type=gettext/glade ${glade_file} > /dev/null
+		if ! intltool-extract --type=gettext/glade ${glade_file} > /dev/null; then
+			echo "intltool-extract Failed ! Unable to extract strings to translate from .glade files !"
+			exit 2
+		fi
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \
@@ -50,6 +53,10 @@ then
 		$(find src/paperwork/frontend -name \*.glade.h) \
 		$(find src/paperwork/frontend -name \*.xml.h) \
 		> /dev/null
+	if [ $? -ne 0 ]; then
+		echo "xgettext failed ! Unable to extract strings to translate !"
+		exit 3
+	fi
 	rm -f $(find src/paperwork/frontend -name \*.glade.h)
 	rm -f $(find src/paperwork/frontend -name \*.xml.h)
 
@@ -65,6 +72,10 @@ then
 		else
 			echo "locale/messages.pot --> ${po_file} (upd)"
 			msgmerge -U ${po_file} locale/messages.pot > /dev/null
+		fi
+		if [ $? -ne 0 ] ; then
+			echo "msginit / msgmerge failed ! Unable to create or update .po file !"
+			exit 4
 		fi
 	done
 
@@ -83,7 +94,10 @@ then
 		echo "${po_file} --> ${locale_dir}/paperwork.mo"
 		rm -rf local/${short_locale}
 		mkdir -p ${locale_dir}
-		msgfmt ${po_file} -o ${locale_dir}/paperwork.mo
+		if ! msgfmt ${po_file} -o ${locale_dir}/paperwork.mo ; then
+			echo "msgfmt failed ! Unable to update .mo file !"
+			exit 5
+		fi
 	done
 
 	echo "Done"

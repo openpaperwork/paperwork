@@ -98,9 +98,9 @@ def main():
 
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
-                             Gtk.main_quit)
+                             Gtk.main_quit, None)
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
-                             Gtk.main_quit)
+                             Gtk.main_quit, None)
 
     try:
         config = load_config()

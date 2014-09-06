@@ -23,6 +23,7 @@ import os
 import gettext
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import GLib
 import locale
 import logging
 import signal
@@ -89,13 +90,17 @@ def main():
     """
     Where everything start.
     """
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
 
     init_logging()
     set_locale()
 
     GObject.threads_init()
+
+    if hasattr(GLib, "unix_signal_add"):
+        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
+                             Gtk.main_quit, None)
+        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
+                             Gtk.main_quit, None)
 
     try:
         config = load_config()
@@ -104,6 +109,11 @@ def main():
         main_win = MainWindow(config)
         ActionRefreshIndex(main_win, config).do()
         Gtk.main()
+
+        for scheduler in main_win.schedulers.values():
+            scheduler.stop()
+
+        config.write()
     finally:
         logger.info("Good bye")
 

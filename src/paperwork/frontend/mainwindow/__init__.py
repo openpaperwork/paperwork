@@ -1357,18 +1357,6 @@ class ActionOpenSelectedDocument(SimpleAction):
         self.__main_win.show_doc(doc)
 
 
-class ActionStartSearch(SimpleAction):
-    """
-    Let the user type keywords to do a document search
-    """
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Focus on search field")
-        self.__main_win = main_window
-
-    def do(self):
-        self.__main_win.search_field.grab_focus()
-
-
 class ActionUpdateSearchResults(SimpleAction):
     """
     Update search results
@@ -2888,13 +2876,17 @@ class MainWindow(object):
                 button.set_tooltip_text(_("Scan single page"))
 
         accelerators = [
-            ('<Ctrl>e', widget_tree.get_object("toolbuttonEditDoc")),
-            ('<Ctrl>n', widget_tree.get_object("toolbuttonNew")),
+            ('<Primary>e', 'clicked',
+             widget_tree.get_object("toolbuttonEditDoc")),
+            ('<Primary>n', 'clicked',
+             widget_tree.get_object("toolbuttonNew")),
+            ('<Primary>f', 'grab-focus',
+             self.search_field),
         ]
         accel_group = Gtk.AccelGroup()
-        for (shortcut, widget) in accelerators:
+        for (shortcut, signame, widget) in accelerators:
             (key, mod) = Gtk.accelerator_parse(shortcut)
-            widget.add_accelerator('clicked', accel_group, key, mod,
+            widget.add_accelerator(signame, accel_group, key, mod,
                                    Gtk.AccelFlags.VISIBLE)
         self.window.add_accel_group(accel_group)
 

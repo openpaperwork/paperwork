@@ -38,7 +38,7 @@ if python_ver[0] != "2" or python_ver[1] != "7":
 setup(name="paperwork",
       # if you change the version, don't forget to change it also in
       # src/paperwork/frontend/aboutdialog/aboutdialog.glade
-      version="0.2-testing",
+      version="0.2",
       description="Grep for dead trees",
       long_description="""
 Paperwork is a tool to make papers searchable.

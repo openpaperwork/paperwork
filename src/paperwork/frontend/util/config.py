@@ -17,6 +17,7 @@
 import ConfigParser
 import locale
 import logging
+import re
 
 import pycountry
 import pyocr
@@ -289,7 +290,18 @@ def get_scanner(config, preferred_sources=None):
 
     dev = pyinsane.Scanner(name=devid)
 
+    config_source = config['scanner_source'].value
+    use_config_source = False
+
     if preferred_sources:
+        use_config_source = False
+        regexs = [re.compile(x, flags=re.IGNORECASE) for x in preferred_sources]
+        for regex in regexs:
+            if regex.match(config_source):
+                use_config_source = True
+                break
+
+    if not use_config_source and preferred_sources:
         try:
             set_scanner_opt('source', dev.options['source'], preferred_sources)
         except (KeyError, pyinsane.SaneException), exc:
@@ -299,7 +311,6 @@ def get_scanner(config, preferred_sources=None):
             if dev.options['source'].capabilities.is_active():
                 dev.options['source'].value = config_source
     else:
-        config_source = config['scanner_source'].value
         if dev.options['source'].capabilities.is_active():
             dev.options['source'].value = config_source
         logger.info("Will scan using source %s" % str(config_source))

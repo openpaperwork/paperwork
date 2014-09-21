@@ -2,8 +2,8 @@
 * Improved search : whoosh.FuzzyTerm is now used
 * Label look has been improved
 * Menubar has been removed and replaced by an application menu
-* Label prediction : when a new document is scanned, labels are automatically
-  set on it
+* Label prediction : when a new document is scanned, predicted labels are
+  automatically set on it
 * Pages are not displayed separately anymore
 * New settings: scan source, number of orientations to try, OCR can be
   disabled

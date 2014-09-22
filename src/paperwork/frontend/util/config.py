@@ -210,7 +210,7 @@ class _PaperworkFrontendConfigUtil(object):
 
         default_locale_long = locale.getdefaultlocale()[0]
         if default_locale_long is None:
-            return self.DEFAULT_OCR_LANG
+            return DEFAULT_OCR_LANG
 
         # Usually something like "fr_FR" --> we just need the first part
         default_locale = default_locale_long.split("_")[0]
@@ -222,7 +222,7 @@ class _PaperworkFrontendConfigUtil(object):
         except Exception, exc:
             logger.error("Warning: Failed to figure out system language"
                          " (locale is [%s]). Will default to %s"
-                         % (default_locale_long, self.DEFAULT_OCR_LANG))
+                         % (default_locale_long, DEFAULT_OCR_LANG))
             logger.error('Exception was: %s' % exc)
         return DEFAULT_OCR_LANG
 

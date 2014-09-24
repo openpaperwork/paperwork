@@ -17,6 +17,7 @@
 Settings window.
 """
 
+import platform
 import os
 import sys
 import time
@@ -25,6 +26,7 @@ import gettext
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gdk
+from gi.repository import Gtk
 import logging
 import pycountry
 import pyinsane.abstract_th as pyinsane
@@ -616,6 +618,17 @@ class SettingsWindow(GObject.GObject):
 
         widget_tree = load_uifile(
             os.path.join("settingswindow", "settingswindow.glade"))
+
+        distrib = platform.dist()
+        if distrib:
+            distrib = distrib[0]
+            distrib = distrib[0].upper() + distrib[1:].lower()
+            logger.info("Distribution: [%s]" % distrib)
+            for widget in widget_tree.get_objects():
+                if type(widget) == Gtk.LinkButton:
+                    uri = widget.get_uri()
+                    uri += "#" + distrib
+                    widget.set_uri(uri)
 
         self.window = widget_tree.get_object("windowSettings")
         self.window.set_transient_for(mainwindow_gui)

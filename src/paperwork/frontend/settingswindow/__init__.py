@@ -621,8 +621,7 @@ class SettingsWindow(GObject.GObject):
 
         distrib = platform.dist()
         if distrib:
-            distrib = distrib[0]
-            distrib = distrib[0].upper() + distrib[1:].lower()
+            distrib = distrib[0].lower()
             logger.info("Distribution: [%s]" % distrib)
             for widget in widget_tree.get_objects():
                 if type(widget) == Gtk.LinkButton:

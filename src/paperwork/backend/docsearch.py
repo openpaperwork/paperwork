@@ -125,6 +125,11 @@ class DummyDocSearch(object):
         """ Do nothing """
         assert()
 
+    @staticmethod
+    def predict_label_list(*args, **kwargs):
+        """ Do nothing """
+        return []
+
 
 class DocDirExaminer(GObject.GObject):
     """

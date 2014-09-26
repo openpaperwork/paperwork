@@ -36,7 +36,7 @@ For some reason,
 so you will have to install some dependencies yourself with python-pip:
 
     $ sudo apt-get install python-pip
-    $ sudo pip install numpy scikit-learn
+    $ sudo pip install numpy scikit-learn pyocr
 
 Optional:
 Spell checking is used to improve page orientation detection, so:

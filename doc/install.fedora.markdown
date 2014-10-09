@@ -11,7 +11,7 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
-    $ sudo yum install python-pip python-setuptools python-devel
+    $ sudo yum install python-pip python-setuptools python-devel numpy-f2py
 
     # Pillow build dependencies :
     $ sudo yum install libjpeg-turbo-devel zlib-devel
@@ -36,6 +36,7 @@ For some reason,
 so you will have to install some dependencies yourself with python-pip:
 
     $ sudo yum install python-pip
+    $ sudo pip install pyocr
     $ sudo pip install numpy scikit-learn
 
 Optional:

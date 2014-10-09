@@ -1626,7 +1626,7 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        os.system('xdg-open "%s"' % (self.__main_win.doc.path))
+        os.system('xdg-open "%s" &' % (self.__main_win.doc.path))
 
 
 class ActionPrintDoc(SimpleAction):

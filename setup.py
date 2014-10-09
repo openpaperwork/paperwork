@@ -232,7 +232,7 @@ modules = [
     ('Glade UI', 'gi.repository.Gladeui',
      {
          'debian': 'gir1.2-gladeui-2.0',
-         'fedora': 'glade3-libgladeui',
+         'fedora': 'glade-libs',
          'gentoo': 'dev-util/glade',
          'linuxmint': 'gir1.2-gladeui-2.0',
          'ubuntu': 'gir1.2-gladeui-2.0',

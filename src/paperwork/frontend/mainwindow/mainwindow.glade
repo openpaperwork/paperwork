@@ -550,6 +550,7 @@
                 <property name="height_request">25</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="show_text">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>

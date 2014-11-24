@@ -69,8 +69,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_scanner(main_win, config):
-    if (config['scanner_devid'].value is not None
-            and config['scanner_source'].value is not None):
+    if config['scanner_devid'].value is not None:
         return True
     main_win.actions['open_settings'][1].do()
     return False

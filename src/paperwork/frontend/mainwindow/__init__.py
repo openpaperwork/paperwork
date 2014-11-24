@@ -123,8 +123,6 @@ class JobIndexLoader(Job):
         txt = None
         if step == DocSearch.INDEX_STEP_LOADING:
             txt = _('Loading ...')
-        elif step == DocSearch.INDEX_STEP_CLEANING:
-            txt = _('Cleaning ...')
         else:
             assert()  # unknown progression type
             txt = ""

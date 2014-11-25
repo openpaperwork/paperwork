@@ -605,7 +605,7 @@ class BasicScanWorkflowDrawer(Animation):
 
     def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
-            (img_drawer, spinner_bg, spinner) = self.ocr_drawers[angle]
+            img_drawer = self.ocr_drawers[angle][0]
             img_drawer.redraw()
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score

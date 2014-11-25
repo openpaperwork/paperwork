@@ -465,7 +465,9 @@ class JobDocSearcher(Job):
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
         'search-results': (GObject.SignalFlags.RUN_LAST, None,
-                           (GObject.TYPE_STRING,
+                           # XXX(Jflesch): TYPE_STRING would turn the Unicode
+                           # object into a string object
+                           (GObject.TYPE_PYOBJECT,
                             GObject.TYPE_PYOBJECT,)),
         # array of suggestions
         'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
@@ -492,6 +494,7 @@ class JobDocSearcher(Job):
         self.emit('search-start')
 
         try:
+            logger.info("Searching: [%s]" % self.search)
             documents = self.__docsearch.find_documents(self.search)
         except Exception, exc:
             logger.error("Invalid search: [%s]" % self.search)

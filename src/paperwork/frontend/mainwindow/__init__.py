@@ -1153,6 +1153,7 @@ class JobFactoryPageImgRenderer(JobFactory):
 
 class JobImporter(Job):
     __gsignals__ = {
+        'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_stop = False
@@ -1270,7 +1271,7 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Normal")
 
         if docs is None or len(docs) <= 0:
-            self.__no_doc_imported()
+            self.emit('no-doc-imported')
             return
 
         self.__main_win.show_doc(docs[-1], force_refresh=True)
@@ -1848,6 +1849,8 @@ class ActionImport(SimpleAction):
 
         job_importer = self.__main_win.job_factories['importer']
         job_importer = job_importer.make(importer, file_uri)
+        job_importer.connect('no-doc-imported',
+                             lambda _: self.__no_doc_imported())
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 

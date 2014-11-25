@@ -46,6 +46,7 @@ from paperwork.backend.util import dummy_progress_cb
 from paperwork.backend.util import MIN_KEYWORD_LEN
 from paperwork.backend.util import mkdir_p
 from paperwork.backend.util import rm_rf
+from paperwork.backend.util import strip_accents
 
 
 logger = logging.getLogger(__name__)
@@ -233,8 +234,8 @@ class DocIndexUpdater(GObject.GObject):
             docid=docid,
             doctype=doc.doctype,
             docfilehash=dochash,
-            content=doc.get_index_text(),
-            label=doc.get_index_labels(),
+            content=strip_accents(doc.get_index_text()),
+            label=strip_accents(doc.get_index_labels()),
             date=doc.date,
             last_read=last_mod
         )
@@ -696,6 +697,7 @@ class DocSearch(object):
             An array of document (doc objects)
         """
         sentence = sentence.strip()
+        sentence = strip_accents(sentence)
 
         if sentence == u"":
             return self.docs

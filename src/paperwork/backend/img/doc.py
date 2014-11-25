@@ -22,6 +22,7 @@ import errno
 import os
 import os.path
 import logging
+import urllib
 
 import cairo
 import PIL.Image
@@ -102,7 +103,7 @@ class ImgToPdfDocExporter(object):
         # reload the preview
 
         pdfdoc = Poppler.Document.new_from_file(
-            ("file://%s" % path), password=None)
+            ("file://%s" % urllib.quote(path)), password=None)
         assert(pdfdoc.get_n_pages() > 0)
 
         pdfpage = pdfdoc.get_page(0)

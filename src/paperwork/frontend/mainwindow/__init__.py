@@ -1201,7 +1201,7 @@ class JobImporter(Job):
                 logger.info("Doing OCR on %s" % str(page))
                 scan_workflow = self._main_win.make_scan_workflow()
                 drawer = self._main_win.make_scan_workflow_drawer(
-                    scan_workflow, single_angle=True)
+                    scan_workflow, single_angle=True, page=page)
                 self._main_win.add_scan_workflow(page.doc, drawer,
                                                  page_nb=page.page_nb)
                 scan_workflow.connect('process-done',
@@ -1936,7 +1936,7 @@ class ActionRedoOCR(SimpleAction):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self._main_win.make_scan_workflow()
         drawer = self._main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True)
+            scan_workflow, single_angle=True, page=page)
         self._main_win.add_scan_workflow(page.doc, drawer,
                                          page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -2355,7 +2355,7 @@ class ActionEditPage(SimpleAction):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self.__main_win.make_scan_workflow()
         drawer = self.__main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True)
+            scan_workflow, single_angle=True, page=page)
         self.__main_win.add_scan_workflow(page.doc, drawer,
                                           page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -2370,8 +2370,11 @@ class ActionEditPage(SimpleAction):
         page.boxes = boxes
 
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
+        if self.__main_win.doc.docid == page.doc.docid:
+            self.__main_win.show_page(page, force_refresh=True)
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={doc}, optimize=False,
             reload_all=False, reload_thumbnails=True)
@@ -3830,11 +3833,12 @@ class MainWindow(object):
                             self.schedulers['scan'],
                             self.schedulers['ocr'])
 
-    def make_scan_workflow_drawer(self, scan_workflow, single_angle=False):
+    def make_scan_workflow_drawer(self, scan_workflow, single_angle=False,
+                                  page=None):
         if single_angle:
-            drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+            drawer = SingleAngleScanWorkflowDrawer(scan_workflow, page)
         else:
-            drawer = MultiAnglesScanWorkflowDrawer(scan_workflow)
+            drawer = MultiAnglesScanWorkflowDrawer(scan_workflow, page)
         # make sure the canvas is set even if we don't display it
         drawer.set_canvas(self.img['canvas'])
         return drawer

@@ -344,7 +344,7 @@ class BasicScanWorkflowDrawer(Animation):
 
     layer = Animation.IMG_LAYER
 
-    def __init__(self, scan_workflow):
+    def __init__(self, scan_workflow, page=None):
         Animation.__init__(self)
 
         self.scan_drawers = []
@@ -358,9 +358,7 @@ class BasicScanWorkflowDrawer(Animation):
 
         self.__used_angles = None  # == any
 
-        # we are used as a page drawer, but our page is being built
-        # --> no actual page
-        self.page = None
+        self.page = page
         self.rotation_done = False
 
         scan_workflow.connect("scan-start",
@@ -607,7 +605,7 @@ class BasicScanWorkflowDrawer(Animation):
 
     def __on_ocr_score_cb(self, angle, score):
         if angle in self.ocr_drawers:
-            (img_drawer, spinner_bg, spinner) = self.ocr_drawers[angle]
+            img_drawer = self.ocr_drawers[angle][0]
             img_drawer.redraw()
             self.ocr_drawers[angle] = self.ocr_drawers[angle][:1]
         # TODO(Jflesch): show score
@@ -654,8 +652,8 @@ class BasicScanWorkflowDrawer(Animation):
 
 class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
 
-    def __init__(self, workflow):
-        BasicScanWorkflowDrawer.__init__(self, workflow)
+    def __init__(self, workflow, page=None):
+        BasicScanWorkflowDrawer.__init__(self, workflow, page)
 
     def _compute_reduced_sizes(self, visible_area, img_size):
         ratio = min(
@@ -690,8 +688,8 @@ class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
 
 class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
 
-    def __init__(self, workflow):
-        BasicScanWorkflowDrawer.__init__(self, workflow)
+    def __init__(self, workflow, page=None):
+        BasicScanWorkflowDrawer.__init__(self, workflow, page)
 
     def _compute_reduced_sizes(self, visible_area, img_size):
         visible_area = (

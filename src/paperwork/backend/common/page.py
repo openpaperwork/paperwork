@@ -209,7 +209,7 @@ class BasicPage(object):
         return not self.__eq__(other)
 
     def __eq__(self, other):
-        if None == other:
+        if other is None:
             return False
         return self.doc == other.doc and self.page_nb == other.page_nb
 

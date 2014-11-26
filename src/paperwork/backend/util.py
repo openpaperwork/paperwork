@@ -37,7 +37,7 @@ def strip_accents(string):
     """
     Strip all the accents from the string
     """
-    return ''.join(
+    return u''.join(
         (character for character in unicodedata.normalize('NFD', string)
          if unicodedata.category(character) != 'Mn'))
 

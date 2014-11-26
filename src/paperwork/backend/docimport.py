@@ -20,6 +20,8 @@ Document import (PDF, images, etc)
 
 import gettext
 import logging
+import urllib
+
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
@@ -175,7 +177,7 @@ class SingleImageImporter(object):
         new = current_doc.is_new
         if file_uri[:7] == "file://":
             # XXX(Jflesch): bad bad bad
-            file_uri = file_uri[7:]
+            file_uri = urllib.unquote(file_uri[7:])
         img = Image.open(file_uri)
         page = current_doc.add_page(img, [])
         return ([current_doc], page, new)

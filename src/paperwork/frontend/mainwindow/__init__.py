@@ -69,8 +69,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_scanner(main_win, config):
-    if (config['scanner_devid'].value is not None
-            and config['scanner_source'].value is not None):
+    if config['scanner_devid'].value is not None:
         return True
     main_win.actions['open_settings'][1].do()
     return False
@@ -124,8 +123,6 @@ class JobIndexLoader(Job):
         txt = None
         if step == DocSearch.INDEX_STEP_LOADING:
             txt = _('Loading ...')
-        elif step == DocSearch.INDEX_STEP_CLEANING:
-            txt = _('Cleaning ...')
         else:
             assert()  # unknown progression type
             txt = ""
@@ -468,7 +465,9 @@ class JobDocSearcher(Job):
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
         'search-results': (GObject.SignalFlags.RUN_LAST, None,
-                           (GObject.TYPE_STRING,
+                           # XXX(Jflesch): TYPE_STRING would turn the Unicode
+                           # object into a string object
+                           (GObject.TYPE_PYOBJECT,
                             GObject.TYPE_PYOBJECT,)),
         # array of suggestions
         'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
@@ -495,6 +494,7 @@ class JobDocSearcher(Job):
         self.emit('search-start')
 
         try:
+            logger.info("Searching: [%s]" % self.search)
             documents = self.__docsearch.find_documents(self.search)
         except Exception, exc:
             logger.error("Invalid search: [%s]" % self.search)
@@ -560,7 +560,10 @@ class JobLabelPredictor(Job):
     __gsignals__ = {
         # array of labels (strings)
         'predicted-labels': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_PYOBJECT,)),
+                             (
+                                 GObject.TYPE_PYOBJECT,  # doc
+                                 GObject.TYPE_PYOBJECT,  # array of labels
+                             )),
     }
 
     can_stop = True
@@ -580,7 +583,7 @@ class JobLabelPredictor(Job):
         try:
             predicted_labels = self.__docsearch.predict_label_list(
                 self.doc, progress_cb=self._progress_cb)
-            self.emit('predicted-labels', predicted_labels)
+            self.emit('predicted-labels', self.doc, predicted_labels)
         except StopIteration:
             return
 
@@ -600,9 +603,9 @@ class JobFactoryLabelPredictorOnOpenDoc(JobFactory):
         job = JobLabelPredictor(self, next(self.id_generator),
                                 self.__main_win.docsearch, doc)
         job.connect('predicted-labels',
-                    lambda predictor, labels:
+                    lambda predictor, doc, labels:
                     GLib.idle_add(self.__main_win.on_label_prediction_cb,
-                                  labels))
+                                  doc, labels))
         return job
 
 
@@ -1153,6 +1156,7 @@ class JobFactoryPageImgRenderer(JobFactory):
 
 class JobImporter(Job):
     __gsignals__ = {
+        'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_stop = False
@@ -1199,9 +1203,10 @@ class JobImporter(Job):
         def _ocr(self, page, page_img, boxes):
             if len(boxes) <= 0:
                 logger.info("Doing OCR on %s" % str(page))
+                self._main_win.show_doc(page.doc)
                 scan_workflow = self._main_win.make_scan_workflow()
                 drawer = self._main_win.make_scan_workflow_drawer(
-                    scan_workflow, single_angle=True)
+                    scan_workflow, single_angle=True, page=page)
                 self._main_win.add_scan_workflow(page.doc, drawer,
                                                  page_nb=page.page_nb)
                 scan_workflow.connect('process-done',
@@ -1237,18 +1242,19 @@ class JobImporter(Job):
                     'label_predictor_on_new_doc'
                 ]
                 job = factory.make(doc)
-                job.connect("predicted-labels", lambda predictor, predicted:
-                            GLib.idle_add(self._on_predicted_labels,
-                                          doc, predicted))
+                job.connect("predicted-labels",
+                            self._on_predicted_labels)
                 self._main_win.schedulers['main'].schedule(job)
 
-        def _on_predicted_labels(self, doc, predicted_labels):
+        def _on_predicted_labels(self, predictor, doc, predicted_labels):
+            GLib.idle_add(self._on_predicted_labels2, doc, predicted_labels)
+
+        def _on_predicted_labels2(self, doc, predicted_labels):
             logger.info("Label predicted on doc %s" % str(doc))
             for label in self._main_win.docsearch.label_list:
                 if label.name in predicted_labels:
                     self._main_win.docsearch.add_label(doc, label,
                                                        update_index=False)
-
             self._docs_to_label_predict.remove(doc)
             if len(self._docs_to_label_predict) <= 0:
                 self._update_index()
@@ -1270,27 +1276,36 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Normal")
 
         if docs is None or len(docs) <= 0:
-            self.__no_doc_imported()
+            self.emit('no-doc-imported')
             return
 
+        if page is not None:
+            nb_docs = 0
+            nb_pages = 1
+        else:
+            nb_docs = len(docs)
+            nb_pages = 0
+        logger.info("Importing %d docs and %d pages" % (nb_docs, nb_pages))
+
         self.__main_win.show_doc(docs[-1], force_refresh=True)
+
         if page is not None:
             self.__main_win.show_page(page, force_refresh=True)
         set_widget_state(self.__main_win.need_doc_widgets, True)
 
-        # OCR ?
         if page is not None:
             self.IndexAdder(self.__main_win, iter([page]),
                             must_add_labels).start()
             return
 
-        pages = []
-        for doc in docs:
-            new_pages = [p for p in doc.pages]
-            pages += new_pages
-        if len(pages) > 0:
-            self.IndexAdder(self.__main_win, iter(pages),
-                            must_add_labels).start()
+        if len(docs) > 0:
+            pages = []
+            for doc in docs:
+                new_pages = [p for p in doc.pages]
+                pages += new_pages
+            if len(pages) > 0:
+                self.IndexAdder(self.__main_win, iter(pages),
+                                must_add_labels).start()
 
 
 class JobFactoryImporter(JobFactory):
@@ -1848,6 +1863,8 @@ class ActionImport(SimpleAction):
 
         job_importer = self.__main_win.job_factories['importer']
         job_importer = job_importer.make(importer, file_uri)
+        job_importer.connect('no-doc-imported',
+                             lambda _: self.__no_doc_imported())
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 
@@ -1936,7 +1953,7 @@ class ActionRedoOCR(SimpleAction):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self._main_win.make_scan_workflow()
         drawer = self._main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True)
+            scan_workflow, single_angle=True, page=page)
         self._main_win.add_scan_workflow(page.doc, drawer,
                                          page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -2355,7 +2372,7 @@ class ActionEditPage(SimpleAction):
         logger.info("Redoing OCR on %s" % str(page))
         scan_workflow = self.__main_win.make_scan_workflow()
         drawer = self.__main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True)
+            scan_workflow, single_angle=True, page=page)
         self.__main_win.add_scan_workflow(page.doc, drawer,
                                           page_nb=page.page_nb)
         scan_workflow.connect('process-done',
@@ -2370,8 +2387,11 @@ class ActionEditPage(SimpleAction):
         page.boxes = boxes
 
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
+        if self.__main_win.doc.docid == page.doc.docid:
+            self.__main_win.show_page(page, force_refresh=True)
 
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={doc}, optimize=False,
             reload_all=False, reload_thumbnails=True)
@@ -3154,7 +3174,7 @@ class MainWindow(object):
         finally:
             self.lists['suggestions']['gui'].thaw_child_notify()
 
-    def on_label_prediction_cb(self, predicted_labels):
+    def on_label_prediction_cb(self, doc, predicted_labels):
         label_model = self.lists['labels']['model']
         for label_line in xrange(0, len(label_model)):
             label = label_model[label_line][2]
@@ -3830,11 +3850,12 @@ class MainWindow(object):
                             self.schedulers['scan'],
                             self.schedulers['ocr'])
 
-    def make_scan_workflow_drawer(self, scan_workflow, single_angle=False):
+    def make_scan_workflow_drawer(self, scan_workflow, single_angle=False,
+                                  page=None):
         if single_angle:
-            drawer = SingleAngleScanWorkflowDrawer(scan_workflow)
+            drawer = SingleAngleScanWorkflowDrawer(scan_workflow, page)
         else:
-            drawer = MultiAnglesScanWorkflowDrawer(scan_workflow)
+            drawer = MultiAnglesScanWorkflowDrawer(scan_workflow, page)
         # make sure the canvas is set even if we don't display it
         drawer.set_canvas(self.img['canvas'])
         return drawer
@@ -3884,7 +3905,7 @@ class MainWindow(object):
         if new:
             factory = self.job_factories['label_predictor_on_new_doc']
             job = factory.make(doc)
-            job.connect("predicted-labels", lambda predictor, predicted:
+            job.connect("predicted-labels", lambda predictor, d, predicted:
                         GLib.idle_add(self.__on_predicted_labels, doc,
                                       predicted))
             self.schedulers['main'].schedule(job)

@@ -28,7 +28,6 @@ from sklearn.preprocessing import normalize
 
 from paperwork.backend.labels import Label
 from paperwork.backend.util import rm_rf
-from paperwork.backend.util import strip_accents
 
 
 _ = gettext.gettext
@@ -186,7 +185,6 @@ class BasicDoc(object):
         if extra_txt != u"":
             txt += extra_txt + u"\n"
         txt = txt.strip()
-        txt = strip_accents(txt)
         if txt == u"":
             # make sure the text field is not empty. Whoosh doesn't like that
             txt = u"empty"
@@ -234,7 +232,7 @@ class BasicDoc(object):
         rm_rf(os.path.join(self.path, self.FEATURES_DIR))
 
     def get_index_labels(self):
-        return u",".join([strip_accents(unicode(label.name))
+        return u",".join([unicode(label.name)
                           for label in self.labels])
 
     def update_label(self, old_label, new_label):

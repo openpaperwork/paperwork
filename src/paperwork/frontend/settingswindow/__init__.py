@@ -161,7 +161,10 @@ class JobSourceFinder(Job):
                         % (self.__devid))
             device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
-            sources = device.options['source'].constraint
+            if 'source' in device.options:
+                sources = device.options['source'].constraint
+            else:
+                sources = []
             logger.info("Sources found: %s" % str(sources))
             sys.stdout.flush()
             for source in sources:
@@ -245,7 +248,10 @@ class JobResolutionFinder(Job):
                         % (self.__devid))
             device = pyinsane.Scanner(name=self.__devid)
             sys.stdout.flush()
-            resolutions = device.options['resolution'].constraint
+            if 'resolution' in device.options:
+                resolutions = device.options['resolution'].constraint
+            else:
+                resolutions = []
             logger.info("Resolutions found: %s" % str(resolutions))
             sys.stdout.flush()
             # Sometimes sane return the resolutions as a integer array,

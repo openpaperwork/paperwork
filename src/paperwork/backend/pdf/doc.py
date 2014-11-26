@@ -17,6 +17,7 @@
 import os
 import shutil
 import logging
+import urllib
 
 from gi.repository import GLib
 from gi.repository import Gio
@@ -134,7 +135,7 @@ class PdfDoc(BasicDoc):
 
     def _open_pdf(self):
         self.__pdf = Poppler.Document.new_from_file(
-            ("file://%s/%s" % (self.path, PDF_FILENAME)),
+            ("file://%s/%s" % (urllib.quote(self.path), PDF_FILENAME)),
             password=None)
         self.__nb_pages = self.pdf.get_n_pages()
         self.__pages = PdfPages(self)
@@ -171,7 +172,7 @@ class PdfDoc(BasicDoc):
     def import_pdf(self, config, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
         try:
-            dest = Gio.File.parse_name("file://%s" % self.path)
+            dest = Gio.File.parse_name("file://%s" % urllib.quote(self.path))
             dest.make_directory(None)
         except GLib.GError, exc:
             logger.exception("Warning: Error while trying to create '%s': %s"

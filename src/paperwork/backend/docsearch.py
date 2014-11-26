@@ -46,6 +46,7 @@ from paperwork.backend.util import dummy_progress_cb
 from paperwork.backend.util import MIN_KEYWORD_LEN
 from paperwork.backend.util import mkdir_p
 from paperwork.backend.util import rm_rf
+from paperwork.backend.util import strip_accents
 
 
 logger = logging.getLogger(__name__)
@@ -233,8 +234,8 @@ class DocIndexUpdater(GObject.GObject):
             docid=docid,
             doctype=doc.doctype,
             docfilehash=dochash,
-            content=doc.get_index_text(),
-            label=doc.get_index_labels(),
+            content=strip_accents(doc.get_index_text()),
+            label=strip_accents(doc.get_index_labels()),
             date=doc.date,
             last_read=last_mod
         )
@@ -297,15 +298,6 @@ class DocIndexUpdater(GObject.GObject):
         del self.writer
 
 
-def is_dir_empty(dirpath):
-    """
-    Check if the specified directory is empty or not
-    """
-    if not os.path.isdir(dirpath):
-        return False
-    return (len(os.listdir(dirpath)) <= 0)
-
-
 class DocSearch(object):
     """
     Index a set of documents. Can provide:
@@ -315,7 +307,6 @@ class DocSearch(object):
     """
 
     INDEX_STEP_LOADING = "loading"
-    INDEX_STEP_CLEANING = "cleaning"
     INDEX_STEP_CHECKING = "checking"
     INDEX_STEP_READING = "checking"
     INDEX_STEP_COMMIT = "commit"
@@ -422,7 +413,6 @@ class DocSearch(object):
         }
 
         self.check_workdir()
-        self.cleanup_rootdir(callback)
         self.reload_index(callback)
 
         self.label_estimators_dir = os.path.join(
@@ -459,41 +449,12 @@ class DocSearch(object):
                     self.label_estimators_file,
                     compress=0)
 
-    def __must_clean(self, filepath):
-        must_clean_cbs = [
-            is_dir_empty,
-        ]
-        for must_clean_cb in must_clean_cbs:
-            if must_clean_cb(filepath):
-                return True
-        return False
-
     def check_workdir(self):
         """
         Check that the current work dir (see config.PaperworkConfig) exists. If
         not, open the settings dialog.
         """
         mkdir_p(self.rootdir)
-
-    def cleanup_rootdir(self, progress_cb=dummy_progress_cb):
-        """
-        Remove all the crap from the work dir (temporary files, empty
-        directories, etc)
-        """
-        progress_cb(0, 1, self.INDEX_STEP_CLEANING)
-        for filename in os.listdir(self.rootdir):
-            filepath = os.path.join(self.rootdir, filename)
-            if self.__must_clean(filepath):
-                logger.info("Cleanup: Removing '%s'" % filepath)
-                rm_rf(filepath)
-            elif os.path.isdir(filepath):
-                # we only want to go one subdirectory deep, no more
-                for subfilename in os.listdir(filepath):
-                    subfilepath = os.path.join(filepath, subfilename)
-                    if self.__must_clean(subfilepath):
-                        logger.info("Cleanup: Removing '%s'" % subfilepath)
-                        rm_rf(subfilepath)
-        progress_cb(1, 1, self.INDEX_STEP_CLEANING)
 
     def get_doc_examiner(self):
         """
@@ -736,6 +697,7 @@ class DocSearch(object):
             An array of document (doc objects)
         """
         sentence = sentence.strip()
+        sentence = strip_accents(sentence)
 
         if sentence == u"":
             return self.docs

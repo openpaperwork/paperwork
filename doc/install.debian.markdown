@@ -38,7 +38,10 @@ so you will have to install some dependencies yourself with python-pip:
     $ sudo apt-get install python-pip
     $ sudo pip install numpy scikit-learn pyocr
 
-You need an OCR tool. You can use Tesseract or Cuneiform. For now, [Tesseract is strongly recommanded](https://github.com/jflesch/pyocr/issues/2):
+Some dependencies cannot be installed automatically, because they depend on your language:
+
+You need an OCR tool. You can use Tesseract or Cuneiform. For now,
+[Tesseract is strongly recommended](https://github.com/jflesch/pyocr/issues/2):
 
     $ sudo apt-get install tesseract-ocr tesseract-ocr-<your language>
 

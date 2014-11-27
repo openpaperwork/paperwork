@@ -39,10 +39,17 @@ so you will have to install some dependencies yourself with python-pip:
     $ sudo pip install pyocr
     $ sudo pip install numpy scikit-learn
 
-Optional:
+Some dependencies cannot be installed automatically, because they depend on your language:
+
+You need an OCR tool. You can use Tesseract or Cuneiform. For now,
+[Tesseract is strongly recommended](https://github.com/jflesch/pyocr/issues/2):
+
+    $ sudo yum install tesseract tesseract-langpack-<your language>
+
+Optional, but strongly recommended:
 Spell checking is used to improve page orientation detection, so:
 
-    $ sudo apt-get install aspell-<your language>
+    $ sudo yum install aspell-<your language>
 
 
 ## System-wide installation

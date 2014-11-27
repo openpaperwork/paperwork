@@ -24,6 +24,22 @@ So you must replace the following commands:
 * python --> python2.7
 
 
+## Runtime dependencies
+
+Some dependencies cannot be installed automatically, because they depend on your language:
+
+You need an OCR tool. You can use Tesseract or Cuneiform. For now,
+[Tesseract is strongly recommended](https://github.com/jflesch/pyocr/issues/2):
+
+    $ sudo pacman -S tesseract tesseract-data-<your language>
+
+Optional, but strongly recommended:
+Spell checking is used to improve page orientation detection, so:
+
+    $ sudo pacman -S aspell-<your language>
+
+
+
 ## Running Paperwork
 
 A shortcut should be available in the menus of your window manager (you may

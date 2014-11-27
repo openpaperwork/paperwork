@@ -6,34 +6,6 @@ import sys
 
 from setuptools import setup
 
-# Some modules/libraries required by Paperwork cannot be installed with pip or
-# easy_install. So we will just help the user detecting what is missing and what
-# must be installed
-
-PACKAGE_TOOLS = {
-    'debian': 'apt-get install',
-    'fedora': 'yum install',
-    'gentoo': 'emerge',
-    'linuxmint': 'apt-get install',
-    'ubuntu': 'apt-get install',
-    'suse': 'zypper in',
-}
-
-distribution = platform.dist()
-print("Detected system: %s" % " ".join(distribution))
-distribution = distribution[0].lower()
-if distribution not in PACKAGE_TOOLS:
-    print("Warning: Unknown distribution. Can't suggest packages to install")
-
-
-python_ver = [str(x) for x in sys.version_info]
-print("Detected python version: %s" % ".".join(python_ver))
-if python_ver[0] != "2" or python_ver[1] != "7":
-    print("ERROR: Expected python 2.7 ! Got python %s"
-          % ".".join(python_ver))
-    sys.exit(1)
-
-
 setup(
     name="paperwork",
     # if you change the version, don't forget to change it also in
@@ -175,7 +147,10 @@ setup(
         (os.path.join(sys.prefix, 'share/icons'),
          ['data/paperwork.svg']),
     ],
-    scripts=['scripts/paperwork'],
+    scripts=[
+        'scripts/paperwork',
+        'scripts/paperwork-chkdeps',
+    ],
     install_requires=[
         "Cython",
         'joblib',
@@ -202,150 +177,9 @@ setup(
     ],
     )
 
-# look for dependency that setuptools cannot check or that are too painful to
-# install with setuptools
-print("")
-
-# missing_modules is an array of
-# (common_name, python_name, { "distrib": "package" })
-missing_modules = []
-
-modules = [
-    (
-        'Python GObject Introspection', 'gi',
-        {
-            'debian': 'python-gi',
-            'fedora': 'pygobject3',
-            'gentoo': 'dev-python/pygobject',
-            'linuxmint': 'python-gi',
-            'ubuntu': 'python-gi',
-            'suse': 'python-gobject',
-        },
-    ),
-
-    (
-        'Gtk', 'gi.repository.Gtk',
-        {
-            'debian': 'gir1.2-gtk-3.0',
-            'fedora': 'gtk3',
-            'gentoo': 'x11-libs/gtk+',
-            'linuxmint': 'gir1.2-gtk-3.0',
-            'ubuntu': 'gir1.2-gtk-3.0',
-            'suse': 'python-gtk',
-        },
-    ),
-
-    # use_env_var += [ 'introspection' ]  # gentoo
-    (
-        'Glade UI', 'gi.repository.Gladeui',
-        {
-            'debian': 'gir1.2-gladeui-2.0',
-            'fedora': 'glade-libs',
-            'gentoo': 'dev-util/glade',
-            'linuxmint': 'gir1.2-gladeui-2.0',
-            'ubuntu': 'gir1.2-gladeui-2.0',
-            'suse': 'typelib-1_0-Gladeui-2_0',
-        },
-    ),
-
-    # TODO(Jflesch): check for jpeg support in PIL
-
-    (
-        'Poppler', 'gi.repository.Poppler',
-        {
-            'debian': 'gir1.2-poppler-0.18',
-            'fedora': 'poppler-glib',
-            'gentoo': 'app-text/poppler',
-            'linuxmint': 'gir1.2-poppler-0.18',
-            'ubuntu': 'gir1.2-poppler-0.18',
-            'suse': 'typelib-1_0-Poppler-0_18',
-        },
-    ),
-
-    (
-        'Cairo', 'cairo',
-        {
-            'debian': 'python-gi-cairo',
-            'fedora': 'pycairo',
-            'gentoo': 'dev-python/pycairo',
-            'linuxmint': 'python-gi-cairo',
-            'ubuntu': 'python-gi-cairo',
-            'suse': 'python-cairo',
-        },
-    ),
-]
-
-for module in modules:
-    print("Looking for %s ..." % module[0])
-    try:
-        __import__(module[1])
-    except ImportError:
-        print ("Missing !")
-        missing_modules.append(module)
-
-# TODO(Jflesch): check for sane ?
-
-try:
-    from pyocr import pyocr
-    print("Looking for OCR tool ...")
-    ocr_tools = pyocr.get_available_tools()
-except ImportError:
-    print ("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
-    ocr_tools = []
-if len(ocr_tools) > 0:
-    print ("Looking for OCR language data ...")
-    langs = ocr_tools[0].get_available_languages()
-else:
-    langs = []
-    missing_modules.append(
-        (
-            'Tesseract', '(none)',
-            {
-                'debian': 'tesseract-ocr',
-                'fedora': 'tesseract',
-                'gentoo': 'app-text/tesseract',
-                'linuxmint': 'tesseract-ocr',
-                'ubuntu': 'tesseract-ocr',
-            },
-        )
-    )
-
-if (len(langs) <= 0):
-    missing_modules.append(
-        (
-            'Tesseract language data', '(none)',
-            {
-                'debian': 'tesseract-ocr-<your language>',
-                'fedora': 'tesseract-langpack-<your language>',
-                'linuxmint': 'tesseract-ocr-<your language>',
-                'ubuntu': 'tesseract-ocr-<your language>',
-            },
-        )
-    )
-
-
-print("")
-if len(missing_modules) <= 0:
-    print("All dependencies have been found.")
-else:
-    print("")
-    print("==============================")
-    print("WARNING: Missing dependencies:")
-    pkgs = []
-    for dep in missing_modules:
-        if distribution in dep[2]:
-            print("  - %s (python module: %s ; %s package : %s)"
-                  % (dep[0], dep[1], distribution, dep[2][distribution]))
-            pkgs.append(dep[2][distribution])
-        else:
-            print("  - %s (python module: %s)"
-                  % (dep[0], dep[1]))
-    if len(pkgs) > 0:
-        print("")
-        print("==============================")
-        print("Suggested command:")
-        print("  sudo %s %s"
-              % (PACKAGE_TOOLS[distribution],
-                 " ".join(pkgs)))
-        print("==============================")
-    sys.exit(1)
+print ("======================================================================")
+print ("======================================================================")
+print ("||                           IMPORTANT                              ||")
+print ("||  Please run 'paperwork-chkdeps' to find any missing dependency   ||")
+print ("======================================================================")
+print ("======================================================================")

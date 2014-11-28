@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import getopt
 import locale
 import os
 import platform
 import sys
 
 import enchant
+import termcolor
 
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
@@ -107,23 +109,44 @@ MODULES = [
     ),
 ]
 
+isatty = os.isatty(sys.stdout.fileno())
+verbose_enabled = False
+
+
+def colored(txt, color):
+    if isatty:
+        return termcolor.colored(txt, color)
+    return txt
+
+
+def verbose(msg):
+    if verbose_enabled:
+        print (msg)
+
+
+def warning(msg):
+    print ("[%s] %s" % (colored("WARN", "yellow"), msg))
+
+
+def error(msg):
+    print ("[%s] %s" % (colored("ERROR", "red"), msg))
+
 
 def check_python_version():
     python_ver = [str(x) for x in sys.version_info]
-    print("Detected python version: %s" % ".".join(python_ver))
+    verbose("Detected python version: %s" % ".".join(python_ver))
     if python_ver[0] != "2" or python_ver[1] != "7":
-        print("ERROR: Expected python 2.7 ! Got python %s"
-            % ".".join(python_ver))
+        error("Expected python 2.7 ! Got python %s" % ".".join(python_ver))
         return False
     return True
 
 
 def get_distribution():
     distribution = platform.dist()
-    print("Detected system: %s" % " ".join(distribution))
+    verbose("Detected system: %s" % " ".join(distribution))
     distribution = distribution[0].lower()
     if distribution not in PACKAGE_TOOLS:
-        print("Warning: Unknown distribution. Can't suggest packages to install")
+        warning("Unknown distribution. Can't suggest packages to install")
     return distribution
 
 
@@ -131,10 +154,10 @@ def get_language():
     lang = locale.getdefaultlocale()[0]
     if lang:
         lang = lang[:2]
-    print ("Detected language: %s" % lang)
+    verbose("Detected language: %s" % lang)
     if lang in LANGUAGES:
         return LANGUAGES[lang]
-    print ("Warning: Unable to figure out the exact language package to install")
+    warning("Unable to figure out the exact language package to install")
     return DEFAULT_LANG
 
 
@@ -146,11 +169,11 @@ def find_missing_modules():
     missing_modules = []
 
     for module in MODULES:
-        print("Looking for %s ..." % module[0])
+        verbose("Looking for %s ..." % module[0])
         try:
             __import__(module[1])
         except ImportError:
-            print ("Missing !")
+            warning("%s is missing !" % module[0])
             missing_modules.append(module)
     return missing_modules
 
@@ -162,16 +185,17 @@ def find_missing_ocr(lang):
     missing = []
     try:
         from pyocr import pyocr
-        print("Looking for OCR tool ...")
+        verbose("Looking for OCR tool ...")
         ocr_tools = pyocr.get_available_tools()
     except ImportError:
-        print ("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
+        warning("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
         ocr_tools = []
     if len(ocr_tools) > 0:
-        print ("Looking for OCR language data ...")
+        verbose("Looking for OCR language data ...")
         langs = ocr_tools[0].get_available_languages()
     else:
         langs = []
+        warning("OCR tool not found")
         missing.append(
             (
                 'Tesseract', '(none)',
@@ -186,6 +210,7 @@ def find_missing_ocr(lang):
         )
 
     if (len(langs) <= 0 or lang['tesseract'] not in langs):
+        warning("OCR language data not found")
         missing.append(
             (
                 'Tesseract language data', '(none)',
@@ -204,8 +229,10 @@ def find_missing_ocr(lang):
 def find_missing_dict(lang):
     missing = []
     try:
+        verbose("Looking for dictionnary '%s'" % lang['aspell'])
         enchant.request_dict(lang['aspell'])
     except:
+        warning("Dictionnary '%s' not found" % lang['aspell'])
         missing.append(
             (
                 'Dictionary', '(none)',
@@ -234,20 +261,38 @@ def find_all_missing_deps():
     return missing
 
 
+def usage():
+    print("Usage:")
+    print("\t%s [-v]" % sys.argv[0])
+    print("\t\t-v : verbose")
+
+
 if __name__ == "__main__":
-    if not check_python_version():
+    try:
+        opts = getopt.getopt(sys.argv[1:], "v")
+        for (opt, val) in opts[0]:
+            if opt == "-v":
+                verbose_enabled = True
+    except getopt.GetoptError:
+        usage()
         sys.exit(1)
+
+
+    if not check_python_version():
+        sys.exit(2)
 
     distribution = get_distribution()
 
     missing = find_all_missing_deps()
-    print("")
+
+    verbose("")
+
     if len(missing) <= 0:
-        print("All dependencies have been found.")
+        print("All dependencies have been " + colored("found", "green") + ".")
     else:
         print("")
         print("==============================")
-        print("WARNING: Missing dependencies:")
+        print(colored("WARNING", "yellow") + ": Missing dependencies:")
         pkgs = []
         for dep in missing:
             if distribution in dep[2]:
@@ -260,9 +305,9 @@ if __name__ == "__main__":
         if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
             print("")
             print("==============================")
-            print("Suggested command:")
+            print(colored("Suggested command", "yellow") + ":")
             print("  sudo %s %s"
                 % (PACKAGE_TOOLS[distribution],
                     " ".join(pkgs)))
             print("==============================")
-        sys.exit(1)
+        sys.exit(2)

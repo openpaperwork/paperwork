@@ -165,6 +165,7 @@ setup(
         "scipy",
         "scikit-learn",
         "scikit-image",
+        "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         # "PyGObject",  # doesn't work with virtualenv
         # Missing due to the use of gobject introspection:

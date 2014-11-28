@@ -208,7 +208,7 @@ def find_missing_dict(lang):
     except:
         missing.append(
             (
-                'French dictionnary', '(none)',
+                'Dictionary', '(none)',
                 {
                     'debian': ('aspell-%s' % lang['aspell']),
                     'fedora': ('aspell-%s' % lang['aspell']),

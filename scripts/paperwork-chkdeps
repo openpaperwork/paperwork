@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
+import locale
 import os
 import platform
 import sys
 
-from setuptools import setup
+import enchant
 
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
@@ -20,6 +21,91 @@ PACKAGE_TOOLS = {
     'ubuntu': 'apt-get install',
     'suse': 'zypper in',
 }
+
+LANGUAGES = {
+    None: {
+        'aspell': 'en',
+        'tesseract': 'eng',
+    },
+    'fr': {
+        'aspell': 'fr',
+        'tesseract': 'fra',
+    },
+    'de': {
+        'aspell': 'de',
+        'tesseract': 'deu',
+    },
+}
+
+DEFAULT_LANG = {
+    'aspell': '<your language>',
+    'tesseract': '<your language>',
+}
+
+MODULES = [
+    (
+        'Python GObject Introspection', 'gi',
+        {
+            'debian': 'python-gi',
+            'fedora': 'pygobject3',
+            'gentoo': 'dev-python/pygobject',
+            'linuxmint': 'python-gi',
+            'ubuntu': 'python-gi',
+            'suse': 'python-gobject',
+        },
+    ),
+
+    (
+        'Gtk', 'gi.repository.Gtk',
+        {
+            'debian': 'gir1.2-gtk-3.0',
+            'fedora': 'gtk3',
+            'gentoo': 'x11-libs/gtk+',
+            'linuxmint': 'gir1.2-gtk-3.0',
+            'ubuntu': 'gir1.2-gtk-3.0',
+            'suse': 'python-gtk',
+        },
+    ),
+
+    # use_env_var += [ 'introspection' ]  # gentoo
+    (
+        'Glade UI', 'gi.repository.Gladeui',
+        {
+            'debian': 'gir1.2-gladeui-2.0',
+            'fedora': 'glade-libs',
+            'gentoo': 'dev-util/glade',
+            'linuxmint': 'gir1.2-gladeui-2.0',
+            'ubuntu': 'gir1.2-gladeui-2.0',
+            'suse': 'typelib-1_0-Gladeui-2_0',
+        },
+    ),
+
+    # TODO(Jflesch): check for jpeg support in PIL
+
+    (
+        'Poppler', 'gi.repository.Poppler',
+        {
+            'debian': 'gir1.2-poppler-0.18',
+            'fedora': 'poppler-glib',
+            'gentoo': 'app-text/poppler',
+            'linuxmint': 'gir1.2-poppler-0.18',
+            'ubuntu': 'gir1.2-poppler-0.18',
+            'suse': 'typelib-1_0-Poppler-0_18',
+        },
+    ),
+
+    (
+        'Cairo', 'cairo',
+        {
+            'debian': 'python-gi-cairo',
+            'fedora': 'pycairo',
+            'gentoo': 'dev-python/pycairo',
+            'linuxmint': 'python-gi-cairo',
+            'ubuntu': 'python-gi-cairo',
+            'suse': 'python-cairo',
+        },
+    ),
+]
 
 
 def check_python_version():
@@ -41,80 +127,25 @@ def get_distribution():
     return distribution
 
 
+def get_language():
+    lang = locale.getdefaultlocale()[0]
+    if lang:
+        lang = lang[:2]
+    print ("Detected language: %s" % lang)
+    if lang in LANGUAGES:
+        return LANGUAGES[lang]
+    print ("Warning: Unable to figure out the exact language package to install")
+    return DEFAULT_LANG
+
 
 def find_missing_modules():
     """
     look for dependency that setuptools cannot check or that are too painful to
     install with setuptools
     """
-    modules = [
-        (
-            'Python GObject Introspection', 'gi',
-            {
-                'debian': 'python-gi',
-                'fedora': 'pygobject3',
-                'gentoo': 'dev-python/pygobject',
-                'linuxmint': 'python-gi',
-                'ubuntu': 'python-gi',
-                'suse': 'python-gobject',
-            },
-        ),
-
-        (
-            'Gtk', 'gi.repository.Gtk',
-            {
-                'debian': 'gir1.2-gtk-3.0',
-                'fedora': 'gtk3',
-                'gentoo': 'x11-libs/gtk+',
-                'linuxmint': 'gir1.2-gtk-3.0',
-                'ubuntu': 'gir1.2-gtk-3.0',
-                'suse': 'python-gtk',
-            },
-        ),
-
-        # use_env_var += [ 'introspection' ]  # gentoo
-        (
-            'Glade UI', 'gi.repository.Gladeui',
-            {
-                'debian': 'gir1.2-gladeui-2.0',
-                'fedora': 'glade-libs',
-                'gentoo': 'dev-util/glade',
-                'linuxmint': 'gir1.2-gladeui-2.0',
-                'ubuntu': 'gir1.2-gladeui-2.0',
-                'suse': 'typelib-1_0-Gladeui-2_0',
-            },
-        ),
-
-        # TODO(Jflesch): check for jpeg support in PIL
-
-        (
-            'Poppler', 'gi.repository.Poppler',
-            {
-                'debian': 'gir1.2-poppler-0.18',
-                'fedora': 'poppler-glib',
-                'gentoo': 'app-text/poppler',
-                'linuxmint': 'gir1.2-poppler-0.18',
-                'ubuntu': 'gir1.2-poppler-0.18',
-                'suse': 'typelib-1_0-Poppler-0_18',
-            },
-        ),
-
-        (
-            'Cairo', 'cairo',
-            {
-                'debian': 'python-gi-cairo',
-                'fedora': 'pycairo',
-                'gentoo': 'dev-python/pycairo',
-                'linuxmint': 'python-gi-cairo',
-                'ubuntu': 'python-gi-cairo',
-                'suse': 'python-cairo',
-            },
-        ),
-    ]
-
     missing_modules = []
 
-    for module in modules:
+    for module in MODULES:
         print("Looking for %s ..." % module[0])
         try:
             __import__(module[1])
@@ -124,7 +155,7 @@ def find_missing_modules():
     return missing_modules
 
 
-def find_missing_ocr():
+def find_missing_ocr(lang):
     """
     OCR tools are a little bit more tricky
     """
@@ -154,15 +185,15 @@ def find_missing_ocr():
             )
         )
 
-    if (len(langs) <= 0):
+    if (len(langs) <= 0 or lang['tesseract'] not in langs):
         missing.append(
             (
                 'Tesseract language data', '(none)',
                 {
-                    'debian': 'tesseract-ocr-<your language>',
-                    'fedora': 'tesseract-langpack-<your language>',
-                    'linuxmint': 'tesseract-ocr-<your language>',
-                    'ubuntu': 'tesseract-ocr-<your language>',
+                    'debian': ('tesseract-ocr-%s' % lang['tesseract']),
+                    'fedora': ('tesseract-langpack-%s' % lang['tesseract']),
+                    'linuxmint': ('tesseract-ocr-%s' % lang['tesseract']),
+                    'ubuntu': ('tesseract-ocr-%s' % lang['tesseract']),
                 },
             )
         )
@@ -170,12 +201,35 @@ def find_missing_ocr():
     return missing
 
 
+def find_missing_dict(lang):
+    missing = []
+    try:
+        enchant.request_dict(lang['aspell'])
+    except:
+        missing.append(
+            (
+                'French dictionnary', '(none)',
+                {
+                    'debian': ('aspell-%s' % lang['aspell']),
+                    'fedora': ('aspell-%s' % lang['aspell']),
+                    'gentoo': ('aspell-%s' % lang['aspell']),
+                    'linuxmint': ('aspell-%s' % lang['aspell']),
+                    'ubuntu': ('aspell-%s' % lang['aspell']),
+                }
+            )
+        )
+    return missing
+
+
 def find_all_missing_deps():
+    lang = get_language()
+
     # missing_modules is an array of
     # (common_name, python_name, { "distrib": "package" })
     missing = []
     missing += find_missing_modules()
-    missing += find_missing_ocr()
+    missing += find_missing_ocr(lang)
+    missing += find_missing_dict(lang)
     # TODO(Jflesch): check for sane ?
     return missing
 

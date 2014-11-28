@@ -263,15 +263,20 @@ def find_all_missing_deps():
 
 def usage():
     print("Usage:")
-    print("\t%s [-v]" % sys.argv[0])
+    print("\t%s [-v] [-b]" % sys.argv[0])
     print("\t\t-v : verbose")
+    print("\t\t-b : batch mode (non-interactive)")
 
 
 if __name__ == "__main__":
+    interactive = True
+
     try:
-        opts = getopt.getopt(sys.argv[1:], "v")
+        opts = getopt.getopt(sys.argv[1:], "bv")
         for (opt, val) in opts[0]:
-            if opt == "-v":
+            if opt == "-b":
+                interactive = False
+            elif opt == "-v":
                 verbose_enabled = True
     except getopt.GetoptError:
         usage()
@@ -282,32 +287,39 @@ if __name__ == "__main__":
         sys.exit(2)
 
     distribution = get_distribution()
-
     missing = find_all_missing_deps()
 
     verbose("")
-
     if len(missing) <= 0:
         print("All dependencies have been " + colored("found", "green") + ".")
-    else:
+        sys.exit(0)
+
+    print("")
+    print(colored("WARNING", "yellow") + ": Missing dependencies:")
+    pkgs = []
+    for dep in missing:
+        if distribution in dep[2]:
+            print("  - %s (python module: %s ; %s package : %s)"
+                % (dep[0], dep[1], distribution, dep[2][distribution]))
+            pkgs.append(dep[2][distribution])
+        else:
+            print("  - %s (python module: %s)"
+                % (dep[0], dep[1]))
+
+    if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
+        command = "sudo %s %s" % (
+            PACKAGE_TOOLS[distribution], " ".join(pkgs)
+        )
         print("")
-        print("==============================")
-        print(colored("WARNING", "yellow") + ": Missing dependencies:")
-        pkgs = []
-        for dep in missing:
-            if distribution in dep[2]:
-                print("  - %s (python module: %s ; %s package : %s)"
-                    % (dep[0], dep[1], distribution, dep[2][distribution]))
-                pkgs.append(dep[2][distribution])
-            else:
-                print("  - %s (python module: %s)"
-                    % (dep[0], dep[1]))
-        if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
-            print("")
-            print("==============================")
-            print(colored("Suggested command", "yellow") + ":")
-            print("  sudo %s %s"
-                % (PACKAGE_TOOLS[distribution],
-                    " ".join(pkgs)))
-            print("==============================")
-        sys.exit(2)
+        print(colored("Suggested command", "yellow") + ":")
+        print("  %s" % command)
+
+        answer = "n"
+        if interactive:
+            print("Do you want to run this command now ? [Y/n]")
+            answer = sys.stdin.readline().strip().lower()
+        if answer == "" or answer == "y":
+            r = os.system(command)
+            sys.exit(r)
+
+    sys.exit(2)

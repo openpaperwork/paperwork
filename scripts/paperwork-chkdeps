@@ -1,0 +1,325 @@
+#!/usr/bin/env python
+
+import getopt
+import locale
+import os
+import platform
+import sys
+
+import enchant
+import termcolor
+
+"""
+Some modules/libraries required by Paperwork cannot be installed with pip or
+easy_install. So we will just help the user detecting what is missing and what
+must be installed
+"""
+
+PACKAGE_TOOLS = {
+    'debian': 'apt-get install',
+    'fedora': 'yum install',
+    'gentoo': 'emerge',
+    'linuxmint': 'apt-get install',
+    'ubuntu': 'apt-get install',
+    'suse': 'zypper in',
+}
+
+LANGUAGES = {
+    None: {
+        'aspell': 'en',
+        'tesseract': 'eng',
+    },
+    'fr': {
+        'aspell': 'fr',
+        'tesseract': 'fra',
+    },
+    'de': {
+        'aspell': 'de',
+        'tesseract': 'deu',
+    },
+}
+
+DEFAULT_LANG = {
+    'aspell': '<your language>',
+    'tesseract': '<your language>',
+}
+
+MODULES = [
+    (
+        'Python GObject Introspection', 'gi',
+        {
+            'debian': 'python-gi',
+            'fedora': 'pygobject3',
+            'gentoo': 'dev-python/pygobject',
+            'linuxmint': 'python-gi',
+            'ubuntu': 'python-gi',
+            'suse': 'python-gobject',
+        },
+    ),
+
+    (
+        'Gtk', 'gi.repository.Gtk',
+        {
+            'debian': 'gir1.2-gtk-3.0',
+            'fedora': 'gtk3',
+            'gentoo': 'x11-libs/gtk+',
+            'linuxmint': 'gir1.2-gtk-3.0',
+            'ubuntu': 'gir1.2-gtk-3.0',
+            'suse': 'python-gtk',
+        },
+    ),
+
+    # use_env_var += [ 'introspection' ]  # gentoo
+    (
+        'Glade UI', 'gi.repository.Gladeui',
+        {
+            'debian': 'gir1.2-gladeui-2.0',
+            'fedora': 'glade-libs',
+            'gentoo': 'dev-util/glade',
+            'linuxmint': 'gir1.2-gladeui-2.0',
+            'ubuntu': 'gir1.2-gladeui-2.0',
+            'suse': 'typelib-1_0-Gladeui-2_0',
+        },
+    ),
+
+    # TODO(Jflesch): check for jpeg support in PIL
+
+    (
+        'Poppler', 'gi.repository.Poppler',
+        {
+            'debian': 'gir1.2-poppler-0.18',
+            'fedora': 'poppler-glib',
+            'gentoo': 'app-text/poppler',
+            'linuxmint': 'gir1.2-poppler-0.18',
+            'ubuntu': 'gir1.2-poppler-0.18',
+            'suse': 'typelib-1_0-Poppler-0_18',
+        },
+    ),
+
+    (
+        'Cairo', 'cairo',
+        {
+            'debian': 'python-gi-cairo',
+            'fedora': 'pycairo',
+            'gentoo': 'dev-python/pycairo',
+            'linuxmint': 'python-gi-cairo',
+            'ubuntu': 'python-gi-cairo',
+            'suse': 'python-cairo',
+        },
+    ),
+]
+
+isatty = os.isatty(sys.stdout.fileno())
+verbose_enabled = False
+
+
+def colored(txt, color):
+    if isatty:
+        return termcolor.colored(txt, color)
+    return txt
+
+
+def verbose(msg):
+    if verbose_enabled:
+        print (msg)
+
+
+def warning(msg):
+    print ("[%s] %s" % (colored("WARN", "yellow"), msg))
+
+
+def error(msg):
+    print ("[%s] %s" % (colored("ERROR", "red"), msg))
+
+
+def check_python_version():
+    python_ver = [str(x) for x in sys.version_info]
+    verbose("Detected python version: %s" % ".".join(python_ver))
+    if python_ver[0] != "2" or python_ver[1] != "7":
+        error("Expected python 2.7 ! Got python %s" % ".".join(python_ver))
+        return False
+    return True
+
+
+def get_distribution():
+    distribution = platform.dist()
+    verbose("Detected system: %s" % " ".join(distribution))
+    distribution = distribution[0].lower()
+    if distribution not in PACKAGE_TOOLS:
+        warning("Unknown distribution. Can't suggest packages to install")
+    return distribution
+
+
+def get_language():
+    lang = locale.getdefaultlocale()[0]
+    if lang:
+        lang = lang[:2]
+    verbose("Detected language: %s" % lang)
+    if lang in LANGUAGES:
+        return LANGUAGES[lang]
+    warning("Unable to figure out the exact language package to install")
+    return DEFAULT_LANG
+
+
+def find_missing_modules():
+    """
+    look for dependency that setuptools cannot check or that are too painful to
+    install with setuptools
+    """
+    missing_modules = []
+
+    for module in MODULES:
+        verbose("Looking for %s ..." % module[0])
+        try:
+            __import__(module[1])
+        except ImportError:
+            warning("%s is missing !" % module[0])
+            missing_modules.append(module)
+    return missing_modules
+
+
+def find_missing_ocr(lang):
+    """
+    OCR tools are a little bit more tricky
+    """
+    missing = []
+    try:
+        from pyocr import pyocr
+        verbose("Looking for OCR tool ...")
+        ocr_tools = pyocr.get_available_tools()
+    except ImportError:
+        warning("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
+        ocr_tools = []
+    if len(ocr_tools) > 0:
+        verbose("Looking for OCR language data ...")
+        langs = ocr_tools[0].get_available_languages()
+    else:
+        langs = []
+        warning("OCR tool not found")
+        missing.append(
+            (
+                'Tesseract', '(none)',
+                {
+                    'debian': 'tesseract-ocr',
+                    'fedora': 'tesseract',
+                    'gentoo': 'app-text/tesseract',
+                    'linuxmint': 'tesseract-ocr',
+                    'ubuntu': 'tesseract-ocr',
+                },
+            )
+        )
+
+    if (len(langs) <= 0 or lang['tesseract'] not in langs):
+        warning("OCR language data not found")
+        missing.append(
+            (
+                'Tesseract language data', '(none)',
+                {
+                    'debian': ('tesseract-ocr-%s' % lang['tesseract']),
+                    'fedora': ('tesseract-langpack-%s' % lang['tesseract']),
+                    'linuxmint': ('tesseract-ocr-%s' % lang['tesseract']),
+                    'ubuntu': ('tesseract-ocr-%s' % lang['tesseract']),
+                },
+            )
+        )
+
+    return missing
+
+
+def find_missing_dict(lang):
+    missing = []
+    try:
+        verbose("Looking for dictionnary '%s'" % lang['aspell'])
+        enchant.request_dict(lang['aspell'])
+    except:
+        warning("Dictionnary '%s' not found" % lang['aspell'])
+        missing.append(
+            (
+                'Dictionary', '(none)',
+                {
+                    'debian': ('aspell-%s' % lang['aspell']),
+                    'fedora': ('aspell-%s' % lang['aspell']),
+                    'gentoo': ('aspell-%s' % lang['aspell']),
+                    'linuxmint': ('aspell-%s' % lang['aspell']),
+                    'ubuntu': ('aspell-%s' % lang['aspell']),
+                }
+            )
+        )
+    return missing
+
+
+def find_all_missing_deps():
+    lang = get_language()
+
+    # missing_modules is an array of
+    # (common_name, python_name, { "distrib": "package" })
+    missing = []
+    missing += find_missing_modules()
+    missing += find_missing_ocr(lang)
+    missing += find_missing_dict(lang)
+    # TODO(Jflesch): check for sane ?
+    return missing
+
+
+def usage():
+    print("Usage:")
+    print("\t%s [-v] [-b]" % sys.argv[0])
+    print("\t\t-v : verbose")
+    print("\t\t-b : batch mode (non-interactive)")
+
+
+if __name__ == "__main__":
+    interactive = True
+
+    try:
+        opts = getopt.getopt(sys.argv[1:], "bv")
+        for (opt, val) in opts[0]:
+            if opt == "-b":
+                interactive = False
+            elif opt == "-v":
+                verbose_enabled = True
+    except getopt.GetoptError:
+        usage()
+        sys.exit(1)
+
+
+    if not check_python_version():
+        sys.exit(2)
+
+    distribution = get_distribution()
+    missing = find_all_missing_deps()
+
+    verbose("")
+    if len(missing) <= 0:
+        print("All dependencies have been " + colored("found", "green") + ".")
+        sys.exit(0)
+
+    print("")
+    print(colored("WARNING", "yellow") + ": Missing dependencies:")
+    pkgs = []
+    for dep in missing:
+        if distribution in dep[2]:
+            print("  - %s (python module: %s ; %s package : %s)"
+                % (dep[0], dep[1], distribution, dep[2][distribution]))
+            pkgs.append(dep[2][distribution])
+        else:
+            print("  - %s (python module: %s)"
+                % (dep[0], dep[1]))
+
+    if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
+        command = "sudo %s %s" % (
+            PACKAGE_TOOLS[distribution], " ".join(pkgs)
+        )
+        print("")
+        print(colored("Suggested command", "yellow") + ":")
+        print("  %s" % command)
+
+        answer = "n"
+        if interactive:
+            print("Do you want to run this command now ? [Y/n]")
+            answer = sys.stdin.readline().strip().lower()
+        if answer == "" or answer == "y":
+            r = os.system(command)
+            sys.exit(r)
+
+    sys.exit(2)

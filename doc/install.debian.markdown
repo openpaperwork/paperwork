@@ -28,6 +28,12 @@ Pillow may conflict with the package python-imaging (aka PIL).
     # PyEnchant dependency
     $ sudo apt-get install libenchant-dev
 
+	# Glade UI dependency
+	$ sudo apt-get install gir1.2-gladeui-2.0
+
+	# Poppler dependency
+	$ sudo apt-get install gir1.2-poppler-0.18
+
 
 ## Runtime dependencies
 

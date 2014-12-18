@@ -346,7 +346,7 @@ class JobIndexUpdater(Job):
         self.can_run = True
 
         total = len(self.new_docs) + len(self.upd_docs) + len(self.del_docs)
-        if total <= 0 and self.index_updater is None:
+        if total <= 0 and not self.optimize and self.index_updater is None:
             return
 
         if self.index_updater is None:
@@ -2245,12 +2245,26 @@ class ActionEditDoc(SimpleAction):
         DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
 
 
+class ActionOptimizeIndex(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Optimize index")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch, optimize=True,
+            reload_all=False, reload_thumbnails=False)
+        self.__main_win.schedulers['main'].schedule(job)
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
         self.__main_win = main_window
 
     def do(self):
+        SimpleAction.do(self)
         about = AboutDialog(self.__main_win.window)
         about.show()
 
@@ -2793,6 +2807,12 @@ class MainWindow(object):
                 ],
                 ActionDeletePage(self),
             ),
+            'optimize_index': (
+                [
+                    gactions['optimize_index'],
+                ],
+                ActionOptimizeIndex(self),
+            ),
             'prev_page': (
                 [
                     widget_tree.get_object("toolbuttonPrevPage"),
@@ -2992,6 +3012,7 @@ class MainWindow(object):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
+            'optimize_index': Gio.SimpleAction.new("optimize_index", None),
             'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
             'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
             'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),

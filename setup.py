@@ -10,7 +10,7 @@ setup(
     name="paperwork",
     # if you change the version, don't forget to change it also in
     # src/paperwork/frontend/aboutdialog/aboutdialog.glade
-    version="0.2-git",
+    version="0.2.1",
     description="Grep for dead trees",
     long_description="""
     Paperwork is a tool to make papers searchable.

@@ -60,7 +60,10 @@ Many dependencies can't be installed from Pypi or in a virtualenv. For
 instance, all the libraries accessed through GObject introspection have
 no package on Pypi. This is why they can only be installed in a system-wide
 manner.
-The setup.py will indicate what is required and how to install it.
+
+You must run 'paperwork-chkdeps' to find all the missing dependencies.
+
+    $ paperwork-chkdeps
 
 
 ### Running Paperwork

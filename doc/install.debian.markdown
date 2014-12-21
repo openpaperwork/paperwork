@@ -38,6 +38,10 @@ so you will have to install some dependencies yourself with python-pip:
     $ sudo apt-get install python-pip
     $ sudo pip install numpy scikit-learn
 
+You can then instlal paperwork using pip:
+
+    $ sudo pip install paperwork
+
 Some dependencies cannot be installed automatically, because they depend on your language. You can find all the required dependencies not yet installed by running 'paperwork-chkdeps'
 
     $ paperwork-chkdeps

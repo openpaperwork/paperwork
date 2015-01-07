@@ -1225,7 +1225,9 @@ class JobImporter(Job):
                 page.img = img
             page.boxes = boxes
 
+            logger.info("OCR done on %s" % str(page))
             self._main_win.remove_scan_workflow(scan_workflow)
+            self._main_win.show_page(page, force_refresh=True)
             self._add_doc_to_checklists(page.doc)
             self._ocr_next_page()
 

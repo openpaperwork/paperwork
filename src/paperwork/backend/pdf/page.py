@@ -86,7 +86,7 @@ class PdfPage(BasicPage):
 
     def __get_last_mod(self):
         try:
-            return os.stat(self.__get_txt_path()).st_mtime
+            return os.stat(self.__get_box_path()).st_mtime
         except OSError:
             return 0.0
 
@@ -109,6 +109,22 @@ class PdfPage(BasicPage):
             return txt
 
         except OSError, exc:  # os.stat() failed
+            pass
+
+        boxfile = self.__get_box_path()
+        try:
+            os.stat(boxfile)
+
+            # reassemble text based on boxes
+            boxes = self.boxes
+            txt = []
+            for line in boxes:
+                txt_line = u""
+                for box in line.word_boxes:
+                    txt_line += u" " + box.content
+                txt.append(txt_line)
+            return txt
+        except OSError, exc:
             txt = self.pdf_page.get_text()
             txt = unicode(txt, encoding='utf-8')
             return txt.split(u"\n")

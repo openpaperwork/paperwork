@@ -1265,7 +1265,7 @@ class JobImporter(Job):
             logger.info("Updating index for %d docs"
                         % len(self._docs_to_upd))
             job = self._main_win.job_factories['index_updater'].make(
-                self._main_win.docsearch, upd_docs=self._docs_to_upd,
+                self._main_win.docsearch, new_docs=self._docs_to_upd,
                 optimize=False, reload_all=True, reload_thumbnails=True)
             self._main_win.schedulers['main'].schedule(job)
             self._docs_to_upd = set()

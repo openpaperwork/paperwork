@@ -42,7 +42,6 @@ class ImgPage(BasicPage):
     """
 
     FILE_PREFIX = "paper."
-    EXT_TXT = "txt"
     EXT_BOX = "words"
     EXT_IMG = "jpg"
 
@@ -91,10 +90,13 @@ class ImgPage(BasicPage):
         Get the text corresponding to this page
         """
         boxes = self.boxes
-        txt = u""
-        for box in boxes:
-            txt += u" " + str(box).decode('utf-8')
-        return [txt]
+        txt = []
+        for line in boxes:
+            txt_line = u""
+            for box in line.word_boxes:
+                txt_line += u" " + box.content
+            txt.append(txt_line)
+        return txt
 
     def __get_boxes(self):
         """

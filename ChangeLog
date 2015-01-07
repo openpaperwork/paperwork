@@ -1,3 +1,11 @@
+2015/xx/xx - 0.2.2:
+* PDF + OCR: text wasn't indexed correctly
+* Img doc: indexed text contains extra and useless data. As a side-effect,
+  label prediction accuracy was strongly reduced.
+  Rebuilding your index is strongly recommended
+  ("rm -rf ~/.local/share/paperwork" + restarting Paperwork)
+
+
 2014/12/19 - 0.2.1:
 * Settings window : add help links
 * Install process :

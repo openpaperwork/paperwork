@@ -1,3 +1,29 @@
+2015/01/11 - 0.2.2:
+* PDF + OCR: text wasn't indexed correctly
+* Img doc: indexed text contains extra and useless data. As a side-effect,
+  label prediction accuracy was strongly reduced.
+  Rebuilding your index is strongly recommended
+  ("rm -rf ~/.local/share/paperwork" + restarting Paperwork)
+
+
+2014/12/19 - 0.2.1:
+* Settings window : add help links
+* Install process :
+  - Extra dependencies are now detected by another script than setup.py
+  - More missing dependencies are detected (aspell, tesseract, language
+    packs, etc)
+* Bug fixes :
+  - Button 'open parent directory' doesn't remain stuck anymore when using
+    the file manager Thunar
+  - Settings window : Fix the way the file chooser is used (avoid
+    selecting the wrong work directory by mistake)
+  - Scanners support : Make it possible to use scanners even if some basic
+    options are missing (source, resolution, etc)
+  - When starting, don't remove empty directories anymore
+  - Searching : Make sure diacritics characters are not a problem anymore
+  - Import : accept file path containing spaces
+
+
 2014/09/21 - 0.2:
 * Improved search : whoosh.FuzzyTerm is now used
 * Label look has been improved

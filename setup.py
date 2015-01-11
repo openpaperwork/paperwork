@@ -7,8 +7,10 @@ from setuptools import setup
 
 setup(
     name="paperwork",
-    # if you change the version, don't forget to change it also in
-    # src/paperwork/frontend/aboutdialog/aboutdialog.glade
+    # if you change the version, don't forget to
+    # * change it also in
+    #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
+    # * update the archive list in the README
     version="0.3-unstable",
     description="Grep for dead trees",
     long_description="""

@@ -13,6 +13,10 @@
 				<submenu id="advanced">
 					<attribute name="label" translatable="yes">_Advanced</attribute>
 					<item>
+						<attribute name="label" translatable="yes">Optimize index</attribute>
+						<attribute name="action">app.optimize_index</attribute>
+					</item>
+					<item>
 						<attribute name="label" translatable="yes">Reindex all the documents</attribute>
 						<attribute name="action">app.reindex_all</attribute>
 					</item>

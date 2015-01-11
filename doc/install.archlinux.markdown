@@ -10,7 +10,6 @@ If there is a problem with the package, please report it on
 Please do **not** report issue with packages on Paperwork's bugtracker. It is
 **not** possible to assign issues to package maintainer on the bugtracker.
 
-
 ## Manual installation
 
 See the [Fedora](install.fedora.markdown) or [Debian](install.debian.markdown) installation
@@ -25,6 +24,12 @@ So you must replace the following commands:
 
 
 ## Runtime dependencies
+
+### Paperwork &gt;= 0.2.1
+
+Once installed, please run 'paperwork-chkdeps' to make sure all the required depencies are installed.
+
+### Paperwork &lt;= 0.2.0
 
 Some dependencies cannot be installed automatically, because they depend on your language:
 

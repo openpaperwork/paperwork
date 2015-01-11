@@ -12,7 +12,7 @@ setup(
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
-    version="0.2.2",
+    version="0.2.2-git",
     description="Grep for dead trees",
     long_description="""
     Paperwork is a tool to make papers searchable.

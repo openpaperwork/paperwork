@@ -1,4 +1,4 @@
-2015/xx/xx - 0.2.2:
+2015/01/11 - 0.2.2:
 * PDF + OCR: text wasn't indexed correctly
 * Img doc: indexed text contains extra and useless data. As a side-effect,
   label prediction accuracy was strongly reduced.

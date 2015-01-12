@@ -1,3 +1,8 @@
+yyyy/mm/dd - 0.3.0:
+* Whenever possible, page orientation detection is now done using OCR tool
+  feature (Tesseract >= 3.3.0). It's much faster and reliable.
+
+
 2015/01/11 - 0.2.2:
 * PDF + OCR: text wasn't indexed correctly
 * Img doc: indexed text contains extra and useless data. As a side-effect,

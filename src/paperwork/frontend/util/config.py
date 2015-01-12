@@ -293,7 +293,7 @@ def get_scanner(config, preferred_sources=None):
     config_source = config['scanner_source'].value
     use_config_source = False
 
-    if not 'source' in dev.options:
+    if 'source' not in dev.options:
         logger.warning("Can't set the source on this scanner. Option not found")
     else:
         if preferred_sources:
@@ -309,11 +309,12 @@ def get_scanner(config, preferred_sources=None):
 
         if not use_config_source and preferred_sources:
             try:
-                set_scanner_opt('source', dev.options['source'], preferred_sources)
+                set_scanner_opt('source', dev.options['source'],
+                                preferred_sources)
             except (KeyError, pyinsane.SaneException), exc:
                 config_source = config['scanner_source'].value
                 logger.error("Warning: Unable to set scanner source to '%s': %s"
-                            % (preferred_sources, exc))
+                             % (preferred_sources, exc))
                 if dev.options['source'].capabilities.is_active():
                     dev.options['source'].value = config_source
         else:
@@ -321,7 +322,7 @@ def get_scanner(config, preferred_sources=None):
                 dev.options['source'].value = config_source
             logger.info("Will scan using source %s" % str(config_source))
 
-    if not 'resolution' in dev.options:
+    if 'resolution' not in dev.options:
         logger.warning("Can't set the resolution on this scanner."
                        " Option not found")
     else:
@@ -329,9 +330,9 @@ def get_scanner(config, preferred_sources=None):
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException:
             logger.warning("Unable to set scanner resolution to %d: %s"
-                        % (resolution, exc))
+                           % (resolution, exc))
 
-    if not 'mode' in dev.options:
+    if 'mode' not in dev.options:
         logger.warning("Can't set the mode on this scanner. Option not found")
     else:
         if dev.options['mode'].capabilities.is_active():

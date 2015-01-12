@@ -880,7 +880,7 @@ class ScanWorkflow(GObject.GObject):
         if not self.__config['ocr_enabled'].value:
             angles = 0
         elif angles is None:
-            angles = self.__config['ocr_nb_angles'].value
+            angles = 4
         img.load()
         job = self.factories['ocr'].make(img, angles)
         self.schedulers['ocr'].schedule(job)

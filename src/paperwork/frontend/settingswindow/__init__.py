@@ -544,11 +544,6 @@ class ActionApplySettings(SimpleAction):
         enabled = setting['gui'].get_active()
         self.__config['ocr_enabled'].value = enabled
 
-        setting = self.__settings_win.ocr_settings['angles']
-        idx = setting['gui'].get_active()
-        nb_angles = setting['store'][idx][1]
-        self.__config['ocr_nb_angles'].value = nb_angles
-
         setting = self.__settings_win.ocr_settings['lang']
         idx = setting['gui'].get_active()
         if idx >= 0:
@@ -650,10 +645,6 @@ class SettingsWindow(GObject.GObject):
                 'gui': widget_tree.get_object("comboboxLang"),
                 'store': widget_tree.get_object("liststoreOcrLang"),
             },
-            "angles": {
-                'gui': widget_tree.get_object("comboboxOcrAngles"),
-                'store': widget_tree.get_object("liststoreOcrAngles"),
-            }
         }
 
         actions = {
@@ -908,13 +899,6 @@ class SettingsWindow(GObject.GObject):
         if config['ocr_lang'].value is None:
             ocr_enabled = False
         self.ocr_settings['enabled']['gui'].set_active(ocr_enabled)
-
-        idx = 0
-        ocr_nb_angles = config['ocr_nb_angles'].value
-        for (_, nb_angles) in self.ocr_settings['angles']['store']:
-            if nb_angles == ocr_nb_angles:
-                self.ocr_settings['angles']['gui'].set_active(idx)
-            idx += 1
 
         idx = 0
         current_ocr_lang = config['ocr_lang'].value

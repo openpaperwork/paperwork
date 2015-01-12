@@ -162,7 +162,7 @@ setup(
         "pyenchant",
         "python-Levenshtein",
         "pyinsane >= 1.3.8",
-        "pyocr >= 0.2.3",
+        "pyocr >= 0.3.0",
         "numpy",
         "scipy",
         "scikit-learn",

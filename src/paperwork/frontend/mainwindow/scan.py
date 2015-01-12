@@ -230,7 +230,7 @@ class JobOCR(Job):
         'ocr-started': (GObject.SignalFlags.RUN_LAST, None,
                         (GObject.TYPE_PYOBJECT, )),  # image to ocr
         'ocr-angles': (GObject.SignalFlags.RUN_LAST, None,
-                       # list of images to ocr: { angle: img }
+                       # list of angles
                        (GObject.TYPE_PYOBJECT, )),
         'ocr-score': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_INT,  # angle
@@ -252,28 +252,53 @@ class JobOCR(Job):
         self.ocr_tool = ocr_tool
         self.langs = langs
         self.img = img
-        self.imgs = {angle: img.rotate(angle) for angle in angles}
+        self.angles = angles
 
-    def do(self):
-        self.emit('ocr-started', self.img)
-        self.emit('ocr-angles', dict(self.imgs))
+    def do_ocr_with_tool_heuristic(self, img):
+        if not self.ocr_tool.can_detect_orientation():
+            raise Exception("OCR tool does not support orientation detection")
+        self.emit('ocr-angles', [0, 90, 180, 270])
 
-        if len(self.imgs) <= 0:
+        orientation = self.ocr_tool.detect_orientation(
+            img, lang=self.langs['ocr'])
+
+        logger.info("Detected orientation: %d" % orientation['angle'])
+        img = img.rotate(-1 * orientation['angle'])
+
+        for angle in [0, 90, 180, 270]:
+            # tell the observer we decided to not OCR some orientations
+            if angle == orientation['angle']:
+                continue
+            self.emit('ocr-score', angle, 0)
+
+        boxes = self.ocr_tool.image_to_string(
+            img, lang=self.langs['ocr'],
+            builder=pyocr.builders.LineBoxBuilder())
+
+        self.emit('ocr-score', orientation['angle'], 1)
+
+        return (orientation['angle'], img, boxes)
+
+
+    def do_ocr_with_custom_heuristic(self, img):
+        imgs = {angle: img.rotate(angle) for angle in self.angles}
+        self.emit('ocr-angles', imgs.keys())
+
+        if len(imgs) <= 0:
             self.emit('ocr-score', 0, 0)
-            self.emit('ocr-done', 0, self.img, [])
-            return
+            return (0, img, [])
 
         max_threads = multiprocessing.cpu_count()
         threads = []
         scores = []
 
-        if len(self.imgs) > 1:
+        if len(imgs) > 1:
             logger.debug("Will use %d process(es) for OCR" % (max_threads))
 
         # Run the OCR tools in as many threads as there are processors/core
         # on the computer
         nb = 0
-        while (len(self.imgs) > 0 or len(threads) > 0):
+        while (len(imgs) > 0 or len(threads) > 0):
             # look for finished threads
             for thread in threads:
                 if not thread.is_alive():
@@ -284,8 +309,8 @@ class JobOCR(Job):
                                    thread.img, thread.boxes))
                     self.emit('ocr-score', thread.angle, thread.score)
             # start new threads if required
-            while (len(threads) < max_threads and len(self.imgs) > 0):
-                (angle, img) = self.imgs.popitem()
+            while (len(threads) < max_threads and len(imgs) > 0):
+                (angle, img) = imgs.popitem()
                 logger.info("Starting OCR on angle %d" % angle)
                 thread = _ImgOCRThread(str(nb), self.ocr_tool,
                                        self.langs, angle, img)
@@ -298,8 +323,20 @@ class JobOCR(Job):
         scores.sort(cmp=lambda x, y: cmp(y[0], x[0]))
 
         logger.info("Best: %f" % (scores[0][0]))
+        return scores[0][1:]
 
-        self.emit('ocr-done', scores[0][1], scores[0][2], scores[0][3])
+    def do(self):
+        self.emit('ocr-started', self.img)
+
+        try:
+            best = self.do_ocr_with_tool_heuristic(self.img)
+        except Exception as exc:
+            logger.info("Failed to use OCR tool heuristic for orientation"
+                        " detection: %s" % str(exc))
+            logger.info("Falling back on Paperwork's heuristic")
+            best = self.do_ocr_with_custom_heuristic(self.img)
+
+        self.emit('ocr-done', best[0], best[1], best[2])
 
 
 GObject.type_register(JobOCR)
@@ -565,9 +602,9 @@ class BasicScanWorkflowDrawer(Animation):
             line_drawer,
         ]
 
-    def __on_ocr_angles_cb(self, imgs):
+    def __on_ocr_angles_cb(self, angles):
         # disable all the angles not evaluated
-        self.__used_angles = imgs.keys()
+        self.__used_angles = angles
         if self.rotation_done:
             for angle in self.ocr_drawers.keys()[:]:
                 if angle not in self.__used_angles:

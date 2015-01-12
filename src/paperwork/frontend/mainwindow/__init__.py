@@ -2901,11 +2901,12 @@ class MainWindow(object):
             ),
         }
 
-        for action in self.actions:
-            for button in self.actions[action][0]:
-                if button is None:
-                    logger.error("MISSING BUTTON: %s" % (action))
-            self.actions[action][1].connect(self.actions[action][0])
+        # TODO
+        #for action in self.actions:
+        #    for button in self.actions[action][0]:
+        #        if button is None:
+        #            logger.error("MISSING BUTTON: %s" % (action))
+        #    self.actions[action][1].connect(self.actions[action][0])
 
         for (buttons, action) in self.actions.values():
             for button in buttons:
@@ -2925,12 +2926,13 @@ class MainWindow(object):
             ('<Primary>f', 'grab-focus',
              self.search_field),
         ]
-        accel_group = Gtk.AccelGroup()
-        for (shortcut, signame, widget) in accelerators:
-            (key, mod) = Gtk.accelerator_parse(shortcut)
-            widget.add_accelerator(signame, accel_group, key, mod,
-                                   Gtk.AccelFlags.VISIBLE)
-        self.window.add_accel_group(accel_group)
+        # TODO
+        #accel_group = Gtk.AccelGroup()
+        #for (shortcut, signame, widget) in accelerators:
+        #    (key, mod) = Gtk.accelerator_parse(shortcut)
+        #    widget.add_accelerator(signame, accel_group, key, mod,
+        #                           Gtk.AccelFlags.VISIBLE)
+        #self.window.add_accel_group(accel_group)
 
         self.need_doc_widgets = set(
             self.actions['print'][0]
@@ -2963,7 +2965,8 @@ class MainWindow(object):
             + self.actions['edit_page'][0]
         )
 
-        set_widget_state(self.need_page_widgets, False)
+        # TODO
+        # set_widget_state(self.need_page_widgets, False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             assert(not popup_menu[0] is None)
@@ -3100,7 +3103,8 @@ class MainWindow(object):
             logger.warning("Unknown zoom level: %f" % level)
             return
 
-        self.lists['zoom_levels']['gui'].set_active(new_idx)
+        # TODO
+        # self.lists['zoom_levels']['gui'].set_active(new_idx)
 
     def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)

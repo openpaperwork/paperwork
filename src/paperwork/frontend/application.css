@@ -1,0 +1,17 @@
+.contacts-left-header-bar:dir(ltr) {
+ border-right-width: 1px;
+}
+
+.contacts-left-header-bar:dir(rtl) {
+ border-left-width: 1px;
+}
+
+.contacts-left-header-bar:dir(ltr) {
+  border-top-right-radius: 0;
+}
+
+.contacts-left-header-bar:dir(rtl) {
+  border-top-left-radius: 0;
+}
+
+

@@ -43,6 +43,7 @@ from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
 from paperwork.frontend.settingswindow import SettingsWindow
+from paperwork.frontend.util import load_cssfile
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
@@ -2431,6 +2432,7 @@ class MainWindow(object):
         (self.__advanced_menu, self.__show_all_boxes_widget) = \
             self.__init_app_menu(self.app)
 
+        load_cssfile("application.css")
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
 

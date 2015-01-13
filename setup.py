@@ -83,6 +83,13 @@ setup(
         'paperwork.backend.img': 'src/paperwork/backend/img',
     },
     data_files=[
+        # css file
+        (
+            os.path.join(sys.prefix, 'share/paperwork'),
+            [
+                'src/paperwork/frontend/application.css',
+            ]
+        ),
         # glade files
         (
             os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),

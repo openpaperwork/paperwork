@@ -20,6 +20,7 @@ import os
 
 import heapq
 import gettext
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 
@@ -64,6 +65,36 @@ def load_uifile(filename):
         logging.error("Can't find resource file '%s'. Aborting" % filename)
         raise Exception("Can't find resource file '%s'. Aborting" % filename)
     return widget_tree
+
+
+def load_cssfile(filename):
+    """
+    Load a .glade file and return the corresponding widget tree
+
+    Arguments:
+        filename -- css filename to load. Must not contain any directory
+            name, just the filename. This function will (try to) figure out
+            where it must be found.
+
+    Throws:
+        Exception -- If the file cannot be found
+    """
+    css_provider = Gtk.CssProvider()
+    has_css_file = False
+    for css_dir in UI_FILES_DIRS:
+        css_file = os.path.join(css_dir, filename)
+        if os.access(css_file, os.R_OK):
+            logging.info("CSS file used: " + css_file)
+            css_provider.load_from_path(css_file)
+            has_css_file = True
+            break
+    if not has_css_file:
+        logging.error("Can't find resource file '%s'. Aborting" % filename)
+        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+    Gtk.StyleContext.add_provider_for_screen(
+        Gdk.Screen.get_default(),
+        css_provider,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 _SIZEOF_FMT_STRINGS = [

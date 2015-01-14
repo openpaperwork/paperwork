@@ -621,106 +621,6 @@ class JobFactoryLabelPredictorOnNewDoc(JobFactory):
         return job
 
 
-class JobPageThumbnailer(Job):
-    """
-    Generate page thumbnails
-    """
-
-    __gsignals__ = {
-        'page-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        'page-thumbnailing-page-done': (GObject.SignalFlags.RUN_LAST, None,
-                                        (GObject.TYPE_INT,
-                                         GObject.TYPE_PYOBJECT)),
-        'page-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
-
-    can_stop = True
-    priority = 400
-
-    def __init__(self, factory, id, doc, search):
-        Job.__init__(self, factory, id)
-        self.__doc = doc
-        self.__search = search
-
-        self.__current_idx = -1
-        self.done = False
-
-    def do(self):
-        if self.done:
-            return
-
-        pages = self.__doc.pages
-        nb_pages = self.__doc.nb_pages
-
-        self.can_run = True
-        if self.__current_idx >= nb_pages:
-            return
-        if not self.can_run:
-            return
-
-        if self.__current_idx < 0:
-            self.emit('page-thumbnailing-start')
-            self.__current_idx = 0
-
-        for page_idx in xrange(self.__current_idx, nb_pages):
-            page = pages[page_idx]
-            img = page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
-                                     BasicPage.DEFAULT_THUMB_HEIGHT)
-            img = img.copy()
-
-            if self.__search != u"" and self.__search in page:
-                img = add_img_border(img, color="#009e00", width=3)
-            else:
-                img = add_img_border(img)
-            if not self.can_run:
-                return
-
-            pixbuf = image2pixbuf(img)
-            self.emit('page-thumbnailing-page-done', page_idx, pixbuf)
-            self.__current_idx = page_idx
-            if not self.can_run:
-                return
-        self.emit('page-thumbnailing-end')
-        self.done = True
-
-    def stop(self, will_resume=False):
-        self.can_run = False
-        self._stop_wait()
-        if (not will_resume
-                and self.__current_idx >= 0
-                and not self.done):
-            self.done = True
-            self.emit('page-thumbnailing-end')
-
-
-GObject.type_register(JobPageThumbnailer)
-
-
-class JobFactoryPageThumbnailer(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "PageThumbnailer")
-        self.__main_win = main_win
-
-    def make(self, doc, search):
-        job = JobPageThumbnailer(self, next(self.id_generator), doc, search)
-        job.connect('page-thumbnailing-start',
-                    lambda thumbnailer:
-                    GLib.idle_add(
-                        self.__main_win.on_page_thumbnailing_start_cb,
-                        thumbnailer))
-        job.connect('page-thumbnailing-page-done',
-                    lambda thumbnailer, page_idx, thumbnail:
-                    GLib.idle_add(
-                        self.__main_win.on_page_thumbnailing_page_done_cb,
-                        thumbnailer, page_idx, thumbnail))
-        job.connect('page-thumbnailing-end',
-                    lambda thumbnailer:
-                    GLib.idle_add(
-                        self.__main_win.on_page_thumbnailing_end_cb,
-                        thumbnailer))
-        return job
-
-
 class JobDocThumbnailer(Job):
     """
     Generate doc list thumbnails
@@ -1389,17 +1289,9 @@ class ActionUpdateSearchResults(SimpleAction):
         self.__main_win.refresh_doc_list()
 
         if self.__refresh_pages:
-            # Don't call self.__main_win.refresh_page_list():
-            # it will redo the list from scratch. We just want to update
-            # the thumbnails of the pages. There is no new or removed pages.
-            self.__main_win.schedulers['main'].cancel_all(
-                self.__main_win.job_factories['page_thumbnailer'])
+            # TODO: highlight pages with keywords
             search = unicode(self.__main_win.search_field.get_text(),
                              encoding='utf-8')
-            job = self.__main_win.job_factories['page_thumbnailer'].make(
-                self.__main_win.doc, search)
-            self.__main_win.schedulers['main'].schedule(job)
-
             self.__main_win.refresh_boxes()
 
     def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
@@ -1558,7 +1450,8 @@ class ActionToggleLabel(object):
                         % (label.name, self.__main_win.doc))
             self.__main_win.docsearch.remove_label(self.__main_win.doc, label,
                                                    update_index=False)
-        self.__main_win.refresh_label_list()
+        # TODO
+        #self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs({self.__main_win.doc},
                                      redo_thumbnails=False)
         job = self.__main_win.job_factories['index_updater'].make(
@@ -1924,7 +1817,8 @@ class ActionDeletePage(SimpleAction):
         set_widget_state(self.__main_win.need_page_widgets, False)
         self.__main_win.refresh_docs({self.__main_win.doc})
         self.__main_win.refresh_page_list()
-        self.__main_win.refresh_label_list()
+        # TODO
+        #self.__main_win.refresh_label_list()
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
 
         if doc.nb_pages <= 0:
@@ -2445,14 +2339,6 @@ class MainWindow(object):
         iconview_matches.pack_end(cellrenderer_labels, True)
         iconview_matches.add_attribute(cellrenderer_labels, 'labels', 3)
 
-        label_column = widget_tree.get_object("treeviewcolumnLabels")
-        cellrenderer_labels = CellRendererLabels()
-        cellrenderer_labels.set_property('xpad', 0)
-        cellrenderer_labels.set_property('ypad', 0)
-        label_column.pack_end(cellrenderer_labels, True)
-        label_column.add_attribute(cellrenderer_labels, 'labels', 0)
-        label_column.add_attribute(cellrenderer_labels, 'highlight', 4)
-
         self.__config = config
         self.__scan_start = 0.0
         self.__scan_progress_job = None
@@ -2489,20 +2375,6 @@ class MainWindow(object):
                 model_nb_columns=4,
                 actions=[open_doc_action],
             ),
-            'pages': ProgressiveList(
-                name='pages',
-                scheduler=self.schedulers['main'],
-                default_thumbnail=self.default_thumbnail,
-                gui=widget_tree.get_object("iconviewPage"),
-                scrollbars=widget_tree.get_object("scrolledwindowPage"),
-                model=widget_tree.get_object("liststorePage"),
-                model_nb_columns=3,
-                actions=[open_page_action],
-            ),
-            'labels': {
-                'gui': widget_tree.get_object("treeviewLabel"),
-                'model': widget_tree.get_object("liststoreLabel"),
-            },
             'zoom_levels': {
                 'gui': widget_tree.get_object("comboboxZoom"),
                 'model': widget_tree.get_object("liststoreZoom"),
@@ -2529,8 +2401,6 @@ class MainWindow(object):
 
         self.doc_browsing = {
             'matches': widget_tree.get_object("iconviewMatch"),
-            'pages': widget_tree.get_object("iconviewPage"),
-            'labels': widget_tree.get_object("treeviewLabel"),
             'search': self.search_field,
         }
 
@@ -2562,23 +2432,10 @@ class MainWindow(object):
             }
         }
 
-        self.status = {
-            'progress': widget_tree.get_object("progressbar"),
-            'text': widget_tree.get_object("statusbar"),
-        }
-
         self.popup_menus = {
-            'labels': (
-                widget_tree.get_object("treeviewLabel"),
-                widget_tree.get_object("popupmenuLabels")
-            ),
             'matches': (
                 widget_tree.get_object("iconviewMatch"),
                 widget_tree.get_object("popupmenuMatchs")
-            ),
-            'pages': (
-                widget_tree.get_object("iconviewPage"),
-                widget_tree.get_object("popupmenuPages")
             ),
             'page': (
                 img_widget,
@@ -2648,12 +2505,8 @@ class MainWindow(object):
             'match_list': self.lists['matches'].job_factory,
             'page_editor': JobFactoryPageEditor(self, config),
             'page_img_renderer': JobFactoryPageImgRenderer(),
-            'page_list': self.lists['pages'].job_factory,
             'page_img_loader': JobFactoryPageImgLoader(),
             'page_boxes_loader': JobFactoryPageBoxesLoader(),
-            'page_thumbnailer': JobFactoryPageThumbnailer(self),
-            'progress_updater': JobFactoryProgressUpdater(
-                self.status['progress']),
             'searcher': JobFactoryDocSearcher(self, config),
         }
 
@@ -2942,7 +2795,6 @@ class MainWindow(object):
             + self.actions['open_doc_dir'][0]
             + self.actions['del_doc'][0]
             + self.actions['set_current_page'][0]
-            + [self.lists['labels']['gui']]
             + self.actions['redo_ocr_doc'][0]
             + self.actions['open_export_doc_dialog'][0]
             + self.actions['edit_doc'][0]
@@ -2978,17 +2830,12 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        for widget in [self.lists['pages']['gui'],
-                       self.lists['matches']['gui']]:
-            widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
-            widget.drag_dest_add_text_targets()
+        widget = self.lists['matches']['gui']
+        widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
+        widget.drag_dest_add_text_targets()
 
         self.set_raw_zoom_level(config['zoom_level'].value)
 
-        self.lists['pages']['gui'].connect(
-            "drag-data-get", self.__on_page_list_drag_data_get_cb)
-        self.lists['pages']['gui'].connect(
-            "drag-data-received", self.__on_page_list_drag_data_received_cb)
         self.lists['matches']['gui'].connect(
             "drag-data-received", self.__on_match_list_drag_data_received_cb)
 
@@ -3087,11 +2934,8 @@ class MainWindow(object):
         self.window.get_window().set_cursor(cursor)
 
     def set_progression(self, src, progression, text):
-        context_id = self.status['text'].get_context_id(str(src))
-        self.status['text'].pop(context_id)
-        if (text is not None and text != ""):
-            self.status['text'].push(context_id, text)
-        self.status['progress'].set_fraction(progression)
+        # TODO
+        pass
 
     def set_raw_zoom_level(self, level):
         zoom_liststore = self.lists['zoom_levels']['model']
@@ -3123,7 +2967,8 @@ class MainWindow(object):
 
         self.docsearch = docsearch
         self.refresh_doc_list()
-        self.refresh_label_list()
+        # TODO
+        # self.refresh_label_list()
 
     def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3211,21 +3056,6 @@ class MainWindow(object):
             predicted = label.name in predicted_labels
             label_model.set_value(line_iter, 4, predicted)
 
-    def on_page_thumbnailing_start_cb(self, src):
-        self.set_progression(src, 0.0, _("Loading thumbnails ..."))
-        self.set_mouse_cursor("Busy")
-
-    def on_page_thumbnailing_page_done_cb(self, src, page_idx, thumbnail):
-        if page_idx == self.page.page_nb:
-            self.__select_page(self.page)
-        self.lists['pages'].set_model_value(page_idx, 1, thumbnail)
-        self.set_progression(src, ((float)(page_idx+1) / self.doc.nb_pages),
-                             _("Loading thumbnails ..."))
-
-    def on_page_thumbnailing_end_cb(self, src):
-        self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Normal")
-
     def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
 
@@ -3259,11 +3089,14 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        self.refresh_label_list()
+        # TODO
+        # self.refresh_label_list()
         self.refresh_doc_list()
 
     def on_redo_ocr_end_cb(self, src):
-        self.refresh_label_list()
+        # TODO
+        # self.refresh_label_list()
+        pass
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
         # we are only interested in right clicks
@@ -3438,47 +3271,8 @@ class MainWindow(object):
         Reload and refresh the page list.
         Warning: Will remove the thumbnails on all the pages
         """
-        self.schedulers['main'].cancel_all(
-            self.job_factories['page_thumbnailer']
-        )
-
-        model = [
-            self.__get_page_model_line(page)
-            for page in self.doc.pages
-        ]
-        self.lists['pages'].set_model(model)
-
-        self.indicators['total_pages'].set_text(
-            _("/ %d") % (self.doc.nb_pages))
-        set_widget_state(self.doc_edit_widgets, self.doc.can_edit)
-        set_widget_state(self.need_page_widgets, False)
-
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
-        job = self.job_factories['page_thumbnailer'].make(self.doc, search)
-        self.schedulers['main'].schedule(job)
-
-    def refresh_label_list(self):
-        """
-        Reload and refresh the label list
-        """
-        self.schedulers['main'].cancel_all(
-            self.job_factories['label_predictor_on_open_doc'])
-
-        self.lists['labels']['model'].clear()
-        labels = self.doc.labels
-
-        for label in self.docsearch.label_list:
-            self.lists['labels']['model'].append([
-                [label],
-                (label in labels),
-                label,
-                True,  # enabled
-                False,  # predicted (will be updated)
-            ])
-        set_widget_state(self.need_label_widgets, False)
-
-        job = self.job_factories['label_predictor_on_open_doc'].make(self.doc)
-        self.schedulers['main'].schedule(job)
+        # TODO
+        pass
 
     def refresh_boxes(self):
         search = unicode(self.search_field.get_text(), encoding='utf-8')
@@ -3585,7 +3379,8 @@ class MainWindow(object):
         else:
             pages_gui.unset_model_drag_source()
         self.refresh_page_list()
-        self.refresh_label_list()
+        # TODO
+        # self.refresh_label_list()
 
     def __select_page(self, page):
         self.page = page
@@ -3946,7 +3741,8 @@ class MainWindow(object):
             if label.name in predicted_labels:
                 self.docsearch.add_label(doc, label, update_index=False)
         self.upd_index(doc, new=True)
-        self.refresh_label_list()
+        # TODO
+        #self.refresh_label_list()
 
     def upd_index(self, doc, new=False):
         if new:

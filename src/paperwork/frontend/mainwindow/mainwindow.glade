@@ -1,7 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Generated with glade 3.18.3 -->
 <interface>
-  <requires lib="gtk+" version="3.6"/>
+  <requires lib="gtk+" version="3.10"/>
+
+  <menu id="scan_menu">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Scan single page</attribute>
+        <attribute name="action">app.scan_single_page</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Scan from feeder</attribute>
+        <attribute name="action">app.scan_from_feeder</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Import file(s)</attribute>
+        <attribute name="action">app.import</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <menu id="advanced_window_menu">
+    <section>
+
+      <submenu id="advanced_document_menu">
+        <attribute name="label" translatable="yes">Document</attribute>
+        <item>
+          <attribute name="label" translatable="yes">Edit</attribute>
+          <attribute name="action">app.doc_edit</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Export</attribute>
+          <attribute name="action">app.doc_export</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Print</attribute>
+          <attribute name="action">app.doc_print</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Delete</attribute>
+          <attribute name="action">app.doc_delete</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Open directory</attribute>
+          <attribute name="action">app.doc_open_dir</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Redo OCR</attribute>
+          <attribute name="action">app.redo_ocr_doc</attribute>
+        </item>
+      </submenu>
+
+      <submenu id="advanced_page_menu">
+        <attribute name="label" translatable="yes">Page</attribute>
+        <item>
+          <attribute name="label" translatable="yes">Edit</attribute>
+          <attribute name="action">app.page_edit</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Export</attribute>
+          <attribute name="action">app.page_export</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Print</attribute>
+          <attribute name="action">app.page_print</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Delete</attribute>
+          <attribute name="action">app.page_delete</attribute>
+        </item>
+      </submenu>
+    </section>
+  </menu>
+
   <object class="GtkAdjustment" id="adjustmentQuality">
     <property name="lower">5</property>
     <property name="upper">100</property>
@@ -161,13 +232,34 @@
         <child>
           <object class="GtkHeaderBar" id="headerbar_left">
             <property name="visible">True</property>
-            <property name="title">Paperwork</property>
-            <property name="subtitle">Grep for dead trees</property>
+            <property name="title">Documents</property>
+            <property name="subtitle"></property>
             <property name="show_close_button">False</property>
             <style>
               <class name="contacts-left-header-bar"/>
               <class name="titlebar"/>
             </style>
+            <child>
+              <object class="GtkButton" id="toolbuttonNewDoc">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="use_action_appearance">False</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <object class="GtkImage" id="image_button_new_doc">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="icon_name">list-add-symbolic</property>
+                    <property name="icon_size">1</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="pack_type">end</property>
+              </packing>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -178,9 +270,106 @@
         <child>
           <object class="GtkHeaderBar" id="headerbar_right">
             <property name="visible">True</property>
-            <property name="title">Paperwork</property>
-            <property name="subtitle">Grep for dead trees</property>
+            <property name="title"></property>
+            <property name="subtitle"><!-- TODO(Jflesch): that's one ugly workaround to keep the GtkEntry at the correct size ... -->                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      </property>
             <property name="show_close_button">True</property>
+
+            <!-- start -->
+
+            <child>
+              <object class="GtkBox" id="box_page_nb">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkEntry" id="entryPageNb">
+                    <property name="visible">True</property>
+                    <property name="text"> </property>
+                    <property name="width_chars">4</property>
+                    <property name="width_request">4</property>
+                    <property name="hexpand">False</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="labelTotalPages">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="no"></property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+
+                <child>
+                  <object class="GtkButton" id="menuPageView">
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkImage" id="image_menuPageView">
+                        <property name="visible">True</property>
+                        <property name="icon_name">document-properties-symbolic</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="pack_type">start</property>
+              </packing>
+            </child>
+
+            <!-- end -->
+            <child>
+              <object class="GtkMenuButton" id="menubuttonWindowAdvanced">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="menu_model">advanced_window_menu</property>
+                <child>
+                  <object class="GtkImage" id="image_button_menu_window_advanced">
+                    <property name="visible">True</property>
+                    <property name="icon_name">open-menu-symbolic</property>
+                    <property name="can_focus">False</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="pack_type">end</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkMenuButton" id="menubuttonScan">
+                <property name="use_action_appearance">False</property>
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">Scan</property>
+                <property name="menu_model">scan_menu</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="pack_type">end</property>
+              </packing>
+            </child>
+
           </object>
           <packing>
             <property name="expand">True</property>

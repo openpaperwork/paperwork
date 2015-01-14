@@ -6,3 +6,17 @@
   border-style: solid;
   border-right-width: 1px;
 }
+
+.page-nb-left {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right-width: 0;
+}
+.page-nb-center {
+  border-radius: 0;
+  border-right-width: 0;
+}
+.page-nb-right {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}

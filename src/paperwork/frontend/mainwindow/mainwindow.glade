@@ -287,6 +287,9 @@
                     <property name="width_chars">4</property>
                     <property name="width_request">4</property>
                     <property name="hexpand">False</property>
+                    <style>
+                      <class name="page-nb-left"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -299,6 +302,9 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="label" translatable="no"></property>
+                    <style>
+                      <class name="page-nb-center"/>
+                    </style>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -312,6 +318,9 @@
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <style>
+                      <class name="page-nb-right"/>
+                    </style>
                     <child>
                       <object class="GtkImage" id="image_menuPageView">
                         <property name="visible">True</property>

@@ -1,5 +1,7 @@
 .left-header-bar {
   border-right-width: 1px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .box-left {

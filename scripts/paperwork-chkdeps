@@ -5,6 +5,7 @@ import locale
 import os
 import platform
 import sys
+import time
 
 import enchant
 import termcolor
@@ -248,6 +249,58 @@ def find_missing_dict(lang):
     return missing
 
 
+def check_cairo():
+    missing = []
+
+    test_successful = False
+
+    from gi.repository import GLib
+    from gi.repository import Gtk
+
+    class CheckCairo(object):
+        def __init__(self):
+            self.test_successful = False
+
+        def on_draw(self, widget, cairo_ctx):
+            self.test_successful = True
+            Gtk.main_quit()
+            return False
+
+        def quit(self):
+            Gtk.main_quit()
+
+    check = CheckCairo()
+
+    window = Gtk.Window()
+    da = Gtk.DrawingArea()
+    da.set_size_request(200, 200)
+    da.connect("draw", check.on_draw)
+    window.add(da)
+    da.queue_draw()
+
+    window.show_all()
+
+    GLib.timeout_add(2000, check.quit)
+    Gtk.main()
+    window.set_visible(False)
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+
+    if not check.test_successful:
+        missing.append(
+            (
+                'python-gi-cairo', '(none)',
+                {
+                    'debian': 'python-gi-cairo',
+                    'linuxmint': 'python-gi-cairo',
+                    'ubuntu': 'python-gi-cairo',
+                },
+            )
+        )
+
+    return missing
+
+
 def find_all_missing_deps():
     lang = get_language()
 
@@ -257,6 +310,7 @@ def find_all_missing_deps():
     missing += find_missing_modules()
     missing += find_missing_ocr(lang)
     missing += find_missing_dict(lang)
+    missing += check_cairo()
     # TODO(Jflesch): check for sane ?
     return missing
 

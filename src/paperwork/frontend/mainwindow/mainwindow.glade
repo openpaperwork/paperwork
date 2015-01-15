@@ -23,53 +23,32 @@
   <menu id="advanced_window_menu">
     <section>
 
-      <submenu id="advanced_document_menu">
-        <attribute name="label" translatable="yes">Document</attribute>
+      <item>
+        <attribute name="label" translatable="yes">Open directory</attribute>
+        <attribute name="action">app.doc_open_dir</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Print</attribute>
+        <attribute name="action">app.doc_print</attribute>
+      </item>
+
+      <submenu id="advanced_export">
+        <attribute name="label" translatable="yes">Export</attribute>
         <item>
-          <attribute name="label" translatable="yes">Properties</attribute>
-          <attribute name="action">app.doc_properties</attribute>
+          <attribute name="label" translatable="yes">Page</attribute>
+          <attribute name="action">app.export_page</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Export</attribute>
-          <attribute name="action">app.doc_export</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Print</attribute>
-          <attribute name="action">app.doc_print</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Delete</attribute>
-          <attribute name="action">app.doc_delete</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Open directory</attribute>
-          <attribute name="action">app.doc_open_dir</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Redo OCR</attribute>
-          <attribute name="action">app.redo_ocr_doc</attribute>
+          <attribute name="label" translatable="yes">Document</attribute>
+          <attribute name="action">app.export_doc</attribute>
         </item>
       </submenu>
 
-      <submenu id="advanced_page_menu">
-        <attribute name="label" translatable="yes">Page</attribute>
-        <item>
-          <attribute name="label" translatable="yes">Edit</attribute>
-          <attribute name="action">app.page_edit</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Export</attribute>
-          <attribute name="action">app.page_export</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Print</attribute>
-          <attribute name="action">app.page_print</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Delete</attribute>
-          <attribute name="action">app.page_delete</attribute>
-        </item>
-      </submenu>
+      <item>
+        <attribute name="label" translatable="yes">Redo OCR</attribute>
+        <attribute name="action">app.redo_ocr_doc</attribute>
+      </item>
+
     </section>
   </menu>
 

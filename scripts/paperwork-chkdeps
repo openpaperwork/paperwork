@@ -189,7 +189,8 @@ def find_missing_ocr(lang):
         verbose("Looking for OCR tool ...")
         ocr_tools = pyocr.get_available_tools()
     except ImportError:
-        warning("Couldn't import Pyocr. Will assume OCR tool is not installed yet")
+        warning("Couldn't import Pyocr. Will assume OCR tool is not installed"
+                " yet")
         ocr_tools = []
     if len(ocr_tools) > 0:
         verbose("Looking for OCR language data ...")
@@ -354,11 +355,11 @@ if __name__ == "__main__":
     for dep in missing:
         if distribution in dep[2]:
             print("  - %s (python module: %s ; %s package : %s)"
-                % (dep[0], dep[1], distribution, dep[2][distribution]))
+                  % (dep[0], dep[1], distribution, dep[2][distribution]))
             pkgs.append(dep[2][distribution])
         else:
             print("  - %s (python module: %s)"
-                % (dep[0], dep[1]))
+                  % (dep[0], dep[1]))
 
     if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
         command = "sudo %s %s" % (

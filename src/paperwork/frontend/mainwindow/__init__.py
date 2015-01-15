@@ -2325,8 +2325,7 @@ class MainWindow(object):
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
 
-        (self.__advanced_menu, self.__show_all_boxes_widget) = \
-            self.__init_app_menu(self.app)
+        self.__advanced_app_menu = self.__init_app_menu(self.app)
 
         load_cssfile("application.css")
         widget_tree = load_uifile(
@@ -2337,6 +2336,12 @@ class MainWindow(object):
         self.__config = config
         self.__scan_start = 0.0
         self.__scan_progress_job = None
+
+        self.__advanced_win_menu = \
+            widget_tree.get_object("advanced_window_menu")
+        self.__show_all_boxes_widget = Gio.MenuItem.new(
+            "XXX", "app.show_all_boxes")
+        self.__advanced_win_menu.insert_item(0, self.__show_all_boxes_widget)
 
         self.docsearch = DummyDocSearch()
         self.doc = ImgDoc(self.__config['workdir'].value)
@@ -2853,11 +2858,8 @@ class MainWindow(object):
     def __init_app_menu(self, app):
         app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         advanced_menu = app_menu.get_object("advanced")
-        show_all_boxes_widget = Gio.MenuItem.new(
-            "XXX", "app.show_all_boxes")
-        advanced_menu.insert_item(0, show_all_boxes_widget)
         app.set_app_menu(app_menu.get_object("app-menu"))
-        return (advanced_menu, show_all_boxes_widget)
+        return advanced_menu
 
     def __init_window(self, widget_tree, config):
         window = widget_tree.get_object("mainWindow")
@@ -3612,9 +3614,9 @@ class MainWindow(object):
             True: _("Unhighlight the words"),
         }
 
-        self.__advanced_menu.remove(0)
+        self.__advanced_win_menu.remove(0)
         self.__show_all_boxes_widget.set_label(LABELS[value])
-        self.__advanced_menu.insert_item(0, self.__show_all_boxes_widget)
+        self.__advanced_win_menu.insert_item(0, self.__show_all_boxes_widget)
 
         self.__show_all_boxes = value
 

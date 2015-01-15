@@ -798,37 +798,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkMenu" id="popupmenuLabels">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkMenuItem" id="menuitemAddLabel">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes" context="opt in the right click menu in the label list" comments="add label">Add</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem" id="menuitemEditLabel">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Edit</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem" id="menuitemDestroyLabel">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Destroy</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-  </object>
   <object class="GtkMenu" id="popupmenuMatchs">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -939,37 +908,6 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="label" translatable="yes">Delete</property>
-      </object>
-    </child>
-  </object>
-  <object class="GtkMenu" id="popupmenuPages">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <child>
-      <object class="GtkMenuItem" id="menuitemEditPage">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Modify</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem" id="menuitemExportPage1">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Export</property>
-        <property name="use_underline">True</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkMenuItem" id="menuitemDestroyPage2">
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="label" translatable="yes">Delete</property>
-        <property name="use_underline">True</property>
       </object>
     </child>
   </object>

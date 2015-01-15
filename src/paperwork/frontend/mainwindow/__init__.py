@@ -1247,9 +1247,10 @@ class ActionNewDocument(SimpleAction):
             self.__main_win.insert_new_doc()
 
         path = Gtk.TreePath(0)
-        self.__main_win.lists['matches']['gui'].select_path(path)
-        self.__main_win.lists['matches']['gui'].scroll_to_path(
-            path, False, 0.0, 0.0)
+        # TODO
+        #self.__main_win.lists['matches']['gui'].select_path(path)
+        #self.__main_win.lists['matches']['gui'].scroll_to_path(
+        #    path, False, 0.0, 0.0)
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -1263,16 +1264,17 @@ class ActionOpenSelectedDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        match_list = self.__main_win.lists['matches']['gui']
-        selection_path = match_list.get_selected_items()
-        if len(selection_path) <= 0:
-            logger.info("No document selected. Can't open")
-            return
-        doc_idx = selection_path[0].get_indices()[0]
-        doc = self.__main_win.lists['matches']['model'][doc_idx][2]
-
-        logger.info("Showing doc %s" % doc)
-        self.__main_win.show_doc(doc)
+        # TODO
+        #match_list = self.__main_win.lists['matches']['gui']
+        #selection_path = match_list.get_selected_items()
+        #if len(selection_path) <= 0:
+        #    logger.info("No document selected. Can't open")
+        #    return
+        #doc_idx = selection_path[0].get_indices()[0]
+        #doc = self.__main_win.lists['matches']['model'][doc_idx][2]
+        #
+        #logger.info("Showing doc %s" % doc)
+        #self.__main_win.show_doc(doc)
 
 
 class ActionUpdateSearchResults(SimpleAction):
@@ -2332,13 +2334,6 @@ class MainWindow(object):
 
         self.window = self.__init_window(widget_tree, config)
 
-        iconview_matches = widget_tree.get_object("iconviewMatch")
-        cellrenderer_labels = CellRendererLabels()
-        cellrenderer_labels.set_property('xpad', 10)
-        cellrenderer_labels.set_property('ypad', 0)
-        iconview_matches.pack_end(cellrenderer_labels, True)
-        iconview_matches.add_attribute(cellrenderer_labels, 'labels', 3)
-
         self.__config = config
         self.__scan_start = 0.0
         self.__scan_progress_job = None
@@ -2365,25 +2360,11 @@ class MainWindow(object):
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
             'doclist': [],
-            'matches': ProgressiveList(
-                name='documents',
-                scheduler=self.schedulers['main'],
-                default_thumbnail=self.default_thumbnail,
-                gui=widget_tree.get_object("iconviewMatch"),
-                scrollbars=widget_tree.get_object("scrolledwindowMatch"),
-                model=widget_tree.get_object("liststoreMatch"),
-                model_nb_columns=4,
-                actions=[open_doc_action],
-            ),
             'zoom_levels': {
                 'gui': widget_tree.get_object("comboboxZoom"),
                 'model': widget_tree.get_object("liststoreZoom"),
             },
         }
-
-        self.lists['matches'].connect(
-            'lines-shown',
-            lambda x, docs: GLib.idle_add(self.__on_doc_lines_shown, docs))
 
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
@@ -2400,7 +2381,6 @@ class MainWindow(object):
         self.search_field.set_placeholder_text(_("Search"))
 
         self.doc_browsing = {
-            'matches': widget_tree.get_object("iconviewMatch"),
             'search': self.search_field,
         }
 
@@ -2433,14 +2413,6 @@ class MainWindow(object):
         }
 
         self.popup_menus = {
-            'matches': (
-                widget_tree.get_object("iconviewMatch"),
-                widget_tree.get_object("popupmenuMatchs")
-            ),
-            'page': (
-                img_widget,
-                widget_tree.get_object("popupmenuPage")
-            ),
         }
 
         self.show_all_boxes = False
@@ -2474,18 +2446,6 @@ class MainWindow(object):
             'exporter': None,
         }
 
-        self.sortings = [
-            (widget_tree.get_object("radiomenuitemSortByRelevance"),
-             lambda docs: None, "relevance"),
-            (widget_tree.get_object("radiomenuitemSortByScanDate"),
-             sort_documents_by_date, "scan_date"),
-        ]
-
-        config_sorting_name = config['result_sorting'].value
-        for (sorting_widget, unused, sorting_name) in self.sortings:
-            if sorting_name == config_sorting_name:
-                sorting_widget.set_active(True)
-
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -2502,7 +2462,6 @@ class MainWindow(object):
                 self
             ),
             'label_deleter': JobFactoryLabelDeleter(self),
-            'match_list': self.lists['matches'].job_factory,
             'page_editor': JobFactoryPageEditor(self, config),
             'page_img_renderer': JobFactoryPageImgRenderer(),
             'page_img_loader': JobFactoryPageImgLoader(),
@@ -2820,7 +2779,7 @@ class MainWindow(object):
         )
 
         # TODO
-        # set_widget_state(self.need_page_widgets, False)
+        #set_widget_state(self.need_page_widgets, False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             assert(not popup_menu[0] is None)
@@ -2830,14 +2789,11 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        widget = self.lists['matches']['gui']
-        widget.enable_model_drag_dest([], Gdk.DragAction.MOVE)
-        widget.drag_dest_add_text_targets()
-
         self.set_raw_zoom_level(config['zoom_level'].value)
 
-        self.lists['matches']['gui'].connect(
-            "drag-data-received", self.__on_match_list_drag_data_received_cb)
+        # TODO
+        #self.lists['matches']['gui'].connect(
+        #    "drag-data-received", self.__on_match_list_drag_data_received_cb)
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
@@ -3003,7 +2959,7 @@ class MainWindow(object):
             Gdk.RGBA(red=1.0, green=0.0, blue=0.0, alpha=1.0)
         )
         self.lists['doclist'] = []
-        self.lists['matches'].set_model([])
+        # TODO: clear doc list
 
     def on_search_results_cb(self, search, documents):
         self.schedulers['main'].cancel_all(
@@ -3034,9 +2990,7 @@ class MainWindow(object):
             active_idx = 0
 
         self.lists['doclist'] = documents
-        self.lists['matches'].set_model([self.__get_doc_model_line(doc)
-                                         for doc in documents])
-        self.lists['matches'].select_idx(active_idx)
+        # TODO update doc list + reselect the active one
 
     def on_search_suggestions_cb(self, suggestions):
         logger.debug("Got %d suggestions" % len(suggestions))
@@ -3061,7 +3015,7 @@ class MainWindow(object):
 
     def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail,
                                         doc_nb, total_docs):
-        self.lists['matches'].set_model_value(doc_idx, 1, thumbnail)
+        # TODO set thumbnail
         self.set_progression(src, ((float)(doc_nb+1) / total_docs),
                              _("Loading thumbnails ..."))
 
@@ -3125,19 +3079,19 @@ class MainWindow(object):
             return None
         doc = doc_list[0]
         doc_list.pop(0)
-        self.lists['matches'].pop(0)
+        # TODO
         return doc
 
     def __insert_doc(self, doc_idx, doc):
         doc_list = self.lists['doclist']
         doc_list.insert(doc_idx, doc)
         doc_line = self.__get_doc_model_line(doc)
-        self.lists['matches'].insert(doc_idx, doc_line)
+        # TODO
 
     def __remove_doc(self, doc_idx):
         doc_list = self.lists['doclist']
         doc_list.pop(doc_idx)
-        self.lists['matches'].pop(doc_idx)
+        # TODO
 
     def get_new_doc(self):
         if not self.new_doc.is_new:
@@ -3150,7 +3104,7 @@ class MainWindow(object):
         new_doc = self.get_new_doc()
         doc_list.insert(0, new_doc)
         new_doc_line = self.__get_doc_model_line(new_doc)
-        self.lists['matches'].insert(0, new_doc_line)
+        # TODO
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -3216,9 +3170,12 @@ class MainWindow(object):
                 must_rethumbnail.add(doc)
             else:
                 # put back the previous thumbnail
-                current_model = self.lists['matches']['model'][doc_idx]
-                doc_line[1] = current_model[1]
-            self.lists['matches'].set_model_line(doc_idx, doc_line)
+                # TODO
+                #current_model = self.lists['matches']['model'][doc_idx]
+                #doc_line[1] = current_model[1]
+                pass
+            # TODO
+            #self.lists['matches'].set_model_line(doc_idx, doc_line)
             docs.remove(doc)
 
         assert(not docs)
@@ -3228,10 +3185,13 @@ class MainWindow(object):
             if (self.doc.is_new
                     and len(self.lists['doclist']) > 0
                     and self.lists['doclist'][0].is_new):
-                self.lists['matches'].select_idx(0)
+                # TODO
+                #self.lists['matches'].select_idx(0)
+                pass
             elif self.doc in doc_list:
                 active_idx = doc_list[self.doc]
-                self.lists['matches'].select_idx(active_idx)
+                # TODO
+                #self.lists['matches'].select_idx(active_idx)
             else:
                 logger.warning("Selected document (%s) is not in the list"
                                % str(self.doc.docid))
@@ -3495,9 +3455,11 @@ class MainWindow(object):
                     % (old_size[0], old_size[1], new_size[0], new_size[1]))
         self.img['viewport']['size'] = new_size
 
-        el_idx = self.lists['zoom_levels']['gui'].get_active()
-        el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
-        factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        # TODO
+        #el_idx = self.lists['zoom_levels']['gui'].get_active()
+        #el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
+        #factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        factor = 1
         if factor > 0.0:
             return
 
@@ -3568,7 +3530,9 @@ class MainWindow(object):
     def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):
         obj_id = selection_data.get_text()
-        target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
+        # TODO
+        #target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
+        target = None
         if target is None:
             logger.warning("[doc list] drag-data-received: no target."
                            " aborting")
@@ -3581,7 +3545,9 @@ class MainWindow(object):
             drag_context.finish(False, False, time)
             return
         target = target_path.get_indices()[0]
-        target_doc = self.lists['matches']['model'][target][2]
+        # TODO
+        #target_doc = self.lists['matches']['model'][target][2]
+        target_doc = None
         obj_id = selection_data.get_text()
         obj = self.docsearch.get_by_id(obj_id)
 
@@ -3634,10 +3600,8 @@ class MainWindow(object):
         self.__config['main_win_size'].value = (w, h)
 
     def get_doc_sorting(self):
-        for (widget, sort_func, sorting_name) in self.sortings:
-            if widget.get_active():
-                return (sorting_name, sort_func)
-        return (self.sortings[0][0], self.sortings[0][1])
+        # TODO ?
+        return (sort_documents_by_date, "scan_date")
 
     def __get_show_all_boxes(self):
         return self.__show_all_boxes

@@ -21,10 +21,6 @@
 						<attribute name="action">app.reindex_all</attribute>
 					</item>
 					<item>
-						<attribute name="label" translatable="yes">Redo OCR on the document</attribute>
-						<attribute name="action">app.redo_ocr_doc</attribute>
-					</item>
-					<item>
 						<attribute name="label" translatable="yes">Redo OCR on all the documents</attribute>
 						<attribute name="action">app.redo_ocr_all</attribute>
 					</item>

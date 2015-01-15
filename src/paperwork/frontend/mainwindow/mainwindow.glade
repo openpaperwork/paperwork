@@ -250,7 +250,7 @@
                   <object class="GtkImage" id="image_button_new_doc">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="icon_name">document-new-symbolic</property>
+                    <property name="icon_name">list-add-symbolic</property>
                     <property name="icon_size">1</property>
                   </object>
                 </child>

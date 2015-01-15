@@ -26,8 +26,8 @@
       <submenu id="advanced_document_menu">
         <attribute name="label" translatable="yes">Document</attribute>
         <item>
-          <attribute name="label" translatable="yes">Edit</attribute>
-          <attribute name="action">app.doc_edit</attribute>
+          <attribute name="label" translatable="yes">Properties</attribute>
+          <attribute name="action">app.doc_properties</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Export</attribute>

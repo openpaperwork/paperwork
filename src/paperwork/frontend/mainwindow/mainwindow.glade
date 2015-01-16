@@ -29,7 +29,7 @@
       </item>
       <item>
         <attribute name="label" translatable="yes">Print</attribute>
-        <attribute name="action">app.doc_print</attribute>
+        <attribute name="action">app.print</attribute>
       </item>
 
       <submenu id="advanced_export">
@@ -404,12 +404,16 @@
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="scrolledwindowMatch">
+              <object class="GtkScrolledWindow" id="scrolledwindowDocList">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="shadow_type">in</property>
                 <property name="kinetic_scrolling">False</property>
                 <child>
+                  <object class="GtkListBox" id="listboxDocList">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                  </object>
                 </child>
               </object>
               <packing>

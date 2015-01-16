@@ -45,6 +45,7 @@ class SimpleAction(object):
             (Gtk.CellRenderer, "edited", self.on_cell_edited_cb, -1),
             (Gtk.Range, "value-changed", self.on_value_changed_cb, -1),
             (Gio.Action, "activate", self.on_action_activated_cb, -1),
+            (Gtk.ListBox, "row-selected", self.on_row_selected_cb, -1)
         ]
         self.enabled = True
 
@@ -87,6 +88,9 @@ class SimpleAction(object):
         return self.__do()
 
     def on_action_activated_cb(self, action, parameter):
+        return self.__do()
+
+    def on_row_selected_cb(self, listbox, row):
         return self.__do()
 
     def connect(self, buttons):

@@ -56,8 +56,6 @@ from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
-from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
-from paperwork.frontend.util.progressivelist import ProgressiveList
 from paperwork.frontend.util.renderer import CellRendererLabels
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
@@ -1237,20 +1235,13 @@ class ActionNewDocument(SimpleAction):
 
         must_insert_new = False
 
-        doclist = self.__main_win.lists['doclist']
-        if (len(doclist) <= 0):
-            must_insert_new = True
-        else:
-            must_insert_new = not doclist[0].is_new
-
+        must_insert_new = not self.__main_win.lists['doclist']['has_new']
         if must_insert_new:
             self.__main_win.insert_new_doc()
 
-        path = Gtk.TreePath(0)
-        # TODO
-        #self.__main_win.lists['matches']['gui'].select_path(path)
-        #self.__main_win.lists['matches']['gui'].scroll_to_path(
-        #    path, False, 0.0, 0.0)
+        doclist = self.__main_win.lists['doclist']['gui']
+        row = doclist.get_row_at_index(0)
+        doclist.select_row(row)
 
 
 class ActionOpenSelectedDocument(SimpleAction):
@@ -1264,17 +1255,12 @@ class ActionOpenSelectedDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        # TODO
-        #match_list = self.__main_win.lists['matches']['gui']
-        #selection_path = match_list.get_selected_items()
-        #if len(selection_path) <= 0:
-        #    logger.info("No document selected. Can't open")
-        #    return
-        #doc_idx = selection_path[0].get_indices()[0]
-        #doc = self.__main_win.lists['matches']['model'][doc_idx][2]
-        #
-        #logger.info("Showing doc %s" % doc)
-        #self.__main_win.show_doc(doc)
+        doclist = self.__main_win.lists['doclist']['gui']
+        row = doclist.get_selected_row()
+        doc = self.__main_win.lists['doclist']['model']['by_row'][row]
+
+        logger.info("Showing doc %s" % doc)
+        self.__main_win.show_doc(doc)
 
 
 class ActionUpdateSearchResults(SimpleAction):
@@ -2364,7 +2350,14 @@ class MainWindow(object):
                 'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
             },
-            'doclist': [],
+            'doclist': {
+                'gui': widget_tree.get_object("listboxDocList"),
+                'model': {
+                    'has_new': False,
+                    'by_row': {},  # Gtk.ListBoxRow: docid
+                    'by_id': {},  # docid: Gtk.ListBoxRow
+                },
+            },
             'zoom_levels': {
                 'gui': widget_tree.get_object("comboboxZoom"),
                 'model': widget_tree.get_object("liststoreZoom"),
@@ -2477,66 +2470,63 @@ class MainWindow(object):
         self.actions = {
             'new_doc': (
                 [
-                    widget_tree.get_object("toolbuttonNew"),
+                    widget_tree.get_object("toolbuttonNewDoc"),
                 ],
                 ActionNewDocument(self, config),
             ),
             'open_doc': (
                 [
-                    widget_tree.get_object("iconviewMatch"),
+                    widget_tree.get_object("listboxDocList"),
                 ],
                 open_doc_action,
             ),
-            'open_page': (
-                [
-                    widget_tree.get_object("iconviewPage"),
-                ],
-                open_page_action,
-            ),
-            'select_label': (
-                [
-                    widget_tree.get_object("treeviewLabel"),
-                ],
-                ActionLabelSelected(self)
-            ),
+            # TODO
+            #'open_page': (
+            #    [
+            #        widget_tree.get_object("iconviewPage"),
+            #    ],
+            #    open_page_action,
+            #),
+            # TODO
+            #'select_label': (
+            #    [
+            #        widget_tree.get_object("treeviewLabel"),
+            #    ],
+            #    ActionLabelSelected(self)
+            #),
             'single_scan': (
                 [
-                    widget_tree.get_object("toolbuttonScan"),
-                    widget_tree.get_object("menuitemScanSingle"),
+                    gactions['scan_single'],
                 ],
                 ActionSingleScan(self, config)
             ),
             'multi_scan': (
                 [
-                    widget_tree.get_object("menuitemScanFeeder"),
+                    gactions['scan_from_feeder'],
                 ],
                 ActionMultiScan(self, config)
             ),
             'import': (
                 [
-                    widget_tree.get_object("menuitemImport"),
+                    gactions['import']
                 ],
                 ActionImport(self, config)
             ),
             'print': (
                 [
-                    widget_tree.get_object("menuitemPrint1"),
-                    widget_tree.get_object("toolbuttonPrint"),
+                    gactions['print'],
                 ],
                 ActionPrintDoc(self)
             ),
             'open_export_doc_dialog': (
                 [
-                    widget_tree.get_object("menuitemExportDoc"),
-                    widget_tree.get_object("menuitemExportDoc1"),
+                    gactions['export_doc'],
                 ],
                 ActionOpenExportDocDialog(self)
             ),
             'open_export_page_dialog': (
                 [
-                    widget_tree.get_object("menuitemExportPage"),
-                    widget_tree.get_object("menuitemExportPage1"),
-                    widget_tree.get_object("menuitemExportPage3"),
+                    gactions['export_page'],
                 ],
                 ActionOpenExportPageDialog(self)
             ),
@@ -2566,85 +2556,76 @@ class MainWindow(object):
             'open_settings': (
                 [
                     gactions['open_settings'],
-                    widget_tree.get_object("toolbuttonSettings"),
                 ],
                 ActionOpenSettings(self, config)
             ),
             'quit': (
                 [
                     gactions['quit'],
-                    widget_tree.get_object("toolbuttonQuit"),
                 ],
                 ActionQuit(self, config),
             ),
-            'create_label': (
-                [
-                    widget_tree.get_object("buttonAddLabel"),
-                    widget_tree.get_object("menuitemAddLabel"),
-                ],
-                ActionCreateLabel(self),
-            ),
-            'edit_label': (
-                [
-                    widget_tree.get_object("menuitemEditLabel"),
-                    widget_tree.get_object("buttonEditLabel"),
-                ],
-                ActionEditLabel(self),
-            ),
-            'del_label': (
-                [
-                    widget_tree.get_object("menuitemDestroyLabel"),
-                    widget_tree.get_object("buttonDelLabel"),
-                ],
-                ActionDeleteLabel(self),
-            ),
+            # TODO
+            #'create_label': (
+            #    [
+            #        widget_tree.get_object("buttonAddLabel"),
+            #        widget_tree.get_object("menuitemAddLabel"),
+            #    ],
+            #    ActionCreateLabel(self),
+            #),
+            # TODO
+            #'edit_label': (
+            #    [
+            #       widget_tree.get_object("menuitemEditLabel"),
+            #        widget_tree.get_object("buttonEditLabel"),
+            #    ],
+            #    ActionEditLabel(self),
+            #),
+            # TODO
+            #'del_label': (
+            #    [
+            #        widget_tree.get_object("menuitemDestroyLabel"),
+            #        widget_tree.get_object("buttonDelLabel"),
+            #    ],
+            #    ActionDeleteLabel(self),
+            #),
             'open_doc_dir': (
                 [
-                    widget_tree.get_object("menuitemOpenDocDir"),
-                    widget_tree.get_object("toolbuttonOpenDocDir"),
+                    gactions['open_doc_dir']
                 ],
                 ActionOpenDocDir(self),
             ),
-            'del_doc': (
-                [
-                    widget_tree.get_object("menuitemDestroyDoc2"),
-                    widget_tree.get_object("toolbuttonDeleteDoc"),
-                ],
-                ActionDeleteDoc(self),
-            ),
-            'edit_page': (
-                [
-                    widget_tree.get_object("menuitemEditPage"),
-                    widget_tree.get_object("menuitemEditPage2"),
-                    widget_tree.get_object("toolbuttonEditPage"),
-                ],
-                ActionEditPage(self),
-            ),
-            'del_page': (
-                [
-                    widget_tree.get_object("menuitemDestroyPage1"),
-                    widget_tree.get_object("menuitemDestroyPage2"),
-                    widget_tree.get_object("buttonDeletePage"),
-                ],
-                ActionDeletePage(self),
-            ),
+            # TODO
+            #'del_doc': (
+            #    [
+            #        widget_tree.get_object("menuitemDestroyDoc2"),
+            #        widget_tree.get_object("toolbuttonDeleteDoc"),
+            #    ],
+            #    ActionDeleteDoc(self),
+            #),
+            # TODO
+            #'edit_page': (
+            #    [
+            #        widget_tree.get_object("menuitemEditPage"),
+            #        widget_tree.get_object("menuitemEditPage2"),
+            #        widget_tree.get_object("toolbuttonEditPage"),
+            #    ],
+            #    ActionEditPage(self),
+            #),
+            # TODO
+            #'del_page': (
+            #    [
+            #        widget_tree.get_object("menuitemDestroyPage1"),
+            #        widget_tree.get_object("menuitemDestroyPage2"),
+            #        widget_tree.get_object("buttonDeletePage"),
+            #    ],
+            #    ActionDeletePage(self),
+            #),
             'optimize_index': (
                 [
                     gactions['optimize_index'],
                 ],
                 ActionOptimizeIndex(self),
-            ),
-            'prev_page': (
-                [
-                    widget_tree.get_object("toolbuttonPrevPage"),
-                ],
-                ActionMovePageIndex(self, True, -1),
-            ),
-            'next_page': (
-                [
-                    widget_tree.get_object("toolbuttonNextPage"),
-                ],
-                ActionMovePageIndex(self, True, 1),
             ),
             'set_current_page': (
                 [
@@ -2652,31 +2633,34 @@ class MainWindow(object):
                 ],
                 ActionOpenPageNb(self),
             ),
-            'zoom_levels': (
-                [
-                    widget_tree.get_object("comboboxZoom"),
-                ],
-                ActionUpdPageSizes(self, config)
-            ),
+            # TODO
+            #'zoom_levels': (
+            #    [
+            #        widget_tree.get_object("comboboxZoom"),
+            #    ],
+            #    ActionUpdPageSizes(self, config)
+            #),
             'search': (
                 [
                     self.search_field,
                 ],
                 ActionUpdateSearchResults(self),
             ),
-            'switch_sorting': (
-                [
-                    widget_tree.get_object("radiomenuitemSortByRelevance"),
-                    widget_tree.get_object("radiomenuitemSortByScanDate"),
-                ],
-                ActionSwitchSorting(self, config),
-            ),
-            'toggle_label': (
-                [
-                    widget_tree.get_object("cellrenderertoggleLabel"),
-                ],
-                ActionToggleLabel(self),
-            ),
+            # TODO
+            #'switch_sorting': (
+            #    [
+            #        widget_tree.get_object("radiomenuitemSortByRelevance"),
+            #        widget_tree.get_object("radiomenuitemSortByScanDate"),
+            #    ],
+            #    ActionSwitchSorting(self, config),
+            #),
+            # TODO
+            #'toggle_label': (
+            #    [
+            #        widget_tree.get_object("cellrenderertoggleLabel"),
+            #    ],
+            #    ActionToggleLabel(self),
+            #),
             'show_all_boxes': (
                 [
                     gactions['show_all_boxes'],
@@ -2705,13 +2689,14 @@ class MainWindow(object):
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
-            'edit_doc': (
-                [
-                    widget_tree.get_object("toolbuttonEditDoc"),
-                    widget_tree.get_object("menuitemEditDoc")
-                ],
-                ActionEditDoc(self, config),
-            ),
+            # TODO
+            #'edit_doc': (
+            #    [
+            #        widget_tree.get_object("toolbuttonEditDoc"),
+            #        widget_tree.get_object("menuitemEditDoc")
+            #    ],
+            #    ActionEditDoc(self, config),
+            #),
             'about': (
                 [
                     gactions['about'],
@@ -2720,12 +2705,15 @@ class MainWindow(object):
             ),
         }
 
-        # TODO
-        #for action in self.actions:
-        #    for button in self.actions[action][0]:
-        #        if button is None:
-        #            logger.error("MISSING BUTTON: %s" % (action))
-        #    self.actions[action][1].connect(self.actions[action][0])
+        for action in self.actions:
+            for button in self.actions[action][0]:
+                if button is None:
+                    logger.error("MISSING BUTTON: %s" % (action))
+            try:
+                self.actions[action][1].connect(self.actions[action][0])
+            except:
+                logger.error("Failed to connect action '%s'" % action)
+                raise
 
         for (buttons, action) in self.actions.values():
             for button in buttons:
@@ -2755,32 +2743,34 @@ class MainWindow(object):
 
         self.need_doc_widgets = set(
             self.actions['print'][0]
-            + self.actions['create_label'][0]
+            # TODO
+            # + self.actions['create_label'][0]
             + self.actions['open_doc_dir'][0]
-            + self.actions['del_doc'][0]
-            + self.actions['set_current_page'][0]
+            # + self.actions['del_doc'][0]
+            # + self.actions['set_current_page'][0]
             + self.actions['redo_ocr_doc'][0]
             + self.actions['open_export_doc_dialog'][0]
-            + self.actions['edit_doc'][0]
+            # + self.actions['edit_doc'][0]
         )
 
         self.need_page_widgets = set(
-            self.actions['del_page'][0]
-            + self.actions['prev_page'][0]
-            + self.actions['next_page'][0]
-            + self.actions['open_export_page_dialog'][0]
-            + self.actions['edit_page'][0]
+            # TODO
+            # self.actions['del_page'][0]
+            self.actions['open_export_page_dialog'][0]
+            # + self.actions['edit_page'][0]
         )
 
         self.need_label_widgets = set(
-            self.actions['del_label'][0]
-            + self.actions['edit_label'][0]
+            # TODO
+            # self.actions['del_label'][0]
+            # + self.actions['edit_label'][0]
         )
 
         self.doc_edit_widgets = set(
+            # TODO
             self.actions['single_scan'][0]
-            + self.actions['del_page'][0]
-            + self.actions['edit_page'][0]
+            # + self.actions['del_page'][0]
+            # + self.actions['edit_page'][0]
         )
 
         # TODO
@@ -2797,8 +2787,8 @@ class MainWindow(object):
         self.set_raw_zoom_level(config['zoom_level'].value)
 
         # TODO
-        #self.lists['matches']['gui'].connect(
-        #    "drag-data-received", self.__on_match_list_drag_data_received_cb)
+        #self.lists['doclist']['gui'].connect(
+        #    "drag-data-received", self.__on_doclist_drag_data_received_cb)
 
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
@@ -2826,12 +2816,19 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'export_doc': Gio.SimpleAction.new("export_doc", None),
+            'export_page': Gio.SimpleAction.new("export_doc", None),
+            'import': Gio.SimpleAction.new("import", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
+            'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
             'optimize_index': Gio.SimpleAction.new("optimize_index", None),
+            'print': Gio.SimpleAction.new("print", None),
             'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
             'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
             'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
             'reindex_all': Gio.SimpleAction.new("reindex_all", None),
+            'scan_single': Gio.SimpleAction.new("scan_single_page", None),
+            'scan_from_feeder': Gio.SimpleAction.new("scan_from_feeder", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
         for action in gactions.values():
@@ -2953,6 +2950,12 @@ class MainWindow(object):
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
 
+    def clear_doclist(self):
+        self.lists['doclist']['model']['by_row'] = {}
+        self.lists['doclist']['model']['by_id'] = {}
+        self.lists['doclist']['model']['has_new'] = False
+        # TODO: clear doc list widget
+
     def on_search_invalid_cb(self):
         self.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer'])
@@ -2960,8 +2963,7 @@ class MainWindow(object):
             Gtk.StateFlags.NORMAL,
             Gdk.RGBA(red=1.0, green=0.0, blue=0.0, alpha=1.0)
         )
-        self.lists['doclist'] = []
-        # TODO: clear doc list
+        self.clear_doclist()
 
     def on_search_results_cb(self, search, documents):
         self.schedulers['main'].cancel_all(
@@ -3075,14 +3077,13 @@ class MainWindow(object):
             doc.labels,
         ])
 
-    def __pop_new_doc(self):
-        doc_list = self.lists['doclist']
-        if (len(doc_list) <= 0 or not doc_list[0].is_new):
-            return None
-        doc = doc_list[0]
-        doc_list.pop(0)
-        # TODO
-        return doc
+    def __pop_new_doc_row(self):
+        if not self.lists['doclist']['model']['has_new']:
+            return
+        row = self.lists['doclist']['gui'].get_row_at_index(0)
+        self.lists['doclist']['gui'].remove(row)
+        self.lists['doclist']['model']['has_new'] = False
+        return row
 
     def __insert_doc(self, doc_idx, doc):
         doc_list = self.lists['doclist']
@@ -3091,22 +3092,19 @@ class MainWindow(object):
         # TODO
 
     def __remove_doc(self, doc_idx):
-        doc_list = self.lists['doclist']
-        doc_list.pop(doc_idx)
-        # TODO
-
-    def get_new_doc(self):
-        if not self.new_doc.is_new:
-            self.new_doc = ImgDoc(self.__config['workdir'].value)
-        return self.new_doc
+        if self.lists['doclist']['model']['has_new']:
+            doc_idx += 1
+        row = self.lists['doclist']['gui'].get_row_at_index(doc_idx)
+        self.lists['doclist']['gui'].remove(row)
+        docid = self.lists['doclist']['model']['by_row'].pop(row)
+        self.lists['doclist']['model']['by_id'].pop(docid)
+        return row
 
     def insert_new_doc(self):
         # append a new document to the list
-        doc_list = self.lists['doclist']
         new_doc = self.get_new_doc()
-        doc_list.insert(0, new_doc)
-        new_doc_line = self.__get_doc_model_line(new_doc)
-        # TODO
+        self.lists['doclist']['gui']['has_new'] = True
+        # TODO : insert actually in the widget
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -3173,11 +3171,11 @@ class MainWindow(object):
             else:
                 # put back the previous thumbnail
                 # TODO
-                #current_model = self.lists['matches']['model'][doc_idx]
+                #current_model = self.lists['doclist']['model'][doc_idx]
                 #doc_line[1] = current_model[1]
                 pass
             # TODO
-            #self.lists['matches'].set_model_line(doc_idx, doc_line)
+            #self.lists['doclist'].set_model_line(doc_idx, doc_line)
             docs.remove(doc)
 
         assert(not docs)
@@ -3188,12 +3186,12 @@ class MainWindow(object):
                     and len(self.lists['doclist']) > 0
                     and self.lists['doclist'][0].is_new):
                 # TODO
-                #self.lists['matches'].select_idx(0)
+                #self.lists['doclist'].select_idx(0)
                 pass
             elif self.doc in doc_list:
                 active_idx = doc_list[self.doc]
                 # TODO
-                #self.lists['matches'].select_idx(active_idx)
+                #self.lists['doclist'].select_idx(active_idx)
             else:
                 logger.warning("Selected document (%s) is not in the list"
                                % str(self.doc.docid))
@@ -3529,11 +3527,11 @@ class MainWindow(object):
         doc = obj.doc
         GLib.idle_add(self.refresh_docs, {doc})
 
-    def __on_match_list_drag_data_received_cb(self, widget, drag_context, x, y,
+    def __on_doclist_drag_data_received_cb(self, widget, drag_context, x, y,
                                               selection_data, info, time):
         obj_id = selection_data.get_text()
         # TODO
-        #target = self.lists['matches']['gui'].get_dest_item_at_pos(x, y)
+        #target = self.lists['doclist']['gui'].get_dest_item_at_pos(x, y)
         target = None
         if target is None:
             logger.warning("[doc list] drag-data-received: no target."
@@ -3548,7 +3546,7 @@ class MainWindow(object):
             return
         target = target_path.get_indices()[0]
         # TODO
-        #target_doc = self.lists['matches']['model'][target][2]
+        #target_doc = self.lists['doclist']['model'][target][2]
         target_doc = None
         obj_id = selection_data.get_text()
         obj = self.docsearch.get_by_id(obj_id)

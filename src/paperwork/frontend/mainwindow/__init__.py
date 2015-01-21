@@ -56,7 +56,7 @@ from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
-from paperwork.frontend.util.renderer import CellRendererLabels
+from paperwork.frontend.util.renderer import LabelWidget
 from paperwork.backend import docimport
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
@@ -1257,7 +1257,10 @@ class ActionOpenSelectedDocument(SimpleAction):
 
         doclist = self.__main_win.lists['doclist']['gui']
         row = doclist.get_selected_row()
-        doc = self.__main_win.lists['doclist']['model']['by_row'][row]
+        if row is None:
+            return
+        docid = self.__main_win.lists['doclist']['model']['by_row'][row]
+        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
 
         logger.info("Showing doc %s" % doc)
         self.__main_win.show_doc(doc)
@@ -2306,6 +2309,7 @@ class MainWindow(object):
 
         self.schedulers = self.__init_schedulers()
         self.default_thumbnail = self.__init_default_thumbnail()
+        self.default_small_thumbnail = self.__init_default_thumbnail(64, 80)
 
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
@@ -2844,10 +2848,11 @@ class MainWindow(object):
             'scan': JobScheduler("Scan"),
         }
 
-    def __init_default_thumbnail(self):
+    def __init_default_thumbnail(self, width=BasicPage.DEFAULT_THUMB_WIDTH,
+                                 height=BasicPage.DEFAULT_THUMB_HEIGHT):
         img = PIL.Image.new("RGB", (
-            BasicPage.DEFAULT_THUMB_WIDTH,
-            BasicPage.DEFAULT_THUMB_HEIGHT,
+            width,
+            height,
         ), color="#EEEEEE")
         img = add_img_border(img, JobDocThumbnailer.THUMB_BORDER)
         return image2pixbuf(img)
@@ -2965,36 +2970,66 @@ class MainWindow(object):
         )
         self.clear_doclist()
 
+    def _make_listboxrow_doc_widget(self, doc):
+        rowbox = Gtk.ListBoxRow()
+        globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        rowbox.add(globalbox)
+
+        # thumbnail
+        thumbnail = Gtk.Image.new_from_pixbuf(self.default_small_thumbnail)
+        globalbox.add(thumbnail)
+
+        internalbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)
+        globalbox.add(internalbox)
+
+        # doc name
+        docname = Gtk.Label.new(doc.name)
+        internalbox.add(docname)
+
+        # doc labels
+        labels = LabelWidget(doc.labels)
+        labels.set_size_request(180, 10)
+        #labels.override_background_color(Gtk.StateFlags.NORMAL,
+        #                                 Gdk.RGBA(1, 0, 1, 1))
+        internalbox.add(labels)
+
+
+        # buttons
+
+
+        rowbox.show_all()
+        return rowbox
+
     def on_search_results_cb(self, search, documents):
         self.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer'])
 
         logger.debug("Got %d documents" % len(documents))
 
-        if search == u"":
-            new_doc = self.get_new_doc()
-            documents = [new_doc] + documents
+        self.lists['doclist']['gui'].freeze_child_notify()
+        try:
+            while True:
+                row = self.lists['doclist']['gui'].get_row_at_index(0)
+                if row is None:
+                    break
+                self.lists['doclist']['gui'].remove(row)
 
-        doc_cp = []
-        for doc in documents:
-            if doc == self.doc:
-                doc = self.doc
-            doc_cp.append(doc)
-        documents = doc_cp
+            self.lists['doclist']['model']['has_new'] = False
+            self.lists['doclist']['model']['by_row'] = {}
+            self.lists['doclist']['model']['by_id'] = {}
 
-        active_idx = -1
-        idx = 0
-        for doc in documents:
-            if doc == self.doc:
-                active_idx = idx
-                break
-            idx += 1
+            for doc in documents:
+                widget = self._make_listboxrow_doc_widget(doc)
+                self.lists['doclist']['model']['by_row'][widget] = doc.docid
+                self.lists['doclist']['model']['by_id'][doc.docid] = widget
+                self.lists['doclist']['gui'].add(widget)
+        finally:
+            self.lists['doclist']['gui'].thaw_child_notify()
 
-        if len(documents) > 0 and documents[0].is_new and self.doc.is_new:
-            active_idx = 0
+        if self.doc in self.lists['doclist']['model']['by_id']:
+            current_row = self.lists['doclist']['model']['by_id'][self.docid]
+            self.lists['doclist']['gui'].select_row(current_row)
 
-        self.lists['doclist'] = documents
-        # TODO update doc list + reselect the active one
 
     def on_search_suggestions_cb(self, suggestions):
         logger.debug("Got %d suggestions" % len(suggestions))
@@ -3102,7 +3137,6 @@ class MainWindow(object):
 
     def insert_new_doc(self):
         # append a new document to the list
-        new_doc = self.get_new_doc()
         self.lists['doclist']['gui']['has_new'] = True
         # TODO : insert actually in the widget
 
@@ -3332,36 +3366,16 @@ class MainWindow(object):
             page = DummyPage(self.doc)
         self.show_page(page)
 
-        pages_gui = self.lists['pages']['gui']
-        if doc.can_edit:
-            pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
-            pages_gui.drag_source_add_text_targets()
-        else:
-            pages_gui.unset_model_drag_source()
+        # TODO
+        #pages_gui = self.lists['pages']['gui']
+        #if doc.can_edit:
+        #    pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
+        #    pages_gui.drag_source_add_text_targets()
+        #else:
+        #    pages_gui.unset_model_drag_source()
         self.refresh_page_list()
         # TODO
         # self.refresh_label_list()
-
-    def __select_page(self, page):
-        self.page = page
-
-        set_widget_state(self.need_page_widgets, True)
-        set_widget_state(self.doc_edit_widgets, self.doc.can_edit)
-
-        if page.page_nb >= 0:
-            # we are going to select the current page in the list
-            # except we don't want to be called again because of it
-            self.actions['open_page'][1].enabled = False
-            path = Gtk.TreePath(page.page_nb)
-            self.lists['pages']['gui'].select_path(path)
-            self.lists['pages']['gui'].scroll_to_path(path, False, 0.0, 0.0)
-            self.actions['open_page'][1].enabled = True
-
-        # we are going to update the page number
-        # except we don't want to be called again because of this update
-        self.actions['set_current_page'][1].enabled = False
-        self.indicators['current_page'].set_text("%d" % (page.page_nb + 1))
-        self.actions['set_current_page'][1].enabled = True
 
     def show_page(self, page, force_refresh=False):
         if page is None:
@@ -3380,8 +3394,6 @@ class MainWindow(object):
 
         if drawer is not None:
             self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
-
-        self.__select_page(page)
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")
@@ -3414,9 +3426,11 @@ class MainWindow(object):
         return self.img['viewport']['widget'].get_allocation().height
 
     def get_raw_zoom_level(self):
-        el_idx = self.lists['zoom_levels']['gui'].get_active()
-        el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
-        return self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        # TODO
+        #el_idx = self.lists['zoom_levels']['gui'].get_active()
+        #el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
+        #return self.lists['zoom_levels']['model'].get_value(el_iter, 1)
+        return 0
 
     def get_zoom_factor(self, img_size):
         factor = self.get_raw_zoom_level()
@@ -3601,7 +3615,7 @@ class MainWindow(object):
 
     def get_doc_sorting(self):
         # TODO ?
-        return (sort_documents_by_date, "scan_date")
+        return ("scan_date", sort_documents_by_date)
 
     def __get_show_all_boxes(self):
         return self.__show_all_boxes
@@ -3631,7 +3645,6 @@ class MainWindow(object):
         page = drawer.page
         if page is None:
             return
-        self.__select_page(page)
 
     def make_scan_workflow(self):
         return ScanWorkflow(self.__config,

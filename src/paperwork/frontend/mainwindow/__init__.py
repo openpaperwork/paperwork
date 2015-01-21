@@ -629,11 +629,12 @@ class JobDocThumbnailer(Job):
     __gsignals__ = {
         'doc-thumbnailing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'doc-thumbnailing-doc-done': (GObject.SignalFlags.RUN_LAST, None,
-                                      (GObject.TYPE_INT,  # doc idx in the list
-                                       GObject.TYPE_PYOBJECT,
-                                       GObject.TYPE_INT,  # current doc
-                                       # number of docs being thumbnailed
-                                       GObject.TYPE_INT,)),
+                                      (
+                                          GObject.TYPE_PYOBJECT,  # thumbnail
+                                          GObject.TYPE_PYOBJECT,  # doc
+                                          GObject.TYPE_INT,  # current doc
+                                          # number of docs being thumbnailed
+                                          GObject.TYPE_INT,)),
         'doc-thumbnailing-end': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -649,16 +650,17 @@ class JobDocThumbnailer(Job):
         (width, height) = img.size
         # always make sure the thumbnail has a specific height
         # otherwise the scrollbar keep moving while loading
-        if height > BasicPage.DEFAULT_THUMB_HEIGHT:
-            img = img.crop((0, 0, width, BasicPage.DEFAULT_THUMB_HEIGHT))
+        if width > MainWindow.SMALL_THUMBNAIL_WIDTH:
+            img = img.crop((0, 0, MainWindow.SMALL_THUMBNAIL_WIDTH, height))
             img = img.copy()
-        else:
+        elif width < MainWindow.SMALL_THUMBNAIL_WIDTH:
+            height = min(height, MainWindow.SMALL_THUMBNAIL_HEIGHT)
             new_img = PIL.Image.new(
-                'RGBA', (width, BasicPage.DEFAULT_THUMB_HEIGHT),
+                'RGBA', (MainWindow.SMALL_THUMBNAIL_WIDTH, height),
                 '#FFFFFF'
             )
-            h = (BasicPage.DEFAULT_THUMB_HEIGHT - height) / 2
-            new_img.paste(img, (0, h, width, h+height))
+            w = (MainWindow.SMALL_THUMBNAIL_WIDTH - width) / 2
+            new_img.paste(img, (w, 0, w + width, height))
             img = new_img
         return img
 
@@ -674,14 +676,25 @@ class JobDocThumbnailer(Job):
             self.__current_idx = 0
 
         for idx in xrange(self.__current_idx, len(self.__doclist)):
-            (doc_position, doc) = self.__doclist[idx]
-            if doc_position < 0:
-                continue
+            doc = self.__doclist[idx]
             if doc.nb_pages <= 0:
                 continue
 
+            # always request the same size, even for small thumbnails
+            # so we don't invalidate cache + previous thumbnails
             img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                              BasicPage.DEFAULT_THUMB_HEIGHT)
+            if not self.can_run:
+                return
+
+            (w, h) = img.size
+            factor = max(
+                (float(w) / MainWindow.SMALL_THUMBNAIL_WIDTH),
+                (float(h) / MainWindow.SMALL_THUMBNAIL_HEIGHT)
+            )
+            w /= factor
+            h /= factor
+            img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
             if not self.can_run:
                 return
 
@@ -694,7 +707,7 @@ class JobDocThumbnailer(Job):
                 return
 
             pixbuf = image2pixbuf(img)
-            self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf,
+            self.emit('doc-thumbnailing-doc-done', pixbuf, doc,
                       idx, len(self.__doclist))
 
             self.__current_idx = idx
@@ -730,9 +743,9 @@ class JobFactoryDocThumbnailer(JobFactory):
                           thumbnailer))
         job.connect(
             'doc-thumbnailing-doc-done',
-            lambda thumbnailer, doc_idx, thumbnail, doc_nb, total_docs:
+            lambda thumbnailer, thumbnail, doc, doc_nb, total_docs:
             GLib.idle_add(self.__main_win.on_doc_thumbnailing_doc_done_cb,
-                          thumbnailer, doc_idx, thumbnail, doc_nb,
+                          thumbnailer, thumbnail, doc, doc_nb,
                           total_docs))
         job.connect(
             'doc-thumbnailing-end',
@@ -2303,13 +2316,17 @@ class ActionEditPage(SimpleAction):
 class MainWindow(object):
     PAGE_MARGIN = 50
 
+    SMALL_THUMBNAIL_WIDTH = 64
+    SMALL_THUMBNAIL_HEIGHT = 80
+
     def __init__(self, config):
         self.app = self.__init_app()
         gactions = self.__init_gactions(self.app)
 
         self.schedulers = self.__init_schedulers()
         self.default_thumbnail = self.__init_default_thumbnail()
-        self.default_small_thumbnail = self.__init_default_thumbnail(64, 80)
+        self.default_small_thumbnail = self.__init_default_thumbnail(
+            self.SMALL_THUMBNAIL_WIDTH, self.SMALL_THUMBNAIL_HEIGHT)
 
         # used by the set_mouse_cursor() function to keep track of how many
         # threads / jobs requested a busy mouse cursor
@@ -2977,6 +2994,8 @@ class MainWindow(object):
 
         # thumbnail
         thumbnail = Gtk.Image.new_from_pixbuf(self.default_small_thumbnail)
+        thumbnail.set_size_request(self.SMALL_THUMBNAIL_WIDTH,
+                                   self.SMALL_THUMBNAIL_HEIGHT)
         globalbox.add(thumbnail)
 
         internalbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)
@@ -3030,6 +3049,9 @@ class MainWindow(object):
             current_row = self.lists['doclist']['model']['by_id'][self.docid]
             self.lists['doclist']['gui'].select_row(current_row)
 
+        job = self.job_factories['doc_thumbnailer'].make(documents)
+        self.schedulers['main'].schedule(job)
+
 
     def on_search_suggestions_cb(self, suggestions):
         logger.debug("Got %d suggestions" % len(suggestions))
@@ -3051,15 +3073,21 @@ class MainWindow(object):
 
     def on_doc_thumbnailing_start_cb(self, src):
         self.set_progression(src, 0.0, _("Loading thumbnails ..."))
+        self.lists['doclist']['gui'].freeze_child_notify()
 
-    def on_doc_thumbnailing_doc_done_cb(self, src, doc_idx, thumbnail,
-                                        doc_nb, total_docs):
-        # TODO set thumbnail
-        self.set_progression(src, ((float)(doc_nb+1) / total_docs),
-                             _("Loading thumbnails ..."))
+    def on_doc_thumbnailing_doc_done_cb(self, src, thumbnail,
+                                        doc, doc_nb, total_docs):
+        if (doc_nb % 10 == 0):
+            self.set_progression(src, ((float)(doc_nb+1) / total_docs),
+                                _("Loading thumbnails ..."))
+        row = self.lists['doclist']['model']['by_id'][doc.docid]
+        box = row.get_children()[0]
+        thumbnail_widget = box.get_children()[0]
+        thumbnail_widget.set_from_pixbuf(thumbnail)
 
     def on_doc_thumbnailing_end_cb(self, src):
         self.set_progression(src, 0.0, None)
+        self.lists['doclist']['gui'].thaw_child_notify()
 
     def drop_boxes(self):
         self.img['boxes']['all'] = []

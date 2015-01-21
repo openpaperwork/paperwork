@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import cairo
 import math
 import logging
 
@@ -489,6 +490,100 @@ class TargetAreaDrawer(Drawer):
 
         for (func, rect) in rects:
             func(cairo_ctx, rect)
+
+
+class ProgressBarDrawer(Drawer):
+    layer = Drawer.PROGRESSION_INDICATOR_LAYER
+    visible = True
+
+    TXT_MARGIN = 5
+
+    def __init__(self,
+                 val_min=0, val_max=100, val_current=0, text=u"",
+                 back_color=(0.75, 0.75, 0.75),
+                 bar_color=(0.6, 0.6, 0.6),
+                 text_color=(0.0, 0.0, 0.0)):
+        Drawer.__init__(self)
+        self.val_min = val_min
+        self.val_max = val_max
+        self.val_current = val_current
+        self.back_color = back_color
+        self.bar_color = bar_color
+        self.text_color = text_color
+        self.text = text
+        self.__last_text_height = 50
+
+    def set_progression(self, val_current, text, val_min=None, val_max=None):
+        self.val_current = val_current
+        self.text = text
+        if val_min is not None:
+            self.val_min = val_min
+        if val_max is not None:
+            self.val_max = val_max
+        self.redraw()
+
+    def redraw(self):
+        txt_h = self.__last_text_height
+        position = (0, self.canvas.size[1] - (txt_h + (2 * self.TXT_MARGIN)))
+        size = (self.canvas.size[0] + (2 * self.TXT_MARGIN),
+                (txt_h + 2 * self.TXT_MARGIN))
+        self.canvas.redraw((position, size))
+
+    def draw(self, cairo_ctx):
+        if not self.visible:
+            return
+        txt = self.text
+        if txt is None or txt == "":
+            txt = u"T"
+
+        position = (0, self.canvas.size[1] - self.__last_text_height)
+
+        cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+                                cairo.FONT_WEIGHT_BOLD)
+        txt_ext = cairo_ctx.text_extents(txt)
+        (p_x1, p_y1, p_x2, p_y2, p_x3, p_y3) = txt_ext
+        txt_h = p_y2
+        self.__last_text_height = txt_h
+
+        position = (0, self.canvas.size[1] - (txt_h + (2 * self.TXT_MARGIN)))
+        size = (self.canvas.size[0] + (2 * self.TXT_MARGIN),
+                (txt_h + 2 * self.TXT_MARGIN))
+
+        (canvas_w, canvas_h) = self.canvas.size
+
+        w = ((canvas_w * (self.val_current - self.val_min))
+             / (self.val_max - self.val_min))
+
+
+        cairo_ctx.save()
+        try:
+            for (color, rect_pos, rect_size) in [
+                    (
+                        self.bar_color,
+                        (position[0], position[1]),
+                        (w, size[1])
+                    ),
+                    (
+                        self.back_color,
+                        (position[0] + w, position[1]),
+                        (canvas_w - position[0] - w, size[1])
+                    ),
+                ]:
+                    cairo_ctx.set_source_rgb(color[0], color[1], color[2])
+                    cairo_ctx.rectangle(
+                        rect_pos[0], rect_pos[1],
+                        rect_size[0], rect_size[1]
+                    )
+                    cairo_ctx.fill()
+        finally:
+            cairo_ctx.restore()
+
+        cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
+                                 self.text_color[2])
+        cairo_ctx.move_to(self.TXT_MARGIN,
+                          self.canvas.size[1] - self.TXT_MARGIN)
+        cairo_ctx.text_path(self.text)
+        cairo_ctx.fill()
 
 
 def fit(element_size, area_size, force=False):

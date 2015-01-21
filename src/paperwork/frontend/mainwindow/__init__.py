@@ -55,6 +55,7 @@ from paperwork.frontend.util.img import image2pixbuf
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
+from paperwork.frontend.util.canvas.drawers import ProgressBarDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.renderer import LabelWidget
 from paperwork.backend import docimport
@@ -2408,6 +2409,10 @@ class MainWindow(object):
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
 
+        self.progressbar = ProgressBarDrawer()
+        self.progressbar.visible = False
+        img_widget.add_drawer(self.progressbar)
+
         img_widget.connect(
             'window-moved',
             lambda x: GLib.idle_add(self.__on_img_window_moved))
@@ -2911,8 +2916,12 @@ class MainWindow(object):
         self.window.get_window().set_cursor(cursor)
 
     def set_progression(self, src, progression, text):
-        # TODO
-        pass
+        if progression > 0.0 or text is not None:
+            self.progressbar.visible = True
+            self.progressbar.set_progression(100 * progression, text)
+        else:
+            self.progressbar.visible = False
+            self.progressbar.redraw()
 
     def set_raw_zoom_level(self, level):
         zoom_liststore = self.lists['zoom_levels']['model']
@@ -3077,9 +3086,8 @@ class MainWindow(object):
 
     def on_doc_thumbnailing_doc_done_cb(self, src, thumbnail,
                                         doc, doc_nb, total_docs):
-        if (doc_nb % 10 == 0):
-            self.set_progression(src, ((float)(doc_nb+1) / total_docs),
-                                _("Loading thumbnails ..."))
+        self.set_progression(src, ((float)(doc_nb+1) / total_docs),
+                            _("Loading thumbnails ..."))
         row = self.lists['doclist']['model']['by_id'][doc.docid]
         box = row.get_children()[0]
         thumbnail_widget = box.get_children()[0]
@@ -3336,6 +3344,8 @@ class MainWindow(object):
             self.job_factories['page_boxes_loader']
         )
         self.img['canvas'].remove_all_drawers()
+        self.img['canvas'].add_drawer(self.progressbar)
+        assert(self.progressbar.canvas)
 
         factories = {
             'page_img_loader': self.job_factories['page_img_loader'],
@@ -3443,6 +3453,7 @@ class MainWindow(object):
 
     def on_export_preview_done(self, img_size, drawer):
         self.img['canvas'].remove_all_drawers()
+        self.img['canvas'].add_drawer(self.progressbar)
         self.img['canvas'].add_drawer(drawer)
 
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
@@ -3477,6 +3488,7 @@ class MainWindow(object):
 
     def refresh_export_preview(self):
         self.img['canvas'].remove_all_drawers()
+        self.img['canvas'].add_drawer(self.progressbar)
         self.schedulers['main'].cancel_all(
             self.job_factories['export_previewer']
         )

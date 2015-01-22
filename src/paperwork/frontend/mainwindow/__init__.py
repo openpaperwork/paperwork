@@ -3054,9 +3054,10 @@ class MainWindow(object):
         finally:
             self.lists['doclist']['gui'].thaw_child_notify()
 
-        if self.doc in self.lists['doclist']['model']['by_id']:
-            current_row = self.lists['doclist']['model']['by_id'][self.docid]
-            self.lists['doclist']['gui'].select_row(current_row)
+        if (self.doc is not None
+            and self.doc.docid in self.lists['doclist']['model']['by_id']):
+            crow = self.lists['doclist']['model']['by_id'][self.doc.docid]
+            self.lists['doclist']['gui'].select_row(crow)
 
         job = self.job_factories['doc_thumbnailer'].make(documents)
         self.schedulers['main'].schedule(job)

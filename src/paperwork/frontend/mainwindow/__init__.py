@@ -2998,7 +2998,7 @@ class MainWindow(object):
 
     def _make_listboxrow_doc_widget(self, doc):
         rowbox = Gtk.ListBoxRow()
-        globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 5)
+        globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
         rowbox.add(globalbox)
 
         # thumbnail
@@ -3012,20 +3012,44 @@ class MainWindow(object):
 
         # doc name
         docname = Gtk.Label.new(doc.name)
+        #docname.override_background_color(Gtk.StateFlags.NORMAL,
+        #                                  Gdk.RGBA(1, 0, 1, 1))
+        docname.set_justify(Gtk.Justification.LEFT)
+        docname.set_halign(Gtk.Align.START)
         internalbox.add(docname)
 
         # doc labels
         labels = LabelWidget(doc.labels)
-        labels.set_size_request(180, 10)
+        labels.set_size_request(170, 10)
         #labels.override_background_color(Gtk.StateFlags.NORMAL,
         #                                 Gdk.RGBA(1, 0, 1, 1))
         internalbox.add(labels)
 
 
         # buttons
+        button_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
+        button_box.set_size_request(20, 40)
+        button_box.set_homogeneous(True)
+        #button_box.override_background_color(Gtk.StateFlags.NORMAL,
+        #                                    Gdk.RGBA(1, 0, 1, 1))
+        globalbox.pack_start(button_box, False, True, 0)
 
+        edit_button = Gtk.Button.new_from_icon_name(
+            "document-properties-symbolic",
+            Gtk.IconSize.MENU)
+        edit_button.set_relief(Gtk.ReliefStyle.NONE)
+        button_box.add(edit_button)
+
+        delete_button = Gtk.Button.new_from_icon_name(
+            "edit-delete-symbolic",
+            Gtk.IconSize.MENU)
+        delete_button.set_relief(Gtk.ReliefStyle.NONE)
+        button_box.add(delete_button)
 
         rowbox.show_all()
+        delete_button.set_visible(False)
+        edit_button.set_visible(False)
+
         return rowbox
 
     def on_search_results_cb(self, search, documents):
@@ -3331,11 +3355,27 @@ class MainWindow(object):
             self.__resize_page(page)
         self.__update_page_positions()
 
+    def __set_doc_buttons_visible(self, doc, visible):
+        if (doc is None
+            or not doc.docid in self.lists['doclist']['model']['by_id']):
+            return
+
+        row = self.lists['doclist']['model']['by_id'][doc.docid]
+        to_examine = row.get_children()
+        while len(to_examine) > 0:
+            widget = to_examine.pop()
+            if type(widget) is Gtk.Button:
+                widget.set_visible(visible)
+            if hasattr(widget, 'get_children'):
+                to_examine += widget.get_children()
+
     def show_doc(self, doc, force_refresh=False):
         if (self.doc is not None and self.doc == doc and not force_refresh):
             logger.info("Doc is already shown")
             return
+
         logger.info("Showing document %s" % doc)
+        previous_doc = self.doc
         self.doc = doc
 
         self.schedulers['main'].cancel_all(
@@ -3344,6 +3384,9 @@ class MainWindow(object):
         self.schedulers['main'].cancel_all(
             self.job_factories['page_boxes_loader']
         )
+
+        self.__set_doc_buttons_visible(self.doc, True)
+
         self.img['canvas'].remove_all_drawers()
         self.img['canvas'].add_drawer(self.progressbar)
         assert(self.progressbar.canvas)
@@ -3415,6 +3458,8 @@ class MainWindow(object):
         self.refresh_page_list()
         # TODO
         # self.refresh_label_list()
+
+        self.__set_doc_buttons_visible(previous_doc, False)
 
     def show_page(self, page, force_refresh=False):
         if page is None:

@@ -1,7 +1,7 @@
 .left-header-bar {
   border-right-width: 1px;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 .box-left {
@@ -10,19 +10,19 @@
 }
 
 .page-nb-left {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  border-right-width: 0;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-right-width: 0px;
 }
 .page-nb-center {
-  border-radius: 0;
-  border-right-width: 0;
+  border-radius: 0px;
+  border-right-width: 0px;
 }
 .page-nb-right {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
 
 GtkListBox GtkButton {
-  padding: 3;
+  padding: 3px;
 }

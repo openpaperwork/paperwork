@@ -170,11 +170,9 @@ class LabelWidget(Gtk.DrawingArea):
 
             x += w + self.LABEL_SPACING
 
-
         current_size = self.get_size_request()
         if (current_size != (max_width, y + h)):
             self.set_size_request(max_width, y + h)
-
 
 
 GObject.type_register(LabelWidget)

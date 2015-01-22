@@ -37,7 +37,8 @@ class Label(object):
             self.name = name
         else:
             self.name = unicode(name, encoding='utf-8')
-        self.color = Gdk.color_parse(color)
+        self.color = Gdk.RGBA()
+        self.color.parse(color)
 
     def __copy__(self):
         return Label(self.name, self.get_color_str())
@@ -105,9 +106,7 @@ class Label(object):
             return (1.0, 1.0, 1.0)  # white
 
     def get_rgb_bg(self):
-        return (float((self.color.red >> 8) & 0xFF) / 0xFF,
-                float((self.color.green >> 8) & 0xFF) / 0xFF,
-                float((self.color.blue >> 8) & 0xFF) / 0xFF)
+        return (self.color.red, self.color.green, self.color.blue)
 
     def __str__(self):
         return ("Color: %s ; Text: %s"

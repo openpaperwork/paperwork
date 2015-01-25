@@ -1307,6 +1307,18 @@ class ActionUpdateSearchResults(SimpleAction):
             entry.set_text("")
 
 
+class ActionOpenViewSettings(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open view settings")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.popovers['view_settings'].set_relative_to(
+            self.__main_win.actions['open_view_settings'][0][0])
+        self.__main_win.popovers['view_settings'].set_visible(True)
+
+
 class ActionSwitchSorting(SimpleAction):
     def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Switch sorting")
@@ -2435,8 +2447,11 @@ class MainWindow(object):
             }
         }
 
-        self.popup_menus = {
+        self.popovers = {
+            'view_settings': widget_tree.get_object("view_settings_popover"),
         }
+
+        self.popup_menus = {}
 
         self.show_all_boxes = False
 
@@ -2505,13 +2520,12 @@ class MainWindow(object):
                 ],
                 open_doc_action,
             ),
-            # TODO
-            #'open_page': (
-            #    [
-            #        widget_tree.get_object("iconviewPage"),
-            #    ],
-            #    open_page_action,
-            #),
+            'open_view_settings': (
+                [
+                    widget_tree.get_object("viewSettingsButton"),
+                ],
+                ActionOpenViewSettings(self),
+            ),
             # TODO
             #'select_label': (
             #    [

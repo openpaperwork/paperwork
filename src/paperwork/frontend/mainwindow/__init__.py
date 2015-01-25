@@ -2315,8 +2315,6 @@ class ActionEditPage(SimpleAction):
 
 
 class MainWindow(object):
-    PAGE_MARGIN = 50
-
     SMALL_THUMBNAIL_WIDTH = 64
     SMALL_THUMBNAIL_HEIGHT = 80
 
@@ -2359,6 +2357,7 @@ class MainWindow(object):
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
         self.page_drawers = []
+        self.layout = None
         self.scan_drawers = {}  # docid --> [(page_nb, extra drawers]
 
         search_completion = Gtk.EntryCompletion()
@@ -3339,21 +3338,10 @@ class MainWindow(object):
         factor = self.get_zoom_factor(drawer.max_size)
         drawer.set_size_ratio(factor)
 
-    def __update_page_positions(self):
-        position_h = 0
-        canvas_width = self.img['canvas'].visible_size[0]
-        for drawer in self.page_drawers:
-            drawer_size = drawer.size
-            drawer.position = (
-                max(0, (canvas_width - drawer_size[0]) / 2),
-                position_h
-            )
-            position_h += drawer_size[1] + self.PAGE_MARGIN
-
     def update_page_sizes(self):
         for page in self.page_drawers:
             self.__resize_page(page)
-        self.__update_page_positions()
+            page.relocate()
 
     def __set_doc_buttons_visible(self, doc, visible):
         if (doc is None
@@ -3369,10 +3357,17 @@ class MainWindow(object):
             if hasattr(widget, 'get_children'):
                 to_examine += widget.get_children()
 
-    def show_doc(self, doc, force_refresh=False):
-        if (self.doc is not None and self.doc == doc and not force_refresh):
+    def show_doc(self, doc, force_refresh=False, layout=None):
+        if ((layout is None or self.layout == layout)
+                and self.doc is not None
+                and self.doc == doc
+                and not force_refresh):
             logger.info("Doc is already shown")
             return
+
+        if layout is not None:
+            self.layout = layout
+        layout = self.layout
 
         logger.info("Showing document %s" % doc)
         previous_doc = self.doc
@@ -3411,13 +3406,16 @@ class MainWindow(object):
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
 
+        previous_drawer = None
         for page in doc.pages:
             if page.page_nb in scan_drawers:
                 drawer = scan_drawers[page.page_nb]
             else:
-                drawer = PageDrawer((0, 0), page, factories, schedulers,
+                drawer = PageDrawer(page, factories, schedulers,
+                                    previous_drawer,
                                     show_all_boxes=self.show_all_boxes,
                                     sentence=search)
+            previous_drawer = drawer
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
 
@@ -3460,6 +3458,7 @@ class MainWindow(object):
         # self.refresh_label_list()
 
         self.__set_doc_buttons_visible(previous_doc, False)
+
 
     def show_page(self, page, force_refresh=False):
         if page is None:
@@ -3565,7 +3564,6 @@ class MainWindow(object):
 
         for page in self.page_drawers:
             self.__resize_page(page)
-        self.__update_page_positions()
         self.show_page(self.page)
 
     def on_page_editing_img_edit_start_cb(self, job, page):

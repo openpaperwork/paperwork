@@ -22,6 +22,7 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
 
+from paperwork.backend.common.page import BasicPage
 from paperwork.backend.util import image2surface
 from paperwork.backend.util import split_words
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
@@ -49,7 +50,13 @@ class JobPageImgLoader(Job):
     def do(self):
         self.emit('page-loading-start')
         try:
-            img = self.page.img
+            if (not self.size
+                    or self.size[0] > BasicPage.DEFAULT_THUMB_WIDTH
+                    or self.size[1] > BasicPage.DEFAULT_THUMB_HEIGHT):
+                img = self.page.img
+            else:
+                img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
+                                              BasicPage.DEFAULT_THUMB_HEIGHT)
             if self.size:
                 img = img.resize(self.size, PIL.Image.ANTIALIAS)
             img.load()
@@ -145,17 +152,22 @@ class JobFactoryPageBoxesLoader(JobFactory):
 class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
+    PAGE_MARGIN = 50
 
-    def __init__(self, position, page,
+    def __init__(self, page,
                  job_factories,
                  job_schedulers,
+                 previous_page_drawer=None,
+                 show_boxes=False,
                  show_all_boxes=False,
                  sentence=u""):
         Drawer.__init__(self)
 
         self.max_size = page.size
         self.page = page
+        self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
+        self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
         self.boxes = {
@@ -170,16 +182,35 @@ class PageDrawer(Drawer):
         self.factories = job_factories
         self.schedulers = job_schedulers
 
-        self._position = position
         self._size = self.max_size
+        self._position = (0, 0)
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
+
+    def relocate(self):
+        assert(self.canvas)
+        if self.previous_page_drawer is None:
+            position_h = 0
+        else:
+            position_h = (self.previous_page_drawer.position[1]
+                          + self.previous_page_drawer.size[1]
+                          + self.PAGE_MARGIN)
+        canvas_width = self.canvas.visible_size[0]
+        self.position = (
+            max(0, (canvas_width - self.size[0]) / 2),
+            position_h
+        )
 
     def set_canvas(self, canvas):
         Drawer.set_canvas(self, canvas)
         self.spinner.set_canvas(canvas)
+        self.relocate()
         canvas.connect("absolute-motion-notify-event", lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
+        canvas.connect("size-allocate", self._on_size_allocate_cb)
+
+    def _on_size_allocate_cb(self, widget, size):
+        GLib.idle_add(self.relocate)
 
     def on_tick(self):
         Drawer.on_tick(self)
@@ -235,7 +266,7 @@ class PageDrawer(Drawer):
             return
         self.surface = surface
         self.redraw()
-        if len(self.boxes['all']) <= 0:
+        if len(self.boxes['all']) <= 0 and self.show_boxes:
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
 

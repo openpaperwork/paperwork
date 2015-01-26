@@ -425,7 +425,7 @@ class BasicScanWorkflowDrawer(Animation):
     def relocate(self):
         assert(self.canvas)
         if self.previous_drawer is None:
-            position_h = PageDrawer.MARGIN
+            position_h = 0
             position_w = PageDrawer.MARGIN
         elif (self.previous_drawer.position[0]
               + self.previous_drawer.size[0]
@@ -440,7 +440,7 @@ class BasicScanWorkflowDrawer(Animation):
             position_w = PageDrawer.MARGIN
             position_h = (self.previous_drawer.position[1]
                           + self.previous_drawer.size[1]
-                          + (2 * PageDrawer.MARGIN))
+                          + PageDrawer.MARGIN)
         self.position = (position_w, position_h)
 
 

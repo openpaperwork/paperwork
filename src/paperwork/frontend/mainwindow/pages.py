@@ -152,7 +152,7 @@ class JobFactoryPageBoxesLoader(JobFactory):
 class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
-    MARGIN = 50
+    MARGIN = 25
 
     def __init__(self, page,
                  job_factories,
@@ -190,7 +190,7 @@ class PageDrawer(Drawer):
     def relocate(self):
         assert(self.canvas)
         if self.previous_page_drawer is None:
-            position_h = self.MARGIN
+            position_h = 0
             position_w = self.MARGIN
         elif (self.previous_page_drawer.position[0]
               + self.previous_page_drawer.size[0]

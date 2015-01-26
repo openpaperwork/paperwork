@@ -770,7 +770,7 @@
             <property name="visible">True</property>
             <property name="height_request">30</property>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="show_paged_button">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkImage">
@@ -787,7 +787,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="show_grid_button">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkImage">
@@ -817,10 +817,10 @@
             <property name="can_focus">True</property>
             <property name="orientation">horizontal</property>
             <property name="adjustment">adjustmentZoom</property>
-            <property name="inverted">True</property>
             <property name="fill_level">100</property>
             <property name="round_digits">1</property>
             <property name="draw_value">False</property>
+            <property name="sensitive">False</property>
           </object>
           <packing>
             <property name="expand">False</property>

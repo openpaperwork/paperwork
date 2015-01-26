@@ -1319,6 +1319,26 @@ class ActionOpenViewSettings(SimpleAction):
         self.__main_win.popovers['view_settings'].set_visible(True)
 
 
+class ActionShowDocumentAsPaged(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Show document page per page")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.set_layout('paged')
+
+
+class ActionShowDocumentAsGrid(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Show document as a grid")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.set_layout('grid')
+
+
 class ActionSwitchSorting(SimpleAction):
     def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Switch sorting")
@@ -2484,6 +2504,16 @@ class MainWindow(object):
             'exporter': None,
         }
 
+        self.layouts = {
+            'settings_button': widget_tree.get_object("viewSettingsButton"),
+            'grid': {
+                'button': widget_tree.get_object("show_grid_button"),
+            },
+            'paged': {
+                'button': widget_tree.get_object("show_paged_button"),
+            },
+        }
+
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -2522,9 +2552,21 @@ class MainWindow(object):
             ),
             'open_view_settings': (
                 [
-                    widget_tree.get_object("viewSettingsButton"),
+                    self.layouts['settings_button'],
                 ],
                 ActionOpenViewSettings(self),
+            ),
+            'show_as_grid': (
+                [
+                    self.layouts['grid']['button'],
+                ],
+                ActionShowDocumentAsGrid(self)
+            ),
+            'show_as_paged': (
+                [
+                    self.layouts['paged']['button'],
+                ],
+                ActionShowDocumentAsPaged(self)
             ),
             # TODO
             #'select_label': (
@@ -3371,17 +3413,26 @@ class MainWindow(object):
             if hasattr(widget, 'get_children'):
                 to_examine += widget.get_children()
 
-    def show_doc(self, doc, force_refresh=False, layout=None):
-        if ((layout is None or self.layout == layout)
-                and self.doc is not None
+    def set_layout(self, layout):
+        if self.layout == layout:
+            return
+        self.layout = layout
+        if self.doc is not None:
+            self.show_doc(self.doc, force_refresh=True)
+        img = {
+            'grid': Gtk.Image.new_from_icon_name("view-grid-symbolic",
+                                                 Gtk.IconSize.MENU),
+            'paged': Gtk.Image.new_from_icon_name("view-paged-symbolic",
+                                                  Gtk.IconSize.MENU),
+        }[layout]
+        self.layouts['settings_button'].set_image(img)
+
+    def show_doc(self, doc, force_refresh=False):
+        if (self.doc is not None
                 and self.doc == doc
                 and not force_refresh):
             logger.info("Doc is already shown")
             return
-
-        if layout is not None:
-            self.layout = layout
-        layout = self.layout
 
         logger.info("Showing document %s" % doc)
         previous_doc = self.doc

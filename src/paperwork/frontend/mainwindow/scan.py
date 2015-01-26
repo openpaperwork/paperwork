@@ -26,6 +26,7 @@ import pyocr
 import pyocr.builders
 
 from paperwork.backend.util import check_spelling
+from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.canvas.animations import Animation
@@ -279,7 +280,6 @@ class JobOCR(Job):
 
         return (orientation['angle'], img, boxes)
 
-
     def do_ocr_with_custom_heuristic(self, img):
         imgs = {angle: img.rotate(angle) for angle in self.angles}
         self.emit('ocr-angles', imgs.keys())
@@ -381,8 +381,10 @@ class BasicScanWorkflowDrawer(Animation):
 
     layer = Animation.IMG_LAYER
 
-    def __init__(self, scan_workflow, page=None):
+    def __init__(self, scan_workflow, page=None, previous_drawer=None):
         Animation.__init__(self)
+
+        self.previous_drawer = previous_drawer
 
         self.scan_drawers = []
 
@@ -419,6 +421,28 @@ class BasicScanWorkflowDrawer(Animation):
         scan_workflow.connect("ocr-done", lambda gobj, angle, img, boxes:
                               GLib.idle_add(self.__on_ocr_done_cb, angle, img,
                                             boxes))
+
+    def relocate(self):
+        assert(self.canvas)
+        if self.previous_drawer is None:
+            position_h = PageDrawer.MARGIN
+            position_w = PageDrawer.MARGIN
+        elif (self.previous_drawer.position[0]
+              + self.previous_drawer.size[0]
+              + (2 * PageDrawer.MARGIN)
+              + self.size[0]
+              < self.canvas.visible_size[0]):
+            position_w = (self.previous_drawer.position[0]
+                          + self.previous_drawer.size[0]
+                          + (2 * PageDrawer.MARGIN))
+            position_h = self.previous_drawer.position[1]
+        else:
+            position_w = PageDrawer.MARGIN
+            position_h = (self.previous_drawer.position[1]
+                          + self.previous_drawer.size[1]
+                          + (2 * PageDrawer.MARGIN))
+        self.position = (position_w, position_h)
+
 
     def __get_size(self):
         assert(self.canvas)

@@ -3353,6 +3353,9 @@ class MainWindow(object):
             factor = self.get_zoom_factor(page.max_size)
             page.set_size_ratio(factor)
             page.relocate()
+        if self.doc.docid in self.scan_drawers:
+            for (page_nb, drawer) in self.scan_drawers[self.doc.docid]:
+                drawer.relocate()
 
     def __set_doc_buttons_visible(self, doc, visible):
         if (doc is None
@@ -3421,6 +3424,7 @@ class MainWindow(object):
         for page in doc.pages:
             if page.page_nb in scan_drawers:
                 drawer = scan_drawers[page.page_nb]
+                drawer.previous_drawer = previous_drawer
             else:
                 drawer = PageDrawer(page, factories, schedulers,
                                     previous_drawer,

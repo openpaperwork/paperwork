@@ -1277,6 +1277,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
 
         logger.info("Showing doc %s" % doc)
+        self.__main_win.set_layout('grid', force_refresh=False)
         self.__main_win.show_doc(doc)
 
 
@@ -1354,26 +1355,6 @@ class ActionSwitchSorting(SimpleAction):
         self.__config['result_sorting'].value = sorting_name
         self.__config.write()
         self.__upd_search_results_action.do()
-
-
-class ActionOpenPageSelected(SimpleAction):
-    def __init__(self, main_window):
-        SimpleAction.__init__(self,
-                              "Show a page (selected from the page"
-                              " thumbnail list)")
-        self.__main_win = main_window
-
-    def do(self):
-        SimpleAction.do(self)
-        gui_list = self.__main_win.lists['pages']['gui']
-        selection_path = gui_list.get_selected_items()
-        if len(selection_path) <= 0:
-            return
-        # TODO(Jflesch): We should get the page number from the list content,
-        # not from the position of the element in the list
-        page_idx = selection_path[0].get_indices()[0]
-        page = self.__main_win.doc.pages[page_idx]
-        self.__main_win.show_page(page)
 
 
 class ActionMovePageIndex(SimpleAction):
@@ -2395,7 +2376,6 @@ class MainWindow(object):
         search_completion = Gtk.EntryCompletion()
 
         open_doc_action = ActionOpenSelectedDocument(self)
-        open_page_action = ActionOpenPageSelected(self)
 
         self.lists = {
             'suggestions': {
@@ -3413,11 +3393,11 @@ class MainWindow(object):
             if hasattr(widget, 'get_children'):
                 to_examine += widget.get_children()
 
-    def set_layout(self, layout):
+    def set_layout(self, layout, force_refresh=True):
         if self.layout == layout:
             return
         self.layout = layout
-        if self.doc is not None:
+        if force_refresh and self.doc is not None:
             self.show_doc(self.doc, force_refresh=True)
         img = {
             'grid': Gtk.Image.new_from_icon_name("view-grid-symbolic",
@@ -3483,6 +3463,7 @@ class MainWindow(object):
                                     show_border=(self.layout == 'grid'),
                                     show_all_boxes=self.show_all_boxes,
                                     sentence=search)
+                drawer.connect("page-selected", self._on_page_drawer_selected)
             previous_drawer = drawer
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
@@ -3527,7 +3508,6 @@ class MainWindow(object):
 
         self.__set_doc_buttons_visible(previous_doc, False)
 
-
     def show_page(self, page, force_refresh=False):
         if page is None:
             return
@@ -3553,6 +3533,10 @@ class MainWindow(object):
         self.export['dialog'].set_visible(False)
 
         self.img['canvas'].redraw()
+
+    def _on_page_drawer_selected(self, page_drawer):
+        self.set_layout('paged', force_refresh=False)
+        self.show_page(page_drawer.page, force_refresh=True)
 
     def on_export_preview_start(self):
         visible = self.img['canvas'].visible_size

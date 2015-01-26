@@ -149,12 +149,16 @@ class JobFactoryPageBoxesLoader(JobFactory):
         return job
 
 
-class PageDrawer(Drawer):
+class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
     MARGIN = 25
     BORDER = (5, (0.85, 0.85, 0.85))
     TMP_AREA = (0.85, 0.85, 0.85)
+
+    __gsignals__ = {
+        'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
 
     def __init__(self, page,
                  job_factories,
@@ -164,6 +168,7 @@ class PageDrawer(Drawer):
                  show_all_boxes=False,
                  show_border=False,
                  sentence=u""):
+        GObject.GObject.__init__(self)
         Drawer.__init__(self)
 
         self.max_size = page.size
@@ -219,6 +224,9 @@ class PageDrawer(Drawer):
         self.relocate()
         canvas.connect("absolute-motion-notify-event", lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
+        canvas.connect("absolute-button-release-event",
+                       lambda canvas, event:
+                       GLib.idle_add(self._on_mouse_button_release, event))
         canvas.connect("size-allocate", self._on_size_allocate_cb)
 
     def _on_size_allocate_cb(self, widget, size):
@@ -541,3 +549,19 @@ class PageDrawer(Drawer):
                                      box_pos[1] - self.LINE_WIDTH),
                                     (box_pos[2] + (2 * self.LINE_WIDTH),
                                      box_pos[2] + (2 * self.LINE_WIDTH))))
+
+    def _on_mouse_button_release(self, event):
+        position = self.position
+        size = self.size
+
+        inside = (event.x >= position[0]
+                  and event.x < (position[0] + size[0])
+                  and event.y >= position[1]
+                  and event.y < (position[1] + size[1]))
+
+        if not inside:
+            return
+
+        self.emit('page-selected')
+
+GObject.type_register(PageDrawer)

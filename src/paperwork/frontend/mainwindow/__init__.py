@@ -2369,7 +2369,7 @@ class MainWindow(object):
         # however, only one is the "active one"
         self.page = DummyPage(self.doc)
         self.page_drawers = []
-        self.layout = None
+        self.layout = "grid"
         self.scan_drawers = {}  # docid --> [(page_nb, extra drawers]
 
         search_completion = Gtk.EntryCompletion()
@@ -3348,13 +3348,10 @@ class MainWindow(object):
             page.show_all_boxes = self.show_all_boxes
             page.reload_boxes(search)
 
-    def __resize_page(self, drawer):
-        factor = self.get_zoom_factor(drawer.max_size)
-        drawer.set_size_ratio(factor)
-
     def update_page_sizes(self):
         for page in self.page_drawers:
-            self.__resize_page(page)
+            factor = self.get_zoom_factor(page.max_size)
+            page.set_size_ratio(factor)
             page.relocate()
 
     def __set_doc_buttons_visible(self, doc, visible):
@@ -3518,10 +3515,14 @@ class MainWindow(object):
         self.export['estimated_size'].set_text(sizeof_fmt(img_size))
 
     def __get_img_area_width(self):
-        return self.img['viewport']['widget'].get_allocation().width
+        w = self.img['viewport']['widget'].get_allocation().width
+        w -= 2 * PageDrawer.MARGIN
+        return w
 
     def __get_img_area_height(self):
-        return self.img['viewport']['widget'].get_allocation().height
+        h = self.img['viewport']['widget'].get_allocation().height
+        h -= 2 * PageDrawer.MARGIN
+        return h
 
     def get_raw_zoom_level(self):
         # TODO
@@ -3531,19 +3532,23 @@ class MainWindow(object):
         return 0
 
     def get_zoom_factor(self, img_size):
-        factor = self.get_raw_zoom_level()
-        # factor is a postive float if user defined, 0 for full width and
-        # -1 for full page
-        if factor > 0.0:
-            return factor
-        wanted_width = self.__get_img_area_width()
-        width_factor = float(wanted_width) / img_size[0]
-        if factor == -1.0:
-            wanted_height = self.__get_img_area_height()
-            factor = min(width_factor, float(wanted_height) / img_size[1])
-            return factor
+        if self.layout == "grid":
+            wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
+            return float(wanted_height) / img_size[1]
         else:
-            return width_factor
+            factor = self.get_raw_zoom_level()
+            # factor is a postive float if user defined, 0 for full width and
+            # -1 for full page
+            if factor > 0.0:
+                return factor
+            wanted_width = self.__get_img_area_width()
+            width_factor = float(wanted_width) / img_size[0]
+            if factor == -1.0:
+                wanted_height = self.__get_img_area_height()
+                factor = min(width_factor, float(wanted_height) / img_size[1])
+                return factor
+            else:
+                return width_factor
 
     def refresh_export_preview(self):
         self.img['canvas'].remove_all_drawers()

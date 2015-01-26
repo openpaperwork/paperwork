@@ -57,7 +57,7 @@ class JobPageImgLoader(Job):
             else:
                 img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                               BasicPage.DEFAULT_THUMB_HEIGHT)
-            if self.size:
+            if self.size != img.size:
                 img = img.resize(self.size, PIL.Image.ANTIALIAS)
             img.load()
             self.emit('page-loading-img', image2surface(img))
@@ -152,7 +152,7 @@ class JobFactoryPageBoxesLoader(JobFactory):
 class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
-    PAGE_MARGIN = 50
+    MARGIN = 50
 
     def __init__(self, page,
                  job_factories,
@@ -190,16 +190,23 @@ class PageDrawer(Drawer):
     def relocate(self):
         assert(self.canvas)
         if self.previous_page_drawer is None:
-            position_h = 0
+            position_h = self.MARGIN
+            position_w = self.MARGIN
+        elif (self.previous_page_drawer.position[0]
+              + self.previous_page_drawer.size[0]
+              + (2 * self.MARGIN)
+              + self.size[0]
+              < self.canvas.visible_size[0]):
+            position_w = (self.previous_page_drawer.position[0]
+                          + self.previous_page_drawer.size[0]
+                          + (2 * self.MARGIN))
+            position_h = self.previous_page_drawer.position[1]
         else:
+            position_w = self.MARGIN
             position_h = (self.previous_page_drawer.position[1]
                           + self.previous_page_drawer.size[1]
-                          + self.PAGE_MARGIN)
-        canvas_width = self.canvas.visible_size[0]
-        self.position = (
-            max(0, (canvas_width - self.size[0]) / 2),
-            position_h
-        )
+                          + (2 * self.MARGIN))
+        self.position = (position_w, position_h)
 
     def set_canvas(self, canvas):
         Drawer.set_canvas(self, canvas)

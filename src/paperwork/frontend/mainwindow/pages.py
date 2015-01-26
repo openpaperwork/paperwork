@@ -153,13 +153,16 @@ class PageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
     MARGIN = 25
+    BORDER = (5, (0.85, 0.85, 0.85))
+    TMP_AREA = (0.85, 0.85, 0.85)
 
     def __init__(self, page,
                  job_factories,
                  job_schedulers,
                  previous_page_drawer=None,
-                 show_boxes=False,
+                 show_boxes=True,
                  show_all_boxes=False,
+                 show_border=False,
                  sentence=u""):
         Drawer.__init__(self)
 
@@ -167,6 +170,8 @@ class PageDrawer(Drawer):
         self.page = page
         self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
+        self.show_border = show_border
+        self.has_border = False
         self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
@@ -335,10 +340,31 @@ class PageDrawer(Drawer):
         self.unload_content()
         self.visible = False
 
+    def draw_border(self, cairo_context):
+        border_width = self.BORDER[0]
+        border_color = self.BORDER[1]
+
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(border_color[0], border_color[1],
+                                         border_color[2])
+            cairo_context.rectangle(self.position[0] - self.canvas.offset[0]
+                                    - border_width,
+                                    self.position[1] - self.canvas.offset[1]
+                                    - border_width,
+                                    self.size[0] + (2 * border_width),
+                                    self.size[1] + (2 * border_width))
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+
     def draw_tmp_area(self, cairo_context):
         cairo_context.save()
         try:
-            cairo_context.set_source_rgb(0.85, 0.85, 0.85)
+            cairo_context.set_source_rgb(self.TMP_AREA[0],
+                                         self.TMP_AREA[1],
+                                         self.TMP_AREA[2])
             cairo_context.rectangle(self.position[0] - self.canvas.offset[0],
                                     self.position[1] - self.canvas.offset[1],
                                     self.size[0], self.size[1])
@@ -431,6 +457,9 @@ class PageDrawer(Drawer):
         if not self.visible:
             return
 
+        if self.has_border:
+            self.draw_border(cairo_context)
+
         if not self.surface:
             self.draw_tmp_area(cairo_context)
         else:
@@ -458,14 +487,33 @@ class PageDrawer(Drawer):
                 return box
         return None
 
+    def redraw(self):
+        border_width = self.BORDER[0]
+
+        position = self.relative_position
+        position = (position[0] - border_width,
+                    position[1] - border_width)
+
+        size = self.relative_size
+        size = (size[0] + (2 * border_width),
+                size[1] + (2 * border_width))
+
+        self.canvas.redraw((position, size))
+
     def _on_mouse_motion(self, event):
         position = self.position
         size = self.size
 
-        if (event.x < position[0]
-                or event.x > (position[0] + size[0])
-                or event.y < position[1]
-                or event.y >= (position[1] + size[1])):
+        inside = (event.x >= position[0]
+                  and event.x < (position[0] + size[0])
+                  and event.y >= position[1]
+                  and event.y < (position[1] + size[1]))
+
+        if self.show_border and self.has_border != inside:
+            self.has_border = inside
+            self.redraw()
+
+        if not inside:
             return
 
         (x_factor, y_factor) = self._get_factors()

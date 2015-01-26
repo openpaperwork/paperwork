@@ -3479,6 +3479,8 @@ class MainWindow(object):
             else:
                 drawer = PageDrawer(page, factories, schedulers,
                                     previous_drawer,
+                                    show_boxes=(self.layout == 'paged'),
+                                    show_border=(self.layout == 'grid'),
                                     show_all_boxes=self.show_all_boxes,
                                     sentence=search)
             previous_drawer = drawer

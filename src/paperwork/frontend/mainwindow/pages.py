@@ -42,17 +42,16 @@ class JobPageImgLoader(Job):
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, factory, job_id, page, size):
+    def __init__(self, factory, job_id, page, size, use_thumbnail=False):
         Job.__init__(self, factory, job_id)
         self.page = page
         self.size = size
+        self.use_thumbnail = use_thumbnail
 
     def do(self):
         self.emit('page-loading-start')
         try:
-            if (not self.size
-                    or self.size[0] > BasicPage.DEFAULT_THUMB_WIDTH
-                    or self.size[1] > BasicPage.DEFAULT_THUMB_HEIGHT):
+            if not self.use_thumbnail:
                 img = self.page.img
             else:
                 img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
@@ -74,8 +73,9 @@ class JobFactoryPageImgLoader(JobFactory):
     def __init__(self):
         JobFactory.__init__(self, "PageImgLoader")
 
-    def make(self, drawer, page, size):
-        job = JobPageImgLoader(self, next(self.id_generator), page, size)
+    def make(self, drawer, page, size, use_thumbnail=False):
+        job = JobPageImgLoader(self, next(self.id_generator), page, size,
+                               use_thumbnail)
         job.connect('page-loading-img',
                     lambda job, img:
                     GLib.idle_add(drawer.on_page_loading_img,
@@ -167,6 +167,7 @@ class PageDrawer(Drawer, GObject.GObject):
                  show_boxes=True,
                  show_all_boxes=False,
                  show_border=False,
+                 use_thumbnail=False,
                  sentence=u""):
         GObject.GObject.__init__(self)
         Drawer.__init__(self)
@@ -177,6 +178,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.show_all_boxes = show_all_boxes
         self.show_border = show_border
         self.has_border = False
+        self.use_thumbnail = use_thumbnail
         self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
@@ -275,7 +277,8 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.add_drawer(self.spinner)
         self.loading = True
         job = self.factories['page_img_loader'].make(self, self.page,
-                                                     self.size)
+                                                     self.size,
+                                                     self.use_thumbnail)
         self.schedulers['page_img_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):

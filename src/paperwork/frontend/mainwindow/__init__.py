@@ -3462,6 +3462,7 @@ class MainWindow(object):
                                     show_boxes=(self.layout == 'paged'),
                                     show_border=(self.layout == 'grid'),
                                     show_all_boxes=self.show_all_boxes,
+                                    use_thumbnail=(self.layout == 'grid'),
                                     sentence=search)
                 drawer.connect("page-selected", self._on_page_drawer_selected)
             previous_drawer = drawer

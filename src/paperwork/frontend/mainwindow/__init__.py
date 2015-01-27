@@ -2356,12 +2356,6 @@ class MainWindow(object):
         self.__scan_start = 0.0
         self.__scan_progress_job = None
 
-        self.__advanced_win_menu = \
-            widget_tree.get_object("advanced_window_menu")
-        self.__show_all_boxes_widget = Gio.MenuItem.new(
-            "XXX", "app.show_all_boxes")
-        self.__advanced_win_menu.insert_item(0, self.__show_all_boxes_widget)
-
         self.docsearch = DummyDocSearch()
         self.doc = ImgDoc(self.__config['workdir'].value)
         self.new_doc = self.doc
@@ -3766,15 +3760,7 @@ class MainWindow(object):
         return self.__show_all_boxes
 
     def __set_show_all_boxes(self, value):
-        LABELS = {
-            False: _("Highlight all the words"),
-            True: _("Unhighlight the words"),
-        }
-
-        self.__advanced_win_menu.remove(0)
-        self.__show_all_boxes_widget.set_label(LABELS[value])
-        self.__advanced_win_menu.insert_item(0, self.__show_all_boxes_widget)
-
+        # TODO
         self.__show_all_boxes = value
 
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)

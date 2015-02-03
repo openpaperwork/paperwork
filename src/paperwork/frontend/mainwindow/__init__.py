@@ -1398,8 +1398,11 @@ class ActionOpenPageNb(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        page_nb = self.__main_win.indicators['current_page'].get_text()
-        page_nb = int(page_nb) - 1
+        page_nb = self.__main_win.page_nb['current'].get_text()
+        try:
+            page_nb = int(page_nb) - 1
+        except ValueError:
+            return
         if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
             return
         page = self.__main_win.doc.pages[page_nb]
@@ -1686,7 +1689,6 @@ class ActionMultiScan(SimpleAction):
 
     def __show_page(self, page):
         self.__main_win.refresh_doc_list()
-        self.__main_win.refresh_page_list()
         self.__main_win.show_page(page)
 
 
@@ -1834,7 +1836,7 @@ class ActionDeletePage(SimpleAction):
         self.__main_win.page = None
         set_widget_state(self.__main_win.need_page_widgets, False)
         self.__main_win.refresh_docs({self.__main_win.doc})
-        self.__main_win.refresh_page_list()
+        self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
         # TODO
         #self.__main_win.refresh_label_list()
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
@@ -2396,11 +2398,6 @@ class MainWindow(object):
         search_completion.set_match_func(lambda a, b, c, d: True, None)
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
-        self.indicators = {
-            'current_page': widget_tree.get_object("entryPageNb"),
-            'total_pages': widget_tree.get_object("labelTotalPages"),
-        }
-
         self.search_field = widget_tree.get_object("entrySearch")
         # done here instead of mainwindow.glade so it can be translated
         self.search_field.set_placeholder_text(_("Search"))
@@ -2413,6 +2410,10 @@ class MainWindow(object):
         img_widget = Canvas(img_scrollbars)
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
+
+        img_widget.connect(
+            'window-moved',
+            lambda x: GLib.idle_add(self.__on_img_window_moved))
 
         self.progressbar = ProgressBarDrawer()
         self.progressbar.visible = False
@@ -2448,6 +2449,15 @@ class MainWindow(object):
         self.popup_menus = {}
 
         self.show_all_boxes = False
+
+        self.headerbars = {
+            'left': widget_tree.get_object("headerbar_left"),
+            'right': widget_tree.get_object("headerbar_right"),
+        }
+        self.page_nb = {
+            'current': widget_tree.get_object("entryPageNb"),
+            'total': widget_tree.get_object("labelTotalPages"),
+        }
 
         self.export = {
             'dialog': widget_tree.get_object("infobarExport"),
@@ -2684,7 +2694,7 @@ class MainWindow(object):
             ),
             'set_current_page': (
                 [
-                    widget_tree.get_object("entryPageNb"),
+                    self.page_nb['current'],
                 ],
                 ActionOpenPageNb(self),
             ),
@@ -3350,14 +3360,6 @@ class MainWindow(object):
             page.page_nb
         ]
 
-    def refresh_page_list(self):
-        """
-        Reload and refresh the page list.
-        Warning: Will remove the thumbnails on all the pages
-        """
-        # TODO
-        pass
-
     def refresh_boxes(self):
         search = unicode(self.search_field.get_text(), encoding='utf-8')
         for page in self.page_drawers:
@@ -3489,6 +3491,7 @@ class MainWindow(object):
         else:
             page = DummyPage(self.doc)
         self.show_page(page)
+        self.__select_page(page)
 
         # TODO
         #pages_gui = self.lists['pages']['gui']
@@ -3497,9 +3500,11 @@ class MainWindow(object):
         #    pages_gui.drag_source_add_text_targets()
         #else:
         #    pages_gui.unset_model_drag_source()
-        self.refresh_page_list()
         # TODO
         # self.refresh_label_list()
+
+        self.headerbars['right'].set_title(doc.name)
+        self.page_nb['total'].set_label(_("/ %d") % (doc.nb_pages))
 
         self.__set_doc_buttons_visible(previous_doc, False)
 
@@ -3634,7 +3639,6 @@ class MainWindow(object):
             self.doc.drop_cache()
         if page.page_nb == 0:
             self.refresh_doc_list()
-        self.refresh_page_list()
         self.show_page(page)
 
     def __on_page_list_drag_data_get_cb(self, widget, drag_context,
@@ -3676,7 +3680,6 @@ class MainWindow(object):
         obj.change_index(target_idx)
 
         drag_context.finish(True, False, time)
-        GLib.idle_add(self.refresh_page_list)
         doc = obj.doc
         GLib.idle_add(self.refresh_docs, {doc})
 
@@ -3730,7 +3733,6 @@ class MainWindow(object):
             upd_docs = {obj.doc, target_doc}
 
         drag_context.finish(True, False, time)
-        GLib.idle_add(self.refresh_page_list)
 
         # the index update will start a doc list refresh when finished
         job = self.job_factories['index_updater'].make(
@@ -3765,6 +3767,11 @@ class MainWindow(object):
 
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 
+    def __select_page(self, page):
+        self.actions['set_current_page'][1].enabled = False
+        self.page_nb['current'].set_text("%d" % (page.page_nb + 1))
+        self.actions['set_current_page'][1].enabled = True
+
     def __on_img_window_moved(self):
         pos = self.img['canvas'].position
         size = self.img['canvas'].visible_size
@@ -3776,6 +3783,8 @@ class MainWindow(object):
         page = drawer.page
         if page is None:
             return
+        self.__select_page(page)
+
 
     def make_scan_workflow(self):
         return ScanWorkflow(self.__config,
@@ -3832,7 +3841,6 @@ class MainWindow(object):
 
         if self.doc.docid == doc.docid:
             self.show_page(self.doc.pages[-1], force_refresh=True)
-        self.refresh_page_list()
 
         if new:
             factory = self.job_factories['label_predictor_on_new_doc']

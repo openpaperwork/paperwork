@@ -26,3 +26,7 @@
 GtkListBox GtkButton {
   padding: 3px;
 }
+
+GtkHeaderBar GtkButton {
+  color: black;
+}

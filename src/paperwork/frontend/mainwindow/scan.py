@@ -378,6 +378,7 @@ class BasicScanWorkflowDrawer(Animation):
     GLOBAL_MARGIN = 10
     SCAN_TO_OCR_ANIM_TIME = 1000  # ms
     IMG_MARGIN = 20
+    MARGIN = 0
 
     layer = Animation.IMG_LAYER
 

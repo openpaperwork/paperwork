@@ -3524,7 +3524,9 @@ class MainWindow(object):
                 break
 
         if drawer is not None:
-            self.img['canvas'].get_vadjustment().set_value(drawer.position[1])
+            self.img['canvas'].get_vadjustment().set_value(
+                drawer.position[1] - drawer.MARGIN
+            )
 
         if self.export['exporter'] is not None:
             logging.info("Canceling export")

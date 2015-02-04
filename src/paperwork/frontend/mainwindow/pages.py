@@ -202,7 +202,7 @@ class PageDrawer(Drawer, GObject.GObject):
     def relocate(self):
         assert(self.canvas)
         if self.previous_page_drawer is None:
-            position_h = 0
+            position_h = self.MARGIN
             position_w = self.MARGIN
         elif (self.previous_page_drawer.position[0]
               + self.previous_page_drawer.size[0]

@@ -2329,6 +2329,16 @@ class ActionEditPage(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
+class ActionSwitchToDocList(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Switch back to doc list")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.switch_leftpane("doc_list")
+
+
 class MainWindow(object):
     SMALL_THUMBNAIL_WIDTH = 64
     SMALL_THUMBNAIL_HEIGHT = 80
@@ -2454,6 +2464,18 @@ class MainWindow(object):
             'left': widget_tree.get_object("headerbar_left"),
             'right': widget_tree.get_object("headerbar_right"),
         }
+
+        self.left_revealers = {
+            'doc_list': widget_tree.get_object("box_left_doclist_revealer"),
+            'doc_properties': widget_tree.get_object(
+                "box_left_docproperties_revealer"),
+        }
+
+        self.doc_properties_pane = {
+            'ok': widget_tree.get_object("buttonDocPropertiesOk"),
+            'cancel': widget_tree.get_object("buttonDocPropertiesCancel"),
+        }
+
         self.page_nb = {
             'current': widget_tree.get_object("entryPageNb"),
             'total': widget_tree.get_object("labelTotalPages"),
@@ -2768,6 +2790,12 @@ class MainWindow(object):
                 ],
                 ActionAbout(self),
             ),
+            'cancel_doc_edit': (
+                [
+                    self.doc_properties_pane['cancel']
+                ],
+                ActionSwitchToDocList(self),
+            ),
         }
 
         for action in self.actions:
@@ -3035,6 +3063,12 @@ class MainWindow(object):
         )
         self.clear_doclist()
 
+    def switch_leftpane(self, to):
+        for (name, revealer) in self.left_revealers.iteritems():
+            print "NAME: %s VS %s" %  (name, to)
+            visible = (to == name)
+            revealer.set_reveal_child(visible)
+
     def _make_listboxrow_doc_widget(self, doc):
         rowbox = Gtk.ListBoxRow()
         globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
@@ -3077,6 +3111,11 @@ class MainWindow(object):
             "document-properties-symbolic",
             Gtk.IconSize.MENU)
         edit_button.set_relief(Gtk.ReliefStyle.NONE)
+        edit_button.connect(
+            "clicked",
+            lambda _: GLib.idle_add(
+                self.switch_leftpane, 'doc_properties'))
+
         button_box.add(edit_button)
 
         delete_button = Gtk.Button.new_from_icon_name(

@@ -2339,6 +2339,44 @@ class ActionSwitchToDocList(SimpleAction):
         self.__main_win.switch_leftpane("doc_list")
 
 
+def connect_actions(actions):
+    for action in actions:
+        for button in actions[action][0]:
+            if button is None:
+                logger.error("MISSING BUTTON: %s" % (action))
+        try:
+            actions[action][1].connect(actions[action][0])
+        except:
+            logger.error("Failed to connect action '%s'" % action)
+            raise
+
+
+class DocPropertiesPanel(object):
+    def __init__(self, main_window, widget_tree):
+        self.__main_win = main_window
+        self.doc_properties_pane = {
+            'ok': widget_tree.get_object("buttonDocPropertiesOk"),
+            'cancel': widget_tree.get_object("buttonDocPropertiesCancel"),
+        }
+        self.doc = None
+        self.actions = {
+            'cancel_doc_edit': (
+                [
+                    self.doc_properties_pane['cancel']
+                ],
+                ActionSwitchToDocList(self.__main_win),
+            ),
+        }
+        connect_actions(self.actions)
+
+    def set_doc(self, doc):
+        self.doc = doc
+        self.reload_properties()
+
+    def reload_properties(self):
+        pass
+
+
 class MainWindow(object):
     SMALL_THUMBNAIL_WIDTH = 64
     SMALL_THUMBNAIL_HEIGHT = 80
@@ -2460,20 +2498,22 @@ class MainWindow(object):
 
         self.show_all_boxes = False
 
+        self.doc_properties_panel = DocPropertiesPanel(self, widget_tree)
+
         self.headerbars = {
             'left': widget_tree.get_object("headerbar_left"),
             'right': widget_tree.get_object("headerbar_right"),
         }
 
         self.left_revealers = {
-            'doc_list': widget_tree.get_object("box_left_doclist_revealer"),
-            'doc_properties': widget_tree.get_object(
-                "box_left_docproperties_revealer"),
-        }
-
-        self.doc_properties_pane = {
-            'ok': widget_tree.get_object("buttonDocPropertiesOk"),
-            'cancel': widget_tree.get_object("buttonDocPropertiesCancel"),
+            'doc_list': [
+                widget_tree.get_object("box_left_doclist_revealer"),
+                widget_tree.get_object("box_headerbar_left_doclist_revealer"),
+            ],
+            'doc_properties': [
+                widget_tree.get_object("box_left_docproperties_revealer"),
+                widget_tree.get_object("box_headerbar_left_docproperties_revealer"),
+            ],
         }
 
         self.page_nb = {
@@ -2790,33 +2830,9 @@ class MainWindow(object):
                 ],
                 ActionAbout(self),
             ),
-            'cancel_doc_edit': (
-                [
-                    self.doc_properties_pane['cancel']
-                ],
-                ActionSwitchToDocList(self),
-            ),
         }
 
-        for action in self.actions:
-            for button in self.actions[action][0]:
-                if button is None:
-                    logger.error("MISSING BUTTON: %s" % (action))
-            try:
-                self.actions[action][1].connect(self.actions[action][0])
-            except:
-                logger.error("Failed to connect action '%s'" % action)
-                raise
-
-        for (buttons, action) in self.actions.values():
-            for button in buttons:
-                if isinstance(button, Gtk.ToolButton):
-                    button.set_tooltip_text(button.get_label())
-
-        for button in self.actions['single_scan'][0]:
-            # let's be more specific on the tool tips of these buttons
-            if isinstance(button, Gtk.ToolButton):
-                button.set_tooltip_text(_("Scan single page"))
+        connect_actions(self.actions)
 
         accelerators = [
             ('<Primary>e', 'clicked',
@@ -3064,10 +3080,10 @@ class MainWindow(object):
         self.clear_doclist()
 
     def switch_leftpane(self, to):
-        for (name, revealer) in self.left_revealers.iteritems():
-            print "NAME: %s VS %s" %  (name, to)
+        for (name, revealers) in self.left_revealers.iteritems():
             visible = (to == name)
-            revealer.set_reveal_child(visible)
+            for revealer in revealers:
+                revealer.set_reveal_child(visible)
 
     def _make_listboxrow_doc_widget(self, doc):
         rowbox = Gtk.ListBoxRow()

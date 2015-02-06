@@ -2355,14 +2355,13 @@ class DocPropertiesPanel(object):
     def __init__(self, main_window, widget_tree):
         self.__main_win = main_window
         self.doc_properties_pane = {
-            'ok': widget_tree.get_object("buttonDocPropertiesOk"),
-            'cancel': widget_tree.get_object("buttonDocPropertiesCancel"),
+            'ok': widget_tree.get_object("toolbuttonValidateDocProperties"),
         }
         self.doc = None
         self.actions = {
             'cancel_doc_edit': (
                 [
-                    self.doc_properties_pane['cancel']
+                    self.doc_properties_pane['ok']
                 ],
                 ActionSwitchToDocList(self.__main_win),
             ),
@@ -2512,7 +2511,8 @@ class MainWindow(object):
             ],
             'doc_properties': [
                 widget_tree.get_object("box_left_docproperties_revealer"),
-                widget_tree.get_object("box_headerbar_left_docproperties_revealer"),
+                widget_tree.get_object(
+                    "box_headerbar_left_docproperties_revealer"),
             ],
         }
 

@@ -281,6 +281,26 @@
                       <class name="left-header-bar"/>
                       <class name="titlebar"/>
                     </style>
+                    <child>
+                      <object class="GtkButton" id="toolbuttonValidateDocProperties">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="use_underline">True</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="icon_name">go-previous-symbolic</property>
+                            <property name="icon_size">1</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="pack_type">start</property>
+                      </packing>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -506,46 +526,6 @@
                         <property name="expand">True</property>
                         <property name="fill">True</property>
                         <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkBox" id="box1245">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="orientation">horizontal</property>
-                        <child>
-                          <object class="GtkButton" id="buttonDocPropertiesCancel">
-                            <property name="label" translatable="yes">Cancel</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="buttonDocPropertiesOk">
-                            <property name="label" translatable="yes">OK</property>
-                            <property name="use_action_appearance">False</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
                       </packing>
                     </child>
                   </object>

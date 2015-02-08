@@ -105,7 +105,7 @@ class LabelWidget(Gtk.DrawingArea):
 
     def __init__(self, labels, highlight=False):
         Gtk.DrawingArea.__init__(self)
-        self.labels = labels
+        self.labels = sorted(labels)
         self.highlight = highlight
         self.set_redraw_on_allocate(True)
         self.connect("draw", self.__on_draw)

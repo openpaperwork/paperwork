@@ -1471,8 +1471,7 @@ class ActionToggleLabel(object):
                         % (label.name, self.__main_win.doc))
             self.__main_win.docsearch.remove_label(self.__main_win.doc, label,
                                                    update_index=False)
-        # TODO
-        #self.__main_win.refresh_label_list()
+        self.__main_win.refresh_label_list()
         self.__main_win.refresh_docs({self.__main_win.doc},
                                      redo_thumbnails=False)
         job = self.__main_win.job_factories['index_updater'].make(
@@ -1837,8 +1836,7 @@ class ActionDeletePage(SimpleAction):
         set_widget_state(self.__main_win.need_page_widgets, False)
         self.__main_win.refresh_docs({self.__main_win.doc})
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
-        # TODO
-        #self.__main_win.refresh_label_list()
+        self.__main_win.refresh_label_list()
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
 
         if doc.nb_pages <= 0:
@@ -2356,10 +2354,13 @@ class DocPropertiesPanel(object):
         self.__main_win = main_window
         self.doc_properties_pane = {
             'ok': widget_tree.get_object("toolbuttonValidateDocProperties"),
+            'name': widget_tree.get_object("docname_entry"),
+            'labels': widget_tree.get_object("listboxLabels"),
+            'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
         }
         self.doc = None
         self.actions = {
-            'cancel_doc_edit': (
+            'apply_doc_edit': (
                 [
                     self.doc_properties_pane['ok']
                 ],
@@ -2368,12 +2369,84 @@ class DocPropertiesPanel(object):
         }
         connect_actions(self.actions)
 
+        labels = sorted(main_window.docsearch.label_list)
+        self.labels = {label: (None, None) for label in labels}
+
     def set_doc(self, doc):
         self.doc = doc
         self.reload_properties()
 
     def reload_properties(self):
-        pass
+        self.doc_properties_pane['name'].set_text(self.doc.name)
+        text_buffer = Gtk.TextBuffer()
+        text_buffer.set_text(self.doc.extra_text)
+        self.doc_properties_pane['extra_keywords'].set_buffer(text_buffer)
+        self.refresh_label_list()
+
+    def _clear_label_list(self):
+        self.doc_properties_pane['labels'].freeze_child_notify()
+        try:
+            while True:
+                row = self.doc_properties_pane['labels'].get_row_at_index(0)
+                if row is None:
+                    break
+                self.doc_properties_pane['labels'].remove(row)
+        finally:
+            self.labels = {}
+            self.doc_properties_pane['labels'].thaw_child_notify()
+
+    def _readd_label_widgets(self, labels):
+        label_widgets = {}
+        self.doc_properties_pane['labels'].freeze_child_notify()
+        try:
+            # labels
+            for label in labels:
+                label_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
+
+                check_button = Gtk.CheckButton()
+                check_button.set_relief(Gtk.ReliefStyle.NONE)
+                label_box.add(check_button)
+
+                label_widget = LabelWidget([label])
+                label_box.add(label_widget)
+                label_box.child_set_property(label_widget, 'expand', True)
+
+                edit_button = Gtk.Button.new_from_icon_name(
+                    "gtk-edit",
+                    Gtk.IconSize.MENU)
+                edit_button.set_relief(Gtk.ReliefStyle.NONE)
+                label_box.add(edit_button)
+
+                rowbox = Gtk.ListBoxRow()
+                rowbox.add(label_box)
+                rowbox.show_all()
+                self.doc_properties_pane['labels'].add(rowbox)
+
+                label_widgets[label] = (check_button, edit_button)
+
+            # add button
+            rowbox = Gtk.ListBoxRow()
+            addButton = Gtk.Button.new_from_icon_name("list-add-symbolic",
+                                                      Gtk.IconSize.MENU)
+            rowbox.add(addButton)
+            rowbox.show_all()
+            self.doc_properties_pane['labels'].add(rowbox)
+        finally:
+            self.labels = label_widgets
+            self.doc_properties_pane['labels'].thaw_child_notify()
+
+    def refresh_label_list(self):
+        all_labels = sorted(self.__main_win.docsearch.label_list)
+        current_labels = sorted(self.labels.keys())
+        if all_labels != current_labels:
+            self._clear_label_list()
+            self._readd_label_widgets(all_labels)
+        if not self.doc:
+            return
+        for label in self.labels:
+            active = label in self.doc.labels
+            self.labels[label][0].set_active(active)
+
 
 
 class MainWindow(object):
@@ -3036,8 +3109,7 @@ class MainWindow(object):
 
         self.docsearch = docsearch
         self.refresh_doc_list()
-        # TODO
-        # self.refresh_label_list()
+        self.refresh_label_list()
 
     def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3065,10 +3137,19 @@ class MainWindow(object):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
 
     def clear_doclist(self):
-        self.lists['doclist']['model']['by_row'] = {}
-        self.lists['doclist']['model']['by_id'] = {}
-        self.lists['doclist']['model']['has_new'] = False
-        # TODO: clear doc list widget
+        self.lists['doclist']['gui'].freeze_child_notify()
+        try:
+            while True:
+                row = self.lists['doclist']['gui'].get_row_at_index(0)
+                if row is None:
+                    break
+                self.lists['doclist']['gui'].remove(row)
+
+            self.lists['doclist']['model']['by_row'] = {}
+            self.lists['doclist']['model']['by_id'] = {}
+            self.lists['doclist']['model']['has_new'] = False
+        finally:
+            self.lists['doclist']['gui'].thaw_child_notify()
 
     def on_search_invalid_cb(self):
         self.schedulers['main'].cancel_all(
@@ -3152,18 +3233,10 @@ class MainWindow(object):
 
         logger.debug("Got %d documents" % len(documents))
 
+        self.clear_doclist()
+
         self.lists['doclist']['gui'].freeze_child_notify()
         try:
-            while True:
-                row = self.lists['doclist']['gui'].get_row_at_index(0)
-                if row is None:
-                    break
-                self.lists['doclist']['gui'].remove(row)
-
-            self.lists['doclist']['model']['has_new'] = False
-            self.lists['doclist']['model']['by_row'] = {}
-            self.lists['doclist']['model']['by_id'] = {}
-
             for doc in documents:
                 widget = self._make_listboxrow_doc_widget(doc)
                 self.lists['doclist']['model']['by_row'][widget] = doc.docid
@@ -3173,7 +3246,7 @@ class MainWindow(object):
             self.lists['doclist']['gui'].thaw_child_notify()
 
         if (self.doc is not None
-            and self.doc.docid in self.lists['doclist']['model']['by_id']):
+                and self.doc.docid in self.lists['doclist']['model']['by_id']):
             crow = self.lists['doclist']['model']['by_id'][self.doc.docid]
             self.lists['doclist']['gui'].select_row(crow)
 
@@ -3237,13 +3310,10 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
-        # TODO
-        # self.refresh_label_list()
+        self.refresh_label_list()
         self.refresh_doc_list()
 
     def on_redo_ocr_end_cb(self, src):
-        # TODO
-        # self.refresh_label_list()
         pass
 
     def __popup_menu_cb(self, ev_component, event, ui_component, popup_menu):
@@ -3555,13 +3625,13 @@ class MainWindow(object):
         #    pages_gui.drag_source_add_text_targets()
         #else:
         #    pages_gui.unset_model_drag_source()
-        # TODO
-        # self.refresh_label_list()
+        self.refresh_label_list()
 
         self.headerbars['right'].set_title(doc.name)
         self.page_nb['total'].set_label(_("/ %d") % (doc.nb_pages))
 
         self.__set_doc_buttons_visible(previous_doc, False)
+        self.doc_properties_panel.set_doc(doc)
 
     def show_page(self, page, force_refresh=False):
         if page is None:
@@ -3594,6 +3664,9 @@ class MainWindow(object):
     def _on_page_drawer_selected(self, page_drawer):
         self.set_layout('paged', force_refresh=False)
         self.show_page(page_drawer.page, force_refresh=True)
+
+    def refresh_label_list(self):
+        self.doc_properties_panel.refresh_label_list()
 
     def on_export_preview_start(self):
         visible = self.img['canvas'].visible_size
@@ -3914,8 +3987,7 @@ class MainWindow(object):
             if label.name in predicted_labels:
                 self.docsearch.add_label(doc, label, update_index=False)
         self.upd_index(doc, new=True)
-        # TODO
-        #self.refresh_label_list()
+        self.refresh_label_list()
 
     def upd_index(self, doc, new=False):
         if new:

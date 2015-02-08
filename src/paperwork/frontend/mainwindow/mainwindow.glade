@@ -547,7 +547,7 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry">
+                              <object class="GtkEntry" id="docname_entry">
                                 <property name="visible">True</property>
                                 <property name="sensitive">True</property>
                                 <property name="can_focus">True</property>
@@ -643,7 +643,7 @@
                                 <property name="vscrollbar_policy">automatic</property>
                                 <property name="height_request">100</property>
                                 <child>
-                                  <object class="GtkTextView">
+                                  <object class="GtkTextView" id="extrakeywords_textview">
                                     <property name="visible">True</property>
                                     <property name="sensitive">True</property>
                                     <property name="can_focus">True</property>

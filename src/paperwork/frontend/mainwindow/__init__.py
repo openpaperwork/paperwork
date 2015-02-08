@@ -2441,10 +2441,11 @@ class DocPropertiesPanel(object):
         if all_labels != current_labels:
             self._clear_label_list()
             self._readd_label_widgets(all_labels)
-        if not self.doc:
-            return
         for label in self.labels:
-            active = label in self.doc.labels
+            if self.doc:
+                active = label in self.doc.labels
+            else:
+                active = False
             self.labels[label][0].set_active(active)
 
 

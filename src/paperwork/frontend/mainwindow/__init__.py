@@ -1277,7 +1277,10 @@ class ActionOpenSelectedDocument(SimpleAction):
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
 
         logger.info("Showing doc %s" % doc)
-        self.__main_win.set_layout('grid', force_refresh=False)
+        if doc.nb_pages <= 1:
+            self.__main_win.set_layout('paged', force_refresh=False)
+        else:
+            self.__main_win.set_layout('grid', force_refresh=False)
         self.__main_win.show_doc(doc)
 
 

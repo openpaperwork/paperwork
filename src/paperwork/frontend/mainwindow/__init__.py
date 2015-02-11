@@ -438,7 +438,7 @@ class JobFactoryIndexUpdater(JobFactory):
         if reload_list:
             job.connect('index-update-end',
                         lambda updater:
-                        Glib.idle_add(self.__main_win.refresh_doc_list))
+                        GLib.idle_add(self.__main_win.refresh_doc_list))
         return job
 
 

@@ -2376,6 +2376,8 @@ class DocPropertiesPanel(object):
         self.refresh_label_list()
 
     def apply_properties(self):
+        has_changed = False
+
         doc_labels = sorted(self.doc.labels)
         new_labels = []
         for (label, (check_button, edit_button)) in self.labels.iteritems():
@@ -2384,6 +2386,19 @@ class DocPropertiesPanel(object):
         new_labels.sort()
         if doc_labels != new_labels:
             self.doc.labels = new_labels
+            has_changed = True
+
+        current_extra_text = self.doc.extra_text
+        buf = self.doc_properties_pane['extra_keywords'].get_buffer()
+        start = buf.get_iter_at_offset(0)
+        end = buf.get_iter_at_offset(-1)
+        new_extra_text = unicode(buf.get_text(start, end, False),
+                                 encoding='utf-8')
+        if new_extra_text != current_extra_text:
+            self.doc.extra_text = new_extra_text
+            has_changed = True
+
+        if has_changed:
             self.__main_win.upd_index(self.doc)
 
     def _clear_label_list(self):

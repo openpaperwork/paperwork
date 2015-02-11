@@ -32,7 +32,6 @@ from gi.repository import GObject
 from gi.repository import Gtk
 
 from paperwork.frontend.aboutdialog import AboutDialog
-from paperwork.frontend.doceditdialog import DocEditDialog
 from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
@@ -2140,17 +2139,6 @@ class ActionCancelExport(BasicActionEndExport):
         BasicActionEndExport.do(self)
 
 
-class ActionEditDoc(SimpleAction):
-    def __init__(self, main_window, config):
-        SimpleAction.__init__(self, "Edit doc")
-        self.__main_win = main_window
-        self.__config = config
-
-    def do(self):
-        SimpleAction.do(self)
-        DocEditDialog(self.__main_win, self.__config, self.__main_win.doc)
-
-
 class ActionOptimizeIndex(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Optimize index")
@@ -2908,14 +2896,6 @@ class MainWindow(object):
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
-            # TODO
-            #'edit_doc': (
-            #    [
-            #        widget_tree.get_object("toolbuttonEditDoc"),
-            #        widget_tree.get_object("menuitemEditDoc")
-            #    ],
-            #    ActionEditDoc(self, config),
-            #),
             'about': (
                 [
                     gactions['about'],

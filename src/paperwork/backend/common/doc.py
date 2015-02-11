@@ -328,6 +328,10 @@ class BasicDoc(object):
 
     is_new = property(__is_new)
 
+    @staticmethod
+    def get_name(date):
+        return date.strftime("%x")
+
     def __get_name(self):
         """
         Returns the localized name of the document (see l10n)

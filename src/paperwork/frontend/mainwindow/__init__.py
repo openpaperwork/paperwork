@@ -16,6 +16,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
+import datetime
 import gc
 import os
 import sys
@@ -58,6 +59,7 @@ from paperwork.frontend.util.canvas.drawers import ProgressBarDrawer
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.renderer import LabelWidget
 from paperwork.backend import docimport
+from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
@@ -2317,6 +2319,27 @@ class ActionSwitchToDocList(SimpleAction):
         self.__main_win.switch_leftpane("doc_list")
 
 
+class ActionSetDocDate(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Set document date")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        calendar = self.__main_win.doc_properties_panel.widgets['calendar']
+        popover = self.__main_win.popovers['calendar']
+        date = calendar.get_date()
+        date = datetime.datetime(year=date[0], month=date[1], day=date[2])
+        date_txt = BasicDoc.get_name(date)
+
+        entry = self.__main_win.doc_properties_panel.widgets['name']
+        entry.set_text(date_txt)
+
+        self.__main_win.doc_properties_panel.new_doc_date = date
+
+        popover.set_visible(False)
+
+
 def connect_actions(actions):
     for action in actions:
         for button in actions[action][0]:
@@ -2332,22 +2355,34 @@ def connect_actions(actions):
 class DocPropertiesPanel(object):
     def __init__(self, main_window, widget_tree):
         self.__main_win = main_window
-        self.doc_properties_pane = {
+        self.widgets = {
             'ok': widget_tree.get_object("toolbuttonValidateDocProperties"),
             'name': widget_tree.get_object("docname_entry"),
             'labels': widget_tree.get_object("listboxLabels"),
             'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
+            'calendar': widget_tree.get_object("calendar_calendar"),
         }
         self.doc = None
+        self.new_doc_date = None
         self.actions = {
             'apply_doc_edit': (
                 [
-                    self.doc_properties_pane['ok']
+                    self.widgets['ok']
                 ],
                 ActionSwitchToDocList(self.__main_win),
             ),
+            'set_day': (
+                [
+                    self.widgets['calendar']
+                ],
+                ActionSetDocDate(self.__main_win),
+            ),
         }
         connect_actions(self.actions)
+
+        self.widgets['name'].connect(
+            "icon-release", lambda entry, icon, event:
+            GLib.idle_add(self._open_calendar))
 
         labels = sorted(main_window.docsearch.label_list)
         self.labels = {label: (None, None) for label in labels}
@@ -2357,11 +2392,30 @@ class DocPropertiesPanel(object):
         self.reload_properties()
 
     def reload_properties(self):
-        self.doc_properties_pane['name'].set_text(self.doc.name)
+        self.widgets['name'].set_text(self.doc.name)
         text_buffer = Gtk.TextBuffer()
         text_buffer.set_text(self.doc.extra_text)
-        self.doc_properties_pane['extra_keywords'].set_buffer(text_buffer)
+        self.widgets['extra_keywords'].set_buffer(text_buffer)
         self.refresh_label_list()
+
+    def _open_calendar(self):
+        self.__main_win.popovers['calendar'].set_relative_to(
+            self.widgets['name'])
+        if self.new_doc_date is not None:
+            self.widgets['calendar'].select_month(
+                    self.new_doc_date.month,
+                    self.new_doc_date.year
+                )
+            self.widgets['calendar'].select_day(self.new_doc_date.day)
+        else:
+            try:
+                date = self.doc.date
+                self.widgets['calendar'].select_month(date.month, date.year)
+                self.widgets['calendar'].select_day(date.day)
+            except Exception as exc:
+                logger.warning("Failed to parse document date: %s --> %s"
+                                % (str(self.doc.docid), str(exc)))
+        self.__main_win.popovers['calendar'].set_visible(True)
 
     def apply_properties(self):
         has_changed = False
@@ -2377,7 +2431,7 @@ class DocPropertiesPanel(object):
             has_changed = True
 
         current_extra_text = self.doc.extra_text
-        buf = self.doc_properties_pane['extra_keywords'].get_buffer()
+        buf = self.widgets['extra_keywords'].get_buffer()
         start = buf.get_iter_at_offset(0)
         end = buf.get_iter_at_offset(-1)
         new_extra_text = unicode(buf.get_text(start, end, False),
@@ -2386,24 +2440,37 @@ class DocPropertiesPanel(object):
             self.doc.extra_text = new_extra_text
             has_changed = True
 
-        if has_changed:
-            self.__main_win.upd_index(self.doc)
+        if self.new_doc_date is None:
+            if has_changed:
+                self.__main_win.upd_index(self.doc)
+        else:
+            old_docid = self.doc.docid
+            self.doc.date = self.new_doc_date
+            self.new_doc_date = None
+            # this case is more tricky --> del + new
+            job = self.__main_win.job_factories['index_updater'].make(
+                 self.__main_win.docsearch,
+                 new_docs={self.doc},
+                 del_docs={old_docid},
+                 optimize=False,
+                 reload_list=True)
+            self.__main_win.schedulers['main'].schedule(job)
 
     def _clear_label_list(self):
-        self.doc_properties_pane['labels'].freeze_child_notify()
+        self.widgets['labels'].freeze_child_notify()
         try:
             while True:
-                row = self.doc_properties_pane['labels'].get_row_at_index(0)
+                row = self.widgets['labels'].get_row_at_index(0)
                 if row is None:
                     break
-                self.doc_properties_pane['labels'].remove(row)
+                self.widgets['labels'].remove(row)
         finally:
             self.labels = {}
-            self.doc_properties_pane['labels'].thaw_child_notify()
+            self.widgets['labels'].thaw_child_notify()
 
     def _readd_label_widgets(self, labels):
         label_widgets = {}
-        self.doc_properties_pane['labels'].freeze_child_notify()
+        self.widgets['labels'].freeze_child_notify()
         try:
             # labels
             for label in labels:
@@ -2426,7 +2493,7 @@ class DocPropertiesPanel(object):
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)
                 rowbox.show_all()
-                self.doc_properties_pane['labels'].add(rowbox)
+                self.widgets['labels'].add(rowbox)
 
                 label_widgets[label] = (check_button, edit_button)
 
@@ -2436,10 +2503,10 @@ class DocPropertiesPanel(object):
                                                       Gtk.IconSize.MENU)
             rowbox.add(addButton)
             rowbox.show_all()
-            self.doc_properties_pane['labels'].add(rowbox)
+            self.widgets['labels'].add(rowbox)
         finally:
             self.labels = label_widgets
-            self.doc_properties_pane['labels'].thaw_child_notify()
+            self.widgets['labels'].thaw_child_notify()
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
@@ -2571,6 +2638,7 @@ class MainWindow(object):
 
         self.popovers = {
             'view_settings': widget_tree.get_object("view_settings_popover"),
+            'calendar': widget_tree.get_object("calendar_popover"),
         }
 
         self.popup_menus = {}

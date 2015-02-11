@@ -413,21 +413,9 @@ class JobFactoryIndexUpdater(JobFactory):
         self.__main_win = main_win
         self.__config = config
 
-    def __refresh_docs(self, new_docs, upd_docs, del_docs, reload_all,
-                       reload_thumbnails):
-        if reload_all:
-            job = self.__main_win.job_factories['index_reloader'].make()
-            self.__main_win.schedulers['main'].schedule(job)
-        else:
-            docs = new_docs
-            docs = docs.union(upd_docs)
-            docs = docs.union(del_docs)
-            self.__main_win.refresh_docs(docs,
-                                         redo_thumbnails=reload_thumbnails)
-
     def make(self, docsearch,
              new_docs=set(), upd_docs=set(), del_docs=set(),
-             optimize=True, reload_all=True, reload_thumbnails=True):
+             optimize=True, reload_list=False):
         job = JobIndexUpdater(self, next(self.id_generator), self.__config,
                               docsearch, new_docs, upd_docs, del_docs,
                               optimize)
@@ -447,10 +435,10 @@ class JobFactoryIndexUpdater(JobFactory):
                     lambda updater:
                     GLib.idle_add(self.__main_win.on_index_update_end_cb,
                                   updater))
-        job.connect('index-update-end',
-                    lambda updater:
-                    GLib.idle_add(self.__refresh_docs, new_docs, upd_docs,
-                                  del_docs, reload_all, reload_thumbnails))
+        if reload_list:
+            job.connect('index-update-end',
+                        lambda updater:
+                        Glib.idle_add(self.__main_win.refresh_doc_list))
         return job
 
 
@@ -2271,7 +2259,7 @@ class ActionRefreshIndex(SimpleAction):
             new_docs=examiner.new_docs,
             upd_docs=examiner.docs_changed,
             del_docs=examiner.docs_missing,
-            reload_all=True, reload_thumbnails=True
+            reload_list=True
         )
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -2337,6 +2325,7 @@ class ActionSwitchToDocList(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.doc_properties_panel.apply_properties()
         self.__main_win.switch_leftpane("doc_list")
 
 
@@ -2385,6 +2374,17 @@ class DocPropertiesPanel(object):
         text_buffer.set_text(self.doc.extra_text)
         self.doc_properties_pane['extra_keywords'].set_buffer(text_buffer)
         self.refresh_label_list()
+
+    def apply_properties(self):
+        doc_labels = sorted(self.doc.labels)
+        new_labels = []
+        for (label, (check_button, edit_button)) in self.labels.iteritems():
+            if check_button.get_active():
+                new_labels.append(label)
+        new_labels.sort()
+        if doc_labels != new_labels:
+            self.doc.labels = new_labels
+            self.__main_win.upd_index(self.doc)
 
     def _clear_label_list(self):
         self.doc_properties_pane['labels'].freeze_child_notify()
@@ -3170,10 +3170,8 @@ class MainWindow(object):
             for revealer in revealers:
                 revealer.set_reveal_child(visible)
 
-    def _make_listboxrow_doc_widget(self, doc):
-        rowbox = Gtk.ListBoxRow()
+    def _make_listboxrow_doc_widget(self, doc, rowbox, selected=False):
         globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
-        rowbox.add(globalbox)
 
         # thumbnail
         thumbnail = Gtk.Image.new_from_pixbuf(self.default_small_thumbnail)
@@ -3225,11 +3223,13 @@ class MainWindow(object):
         delete_button.set_relief(Gtk.ReliefStyle.NONE)
         button_box.add(delete_button)
 
+        for child in rowbox.get_children():
+            rowbox.remove(child)
+        rowbox.add(globalbox)
         rowbox.show_all()
-        delete_button.set_visible(False)
-        edit_button.set_visible(False)
-
-        return rowbox
+        if not selected:
+            delete_button.set_visible(False)
+            edit_button.set_visible(False)
 
     def on_search_results_cb(self, search, documents):
         self.schedulers['main'].cancel_all(
@@ -3242,15 +3242,16 @@ class MainWindow(object):
         self.lists['doclist']['gui'].freeze_child_notify()
         try:
             for doc in documents:
-                widget = self._make_listboxrow_doc_widget(doc)
-                self.lists['doclist']['model']['by_row'][widget] = doc.docid
-                self.lists['doclist']['model']['by_id'][doc.docid] = widget
-                self.lists['doclist']['gui'].add(widget)
+                rowbox = Gtk.ListBoxRow()
+                self._make_listboxrow_doc_widget(doc, rowbox,
+                                                 doc.docid == self.doc.docid)
+                self.lists['doclist']['model']['by_row'][rowbox] = doc.docid
+                self.lists['doclist']['model']['by_id'][doc.docid] = rowbox
+                self.lists['doclist']['gui'].add(rowbox)
         finally:
             self.lists['doclist']['gui'].thaw_child_notify()
 
-        if (self.doc is not None
-                and self.doc.docid in self.lists['doclist']['model']['by_id']):
+        if self.doc.docid in self.lists['doclist']['model']['by_id']:
             crow = self.lists['doclist']['model']['by_id'][self.doc.docid]
             self.lists['doclist']['gui'].select_row(crow)
 
@@ -3366,7 +3367,7 @@ class MainWindow(object):
 
     def insert_new_doc(self):
         # append a new document to the list
-        self.lists['doclist']['gui']['has_new'] = True
+        self.lists['doclist']['gui']['has_new'] = False
         # TODO : insert actually in the widget
 
     def refresh_docs(self, docs, redo_thumbnails=True):
@@ -3376,96 +3377,16 @@ class MainWindow(object):
         Arguments:
             docs --- Array of Doc
         """
-        must_rethumbnail = set()
-
-        for doc in set(docs):
-            try:
-                if doc.is_new:  # ASSUMPTION: was actually deleted
-                    doc_list = self.lists['doclist']
-                    idx = doc_list.index(doc)
-                    logger.info("Doc list refresh: %d:%s deleted"
-                                % (idx, doc.docid))
-                    self.__remove_doc(idx)
-                    docs.remove(doc)
-            except ValueError:
-                logger.warning("Unable to find doc [%s] in the list"
-                               % str(doc))
-
-        new_doc = self.__pop_new_doc()
-        if new_doc:
-            logger.debug("Doc list refresh: 'new doc' (%s) popped out"
-                         " of the  list" % new_doc)
-
-        # make sure all the target docs are already in the list in a first
-        # place
-        # XXX(Jflesch): this may screw up the document sorting
-        doc_list = self.lists['doclist']
-        doc_list = {doc_list[x]: x for x in xrange(0, len(doc_list))}
-        for doc in set(docs):
-            if doc not in doc_list:
-                logger.info("Doc list refresh: 0:%s added"
-                            % doc.docid)
-                self.__insert_doc(0, doc)
-                must_rethumbnail.add(doc)
-                docs.remove(doc)
-
-        sentence = unicode(self.search_field.get_text(), encoding='utf-8')
-        logger.info("Search: %s" % (sentence.encode('utf-8', 'replace')))
-
-        # When a scan is done, we try to refresh only the current document.
-        # However, the current document may be "New document". In which case
-        # it won't appear as "New document" anymore. So we have to add a new
-        # one to the list
-        if sentence == u"":
-            self.insert_new_doc()
-            logger.debug("Doc list refresh: 'new doc' reinserted in the list")
-
-        # Update the model of the remaining target docs
-        doc_list = self.lists['doclist']
-        doc_list = {doc_list[x]: x for x in xrange(0, len(doc_list))}
-        for doc in set(docs):
-            assert(doc in doc_list)
-            doc_idx = doc_list[doc]
-            logger.info("Doc list refresh: %d:%s refreshed"
-                        % (doc_idx, doc.docid))
-            doc_line = self.__get_doc_model_line(doc)
-            if redo_thumbnails:
-                must_rethumbnail.add(doc)
-            else:
-                # put back the previous thumbnail
-                # TODO
-                #current_model = self.lists['doclist']['model'][doc_idx]
-                #doc_line[1] = current_model[1]
-                pass
-            # TODO
-            #self.lists['doclist'].set_model_line(doc_idx, doc_line)
-            docs.remove(doc)
-
-        assert(not docs)
-
-        # reselect the active doc
-        if self.doc is not None:
-            if (self.doc.is_new
-                    and len(self.lists['doclist']) > 0
-                    and self.lists['doclist'][0].is_new):
-                # TODO
-                #self.lists['doclist'].select_idx(0)
-                pass
-            elif self.doc in doc_list:
-                active_idx = doc_list[self.doc]
-                # TODO
-                #self.lists['doclist'].select_idx(active_idx)
-            else:
-                logger.warning("Selected document (%s) is not in the list"
-                               % str(self.doc.docid))
+        for doc in docs:
+            rowbox = self.lists['doclist']['model']['by_id'][doc.docid]
+            self._make_listboxrow_doc_widget(doc, rowbox,
+                                             doc.docid == self.doc.docid)
 
         # and rethumbnail what must be
-        if must_rethumbnail:
-            docs = [x for x in must_rethumbnail]
-            docs = [(doc_list[doc], doc) for doc in must_rethumbnail]
-            logger.info("Will redo thumbnails: %s" % str(docs))
-            job = self.job_factories['doc_thumbnailer'].make(docs)
-            self.schedulers['main'].schedule(job)
+        docs = [x for x in docs]
+        logger.info("Will redo thumbnails: %s" % str(docs))
+        job = self.job_factories['doc_thumbnailer'].make(docs)
+        self.schedulers['main'].schedule(job)
 
     def refresh_doc_list(self):
         """
@@ -3994,14 +3915,11 @@ class MainWindow(object):
         self.refresh_label_list()
 
     def upd_index(self, doc, new=False):
+        self.refresh_docs({doc})
         if new:
             job = self.job_factories['index_updater'].make(
-                self.docsearch, new_docs={doc}, optimize=False,
-                reload_all=False, reload_thumbnails=True)
+                self.docsearch, new_docs={doc}, optimize=False)
         else:
             job = self.job_factories['index_updater'].make(
-                self.docsearch, upd_docs={doc}, optimize=False,
-                reload_all=False, reload_thumbnails=True)
-        job.connect("index-update-end", lambda job:
-                    GLib.idle_add(self.refresh_doc_list))
+                self.docsearch, upd_docs={doc}, optimize=False)
         self.schedulers['main'].schedule(job)

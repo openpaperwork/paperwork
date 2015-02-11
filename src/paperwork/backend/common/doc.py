@@ -167,7 +167,7 @@ class BasicDoc(object):
                                  encoding='utf-8') as file_desc:
                     for line in file_desc.readlines():
                         line = line.strip()
-                        (label_name, label_color) = line.split(",")
+                        (label_name, label_color) = line.split(",", 1)
                         labels.append(Label(name=label_name,
                                             color=label_color))
             except IOError:
@@ -175,7 +175,18 @@ class BasicDoc(object):
             self.__cache['labels'] = labels
         return self.__cache['labels']
 
-    labels = property(__get_labels)
+    def __set_labels(self, labels):
+        """
+        Add a label on the document.
+        """
+        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
+                         encoding='utf-8') as file_desc:
+            for label in labels:
+                file_desc.write("%s,%s\n" % (label.name,
+                                             label.get_color_str()))
+        self.__cache['labels'] = labels
+
+    labels = property(__get_labels, __set_labels)
 
     def get_index_text(self):
         txt = u""

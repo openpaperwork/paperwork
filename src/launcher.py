@@ -17,6 +17,7 @@
 
 # just here to run a non-installed version
 
+import os
 import sys
 
 sys.path += ['src']
@@ -24,4 +25,10 @@ sys.path += ['src']
 from paperwork.paperwork import main
 
 if __name__ == "__main__":
+    os.chdir(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            ".."
+            )
+        )
     main()

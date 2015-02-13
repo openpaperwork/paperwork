@@ -2335,7 +2335,10 @@ class ActionSetDocDate(SimpleAction):
         entry = self.__main_win.doc_properties_panel.widgets['name']
         entry.set_text(date_txt)
 
-        self.__main_win.doc_properties_panel.new_doc_date = date
+        if self.__main_win.doc_properties_panel.doc.date != date:
+            self.__main_win.doc_properties_panel.new_doc_date = date
+        else:
+            self.__main_win.doc_properties_panel.new_doc_date = None
 
         popover.set_visible(False)
 
@@ -2362,7 +2365,7 @@ class DocPropertiesPanel(object):
             'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
             'calendar': widget_tree.get_object("calendar_calendar"),
         }
-        self.doc = None
+        self.doc = self.__main_win.doc
         self.new_doc_date = None
         self.actions = {
             'apply_doc_edit': (

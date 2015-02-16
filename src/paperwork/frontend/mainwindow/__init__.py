@@ -3059,7 +3059,7 @@ class MainWindow(object):
         GLib.set_prgname("paperwork")
 
         app = Gtk.Application(
-            application_id="app.paperwork",
+            application_id=None,
             flags=Gio.ApplicationFlags.FLAGS_NONE)
         app.register(None)
         Gtk.Application.set_default(app)

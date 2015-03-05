@@ -1045,6 +1045,9 @@
                     <property name="icon_size">1</property>
                   </object>
                 </child>
+                <style>
+                  <class name="page-nb-left"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>
@@ -1062,6 +1065,9 @@
                     <property name="icon_size">1</property>
                   </object>
                 </child>
+                <style>
+                  <class name="page-nb-right"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>

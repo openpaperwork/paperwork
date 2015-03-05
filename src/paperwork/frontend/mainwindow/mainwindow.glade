@@ -318,7 +318,6 @@
           <object class="GtkHeaderBar" id="headerbar_right">
             <property name="visible">True</property>
             <property name="title"></property>
-            <property name="subtitle"><!-- TODO(Jflesch): that's one ugly workaround to keep the GtkEntry at the correct size ... -->                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      </property>
             <property name="show_close_button">True</property>
 
             <!-- start -->
@@ -331,8 +330,9 @@
                   <object class="GtkEntry" id="entryPageNb">
                     <property name="visible">True</property>
                     <property name="text"> </property>
-                    <property name="width_chars">4</property>
-                    <property name="width_request">4</property>
+                    <property name="max_width_chars">3</property>
+                    <property name="width_chars">2</property>
+                    <property name="xalign">1</property>
                     <property name="hexpand">False</property>
                     <style>
                       <class name="page-nb-left"/>

@@ -3619,7 +3619,7 @@ class MainWindow(object):
         self.refresh_label_list()
 
         self.headerbars['right'].set_title(doc.name)
-        self.page_nb['total'].set_label(_("/ %d") % (doc.nb_pages))
+        self.page_nb['total'].set_text(_("/ %d") % (doc.nb_pages))
 
         self.__set_doc_buttons_visible(previous_doc, False)
         self.doc_properties_panel.set_doc(doc)

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import platform
 import sys
 
 from setuptools import setup
@@ -9,10 +8,11 @@ from setuptools import setup
 setup(
     name="paperwork",
     # if you change the version, don't forget to
+    # * update the ChangeLog file
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
-    version="0.2.2-git",
+    version="0.2.3",
     description="Grep for dead trees",
     long_description="""
     Paperwork is a tool to make papers searchable.

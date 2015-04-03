@@ -8,6 +8,7 @@ from setuptools import setup
 setup(
     name="paperwork",
     # if you change the version, don't forget to
+    # * update the ChangeLog file
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README

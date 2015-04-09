@@ -34,7 +34,7 @@
     <property name="default_height">600</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-preferences</property>
-    <property name="use-header-bar">0</property>
+    <property name="use-header-bar">1</property>
 
     <child type="action">
       <object class="GtkLinkButton" id="buttonSettingsHelp">
@@ -47,29 +47,8 @@
         <property name="uri">https://github.com/jflesch/paperwork/wiki</property>
       </object>
     </child>
-    <child type="action">
-      <object class="GtkButton" id="buttonSettingsCancel">
-        <property name="label" translatable="yes">Cancel</property>
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-      </object>
-    </child>
-    <child type="action">
-      <object class="GtkButton" id="buttonSettingsOk">
-        <property name="label" translatable="yes">Ok</property>
-        <property name="use_action_appearance">False</property>
-        <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-      </object>
-    </child>
-
     <action-widgets>
       <action-widget response="help">buttonSettingsHelp</action-widget>
-      <action-widget response="cancel">buttonSettingsCancel</action-widget>
-      <action-widget response="ok" default="true">buttonSettingsOk</action-widget>
     </action-widgets>
 
     <child internal-child="vbox">

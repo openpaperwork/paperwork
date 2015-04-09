@@ -563,18 +563,6 @@ class ActionApplySettings(SimpleAction):
             self.__settings_win.emit("need-reindex")
 
 
-class ActionCancelSettings(SimpleAction):
-
-    def __init__(self, settings_win, config):
-        SimpleAction.__init__(self, "Cancel settings")
-        self.__settings_win = settings_win
-        self.__config = config
-
-    def do(self):
-        self.__settings_win.display_config(self.__config)
-        self.__settings_win.hide()
-
-
 class ActionScanCalibration(SimpleAction):
 
     def __init__(self, settings_win):
@@ -648,13 +636,9 @@ class SettingsWindow(GObject.GObject):
         }
 
         actions = {
-            "apply": (
-                [widget_tree.get_object("buttonSettingsOk")],
-                ActionApplySettings(self, config)
-            ),
-            "cancel": (
-                [widget_tree.get_object("buttonSettingsCancel")],
-                ActionCancelSettings(self, config)
+            "delete-event": (
+                [self.window],
+                ActionApplySettings(self, config),
             ),
             "toggle_ocr": (
                 [self.ocr_settings['enabled']['gui']],

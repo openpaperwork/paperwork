@@ -267,34 +267,6 @@
                                 <property name="top_attach">0</property>
                               </packing>
                             </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton4">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-source</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton5">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-resolution</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">2</property>
-                              </packing>
-                            </child>
                           </object>
                         </child>
                       </object>
@@ -391,34 +363,6 @@
                                 <property name="top_attach">0</property>
                               </packing>
                             </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton1">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/OCR-enabled</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton2">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/OCR-language</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
                           </object>
                         </child>
                       </object>
@@ -489,21 +433,6 @@
                                     <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkLinkButton" id="linkbutton7">
-                                    <property name="label" translatable="yes">Help</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="relief">none</property>
-                                    <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-calibration</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>

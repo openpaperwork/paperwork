@@ -37,6 +37,17 @@
     <property name="use-header-bar">0</property>
 
     <child type="action">
+      <object class="GtkLinkButton" id="buttonSettingsHelp">
+        <property name="label" translatable="yes">Help</property>
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="use_action_appearance">False</property>
+        <property name="use_underline">True</property>
+        <property name="uri">https://github.com/jflesch/paperwork/wiki</property>
+      </object>
+    </child>
+    <child type="action">
       <object class="GtkButton" id="buttonSettingsCancel">
         <property name="label" translatable="yes">Cancel</property>
         <property name="use_action_appearance">False</property>
@@ -56,6 +67,7 @@
     </child>
 
     <action-widgets>
+      <action-widget response="help">buttonSettingsHelp</action-widget>
       <action-widget response="cancel">buttonSettingsCancel</action-widget>
       <action-widget response="ok" default="true">buttonSettingsOk</action-widget>
     </action-widgets>

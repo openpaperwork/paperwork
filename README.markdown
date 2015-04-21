@@ -77,6 +77,7 @@ Github can automatically provides .tar.gz and .zip files if required. However,
 they are not required to install Paperwork. They are indicated here as a
 convenience for package maintainers.
 
+* [Paperwork 0.2.4](https://github.com/jflesch/paperwork/archive/0.2.4.tar.gz)
 * [Paperwork 0.2.3](https://github.com/jflesch/paperwork/archive/0.2.3.tar.gz)
 * [Paperwork 0.2.2](https://github.com/jflesch/paperwork/archive/0.2.2.tar.gz)
 * [Paperwork 0.2.1](https://github.com/jflesch/paperwork/archive/0.2.1.tar.gz)

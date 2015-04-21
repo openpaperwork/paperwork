@@ -319,7 +319,7 @@ class DocSearch(object):
         docfilehash=whoosh.fields.ID(stored=True),
         content=whoosh.fields.TEXT(spelling=True),
         label=whoosh.fields.KEYWORD(stored=True, commas=True,
-                                    spelling=True, scorable=True),
+                                    scorable=True),
         date=whoosh.fields.DATETIME(stored=True),
         last_read=whoosh.fields.DATETIME(stored=True),
     )

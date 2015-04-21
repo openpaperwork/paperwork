@@ -1,6 +1,11 @@
-yyyy/mm/dd - 0.3.0:
+2015/04/21 - 0.2.4:
+* Fix python-whoosh 2.7 support
+
+2015/04/03 - 0.2.3:
 * Whenever possible, page orientation detection is now done using OCR tool
   feature (Tesseract >= 3.3.0). It's much faster and reliable.
+* Fix doc indexation: last and first words of each lines weren't split
+  correctly
 
 
 2015/01/11 - 0.2.2:

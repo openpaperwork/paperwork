@@ -194,7 +194,7 @@ class BasicDoc(object):
             txt += u"\n".join([unicode(line) for line in page.text])
         extra_txt = self.extra_text
         if extra_txt != u"":
-            txt += extra_txt + u"\n"
+            txt += u"\n" + extra_txt + u"\n"
         txt = txt.strip()
         if txt == u"":
             # make sure the text field is not empty. Whoosh doesn't like that

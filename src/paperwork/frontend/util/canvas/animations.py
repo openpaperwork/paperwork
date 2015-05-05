@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import math
 
 import cairo
@@ -25,6 +26,8 @@ from paperwork.backend.util import image2surface
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.canvas.drawers import fit
+
+logger = logging.getLogger(__name__)
 
 
 class Animation(Drawer):
@@ -175,14 +178,23 @@ class SpinnerAnimation(Animation):
         icon_theme = Gtk.IconTheme.get_default()
         icon_info = icon_theme.lookup_icon("process-working", self.ICON_SIZE,
                                            Gtk.IconLookupFlags.NO_SVG)
-        self.icon_pixbuf = icon_info.load_icon()
-        self.frame = 1
-        self.nb_frames = (
-            (self.icon_pixbuf.get_width() / self.ICON_SIZE),
-            (self.icon_pixbuf.get_height() / self.ICON_SIZE),
-        )
+        if not icon_info:
+            logger.warning("Spinner icon not available")
+            self.icon_pixbuf = None
+            self.frame = 1
+            self.nb_frames = (1, 1)
+        else:
+            self.icon_pixbuf = icon_info.load_icon()
+            self.frame = 1
+            self.nb_frames = (
+                (self.icon_pixbuf.get_width() / self.ICON_SIZE),
+                (self.icon_pixbuf.get_height() / self.ICON_SIZE),
+            )
 
     def on_tick(self):
+        if not self.icon_pixbuf:
+            return
+
         self.frame += 1
         self.frame %= (self.nb_frames[0] * self.nb_frames[1])
         if self.frame == 0:
@@ -193,6 +205,9 @@ class SpinnerAnimation(Animation):
         self.redraw()
 
     def draw(self, cairo_ctx):
+        if not self.icon_pixbuf:
+            return
+
         frame = (
             (self.frame % self.nb_frames[0]),
             (self.frame / self.nb_frames[0]),

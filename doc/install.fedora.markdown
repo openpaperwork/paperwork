@@ -38,6 +38,7 @@ so you will have to install some dependencies yourself with python-pip:
     $ sudo yum install python-pip
     $ sudo pip install pyocr
     $ sudo pip install numpy scikit-learn
+    $ sudo pip install scipy
 
 Some dependencies cannot be installed automatically. You can find all the missing dependencies by running 'paperwork-chkdeps'.
 

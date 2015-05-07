@@ -19,6 +19,7 @@ indicate extra dependencies to install, so watch carefully the ouput of
     $ cd paperwork
     $ git checkout unstable
     $ sudo python ./setup.py install
+    $ paperwork-chkdeps
 
 (see [the wiki as to why you probably want to work on the branch 'unstable'](https://github.com/jflesch/paperwork/wiki/Branches))
 
@@ -49,9 +50,7 @@ You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtua
     $ git clone https://github.com/jflesch/paperwork.git
     $ cd paperwork
     $ python ./setup.py install
-    # This script will install Paperwork and tell you if some extra dependencies
-    # are required
-    <install the extra dependencies>
+    $ paperwork-chkdeps
 
 
 ### Note regarding the extra dependencies
@@ -61,9 +60,7 @@ instance, all the libraries accessed through GObject introspection have
 no package on Pypi. This is why they can only be installed in a system-wide
 manner.
 
-You must run 'paperwork-chkdeps' to find all the missing dependencies.
-
-    $ paperwork-chkdeps
+'paperwork-chkdeps' can find all the missing dependencies.
 
 
 ### Running Paperwork

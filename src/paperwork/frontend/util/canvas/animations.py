@@ -187,8 +187,8 @@ class SpinnerAnimation(Animation):
             self.icon_pixbuf = icon_info.load_icon()
             self.frame = 1
             self.nb_frames = (
-                (self.icon_pixbuf.get_width() / self.ICON_SIZE),
-                (self.icon_pixbuf.get_height() / self.ICON_SIZE),
+                (max(1, self.icon_pixbuf.get_width() / self.ICON_SIZE)),
+                (max(1, self.icon_pixbuf.get_height() / self.ICON_SIZE)),
             )
 
     def on_tick(self):

@@ -99,6 +99,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label2">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -204,6 +205,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label7">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Resolution</property>
@@ -215,6 +217,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label12">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Source</property>
@@ -226,6 +229,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label6">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -238,6 +242,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label13">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                               </object>
@@ -286,6 +291,7 @@
                             <property name="column_spacing">10</property>
                             <child>
                               <object class="GtkLabel" id="label10">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -298,6 +304,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label3">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                               </object>
@@ -363,6 +370,7 @@
                 </child>
                 <child>
                   <object class="GtkLabel" id="label11">
+                    <property name="xalign">1</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                   </object>
@@ -405,6 +413,7 @@
                                 <property name="can_focus">False</property>
                                 <child>
                                   <object class="GtkLabel" id="label8">
+                                    <property name="xalign">1</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                   </object>

@@ -25,7 +25,7 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkWindow" id="windowSettings">
+  <object class="GtkDialog" id="windowSettings">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Settings</property>
     <property name="modal">True</property>
@@ -34,7 +34,24 @@
     <property name="default_height">600</property>
     <property name="destroy_with_parent">True</property>
     <property name="icon_name">gtk-preferences</property>
-    <child>
+    <property name="use-header-bar">1</property>
+
+    <child type="action">
+      <object class="GtkLinkButton" id="buttonSettingsHelp">
+        <property name="label" translatable="yes">Help</property>
+        <property name="use_action_appearance">False</property>
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="use_action_appearance">False</property>
+        <property name="use_underline">True</property>
+        <property name="uri">https://github.com/jflesch/paperwork/wiki</property>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="help">buttonSettingsHelp</action-widget>
+    </action-widgets>
+
+    <child internal-child="vbox">
       <object class="GtkBox" id="vbox2">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -82,6 +99,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label2">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -187,6 +205,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label7">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Resolution</property>
@@ -198,6 +217,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label12">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Source</property>
@@ -209,6 +229,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label6">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -221,40 +242,13 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label13">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                               </object>
                               <packing>
                                 <property name="left_attach">2</property>
                                 <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton4">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-source</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton5">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-resolution</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                           </object>
@@ -297,6 +291,7 @@
                             <property name="column_spacing">10</property>
                             <child>
                               <object class="GtkLabel" id="label10">
+                                <property name="xalign">1</property>
                                 <property name="width_request">125</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
@@ -309,6 +304,7 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="label3">
+                                <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                               </object>
@@ -353,34 +349,6 @@
                                 <property name="top_attach">0</property>
                               </packing>
                             </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton1">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/OCR-enabled</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLinkButton" id="linkbutton2">
-                                <property name="label" translatable="yes">Help</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="uri">https://github.com/jflesch/paperwork/wiki/OCR-language</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
                           </object>
                         </child>
                       </object>
@@ -402,6 +370,7 @@
                 </child>
                 <child>
                   <object class="GtkLabel" id="label11">
+                    <property name="xalign">1</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                   </object>
@@ -444,6 +413,7 @@
                                 <property name="can_focus">False</property>
                                 <child>
                                   <object class="GtkLabel" id="label8">
+                                    <property name="xalign">1</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                   </object>
@@ -451,21 +421,6 @@
                                     <property name="expand">True</property>
                                     <property name="fill">True</property>
                                     <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkLinkButton" id="linkbutton7">
-                                    <property name="label" translatable="yes">Help</property>
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="relief">none</property>
-                                    <property name="uri">https://github.com/jflesch/paperwork/wiki/Scanner-calibration</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -566,48 +521,6 @@
             <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkButtonBox" id="hbuttonbox1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="spacing">10</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="buttonSettingsCancel">
-                <property name="label" translatable="yes">Cancel</property>
-                <property name="use_action_appearance">False</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="buttonSettingsOk">
-                <property name="label" translatable="yes">Ok</property>
-                <property name="use_action_appearance">False</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="padding">6</property>
-            <property name="position">3</property>
           </packing>
         </child>
       </object>

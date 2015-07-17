@@ -2459,6 +2459,9 @@ class DocPropertiesPanel(object):
                  reload_list=True)
             self.__main_win.schedulers['main'].schedule(job)
 
+        self.__main_win.refresh_header_bar()
+
+
     def _clear_label_list(self):
         self.widgets['labels'].freeze_child_notify()
         try:
@@ -3602,13 +3605,6 @@ class MainWindow(object):
         set_widget_state(self.doc_edit_widgets, False,
                          cond=lambda widget: not can_edit)
 
-        if doc.nb_pages > 0:
-            page = doc.pages[0]
-        else:
-            page = DummyPage(self.doc)
-        self.show_page(page)
-        self.__select_page(page)
-
         # TODO
         #pages_gui = self.lists['pages']['gui']
         #if doc.can_edit:
@@ -3617,12 +3613,24 @@ class MainWindow(object):
         #else:
         #    pages_gui.unset_model_drag_source()
         self.refresh_label_list()
-
-        self.headerbars['right'].set_title(doc.name)
-        self.page_nb['total'].set_text(_("/ %d") % (doc.nb_pages))
+        self.refresh_header_bar()
 
         self.__set_doc_buttons_visible(previous_doc, False)
         self.doc_properties_panel.set_doc(doc)
+
+    def refresh_header_bar(self):
+        # Pages
+        if self.doc.nb_pages > 0:
+            page = self.doc.pages[0]
+        else:
+            page = DummyPage(self.doc)
+        self.show_page(page)
+        self.__select_page(page)
+        self.page_nb['total'].set_text(_("/ %d") % (self.doc.nb_pages))
+
+        # Title
+        self.headerbars['right'].set_title(self.doc.name)
+
 
     def show_page(self, page, force_refresh=False):
         if page is None:

@@ -2362,6 +2362,9 @@ class DocPropertiesPanel(object):
             'ok': widget_tree.get_object("toolbuttonValidateDocProperties"),
             'name': widget_tree.get_object("docname_entry"),
             'labels': widget_tree.get_object("listboxLabels"),
+            #'add_label': widget_tree.get_object("buttonAddLabel")
+            'add_label': Gtk.Button.new_from_icon_name("list-add-symbolic",
+                                                      Gtk.IconSize.MENU),
             'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
             'calendar': widget_tree.get_object("calendar_calendar"),
         }
@@ -2505,9 +2508,7 @@ class DocPropertiesPanel(object):
 
             # add button
             rowbox = Gtk.ListBoxRow()
-            addButton = Gtk.Button.new_from_icon_name("list-add-symbolic",
-                                                      Gtk.IconSize.MENU)
-            rowbox.add(addButton)
+            rowbox.add(self.widgets['add_label'])
             rowbox.show_all()
             self.widgets['labels'].add(rowbox)
         finally:
@@ -2847,13 +2848,12 @@ class MainWindow(object):
                 ActionQuit(self, config),
             ),
             # TODO
-            #'create_label': (
-            #    [
-            #        widget_tree.get_object("buttonAddLabel"),
-            #        widget_tree.get_object("menuitemAddLabel"),
-            #    ],
-            #    ActionCreateLabel(self),
-            #),
+            'create_label': (
+                [
+                    self.doc_properties_panel.widgets['add_label']
+                ],
+                ActionCreateLabel(self),
+            ),
             # TODO
             #'edit_label': (
             #    [

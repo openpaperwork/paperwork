@@ -79,8 +79,8 @@ class Label(object):
         """
         get a string representing the color, using HTML notation
         """
-        return ("#%02X%02X%02X" % (self.color.red >> 8, self.color.green >> 8,
-                                   self.color.blue >> 8))
+        return ("#%02x%02x%02x" % (self.color.red, self.color.green,
+                                   self.color.blue))
 
     def get_color_str(self):
         """

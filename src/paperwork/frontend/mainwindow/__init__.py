@@ -2362,9 +2362,8 @@ class DocPropertiesPanel(object):
             'ok': widget_tree.get_object("toolbuttonValidateDocProperties"),
             'name': widget_tree.get_object("docname_entry"),
             'labels': widget_tree.get_object("listboxLabels"),
-            #'add_label': widget_tree.get_object("buttonAddLabel")
-            'add_label': Gtk.Button.new_from_icon_name("list-add-symbolic",
-                                                      Gtk.IconSize.MENU),
+            'row_add_label': widget_tree.get_object("rowAddLabel"),
+            'button_add_label': widget_tree.get_object("buttonAddLabel"),
             'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
             'calendar': widget_tree.get_object("calendar_calendar"),
         }
@@ -2506,11 +2505,8 @@ class DocPropertiesPanel(object):
 
                 label_widgets[label] = (check_button, edit_button)
 
-            # add button
-            rowbox = Gtk.ListBoxRow()
-            rowbox.add(self.widgets['add_label'])
-            rowbox.show_all()
-            self.widgets['labels'].add(rowbox)
+            # The last row allows to add new labels
+            self.widgets['labels'].add(self.widgets['row_add_label'])
         finally:
             self.labels = label_widgets
             self.widgets['labels'].thaw_child_notify()
@@ -2847,10 +2843,9 @@ class MainWindow(object):
                 ],
                 ActionQuit(self, config),
             ),
-            # TODO
             'create_label': (
                 [
-                    self.doc_properties_panel.widgets['add_label']
+                    self.doc_properties_panel.widgets['button_add_label']
                 ],
                 ActionCreateLabel(self),
             ),

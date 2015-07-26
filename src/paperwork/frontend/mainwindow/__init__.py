@@ -1494,6 +1494,9 @@ class ActionCreateLabel(SimpleAction):
 
 
 class ActionEditLabel(SimpleAction):
+    """
+    Edit the selected label.
+    """
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Editing label")
         self.__main_win = main_window
@@ -1501,12 +1504,15 @@ class ActionEditLabel(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
+        # Open the russian dolls to retrieve the selected label.
         label_list = self.__main_win.lists['labels']['gui']
-        selection_path = label_list.get_selection().get_selected()
-        if selection_path[1] is None:
+        selected_row = label_list.get_selected_row()
+        if selected_row is None:
             logger.warning("No label selected")
             return True
-        label = selection_path[0].get_value(selection_path[1], 2)
+        label_box = selected_row.get_children()[0]
+        label_widget = label_box.get_children()[1]
+        label = label_widget.labels[0]
 
         new_label = copy(label)
         editor = LabelEditor(new_label)
@@ -2480,12 +2486,13 @@ class DocPropertiesPanel(object):
         label_widgets = {}
         self.widgets['labels'].freeze_child_notify()
         try:
-            # labels
+            # Add a row for each label
             for label in labels:
                 label_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
                 check_button = Gtk.CheckButton()
                 check_button.set_relief(Gtk.ReliefStyle.NONE)
+                check_button.connect("clicked", self.on_label_button_clicked)
                 label_box.add(check_button)
 
                 label_widget = LabelWidget([label])
@@ -2496,6 +2503,8 @@ class DocPropertiesPanel(object):
                     "gtk-edit",
                     Gtk.IconSize.MENU)
                 edit_button.set_relief(Gtk.ReliefStyle.NONE)
+                edit_button.connect("clicked", self.on_label_button_clicked)
+                ActionEditLabel(self.__main_win).connect([edit_button])
                 label_box.add(edit_button)
 
                 rowbox = Gtk.ListBoxRow()
@@ -2510,6 +2519,15 @@ class DocPropertiesPanel(object):
         finally:
             self.labels = label_widgets
             self.widgets['labels'].thaw_child_notify()
+
+    def on_label_button_clicked(self, button):
+        """
+        Find the row the button belongs to, and select it.
+        """
+        label_box = button.get_parent()
+        row = label_box.get_parent()
+        label_list = self.__main_win.lists['labels']['gui']
+        label_list.select_row(row)
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
@@ -2575,6 +2593,9 @@ class MainWindow(object):
                 'gui': widget_tree.get_object("entrySearch"),
                 'completion': search_completion,
                 'model': widget_tree.get_object("liststoreSuggestion")
+            },
+            'labels': {
+              'gui': widget_tree.get_object("listboxLabels")
             },
             'doclist': {
                 'gui': widget_tree.get_object("listboxDocList"),
@@ -2849,14 +2870,6 @@ class MainWindow(object):
                 ],
                 ActionCreateLabel(self),
             ),
-            # TODO
-            #'edit_label': (
-            #    [
-            #       widget_tree.get_object("menuitemEditLabel"),
-            #        widget_tree.get_object("buttonEditLabel"),
-            #    ],
-            #    ActionEditLabel(self),
-            #),
             # TODO
             #'del_label': (
             #    [

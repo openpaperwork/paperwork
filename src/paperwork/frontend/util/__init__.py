@@ -69,7 +69,7 @@ def load_uifile(filename):
 
 def load_cssfile(filename):
     """
-    Load a .glade file and return the corresponding widget tree
+    Load a .css file
 
     Arguments:
         filename -- css filename to load. Must not contain any directory

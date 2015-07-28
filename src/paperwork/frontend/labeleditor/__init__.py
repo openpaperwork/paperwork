@@ -50,18 +50,16 @@ class LabelEditor(object):
             os.path.join("labeleditor", "labeleditor.glade"))
 
         dialog = widget_tree.get_object("dialogLabelEditor")
-        name_entry = widget_tree.get_object("entryLabelName")
-        color_chooser = widget_tree.get_object("labelColorChooser")
-
-        name_entry.set_text(self.label.name)
-        name_entry.connect("changed", self.__on_label_entry_changed)
-        color_chooser.set_rgba(self.label.color)
-
         dialog.set_transient_for(main_window)
         dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
         self.__ok_button = dialog.add_button(_("Ok"), Gtk.ResponseType.OK)
 
-        self.__on_label_entry_changed(name_entry)
+        color_chooser = widget_tree.get_object("labelColorChooser")
+        color_chooser.set_rgba(self.label.color)
+
+        name_entry = widget_tree.get_object("entryLabelName")
+        name_entry.connect("changed", self.__on_label_entry_changed)
+        name_entry.set_text(self.label.name)
 
         response = dialog.run()
 

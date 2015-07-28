@@ -94,11 +94,11 @@
               </packing>
             </child>
             <child>
-              <object class="GtkColorSelection" id="colorselectionLabelColor">
+              <object class="GtkColorChooserWidget" id="labelColorChooser">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="has_palette">True</property>
-                <property name="current_color">#ffff05af0000</property>
+                <property name="show_editor">True</property>
+                <property name="rgba">#ffff05af0000</property>
               </object>
               <packing>
                 <property name="expand">True</property>

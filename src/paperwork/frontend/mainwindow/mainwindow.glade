@@ -599,7 +599,31 @@
                               <object class="GtkListBox" id="listboxLabels">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="height_request">100</property> <!-- TODO: drop it -->
+                                <child>
+                                  <object class="GtkListBoxRow" id="rowAddLabel">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="height_request">32</property>
+                                    <child>
+                                      <object class="GtkButton" id="buttonAddLabel">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="relief">GTK_RELIEF_NONE</property>
+                                        <child>
+                                          <object class="GtkImage" id="image_button_new_label">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="icon_name">list-add-symbolic</property>
+                                            <property name="icon_size">1</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <style>
+                                  <class name="box-labels"/>
+                                </style>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

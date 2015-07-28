@@ -101,7 +101,8 @@ class LabelWidget(Gtk.DrawingArea):
     LABEL_HEIGHT = 25
     LABEL_SPACING = 3
     LABEL_TEXT_SIZE = 13
-    LABEL_CORNER_RADIUS = 10
+    LABEL_TEXT_SHIFT = 2    # Shift a bit to fix valignment
+    LABEL_CORNER_RADIUS = 5
 
     def __init__(self, labels, highlight=False):
         Gtk.DrawingArea.__init__(self)
@@ -127,7 +128,7 @@ class LabelWidget(Gtk.DrawingArea):
         if self.labels is None or len(self.labels) == 0:
             return
 
-        txt_offset = (self.LABEL_HEIGHT - self.LABEL_TEXT_SIZE) / 2
+        txt_offset = (self.LABEL_HEIGHT - self.LABEL_TEXT_SIZE) / 2 + self.LABEL_TEXT_SHIFT
         cairo_ctx.set_font_size(self.LABEL_TEXT_SIZE)
 
         if not self.highlight:

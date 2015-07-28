@@ -1,12 +1,9 @@
+/* Headerbar */
+
 .left-header-bar {
   border-right-width: 1px;
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
-}
-
-.box-left {
-  border-style: solid;
-  border-right-width: 1px;
 }
 
 .page-nb-left {
@@ -23,10 +20,36 @@
   border-bottom-left-radius: 0px;
 }
 
+GtkHeaderBar GtkButton {
+  color: black;
+}
+
+/* Left Panel */
+
+.box-left {
+  border-style: solid;
+  border-right-width: 1px;
+}
+
+.box-labels {
+  border: 1px solid @borders;
+}
+
 GtkListBox GtkButton {
   padding: 3px;
 }
 
-GtkHeaderBar GtkButton {
-  color: black;
+GtkListBox GtkButton {
+  border-color: transparent;
+  background-color: transparent;
 }
+
+GtkListBox GtkButton:hover {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+GtkListBoxRow {
+  border-bottom: 1px solid @borders;
+}
+

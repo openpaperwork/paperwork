@@ -2485,6 +2485,7 @@ class DocPropertiesPanel(object):
     def _readd_label_widgets(self, labels):
         label_widgets = {}
         self.widgets['labels'].freeze_child_notify()
+        #self.widgets['labels'].set_border_width(20)
         try:
             # Add a row for each label
             for label in labels:

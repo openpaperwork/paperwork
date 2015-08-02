@@ -2485,7 +2485,6 @@ class DocPropertiesPanel(object):
     def _readd_label_widgets(self, labels):
         label_widgets = {}
         self.widgets['labels'].freeze_child_notify()
-        #self.widgets['labels'].set_border_width(20)
         try:
             # Add a row for each label
             for label in labels:
@@ -2510,6 +2509,7 @@ class DocPropertiesPanel(object):
 
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)
+                rowbox.set_property('height_request', 30)
                 rowbox.show_all()
                 self.widgets['labels'].add(rowbox)
 

@@ -20,15 +20,10 @@
   border-bottom-left-radius: 0px;
 }
 
-GtkHeaderBar GtkButton {
-  color: black;
-}
-
 /* Left Panel */
 
 .box-left {
-  border-style: solid;
-  border-right-width: 1px;
+  border-right: 1px solid @borders;
 }
 
 GtkListBox GtkButton {

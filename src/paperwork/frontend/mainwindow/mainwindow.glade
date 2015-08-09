@@ -677,6 +677,16 @@
                                     <property name="sensitive">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="editable">True</property>
+                                    <property name="wrap-mode">GTK_WRAP_WORD</property>
+                                    <style>
+                                      <class name="extra-hint"/>
+                                      <class name="extra-words"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkTextBuffer" id="extrakeywords_default_textbuffer">
+                                    <property name="text">If by any chance character recognition doesn't work, type in a few keywords so you'll be able to search for them.</property>
                                   </object>
                                 </child>
                               </object>

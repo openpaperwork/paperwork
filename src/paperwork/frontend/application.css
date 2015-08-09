@@ -53,3 +53,12 @@ GtkListBox GtkButton:hover {
   border-bottom: 1px solid @borders;
 }
 
+.extra-words {
+  border: 1px solid @borders;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.extra-hint {
+  color: gray;
+}

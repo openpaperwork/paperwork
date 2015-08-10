@@ -485,6 +485,9 @@
                           <object class="GtkListBox" id="listboxDocList">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <style>
+                              <class name="doc-list"/>
+                            </style>
                           </object>
                         </child>
                       </object>

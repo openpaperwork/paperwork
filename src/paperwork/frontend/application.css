@@ -53,6 +53,10 @@ GtkListBox GtkButton:hover {
   border-bottom: 1px solid @borders;
 }
 
+.doc-list {
+  background-color: shade(@theme_bg_color, 0.99)
+}
+
 .extra-words {
   border: 1px solid @borders;
   padding-left: 8px;

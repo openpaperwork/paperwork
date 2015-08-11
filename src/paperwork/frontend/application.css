@@ -40,6 +40,12 @@ GtkListBox GtkButton:hover {
   background-color: transparent;
 }
 
+GtkButton GtkColorSwatch {
+  border-radius: 5px;
+  border-color: transparent;
+  margin: 0;
+}
+
 .list-row {
   border-top: 1px solid @borders;
 }

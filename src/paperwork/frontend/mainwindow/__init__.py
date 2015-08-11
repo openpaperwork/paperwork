@@ -2371,6 +2371,8 @@ class DocPropertiesPanel(object):
             'row_add_label': widget_tree.get_object("rowAddLabel"),
             'button_add_label': widget_tree.get_object("buttonAddLabel"),
             'extra_keywords': widget_tree.get_object("extrakeywords_textview"),
+            'extra_keywords_default_buffer': \
+                widget_tree.get_object("extrakeywords_default_textbuffer"),
             'calendar': widget_tree.get_object("calendar_calendar"),
         }
         self.doc = self.__main_win.doc
@@ -2398,16 +2400,21 @@ class DocPropertiesPanel(object):
         labels = sorted(main_window.docsearch.label_list)
         self.labels = {label: (None, None) for label in labels}
 
+        default_buf = self.widgets['extra_keywords_default_buffer']
+        start = default_buf.get_iter_at_offset(0)
+        end = default_buf.get_iter_at_offset(-1)
+        self.default_extra_text = unicode(
+            default_buf.get_text(start, end, False),
+            encoding='utf-8')
+
     def set_doc(self, doc):
         self.doc = doc
         self.reload_properties()
 
     def reload_properties(self):
         self.widgets['name'].set_text(self.doc.name)
-        text_buffer = Gtk.TextBuffer()
-        text_buffer.set_text(self.doc.extra_text)
-        self.widgets['extra_keywords'].set_buffer(text_buffer)
         self.refresh_label_list()
+        self.refresh_keywords_textview()
 
     def _open_calendar(self):
         self.__main_win.popovers['calendar'].set_relative_to(
@@ -2431,6 +2438,8 @@ class DocPropertiesPanel(object):
     def apply_properties(self):
         has_changed = False
 
+        # Labels
+        logger.info("Checking for new labels")
         doc_labels = sorted(self.doc.labels)
         new_labels = []
         for (label, (check_button, edit_button)) in self.labels.iteritems():
@@ -2438,19 +2447,27 @@ class DocPropertiesPanel(object):
                 new_labels.append(label)
         new_labels.sort()
         if doc_labels != new_labels:
+            logger.info("Apply new labels")
             self.doc.labels = new_labels
             has_changed = True
 
+        # Keywords
+        logger.info("Checking for new keywords")
+        # text currently set
         current_extra_text = self.doc.extra_text
+        # text actually typed in
         buf = self.widgets['extra_keywords'].get_buffer()
         start = buf.get_iter_at_offset(0)
         end = buf.get_iter_at_offset(-1)
         new_extra_text = unicode(buf.get_text(start, end, False),
                                  encoding='utf-8')
-        if new_extra_text != current_extra_text:
+        if (new_extra_text != current_extra_text) and (
+                new_extra_text != self.default_extra_text):
+            logger.info("Apply new keywords")
             self.doc.extra_text = new_extra_text
             has_changed = True
 
+        # Date
         if self.new_doc_date is None:
             if has_changed:
                 self.__main_win.upd_index(self.doc)
@@ -2485,7 +2502,6 @@ class DocPropertiesPanel(object):
     def _readd_label_widgets(self, labels):
         label_widgets = {}
         self.widgets['labels'].freeze_child_notify()
-        #self.widgets['labels'].set_border_width(20)
         try:
             # Add a row for each label
             for label in labels:
@@ -2510,6 +2526,7 @@ class DocPropertiesPanel(object):
 
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)
+                rowbox.set_property('height_request', 30)
                 rowbox.show_all()
                 self.widgets['labels'].add(rowbox)
 
@@ -2543,6 +2560,20 @@ class DocPropertiesPanel(object):
                 active = False
             self.labels[label][0].set_active(active)
 
+    def refresh_keywords_textview(self):
+        """
+        Display paper keywords or a hint.
+        """
+        extra_style = self.widgets['extra_keywords'].get_style_context()
+        extra_style.remove_class("extra-hint")
+        text_buffer = self.widgets['extra_keywords'].get_buffer()
+        if len(self.doc.extra_text) > 0:
+            text_buffer.set_text(self.doc.extra_text)
+        else:
+            text_buffer.set_text(self.default_extra_text)
+            extra_style.add_class("extra-hint")
+
+        self.widgets['extra_keywords'].set_buffer(text_buffer)
 
 
 class MainWindow(object):

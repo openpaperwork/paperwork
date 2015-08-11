@@ -70,18 +70,18 @@
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-open</property>
+    <property name="icon-name">document-open</property>
   </object>
   <object class="GtkImage" id="image4">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="xalign">0.47999998927116394</property>
-    <property name="stock">gtk-directory</property>
+    <property name="halign">GTK_ALIGN_CENTER</property>
+    <property name="icon-name">folder</property>
   </object>
   <object class="GtkImage" id="imageExport">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="stock">gtk-save-as</property>
+    <property name="icon-name">document-save-as</property>
   </object>
   <object class="GtkListStore" id="liststoreExportFormat">
     <columns>
@@ -456,7 +456,7 @@
                     <property name="orientation">vertical</property>
                     <property name="width_request">300</property>
                     <child>
-                      <object class="GtkEntry" id="entrySearch">
+                      <object class="GtkSearchEntry" id="entrySearch">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_tooltip">True</property>
@@ -467,8 +467,6 @@
                           * Find documents with one word or another: [keyword] OR [keyword]
                           * Documents with a specific date: date:YYYYMMDD or date:[YYYYMMDD to YYYYMMDD]</property>
                         <property name="invisible_char">•</property>
-                        <property name="primary_icon_stock">gtk-find</property>
-                        <property name="secondary_icon_stock">gtk-clear</property>
                         <property name="margin">5</property>
                       </object>
                       <packing>
@@ -603,7 +601,7 @@
                                   <object class="GtkListBoxRow" id="rowAddLabel">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                    <property name="height_request">32</property>
+                                    <property name="height_request">30</property>
                                     <child>
                                       <object class="GtkButton" id="buttonAddLabel">
                                         <property name="visible">True</property>
@@ -619,6 +617,9 @@
                                         </child>
                                       </object>
                                     </child>
+                                    <style>
+                                      <class name="list-row-last"/>
+                                    </style>
                                   </object>
                                 </child>
                                 <style>
@@ -674,6 +675,11 @@
                                     <property name="sensitive">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="editable">True</property>
+                                    <property name="wrap-mode">GTK_WRAP_WORD</property>
+                                    <style>
+                                      <class name="extra-hint"/>
+                                      <class name="extra-words"/>
+                                    </style>
                                   </object>
                                 </child>
                               </object>
@@ -744,7 +750,6 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="use_stock">True</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -1181,4 +1186,9 @@
           </object>
       </child>
   </object>
+
+  <object class="GtkTextBuffer" id="extrakeywords_default_textbuffer">
+    <property name="text">If by any chance character recognition doesn't work, type in a few keywords so you'll be able to search for them.</property>
+  </object>
+
 </interface>

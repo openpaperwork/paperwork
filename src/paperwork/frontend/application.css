@@ -20,19 +20,10 @@
   border-bottom-left-radius: 0px;
 }
 
-GtkHeaderBar GtkButton {
-  color: black;
-}
-
 /* Left Panel */
 
 .box-left {
-  border-style: solid;
-  border-right-width: 1px;
-}
-
-.box-labels {
-  border: 1px solid @borders;
+  border-right: 1px solid @borders;
 }
 
 GtkListBox GtkButton {
@@ -49,7 +40,25 @@ GtkListBox GtkButton:hover {
   background-color: transparent;
 }
 
-GtkListBoxRow {
+.list-row {
+  border-top: 1px solid @borders;
+}
+
+.box-labels .list-row {
+  border-left: 1px solid @borders;
+  border-right: 1px solid @borders;
+}
+
+.box-labels .list-row-last {
   border-bottom: 1px solid @borders;
 }
 
+.extra-words {
+  border: 1px solid @borders;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.extra-hint {
+  color: gray;
+}

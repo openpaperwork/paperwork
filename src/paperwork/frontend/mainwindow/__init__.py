@@ -2509,9 +2509,15 @@ class DocPropertiesPanel(object):
             for label in labels:
                 label_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
-                check_button = Gtk.CheckButton()
+                # Custom check_button with unvisible checkbox
+                empty_image= Gtk.Image()
+                check_button = Gtk.ToggleButton()
+                check_button.set_image(empty_image)
+                check_button.set_always_show_image(True)
                 check_button.set_relief(Gtk.ReliefStyle.NONE)
-                check_button.connect("clicked", self.on_label_button_clicked)
+                check_style = check_button.get_style_context()
+                check_style.remove_class("button")
+                check_button.connect("clicked", self.on_check_button_clicked)
                 label_box.add(check_button)
 
                 label_widget = Gtk.Label(label.name)
@@ -2537,7 +2543,20 @@ class DocPropertiesPanel(object):
             self.widgets['labels'].add(self.widgets['row_add_label'])
         finally:
             self.labels = label_widgets
+            self.widgets['labels'].connect("row-activated", self.on_row_activated)
             self.widgets['labels'].thaw_child_notify()
+
+    def on_check_button_clicked(self, check_button):
+        """
+        Toggle the image displayed into the check_button
+        """
+        if check_button.get_active():
+            checkmark = Gtk.Image.new_from_icon_name("object-select-symbolic",
+                                                     Gtk.IconSize.MENU)
+            check_button.set_image(checkmark)
+        else:
+            empty_image= Gtk.Image()
+            check_button.set_image(empty_image)
 
     def on_label_button_clicked(self, button):
         """
@@ -2547,6 +2566,19 @@ class DocPropertiesPanel(object):
         row = label_box.get_parent()
         label_list = self.__main_win.lists['labels']['gui']
         label_list.select_row(row)
+
+    def on_row_activated(self, rowbox, row):
+        """
+        When no specific part of a row is clicked on, do as if user had clicked
+        on it's check_button. This requires less precision for the user.
+        """
+        row = rowbox.get_selected_row()
+        label_box = row.get_children()[0]
+        check_button = label_box.get_children()[0]
+        if check_button.get_active():
+            check_button.set_active(False)
+        else:
+            check_button.set_active(True)
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)

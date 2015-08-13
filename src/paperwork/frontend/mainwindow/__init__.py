@@ -34,6 +34,7 @@ from gi.repository import Gtk
 
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.labeleditor import LabelEditor
+from paperwork.frontend.widgets import LabelColorButton
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
 from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
@@ -2525,7 +2526,9 @@ class DocPropertiesPanel(object):
                 label_box.add(label_widget)
                 label_box.child_set_property(label_widget, 'expand', True)
 
-                edit_button = Gtk.ColorButton.new_with_rgba(label.color)
+                # Custom color_button wich opens custom dialog
+                edit_button = LabelColorButton()
+                edit_button.set_rgba(label.color)
                 edit_button.set_relief(Gtk.ReliefStyle.NONE)
                 edit_button.connect("clicked", self.on_label_button_clicked)
                 ActionEditLabel(self.__main_win).connect([edit_button])

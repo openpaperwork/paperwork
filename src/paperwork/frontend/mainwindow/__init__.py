@@ -2404,11 +2404,17 @@ class DocPropertiesPanel(object):
         self.labels = {label: (None, None) for label in labels}
 
         default_buf = self.widgets['extra_keywords_default_buffer']
-        start = default_buf.get_iter_at_offset(0)
-        end = default_buf.get_iter_at_offset(-1)
-        self.default_extra_text = unicode(
-            default_buf.get_text(start, end, False),
-            encoding='utf-8')
+        self.default_extra_text = self.get_text_from_buffer(default_buf)
+        self.widgets['extra_keywords'].connect("focus-in-event",
+                                                self.on_keywords_focus_in)
+        self.widgets['extra_keywords'].connect("focus-out-event",
+                                                self.on_keywords_focus_out)
+
+    def get_text_from_buffer(self, text_buffer):
+        start = text_buffer.get_iter_at_offset(0)
+        end = text_buffer.get_iter_at_offset(-1)
+        return unicode(text_buffer.get_text(start, end, False),
+                       encoding='utf-8')
 
     def set_doc(self, doc):
         self.doc = doc
@@ -2460,10 +2466,7 @@ class DocPropertiesPanel(object):
         current_extra_text = self.doc.extra_text
         # text actually typed in
         buf = self.widgets['extra_keywords'].get_buffer()
-        start = buf.get_iter_at_offset(0)
-        end = buf.get_iter_at_offset(-1)
-        new_extra_text = unicode(buf.get_text(start, end, False),
-                                 encoding='utf-8')
+        new_extra_text = self.get_text_from_buffer(buf)
         if (new_extra_text != current_extra_text) and (
                 new_extra_text != self.default_extra_text):
             logger.info("Apply new keywords")
@@ -2595,6 +2598,24 @@ class DocPropertiesPanel(object):
             else:
                 active = False
             self.labels[label][0].set_active(active)
+
+    def on_keywords_focus_in(self, textarea, event):
+        extra_style = self.widgets['extra_keywords'].get_style_context()
+        extra_style.remove_class("extra-hint")
+        text_buffer = self.widgets['extra_keywords'].get_buffer()
+        text = self.get_text_from_buffer(text_buffer)
+        if (text == self.default_extra_text):
+            # Clear the hint
+            text_buffer.set_text('')
+
+    def on_keywords_focus_out(self, textarea, event):
+        text_buffer = self.widgets['extra_keywords'].get_buffer()
+        text = self.get_text_from_buffer(text_buffer)
+        if (len(text) == 0) or (text == ''):
+            # Add the hint back
+            text_buffer.set_text(self.default_extra_text)
+            extra_style = self.widgets['extra_keywords'].get_style_context()
+            extra_style.add_class("extra-hint")
 
     def refresh_keywords_textview(self):
         """

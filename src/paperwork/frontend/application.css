@@ -70,5 +70,5 @@ GtkButton GtkColorSwatch {
 }
 
 .extra-hint {
-  color: gray;
+  color: mix (@theme_fg_color, @theme_bg_color, 0.3);
 }

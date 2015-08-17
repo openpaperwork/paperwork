@@ -34,6 +34,7 @@ from gi.repository import Gtk
 
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.labeleditor import LabelEditor
+from paperwork.frontend.widgets import LabelColorButton
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
 from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
@@ -64,6 +65,7 @@ from paperwork.backend.common.page import BasicPage, DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
 from paperwork.backend.img.doc import ImgDoc
+from paperwork.backend.labels import Label
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -1511,8 +1513,9 @@ class ActionEditLabel(SimpleAction):
             logger.warning("No label selected")
             return True
         label_box = selected_row.get_children()[0]
-        label_widget = label_box.get_children()[1]
-        label = label_widget.labels[0]
+        label_name = label_box.get_children()[1].get_text()
+        label_color = label_box.get_children()[2].get_rgba().to_string()
+        label = Label(label_name, label_color)
 
         new_label = copy(label)
         editor = LabelEditor(new_label)
@@ -2401,11 +2404,17 @@ class DocPropertiesPanel(object):
         self.labels = {label: (None, None) for label in labels}
 
         default_buf = self.widgets['extra_keywords_default_buffer']
-        start = default_buf.get_iter_at_offset(0)
-        end = default_buf.get_iter_at_offset(-1)
-        self.default_extra_text = unicode(
-            default_buf.get_text(start, end, False),
-            encoding='utf-8')
+        self.default_extra_text = self.get_text_from_buffer(default_buf)
+        self.widgets['extra_keywords'].connect("focus-in-event",
+                                                self.on_keywords_focus_in)
+        self.widgets['extra_keywords'].connect("focus-out-event",
+                                                self.on_keywords_focus_out)
+
+    def get_text_from_buffer(self, text_buffer):
+        start = text_buffer.get_iter_at_offset(0)
+        end = text_buffer.get_iter_at_offset(-1)
+        return unicode(text_buffer.get_text(start, end, False),
+                       encoding='utf-8')
 
     def set_doc(self, doc):
         self.doc = doc
@@ -2457,10 +2466,7 @@ class DocPropertiesPanel(object):
         current_extra_text = self.doc.extra_text
         # text actually typed in
         buf = self.widgets['extra_keywords'].get_buffer()
-        start = buf.get_iter_at_offset(0)
-        end = buf.get_iter_at_offset(-1)
-        new_extra_text = unicode(buf.get_text(start, end, False),
-                                 encoding='utf-8')
+        new_extra_text = self.get_text_from_buffer(buf)
         if (new_extra_text != current_extra_text) and (
                 new_extra_text != self.default_extra_text):
             logger.info("Apply new keywords")
@@ -2507,18 +2513,25 @@ class DocPropertiesPanel(object):
             for label in labels:
                 label_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
-                check_button = Gtk.CheckButton()
+                # Custom check_button with unvisible checkbox
+                empty_image= Gtk.Image()
+                check_button = Gtk.ToggleButton()
+                check_button.set_image(empty_image)
+                check_button.set_always_show_image(True)
                 check_button.set_relief(Gtk.ReliefStyle.NONE)
-                check_button.connect("clicked", self.on_label_button_clicked)
+                check_style = check_button.get_style_context()
+                check_style.remove_class("button")
+                check_button.connect("clicked", self.on_check_button_clicked)
                 label_box.add(check_button)
 
-                label_widget = LabelWidget([label])
+                label_widget = Gtk.Label(label.name)
+                label_widget.set_halign(Gtk.Align.START)
                 label_box.add(label_widget)
                 label_box.child_set_property(label_widget, 'expand', True)
 
-                edit_button = Gtk.Button.new_from_icon_name(
-                    "gtk-edit",
-                    Gtk.IconSize.MENU)
+                # Custom color_button wich opens custom dialog
+                edit_button = LabelColorButton()
+                edit_button.set_rgba(label.color)
                 edit_button.set_relief(Gtk.ReliefStyle.NONE)
                 edit_button.connect("clicked", self.on_label_button_clicked)
                 ActionEditLabel(self.__main_win).connect([edit_button])
@@ -2536,7 +2549,20 @@ class DocPropertiesPanel(object):
             self.widgets['labels'].add(self.widgets['row_add_label'])
         finally:
             self.labels = label_widgets
+            self.widgets['labels'].connect("row-activated", self.on_row_activated)
             self.widgets['labels'].thaw_child_notify()
+
+    def on_check_button_clicked(self, check_button):
+        """
+        Toggle the image displayed into the check_button
+        """
+        if check_button.get_active():
+            checkmark = Gtk.Image.new_from_icon_name("object-select-symbolic",
+                                                     Gtk.IconSize.MENU)
+            check_button.set_image(checkmark)
+        else:
+            empty_image= Gtk.Image()
+            check_button.set_image(empty_image)
 
     def on_label_button_clicked(self, button):
         """
@@ -2546,6 +2572,19 @@ class DocPropertiesPanel(object):
         row = label_box.get_parent()
         label_list = self.__main_win.lists['labels']['gui']
         label_list.select_row(row)
+
+    def on_row_activated(self, rowbox, row):
+        """
+        When no specific part of a row is clicked on, do as if user had clicked
+        on it's check_button. This requires less precision for the user.
+        """
+        row = rowbox.get_selected_row()
+        label_box = row.get_children()[0]
+        check_button = label_box.get_children()[0]
+        if check_button.get_active():
+            check_button.set_active(False)
+        else:
+            check_button.set_active(True)
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
@@ -2559,6 +2598,24 @@ class DocPropertiesPanel(object):
             else:
                 active = False
             self.labels[label][0].set_active(active)
+
+    def on_keywords_focus_in(self, textarea, event):
+        extra_style = self.widgets['extra_keywords'].get_style_context()
+        extra_style.remove_class("extra-hint")
+        text_buffer = self.widgets['extra_keywords'].get_buffer()
+        text = self.get_text_from_buffer(text_buffer)
+        if (text == self.default_extra_text):
+            # Clear the hint
+            text_buffer.set_text('')
+
+    def on_keywords_focus_out(self, textarea, event):
+        text_buffer = self.widgets['extra_keywords'].get_buffer()
+        text = self.get_text_from_buffer(text_buffer)
+        if (len(text) == 0) or (text == ''):
+            # Add the hint back
+            text_buffer.set_text(self.default_extra_text)
+            extra_style = self.widgets['extra_keywords'].get_style_context()
+            extra_style.add_class("extra-hint")
 
     def refresh_keywords_textview(self):
         """

@@ -20,6 +20,7 @@ Code to manage document labels
 
 from gi.repository import Gdk
 
+from paperwork.backend.util import strip_accents
 
 class Label(object):
 
@@ -49,7 +50,9 @@ class Label(object):
         """
         if other is None:
             return -1
-        cmp_r = cmp(self.name, other.name)
+        label_name = strip_accents(self.name).lower()
+        other_name = strip_accents(other.name).lower()
+        cmp_r = cmp(label_name, other_name)
         if cmp_r != 0:
             return cmp_r
         return cmp(self.get_color_str(), other.get_color_str())

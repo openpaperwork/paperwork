@@ -40,6 +40,12 @@ GtkListBox GtkButton:hover {
   background-color: transparent;
 }
 
+GtkButton GtkColorSwatch {
+  border-radius: 5px;
+  border-color: transparent;
+  margin: 0;
+}
+
 .list-row {
   border-top: 1px solid @borders;
 }
@@ -53,6 +59,10 @@ GtkListBox GtkButton:hover {
   border-bottom: 1px solid @borders;
 }
 
+.doc-list {
+  background-color: shade(@theme_bg_color, 0.99)
+}
+
 .extra-words {
   border: 1px solid @borders;
   padding-left: 8px;
@@ -60,5 +70,5 @@ GtkListBox GtkButton:hover {
 }
 
 .extra-hint {
-  color: gray;
+  color: mix (@theme_fg_color, @theme_bg_color, 0.3);
 }

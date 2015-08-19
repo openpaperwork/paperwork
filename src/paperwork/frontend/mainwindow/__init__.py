@@ -2524,7 +2524,7 @@ class DocPropertiesPanel(object):
                 check_button.connect("clicked", self.on_check_button_clicked)
                 label_box.add(check_button)
 
-                label_widget = Gtk.Label(label.name)
+                label_widget = Gtk.Label.new(label.name)
                 label_widget.set_halign(Gtk.Align.START)
                 label_box.add(label_widget)
                 label_box.child_set_property(label_widget, 'expand', True)

@@ -1738,7 +1738,7 @@ class ActionImport(SimpleAction):
                (os.path.basename(file_uri)))
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-        dialog = Gtk.MessageDialog(parent=self.__main_win.window,
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
                                    flags=flags,
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
@@ -1750,7 +1750,7 @@ class ActionImport(SimpleAction):
         msg = _("No new document to import found")
         flags = (Gtk.DialogFlags.MODAL
                  | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-        dialog = Gtk.MessageDialog(parent=self.__main_win.window,
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
                                    flags=flags,
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
@@ -1964,7 +1964,8 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
-        self.main_win.lists['zoom_levels']['gui'].set_sensitive(False)
+        for button in self.main_win.actions['open_view_settings'][0]:
+            button.set_sensitive(False)
         self.main_win.drop_boxes()
 
         self.main_win.export['pageFormat']['model'].clear()
@@ -2085,12 +2086,12 @@ class ActionSelectExportPath(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         chooser = Gtk.FileChooserDialog(title=_("Save as"),
-                                        parent=self.__main_win.window,
-                                        action=Gtk.FileChooserAction.SAVE,
-                                        buttons=(Gtk.STOCK_CANCEL,
-                                                 Gtk.ResponseType.CANCEL,
-                                                 Gtk.STOCK_SAVE,
-                                                 Gtk.ResponseType.OK))
+                                        transient_for=self.__main_win.window,
+                                        action=Gtk.FileChooserAction.SAVE)
+        chooser.add_buttons(Gtk.STOCK_CANCEL,
+                             Gtk.ResponseType.CANCEL,
+                             Gtk.STOCK_SAVE,
+                             Gtk.ResponseType.OK)
         file_filter = Gtk.FileFilter()
         file_filter.set_name(str(self.__main_win.export['exporter']))
         mime = self.__main_win.export['exporter'].get_mime_type()
@@ -2124,7 +2125,8 @@ class BasicActionEndExport(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.main_win.lists['zoom_levels']['gui'].set_sensitive(True)
+        for button in self.main_win.actions['open_view_settings'][0]:
+            button.set_sensitive(False)
         self.main_win.export['dialog'].set_visible(False)
         self.main_win.export['exporter'] = None
         # force refresh of the current page
@@ -4005,6 +4007,8 @@ class MainWindow(object):
                pos[1] + (size[1] / 2))
         drawer = self.img['canvas'].get_drawer_at(pos)
         if drawer is None:
+            return
+        if not hasattr(drawer, 'page'):
             return
         page = drawer.page
         if page is None:

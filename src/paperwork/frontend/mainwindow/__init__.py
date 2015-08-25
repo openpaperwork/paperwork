@@ -1170,7 +1170,7 @@ class JobImporter(Job):
                         % len(self._docs_to_upd))
             job = self._main_win.job_factories['index_updater'].make(
                 self._main_win.docsearch, new_docs=self._docs_to_upd,
-                optimize=False, reload_all=True, reload_thumbnails=True)
+                optimize=False, reload_list=True)
             self._main_win.schedulers['main'].schedule(job)
             self._docs_to_upd = set()
 
@@ -1470,7 +1470,7 @@ class ActionToggleLabel(object):
                                      redo_thumbnails=False)
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={self.__main_win.doc},
-            optimize=False, reload_all=False, reload_thumbnails=False)
+            optimize=False)
         self.__main_win.schedulers['main'].schedule(job)
 
     def connect(self, cellrenderers):
@@ -1843,11 +1843,10 @@ class ActionDeletePage(SimpleAction):
         if doc.nb_pages <= 0:
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch, del_docs={doc.docid},
-                optimize=False, reload_all=False, reload_thumbnails=False)
+                optimize=False)
         else:
             job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, upd_docs={doc}, optimize=False,
-                reload_all=False, reload_thumbnails=False)
+                self.__main_win.docsearch, upd_docs={doc}, optimize=False)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -1895,8 +1894,7 @@ class ActionRedoOCR(SimpleAction):
             self._do_next_page(page_iterator)
         except StopIteration:
             job = self._main_win.job_factories['index_updater'].make(
-                self._main_win.docsearch, upd_docs=docs_done, optimize=False,
-                reload_all=False, reload_thumbnails=False)
+                self._main_win.docsearch, upd_docs=docs_done, optimize=False)
             self._main_win.schedulers['main'].schedule(job)
 
     def do(self, pages_iterator):
@@ -2160,8 +2158,7 @@ class ActionOptimizeIndex(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         job = self.__main_win.job_factories['index_updater'].make(
-            self.__main_win.docsearch, optimize=True,
-            reload_all=False, reload_thumbnails=False)
+            self.__main_win.docsearch, optimize=True)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -2315,7 +2312,7 @@ class ActionEditPage(SimpleAction):
 
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={doc}, optimize=False,
-            reload_all=False, reload_thumbnails=True)
+            reload_list=True)
         self.__main_win.schedulers['main'].schedule(job)
 
 
@@ -3969,8 +3966,7 @@ class MainWindow(object):
             upd_docs=upd_docs,
             del_docs=del_docs,
             optimize=False,
-            reload_all=False,
-            reload_thumbnails=True
+            reload_list=True
         )
         self.schedulers['main'].schedule(job)
 

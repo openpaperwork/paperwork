@@ -46,7 +46,6 @@ setup(
         'paperwork',
         'paperwork.frontend',
         'paperwork.frontend.aboutdialog',
-        'paperwork.frontend.doceditdialog',
         'paperwork.frontend.import',
         'paperwork.frontend.labeleditor',
         'paperwork.frontend.mainwindow',
@@ -65,8 +64,6 @@ setup(
         'paperwork.frontend': 'src/paperwork/frontend',
         'paperwork.frontend.aboutdialog':
         'src/paperwork/frontend/aboutdialog',
-        'paperwork.frontend.doceditdialog':
-        'src/paperwork/frontend/doceditdialog',
         'paperwork.frontend.import': 'src/paperwork/frontend/import',
         'paperwork.frontend.labeleditor':
         'src/paperwork/frontend/labeleditor',
@@ -102,12 +99,6 @@ setup(
             os.path.join(sys.prefix, 'share/paperwork/settingswindow'),
             [
                 'src/paperwork/frontend/settingswindow/settingswindow.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/doceditdialog'),
-            [
-                'src/paperwork/frontend/doceditdialog/doceditdialog.glade',
             ]
         ),
         (

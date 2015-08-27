@@ -49,6 +49,8 @@ class SimpleAction(object):
             (Gtk.Calendar, "day-selected", self.on_day_selected_cb, -1),
             (Gtk.Dialog, "delete-event", self.on_dialog_closed_cb, -1),
             (Gtk.Switch, "notify::active", self.on_switch_activated_cb, -1),
+            (Gtk.Adjustment, "value-changed",
+             self.on_adjustment_value_changed_cb, -1)
         ]
         self.enabled = True
 
@@ -103,6 +105,9 @@ class SimpleAction(object):
         return self.__do()
 
     def on_switch_activated_cb(self, switch, val):
+        return self.__do()
+
+    def on_adjustment_value_changed_cb(self, adj):
         return self.__do()
 
     def connect(self, buttons):

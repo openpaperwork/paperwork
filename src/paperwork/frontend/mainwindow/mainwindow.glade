@@ -4,11 +4,11 @@
   <requires lib="gtk+" version="3.14"/>
 
   <object class="GtkAdjustment" id="adjustmentZoom">
-    <property name="lower">1</property>
-    <property name="upper">100</property>
-    <property name="value">1</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+    <property name="lower">0.05</property>
+    <property name="upper">1.0</property>
+    <property name="value">1.0</property>
+    <property name="step_increment">0.05</property>
+    <property name="page_increment">0.05</property>
   </object>
 
   <menu id="scan_menu">
@@ -1117,15 +1117,15 @@
         </child>
 
         <child>
-          <object class="GtkScale">
+          <object class="GtkScale" id="scaleZoom">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="orientation">horizontal</property>
             <property name="adjustment">adjustmentZoom</property>
-            <property name="fill_level">100</property>
-            <property name="round_digits">1</property>
+            <property name="fill_level">200</property>
+            <property name="round_digits">3</property>
             <property name="draw_value">False</property>
-            <property name="sensitive">False</property>
+            <property name="sensitive">True</property>
           </object>
           <packing>
             <property name="expand">False</property>

@@ -32,7 +32,7 @@ from paperwork.frontend.util.jobs import JobFactory
 
 
 class JobPageImgLoader(Job):
-    can_stop = False
+    can_stop = True
     priority = 500
 
     __gsignals__ = {
@@ -42,27 +42,55 @@ class JobPageImgLoader(Job):
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, factory, job_id, page, size, use_thumbnail=False):
+    def __init__(self, factory, job_id, page, size):
         Job.__init__(self, factory, job_id)
         self.page = page
         self.size = size
-        self.use_thumbnail = use_thumbnail
+        self.__cond = threading.Condition()
 
     def do(self):
-        self.emit('page-loading-start')
+        self.can_run = True
+        self.__cond.acquire()
         try:
-            if not self.use_thumbnail:
+            self.__cond.wait(0.1)
+        finally:
+            self.__cond.release()
+        if not self.can_run:
+            return
+
+        self.emit('page-loading-start')
+        use_thumbnail = True
+        if self.size[1] > (BasicPage.DEFAULT_THUMB_HEIGHT * 1.5):
+            use_thumbnail = False
+        try:
+            if not self.can_run:
+                return
+            if not use_thumbnail:
                 img = self.page.img
             else:
                 img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                               BasicPage.DEFAULT_THUMB_HEIGHT)
+            if not self.can_run:
+                return
             if self.size != img.size:
                 img = img.resize(self.size, PIL.Image.ANTIALIAS)
+            if not self.can_run:
+                return
             img.load()
+            if not self.can_run:
+                return
             self.emit('page-loading-img', image2surface(img))
 
         finally:
             self.emit('page-loading-done')
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+        self.__cond.acquire()
+        try:
+            self.__cond.notify_all()
+        finally:
+            self.__cond.release()
 
 
 GObject.type_register(JobPageImgLoader)
@@ -73,9 +101,8 @@ class JobFactoryPageImgLoader(JobFactory):
     def __init__(self):
         JobFactory.__init__(self, "PageImgLoader")
 
-    def make(self, drawer, page, size, use_thumbnail=False):
-        job = JobPageImgLoader(self, next(self.id_generator), page, size,
-                               use_thumbnail)
+    def make(self, drawer, page, size):
+        job = JobPageImgLoader(self, next(self.id_generator), page, size)
         job.connect('page-loading-img',
                     lambda job, img:
                     GLib.idle_add(drawer.on_page_loading_img,
@@ -168,7 +195,6 @@ class PageDrawer(Drawer, GObject.GObject):
                  show_boxes=True,
                  show_all_boxes=False,
                  show_border=False,
-                 use_thumbnail=False,
                  sentence=u""):
         GObject.GObject.__init__(self)
         Drawer.__init__(self)
@@ -179,7 +205,6 @@ class PageDrawer(Drawer, GObject.GObject):
         self.show_all_boxes = show_all_boxes
         self.show_border = show_border
         self.mouse_over = False
-        self.use_thumbnail = use_thumbnail
         self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
@@ -278,8 +303,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.add_drawer(self.spinner)
         self.loading = True
         job = self.factories['page_img_loader'].make(self, self.page,
-                                                     self.size,
-                                                     self.use_thumbnail)
+                                                     self.size)
         self.schedulers['page_img_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):

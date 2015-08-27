@@ -1404,17 +1404,15 @@ class ActionOpenPageNb(SimpleAction):
 
 
 class ActionUpdPageSizes(SimpleAction):
-    def __init__(self, main_window, config):
+    def __init__(self, main_window):
         SimpleAction.__init__(self, "Reload current page")
         self.__main_win = main_window
-        self.__config = config
 
     def do(self):
         SimpleAction.do(self)
         mw = self.__main_win
+        mw.zoom_level['auto'] = False
         mw.update_page_sizes()
-        mw.show_page(self.__main_win.page, force_refresh=True)
-        self.__config['zoom_level'].value = mw.get_raw_zoom_level()
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -2675,6 +2673,12 @@ class MainWindow(object):
 
         open_doc_action = ActionOpenSelectedDocument(self)
 
+        self.zoom_level = {
+            'gui': widget_tree.get_object("scaleZoom"),
+            'model': widget_tree.get_object("adjustmentZoom"),
+            'auto': True,  # recomputed if the window size change
+        }
+
         self.lists = {
             'suggestions': {
                 'gui': widget_tree.get_object("entrySearch"),
@@ -2691,10 +2695,6 @@ class MainWindow(object):
                     'by_row': {},  # Gtk.ListBoxRow: docid
                     'by_id': {},  # docid: Gtk.ListBoxRow
                 },
-            },
-            'zoom_levels': {
-                'gui': widget_tree.get_object("comboboxZoom"),
-                'model': widget_tree.get_object("liststoreZoom"),
             },
         }
 
@@ -3007,13 +3007,12 @@ class MainWindow(object):
                 ],
                 ActionOpenPageNb(self),
             ),
-            # TODO
-            #'zoom_levels': (
-            #    [
-            #        widget_tree.get_object("comboboxZoom"),
-            #    ],
-            #    ActionUpdPageSizes(self, config)
-            #),
+            'zoom_level': (
+                [
+                    self.zoom_level['model'],
+                ],
+                ActionUpdPageSizes(self)
+            ),
             'search': (
                 [
                     self.search_field,
@@ -3135,8 +3134,6 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        self.set_raw_zoom_level(config['zoom_level'].value)
-
         # TODO
         #self.lists['doclist']['gui'].connect(
         #    "drag-data-received", self.__on_doclist_drag_data_received_cb)
@@ -3145,7 +3142,7 @@ class MainWindow(object):
                             ActionRealQuit(self, config).on_window_close_cb)
 
         self.img['viewport']['widget'].connect("size-allocate",
-                                               self.__on_img_resize_cb)
+                                               self.__on_img_area_resize_cb)
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 
         self.window.set_visible(True)
@@ -3247,20 +3244,9 @@ class MainWindow(object):
             self.progressbar.visible = False
             self.progressbar.redraw()
 
-    def set_raw_zoom_level(self, level):
-        zoom_liststore = self.lists['zoom_levels']['model']
-
-        new_idx = -1
-        for zoom_idx in range(0, len(zoom_liststore)):
-            if (zoom_liststore[zoom_idx][1] == level):
-                new_idx = zoom_idx
-                break
-        if new_idx < 0:
-            logger.warning("Unknown zoom level: %f" % level)
-            return
-
-        # TODO
-        # self.lists['zoom_levels']['gui'].set_active(new_idx)
+    def set_zoom_level(self, level, auto=False):
+        self.zoom_level['model'].set_value(level)
+        self.zoom_level['auto'] = auto
 
     def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)
@@ -3581,8 +3567,22 @@ class MainWindow(object):
             page.reload_boxes(search)
 
     def update_page_sizes(self):
+        (auto, factor) = self.get_zoom_level()
+        if auto:
+            # compute the wanted factor
+            factor = 1.0
+            for page in self.page_drawers:
+                factor = min(factor, self.compute_zoom_level(page.max_size))
+            self.set_zoom_level(factor, auto=True)
+
+        self.schedulers['main'].cancel_all(
+            self.job_factories['page_img_loader']
+        )
+        self.schedulers['main'].cancel_all(
+            self.job_factories['page_boxes_loader']
+        )
+
         for page in self.page_drawers:
-            factor = self.get_zoom_factor(page.max_size)
             page.set_size_ratio(factor)
             page.relocate()
         if self.doc.docid in self.scan_drawers:
@@ -3672,7 +3672,6 @@ class MainWindow(object):
                                     show_boxes=(self.layout == 'paged'),
                                     show_border=(self.layout == 'grid'),
                                     show_all_boxes=self.show_all_boxes,
-                                    use_thumbnail=(self.layout == 'grid'),
                                     sentence=search)
                 drawer.connect("page-selected", self._on_page_drawer_selected)
             previous_drawer = drawer
@@ -3686,6 +3685,8 @@ class MainWindow(object):
                 self.page_drawers.append(drawer)
                 self.img['canvas'].add_drawer(drawer)
 
+        # reset zoom level
+        self.set_zoom_level(1.0, auto=True)
         self.update_page_sizes()
         self.img['canvas'].recompute_size()
         self.img['canvas'].upd_adjustments()
@@ -3789,22 +3790,18 @@ class MainWindow(object):
         h -= 2 * PageDrawer.MARGIN
         return h
 
-    def get_raw_zoom_level(self):
-        # TODO
-        #el_idx = self.lists['zoom_levels']['gui'].get_active()
-        #el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
-        #return self.lists['zoom_levels']['model'].get_value(el_iter, 1)
-        return 0
+    def get_zoom_level(self):
+        return (self.zoom_level['auto'], self.zoom_level['model'].get_value())
 
-    def get_zoom_factor(self, img_size):
+    def compute_zoom_level(self, img_size):
         if self.layout == "grid":
             wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
             return float(wanted_height) / img_size[1]
         else:
-            factor = self.get_raw_zoom_level()
+            (auto, factor) = self.get_zoom_level()
             # factor is a postive float if user defined, 0 for full width and
             # -1 for full page
-            if factor > 0.0:
+            if not auto:
                 return factor
             wanted_width = self.__get_img_area_width()
             width_factor = float(wanted_width) / img_size[0]
@@ -3825,7 +3822,7 @@ class MainWindow(object):
             self.export['exporter'])
         self.schedulers['main'].schedule(job)
 
-    def __on_img_resize_cb(self, viewport, rectangle):
+    def __on_img_area_resize_cb(self, viewport, rectangle):
         if self.export['exporter'] is not None:
             return
 
@@ -3838,17 +3835,11 @@ class MainWindow(object):
                     % (old_size[0], old_size[1], new_size[0], new_size[1]))
         self.img['viewport']['size'] = new_size
 
-        # TODO
-        #el_idx = self.lists['zoom_levels']['gui'].get_active()
-        #el_iter = self.lists['zoom_levels']['model'].get_iter(el_idx)
-        #factor = self.lists['zoom_levels']['model'].get_value(el_iter, 1)
-        factor = 1
-        if factor > 0.0:
+        (auto, factor) = self.get_zoom_level()
+        if not auto:
             return
 
-        for page in self.page_drawers:
-            self.__resize_page(page)
-        self.show_page(self.page)
+        self.update_page_sizes()
 
     def on_page_editing_img_edit_start_cb(self, job, page):
         self.set_mouse_cursor("Busy")

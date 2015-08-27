@@ -1787,9 +1787,10 @@ class ActionImport(SimpleAction):
 
 
 class ActionDeleteDoc(SimpleAction):
-    def __init__(self, main_window):
+    def __init__(self, main_window, doc=None):
         SimpleAction.__init__(self, "Delete document")
         self.__main_win = main_window
+        self.__doc = doc
 
     def do(self):
         """
@@ -1798,7 +1799,10 @@ class ActionDeleteDoc(SimpleAction):
         if not ask_confirmation(self.__main_win.window):
             return
         SimpleAction.do(self)
-        doc = self.__main_win.doc
+        if self.__doc is None:
+            doc = self.__main_win.doc
+        else:
+            doc = self.__doc
         docid = doc.docid
 
         self.__main_win.actions['new_doc'][1].do()
@@ -1811,8 +1815,6 @@ class ActionDeleteDoc(SimpleAction):
         index_upd.commit()
         logger.info("Deleted")
 
-        # TODO(Jflesch): this should be the correct thing to do
-        # self.__main_win.refresh_docs({doc})
         self.__main_win.refresh_doc_list()
 
 
@@ -3376,6 +3378,11 @@ class MainWindow(object):
             "edit-delete-symbolic",
             Gtk.IconSize.MENU)
         delete_button.set_relief(Gtk.ReliefStyle.NONE)
+        delete_button.connect(
+            "clicked",
+            lambda _: GLib.idle_add(
+                ActionDeleteDoc(self, doc).do))
+
         button_box.add(delete_button)
 
         for child in rowbox.get_children():
@@ -3398,8 +3405,8 @@ class MainWindow(object):
         try:
             for doc in documents:
                 rowbox = Gtk.ListBoxRow()
-                self._make_listboxrow_doc_widget(doc, rowbox,
-                                                 doc.docid == self.doc.docid)
+                selected = (doc.docid == self.doc.docid)
+                self._make_listboxrow_doc_widget(doc, rowbox, selected)
                 self.lists['doclist']['model']['by_row'][rowbox] = doc.docid
                 self.lists['doclist']['model']['by_id'][doc.docid] = rowbox
                 self.lists['doclist']['gui'].add(rowbox)
@@ -3509,6 +3516,9 @@ class MainWindow(object):
         self.lists['doclist']['model']['by_row'][rowbox] = doc.docid
         self.lists['doclist']['model']['by_id'][doc.docid] = rowbox
         self.lists['doclist']['gui'].insert(rowbox, 0)
+        if self.doc.is_new:
+            self.lists['doclist']['gui'].select_row(rowbox)
+
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -3581,7 +3591,8 @@ class MainWindow(object):
 
     def __set_doc_buttons_visible(self, doc, visible):
         if (doc is None
-            or not doc.docid in self.lists['doclist']['model']['by_id']):
+                or not doc.docid in self.lists['doclist']['model']['by_id']
+                or doc.is_new):
             return
 
         row = self.lists['doclist']['model']['by_id'][doc.docid]

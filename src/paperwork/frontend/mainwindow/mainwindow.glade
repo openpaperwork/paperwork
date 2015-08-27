@@ -1162,7 +1162,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkSwitch">
+              <object class="GtkSwitch" id="show_all_boxes">
                 <property name="visible">True</property>
               </object>
               <packing>

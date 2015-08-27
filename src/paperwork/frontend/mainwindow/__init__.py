@@ -1434,7 +1434,6 @@ class ActionToggleAllBoxes(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.show_all_boxes = not self.__main_win.show_all_boxes
         self.__main_win.refresh_boxes()
 
 
@@ -2755,8 +2754,6 @@ class MainWindow(object):
 
         self.popup_menus = {}
 
-        self.show_all_boxes = False
-
         self.doc_properties_panel = DocPropertiesPanel(self, widget_tree)
 
         self.headerbars = {
@@ -3040,7 +3037,7 @@ class MainWindow(object):
             #),
             'show_all_boxes': (
                 [
-                    gactions['show_all_boxes'],
+                    widget_tree.get_object("show_all_boxes"),
                 ],
                 ActionToggleAllBoxes(self)
             ),
@@ -3124,6 +3121,9 @@ class MainWindow(object):
             # + self.actions['edit_page'][0]
         )
 
+        self.__show_all_boxes_widget = \
+            self.actions['show_all_boxes'][0][0]
+
         # TODO
         #set_widget_state(self.need_page_widgets, False)
 
@@ -3174,7 +3174,6 @@ class MainWindow(object):
             'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
             'optimize_index': Gio.SimpleAction.new("optimize_index", None),
             'print': Gio.SimpleAction.new("print", None),
-            'show_all_boxes': Gio.SimpleAction.new("show_all_boxes", None),
             'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
             'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
             'reindex_all': Gio.SimpleAction.new("reindex_all", None),
@@ -3983,11 +3982,10 @@ class MainWindow(object):
         return ("scan_date", sort_documents_by_date)
 
     def __get_show_all_boxes(self):
-        return self.__show_all_boxes
+        return self.__show_all_boxes_widget.get_active()
 
     def __set_show_all_boxes(self, value):
-        # TODO
-        self.__show_all_boxes = value
+        self.__show_all_boxes_widget.set_active(boolean(value))
 
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 

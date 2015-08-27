@@ -109,7 +109,7 @@ class JobPageBoxesLoader(Job):
 
             self.__cond.acquire()
             try:
-                self.__cond.wait(1.0)
+                self.__cond.wait(0.5)
             finally:
                 self.__cond.release()
             if not self.can_run:
@@ -153,7 +153,8 @@ class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
     MARGIN = 25
-    BORDER = (5, (0.85, 0.85, 0.85))
+    BORDER_BASIC = (5, (0.85, 0.85, 0.85))
+    BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
     TMP_AREA = (0.85, 0.85, 0.85)
 
     __gsignals__ = {
@@ -177,14 +178,14 @@ class PageDrawer(Drawer, GObject.GObject):
         self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
         self.show_border = show_border
-        self.has_border = False
+        self.mouse_over = False
         self.use_thumbnail = use_thumbnail
         self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
         self.boxes = {
-            'all': [],
-            'highlighted': [],
+            'all': set(),
+            'highlighted': set(),
             'mouse_over': None,
         }
         self.sentence = sentence
@@ -289,7 +290,8 @@ class PageDrawer(Drawer, GObject.GObject):
             return
         self.surface = surface
         self.redraw()
-        if len(self.boxes['all']) <= 0 and self.show_boxes:
+        if (len(self.boxes['all']) <= 0
+                and (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
 
@@ -331,7 +333,7 @@ class PageDrawer(Drawer, GObject.GObject):
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
             return
-        self.boxes['all'] = all_boxes
+        self.boxes['all'] = set(all_boxes)
         self.reload_boxes()
 
     def unload_content(self):
@@ -342,8 +344,8 @@ class PageDrawer(Drawer, GObject.GObject):
             del(self.surface)
             self.surface = None
         self.boxes = {
-            'all': [],
-            'highlighted': [],
+            'all': set(),
+            'highlighted': set(),
             'mouse_over': None,
         }
 
@@ -352,8 +354,12 @@ class PageDrawer(Drawer, GObject.GObject):
         self.visible = False
 
     def draw_border(self, cairo_context):
-        border_width = self.BORDER[0]
-        border_color = self.BORDER[1]
+        border = self.BORDER_BASIC
+        if self.boxes['highlighted']:
+            border = self.BORDER_HIGHLIGHTED
+
+        border_width = border[0]
+        border_color = border[1]
 
         cairo_context.save()
         try:
@@ -468,7 +474,8 @@ class PageDrawer(Drawer, GObject.GObject):
         if not self.visible:
             return
 
-        if self.has_border:
+        if (self.show_border
+                and (self.mouse_over or self.boxes['highlighted'])):
             self.draw_border(cairo_context)
 
         if not self.surface:
@@ -486,8 +493,9 @@ class PageDrawer(Drawer, GObject.GObject):
                             [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
             self.draw_box_txt(cairo_context,
                               self.boxes['mouse_over'])
-        self.draw_boxes(cairo_context,
-                        self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+        if self.show_boxes:
+            self.draw_boxes(cairo_context,
+                    self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
@@ -499,7 +507,11 @@ class PageDrawer(Drawer, GObject.GObject):
         return None
 
     def redraw(self):
-        border_width = self.BORDER[0]
+        border = self.BORDER_BASIC
+        if self.boxes['highlighted']:
+            border = self.BORDER_HIGHLIGHTED
+
+        border_width = border[0]
 
         position = self.relative_position
         position = (position[0] - border_width,
@@ -520,8 +532,8 @@ class PageDrawer(Drawer, GObject.GObject):
                   and event.y >= position[1]
                   and event.y < (position[1] + size[1]))
 
-        if self.show_border and self.has_border != inside:
-            self.has_border = inside
+        if self.mouse_over != inside:
+            self.mouse_over = inside
             self.redraw()
 
         if not inside:

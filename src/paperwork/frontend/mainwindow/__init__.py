@@ -3406,6 +3406,9 @@ class MainWindow(object):
         finally:
             self.lists['doclist']['gui'].thaw_child_notify()
 
+        if search.strip() == u"":
+            self.insert_new_doc()
+
         if self.doc.docid in self.lists['doclist']['model']['by_id']:
             row = self.lists['doclist']['model']['by_id'][self.doc.docid]
             self.lists['doclist']['gui'].select_row(row)

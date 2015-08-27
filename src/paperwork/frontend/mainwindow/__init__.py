@@ -1240,7 +1240,8 @@ class ActionNewDocument(SimpleAction):
 
         must_insert_new = False
 
-        must_insert_new = not self.__main_win.lists['doclist']['has_new']
+        must_insert_new = \
+            not self.__main_win.lists['doclist']['model']['has_new']
         if must_insert_new:
             self.__main_win.insert_new_doc()
 
@@ -1253,9 +1254,10 @@ class ActionOpenSelectedDocument(SimpleAction):
     """
     Starts a new document.
     """
-    def __init__(self, main_window):
+    def __init__(self, main_window, config):
         SimpleAction.__init__(self, "Open selected document")
         self.__main_win = main_window
+        self.__config = config
 
     def do(self):
         SimpleAction.do(self)
@@ -1266,6 +1268,9 @@ class ActionOpenSelectedDocument(SimpleAction):
             return
         docid = self.__main_win.lists['doclist']['model']['by_row'][row]
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+        if doc is None:
+            # assume new doc
+            doc = ImgDoc(self.__config['workdir'].value)
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:
@@ -2671,7 +2676,7 @@ class MainWindow(object):
 
         search_completion = Gtk.EntryCompletion()
 
-        open_doc_action = ActionOpenSelectedDocument(self)
+        open_doc_action = ActionOpenSelectedDocument(self, config)
 
         self.zoom_level = {
             'gui': widget_tree.get_object("scaleZoom"),
@@ -3402,8 +3407,8 @@ class MainWindow(object):
             self.lists['doclist']['gui'].thaw_child_notify()
 
         if self.doc.docid in self.lists['doclist']['model']['by_id']:
-            crow = self.lists['doclist']['model']['by_id'][self.doc.docid]
-            self.lists['doclist']['gui'].select_row(crow)
+            row = self.lists['doclist']['model']['by_id'][self.doc.docid]
+            self.lists['doclist']['gui'].select_row(row)
 
         job = self.job_factories['doc_thumbnailer'].make(documents)
         self.schedulers['main'].schedule(job)
@@ -3492,33 +3497,15 @@ class MainWindow(object):
             doc.labels,
         ])
 
-    def __pop_new_doc_row(self):
-        if not self.lists['doclist']['model']['has_new']:
-            return
-        row = self.lists['doclist']['gui'].get_row_at_index(0)
-        self.lists['doclist']['gui'].remove(row)
-        self.lists['doclist']['model']['has_new'] = False
-        return row
-
-    def __insert_doc(self, doc_idx, doc):
-        doc_list = self.lists['doclist']
-        doc_list.insert(doc_idx, doc)
-        doc_line = self.__get_doc_model_line(doc)
-        # TODO
-
-    def __remove_doc(self, doc_idx):
-        if self.lists['doclist']['model']['has_new']:
-            doc_idx += 1
-        row = self.lists['doclist']['gui'].get_row_at_index(doc_idx)
-        self.lists['doclist']['gui'].remove(row)
-        docid = self.lists['doclist']['model']['by_row'].pop(row)
-        self.lists['doclist']['model']['by_id'].pop(docid)
-        return row
-
     def insert_new_doc(self):
         # append a new document to the list
-        self.lists['doclist']['gui']['has_new'] = False
-        # TODO : insert actually in the widget
+        doc = ImgDoc(self.__config['workdir'].value)
+        self.lists['doclist']['model']['has_new'] = True
+        rowbox = Gtk.ListBoxRow()
+        self._make_listboxrow_doc_widget(doc, rowbox, False)
+        self.lists['doclist']['model']['by_row'][rowbox] = doc.docid
+        self.lists['doclist']['model']['by_id'][doc.docid] = rowbox
+        self.lists['doclist']['gui'].insert(rowbox, 0)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """

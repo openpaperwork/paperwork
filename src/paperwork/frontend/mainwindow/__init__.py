@@ -1412,8 +1412,11 @@ class ActionUpdPageSizes(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Reload current page")
         self.__main_win = main_window
+        self.enabled = True
 
     def do(self):
+        if not self.enabled:
+            return
         SimpleAction.do(self)
         mw = self.__main_win
         mw.zoom_level['auto'] = False
@@ -3228,8 +3231,10 @@ class MainWindow(object):
             self.progressbar.redraw()
 
     def set_zoom_level(self, level, auto=False):
+        self.actions['zoom_level'][1].enabled = False
         self.zoom_level['model'].set_value(level)
         self.zoom_level['auto'] = auto
+        self.actions['zoom_level'][1].enabled = True
 
     def on_index_loading_start_cb(self, src):
         self.set_progression(src, 0.0, None)

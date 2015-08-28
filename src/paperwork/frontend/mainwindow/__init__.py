@@ -1440,17 +1440,6 @@ class ActionToggleAllBoxes(SimpleAction):
         self.__main_win.refresh_boxes()
 
 
-class ActionLabelSelected(SimpleAction):
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Label selected")
-        self.__main_win = main_window
-
-    def do(self):
-        SimpleAction.do(self)
-        set_widget_state(self.__main_win.need_label_widgets, True)
-        return True
-
-
 class ActionToggleLabel(object):
     def __init__(self, main_window):
         self.__main_win = main_window
@@ -2878,13 +2867,6 @@ class MainWindow(object):
                 ],
                 ActionShowDocumentAsPaged(self)
             ),
-            # TODO
-            #'select_label': (
-            #    [
-            #        widget_tree.get_object("treeviewLabel"),
-            #    ],
-            #    ActionLabelSelected(self)
-            #),
             'single_scan': (
                 [
                     gactions['scan_single'],
@@ -3112,12 +3094,6 @@ class MainWindow(object):
             # self.actions['del_page'][0]
             self.actions['open_export_page_dialog'][0]
             # + self.actions['edit_page'][0]
-        )
-
-        self.need_label_widgets = set(
-            # TODO
-            # self.actions['del_label'][0]
-            # + self.actions['edit_label'][0]
         )
 
         self.doc_edit_widgets = set(

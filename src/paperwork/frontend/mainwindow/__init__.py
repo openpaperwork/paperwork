@@ -3106,8 +3106,8 @@ class MainWindow(object):
         self.__show_all_boxes_widget = \
             self.actions['show_all_boxes'][0][0]
 
-        # TODO
-        #set_widget_state(self.need_page_widgets, False)
+        set_widget_state(self.need_page_widgets, False)
+        set_widget_state(self.need_doc_widgets, False)
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             assert(not popup_menu[0] is None)
@@ -3148,7 +3148,7 @@ class MainWindow(object):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
-            'export_page': Gio.SimpleAction.new("export_doc", None),
+            'export_page': Gio.SimpleAction.new("export_page", None),
             'import': Gio.SimpleAction.new("import", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
             'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
@@ -3669,14 +3669,12 @@ class MainWindow(object):
         self.img['canvas'].upd_adjustments()
 
         is_new = doc.is_new
-        can_edit = doc.can_edit
+        can_edit = doc.can_edit and not is_new
 
-        set_widget_state(self.need_doc_widgets, True)
-        set_widget_state(self.doc_edit_widgets, True)
-        set_widget_state(self.need_doc_widgets, False,
-                         cond=lambda widget: is_new)
-        set_widget_state(self.doc_edit_widgets, False,
-                         cond=lambda widget: not can_edit)
+        set_widget_state(self.need_doc_widgets, not is_new)
+        set_widget_state(self.need_page_widgets,
+                         not is_new and self.layout == 'paged')
+        set_widget_state(self.doc_edit_widgets, can_edit)
 
         # TODO
         #pages_gui = self.lists['pages']['gui']
@@ -3713,6 +3711,7 @@ class MainWindow(object):
             self.show_doc(page.doc, force_refresh)
 
         logging.info("Showing page %s" % page)
+        self.page = page
 
         drawer = None
         for d in self.page_drawers:
@@ -3731,6 +3730,7 @@ class MainWindow(object):
 
         self.export['dialog'].set_visible(False)
 
+        set_widget_state(self.need_page_widgets, self.layout == 'paged')
         self.img['canvas'].redraw()
 
     def _on_page_drawer_selected(self, page_drawer):
@@ -3958,6 +3958,7 @@ class MainWindow(object):
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 
     def __select_page(self, page):
+        set_widget_state(self.need_page_widgets, self.layout == 'paged')
         self.actions['set_current_page'][1].enabled = False
         self.page_nb['current'].set_text("%d" % (page.page_nb + 1))
         self.actions['set_current_page'][1].enabled = True
@@ -3974,6 +3975,7 @@ class MainWindow(object):
             return
         page = drawer.page
         if page is None:
+            set_widget_state(self.need_page_widgets, False)
             return
         self.__select_page(page)
 
@@ -4009,6 +4011,7 @@ class MainWindow(object):
 
         if self.doc.docid == doc.docid:
             self.page = None
+            set_widget_state(self.need_page_widgets, False)
             self.show_doc(self.doc, force_refresh=True)
             self.img['canvas'].add_drawer(scan_workflow_drawer)
             self.img['canvas'].recompute_size()

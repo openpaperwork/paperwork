@@ -91,12 +91,12 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
-        self.connect("size-allocate", self.__on_size_allocate)
-        self.connect("draw", self.__on_draw)
-        self.connect("button-press-event", self.__on_button_pressed)
-        self.connect("motion-notify-event", self.__on_motion)
-        self.connect("button-release-event", self.__on_button_released)
-        self.connect("key-press-event", self.__on_key_pressed)
+        super(Canvas, self).connect("size-allocate", self.__on_size_allocate)
+        super(Canvas, self).connect("draw", self.__on_draw)
+        super(Canvas, self).connect("button-press-event", self.__on_button_pressed)
+        super(Canvas, self).connect("motion-notify-event", self.__on_motion)
+        super(Canvas, self).connect("button-release-event", self.__on_button_released)
+        super(Canvas, self).connect("key-press-event", self.__on_key_pressed)
 
         hadj.connect("value-changed", self.__on_adjustment_changed)
         vadj.connect("value-changed", self.__on_adjustment_changed)
@@ -105,6 +105,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.set_can_focus(True)
 
         self.need_ticks = 0
+
+        self._drawer_connections = {}  # drawer --> [('signal', func), ...]
 
     def _tick(self):
         for drawer in self.drawers:
@@ -242,7 +244,31 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         return None
 
+    def connect(self, drawer, signal, func, *args, **kwargs):
+        """
+        Force the caller to declare a drawer for this connection.
+        So when the drawer is removed, we can automatically remove its
+        connections
+
+        Arguments:
+            drawer --- None allowed
+        """
+        handler_id = super(Canvas, self).connect(signal, func, *args, **kwargs)
+        if drawer is not None:
+            if not drawer in self._drawer_connections:
+                self._drawer_connections[drawer] = [handler_id]
+            else:
+                self._drawer_connections[drawer].append(handler_id)
+
+    def disconnect_drawer(self, drawer):
+        if drawer not in self._drawer_connections:
+            return
+        connections = self._drawer_connections.pop(drawer)
+        for handler_id in connections:
+            super(Canvas, self).disconnect(handler_id)
+
     def remove_drawer(self, drawer):
+        self.disconnect_drawer(drawer)
         drawer.hide()
         self.drawers.remove(drawer)
         self.recompute_size()
@@ -250,6 +276,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def remove_drawers(self, drawers):
         for drawer in drawers:
+            self.disconnect_drawer(drawer)
             drawer.hide()
             self.drawers.remove(drawer)
         self.recompute_size()
@@ -257,6 +284,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def remove_all_drawers(self):
         for drawer in self.drawers:
+            self.disconnect_drawer(drawer)
             drawer.hide()
         self.drawers.purge()
         self.recompute_size()

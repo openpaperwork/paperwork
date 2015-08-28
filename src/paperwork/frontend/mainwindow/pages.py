@@ -250,12 +250,13 @@ class PageDrawer(Drawer, GObject.GObject):
         Drawer.set_canvas(self, canvas)
         self.spinner.set_canvas(canvas)
         self.relocate()
-        canvas.connect("absolute-motion-notify-event", lambda canvas, event:
+        canvas.connect(self, "absolute-motion-notify-event",
+                       lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
-        canvas.connect("absolute-button-release-event",
+        canvas.connect(self, "absolute-button-release-event",
                        lambda canvas, event:
                        GLib.idle_add(self._on_mouse_button_release, event))
-        canvas.connect("size-allocate", self._on_size_allocate_cb)
+        canvas.connect(self, "size-allocate", self._on_size_allocate_cb)
 
     def _on_size_allocate_cb(self, widget, size):
         GLib.idle_add(self.relocate)
@@ -600,7 +601,6 @@ class PageDrawer(Drawer, GObject.GObject):
 
         if not inside:
             return
-
         self.emit('page-selected')
 
 GObject.type_register(PageDrawer)

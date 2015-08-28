@@ -2715,7 +2715,7 @@ class MainWindow(object):
         img_widget.set_visible(True)
         img_scrollbars.add(img_widget)
 
-        img_widget.connect(
+        img_widget.connect(None,
             'window-moved',
             lambda x: GLib.idle_add(self.__on_img_window_moved))
 
@@ -2723,7 +2723,7 @@ class MainWindow(object):
         self.progressbar.visible = False
         img_widget.add_drawer(self.progressbar)
 
-        img_widget.connect(
+        img_widget.connect(None,
             'window-moved',
             lambda x: GLib.idle_add(self.__on_img_window_moved))
 
@@ -3127,7 +3127,7 @@ class MainWindow(object):
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.img['viewport']['widget'].connect("size-allocate",
+        self.img['viewport']['widget'].connect(None, "size-allocate",
                                                self.__on_img_area_resize_cb)
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 

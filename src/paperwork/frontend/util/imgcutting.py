@@ -221,11 +221,11 @@ class ImgGripHandler(GObject.GObject):
 
         zoom_widget.connect("value-changed", lambda x:
                             GLib.idle_add(self.__on_zoom_changed))
-        canvas.connect("absolute-button-press-event",
+        canvas.connect(self, "absolute-button-press-event",
                        self.__on_mouse_button_pressed_cb)
-        canvas.connect("absolute-motion-notify-event",
+        canvas.connect(self, "absolute-motion-notify-event",
                        self.__on_mouse_motion_cb)
-        canvas.connect("absolute-button-release-event",
+        canvas.connect(self, "absolute-button-release-event",
                        self.__on_mouse_button_released_cb)
 
         self.last_rel_position = (False, 0, 0)

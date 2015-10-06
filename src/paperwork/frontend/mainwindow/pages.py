@@ -16,8 +16,12 @@
 
 import threading
 
+import gettext
+
+from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
+from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
@@ -29,6 +33,9 @@ from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
+
+
+_ = gettext.gettext
 
 
 class JobPageImgLoader(Job):
@@ -179,10 +186,21 @@ class JobFactoryPageBoxesLoader(JobFactory):
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
-    MARGIN = 25
+    MARGIN = 40
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
     TMP_AREA = (0.85, 0.85, 0.85)
+
+    BUTTON_SIZE = 32
+    BUTTON_BACKGROUND = (0.85, 0.85, 0.85)
+    TOOLTIP_LENGTH = 200
+    FONT_SIZE = 15
+    ICON_EDIT_START = "document-properties"
+    ICON_EDIT_CROP = "edit-cut"
+    ICON_EDIT_ROTATE_COUNTERCLOCKWISE = "object-rotate-left"
+    ICON_EDIT_ROTATE_CLOCKWISE = "object-rotate-right"
+    ICON_EDIT_CANCEL = "edit-undo"
+    ICON_EDIT_DONE = "document-save"
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -195,6 +213,7 @@ class PageDrawer(Drawer, GObject.GObject):
                  show_boxes=True,
                  show_all_boxes=False,
                  show_border=False,
+                 enable_editor=False,
                  sentence=u""):
         GObject.GObject.__init__(self)
         Drawer.__init__(self)
@@ -204,7 +223,9 @@ class PageDrawer(Drawer, GObject.GObject):
         self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
         self.show_border = show_border
+        self.enable_editor = enable_editor
         self.mouse_over = False
+        self.mouse_over_button = None
         self.previous_page_drawer = previous_page_drawer
 
         self.surface = None
@@ -224,6 +245,57 @@ class PageDrawer(Drawer, GObject.GObject):
         self._position = (0, 0)
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
+
+        icon_theme = Gtk.IconTheme.get_default()
+        self.editor_buttons = {
+            "before": [
+                # button 'start'
+                ((-10 - self.BUTTON_SIZE, 10),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_START, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_start,
+                 _("Edit")),
+            ],
+            "during": [
+                # button 'cancel'
+                ((-10 - self.BUTTON_SIZE, 10 + (0 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_CANCEL, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_cancel,
+                 _("Cancel")),
+                # button 'done'
+                ((-10 - self.BUTTON_SIZE, 10 + (1 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_DONE, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_done,
+                 _("Apply")),
+                # button 'crop'
+                ((-10 - self.BUTTON_SIZE, 10 + (2 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_CROP, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_crop,
+                 _("Crop")),
+                # button 'rotate_counter_clockwise'
+                ((-10 - self.BUTTON_SIZE, 10 + (3 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_ROTATE_COUNTERCLOCKWISE, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_counterclockwise,
+                 _("Rotate counter-clockwise")),
+                # button 'rotate_clockwise'
+                ((-10 - self.BUTTON_SIZE, 10 + (4 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_ROTATE_CLOCKWISE, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_clockwise,
+                 _("Rotate clockwise")),
+            ]
+        }
+        self.editor_state = "before"
 
     def relocate(self):
         assert(self.canvas)
@@ -486,6 +558,83 @@ class PageDrawer(Drawer, GObject.GObject):
         finally:
             cairo_context.restore()
 
+    def draw_editor_buttons(self, cairo_context):
+        position = self.position
+        size = self.size
+
+        buttons = self.editor_buttons[self.editor_state]
+        for (b_position, button, callback, tooltip) in buttons:
+            cairo_context.save()
+            try:
+                x = b_position[0]
+                y = b_position[1]
+                if x < 0:
+                    x = size[0] + x
+                if y < 0:
+                    y = size[1] + y
+                x += position[0] - self.canvas.offset[0]
+                y += position[1] - self.canvas.offset[1]
+
+                cairo_context.set_source_rgb(
+                    self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
+                    self.BUTTON_BACKGROUND[2])
+                cairo_context.rectangle(x - 1, y - 1,
+                                        self.BUTTON_SIZE + 2,
+                                        self.BUTTON_SIZE + 2)
+                cairo_context.clip()
+                cairo_context.paint()
+
+                Gdk.cairo_set_source_pixbuf(cairo_context, button, x, y)
+                cairo_context.rectangle(
+                    x, y, self.BUTTON_SIZE, self.BUTTON_SIZE)
+                cairo_context.clip()
+                cairo_context.paint()
+            finally:
+                cairo_context.restore()
+
+        if self.mouse_over_button:
+            (b_position, button, callback, tooltip) = self.mouse_over_button
+            (x, y) = b_position
+            if x < 0:
+                x = size[0] + x
+            if y < 0:
+                y = size[1] + y
+            x += position[0] - self.TOOLTIP_LENGTH - self.canvas.offset[0]
+            y += position[1] - self.canvas.offset[1]
+
+            cairo_context.save()
+            try:
+                cairo_context.set_source_rgb(
+                    self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
+                    self.BUTTON_BACKGROUND[2])
+                cairo_context.rectangle(x, y + 5,
+                                        self.TOOLTIP_LENGTH,
+                                        self.BUTTON_SIZE - 10)
+                cairo_context.clip()
+                cairo_context.paint()
+
+                cairo_context.translate(
+                    x + 5,
+                    y + ((self.BUTTON_SIZE - self.FONT_SIZE) / 2))
+                cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+
+                layout = PangoCairo.create_layout(cairo_context)
+                layout.set_text(tooltip, -1)
+
+                txt_size = layout.get_size()
+                if 0 in txt_size:
+                    return
+                txt_factor = min(
+                    float(self.TOOLTIP_LENGTH - 10) * Pango.SCALE / txt_size[0],
+                    float(self.FONT_SIZE) * Pango.SCALE / txt_size[1],
+                )
+                cairo_context.scale(txt_factor, txt_factor)
+                PangoCairo.update_layout(cairo_context, layout)
+                PangoCairo.show_layout(cairo_context, layout)
+            finally:
+                cairo_context.restore()
+
+
     def draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
             self.canvas.offset, self.canvas.size,
@@ -522,6 +671,9 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_boxes(cairo_context,
                     self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
 
+        if self.enable_editor and self.mouse_over:
+            self.draw_editor_buttons(cairo_context)
+
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
             if (x >= box.position[0][0]
@@ -552,43 +704,72 @@ class PageDrawer(Drawer, GObject.GObject):
         position = self.position
         size = self.size
 
-        inside = (event.x >= position[0]
-                  and event.x < (position[0] + size[0])
-                  and event.y >= position[1]
-                  and event.y < (position[1] + size[1]))
+        event_x = event.x - position[0]
+        event_y = event.y - position[1]
+
+        must_redraw = False
+        mouse_over_button = None
+
+        inside = (event_x >= 0
+                  and event_x < size[0]
+                  and event_y >= 0
+                  and event_y < size[1])
 
         if self.mouse_over != inside:
             self.mouse_over = inside
+            must_redraw = True
+
+        buttons = self.editor_buttons[self.editor_state]
+        for button in buttons:
+            (b_position, b_pix, callback, tooltip) = button
+            x = b_position[0]
+            y = b_position[1]
+            if x < 0:
+                x = size[0] + x
+            if y < 0:
+                y = size[1] + y
+            if (x <= event_x
+                    and event_x <= x + self.BUTTON_SIZE
+                    and y <= event_y
+                    and event_y <= y + self.BUTTON_SIZE):
+                mouse_over_button = button
+                break
+
+        if self.mouse_over_button != mouse_over_button:
+            self.mouse_over_button = mouse_over_button
+            must_redraw = True
+
+        if inside:
+            (x_factor, y_factor) = self._get_factors()
+            # position on the whole page image
+            (x, y) = (
+                event_x / x_factor,
+                event_y / y_factor,
+            )
+
+            box = self._get_box_at(x, y)
+            if box != self.boxes["mouse_over"]:
+                # redraw previous box to make the border disappear
+                if not must_redraw and self.boxes["mouse_over"]:
+                    box_pos = self._get_real_box(self.boxes["mouse_over"])
+                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                        box_pos[1] - self.LINE_WIDTH),
+                                        (box_pos[2] + (2 * self.LINE_WIDTH),
+                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+
+                self.boxes["mouse_over"] = box
+
+                # draw new one to make the border appear
+                if not must_redraw and box:
+                    box_pos = self._get_real_box(box)
+                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                        box_pos[1] - self.LINE_WIDTH),
+                                        (box_pos[2] + (2 * self.LINE_WIDTH),
+                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+
+        if must_redraw:
             self.redraw()
-
-        if not inside:
             return
-
-        (x_factor, y_factor) = self._get_factors()
-        # position on the whole page image
-        (x, y) = (
-            (event.x - position[0]) / x_factor,
-            (event.y - position[1]) / y_factor,
-        )
-
-        box = self._get_box_at(x, y)
-        if box != self.boxes["mouse_over"]:
-            # redraw previous box
-            if self.boxes["mouse_over"]:
-                box_pos = self._get_real_box(self.boxes["mouse_over"])
-                self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                     box_pos[1] - self.LINE_WIDTH),
-                                    (box_pos[2] + (2 * self.LINE_WIDTH),
-                                     box_pos[2] + (2 * self.LINE_WIDTH))))
-
-            # draw new one
-            self.boxes["mouse_over"] = box
-            if box:
-                box_pos = self._get_real_box(box)
-                self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                     box_pos[1] - self.LINE_WIDTH),
-                                    (box_pos[2] + (2 * self.LINE_WIDTH),
-                                     box_pos[2] + (2 * self.LINE_WIDTH))))
 
     def _on_mouse_button_release(self, event):
         position = self.position
@@ -601,6 +782,53 @@ class PageDrawer(Drawer, GObject.GObject):
 
         if not inside:
             return
+
+        click_x = event.x - position[0]
+        click_y = event.y - position[1]
+
+        # check first if the user clicked on a button
+        buttons = self.editor_buttons[self.editor_state]
+        for (b_position, button_pix, callback, tooltip) in buttons:
+            button_x = b_position[0]
+            button_y = b_position[1]
+            if button_x < 0:
+                button_x = size[0] + button_x
+            if button_y < 0:
+                button_y = size[1] + button_y
+
+            if (button_x <= click_x
+                and button_y <= click_y
+                and click_x <= button_x + self.BUTTON_SIZE
+                and click_y <= button_y + self.BUTTON_SIZE):
+                callback()
+                return
+
         self.emit('page-selected')
+
+    def _on_edit_start(self):
+        self.editor_state = "during"
+        self.mouse_over_button = self.editor_buttons['during'][0]
+        self.redraw()
+
+    def _on_edit_crop(self):
+        pass
+
+    def _on_edit_counterclockwise(self):
+        pass
+
+    def _on_edit_clockwise(self):
+        pass
+
+    def _on_edit_cancel(self):
+        # TODO
+        self.editor_state = "before"
+        self.mouse_over_button = self.editor_buttons['before'][0]
+        self.redraw()
+
+    def _on_edit_done(self):
+        # TODO
+        self.editor_state = "before"
+        self.redraw()
+
 
 GObject.type_register(PageDrawer)

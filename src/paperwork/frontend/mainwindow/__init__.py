@@ -1795,25 +1795,28 @@ class ActionDeletePage(SimpleAction):
         SimpleAction.__init__(self, "Delete page")
         self.__main_win = main_window
 
-    def do(self):
+    def do(self, page=None):
         """
         Ask for confirmation and then delete the page being viewed.
         """
         if not ask_confirmation(self.__main_win.window):
             return
 
-        page = self.__main_win.page
+        if page is None:
+            page = self.__main_win.page
         doc = page.doc
 
         SimpleAction.do(self)
         logger.info("Deleting ...")
         page.destroy()
         logger.info("Deleted")
+        doc.drop_cache()
         self.__main_win.page = None
         set_widget_state(self.__main_win.need_page_widgets, False)
-        self.__main_win.refresh_docs({self.__main_win.doc})
-        self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
-        self.__main_win.refresh_label_list()
+        if len(doc.pages) > 0:
+            self.__main_win.refresh_docs({doc})
+        else:
+            self.__main_win.refresh_doc_list()
         self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
 
         if doc.nb_pages <= 0:
@@ -2921,14 +2924,6 @@ class MainWindow(object):
             #    ActionEditPage(self),
             #),
             # TODO
-            #'del_page': (
-            #    [
-            #        widget_tree.get_object("menuitemDestroyPage1"),
-            #        widget_tree.get_object("menuitemDestroyPage2"),
-            #        widget_tree.get_object("buttonDeletePage"),
-            #    ],
-            #    ActionDeletePage(self),
-            #),
             'optimize_index': (
                 [
                     gactions['optimize_index'],
@@ -3600,6 +3595,7 @@ class MainWindow(object):
                                     sentence=search)
                 drawer.connect("page-selected", self._on_page_drawer_selected)
                 drawer.connect("page-edited", self._on_page_drawer_edited)
+                drawer.connect("page-deleted", self._on_page_drawer_deleted)
             previous_drawer = drawer
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
@@ -3695,6 +3691,9 @@ class MainWindow(object):
 
         ActionRedoPageOCR(self).do(page)
         self.refresh_docs([page.doc])
+
+    def _on_page_drawer_deleted(self, page_drawer):
+        ActionDeletePage(self).do(page_drawer.page)
 
     def refresh_label_list(self):
         self.doc_properties_panel.refresh_label_list()

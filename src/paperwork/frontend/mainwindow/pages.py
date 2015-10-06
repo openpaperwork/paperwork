@@ -249,6 +249,7 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_EDIT_ROTATE_CLOCKWISE = "object-rotate-right"
     ICON_EDIT_CANCEL = "edit-undo"
     ICON_EDIT_APPLY = "document-save"
+    ICON_DELETE = "edit-delete"
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -256,6 +257,7 @@ class PageDrawer(Drawer, GObject.GObject):
                         (
                             GObject.TYPE_PYOBJECT,  # List of PageEditionAction
                         )),
+        'page-deleted': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self, page,
@@ -300,16 +302,36 @@ class PageDrawer(Drawer, GObject.GObject):
         self.upd_spinner_position()
 
         icon_theme = Gtk.IconTheme.get_default()
-        self.editor_buttons = {
-            "before": [
-                # button 'start'
-                ((-10 - self.BUTTON_SIZE, 10),
+
+        first_editor_buttons = []
+        first_editor_buttons_pos = 10
+
+        if self.page.can_edit:
+            first_editor_buttons.append(
+                # button 'start edit'
+                ((-10 - self.BUTTON_SIZE, first_editor_buttons_pos),
                  icon_theme.lookup_icon(
                      self.ICON_EDIT_START, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_start,
                  _("Edit")),
-            ],
+            )
+            first_editor_buttons_pos += 10 + self.BUTTON_SIZE
+
+        if self.page.doc.can_edit:
+            first_editor_buttons.append(
+                # button 'delete'
+                ((-10 - self.BUTTON_SIZE, first_editor_buttons_pos),
+                 icon_theme.lookup_icon(
+                     self.ICON_DELETE, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_delete,
+                 _("Delete page")),
+            )
+            first_editor_buttons_pos += 10 + self.BUTTON_SIZE
+
+        self.editor_buttons = {
+            "before": first_editor_buttons,
             "during": [
                 # button 'cancel'
                 ((-10 - self.BUTTON_SIZE, 10 + (0 * (10 + self.BUTTON_SIZE))),
@@ -619,9 +641,6 @@ class PageDrawer(Drawer, GObject.GObject):
             cairo_context.restore()
 
     def draw_editor_buttons(self, cairo_context):
-        if not self.page.can_edit:
-            return
-
         position = self.position
         size = self.size
 
@@ -667,9 +686,6 @@ class PageDrawer(Drawer, GObject.GObject):
                 cairo_context.restore()
 
     def draw_editor_button_tooltip(self, cairo_context):
-        if not self.page.can_edit:
-            return
-
         position = self.position
         size = self.size
 
@@ -867,23 +883,22 @@ class PageDrawer(Drawer, GObject.GObject):
         click_x = event.x - position[0]
         click_y = event.y - position[1]
 
-        if self.page.can_edit:
-            # check first if the user clicked on a button
-            buttons = self.editor_buttons[self.editor_state]
-            for (b_position, button_pix, callback, tooltip) in buttons:
-                button_x = b_position[0]
-                button_y = b_position[1]
-                if button_x < 0:
-                    button_x = size[0] + button_x
-                if button_y < 0:
-                    button_y = size[1] + button_y
+        # check first if the user clicked on a button
+        buttons = self.editor_buttons[self.editor_state]
+        for (b_position, button_pix, callback, tooltip) in buttons:
+            button_x = b_position[0]
+            button_y = b_position[1]
+            if button_x < 0:
+                button_x = size[0] + button_x
+            if button_y < 0:
+                button_y = size[1] + button_y
 
-                if (button_x <= click_x
-                        and button_y <= click_y
-                        and click_x <= button_x + self.BUTTON_SIZE
-                        and click_y <= button_y + self.BUTTON_SIZE):
-                    callback()
-                    return False
+            if (button_x <= click_x
+                    and button_y <= click_y
+                    and click_x <= button_x + self.BUTTON_SIZE
+                    and click_y <= button_y + self.BUTTON_SIZE):
+                callback()
+                return False
 
         if self.editor_state == "before":
             self.emit('page-selected')
@@ -954,6 +969,9 @@ class PageDrawer(Drawer, GObject.GObject):
                     % ", ".join([str(a) for a in actions]))
         self.emit("page-edited", actions)
         self._on_edit_done()
+
+    def _on_delete(self):
+        self.emit("page-deleted")
 
 
 GObject.type_register(PageDrawer)

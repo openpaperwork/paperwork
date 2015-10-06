@@ -1827,9 +1827,10 @@ class ActionDeletePage(SimpleAction):
 
 
 class ActionRedoOCR(SimpleAction):
-    def __init__(self, name, main_window):
+    def __init__(self, name, main_window, ask_confirmation=True):
         SimpleAction.__init__(self, name)
         self._main_win = main_window
+        self.ask_confirmation = ask_confirmation
 
     def _do_next_page(self, page_iterator, docs_done=None):
         try:
@@ -1869,12 +1870,15 @@ class ActionRedoOCR(SimpleAction):
         try:
             self._do_next_page(page_iterator)
         except StopIteration:
+            if self._main_win.doc in docs_done:
+                self._main_win.show_doc(self._main_win.doc, force_refresh=True)
             job = self._main_win.job_factories['index_updater'].make(
                 self._main_win.docsearch, upd_docs=docs_done, optimize=False)
             self._main_win.schedulers['main'].schedule(job)
 
     def do(self, pages_iterator):
-        if not ask_confirmation(self._main_win.window):
+        if (self.ask_confirmation
+                and not ask_confirmation(self._main_win.window)):
             return
         SimpleAction.do(self)
         self._do_next_page(pages_iterator)
@@ -1900,7 +1904,7 @@ class AllPagesIterator(object):
 
 class ActionRedoAllOCR(ActionRedoOCR):
     def __init__(self, main_window):
-        ActionRedoOCR.__init__(self, "Redoing doc ocr", main_window)
+        ActionRedoOCR.__init__(self, "Redoing all ocr", main_window)
 
     def do(self):
         docsearch = self._main_win.docsearch
@@ -1915,6 +1919,18 @@ class ActionRedoDocOCR(ActionRedoOCR):
     def do(self):
         doc = self._main_win.doc
         ActionRedoOCR.do(self, iter(doc.pages))
+
+
+class ActionRedoPageOCR(ActionRedoOCR):
+    def __init__(self, main_window):
+        ActionRedoOCR.__init__(self, "Redoing page ocr", main_window)
+
+    def do(self, page=None):
+        if page is None:
+            page = self._main_win.page
+        ActionRedoOCR.do(self, iter([page]))
+
+
 
 
 class BasicActionOpenExportDialog(SimpleAction):
@@ -3676,17 +3692,8 @@ class MainWindow(object):
             img = action.do(img)
         page.img = img  # will save the new image
 
-        logger.info("Redoing OCR on %s" % str(page))
-        scan_workflow = self.make_scan_workflow()
-        drawer = self.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True, page=page)
-        self.add_scan_workflow(page.doc, drawer,
-                               page_nb=page.page_nb)
-        scan_workflow.connect('process-done',
-                              lambda scan_workflow, img, boxes:
-                              GLib.idle_add(self.upd_index, page.doc))
-        # TODO: remove scan workflow
-        scan_workflow.ocr(page.img, angles=1)
+        ActionRedoPageOCR(self).do(page)
+        self.refresh_docs([page.doc])
 
     def refresh_label_list(self):
         self.doc_properties_panel.refresh_label_list()

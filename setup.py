@@ -54,6 +54,7 @@ setup(
         'paperwork.frontend.settingswindow',
         'paperwork.frontend.util',
         'paperwork.frontend.util.canvas',
+        'paperwork.frontend.widgets',
         'paperwork.backend',
         'paperwork.backend.common',
         'paperwork.backend.pdf',
@@ -75,6 +76,7 @@ setup(
         'paperwork.frontend.util': 'src/paperwork/frontend/util',
         'paperwork.frontend.util.canvas':
         'src/paperwork/frontend/util/canvas',
+        'paperwork.frontend.widgets': 'src/paperwork/frontend/widgets',
         'paperwork.backend': 'src/paperwork/backend',
         'paperwork.backend.common': 'src/paperwork/backend/common',
         'paperwork.backend.pdf': 'src/paperwork/backend/pdf',

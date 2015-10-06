@@ -200,7 +200,7 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_EDIT_ROTATE_COUNTERCLOCKWISE = "object-rotate-left"
     ICON_EDIT_ROTATE_CLOCKWISE = "object-rotate-right"
     ICON_EDIT_CANCEL = "edit-undo"
-    ICON_EDIT_DONE = "document-save"
+    ICON_EDIT_APPLY = "document-save"
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -243,6 +243,7 @@ class PageDrawer(Drawer, GObject.GObject):
 
         self._size = self.max_size
         self._position = (0, 0)
+        self.angle = 0
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
 
@@ -268,9 +269,9 @@ class PageDrawer(Drawer, GObject.GObject):
                 # button 'done'
                 ((-10 - self.BUTTON_SIZE, 10 + (1 * (10 + self.BUTTON_SIZE))),
                  icon_theme.lookup_icon(
-                     self.ICON_EDIT_DONE, self.BUTTON_SIZE,
+                     self.ICON_EDIT_APPLY, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
-                 self._on_edit_done,
+                 self._on_edit_apply,
                  _("Apply")),
                 # button 'crop'
                 ((-10 - self.BUTTON_SIZE, 10 + (2 * (10 + self.BUTTON_SIZE))),
@@ -657,7 +658,7 @@ class PageDrawer(Drawer, GObject.GObject):
         else:
             self.draw_surface(cairo_context,
                               self.surface, self.position,
-                              self.size)
+                              self.size, angle=self.angle)
 
         if self.show_all_boxes:
             self.draw_boxes(cairo_context,
@@ -811,24 +812,33 @@ class PageDrawer(Drawer, GObject.GObject):
         self.redraw()
 
     def _on_edit_crop(self):
+        # TODO(JFlesch): support rotation + crop at the same time
+        self.angle = 0
         pass
 
     def _on_edit_counterclockwise(self):
-        pass
+        self.angle -= 90
+        self.angle %= 360
+        self.redraw()
 
     def _on_edit_clockwise(self):
-        pass
-
-    def _on_edit_cancel(self):
-        # TODO
-        self.editor_state = "before"
-        self.mouse_over_button = self.editor_buttons['before'][0]
+        self.angle += 90
+        self.angle %= 360
         self.redraw()
 
     def _on_edit_done(self):
-        # TODO
         self.editor_state = "before"
+        self.angle = 0
+        self.hide()
         self.redraw()
+
+    def _on_edit_cancel(self):
+        self.mouse_over_button = self.editor_buttons['before'][0]
+        self._on_edit_done()
+
+    def _on_edit_apply(self):
+        # TODO
+        self._on_edit_done()
 
 
 GObject.type_register(PageDrawer)

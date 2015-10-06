@@ -819,18 +819,18 @@ class PageDrawer(Drawer, GObject.GObject):
     def _on_edit_counterclockwise(self):
         self.angle -= 90
         self.angle %= 360
-        self.redraw()
+        self.canvas.redraw()
 
     def _on_edit_clockwise(self):
         self.angle += 90
         self.angle %= 360
-        self.redraw()
+        self.canvas.redraw()
 
     def _on_edit_done(self):
         self.editor_state = "before"
         self.angle = 0
         self.hide()
-        self.redraw()
+        self.canvas.redraw()
 
     def _on_edit_cancel(self):
         self.mouse_over_button = self.editor_buttons['before'][0]

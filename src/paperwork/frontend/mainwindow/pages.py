@@ -640,23 +640,30 @@ class PageDrawer(Drawer, GObject.GObject):
         finally:
             cairo_context.restore()
 
+    def _get_button_position(self, b_position):
+        position = self.position
+        size = self.size
+
+        x = b_position[0]
+        y = b_position[1]
+        if x < 0:
+            x = size[0] + x
+        if y < 0:
+            y = size[1] + y
+        x += position[0] - self.canvas.offset[0]
+        y += position[1] - self.canvas.offset[1]
+        return (x, y)
+
     def draw_editor_buttons(self, cairo_context):
         position = self.position
         size = self.size
 
         buttons = self.editor_buttons[self.editor_state]
         for (b_position, button, callback, tooltip) in buttons:
+            (x, y) = self._get_button_position(b_position)
+
             cairo_context.save()
             try:
-                x = b_position[0]
-                y = b_position[1]
-                if x < 0:
-                    x = size[0] + x
-                if y < 0:
-                    y = size[1] + y
-                x += position[0] - self.canvas.offset[0]
-                y += position[1] - self.canvas.offset[1]
-
                 cairo_context.set_source_rgb(0.0, 0.0, 0.0)
                 cairo_context.set_line_width(1.0)
                 cairo_context.rectangle(x - 1, y - 1,
@@ -691,13 +698,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
         if self.mouse_over_button:
             (b_position, button, callback, tooltip) = self.mouse_over_button
-            (x, y) = b_position
-            if x < 0:
-                x = size[0] + x
-            if y < 0:
-                y = size[1] + y
-            x += position[0] - self.TOOLTIP_LENGTH - self.canvas.offset[0] - 2
-            y += position[1] - self.canvas.offset[1]
+            (x, y) = self._get_button_position(b_position)
+            x -= self.TOOLTIP_LENGTH+ 2
 
             cairo_context.save()
             try:
@@ -801,16 +803,16 @@ class PageDrawer(Drawer, GObject.GObject):
         position = self.position
         size = self.size
 
-        event_x = event.x - position[0]
-        event_y = event.y - position[1]
+        event_x = event.x
+        event_y = event.y
 
         must_redraw = False
         mouse_over_button = None
 
-        inside = (event_x >= 0
-                  and event_x < size[0]
-                  and event_y >= 0
-                  and event_y < size[1])
+        inside = (event_x >= position[0]
+                  and event_x < position[0] + size[0]
+                  and event_y >= position[1]
+                  and event_y < position[1] + size[1])
 
         if self.mouse_over != inside:
             self.mouse_over = inside
@@ -819,12 +821,9 @@ class PageDrawer(Drawer, GObject.GObject):
         buttons = self.editor_buttons[self.editor_state]
         for button in buttons:
             (b_position, b_pix, callback, tooltip) = button
-            x = b_position[0]
-            y = b_position[1]
-            if x < 0:
-                x = size[0] + x
-            if y < 0:
-                y = size[1] + y
+            (x, y) = self._get_button_position(b_position)
+            x += self.canvas.offset[0]
+            y += self.canvas.offset[1]
             if (x <= event_x
                     and event_x <= x + self.BUTTON_SIZE
                     and y <= event_y
@@ -880,19 +879,15 @@ class PageDrawer(Drawer, GObject.GObject):
         if not inside:
             return True
 
-        click_x = event.x - position[0]
-        click_y = event.y - position[1]
+        click_x = event.x
+        click_y = event.y
 
         # check first if the user clicked on a button
         buttons = self.editor_buttons[self.editor_state]
         for (b_position, button_pix, callback, tooltip) in buttons:
-            button_x = b_position[0]
-            button_y = b_position[1]
-            if button_x < 0:
-                button_x = size[0] + button_x
-            if button_y < 0:
-                button_y = size[1] + button_y
-
+            (button_x, button_y) = self._get_button_position(b_position)
+            button_x += self.canvas.offset[0]
+            button_y += self.canvas.offset[1]
             if (button_x <= click_x
                     and button_y <= click_y
                     and click_x <= button_x + self.BUTTON_SIZE

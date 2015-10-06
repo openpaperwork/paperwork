@@ -253,6 +253,11 @@ class ImgGripHandler(GObject.GObject):
             self.canvas.add_drawer(grip)
         self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
 
+    def destroy(self):
+        self.canvas.remove_drawer(self.select_rectangle)
+        for grip in self.grips:
+            self.canvas.remove_drawer(grip)
+
     def __on_zoom_changed(self):
         assert(self.zoom_widget)
         self.img_drawer.size = (

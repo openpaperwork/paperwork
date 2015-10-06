@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import threading
 
 import gettext
@@ -37,6 +38,7 @@ from paperwork.frontend.util.jobs import JobFactory
 
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 class JobPageImgLoader(Job):
@@ -184,6 +186,51 @@ class JobFactoryPageBoxesLoader(JobFactory):
         return job
 
 
+class PageEditionAction(object):
+    def __init__(self):
+        pass
+
+    def do(self, img):
+        raise NotImplementedError()
+
+    def __str__(self):
+        raise NotImplementedError()
+
+
+class PageRotationAction(PageEditionAction):
+
+    def __init__(self, angle):
+        PageEditionAction.__init__(self)
+        self.angle = angle
+
+    def do(self, img):
+        # PIL angle is counter-clockwise. Ours is clockwise
+        return img.rotate(angle=-1 * self.angle)
+
+    def __str__(self):
+        return _("Image rotation of %d degrees") % self.angle
+
+
+class PageCuttingAction(PageEditionAction):
+    def __init__(self, cut):
+        """
+        Arguments:
+            cut --- ((a, b), (c, d))
+        """
+        self.cut = cut
+
+    def do(self, img):
+        cut = (int(self.cut[0][0]),
+               int(self.cut[0][1]),
+               int(self.cut[1][0]),
+               int(self.cut[1][1]))
+        return img.crop(cut)
+
+    def __str__(self):
+        return _("Image cutting: %s") % str(self.cut)
+
+
+
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
@@ -205,6 +252,10 @@ class PageDrawer(Drawer, GObject.GObject):
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'page-edited': (GObject.SignalFlags.RUN_LAST, None,
+                        (
+                            GObject.TYPE_PYOBJECT,  # List of PageEditionAction
+                        )),
     }
 
     def __init__(self, page,
@@ -568,6 +619,9 @@ class PageDrawer(Drawer, GObject.GObject):
             cairo_context.restore()
 
     def draw_editor_buttons(self, cairo_context):
+        if not self.page.can_edit:
+            return
+
         position = self.position
         size = self.size
 
@@ -613,6 +667,9 @@ class PageDrawer(Drawer, GObject.GObject):
                 cairo_context.restore()
 
     def draw_editor_button_tooltip(self, cairo_context):
+        if not self.page.can_edit:
+            return
+
         position = self.position
         size = self.size
 
@@ -810,22 +867,23 @@ class PageDrawer(Drawer, GObject.GObject):
         click_x = event.x - position[0]
         click_y = event.y - position[1]
 
-        # check first if the user clicked on a button
-        buttons = self.editor_buttons[self.editor_state]
-        for (b_position, button_pix, callback, tooltip) in buttons:
-            button_x = b_position[0]
-            button_y = b_position[1]
-            if button_x < 0:
-                button_x = size[0] + button_x
-            if button_y < 0:
-                button_y = size[1] + button_y
+        if self.page.can_edit:
+            # check first if the user clicked on a button
+            buttons = self.editor_buttons[self.editor_state]
+            for (b_position, button_pix, callback, tooltip) in buttons:
+                button_x = b_position[0]
+                button_y = b_position[1]
+                if button_x < 0:
+                    button_x = size[0] + button_x
+                if button_y < 0:
+                    button_y = size[1] + button_y
 
-            if (button_x <= click_x
-                    and button_y <= click_y
-                    and click_x <= button_x + self.BUTTON_SIZE
-                    and click_y <= button_y + self.BUTTON_SIZE):
-                callback()
-                return False
+                if (button_x <= click_x
+                        and button_y <= click_y
+                        and click_x <= button_x + self.BUTTON_SIZE
+                        and click_y <= button_y + self.BUTTON_SIZE):
+                    callback()
+                    return False
 
         if self.editor_state == "before":
             self.emit('page-selected')
@@ -834,6 +892,7 @@ class PageDrawer(Drawer, GObject.GObject):
         return True
 
     def _on_edit_start(self):
+        logger.info("Starting page editing")
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
         self.redraw()
@@ -842,18 +901,23 @@ class PageDrawer(Drawer, GObject.GObject):
         # TODO(JFlesch): support rotation + crop at the same time
         self.angle = 0
         if not self.editor_grips:
+            logger.info("Starting page cropping")
             self.editor_grips = ImgGripHandler(
                 img_drawer=self, canvas=self.canvas)
             self.editor_grips.visible = True
         else:
+            logger.info("Stopping page cropping")
+            self.editor_grips.destroy()
             self.editor_grips = None
 
     def _on_edit_counterclockwise(self):
+        logger.info("Rotating -90")
         self.angle -= 90
         self.angle %= 360
         self.canvas.redraw()
 
     def _on_edit_clockwise(self):
+        logger.info("Rotating 90")
         self.angle += 90
         self.angle %= 360
         self.canvas.redraw()
@@ -865,11 +929,30 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.redraw()
 
     def _on_edit_cancel(self):
+        logger.info("Page edition canceled")
         self.mouse_over_button = self.editor_buttons['before'][0]
         self._on_edit_done()
 
     def _on_edit_apply(self):
-        # TODO
+        actions = []
+        if self.angle != 0:
+            actions.append(PageRotationAction(self.angle))
+        if self.editor_grips:
+            img_real_size = self.max_size
+            current_size = self.size
+            zoom_level = float(img_real_size[0]) / float(current_size[0])
+            logger.info("Zoom level: %f" % zoom_level)
+            coords = self.editor_grips.get_coords()
+            coords = (
+                (int(coords[0][0] * zoom_level),
+                 int(coords[0][1] * zoom_level)),
+                (int(coords[1][0] * zoom_level),
+                 int(coords[1][1] * zoom_level)),
+            )
+            actions.append(PageCuttingAction(coords))
+        logger.info("Page edition applied: %s"
+                    % ", ".join([str(a) for a in actions]))
+        self.emit("page-edited", actions)
         self._on_edit_done()
 
 

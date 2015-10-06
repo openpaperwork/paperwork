@@ -1013,26 +1013,6 @@ class JobPageEditor(Job):
 GObject.type_register(JobPageEditor)
 
 
-class JobFactoryPageEditor(JobFactory):
-    def __init__(self, main_win, config):
-        JobFactory.__init__(self, "PageEditor")
-        self.__main_win = main_win
-
-    def make(self, page, changes):
-        job = JobPageEditor(self, next(self.id_generator),
-                            page, changes)
-        job.connect('page-editing-img-edit',
-                    lambda job, page:
-                    GLib.idle_add(
-                        self.__main_win.on_page_editing_img_edit_start_cb,
-                        job, page))
-        job.connect('page-editing-done',
-                    lambda job, page:
-                    GLib.idle_add(self.__main_win.on_page_editing_done_cb,
-                                  job, page))
-        return job
-
-
 class JobPageImgRenderer(Job):
     __gsignals__ = {
         'rendered': (GObject.SignalFlags.RUN_LAST, None,
@@ -2258,60 +2238,6 @@ class ActionRefreshIndex(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
 
-class ActionEditPage(SimpleAction):
-    """
-    Open the dialog to edit a page
-    """
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Edit page")
-        self.__main_win = main_window
-
-    def do(self):
-        SimpleAction.do(self)
-        ped = PageEditingDialog(self.__main_win, self.__main_win.page)
-        todo = ped.get_changes()
-        if todo == []:
-            return
-        logger.info("Changes to do to the page %s:" % (self.__main_win.page))
-        for action in todo:
-            logger.info("- %s" % action)
-
-        job = self.__main_win.job_factories['page_editor'].make(
-            self.__main_win.page, changes=todo)
-        job.connect("page-editing-done", lambda job, page:
-                    GLib.idle_add(self.__do_ocr, page))
-        self.__main_win.schedulers['main'].schedule(job)
-
-    def __do_ocr(self, page):
-        logger.info("Redoing OCR on %s" % str(page))
-        scan_workflow = self.__main_win.make_scan_workflow()
-        drawer = self.__main_win.make_scan_workflow_drawer(
-            scan_workflow, single_angle=True, page=page)
-        self.__main_win.add_scan_workflow(page.doc, drawer,
-                                          page_nb=page.page_nb)
-        scan_workflow.connect('process-done',
-                              lambda scan_workflow, img, boxes:
-                              GLib.idle_add(self.__on_page_ocr_done,
-                                            scan_workflow,
-                                            img, boxes, page))
-        scan_workflow.ocr(page.img, angles=1)
-
-    def __on_page_ocr_done(self, scan_workflow, img, boxes, page):
-        page.img = img
-        page.boxes = boxes
-
-        docid = self.__main_win.remove_scan_workflow(scan_workflow)
-        if self.__main_win.doc.docid == page.doc.docid:
-            self.__main_win.show_page(page, force_refresh=True)
-
-        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
-
-        job = self.__main_win.job_factories['index_updater'].make(
-            self.__main_win.docsearch, upd_docs={doc}, optimize=False,
-            reload_list=True)
-        self.__main_win.schedulers['main'].schedule(job)
-
-
 class ActionSwitchToDocList(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Switch back to doc list")
@@ -2832,7 +2758,6 @@ class MainWindow(object):
                 self
             ),
             'label_deleter': JobFactoryLabelDeleter(self),
-            'page_editor': JobFactoryPageEditor(self, config),
             'page_img_renderer': JobFactoryPageImgRenderer(),
             'page_img_loader': JobFactoryPageImgLoader(),
             'page_boxes_loader': JobFactoryPageBoxesLoader(),
@@ -3657,6 +3582,7 @@ class MainWindow(object):
                                     enable_editor=(self.layout == 'paged'),
                                     sentence=search)
                 drawer.connect("page-selected", self._on_page_drawer_selected)
+                drawer.connect("page-edited", self._on_page_drawer_edited)
             previous_drawer = drawer
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
@@ -3743,6 +3669,25 @@ class MainWindow(object):
         self.set_layout('paged', force_refresh=False)
         self.show_page(page_drawer.page, force_refresh=True)
 
+    def _on_page_drawer_edited(self, page_drawer, actions):
+        page = page_drawer.page
+        img = page.img
+        for action in actions:
+            img = action.do(img)
+        page.img = img  # will save the new image
+
+        logger.info("Redoing OCR on %s" % str(page))
+        scan_workflow = self.make_scan_workflow()
+        drawer = self.make_scan_workflow_drawer(
+            scan_workflow, single_angle=True, page=page)
+        self.add_scan_workflow(page.doc, drawer,
+                               page_nb=page.page_nb)
+        scan_workflow.connect('process-done',
+                              lambda scan_workflow, img, boxes:
+                              GLib.idle_add(self.upd_index, page.doc))
+        # TODO: remove scan workflow
+        scan_workflow.ocr(page.img, angles=1)
+
     def refresh_label_list(self):
         self.doc_properties_panel.refresh_label_list()
 
@@ -3823,21 +3768,6 @@ class MainWindow(object):
             return
 
         self.update_page_sizes()
-
-    def on_page_editing_img_edit_start_cb(self, job, page):
-        self.set_mouse_cursor("Busy")
-        self.set_progression(job, 0.0, _("Updating the image ..."))
-
-    def on_page_editing_done_cb(self, job, page):
-        self.set_progression(job, 0.0, "")
-        self.set_mouse_cursor("Normal")
-        if self.page:
-            self.page.drop_cache()
-        if self.doc:
-            self.doc.drop_cache()
-        if page.page_nb == 0:
-            self.refresh_doc_list()
-        self.show_page(page)
 
     def __on_page_list_drag_data_get_cb(self, widget, drag_context,
                                         selection_data, info, time):

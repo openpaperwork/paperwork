@@ -258,15 +258,23 @@ class JobOCR(Job):
     def do_ocr_with_tool_heuristic(self, img):
         if not self.ocr_tool.can_detect_orientation():
             raise Exception("OCR tool does not support orientation detection")
-        self.emit('ocr-angles', [0, 90, 180, 270])
+        self.emit('ocr-angles', self.angles)
 
-        orientation = self.ocr_tool.detect_orientation(
-            img, lang=self.langs['ocr'])
+        if len(self.angles) == 1:
+            orientation = {'angle': self.angles[0]}
+        else:
+            orientation = self.ocr_tool.detect_orientation(
+                img, lang=self.langs['ocr'])
+
+        if orientation['angle'] not in self.angles:
+            raise Exception("OCR tool returned an unexpected orientation: %d"
+                            % orientation['angle'])
 
         logger.info("Detected orientation: %d" % orientation['angle'])
-        img = img.rotate(-1 * orientation['angle'])
+        if orientation['angle'] != 0:
+            img = img.rotate(-1 * orientation['angle'])
 
-        for angle in [0, 90, 180, 270]:
+        for angle in self.angles:
             # tell the observer we decided to not OCR some orientations
             if angle == orientation['angle']:
                 continue

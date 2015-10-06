@@ -31,6 +31,7 @@ from paperwork.backend.util import image2surface
 from paperwork.backend.util import split_words
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
+from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 
@@ -297,6 +298,7 @@ class PageDrawer(Drawer, GObject.GObject):
             ]
         }
         self.editor_state = "before"
+        self.editor_grips = None
 
     def relocate(self):
         assert(self.canvas)
@@ -359,11 +361,17 @@ class PageDrawer(Drawer, GObject.GObject):
         return self._size
 
     def _set_size(self, size):
-        if size != self._size:
-            self._size = size
-            self.unload_content()
-            self.visible = False  # will force a reload if visible
-            self.upd_spinner_position()
+        if size == self._size:
+            return
+
+        if self.editor_grips:
+            # TODO(Jflesch): resize grips
+            pass
+
+        self._size = size
+        self.unload_content()
+        self.visible = False  # will force a reload if visible
+        self.upd_spinner_position()
 
     size = property(_get_size, _set_size)
 
@@ -635,7 +643,6 @@ class PageDrawer(Drawer, GObject.GObject):
             finally:
                 cairo_context.restore()
 
-
     def draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
             self.canvas.offset, self.canvas.size,
@@ -670,7 +677,7 @@ class PageDrawer(Drawer, GObject.GObject):
                               self.boxes['mouse_over'])
         if self.show_boxes:
             self.draw_boxes(cairo_context,
-                    self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+                            self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
 
         if self.enable_editor and self.mouse_over:
             self.draw_editor_buttons(cairo_context)
@@ -684,12 +691,12 @@ class PageDrawer(Drawer, GObject.GObject):
                 return box
         return None
 
-    def redraw(self):
+    def redraw(self, extra_border=0):
         border = self.BORDER_BASIC
         if self.boxes['highlighted']:
             border = self.BORDER_HIGHLIGHTED
 
-        border_width = border[0]
+        border_width = max(border[0], extra_border)
 
         position = self.relative_position
         position = (position[0] - border_width,
@@ -782,7 +789,7 @@ class PageDrawer(Drawer, GObject.GObject):
                   and event.y < (position[1] + size[1]))
 
         if not inside:
-            return
+            return True
 
         click_x = event.x - position[0]
         click_y = event.y - position[1]
@@ -798,13 +805,17 @@ class PageDrawer(Drawer, GObject.GObject):
                 button_y = size[1] + button_y
 
             if (button_x <= click_x
-                and button_y <= click_y
-                and click_x <= button_x + self.BUTTON_SIZE
-                and click_y <= button_y + self.BUTTON_SIZE):
+                    and button_y <= click_y
+                    and click_x <= button_x + self.BUTTON_SIZE
+                    and click_y <= button_y + self.BUTTON_SIZE):
                 callback()
-                return
+                return False
 
-        self.emit('page-selected')
+        if self.editor_state == "before":
+            self.emit('page-selected')
+            return False
+
+        return True
 
     def _on_edit_start(self):
         self.editor_state = "during"
@@ -814,7 +825,12 @@ class PageDrawer(Drawer, GObject.GObject):
     def _on_edit_crop(self):
         # TODO(JFlesch): support rotation + crop at the same time
         self.angle = 0
-        pass
+        if not self.editor_grips:
+            self.editor_grips = ImgGripHandler(
+                img_drawer=self, canvas=self.canvas)
+            self.editor_grips.visible = True
+        else:
+            self.editor_grips = None
 
     def _on_edit_counterclockwise(self):
         self.angle -= 90

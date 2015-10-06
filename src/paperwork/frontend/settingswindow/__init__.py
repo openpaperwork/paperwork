@@ -37,6 +37,7 @@ from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import ScanAnimation
+from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.config import DEFAULT_CALIBRATION_RESOLUTION
 from paperwork.frontend.util.config import RECOMMENDED_SCAN_RESOLUTION
 from paperwork.frontend.util.imgcutting import ImgGripHandler
@@ -858,6 +859,8 @@ class SettingsWindow(GObject.GObject):
         calibration = self.__config['scanner_calibration'].value
         if calibration:
             calibration = calibration[1]
+        img_drawer = PillowImageDrawer((0, 0), self.calibration['image'])
+        self.calibration['image_gui'].remove_all_drawers()
         self.grips = ImgGripHandler(
             self.calibration['image'], self.calibration['image_gui'],
             self.calibration['zoom'],

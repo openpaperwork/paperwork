@@ -177,9 +177,23 @@ class Drawer(object):
 
     relative_size = property(_get_relative_size)
 
-    def redraw(self):
-        self.canvas.redraw((self.relative_position,
-                            self.relative_size))
+    def redraw(self, extra_border=0):
+        position = self.relative_position
+        size = self.relative_size
+
+        position = (
+            max(0, position[0] - extra_border),
+            max(0, position[1] - extra_border)
+        )
+        size = (
+            size[0] + (2 * extra_border),
+            size[1] + (2 * extra_border)
+        )
+
+        self.canvas.redraw((
+            position,
+            size
+        ))
 
     def show(self):
         pass

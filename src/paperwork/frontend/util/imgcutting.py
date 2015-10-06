@@ -20,11 +20,9 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.frontend.util.canvas.drawers import Drawer
-from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 
 
 class ImgGrip(Drawer):
-
     """
     Represents one of the grip that user can move to cut an image.
     """
@@ -32,18 +30,19 @@ class ImgGrip(Drawer):
     layer = Drawer.BOX_LAYER
 
     GRIP_SIZE = 40
-    DEFAULT_COLOR = (0.0, 0.0, 1.0)
+    DEFAULT_COLOR = (0.0, 0.25, 1.0)
     HOVER_COLOR = (0.0, 1.0, 0.0)
     SELECTED_COLOR = (1.0, 0.0, 0.0)
 
-    def __init__(self, position, max_position):
-        self._img_position = position
+    def __init__(self, handler, position, max_position):
+        self._img_position = position  # position relative to the image
         self.max_position = max_position
         self.size = (0, 0)
         self.scale = 1.0
         self.selected = False
         self.hover = False
         self.visible = True
+        self.handler = handler
 
     def __get_img_position(self):
         return self._img_position
@@ -56,15 +55,16 @@ class ImgGrip(Drawer):
 
     img_position = property(__get_img_position, __set_img_position)
 
-    def __get_on_screen_pos(self):
-        x = int(self.scale * self._img_position[0])
-        y = int(self.scale * self._img_position[1])
+    def __get_on_canvas_pos(self):
+        drawer_position = self.handler.img_drawer.position
+        x = int(self.scale * self._img_position[0]) + drawer_position[0]
+        y = int(self.scale * self._img_position[1]) + drawer_position[1]
         return (x, y)
 
-    position = property(__get_on_screen_pos)
+    position = property(__get_on_canvas_pos)
 
-    def __get_select_area(self):
-        (x, y) = self.__get_on_screen_pos()
+    def __get_select_area(self, pos):
+        (x, y) = pos
         x_min = x - (self.GRIP_SIZE / 2)
         y_min = y - (self.GRIP_SIZE / 2)
         x_max = x + (self.GRIP_SIZE / 2)
@@ -82,14 +82,16 @@ class ImgGrip(Drawer):
         Returns:
             True or False
         """
-        ((x_min, y_min), (x_max, y_max)) = self.__get_select_area()
+        ((x_min, y_min), (x_max, y_max)) = \
+            self.__get_select_area(self.__get_img_position())
         return (x_min <= position[0] and position[0] <= x_max
                 and y_min <= position[1] and position[1] <= y_max)
 
     def do_draw(self, cairo_ctx):
         if not self.visible:
             return
-        ((a_x, a_y), (b_x, b_y)) = self.__get_select_area()
+        ((a_x, a_y), (b_x, b_y)) = \
+            self.__get_select_area(self.__get_on_canvas_pos())
         a_x -= self.canvas.offset[0]
         a_y -= self.canvas.offset[1]
         b_x -= self.canvas.offset[0]
@@ -110,7 +112,7 @@ class ImgGrip(Drawer):
 class ImgGripRectangle(Drawer):
     layer = (Drawer.BOX_LAYER + 1)  # draw below/before the grips itself
 
-    COLOR = (0.0, 0.0, 1.0)
+    COLOR = (0.0, 0.25, 1.0)
 
     def __init__(self, grips):
         self.grips = grips
@@ -124,10 +126,22 @@ class ImgGripRectangle(Drawer):
 
     size = property(__get_size)
 
+    def __get_position(self):
+        return (min(self.grips[0].position[0],
+                    self.grips[1].position[0]),
+                min(self.grips[0].position[1],
+                    self.grips[1].position[1]))
+
+    position = property(__get_position)
+
     def do_draw(self, cairo_ctx):
+        visible = False
         for grip in self.grips:
-            if not grip.visible:
-                return
+            if grip.visible:
+                visible = True
+                break
+        if not visible:
+            return
 
         (a_x, a_y) = self.grips[0].position
         (b_x, b_y) = self.grips[1].position
@@ -148,22 +162,23 @@ class ImgGripHandler(GObject.GObject):
         'zoom-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, img, canvas, zoom_widget, default_grips_positions=None):
+    def __init__(self, img_drawer, canvas, zoom_widget=None,
+                 default_grips_positions=None):
+        """
+        Arguments:
+            img --- can be Pillow image (will be displayed), or just a tuple
+                being the size of the image
+        """
         GObject.GObject.__init__(self)
 
-        if zoom_widget is None:
-            zoom_widget = Gtk.Adjustment(value=1.0, lower=0.01, upper=1.0,
-                                         step_increment=0.01,
-                                         page_increment=0.10)
         self.zoom_widget = zoom_widget
 
         self.__visible = False
 
-        self.img = img
-        self.img_size = self.img.size
+        self.img_size = img_drawer.size
         self.canvas = canvas
 
-        self.img_drawer = PillowImageDrawer((0, 0), img)
+        self.img_drawer = img_drawer
 
         if default_grips_positions is None:
             default_grips_positions = ((0, 0), self.img_size)
@@ -206,10 +221,10 @@ class ImgGripHandler(GObject.GObject):
             )
 
         self.grips = (
-            ImgGrip(default_grips_positions[0], self.img_size),
-            ImgGrip(default_grips_positions[1], self.img_size),
+            ImgGrip(self, default_grips_positions[0], self.img_size),
+            ImgGrip(self, default_grips_positions[1], self.img_size),
         )
-        select_rectangle = ImgGripRectangle(self.grips)
+        self.select_rectangle = ImgGripRectangle(self.grips)
 
         self.selected = None  # the grip being moved
 
@@ -219,8 +234,9 @@ class ImgGripHandler(GObject.GObject):
             'on_grip': Gdk.Cursor.new(Gdk.CursorType.TCROSS)
         }
 
-        zoom_widget.connect("value-changed", lambda x:
-                            GLib.idle_add(self.__on_zoom_changed))
+        if zoom_widget:
+            zoom_widget.connect("value-changed", lambda x:
+                                GLib.idle_add(self.__on_zoom_changed))
         canvas.connect(self, "absolute-button-press-event",
                        self.__on_mouse_button_pressed_cb)
         canvas.connect(self, "absolute-motion-notify-event",
@@ -229,15 +245,16 @@ class ImgGripHandler(GObject.GObject):
                        self.__on_mouse_button_released_cb)
 
         self.last_rel_position = (False, 0, 0)
-        self.toggle_zoom((0.0, 0.0))
+        if zoom_widget:
+            self.toggle_zoom((0.0, 0.0))
 
-        self.canvas.remove_all_drawers()
-        self.canvas.add_drawer(self.img_drawer)
-        self.canvas.add_drawer(select_rectangle)
+        self.canvas.add_drawer(self.select_rectangle)
         for grip in self.grips:
             self.canvas.add_drawer(grip)
+        self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
 
     def __on_zoom_changed(self):
+        assert(self.zoom_widget)
         self.img_drawer.size = (
             self.img_size[0] * self.scale,
             self.img_size[1] * self.scale,
@@ -283,11 +300,14 @@ class ImgGripHandler(GObject.GObject):
             adjustment.set_value(int(val))
 
     def __get_scale(self):
+        if not self.zoom_widget:
+            return 1.0
         return float(self.zoom_widget.get_value())
 
     scale = property(__get_scale)
 
     def toggle_zoom(self, rel_cursor_pos):
+        assert(self.zoom_widget)
         if self.scale != 1.0:
             scale = 1.0
         else:
@@ -301,9 +321,13 @@ class ImgGripHandler(GObject.GObject):
     def __on_mouse_button_pressed_cb(self, widget, event):
         if not self.visible:
             return
+
+        event_x = event.x - self.img_drawer.position[0]
+        event_y = event.y - self.img_drawer.position[1]
+
         self.selected = None
         for grip in self.grips:
-            if grip.is_on_grip((event.x, event.y)):
+            if grip.is_on_grip((event_x, event_y)):
                 self.selected = grip
                 grip.selected = True
                 break
@@ -322,19 +346,23 @@ class ImgGripHandler(GObject.GObject):
     def __on_mouse_motion_cb(self, widget, event):
         if not self.visible:
             return
+
+        event_x = event.x - self.img_drawer.position[0]
+        event_y = event.y - self.img_drawer.position[1]
+
         if self.selected:
-            self.__move_grip((event.x, event.y))
+            self.__move_grip((event_x, event_y))
             is_on_grip = True
-            self.img_drawer.redraw()
+            self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
         else:
             is_on_grip = False
             for grip in self.grips:
-                if grip.is_on_grip((event.x, event.y)):
+                if grip.is_on_grip((event_x, event_y)):
                     grip.hover = True
                     is_on_grip = True
                 else:
                     grip.hover = False
-            self.img_drawer.redraw()
+            self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
 
         if is_on_grip:
             cursor = self.__cursors['on_grip']
@@ -343,15 +371,20 @@ class ImgGripHandler(GObject.GObject):
         self.canvas.get_window().set_cursor(cursor)
 
     def __on_mouse_button_released_cb(self, widget, event):
+        event_x = event.x - self.img_drawer.position[0]
+        event_y = event.y - self.img_drawer.position[1]
+
         if not self.selected:
+            if not self.zoom_widget:
+                return
             # figure out the cursor position on the image
             (img_w, img_h) = self.img_size
             rel_cursor_pos = (
-                float(event.x) / (img_w * self.scale),
-                float(event.y) / (img_h * self.scale),
+                float(event_x) / (img_w * self.scale),
+                float(event_y) / (img_h * self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
-            self.img_drawer.redraw()
+            self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
             self.emit('zoom-changed')
             return
 
@@ -371,7 +404,7 @@ class ImgGripHandler(GObject.GObject):
             grip.visible = visible
         if self.canvas.get_window():
             self.canvas.get_window().set_cursor(self.__cursors['default'])
-        self.img_drawer.redraw()
+        self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
 
     visible = property(__get_visible, __set_visible)
 

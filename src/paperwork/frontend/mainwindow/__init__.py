@@ -1923,7 +1923,8 @@ class ActionRedoDocOCR(ActionRedoOCR):
 
 class ActionRedoPageOCR(ActionRedoOCR):
     def __init__(self, main_window):
-        ActionRedoOCR.__init__(self, "Redoing page ocr", main_window)
+        ActionRedoOCR.__init__(self, "Redoing page ocr",
+                               main_window, ask_confirmation=False)
 
     def do(self, page=None):
         if page is None:

@@ -584,12 +584,23 @@ class PageDrawer(Drawer, GObject.GObject):
                 x += position[0] - self.canvas.offset[0]
                 y += position[1] - self.canvas.offset[1]
 
-                cairo_context.set_source_rgb(
-                    self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
-                    self.BUTTON_BACKGROUND[2])
+                cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+                cairo_context.set_line_width(1.0)
                 cairo_context.rectangle(x - 1, y - 1,
                                         self.BUTTON_SIZE + 2,
                                         self.BUTTON_SIZE + 2)
+                cairo_context.stroke()
+            finally:
+                cairo_context.restore()
+
+            cairo_context.save()
+            try:
+                cairo_context.set_source_rgb(
+                    self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
+                    self.BUTTON_BACKGROUND[2])
+                cairo_context.rectangle(x, y,
+                                        self.BUTTON_SIZE,
+                                        self.BUTTON_SIZE)
                 cairo_context.clip()
                 cairo_context.paint()
 
@@ -601,6 +612,10 @@ class PageDrawer(Drawer, GObject.GObject):
             finally:
                 cairo_context.restore()
 
+    def draw_editor_button_tooltip(self, cairo_context):
+        position = self.position
+        size = self.size
+
         if self.mouse_over_button:
             (b_position, button, callback, tooltip) = self.mouse_over_button
             (x, y) = b_position
@@ -608,7 +623,7 @@ class PageDrawer(Drawer, GObject.GObject):
                 x = size[0] + x
             if y < 0:
                 y = size[1] + y
-            x += position[0] - self.TOOLTIP_LENGTH - self.canvas.offset[0]
+            x += position[0] - self.TOOLTIP_LENGTH - self.canvas.offset[0] - 2
             y += position[1] - self.canvas.offset[1]
 
             cairo_context.save()
@@ -681,6 +696,7 @@ class PageDrawer(Drawer, GObject.GObject):
 
         if self.enable_editor and self.mouse_over:
             self.draw_editor_buttons(cairo_context)
+            self.draw_editor_button_tooltip(cairo_context)
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:

@@ -3492,7 +3492,8 @@ class MainWindow(object):
             # compute the wanted factor
             factor = 1.0
             for page in self.page_drawers:
-                factor = min(factor, self.compute_zoom_level(page.max_size))
+                factor = min(factor, self.compute_zoom_level(
+                    page.max_size, len(self.page_drawers)))
             self.set_zoom_level(factor, auto=True)
 
         self.schedulers['main'].cancel_all(
@@ -3730,10 +3731,21 @@ class MainWindow(object):
     def get_zoom_level(self):
         return (self.zoom_level['auto'], self.zoom_level['model'].get_value())
 
-    def compute_zoom_level(self, img_size):
+    def compute_zoom_level(self, img_size, nb_pages):
         if self.layout == "grid":
-            wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
-            return float(wanted_height) / img_size[1]
+            # see if we could fit all the pages on one line
+            if ((self.img['canvas'].visible_size[0] / nb_pages)
+                    - (2  * PageDrawer.MARGIN)
+                    >= BasicPage.DEFAULT_THUMB_WIDTH):
+                wanted_width = ((self.img['canvas'].visible_size[0] / nb_pages)
+                                - (2 * PageDrawer.MARGIN))
+                      % (wanted_width, self.img['canvas'].visible_size[0],
+                         nb_pages))
+                return float(wanted_width) / img_size[0]
+            else:
+                # otherwise, fall back on the default size
+                wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
+                return float(wanted_height) / img_size[1]
         else:
             (auto, factor) = self.get_zoom_level()
             # factor is a postive float if user defined, 0 for full width and

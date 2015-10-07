@@ -2281,7 +2281,7 @@ class ActionSetDocDate(SimpleAction):
         calendar = self.__main_win.doc_properties_panel.widgets['calendar']
         popover = self.__main_win.popovers['calendar']
         date = calendar.get_date()
-        date = datetime.datetime(year=date[0], month=date[1], day=date[2])
+        date = datetime.datetime(year=date[0], month=date[1] + 1, day=date[2])
         date_txt = BasicDoc.get_name(date)
 
         entry = self.__main_win.doc_properties_panel.widgets['name']
@@ -2373,14 +2373,14 @@ class DocPropertiesPanel(object):
             self.widgets['name'])
         if self.new_doc_date is not None:
             self.widgets['calendar'].select_month(
-                    self.new_doc_date.month,
-                    self.new_doc_date.year
-                )
+                self.new_doc_date.month - 1,
+                self.new_doc_date.year
+            )
             self.widgets['calendar'].select_day(self.new_doc_date.day)
         else:
             try:
                 date = self.doc.date
-                self.widgets['calendar'].select_month(date.month, date.year)
+                self.widgets['calendar'].select_month(date.month - 1, date.year)
                 self.widgets['calendar'].select_day(date.day)
             except Exception as exc:
                 logger.warning("Failed to parse document date: %s --> %s"

@@ -340,34 +340,34 @@ class PageDrawer(Drawer, GObject.GObject):
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_cancel,
                  _("Cancel")),
-                # button 'done'
-                ((-10 - self.BUTTON_SIZE, 10 + (1 * (10 + self.BUTTON_SIZE))),
-                 icon_theme.lookup_icon(
-                     self.ICON_EDIT_APPLY, self.BUTTON_SIZE,
-                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
-                 self._on_edit_apply,
-                 _("Apply")),
                 # button 'crop'
-                ((-10 - self.BUTTON_SIZE, 10 + (2 * (10 + self.BUTTON_SIZE))),
+                ((-10 - self.BUTTON_SIZE, 10 + (1 * (10 + self.BUTTON_SIZE))),
                  icon_theme.lookup_icon(
                      self.ICON_EDIT_CROP, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_crop,
                  _("Crop")),
                 # button 'rotate_counter_clockwise'
-                ((-10 - self.BUTTON_SIZE, 10 + (3 * (10 + self.BUTTON_SIZE))),
+                ((-10 - self.BUTTON_SIZE, 10 + (2 * (10 + self.BUTTON_SIZE))),
                  icon_theme.lookup_icon(
                      self.ICON_EDIT_ROTATE_COUNTERCLOCKWISE, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_counterclockwise,
                  _("Rotate counter-clockwise")),
                 # button 'rotate_clockwise'
-                ((-10 - self.BUTTON_SIZE, 10 + (4 * (10 + self.BUTTON_SIZE))),
+                ((-10 - self.BUTTON_SIZE, 10 + (3 * (10 + self.BUTTON_SIZE))),
                  icon_theme.lookup_icon(
                      self.ICON_EDIT_ROTATE_CLOCKWISE, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_clockwise,
                  _("Rotate clockwise")),
+                # button 'done'
+                ((-10 - self.BUTTON_SIZE, 10 + (4 * (10 + self.BUTTON_SIZE))),
+                 icon_theme.lookup_icon(
+                     self.ICON_EDIT_APPLY, self.BUTTON_SIZE,
+                     Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                 self._on_edit_apply,
+                 _("Apply")),
             ]
         }
         self.editor_state = "before"

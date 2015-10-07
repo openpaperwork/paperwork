@@ -3739,8 +3739,6 @@ class MainWindow(object):
                     >= BasicPage.DEFAULT_THUMB_WIDTH):
                 wanted_width = ((self.img['canvas'].visible_size[0] / nb_pages)
                                 - (2 * PageDrawer.MARGIN))
-                      % (wanted_width, self.img['canvas'].visible_size[0],
-                         nb_pages))
                 return float(wanted_width) / img_size[0]
             else:
                 # otherwise, fall back on the default size

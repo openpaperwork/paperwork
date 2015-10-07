@@ -3558,8 +3558,6 @@ class MainWindow(object):
             self.job_factories['page_boxes_loader']
         )
 
-        self.__set_doc_buttons_visible(self.doc, True)
-
         self.img['canvas'].remove_all_drawers()
         self.img['canvas'].add_drawer(self.progressbar)
         assert(self.progressbar.canvas)
@@ -3636,6 +3634,7 @@ class MainWindow(object):
         self.refresh_header_bar()
 
         self.__set_doc_buttons_visible(previous_doc, False)
+        self.__set_doc_buttons_visible(self.doc, True)
         self.doc_properties_panel.set_doc(doc)
 
     def refresh_header_bar(self):

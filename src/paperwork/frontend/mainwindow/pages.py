@@ -652,6 +652,11 @@ class PageDrawer(Drawer, GObject.GObject):
             y = size[1] + y
         x += position[0] - self.canvas.offset[0]
         y += position[1] - self.canvas.offset[1]
+
+        # keep the buttons visible
+        if (y < b_position[1]):
+            y = b_position[1]
+
         return (x, y)
 
     def draw_editor_buttons(self, cairo_context):

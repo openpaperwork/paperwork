@@ -234,7 +234,7 @@ class PageCuttingAction(PageEditionAction):
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
-    MARGIN = 40
+    MARGIN = 20
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
     TMP_AREA = (0.85, 0.85, 0.85)

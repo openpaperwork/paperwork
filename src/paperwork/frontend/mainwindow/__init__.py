@@ -3493,7 +3493,8 @@ class MainWindow(object):
             factor = 1.0
             for page in self.page_drawers:
                 factor = min(factor, self.compute_zoom_level(
-                    page.max_size, len(self.page_drawers)))
+                    page.max_size,
+                    [drawer.page for drawer in self.page_drawers]))
             self.set_zoom_level(factor, auto=True)
 
         self.schedulers['main'].cancel_all(
@@ -3731,19 +3732,22 @@ class MainWindow(object):
     def get_zoom_level(self):
         return (self.zoom_level['auto'], self.zoom_level['model'].get_value())
 
-    def compute_zoom_level(self, img_size, nb_pages):
+    def compute_zoom_level(self, img_size, other_pages):
         if self.layout == "grid":
             # see if we could fit all the pages on one line
-            if ((self.img['canvas'].visible_size[0] / nb_pages)
-                    - (2  * PageDrawer.MARGIN)
-                    >= BasicPage.DEFAULT_THUMB_WIDTH):
-                wanted_width = ((self.img['canvas'].visible_size[0] / nb_pages)
-                                - (2 * PageDrawer.MARGIN))
-                return float(wanted_width) / img_size[0]
-            else:
-                # otherwise, fall back on the default size
-                wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
-                return float(wanted_height) / img_size[1]
+            total_width = sum([page.size[0] for page in other_pages])
+            canvas_width = self.img['canvas'].visible_size[0]
+            canvas_width -= len(other_pages) * (2 * PageDrawer.MARGIN)
+            factor = (float(canvas_width) / float(total_width))
+            expected_width = img_size[0] * factor
+            expected_height = img_size[0] * factor
+            if (expected_width > BasicPage.DEFAULT_THUMB_WIDTH
+                    and expected_height > BasicPage.DEFAULT_THUMB_HEIGHT):
+                return factor
+
+            # otherwise, fall back on the default size
+            wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
+            return float(wanted_height) / img_size[1]
         else:
             (auto, factor) = self.get_zoom_level()
             # factor is a postive float if user defined, 0 for full width and

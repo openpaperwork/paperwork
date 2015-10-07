@@ -396,6 +396,7 @@ class JobIndexUpdater(Job):
         self.__wait()
         self.index_updater.commit()
         self.index_updater = None
+        self.optimize = False
         self.emit('index-update-progression', 1.0, "")
         self.emit('index-update-end')
 

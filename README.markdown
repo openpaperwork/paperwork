@@ -52,7 +52,7 @@ It uses mainly 4 other pieces of software:
 
 Page orientation is automatically guessed using OCR.
 
-Since OCR is not perfect, and since some documents don't contain useful keywords, 
+Since OCR is not perfect, and since some documents don't contain useful keywords,
 Paperwork allows also to put labels on each document.
 
 

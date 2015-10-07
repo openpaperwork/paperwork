@@ -2254,7 +2254,8 @@ class ActionRefreshIndex(SimpleAction):
             new_docs=examiner.new_docs,
             upd_docs=examiner.docs_changed,
             del_docs=examiner.docs_missing,
-            reload_list=True
+            reload_list=True,
+            optimize=False
         )
         self.__main_win.schedulers['main'].schedule(job)
 

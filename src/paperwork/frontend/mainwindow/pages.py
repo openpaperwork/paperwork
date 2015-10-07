@@ -868,8 +868,6 @@ class PageDrawer(Drawer, GObject.GObject):
             return
 
     def _on_mouse_button_release(self, event):
-
-        print ("CLICK")
         position = self.position
         size = self.size
 

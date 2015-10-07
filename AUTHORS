@@ -1,20 +1,33 @@
+# If you update this file, update also
+# src/paperwork/frontend/aboutdialog/aboutdialog.glade
+
 Code contributors:
-	Christophe Chauvet (kryskool)
-	Francois Schmidts (jaesivsm)
-	Glandos ( https://github.com/Glandos )
-	Jerome Flesch <jflesch@gmail.com> (jflesch)
-	Josselin Jacquard (kigeia)
-	Krap ( https://github.com/Krap )
-	Mathieu Jourdan ( mjourdan )
-	Paul Liétar (plietar)
-	Sebastien Maccagnoni-Munch (tiramiseb)
+	Bignaux Ronan <ronan@aimao.org> (1)
+	Christophe 'RTDaemons' GERARDIN <cgerardin@elitemail.org> (1)
+	Christophe Chauvet <christophe.chauvet@gmail.com> (1)
+	Daniel Hahler <git@thequod.de> (1)
+	Dominique Hazael-Massieux <dom@w3.org>(1)
+	François Schmidts <francois.schmidts@gmail.com>(7)
+	Glandos <bugs-github@antipoul.fr>(1)
+	Jerome Flesch <jflesch@gmail.com>(1688)
+	Josselin Jacquard <josselin.jacquard@gmail.com> (35)
+	Krap <Krap@users.noreply.github.com> (1)
+	Mathieu Jourdan <mathieu.jourdan@gresille.org> (31)
+	Paul Liétar <paul@lietar.net> (6)
+	RyDroid <rydroid_dev@yahoo.com> (7)
+	Samuel Dorsaz <ajira86@hotmail.com> (1)
+	Stefan Pokorny <stefan@stefanpokorny.de> (1)
+	Sébastien Maccagnoni-Munch <sebastien@smm-informatique.fr> (4)
+	arthurlutz <arthur.lutz@gmail.com> (1)
+	lb1a <github@lb1a.de> (2)
+	swap38 <swap38@no-log.org> (1)
 
 UI design contributors:
-	Mathieu Jourdan ( mjourdan )
+	Mathieu Jourdan <mathieu.jourdan@gresille.org>
 
 Translators:
-	French: Jerome Flesch <jflesch@gmail.com> (jflesch)
+	French: Jerome Flesch <jflesch@gmail.com>
 	German: Tristan Kohl <blobbyjj@ymail.com> (Mirodin)
 
 Documentation contributors:
-	lzyr (Github) / ludo (Git)
+	ludo <ludo@zyrianes.net>

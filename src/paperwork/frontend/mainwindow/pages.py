@@ -868,6 +868,8 @@ class PageDrawer(Drawer, GObject.GObject):
             return
 
     def _on_mouse_button_release(self, event):
+
+        print ("CLICK")
         position = self.position
         size = self.size
 
@@ -877,7 +879,7 @@ class PageDrawer(Drawer, GObject.GObject):
                   and event.y < (position[1] + size[1]))
 
         if not inside:
-            return True
+            return
 
         click_x = event.x
         click_y = event.y
@@ -893,13 +895,13 @@ class PageDrawer(Drawer, GObject.GObject):
                     and click_x <= button_x + self.BUTTON_SIZE
                     and click_y <= button_y + self.BUTTON_SIZE):
                 callback()
-                return False
+                return
 
         if self.editor_state == "before":
             self.emit('page-selected')
-            return False
+            return
 
-        return True
+        return
 
     def _on_edit_start(self):
         logger.info("Starting page editing")

@@ -43,6 +43,7 @@ from paperwork.frontend.mainwindow.scan import MultiAnglesScanWorkflowDrawer
 from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
 from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.pageeditor import PageEditingDialog
+from paperwork.frontend.searchdialog import SearchDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.util import load_cssfile
 from paperwork.frontend.util import load_uifile
@@ -1284,8 +1285,17 @@ class ActionUpdateSearchResults(SimpleAction):
                          event=None):
         if iconpos == Gtk.EntryIconPosition.PRIMARY:
             entry.grab_focus()
-        else:
-            entry.set_text("")
+        elif Gtk.EntryIconPosition.SECONDARY:
+            logger.info("Opening search dialog")
+            dialog = SearchDialog(self.__main_win)
+            response = dialog.run()
+            if response == 1:
+                logger.info("Search dialog: apply")
+                search = dialog.get_search_string()
+                search = search.encode('utf-8')
+                self.__main_win.search_field.set_text(search)
+            else:
+                logger.info("Search dialog: cancelled")
 
 
 class ActionOpenViewSettings(SimpleAction):
@@ -2651,8 +2661,8 @@ class MainWindow(object):
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.search_field = widget_tree.get_object("entrySearch")
-        # done here instead of mainwindow.glade so it can be translated
-        self.search_field.set_placeholder_text(_("Search"))
+        self.search_field.connect("icon-press",
+                                  self._on_search_field_icon_activated)
 
         self.doc_browsing = {
             'search': self.search_field,
@@ -3213,6 +3223,10 @@ class MainWindow(object):
 
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
+
+    def _on_search_field_icon_activated(self, entry, icon_pos, event):
+        if icon_pos != Gtk.EntryIconPosition.SECONDARY:
+            return
 
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)

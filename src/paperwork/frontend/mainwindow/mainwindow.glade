@@ -481,6 +481,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_tooltip">True</property>
+                        <property name="placeholder_text" translatable="yes">Search</property>
                         <property name="tooltip_text" translatable="yes">Search documents
                           * To search documents with a specific label: label:[label]
                           * Only the documents with a specific keyword: "[keyword]"
@@ -489,6 +490,8 @@
                           * Documents with a specific date: date:YYYYMMDD or date:[YYYYMMDD to YYYYMMDD]</property>
                         <property name="invisible_char">•</property>
                         <property name="margin">5</property>
+                        <property name="secondary_icon_name">text-editor-symbolic</property>
+                        <property name="secondary_icon_sensitive">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>

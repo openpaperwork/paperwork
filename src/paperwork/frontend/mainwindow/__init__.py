@@ -3630,7 +3630,7 @@ class MainWindow(object):
         self.img['canvas'].upd_adjustments()
 
         is_new = doc.is_new
-        can_edit = doc.can_edit and not is_new
+        can_edit = doc.can_edit
 
         set_widget_state(self.need_doc_widgets, not is_new)
         set_widget_state(self.need_page_widgets,

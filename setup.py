@@ -51,6 +51,7 @@ setup(
         'paperwork.frontend.mainwindow',
         'paperwork.frontend.multiscan',
         'paperwork.frontend.pageeditor',
+        'paperwork.frontend.searchdialog',
         'paperwork.frontend.settingswindow',
         'paperwork.frontend.util',
         'paperwork.frontend.util.canvas',
@@ -73,6 +74,8 @@ setup(
         'paperwork.frontend.pageeditor': 'src/paperwork/frontend/pageeditor',
         'paperwork.frontend.settingswindow':
         'src/paperwork/frontend/settingswindow',
+        'paperwork.frontend.searchdialog':
+        'src/paperwork/frontend/searchdialog',
         'paperwork.frontend.util': 'src/paperwork/frontend/util',
         'paperwork.frontend.util.canvas':
         'src/paperwork/frontend/util/canvas',
@@ -95,6 +98,12 @@ setup(
             os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
             [
                 'src/paperwork/frontend/aboutdialog/aboutdialog.glade',
+            ]
+        ),
+        (
+            os.path.join(sys.prefix, 'share/paperwork/searchdialog'),
+            [
+                'src/paperwork/frontend/searchdialog/searchdialog.glade',
             ]
         ),
         (

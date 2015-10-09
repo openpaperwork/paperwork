@@ -40,10 +40,6 @@ so you will have to install some dependencies yourself with python-pip:
     $ sudo pip install numpy scikit-learn
     $ sudo pip install scipy
 
-Some dependencies cannot be installed automatically. You can find all the missing dependencies by running 'paperwork-chkdeps'.
-
-    $ paperwork-chkdeps
-
 
 ## System-wide installation
 
@@ -52,6 +48,11 @@ Some dependencies cannot be installed automatically. You can find all the missin
     # dependencies are required.
     # IMPORTANT: the extra dependencies list may be drown in the output. You
     # may miss it.
+
+Some dependencies cannot be installed automatically. You can find all the
+missing dependencies by running 'paperwork-chkdeps'.
+
+    $ paperwork-chkdeps
 
 
 ## Running Paperwork

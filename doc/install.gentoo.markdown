@@ -9,7 +9,8 @@ Instructions to use this overlay are available on
 
 ## Runtime dependencies
 
-Some dependencies cannot be installed automatically. You can find all the missing dependencies by running 'paperwork-chkdeps'
+Some dependencies cannot be installed automatically. You can find all the
+missing dependencies by running 'paperwork-chkdeps'
 
     $ paperwork-chkdeps
 

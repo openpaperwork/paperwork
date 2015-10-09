@@ -43,6 +43,7 @@ Spell checking is used to improve page orientation detection, so:
 
     $ sudo pacman -S aspell-<your language>
 
+The command "papework-chkdeps" can help you find any other missing dependency.
 
 
 ## Running Paperwork

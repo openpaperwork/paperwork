@@ -19,6 +19,7 @@ import os
 import gettext
 import logging
 
+from gi.repository import Gdk
 from gi.repository import Gtk
 
 from paperwork.backend.labels import Label
@@ -55,7 +56,11 @@ class LabelEditor(object):
 
         name_entry.set_text(self.label.name)
         name_entry.connect("changed", self.__on_label_entry_changed)
-        color_chooser.set_current_color(self.label.color)
+        color = self.label.color
+        color = Gdk.Color(red=color.red * 65535,
+                          green=color.green * 65535,
+                          blue=color.blue * 65535)
+        color_chooser.set_current_color(color)
 
         dialog.set_transient_for(main_window)
         dialog.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)

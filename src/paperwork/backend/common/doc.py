@@ -167,7 +167,7 @@ class BasicDoc(object):
                                  encoding='utf-8') as file_desc:
                     for line in file_desc.readlines():
                         line = line.strip()
-                        (label_name, label_color) = line.split(",")
+                        (label_name, label_color) = line.split(",", 1)
                         labels.append(Label(name=label_name,
                                             color=label_color))
             except IOError:

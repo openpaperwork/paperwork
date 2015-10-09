@@ -2819,7 +2819,7 @@ class MainWindow(object):
             ),
             'single_scan': (
                 [
-                    gactions['scan_single'],
+                    widget_tree.get_object("buttonScan"),
                 ],
                 ActionSingleScan(self, config)
             ),

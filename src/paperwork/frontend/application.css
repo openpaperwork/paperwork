@@ -6,16 +6,16 @@
   border-bottom-right-radius: 0px;
 }
 
-.page-nb-left {
+.button-left {
   border-top-right-radius: 0px;
   border-bottom-right-radius: 0px;
   border-right-width: 0px;
 }
-.page-nb-center {
+.button-center {
   border-radius: 0px;
   border-right-width: 0px;
 }
-.page-nb-right {
+.button-right {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }

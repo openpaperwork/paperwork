@@ -14,10 +14,6 @@
   <menu id="scan_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">Scan single page</attribute>
-        <attribute name="action">app.scan_single_page</attribute>
-      </item>
-      <item>
         <attribute name="label" translatable="yes">Scan from feeder</attribute>
         <attribute name="action">app.scan_from_feeder</attribute>
       </item>
@@ -335,7 +331,7 @@
                     <property name="xalign">1</property>
                     <property name="hexpand">False</property>
                     <style>
-                      <class name="page-nb-left"/>
+                      <class name="button-left"/>
                     </style>
                   </object>
                   <packing>
@@ -351,7 +347,7 @@
                     <property name="xalign">0</property>
                     <property name="sensitive">False</property>
                     <style>
-                      <class name="page-nb-center"/>
+                      <class name="button-center"/>
                     </style>
                   </object>
                   <packing>
@@ -365,7 +361,7 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <style>
-                      <class name="page-nb-right"/>
+                      <class name="button-right"/>
                     </style>
                     <child>
                       <object class="GtkImage" id="image_menuPageView">
@@ -408,12 +404,37 @@
             </child>
 
             <child>
-              <object class="GtkMenuButton" id="menubuttonScan">
-                <property name="use_action_appearance">False</property>
+              <object class="GtkBox" id="scan_buttons">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Scan</property>
-                <property name="menu_model">scan_menu</property>
+                <child>
+                  <object class="GtkButton" id="buttonScan">
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Scan</property>
+                    <style>
+                      <class name="button-left"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkMenuButton" id="menubuttonOtherScans">
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="menu_model">scan_menu</property>
+                    <style>
+                      <class name="button-right"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="pack_type">end</property>
@@ -1079,7 +1100,7 @@
                   </object>
                 </child>
                 <style>
-                  <class name="page-nb-left"/>
+                  <class name="button-left"/>
                 </style>
               </object>
               <packing>
@@ -1099,7 +1120,7 @@
                   </object>
                 </child>
                 <style>
-                  <class name="page-nb-right"/>
+                  <class name="button-right"/>
                 </style>
               </object>
               <packing>

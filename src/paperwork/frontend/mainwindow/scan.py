@@ -436,15 +436,6 @@ class BasicScanWorkflowDrawer(Animation):
         if self.previous_drawer is None:
             position_h = 0
             position_w = PageDrawer.MARGIN
-        elif (self.previous_drawer.position[0]
-              + self.previous_drawer.size[0]
-              + (2 * PageDrawer.MARGIN)
-              + self.size[0]
-              < self.canvas.visible_size[0]):
-            position_w = (self.previous_drawer.position[0]
-                          + self.previous_drawer.size[0]
-                          + (2 * PageDrawer.MARGIN))
-            position_h = self.previous_drawer.position[1]
         else:
             position_w = PageDrawer.MARGIN
             position_h = (self.previous_drawer.position[1]

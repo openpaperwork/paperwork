@@ -2624,7 +2624,7 @@ class MainWindow(object):
         self.page = DummyPage(self.doc)
         self.page_drawers = []
         self.layout = "grid"
-        self.scan_drawers = {}  # docid --> [(page_nb, extra drawers]
+        self.scan_drawers = {}  # docid --> {page_nb: extra drawer}
 
         search_completion = Gtk.EntryCompletion()
 
@@ -3522,7 +3522,7 @@ class MainWindow(object):
             page.set_size_ratio(factor)
             page.relocate()
         if self.doc.docid in self.scan_drawers:
-            for (page_nb, drawer) in self.scan_drawers[self.doc.docid]:
+            for drawer in self.scan_drawers[self.doc.docid].values():
                 drawer.relocate()
 
     def __set_doc_buttons_visible(self, doc, visible):
@@ -3589,19 +3589,21 @@ class MainWindow(object):
         scan_drawers = {}
         if self.doc.docid in self.scan_drawers:
             scan_drawers = self.scan_drawers[self.doc.docid]
-            scan_drawers = {
-                page_nb: drawer
-                for (page_nb, drawer) in scan_drawers
-            }
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
 
         previous_drawer = None
+        first_scan_drawer = None
         for page in doc.pages:
             if page.page_nb in scan_drawers:
-                drawer = scan_drawers[page.page_nb]
+                # scan drawers on existing pages ("redo OCR", etc)
+                drawer = scan_drawers.pop(page.page_nb)
                 drawer.previous_drawer = previous_drawer
+                drawer.relocate()
+                if not first_scan_drawer:
+                    first_scan_drawer = drawer
             else:
+                # normal pages
                 drawer = PageDrawer(page, factories, schedulers,
                                     previous_drawer,
                                     show_boxes=(self.layout == 'paged'),
@@ -3616,18 +3618,26 @@ class MainWindow(object):
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
 
-        if self.doc.docid in self.scan_drawers:
-            for (page_nb, drawer) in self.scan_drawers[self.doc.docid]:
-                if page_nb >= 0:
-                    continue
-                self.page_drawers.append(drawer)
-                self.img['canvas'].add_drawer(drawer)
+        for drawer in scan_drawers.values():
+            # remaining scan drawers ("scan new page", etc)
+            drawer.previous_drawer = previous_drawer
+            drawer.relocate()
+            self.page_drawers.append(drawer)
+            self.img['canvas'].add_drawer(drawer)
+            previous_drawer = drawer
+            if not first_scan_drawer:
+                first_scan_drawer = drawer
 
         # reset zoom level
         self.set_zoom_level(1.0, auto=True)
         self.update_page_sizes()
         self.img['canvas'].recompute_size()
         self.img['canvas'].upd_adjustments()
+
+        if first_scan_drawer:
+            # focus on the activity
+            self.img['canvas'].get_vadjustment().set_value(
+                    first_scan_drawer.position[1])
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3969,26 +3979,23 @@ class MainWindow(object):
 
     def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():
-            for (page_nb, drawer) in drawers[:]:
+            for (page_nb, drawer) in drawers.iteritems():
                 if (scan_workflow == drawer
                         or scan_workflow == drawer.scan_workflow):
-                    drawers.remove((page_nb, drawer))
+                    drawers.pop(page_nb)
                     return docid
         raise ValueError("ScanWorkflow not found")
 
     def add_scan_workflow(self, doc, scan_workflow_drawer, page_nb=-1):
         if doc.docid not in self.scan_drawers:
-            self.scan_drawers[doc.docid] = []
-        self.scan_drawers[doc.docid].append((page_nb, scan_workflow_drawer))
+            self.scan_drawers[doc.docid] = {}
+        self.scan_drawers[doc.docid][page_nb] = scan_workflow_drawer
 
-        if self.doc.docid == doc.docid:
+        if (self.doc.docid == doc.docid
+                or (self.doc.is_new and doc.is_new)):
             self.page = None
             set_widget_state(self.need_page_widgets, False)
             self.show_doc(self.doc, force_refresh=True)
-            self.img['canvas'].add_drawer(scan_workflow_drawer)
-            self.img['canvas'].recompute_size()
-            self.img['canvas'].get_vadjustment().set_value(
-                scan_workflow_drawer.position[1])
 
     def add_page(self, docid, img, line_boxes):
         doc = self.docsearch.get_doc_from_docid(docid)

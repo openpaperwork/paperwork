@@ -843,9 +843,10 @@ class PageDrawer(Drawer, GObject.GObject):
         if inside:
             (x_factor, y_factor) = self._get_factors()
             # position on the whole page image
+            (x, y) = (event_x - position[0], event_y - position[1])
             (x, y) = (
-                event_x / x_factor,
-                event_y / y_factor,
+                x / x_factor,
+                y / y_factor,
             )
 
             box = self._get_box_at(x, y)

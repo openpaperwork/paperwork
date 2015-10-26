@@ -78,7 +78,8 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
 
 def __set_scan_area_pos(options, opt_name, select_value_func, missing_options):
     if opt_name not in options:
-        missing_options.append(opt_name)
+        if missing_options:
+            missing_options.append(opt_name)
     else:
         if not options[opt_name].capabilities.is_active():
             logger.warning("Unable to set scanner option '%s':"
@@ -99,6 +100,8 @@ def maximize_scan_area(scanner):
     __set_scan_area_pos(opts, "tl-y", min, missing_opts)
     __set_scan_area_pos(opts, "br-x", max, missing_opts)
     __set_scan_area_pos(opts, "br-y", max, missing_opts)
+    __set_scan_area_pos(opts, "page-height", max, None)
+    __set_scan_area_pos(opts, "page-width", max, None)
     if missing_opts:
         logger.warning("Failed to maximize the scan area. Missing options: %s"
                        % ", ".join(missing_opts))

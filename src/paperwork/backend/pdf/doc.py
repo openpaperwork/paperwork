@@ -77,19 +77,20 @@ class PdfPagesIterator(object):
 
 
 class PdfPages(object):
-    def __init__(self, pdfdoc):
+    def __init__(self, pdfdoc, pdf):
         self.pdfdoc = pdfdoc
+        self.pdf = pdf
         self.page = {}
 
     def __getitem__(self, idx):
         if idx < 0:
-            idx = self.pdfdoc.nb_pages + idx
+            idx = self.pdf.get_n_pages() + idx
         if idx not in self.page:
             self.page[idx] = PdfPage(self.pdfdoc, idx)
         return self.page[idx]
 
     def __len__(self):
-        return self.pdfdoc.nb_pages
+        return self.pdf.get_n_pages()
 
     def __iter__(self):
         return PdfPagesIterator(self.pdfdoc)
@@ -101,9 +102,6 @@ class PdfDoc(BasicDoc):
 
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
-        self.__pdf = None
-        self.__nb_pages = 0
-        self.__pages = None
 
     def __get_last_mod(self):
         pdfpath = os.path.join(self.path, PDF_FILENAME)
@@ -134,33 +132,24 @@ class PdfDoc(BasicDoc):
         return ("%s/%s" % (self.path, PDF_FILENAME))
 
     def _open_pdf(self):
-        self.__pdf = Poppler.Document.new_from_file(
+        return Poppler.Document.new_from_file(
             ("file://%s/%s" % (urllib.quote(self.path), PDF_FILENAME)),
             password=None)
-        self.__nb_pages = self.pdf.get_n_pages()
-        self.__pages = PdfPages(self)
 
-    def __get_pdf(self):
-        if self.__pdf is None:
-            self._open_pdf()
-        return self.__pdf
-
-    pdf = property(__get_pdf)
+    pdf = property(_open_pdf)
 
     def __get_pages(self):
-        if self.__pdf is None:
-            self._open_pdf()
-        return self.__pages
+        pdf = self._open_pdf()
+        return PdfPages(self, pdf)
 
     pages = property(__get_pages)
 
     def _get_nb_pages(self):
-        if self.__pdf is None:
-            if self.is_new:
-                # happens when a doc was recently deleted
-                return 0
-            self._open_pdf()
-        return self.__nb_pages
+        if self.is_new:
+            # happens when a doc was recently deleted
+            return 0
+        pdf = self._open_pdf()
+        return pdf.get_n_pages()
 
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
@@ -182,7 +171,6 @@ class PdfDoc(BasicDoc):
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
-        self._open_pdf()
 
     @staticmethod
     def get_export_formats():
@@ -193,10 +181,6 @@ class PdfDoc(BasicDoc):
 
     def drop_cache(self):
         BasicDoc.drop_cache(self)
-        del(self.__pdf)
-        self.__pdf = None
-        del(self.__pages)
-        self.__pages = None
 
     def get_docfilehash(self):
         return BasicDoc.hash_file("%s/%s" % (self.path, PDF_FILENAME))

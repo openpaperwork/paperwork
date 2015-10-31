@@ -3462,9 +3462,14 @@ class MainWindow(object):
             docs --- Array of Doc
         """
         for doc in docs:
-            rowbox = self.lists['doclist']['model']['by_id'][doc.docid]
-            self._make_listboxrow_doc_widget(doc, rowbox,
-                                             doc.docid == self.doc.docid)
+            if doc.docid in self.lists['doclist']['model']['by_id']:
+                rowbox = self.lists['doclist']['model']['by_id'][doc.docid]
+                self._make_listboxrow_doc_widget(doc, rowbox,
+                                                doc.docid == self.doc.docid)
+            else:
+                # refresh the whole list for now, it's much simpler
+                self.refresh_doc_list()
+                return
 
         # and rethumbnail what must be
         docs = [x for x in docs]

@@ -38,6 +38,7 @@ import whoosh.query
 import whoosh.sorting
 
 from paperwork.backend.common.doc import BasicDoc
+from paperwork.backend.common.page import BasicPage
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc
 from paperwork.backend.pdf.doc import PdfDoc
@@ -130,6 +131,11 @@ class DummyDocSearch(object):
     def predict_label_list(*args, **kwargs):
         """ Do nothing """
         return []
+
+    @staticmethod
+    def get(*args, **kwargs):
+        """ Do nothing """
+        return None
 
 
 class DocDirExaminer(GObject.GObject):
@@ -675,12 +681,12 @@ class DocSearch(object):
 
     docs = property(__get_all_docs)
 
-    def get_by_id(self, obj_id):
+    def get(self, obj_id):
         """
         Get a document or a page using its ID
         Won't instantiate them if they are not yet available
         """
-        if "/" in obj_id:
+        if BasicPage.PAGE_ID_SEPARATOR in obj_id:
             (docid, page_nb) = obj_id.split("/")
             page_nb = int(page_nb)
             return self.__docs_by_id[docid].pages[page_nb]

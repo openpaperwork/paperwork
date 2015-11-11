@@ -171,3 +171,15 @@ class PriorityQueue(object):
 
     def __str__(self):
         return "PW[%s]" % (", ".join([str(x) for x in self.elements]))
+
+
+def connect_actions(actions):
+    for action in actions:
+        for button in actions[action][0]:
+            if button is None:
+                logger.error("MISSING BUTTON: %s" % (action))
+        try:
+            actions[action][1].connect(actions[action][0])
+        except:
+            logger.error("Failed to connect action '%s'" % action)
+            raise

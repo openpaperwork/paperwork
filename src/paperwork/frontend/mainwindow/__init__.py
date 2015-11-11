@@ -3639,11 +3639,6 @@ class MainWindow(object):
         self.img['canvas'].recompute_size()
         self.img['canvas'].upd_adjustments()
 
-        if first_scan_drawer:
-            # focus on the activity
-            self.img['canvas'].get_vadjustment().set_value(
-                    first_scan_drawer.position[1])
-
         is_new = doc.is_new
         can_edit = doc.can_edit
 
@@ -3665,6 +3660,11 @@ class MainWindow(object):
         self.__set_doc_buttons_visible(previous_doc, False)
         self.__set_doc_buttons_visible(self.doc, True)
         self.doc_properties_panel.set_doc(doc)
+
+        if first_scan_drawer:
+            # focus on the activity
+            self.img['canvas'].get_vadjustment().set_value(
+                    first_scan_drawer.position[1])
 
     def refresh_header_bar(self):
         # Pages

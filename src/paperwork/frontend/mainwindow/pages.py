@@ -230,7 +230,6 @@ class PageCuttingAction(PageEditionAction):
         return _("Image cutting: %s") % str(self.cut)
 
 
-
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
@@ -252,6 +251,9 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_DELETE = "edit-delete"
 
     PAGE_DRAG_ID = 0
+    PAGE_DRAG_ENTRY = Gtk.TargetEntry.new(
+        "page", Gtk.TargetFlags.SAME_APP, PAGE_DRAG_ID
+    )
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -413,10 +415,11 @@ class PageDrawer(Drawer, GObject.GObject):
         canvas.connect(self, "drag-data-get", self._on_drag_data_get)
         canvas.connect(self, "drag-end", self._on_drag_end)
 
-        target_entry = Gtk.TargetEntry.new(
-            "page", Gtk.TargetFlags.SAME_APP, self.PAGE_DRAG_ID)
-        canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [target_entry],
-            Gdk.DragAction.MOVE)
+        canvas.drag_source_set(
+            Gdk.ModifierType.BUTTON1_MASK,
+            [self.PAGE_DRAG_ENTRY],
+            Gdk.DragAction.MOVE
+        )
 
     def _on_drag_begin(self, canvas, drag_context):
         if not self.mouse_over:
@@ -440,7 +443,6 @@ class PageDrawer(Drawer, GObject.GObject):
         logger.info("Drag-n-drop end: selected: [%s]" % page_id)
         self.mask = None
         self.redraw()
-
 
     def _on_size_allocate_cb(self, widget, size):
         GLib.idle_add(self.relocate)
@@ -696,9 +698,6 @@ class PageDrawer(Drawer, GObject.GObject):
         return (x, y)
 
     def draw_editor_buttons(self, cairo_context):
-        position = self.position
-        size = self.size
-
         buttons = self.editor_buttons[self.editor_state]
         for (b_position, button, callback, tooltip) in buttons:
             (x, y) = self._get_button_position(b_position)
@@ -734,13 +733,10 @@ class PageDrawer(Drawer, GObject.GObject):
                 cairo_context.restore()
 
     def draw_editor_button_tooltip(self, cairo_context):
-        position = self.position
-        size = self.size
-
         if self.mouse_over_button:
             (b_position, button, callback, tooltip) = self.mouse_over_button
             (x, y) = self._get_button_position(b_position)
-            x -= self.TOOLTIP_LENGTH+ 2
+            x -= self.TOOLTIP_LENGTH + 2
 
             cairo_context.save()
             try:
@@ -780,8 +776,8 @@ class PageDrawer(Drawer, GObject.GObject):
             cairo_ctx.set_source_rgba(mask_color[0], mask_color[1],
                                       mask_color[2], mask_color[3])
             cairo_ctx.rectangle(self.position[0] - self.canvas.offset[0],
-                                    self.position[1] - self.canvas.offset[1],
-                                    self.size[0], self.size[1])
+                                self.position[1] - self.canvas.offset[1],
+                                self.size[0], self.size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

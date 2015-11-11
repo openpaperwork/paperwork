@@ -305,9 +305,9 @@ GObject.type_register(JobLabelCreator)
 
 
 class JobFactoryLabelCreator(JobFactory):
-    def __init__(self, main_win):
+    def __init__(self, doc_list):
         JobFactory.__init__(self, "LabelCreator")
-        self.__main_win = main_win
+        self.__doc_list = doc_list
 
     def make(self, docsearch, new_label, doc):
         job = JobLabelCreator(self, next(self.id_generator), docsearch,
@@ -315,17 +315,17 @@ class JobFactoryLabelCreator(JobFactory):
         job.connect('label-creation-start',
                     lambda updater:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_start_cb,
+                        self.__doc_list.on_label_updating_start_cb,
                         updater))
         job.connect('label-creation-doc-read',
                     lambda updater, progression, doc_name:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_doc_updated_cb,
+                        self.__doc_list.on_label_updating_doc_updated_cb,
                         updater, progression, doc_name))
         job.connect('label-creation-end',
                     lambda updater:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_end_cb,
+                        self.__doc_list.on_label_updating_end_cb,
                         updater))
         return job
 
@@ -365,9 +365,9 @@ GObject.type_register(JobLabelUpdater)
 
 
 class JobFactoryLabelUpdater(JobFactory):
-    def __init__(self, main_win):
+    def __init__(self, doc_list):
         JobFactory.__init__(self, "LabelUpdater")
-        self.__main_win = main_win
+        self.__doc_list = doc_list
 
     def make(self, docsearch, old_label, new_label):
         job = JobLabelUpdater(self, next(self.id_generator), docsearch,
@@ -375,17 +375,17 @@ class JobFactoryLabelUpdater(JobFactory):
         job.connect('label-updating-start',
                     lambda updater:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_start_cb,
+                        self.__doc_list.on_label_updating_start_cb,
                         updater))
         job.connect('label-updating-doc-updated',
                     lambda updater, progression, doc_name:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_doc_updated_cb,
+                        self.__doc_list.on_label_updating_doc_updated_cb,
                         updater, progression, doc_name))
         job.connect('label-updating-end',
                     lambda updater:
                     GLib.idle_add(
-                        self.__main_win.on_label_updating_end_cb,
+                        self.__doc_list.on_label_updating_end_cb,
                         updater))
         return job
 
@@ -423,24 +423,24 @@ GObject.type_register(JobLabelDeleter)
 
 
 class JobFactoryLabelDeleter(JobFactory):
-    def __init__(self, main_win):
+    def __init__(self, doc_list):
         JobFactory.__init__(self, "LabelDeleter")
-        self.__main_win = main_win
+        self.__doc_list = doc_list
 
     def make(self, docsearch, label):
         job = JobLabelDeleter(self, next(self.id_generator), docsearch, label)
         job.connect('label-deletion-start',
                     lambda deleter:
-                    GLib.idle_add(self.__main_win.on_label_updating_start_cb,
+                    GLib.idle_add(self.__doc_list.on_label_updating_start_cb,
                                   deleter))
         job.connect('label-deletion-doc-updated',
                     lambda deleter, progression, doc_name:
                     GLib.idle_add(
-                        self.__main_win.on_label_deletion_doc_updated_cb,
+                        self.__doc_list.on_label_deletion_doc_updated_cb,
                         deleter, progression, doc_name))
         job.connect('label-deletion-end',
                     lambda deleter:
-                    GLib.idle_add(self.__main_win.on_label_updating_end_cb,
+                    GLib.idle_add(self.__doc_list.on_label_updating_end_cb,
                                   deleter))
         return job
 
@@ -512,10 +512,10 @@ class ActionSetDocDate(SimpleAction):
 
 
 class ActionCreateLabel(SimpleAction):
-    def __init__(self, main_window, doclist):
+    def __init__(self, main_window, doc_properties):
         SimpleAction.__init__(self, "Creating label")
         self.__main_win = main_window
-        self.__doclist = doclist
+        self.__doc_properties = doc_properties
 
     def do(self):
         SimpleAction.do(self)
@@ -523,7 +523,7 @@ class ActionCreateLabel(SimpleAction):
         if labeleditor.edit(self.__main_win.window):
             logger.info("Adding label %s to doc %s"
                         % (labeleditor.label.name, self.__main_win.doc))
-            job = self.__doclist.job_factories['label_creator'].make(
+            job = self.__doc_properties.job_factories['label_creator'].make(
                 self.__main_win.docsearch, labeleditor.label,
                 self.__main_win.doc)
             self.__main_win.schedulers['main'].schedule(job)
@@ -533,15 +533,16 @@ class ActionEditLabel(SimpleAction):
     """
     Edit the selected label.
     """
-    def __init__(self, main_window):
+    def __init__(self, main_window, doc_properties):
         SimpleAction.__init__(self, "Editing label")
         self.__main_win = main_window
+        self.__doc_properties = doc_properties
 
     def do(self):
         SimpleAction.do(self)
 
         # Open the russian dolls to retrieve the selected label.
-        label_list = self.__main_win.lists['labels']['gui']
+        label_list = self.__doc_properties.lists['labels']['gui']
         selected_row = label_list.get_selected_row()
         if selected_row is None:
             logger.warning("No label selected")
@@ -557,7 +558,7 @@ class ActionEditLabel(SimpleAction):
             logger.warning("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
-        job = self.__main_win.job_factories['label_updater'].make(
+        job = self.__doc_properties.job_factories['label_updater'].make(
             self.__main_win.docsearch, label, new_label)
         self.__main_win.schedulers['main'].schedule(job)
 
@@ -1029,7 +1030,7 @@ class DocPropertiesPanel(object):
                 edit_button.set_rgba(label.color)
                 edit_button.set_relief(Gtk.ReliefStyle.NONE)
                 edit_button.connect("clicked", self.on_label_button_clicked)
-                ActionEditLabel(self.__main_win).connect([edit_button])
+                ActionEditLabel(self.__main_win, self).connect([edit_button])
                 label_box.add(edit_button)
 
                 rowbox = Gtk.ListBoxRow()
@@ -1066,7 +1067,7 @@ class DocPropertiesPanel(object):
         """
         label_box = button.get_parent()
         row = label_box.get_parent()
-        label_list = self.__main_win.lists['labels']['gui']
+        label_list = self.lists['labels']['gui']
         label_list.select_row(row)
 
     def on_row_activated(self, rowbox, row):
@@ -1129,23 +1130,24 @@ class DocPropertiesPanel(object):
         self.widgets['extra_keywords'].set_buffer(text_buffer)
 
     def on_label_updating_start_cb(self, src):
-        self.main_win.set_search_availability(False)
-        self.main_win.set_mouse_cursor("Busy")
+        self.__main_win.set_search_availability(False)
+        self.__main_win.set_mouse_cursor("Busy")
 
     def on_label_updating_doc_updated_cb(self, src, progression, doc_name):
-        self.main_win.set_progression(
+        self.__main_win.set_progression(
             src, progression,
-            _("Updating label (%s) ...") % (doc_name))
+            _("Updating label (%s) ...") % (doc_name)
+        )
 
     def on_label_deletion_doc_updated_cb(self, src, progression, doc_name):
-        self.main_win.set_progression(
+        self.__main_win.set_progression(
             src, progression,
             _("Deleting label (%s) ...") % (doc_name)
         )
 
     def on_label_updating_end_cb(self, src):
-        self.main_win.set_progression(src, 0.0, None)
-        self.main_win.set_search_availability(True)
-        self.main_win.set_mouse_cursor("Normal")
-        self.main_win.refresh_label_list()
-        self.main_win.refresh_doc_list()
+        self.__main_win.set_progression(src, 0.0, None)
+        self.__main_win.set_search_availability(True)
+        self.__main_win.set_mouse_cursor("Normal")
+        self.__main_win.refresh_label_list()
+        self.__main_win.refresh_doc_list()

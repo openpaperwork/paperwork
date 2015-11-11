@@ -805,7 +805,7 @@ class DocList(object):
     def on_doc_thumbnailing_doc_done_cb(self, src, thumbnail,
                                         doc, doc_nb, total_docs):
         self.__main_win.set_progression(
-            src, ((float)(doc_nb+1) / total_docs),
+            src, (float(doc_nb+1) / total_docs),
             _("Loading thumbnails ...")
         )
         row = self.model['by_id'][doc.docid]

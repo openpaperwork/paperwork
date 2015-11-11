@@ -3069,10 +3069,6 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        # TODO
-        #self.lists['doclist']['gui'].connect(
-        #    "drag-data-received", self.__on_doclist_drag_data_received_cb)
-
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
@@ -3819,110 +3815,6 @@ class MainWindow(object):
             return
 
         self.update_page_sizes()
-
-    def __on_page_list_drag_data_get_cb(self, widget, drag_context,
-                                        selection_data, info, time):
-        pageid = unicode(self.page.pageid)
-        logger.info("[page list] drag-data-get: %s" % self.page.pageid)
-        selection_data.set_text(pageid, -1)
-
-    def __on_page_list_drag_data_received_cb(self, widget, drag_context, x, y,
-                                             selection_data, info, time):
-        target = self.lists['pages']['gui'].get_dest_item_at_pos(x, y)
-        if target is None:
-            logger.warning("[page list] drag-data-received: no target."
-                           " aborting")
-            drag_context.finish(False, False, time)
-            return
-        (target_path, position) = target
-        if target_path is None:
-            logger.warning("[page list] drag-data-received: no target."
-                           " aborting")
-            drag_context.finish(False, False, time)
-            return
-        target = target_path.get_indices()[0]
-        target_idx = self.lists['pages']['model'][target][2]
-        if position == Gtk.IconViewDropPosition.DROP_BELOW:
-            target_idx += 1
-
-        assert(target_idx >= 0)
-        obj_id = selection_data.get_text()
-
-        logger.info("[page list] drag-data-received: %s -> %s"
-                    % (obj_id, target_idx))
-        obj = self.docsearch.get_by_id(obj_id)
-        if (target_idx >= obj.doc.nb_pages):
-            target_idx = obj.doc.nb_pages - 1
-
-        # TODO(Jflesch): Instantiate an ActionXXX to do that, so
-        # this action can be cancelled later
-        obj.change_index(target_idx)
-
-        drag_context.finish(True, False, time)
-        doc = obj.doc
-        GLib.idle_add(self.refresh_docs, {doc})
-
-    def __on_doclist_drag_data_received_cb(self, widget, drag_context, x, y,
-                                              selection_data, info, time):
-        obj_id = selection_data.get_text()
-        # TODO
-        #target = self.lists['doclist']['gui'].get_dest_item_at_pos(x, y)
-        target = None
-        if target is None:
-            logger.warning("[doc list] drag-data-received: no target."
-                           " aborting")
-            drag_context.finish(False, False, time)
-            return
-        (target_path, position) = target
-        if target_path is None:
-            logger.warning("[doc list] drag-data-received: no target."
-                           " aborting")
-            drag_context.finish(False, False, time)
-            return
-        target = target_path.get_indices()[0]
-        # TODO
-        #target_doc = self.lists['doclist']['model'][target][2]
-        target_doc = None
-        obj_id = selection_data.get_text()
-        obj = self.docsearch.get_by_id(obj_id)
-
-        if not target_doc.can_edit:
-            logger.warning("[doc list] drag-data-received:"
-                           " Destination document can't be modified")
-            drag_context.finish(False, False, time)
-            return
-
-        if target_doc == obj.doc:
-            logger.info("[doc list] drag-data-received: Source and destination"
-                        " docs are the same. Nothing to do")
-            drag_context.finish(False, False, time)
-            return
-
-        logger.info("[doc list] drag-data-received: %s -> %s"
-                    % (obj_id, target_doc.docid))
-        # TODO(Jflesch): Instantiate an ActionXXX to do that, so
-        # it can be cancelled later
-        target_doc.steal_page(obj)
-
-        if obj.doc.nb_pages <= 0:
-            del_docs = {obj.doc.docid}
-            upd_docs = {target_doc}
-        else:
-            del_docs = set()
-            upd_docs = {obj.doc, target_doc}
-
-        drag_context.finish(True, False, time)
-
-        # the index update will start a doc list refresh when finished
-        job = self.job_factories['index_updater'].make(
-            docsearch=self.docsearch,
-            new_docs=set(),
-            upd_docs=upd_docs,
-            del_docs=del_docs,
-            optimize=False,
-            reload_list=True
-        )
-        self.schedulers['main'].schedule(job)
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)

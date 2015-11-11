@@ -251,6 +251,8 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_EDIT_APPLY = "document-save"
     ICON_DELETE = "edit-delete"
 
+    PAGE_DRAG_ID = 0
+
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-edited': (GObject.SignalFlags.RUN_LAST, None,
@@ -281,6 +283,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over = False
         self.mouse_over_button = None
         self.previous_page_drawer = previous_page_drawer
+        self.mask = None  # tuple(R, G, B, A)
 
         self.surface = None
         self.boxes = {
@@ -405,6 +408,39 @@ class PageDrawer(Drawer, GObject.GObject):
                        lambda canvas, event:
                        GLib.idle_add(self._on_mouse_button_release, event))
         canvas.connect(self, "size-allocate", self._on_size_allocate_cb)
+
+        canvas.connect(self, "drag-begin", self._on_drag_begin)
+        canvas.connect(self, "drag-data-get", self._on_drag_data_get)
+        canvas.connect(self, "drag-end", self._on_drag_end)
+
+        target_entry = Gtk.TargetEntry.new(
+            "page", Gtk.TargetFlags.SAME_APP, self.PAGE_DRAG_ID)
+        canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [target_entry],
+            Gdk.DragAction.MOVE)
+
+    def _on_drag_begin(self, canvas, drag_context):
+        if not self.mouse_over:
+            return
+        page_id = self.page.id
+        logger.info("Drag-n-drop begin: selected: [%s]" % page_id)
+        self.mask = (0.0, 0.0, 0.0, 0.15)
+        self.redraw()
+
+    def _on_drag_data_get(self, canvas, drag_context, data, info, time):
+        if not self.mouse_over:
+            return
+        if info != self.PAGE_DRAG_ID:
+            return
+        page_id = self.page.id
+        logger.info("Drag-n-drop get: selected: [%s]" % page_id)
+        data.set_text(page_id, -1)
+
+    def _on_drag_end(self, canvas, drag_context):
+        page_id = self.page.id
+        logger.info("Drag-n-drop end: selected: [%s]" % page_id)
+        self.mask = None
+        self.redraw()
+
 
     def _on_size_allocate_cb(self, widget, size):
         GLib.idle_add(self.relocate)
@@ -738,6 +774,19 @@ class PageDrawer(Drawer, GObject.GObject):
             finally:
                 cairo_context.restore()
 
+    def draw_mask(self, cairo_ctx, mask_color):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgba(mask_color[0], mask_color[1],
+                                      mask_color[2], mask_color[3])
+            cairo_ctx.rectangle(self.position[0] - self.canvas.offset[0],
+                                    self.position[1] - self.canvas.offset[1],
+                                    self.size[0], self.size[1])
+            cairo_ctx.clip()
+            cairo_ctx.paint()
+        finally:
+            cairo_ctx.restore()
+
     def draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
             self.canvas.offset, self.canvas.size,
@@ -777,6 +826,9 @@ class PageDrawer(Drawer, GObject.GObject):
         if self.enable_editor and self.mouse_over:
             self.draw_editor_buttons(cairo_context)
             self.draw_editor_button_tooltip(cairo_context)
+
+        if self.mask:
+            self.draw_mask(cairo_context, self.mask)
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:

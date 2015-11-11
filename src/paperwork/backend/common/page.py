@@ -110,6 +110,8 @@ class BasicPage(object):
 
     can_edit = False
 
+    PAGE_ID_SEPARATOR = "|"
+
     def __init__(self, doc, page_nb):
         """
         Don't create directly. Please use ImgDoc.get_page()
@@ -127,9 +129,10 @@ class BasicPage(object):
         }
 
     def __get_pageid(self):
-        return self.doc.docid + "/" + str(self.page_nb)
+        return self.doc.docid + self.PAGE_ID_SEPARATOR + str(self.page_nb)
 
     pageid = property(__get_pageid)
+    id = property(__get_pageid)
 
     def _get_filepath(self, ext):
         """

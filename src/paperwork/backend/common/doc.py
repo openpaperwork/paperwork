@@ -78,6 +78,11 @@ class BasicDoc(object):
     def __str__(self):
         return self.__docid
 
+    def __get_id(self):
+        return self.__docid
+
+    id = property(__get_id)
+
     def __get_last_mod(self):
         raise NotImplementedError()
 

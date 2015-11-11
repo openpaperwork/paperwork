@@ -2760,21 +2760,31 @@ class MainWindow(object):
                                       predicted))
             self.schedulers['main'].schedule(job)
         else:
-            self.upd_index(doc, new=False)
+            self.upd_index({doc}, new=False)
 
     def __on_predicted_labels(self, doc, predicted_labels):
         for label in self.docsearch.label_list:
             if label.name in predicted_labels:
                 self.docsearch.add_label(doc, label, update_index=False)
-        self.upd_index(doc, new=True)
+        self.upd_index({doc}, new=True)
         self.refresh_label_list()
 
-    def upd_index(self, doc, new=False):
+    def upd_index(self, docs, new=False):
+        new_docs = set()
+        upd_docs = set()
+        del_docs = set()
+
+        for doc in docs:
+            if not new and doc.is_new:
+                # assume deleted
+                del_docs.add(doc.docid)
+            elif new:
+                new_docs.add(doc)
+            else:
+                upd_docs.add(doc)
+
         self.refresh_docs({doc})
-        if new:
-            job = self.job_factories['index_updater'].make(
-                self.docsearch, new_docs={doc}, optimize=False)
-        else:
-            job = self.job_factories['index_updater'].make(
-                self.docsearch, upd_docs={doc}, optimize=False)
+        job = self.job_factories['index_updater'].make(
+            self.docsearch, new_docs=new_docs, upd_docs=upd_docs,
+            del_docs=del_docs, optimize=False, reload_list=True)
         self.schedulers['main'].schedule(job)

@@ -5,6 +5,7 @@ import logging
 
 from gi.repository import GLib
 from gi.repository import GObject
+from gi.repository import Gdk
 from gi.repository import Gtk
 import PIL
 
@@ -13,6 +14,7 @@ from paperwork.backend.common.page import BasicPage
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.labels import Label
 from paperwork.frontend.labeleditor import LabelEditor
+from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.dialog import ask_confirmation
@@ -37,7 +39,6 @@ class JobDocSearcher(Job):
     """
     Search the documents
     """
-
     __gsignals__ = {
         'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         # user made a typo
@@ -628,6 +629,10 @@ class DocList(object):
         }
         self.selected_doc = None
 
+        self.gui.connect("drag-data-received", self._on_drag_data_received)
+        self.gui.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
+        self.gui.drag_dest_add_text_targets()
+
     def __init_default_thumbnail(self, width=BasicPage.DEFAULT_THUMB_WIDTH,
                                  height=BasicPage.DEFAULT_THUMB_HEIGHT):
         img = PIL.Image.new("RGB", (
@@ -636,6 +641,53 @@ class DocList(object):
         ), color="#EEEEEE")
         img = add_img_border(img, 1)
         return image2pixbuf(img)
+
+    def _on_drag_data_received(self, widget, drag_context,
+                               x, y, data, info, time):
+        page_id = data.get_text()
+
+        target_row = self.gui.get_row_at_y(y)
+        if not target_row or not target_row in self.model['by_row']:
+            logger.warn("Drag-n-drop: Invalid doc row ?!")
+            drag_context.finish(False, False, time)  # success = False
+            return
+
+        target_docid = self.model['by_row'][target_row]
+        logger.info("Drag-n-drop data received on doc list: [%s] --> [%s]"
+                    % (page_id, target_docid))
+
+        src_page = self.__main_win.docsearch.get(page_id)
+        target_doc = self.__main_win.docsearch.get(target_docid)
+
+        if not src_page.doc.can_edit:
+            logger.warn("Drag-n-drop: Cannot modify source document")
+            drag_context.finish(False, False, time)  # success = False
+            return
+        if not target_doc.can_edit:
+            logger.warn("Drag-n-drop: Cannot modify destination document")
+            drag_context.finish(False, False, time)  # success = False
+            return
+        if src_page.doc.docid == target_doc.docid:
+            logger.warn("Drag-n-drop: Source and destionation document"
+                        " are the same")
+            drag_context.finish(False, False, time)  # success = False
+            return
+
+        target_doc.add_page(src_page.img, src_page.boxes)
+        src_page.destroy()
+        if src_page.doc.nb_pages <= 0:
+            src_page.doc.destroy()
+        drag_context.finish(True, True, time)
+
+        GLib.idle_add(self.__on_drag_reload, src_page,
+                      {target_doc, src_page.doc})
+
+    def __on_drag_reload(self, src_page, docs):
+        # Will force a redisplay of all the pages, but without
+        # the one we destroyed. Will also force a scrolling to
+        # where was the one we destroyed
+        self.__main_win.show_page(src_page, force_refresh=True)
+        self.__main_win.upd_index(docs)
 
     def get_new_doc(self):
         if self.new_doc.is_new:
@@ -677,6 +729,7 @@ class DocList(object):
         thumbnail = Gtk.Image.new_from_pixbuf(self.default_thumbnail)
         thumbnail.set_size_request(JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
                                    JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
+
         globalbox.add(thumbnail)
 
         internalbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)

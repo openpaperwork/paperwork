@@ -250,10 +250,7 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_EDIT_APPLY = "document-save"
     ICON_DELETE = "edit-delete"
 
-    PAGE_DRAG_ID = 0
-    PAGE_DRAG_ENTRY = Gtk.TargetEntry.new(
-        "page", Gtk.TargetFlags.SAME_APP, PAGE_DRAG_ID
-    )
+    PAGE_DRAG_ID = 128
 
     __gsignals__ = {
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -286,6 +283,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over_button = None
         self.previous_page_drawer = previous_page_drawer
         self.mask = None  # tuple(R, G, B, A)
+        self.is_drag_source = False
 
         self.surface = None
         self.boxes = {
@@ -414,12 +412,7 @@ class PageDrawer(Drawer, GObject.GObject):
         canvas.connect(self, "drag-begin", self._on_drag_begin)
         canvas.connect(self, "drag-data-get", self._on_drag_data_get)
         canvas.connect(self, "drag-end", self._on_drag_end)
-
-        canvas.drag_source_set(
-            Gdk.ModifierType.BUTTON1_MASK,
-            [self.PAGE_DRAG_ENTRY],
-            Gdk.DragAction.MOVE
-        )
+        canvas.connect(self, "drag-failed", self._on_drag_failed)
 
     def _on_drag_begin(self, canvas, drag_context):
         if not self.mouse_over:
@@ -427,20 +420,28 @@ class PageDrawer(Drawer, GObject.GObject):
         page_id = self.page.id
         logger.info("Drag-n-drop begin: selected: [%s]" % page_id)
         self.mask = (0.0, 0.0, 0.0, 0.15)
+        self.is_drag_source = True
         self.redraw()
 
     def _on_drag_data_get(self, canvas, drag_context, data, info, time):
-        if not self.mouse_over:
-            return
-        if info != self.PAGE_DRAG_ID:
+        if not self.is_drag_source:
             return
         page_id = self.page.id
         logger.info("Drag-n-drop get: selected: [%s]" % page_id)
-        data.set_text(page_id, -1)
+        data.set_text(unicode(page_id), -1)
+
+    def _on_drag_failed(self, canvas, drag_context, result):
+        if not self.is_drag_source:
+            return
+        logger.info("Drag-n-drop failed: %d" % result)
+        self.is_drag_source = False
 
     def _on_drag_end(self, canvas, drag_context):
+        if not self.is_drag_source:
+            return
         page_id = self.page.id
         logger.info("Drag-n-drop end: selected: [%s]" % page_id)
+        self.is_drag_source = False
         self.mask = None
         self.redraw()
 
@@ -868,6 +869,13 @@ class PageDrawer(Drawer, GObject.GObject):
                   and event_y < position[1] + size[1])
 
         if self.mouse_over != inside:
+            if inside and self.page.doc.can_edit:
+                self.canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [],
+                                    Gdk.DragAction.MOVE)
+                self.canvas.drag_source_add_text_targets()
+            else:
+                self.canvas.drag_source_unset()
+
             self.mouse_over = inside
             must_redraw = True
 

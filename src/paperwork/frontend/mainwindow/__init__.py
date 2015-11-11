@@ -2595,8 +2595,7 @@ class MainWindow(object):
         gactions = self.__init_gactions(self.app)
 
         self.schedulers = self.__init_schedulers()
-        self.default_thumbnail = self.__init_default_thumbnail()
-        self.default_small_thumbnail = self.__init_default_thumbnail(
+        self.default_thumbnail = self.__init_default_thumbnail(
             self.SMALL_THUMBNAIL_WIDTH, self.SMALL_THUMBNAIL_HEIGHT)
 
         # used by the set_mouse_cursor() function to keep track of how many
@@ -3261,7 +3260,7 @@ class MainWindow(object):
         globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
         # thumbnail
-        thumbnail = Gtk.Image.new_from_pixbuf(self.default_small_thumbnail)
+        thumbnail = Gtk.Image.new_from_pixbuf(self.default_thumbnail)
         thumbnail.set_size_request(self.SMALL_THUMBNAIL_WIDTH,
                                    self.SMALL_THUMBNAIL_HEIGHT)
         globalbox.add(thumbnail)
@@ -3422,21 +3421,6 @@ class MainWindow(object):
             return
         popup_menu.popup(None, None, None, None, event.button, event.time)
 
-    def __get_doc_model_line(self, doc):
-        assert(doc is not None)
-        if self.doc and self.doc == doc:
-            # make sure we use the exact same instance everywhere
-            doc = self.doc
-        thumbnail = self.default_thumbnail
-        if doc.nb_pages <= 0:
-            thumbnail = None
-        return ([
-            doc.name,
-            thumbnail,
-            doc,
-            doc.labels,
-        ])
-
     def insert_new_doc(self):
         # append a new document to the list
         doc = ImgDoc(self.__config['workdir'].value)
@@ -3484,16 +3468,6 @@ class MainWindow(object):
         job = self.job_factories['searcher'].make(
             self.docsearch, self.get_doc_sorting()[1], search)
         self.schedulers['main'].schedule(job)
-
-    def __get_page_model_line(self, page):
-        if self.page and self.page == page:
-            # always use the very same instance to avoid troubles
-            page = self.page
-        return [
-            _('Page %d') % (page.page_nb + 1),
-            self.default_thumbnail,
-            page.page_nb
-        ]
 
     def refresh_boxes(self):
         search = unicode(self.search_field.get_text(), encoding='utf-8')

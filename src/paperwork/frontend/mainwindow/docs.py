@@ -131,7 +131,6 @@ class JobFactoryDocSearcher(JobFactory):
         return job
 
 
-
 class JobDocThumbnailer(Job):
     """
     Generate doc list thumbnails
@@ -751,7 +750,8 @@ class DocList(object):
         if need_new_doc:
             self.insert_new_doc()
 
-        if self.__main_win.doc and self.__main_win.doc.docid in self.model['by_id']:
+        if (self.__main_win.doc
+                and self.__main_win.doc.docid in self.model['by_id']):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui.select_row(row)
 
@@ -792,7 +792,8 @@ class DocList(object):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['searcher']
         )
-        search = unicode(self.__main_win.search_field.get_text(), encoding='utf-8')
+        search = unicode(self.__main_win.search_field.get_text(),
+                         encoding='utf-8')
         job = self.job_factories['searcher'].make(
             self.__main_win.docsearch, self.__main_win.get_doc_sorting()[1],
             search)
@@ -805,7 +806,7 @@ class DocList(object):
     def on_doc_thumbnailing_doc_done_cb(self, src, thumbnail,
                                         doc, doc_nb, total_docs):
         self.__main_win.set_progression(
-            src, (float(doc_nb+1) / total_docs),
+            src, (float(doc_nb + 1) / total_docs),
             _("Loading thumbnails ...")
         )
         row = self.model['by_id'][doc.docid]

@@ -687,7 +687,7 @@ class DocSearch(object):
         Won't instantiate them if they are not yet available
         """
         if BasicPage.PAGE_ID_SEPARATOR in obj_id:
-            (docid, page_nb) = obj_id.split("/")
+            (docid, page_nb) = obj_id.split(BasicPage.PAGE_ID_SEPARATOR)
             page_nb = int(page_nb)
             return self.__docs_by_id[docid].pages[page_nb]
         return self.__docs_by_id[obj_id]

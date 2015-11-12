@@ -682,6 +682,8 @@ class JobPageThumbnailer(Job):
         self.emit('page-thumbnailing-end')
         self.done = True
 
+        self.__doc.drop_cache()
+
     def stop(self, will_resume=False):
         self.can_run = False
         self._stop_wait()
@@ -795,6 +797,7 @@ class JobDocThumbnailer(Job):
                 return
 
             pixbuf = image2pixbuf(img)
+            doc.drop_cache()
             self.emit('doc-thumbnailing-doc-done', doc_position, pixbuf,
                       idx, len(self.__doclist))
 

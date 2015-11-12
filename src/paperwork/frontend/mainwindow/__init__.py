@@ -742,10 +742,12 @@ class JobImporter(Job):
 
     def do(self):
         self.__main_win.set_mouse_cursor("Busy")
-        (docs, page, must_add_labels) = self.importer.import_doc(
-            self.file_uri, self.__config, self.__main_win.docsearch,
-            self.__main_win.doc)
-        self.__main_win.set_mouse_cursor("Normal")
+        try:
+            (docs, page, must_add_labels) = self.importer.import_doc(
+                self.file_uri, self.__config, self.__main_win.docsearch,
+                self.__main_win.doc)
+        finally:
+            self.__main_win.set_mouse_cursor("Normal")
 
         if docs is None or len(docs) <= 0:
             self.emit('no-doc-imported')
@@ -2402,108 +2404,115 @@ class MainWindow(object):
         }[layout]
         self.layouts['settings_button'].set_image(img)
 
-    def show_doc(self, doc, force_refresh=False):
-        if (self.doc is not None
-                and self.doc == doc
-                and not force_refresh):
-            logger.info("Doc is already shown")
-            return
+    def _show_doc(self, doc, force_refresh=False):
+        try:
+            if (self.doc is not None
+                    and self.doc == doc
+                    and not force_refresh):
+                logger.info("Doc is already shown")
+                return
 
-        logger.info("Showing document %s" % doc)
-        self.doc = doc
+            logger.info("Showing document %s" % doc)
+            self.doc = doc
 
-        self.schedulers['main'].cancel_all(
-            self.job_factories['page_img_loader']
-        )
-        self.schedulers['main'].cancel_all(
-            self.job_factories['page_boxes_loader']
-        )
-
-        self.img['canvas'].remove_all_drawers()
-        self.img['canvas'].add_drawer(self.progressbar)
-        assert(self.progressbar.canvas)
-
-        factories = {
-            'page_img_loader': self.job_factories['page_img_loader'],
-            'page_boxes_loader': self.job_factories['page_boxes_loader']
-        }
-        schedulers = {
-            'page_img_loader': self.schedulers['main'],
-            'page_boxes_loader': self.schedulers['page_boxes_loader'],
-        }
-
-        self.page_drawers = []
-        scan_drawers = {}
-        if self.doc.docid in self.scan_drawers:
-            scan_drawers = self.scan_drawers[self.doc.docid]
-
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
-
-        previous_drawer = None
-        first_scan_drawer = None
-        for page in doc.pages:
-            if page.page_nb in scan_drawers:
-                # scan drawers on existing pages ("redo OCR", etc)
-                drawer = scan_drawers.pop(page.page_nb)
-                drawer.previous_drawer = previous_drawer
-                drawer.relocate()
-                if not first_scan_drawer:
-                    first_scan_drawer = drawer
-            else:
-                # normal pages
-                drawer = PageDrawer(page, factories, schedulers,
-                                    previous_drawer,
-                                    show_boxes=(self.layout == 'paged'),
-                                    show_border=(self.layout == 'grid'),
-                                    show_all_boxes=self.show_all_boxes,
-                                    enable_editor=(self.layout == 'paged'),
-                                    sentence=search)
-                drawer.connect("page-selected", self._on_page_drawer_selected)
-                drawer.connect("page-edited", self._on_page_drawer_edited)
-                drawer.connect("page-deleted", self._on_page_drawer_deleted)
-            previous_drawer = drawer
-            self.page_drawers.append(drawer)
-            self.img['canvas'].add_drawer(drawer)
-
-        for drawer in scan_drawers.values():
-            # remaining scan drawers ("scan new page", etc)
-            drawer.previous_drawer = previous_drawer
-            drawer.relocate()
-            self.page_drawers.append(drawer)
-            self.img['canvas'].add_drawer(drawer)
-            previous_drawer = drawer
-            if not first_scan_drawer:
-                first_scan_drawer = drawer
-
-        # reset zoom level
-        self.set_zoom_level(1.0, auto=True)
-        self.update_page_sizes()
-        self.img['canvas'].recompute_size()
-        self.img['canvas'].upd_adjustments()
-
-        is_new = doc.is_new
-        can_edit = doc.can_edit
-
-        set_widget_state(self.need_doc_widgets, not is_new)
-        set_widget_state(self.need_page_widgets,
-                         not is_new and self.layout == 'paged')
-        set_widget_state(self.doc_edit_widgets, can_edit)
-
-        self.refresh_label_list()
-        self.refresh_header_bar()
-
-        self.doclist.set_selected_doc(self.doc)
-        self.doc_properties_panel.set_doc(doc)
-
-        if first_scan_drawer:
-            # focus on the activity
-            self.img['canvas'].get_vadjustment().set_value(
-                first_scan_drawer.position[1]
+            self.schedulers['main'].cancel_all(
+                self.job_factories['page_img_loader']
+            )
+            self.schedulers['main'].cancel_all(
+                self.job_factories['page_boxes_loader']
             )
 
-        if self.doc.can_edit:
-            self.img['canvas'].add_drawer(self.page_drop_handler)
-        self.page_drop_handler.set_enabled(self.doc.can_edit)
+            self.img['canvas'].remove_all_drawers()
+            self.img['canvas'].add_drawer(self.progressbar)
+            assert(self.progressbar.canvas)
+
+            factories = {
+                'page_img_loader': self.job_factories['page_img_loader'],
+                'page_boxes_loader': self.job_factories['page_boxes_loader']
+            }
+            schedulers = {
+                'page_img_loader': self.schedulers['main'],
+                'page_boxes_loader': self.schedulers['page_boxes_loader'],
+            }
+
+            self.page_drawers = []
+            scan_drawers = {}
+            if self.doc.docid in self.scan_drawers:
+                scan_drawers = self.scan_drawers[self.doc.docid]
+
+            search = unicode(self.search_field.get_text(), encoding='utf-8')
+
+            previous_drawer = None
+            first_scan_drawer = None
+            for page in doc.pages:
+                if page.page_nb in scan_drawers:
+                    # scan drawers on existing pages ("redo OCR", etc)
+                    drawer = scan_drawers.pop(page.page_nb)
+                    drawer.previous_drawer = previous_drawer
+                    drawer.relocate()
+                    if not first_scan_drawer:
+                        first_scan_drawer = drawer
+                else:
+                    # normal pages
+                    drawer = PageDrawer(page, factories, schedulers,
+                                        previous_drawer,
+                                        show_boxes=(self.layout == 'paged'),
+                                        show_border=(self.layout == 'grid'),
+                                        show_all_boxes=self.show_all_boxes,
+                                        enable_editor=(self.layout == 'paged'),
+                                        sentence=search)
+                    drawer.connect("page-selected", self._on_page_drawer_selected)
+                    drawer.connect("page-edited", self._on_page_drawer_edited)
+                    drawer.connect("page-deleted", self._on_page_drawer_deleted)
+                previous_drawer = drawer
+                self.page_drawers.append(drawer)
+                self.img['canvas'].add_drawer(drawer)
+
+            for drawer in scan_drawers.values():
+                # remaining scan drawers ("scan new page", etc)
+                drawer.previous_drawer = previous_drawer
+                drawer.relocate()
+                self.page_drawers.append(drawer)
+                self.img['canvas'].add_drawer(drawer)
+                previous_drawer = drawer
+                if not first_scan_drawer:
+                    first_scan_drawer = drawer
+
+            # reset zoom level
+            self.set_zoom_level(1.0, auto=True)
+            self.update_page_sizes()
+            self.img['canvas'].recompute_size()
+            self.img['canvas'].upd_adjustments()
+
+            is_new = doc.is_new
+            can_edit = doc.can_edit
+
+            set_widget_state(self.need_doc_widgets, not is_new)
+            set_widget_state(self.need_page_widgets,
+                            not is_new and self.layout == 'paged')
+            set_widget_state(self.doc_edit_widgets, can_edit)
+
+            self.refresh_label_list()
+            self.refresh_header_bar()
+
+            self.doclist.set_selected_doc(self.doc)
+            self.doc_properties_panel.set_doc(doc)
+
+            if first_scan_drawer:
+                # focus on the activity
+                self.img['canvas'].get_vadjustment().set_value(
+                    first_scan_drawer.position[1]
+                )
+
+            if self.doc.can_edit:
+                self.img['canvas'].add_drawer(self.page_drop_handler)
+            self.page_drop_handler.set_enabled(self.doc.can_edit)
+        finally:
+            self.set_mouse_cursor("Normal")
+
+    def show_doc(self, doc, force_refresh=False):
+        self.set_mouse_cursor("Busy")
+        GLib.idle_add(self._show_doc, doc, force_refresh)
 
     def refresh_header_bar(self):
         # Pages

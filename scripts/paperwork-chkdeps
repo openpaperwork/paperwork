@@ -113,7 +113,10 @@ DATA_FILES = [
     (
         "Gnome spinner icon"
         " (/usr/share/icons/gnome/(...)/process-working.png)",
-        "/usr/share/icons/gnome/48x48/animations/process-working.png",
+        [
+            "/usr/share/icons/gnome/48x48/animations/process-working.png",
+            "/usr/local/share/icons/gnome/48x48/animations/process-working.png",
+        ],
         {
             'debian': 'gnome-icon-theme',
             'ubuntu': 'gnome-icon-theme',
@@ -122,7 +125,11 @@ DATA_FILES = [
     (
         "Gnome symbolic icons"
         " (/usr/share/icons/gnome/(...)/go-previous-symbolic.svg",
-        "/usr/share/icons/gnome/scalable/actions/go-previous-symbolic.svg",
+        [
+            "/usr/share/icons/gnome/scalable/actions/go-previous-symbolic.svg",
+            "/usr/local/share/icons/gnome/scalable/"
+            "actions/go-previous-symbolic.svg",
+        ],
         {
             'debian': 'gnome-icon-theme-symbolic',
             'ubuntu': 'gnome-icon-theme-symbolic',
@@ -324,11 +331,16 @@ def check_cairo():
 
 
 def find_missing_data_files():
-    missing = []
-    for (user_name, file_path, packages) in DATA_FILES:
-        if not os.path.exists(file_path):
-            missing.append((user_name, "(none)", packages))
-    return missing
+    missings = []
+    for (user_name, file_paths, packages) in DATA_FILES:
+        missing = True
+        for file_path in file_paths:
+            if os.path.exists(file_path):
+                missing = False
+                break
+        if missing:
+            missings.append((user_name, "(none)", packages))
+    return missings
 
 
 def find_all_missing_deps():

@@ -5,7 +5,6 @@ import locale
 import os
 import platform
 import sys
-import time
 
 import enchant
 import termcolor
@@ -106,6 +105,17 @@ MODULES = [
             'linuxmint': 'python-gi-cairo',
             'ubuntu': 'python-gi-cairo',
             'suse': 'python-cairo',
+        },
+    ),
+]
+
+DATA_FILES = [
+    (
+        "Gnome spinner icon",
+        "/usr/share/icons/gnome/48x48/animations/process-working.png",
+        {
+            'debian': 'gnome-icon-theme',
+            'ubuntu': 'gnome-icon-theme',
         },
     ),
 ]
@@ -253,8 +263,6 @@ def find_missing_dict(lang):
 def check_cairo():
     missing = []
 
-    test_successful = False
-
     try:
         from gi.repository import GLib
         from gi.repository import Gtk
@@ -305,6 +313,14 @@ def check_cairo():
     return missing
 
 
+def find_missing_data_files():
+    missing = []
+    for (user_name, file_path, packages) in DATA_FILES:
+        if not os.path.exists(file_path):
+            missing.append((user_name, "(none)", packages))
+    return missing
+
+
 def find_all_missing_deps():
     lang = get_language()
 
@@ -314,6 +330,7 @@ def find_all_missing_deps():
     missing += find_missing_modules()
     missing += find_missing_ocr(lang)
     missing += find_missing_dict(lang)
+    missing += find_missing_data_files()
     missing += check_cairo()
     # TODO(Jflesch): check for sane ?
     return missing
@@ -339,7 +356,6 @@ if __name__ == "__main__":
     except getopt.GetoptError:
         usage()
         sys.exit(1)
-
 
     if not check_python_version():
         sys.exit(2)

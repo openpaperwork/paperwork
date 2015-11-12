@@ -14,7 +14,6 @@ from paperwork.backend.common.page import BasicPage
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.labels import Label
 from paperwork.frontend.labeleditor import LabelEditor
-from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.dialog import ask_confirmation
@@ -618,10 +617,13 @@ class DocList(object):
         connect_actions(self.actions)
 
         self.gui = widget_tree.get_object("listboxDocList")
+        self.scrollbars = widget_tree.get_object("scrolledwindowDocList")
         self.model = {
             'has_new': False,
             'by_row': {},  # Gtk.ListBoxRow: docid
             'by_id': {},  # docid: Gtk.ListBoxRow
+            # keep the thumbnails in cache
+            'thumbnails': {}  # docid: pixbuf
         }
         self.new_doc = ImgDoc(config['workdir'].value)
 
@@ -630,6 +632,9 @@ class DocList(object):
             'searcher': JobFactoryDocSearcher(main_win, config),
         }
         self.selected_doc = None
+
+        self.scrollbars.get_vadjustment().connect(
+            "value-changed", self._on_value_changed)
 
         self.gui.connect("drag-motion", self._on_drag_motion)
         self.gui.connect("drag-leave", self._on_drag_leave)
@@ -646,9 +651,57 @@ class DocList(object):
         img = add_img_border(img, 1)
         return image2pixbuf(img)
 
+    def _on_value_changed(self, vadjustment):
+        self.__main_win.schedulers['main'].cancel_all(
+            self.job_factories['doc_thumbnailer']
+        )
+
+        # XXX(Jflesch): assumptions: values are in px
+        value = vadjustment.get_value()
+        page_size = vadjustment.get_page_size()
+
+        start_y = value
+        end_y = value + page_size
+
+        start_row = self.gui.get_row_at_y(start_y)
+        end_row = self.gui.get_row_at_y(end_y)
+
+        start_idx = 0
+        if start_row:
+            start_idx = start_row.get_index()
+        end_idx = 0
+        if end_row:
+            end_idx = end_row.get_index() + 1
+        if start_row == end_row:
+            return
+        if end_idx < start_idx:
+            logger.warn("Thumbnailing: End_idx (%d) < start_idx (%d) !?"
+                        % (end_idx, start_idx))
+            end_idx = 99999999
+
+        documents = []
+        for row_idx in xrange(start_idx, end_idx):
+            row = self.gui.get_row_at_index(row_idx)
+            if row is None:
+                break
+            docid = self.model['by_row'][row]
+            if docid in self.model['thumbnails']:
+                # already loaded
+                continue
+            try:
+                doc = self.__main_win.docsearch.get(docid)
+                documents.append(doc)
+            except KeyError:
+                # Assume new document
+                pass
+
+        if len(documents) > 0:
+            job = self.job_factories['doc_thumbnailer'].make(documents)
+            self.__main_win.schedulers['main'].schedule(job)
+
     def _on_drag_motion(self, canvas, drag_context, x, y, time):
         target_row = self.gui.get_row_at_y(y)
-        if not target_row or not target_row in self.model['by_row']:
+        if not target_row or target_row not in self.model['by_row']:
             self._on_drag_leave(canvas, drag_context, time)
             return False
 
@@ -673,7 +726,7 @@ class DocList(object):
         page_id = data.get_text()
 
         target_row = self.gui.get_row_at_y(y)
-        if not target_row or not target_row in self.model['by_row']:
+        if not target_row or target_row not in self.model['by_row']:
             logger.warn("Drag-n-drop: Invalid doc row ?!")
             drag_context.finish(False, False, time)  # success = False
             return
@@ -752,9 +805,13 @@ class DocList(object):
         globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
         # thumbnail
-        thumbnail = Gtk.Image.new_from_pixbuf(self.default_thumbnail)
-        thumbnail.set_size_request(JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
-                                   JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
+        if doc.docid in self.model['thumbnails']:
+            thumbnail = self.model['thumbnails'][doc.docid]
+            thumbnail = Gtk.Image.new_from_pixbuf(thumbnail)
+        else:
+            thumbnail = Gtk.Image.new_from_pixbuf(self.default_thumbnail)
+            thumbnail.set_size_request(JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
+                                       JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
 
         globalbox.add(thumbnail)
 
@@ -835,8 +892,7 @@ class DocList(object):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui.select_row(row)
 
-        job = self.job_factories['doc_thumbnailer'].make(documents)
-        self.__main_win.schedulers['main'].schedule(job)
+        GLib.idle_add(self._on_value_changed, self.scrollbars.get_vadjustment())
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -889,6 +945,7 @@ class DocList(object):
             src, (float(doc_nb + 1) / total_docs),
             _("Loading thumbnails ...")
         )
+        self.model['thumbnails'][doc.docid] = thumbnail
         row = self.model['by_id'][doc.docid]
         box = row.get_children()[0]
         thumbnail_widget = box.get_children()[0]

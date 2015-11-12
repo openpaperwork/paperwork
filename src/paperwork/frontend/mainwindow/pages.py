@@ -1036,7 +1036,7 @@ GObject.type_register(PageDrawer)
 class PageDropHandler(Drawer):
     LINE_BORDERS = 10
     LINE_WIDTH = 3
-    LINE_COLOR = (0.2, 0.2, 1.0, 1.0)
+    LINE_COLOR = (0.0, 0.8, 1.0, 1.0)
 
     layer = Drawer.BOX_LAYER
 
@@ -1057,10 +1057,8 @@ class PageDropHandler(Drawer):
 
     def distance(self, mouse_x, mouse_y,
                  page_drawer_position, page_drawer_size):
-        # we compute the distances between the mouse cursor
-        # and the middle of each page
-        x = page_drawer_position[0] + (page_drawer_size[0] / 2)
-        y = page_drawer_position[1] + (page_drawer_size[1])
+        x = page_drawer_position[0] + page_drawer_size[0]
+        y = page_drawer_position[1] + (page_drawer_size[1] / 2)
 
         x -= mouse_x
         y -= mouse_y
@@ -1176,19 +1174,19 @@ class PageDropHandler(Drawer):
         position = self.target_previous_page_drawer.position
         size = self.target_previous_page_drawer.size
         return (
-            (position[0] + (size[0] / 2)),
-            (position[1] + (size[1] / 2))
+            (position[0] + size[0] + self.LINE_BORDERS),
+            (position[1] - self.LINE_BORDERS)
         )
 
     position = property(get_position)
 
     def get_size(self):
         if not self.target_previous_page_drawer:
-            return (50, 50)
+            return (2 * self.LINE_BORDERS, 50)
         size = self.target_previous_page_drawer.size
         return (
-            ((size[0] / 2) + (2 * self.LINE_BORDERS)),
-            ((size[1] / 2) + (2 * self.LINE_BORDERS))
+            (2 * self.LINE_BORDERS),
+            (size[1] + (2 * self.LINE_BORDERS))
         )
 
     size = property(get_size)
@@ -1207,39 +1205,27 @@ class PageDropHandler(Drawer):
 
         cairo_ctx.save()
         try:
-            if self.target_previous_page_drawer:
-                cairo_ctx.set_source_rgba(
-                    self.LINE_COLOR[0], self.LINE_COLOR[1],
-                    self.LINE_COLOR[2], self.LINE_COLOR[3])
-                cairo_ctx.set_line_width(self.LINE_WIDTH)
+            cairo_ctx.set_source_rgba(
+                self.LINE_COLOR[0], self.LINE_COLOR[1],
+                self.LINE_COLOR[2], self.LINE_COLOR[3])
+            cairo_ctx.set_line_width(self.LINE_WIDTH)
 
-                cairo_ctx.move_to(position[0] + size[0] - self.LINE_BORDERS,
-                                  position[1])
-                cairo_ctx.line_to(position[0] + size[0] - self.LINE_BORDERS,
-                                  position[1] + size[1])
-                cairo_ctx.stroke()
+            cairo_ctx.move_to(position[0] + self.LINE_BORDERS,
+                              position[1])
+            cairo_ctx.line_to(position[0] + self.LINE_BORDERS,
+                              position[1] + size[1])
+            cairo_ctx.stroke()
 
-                cairo_ctx.move_to(position[0],
-                                  position[1] + size[1] - self.LINE_BORDERS)
-                cairo_ctx.line_to(position[0] + size[0],
-                                  position[1] + size[1] - self.LINE_BORDERS)
-                cairo_ctx.stroke()
-            else:
-                cairo_ctx.set_source_rgba(
-                    self.LINE_COLOR[0], self.LINE_COLOR[1],
-                    self.LINE_COLOR[2], self.LINE_COLOR[3])
-                cairo_ctx.set_line_width(self.LINE_WIDTH)
+            cairo_ctx.move_to(position[0],
+                              position[1] + self.LINE_BORDERS)
+            cairo_ctx.line_to(position[0] + (2 * self.LINE_BORDERS),
+                              position[1] + self.LINE_BORDERS)
+            cairo_ctx.stroke()
 
-                cairo_ctx.move_to(position[0] + self.LINE_BORDERS,
-                                  position[1])
-                cairo_ctx.line_to(position[0] + self.LINE_BORDERS,
-                                  position[1] + size[1])
-                cairo_ctx.stroke()
-
-                cairo_ctx.move_to(position[0],
-                                  position[1] + self.LINE_BORDERS)
-                cairo_ctx.line_to(position[0] + size[0],
-                                  position[1] + self.LINE_BORDERS)
-                cairo_ctx.stroke()
+            cairo_ctx.move_to(position[0],
+                              position[1] + size[1] - self.LINE_BORDERS)
+            cairo_ctx.line_to(position[0] + (2 * self.LINE_BORDERS),
+                              position[1] + size[1] - self.LINE_BORDERS)
+            cairo_ctx.stroke()
         finally:
             cairo_ctx.restore()

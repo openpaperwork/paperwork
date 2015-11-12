@@ -2489,13 +2489,6 @@ class MainWindow(object):
                          not is_new and self.layout == 'paged')
         set_widget_state(self.doc_edit_widgets, can_edit)
 
-        # TODO
-        # pages_gui = self.lists['pages']['gui']
-        # if doc.can_edit:
-        #     pages_gui.enable_model_drag_source(0, [], Gdk.DragAction.MOVE)
-        #     pages_gui.drag_source_add_text_targets()
-        # else:
-        #     pages_gui.unset_model_drag_source()
         self.refresh_label_list()
         self.refresh_header_bar()
 

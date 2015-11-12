@@ -223,6 +223,8 @@ class JobDocThumbnailer(Job):
                 return
 
             pixbuf = image2pixbuf(img)
+            doc.drop_cache()
+
             self.emit('doc-thumbnailing-doc-done', pixbuf, doc,
                       idx, len(self.__doclist))
 

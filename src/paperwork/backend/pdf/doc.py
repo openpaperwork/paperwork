@@ -86,7 +86,7 @@ class PdfPages(object):
         if idx < 0:
             idx = self.pdf.get_n_pages() + idx
         if idx not in self.page:
-            self.page[idx] = PdfPage(self.pdfdoc, idx)
+            self.page[idx] = PdfPage(self.pdfdoc, self.pdf, idx)
         return self.page[idx]
 
     def __len__(self):
@@ -102,6 +102,7 @@ class PdfDoc(BasicDoc):
 
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
+        self._pdf = None
 
     def __get_last_mod(self):
         pdfpath = os.path.join(self.path, PDF_FILENAME)
@@ -132,15 +133,17 @@ class PdfDoc(BasicDoc):
         return ("%s/%s" % (self.path, PDF_FILENAME))
 
     def _open_pdf(self):
-        return Poppler.Document.new_from_file(
+        if self._pdf:
+            return self._pdf
+        self._pdf = Poppler.Document.new_from_file(
             ("file://%s/%s" % (urllib.quote(self.path), PDF_FILENAME)),
             password=None)
+        return self._pdf
 
     pdf = property(_open_pdf)
 
     def __get_pages(self):
-        pdf = self._open_pdf()
-        return PdfPages(self, pdf)
+        return PdfPages(self, self.pdf)
 
     pages = property(__get_pages)
 
@@ -148,8 +151,8 @@ class PdfDoc(BasicDoc):
         if self.is_new:
             # happens when a doc was recently deleted
             return 0
-        pdf = self._open_pdf()
-        return pdf.get_n_pages()
+        nb_pages = self.pdf.get_n_pages()
+        return nb_pages
 
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
@@ -181,6 +184,9 @@ class PdfDoc(BasicDoc):
 
     def drop_cache(self):
         BasicDoc.drop_cache(self)
+        if self._pdf:
+            del self._pdf
+        self._pdf = None
 
     def get_docfilehash(self):
         return BasicDoc.hash_file("%s/%s" % (self.path, PDF_FILENAME))

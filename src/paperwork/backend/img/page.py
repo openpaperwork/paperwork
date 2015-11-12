@@ -192,7 +192,7 @@ class ImgPage(BasicPage):
         cairo_context.set_source_surface(surface, 0, 0)
         cairo_context.paint()
 
-    def __ch_number(self, offset=0, factor=1):
+    def change_index(self, offset=0):
         """
         Move the page number by a given offset. Beware to not let any hole
         in the page numbers when doing this. Make sure also that the wanted
@@ -207,10 +207,9 @@ class ImgPage(BasicPage):
         page_nb = self.page_nb
 
         page_nb += offset
-        page_nb *= factor
 
-        logger.info("--> Moving page %d (+%d*%d) to index %d"
-                    % (self.page_nb, offset, factor, page_nb))
+        logger.info("--> Moving page %d (+%d) to index %d"
+                    % (self.page_nb, offset, page_nb))
 
         self.page_nb = page_nb
 
@@ -225,42 +224,6 @@ class ImgPage(BasicPage):
                     logger.error("Error: file already exists: %s" % dst[key])
                     assert(0)
                 os.rename(src[key], dst[key])
-
-    def change_index(self, new_index):
-        if (new_index == self.page_nb):
-            return
-
-        logger.info("Moving page %d to index %d" % (self.page_nb, new_index))
-
-        # we remove ourselves from the page list by turning our index into a
-        # negative number
-        page_nb = self.page_nb
-        self.__ch_number(offset=1, factor=-1)
-
-        if (page_nb < new_index):
-            move = 1
-            start = page_nb + 1
-            end = new_index + 1
-        else:
-            move = -1
-            start = page_nb - 1
-            end = new_index - 1
-
-        logger.info("Moving the other pages: %d, %d, %d" % (start, end, move))
-        for page_idx in range(start, end, move):
-            page = self.doc.pages[page_idx]
-            page.__ch_number(offset=-1*move)
-
-        # restore our index in the positive values,
-        # and move it the final index
-        diff = new_index - page_nb
-        diff *= -1  # our index is temporarily negative
-        self.__ch_number(offset=diff+1, factor=-1)
-
-        self.page_nb = new_index
-
-        self.drop_cache()
-        self.doc.drop_cache()
 
     def destroy(self):
         """
@@ -283,7 +246,7 @@ class ImgPage(BasicPage):
                 os.unlink(path)
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = doc_pages[page_nb]
-            page.__ch_number(offset=-1)
+            page.change_index(offset=-1)
         self.drop_cache()
         self.doc.drop_cache()
 
@@ -315,7 +278,7 @@ class ImgPage(BasicPage):
         else:
             for page_nb in range(other_page_nb + 1, other_doc_nb_pages):
                 page = other_doc_pages[page_nb]
-                page.__ch_number(offset=-1)
+                page.change_index(offset=-1)
 
         self.drop_cache()
 

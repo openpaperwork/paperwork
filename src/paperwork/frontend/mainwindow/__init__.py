@@ -34,6 +34,7 @@ from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
 from paperwork.frontend.mainwindow.docs import sort_documents_by_date
 from paperwork.frontend.mainwindow.pages import PageDrawer
+from paperwork.frontend.mainwindow.pages import PageDropHandler
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
 from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
 from paperwork.frontend.mainwindow.scan import ScanWorkflow
@@ -1847,6 +1848,10 @@ class MainWindow(object):
             }
         }
 
+        self.page_drop_handler = PageDropHandler(self)
+        self.img['canvas'].add_drawer(self.page_drop_handler)
+        self.page_drop_handler.set_enabled(self.doc.can_edit)
+
         self.popovers = {
             'view_settings': widget_tree.get_object("view_settings_popover"),
             'calendar': widget_tree.get_object("calendar_popover"),
@@ -2502,6 +2507,10 @@ class MainWindow(object):
             self.img['canvas'].get_vadjustment().set_value(
                 first_scan_drawer.position[1]
             )
+
+        if self.doc.can_edit:
+            self.img['canvas'].add_drawer(self.page_drop_handler)
+        self.page_drop_handler.set_enabled(self.doc.can_edit)
 
     def refresh_header_bar(self):
         # Pages

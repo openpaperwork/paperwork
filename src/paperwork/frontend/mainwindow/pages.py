@@ -15,6 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+import math
 import threading
 
 import gettext
@@ -282,7 +283,6 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over = False
         self.mouse_over_button = None
         self.previous_page_drawer = previous_page_drawer
-        self.mask = None  # tuple(R, G, B, A)
         self.is_drag_source = False
 
         self.surface = None
@@ -419,7 +419,6 @@ class PageDrawer(Drawer, GObject.GObject):
             return
         page_id = self.page.id
         logger.info("Drag-n-drop begin: selected: [%s]" % page_id)
-        self.mask = (0.0, 0.0, 0.0, 0.15)
         self.is_drag_source = True
         self.redraw()
 
@@ -433,7 +432,8 @@ class PageDrawer(Drawer, GObject.GObject):
     def _on_drag_failed(self, canvas, drag_context, result):
         if not self.is_drag_source:
             return
-        logger.info("Drag-n-drop failed: %d" % result)
+        page_id = self.page.id
+        logger.info("Drag-n-drop failed: %d ([%s])" % (result, page_id))
         self.is_drag_source = False
 
     def _on_drag_end(self, canvas, drag_context):
@@ -442,7 +442,6 @@ class PageDrawer(Drawer, GObject.GObject):
         page_id = self.page.id
         logger.info("Drag-n-drop end: selected: [%s]" % page_id)
         self.is_drag_source = False
-        self.mask = None
         self.redraw()
 
     def _on_size_allocate_cb(self, widget, size):
@@ -824,8 +823,8 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_editor_buttons(cairo_context)
             self.draw_editor_button_tooltip(cairo_context)
 
-        if self.mask:
-            self.draw_mask(cairo_context, self.mask)
+        if self.is_drag_source:
+            self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
@@ -871,7 +870,7 @@ class PageDrawer(Drawer, GObject.GObject):
         if self.mouse_over != inside:
             if inside and self.page.doc.can_edit:
                 self.canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [],
-                                    Gdk.DragAction.MOVE)
+                                            Gdk.DragAction.MOVE)
                 self.canvas.drag_source_add_text_targets()
             else:
                 self.canvas.drag_source_unset()
@@ -1032,3 +1031,215 @@ class PageDrawer(Drawer, GObject.GObject):
 
 
 GObject.type_register(PageDrawer)
+
+
+class PageDropHandler(Drawer):
+    LINE_BORDERS = 10
+    LINE_WIDTH = 3
+    LINE_COLOR = (0.2, 0.2, 1.0, 1.0)
+
+    layer = Drawer.BOX_LAYER
+
+    def __init__(self, main_win):
+        self.__main_win = main_win
+
+        # None = means the new page will be the first one
+        self.active = False
+        self.target_previous_page_drawer = None
+
+    def set_canvas(self, canvas):
+        super(PageDropHandler, self).set_canvas(canvas)
+        canvas = self.__main_win.img['canvas']
+        canvas.connect(self, "drag-motion", self._on_drag_motion)
+        canvas.connect(self, "drag-leave", self._on_drag_leave)
+        canvas.connect(self, "drag-drop", self._on_drag_drop)
+        canvas.connect(self, "drag-data-received", self._on_drag_data_received)
+
+    def distance(self, mouse_x, mouse_y,
+                 page_drawer_position, page_drawer_size):
+        # we compute the distances between the mouse cursor
+        # and the middle of each page
+        x = page_drawer_position[0] + (page_drawer_size[0] / 2)
+        y = page_drawer_position[1] + (page_drawer_size[1])
+
+        x -= mouse_x
+        y -= mouse_y
+
+        return math.hypot(x, y)
+
+    def _on_drag_motion(self, canvas, drag_context, mouse_x, mouse_y, time):
+        Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, time)
+        # issue a redraw order on our current position
+        self.redraw()
+
+        self.active = True
+
+        mouse_x += self.canvas.offset[0]
+        mouse_y += self.canvas.offset[1]
+
+        distances = [
+            (
+                self.distance(mouse_x, mouse_y, drawer.position, drawer.size),
+                drawer
+            )
+            for drawer in self.__main_win.page_drawers
+        ]
+
+        # we must to provide a position for a fake page -1
+        first_page_position = (0, 0)
+        first_page_size = (0, 0)
+        if len(self.__main_win.page_drawers) > 0:
+            first_page_position = self.__main_win.page_drawers[0].position
+            first_page_size = self.__main_win.page_drawers[0].size
+        first_page_position = (0, first_page_position[1])
+
+        distances.append(
+            (
+                self.distance(mouse_x, mouse_y,
+                              first_page_position, first_page_size),
+                None
+            )
+        )
+        distances.sort()
+
+        if len(distances) <= 0:
+            self.target_previous_page_drawer = None
+        else:
+            self.target_previous_page_drawer = distances[0][1]
+
+        # issue a redraw order on our new position
+        GLib.idle_add(self.redraw)
+        return True
+
+    def _on_drag_leave(self, canvas, drag_context, time):
+        # issue a redraw order on our current position
+        self.active = False
+        self.redraw()
+
+    def _on_drag_drop(self, canvas, drag_context, x, y, time):
+        # issue a redraw order on our current position
+        self.active = False
+        self.redraw()
+        return True
+
+    def _on_drag_data_received(self, canvas, drag_context,
+                               x, y, data, info, time):
+        # issue a redraw order on our current position
+        self.active = False
+
+        page_id = data.get_text()
+        src_page = self.__main_win.docsearch.get(page_id)
+        dst_doc = self.__main_win.doc
+
+        if self.target_previous_page_drawer:
+            dst_page_nb = self.target_previous_page_drawer.page.page_nb + 1
+        else:
+            dst_page_nb = 0
+
+        logger.info("Drag-n-drop page: %s --> %s %d"
+                    % (str(src_page), str(dst_doc), dst_page_nb))
+
+        if ((dst_page_nb == src_page.page_nb or dst_page_nb == src_page.page_nb + 1)
+                and dst_doc.docid == src_page.doc.docid):
+            logger.warn("Drag-n-drop: Dropped to the original position")
+            drag_context.finish(False, False, time)  # success = True
+            return
+
+        # pop the page ..
+        boxes = src_page.boxes
+        img = src_page.img
+        src_page.destroy()
+
+        if (dst_doc.docid == src_page.doc.docid
+            and dst_page_nb > src_page.page_nb):
+            dst_page_nb -= 1
+
+        # .. and re-add it
+        dst_page = dst_doc.insert_page(img, boxes, dst_page_nb)
+
+        drag_context.finish(True, True, time)  # success = True
+        self.__main_win.show_page(dst_page, force_refresh=True)
+        self.__main_win.upd_index({src_page.doc, dst_page.doc})
+
+    def set_enabled(self, enabled):
+        canvas = self.__main_win.img['canvas']
+
+        if not enabled:
+            canvas.drag_dest_unset()
+        else:
+            canvas.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
+            canvas.drag_dest_add_text_targets()
+
+    def get_position(self):
+        if not self.target_previous_page_drawer:
+            return (0, 0)
+        position = self.target_previous_page_drawer.position
+        size = self.target_previous_page_drawer.size
+        return (
+            (position[0] + (size[0] / 2)),
+            (position[1] + (size[1] / 2))
+        )
+
+    position = property(get_position)
+
+    def get_size(self):
+        if not self.target_previous_page_drawer:
+            return (50, 50)
+        size = self.target_previous_page_drawer.size
+        return (
+            ((size[0] / 2) + (2 * self.LINE_BORDERS)),
+            ((size[1] / 2) + (2 * self.LINE_BORDERS))
+        )
+
+    size = property(get_size)
+
+    def do_draw(self, cairo_ctx):
+        if not self.active:
+            return
+
+        position = self.position
+        size = self.size
+
+        position = (
+            position[0] - self.canvas.offset[0],
+            position[1] - self.canvas.offset[1]
+        )
+
+        cairo_ctx.save()
+        try:
+            if self.target_previous_page_drawer:
+                cairo_ctx.set_source_rgba(
+                    self.LINE_COLOR[0], self.LINE_COLOR[1],
+                    self.LINE_COLOR[2], self.LINE_COLOR[3])
+                cairo_ctx.set_line_width(self.LINE_WIDTH)
+
+                cairo_ctx.move_to(position[0] + size[0] - self.LINE_BORDERS,
+                                  position[1])
+                cairo_ctx.line_to(position[0] + size[0] - self.LINE_BORDERS,
+                                  position[1] + size[1])
+                cairo_ctx.stroke()
+
+                cairo_ctx.move_to(position[0],
+                                  position[1] + size[1] - self.LINE_BORDERS)
+                cairo_ctx.line_to(position[0] + size[0],
+                                  position[1] + size[1] - self.LINE_BORDERS)
+                cairo_ctx.stroke()
+            else:
+                cairo_ctx.set_source_rgba(
+                    self.LINE_COLOR[0], self.LINE_COLOR[1],
+                    self.LINE_COLOR[2], self.LINE_COLOR[3])
+                cairo_ctx.set_line_width(self.LINE_WIDTH)
+
+                cairo_ctx.move_to(position[0] + self.LINE_BORDERS,
+                                  position[1])
+                cairo_ctx.line_to(position[0] + self.LINE_BORDERS,
+                                  position[1] + size[1])
+                cairo_ctx.stroke()
+
+                cairo_ctx.move_to(position[0],
+                                  position[1] + self.LINE_BORDERS)
+                cairo_ctx.line_to(position[0] + size[0],
+                                  position[1] + self.LINE_BORDERS)
+                cairo_ctx.stroke()
+        finally:
+            cairo_ctx.restore()

@@ -317,11 +317,33 @@ class ImgDoc(BasicDoc):
 
     def add_page(self, img, boxes):
         mkdir_p(self.path)
+        logger.info("Adding page %d to %s" % (self.nb_pages, str(self)))
         page = ImgPage(self, self.nb_pages)
         page.img = img
         page.boxes = boxes
         self.drop_cache()
         return self.pages[-1]
+
+    def insert_page(self, img, boxes, page_nb):
+        mkdir_p(self.path)
+
+        logger.info("Inserting page %d to %s" % (page_nb, str(self)))
+
+        if page_nb > self.nb_pages:
+            page_nb = self.nb_pages
+
+        # make a hole ..
+        pages = self.pages
+        for page_nb in range(self.nb_pages - 1, page_nb - 1, -1):
+            page = pages[page_nb]
+            page.change_index(offset=1)
+
+        # .. and fill it
+        page = ImgPage(self, page_nb)
+        page.img = img
+        page.boxes = boxes
+        self.drop_cache()
+        return self.pages[page_nb]
 
 
 def is_img_doc(docpath):

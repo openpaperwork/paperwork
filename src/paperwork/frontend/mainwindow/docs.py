@@ -629,6 +629,8 @@ class DocList(object):
         }
         self.selected_doc = None
 
+        self.gui.connect("drag-motion", self._on_drag_motion)
+        self.gui.connect("drag-leave", self._on_drag_leave)
         self.gui.connect("drag-data-received", self._on_drag_data_received)
         self.gui.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
         self.gui.drag_dest_add_text_targets()
@@ -641,6 +643,28 @@ class DocList(object):
         ), color="#EEEEEE")
         img = add_img_border(img, 1)
         return image2pixbuf(img)
+
+    def _on_drag_motion(self, canvas, drag_context, x, y, time):
+        target_row = self.gui.get_row_at_y(y)
+        if not target_row or not target_row in self.model['by_row']:
+            self._on_drag_leave(canvas, drag_context, time)
+            return False
+
+        target_docid = self.model['by_row'][target_row]
+        target_doc = self.__main_win.docsearch.get(target_docid)
+
+        if not target_doc.can_edit:
+            self._on_drag_leave(canvas, drag_context, time)
+            return False
+
+        Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, time)
+
+        self.gui.drag_unhighlight_row()
+        self.gui.drag_highlight_row(target_row)
+        return True
+
+    def _on_drag_leave(self, canvas, drag_context, time):
+        self.gui.drag_unhighlight_row()
 
     def _on_drag_data_received(self, widget, drag_context,
                                x, y, data, info, time):
@@ -677,7 +701,7 @@ class DocList(object):
         src_page.destroy()
         if src_page.doc.nb_pages <= 0:
             src_page.doc.destroy()
-        drag_context.finish(True, True, time)
+        drag_context.finish(True, True, time)  # success = True
 
         GLib.idle_add(self.__on_drag_reload, src_page,
                       {target_doc, src_page.doc})

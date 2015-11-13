@@ -51,8 +51,7 @@ class LabelEditor(object):
 
         dialog = widget_tree.get_object("dialogLabelEditor")
         dialog.set_transient_for(main_window)
-        self.__cancel_button = widget_tree.get_object("properties-label-button-cancel")
-        self.__ok_button = widget_tree.get_object("properties-label-button-ok")
+        self.__ok_button = widget_tree.get_object("buttonOk")
 
         color_chooser = widget_tree.get_object("labelColorChooser")
         color_chooser.set_rgba(self.label.color)

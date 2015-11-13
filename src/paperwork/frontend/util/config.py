@@ -338,6 +338,10 @@ def get_scanner(config, preferred_sources=None):
             if "Color" in dev.options['mode'].constraint:
                 dev.options['mode'].value = "Color"
                 logger.info("Scanner mode set to 'Color'")
+            elif "24bit Color" in dev.options['mode'].constraint:
+                # Brother MVC-J410 support ... (@$*#@#!!)
+                dev.options['mode'].value = "24bit Color"
+                logger.info("Scanner mode set to '24bit Color'")
             elif "Gray" in dev.options['mode'].constraint:
                 dev.options['mode'].value = "Gray"
                 logger.info("Scanner mode set to 'Gray'")

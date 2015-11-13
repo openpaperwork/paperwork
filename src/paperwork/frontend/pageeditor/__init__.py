@@ -54,7 +54,7 @@ class PageRotationAction(PageEditionAction):
 
     def do(self, img, img_scale):
         # PIL angle is counter-clockwise. Ours is clockwise
-        return img.rotate(angle=-1 * self.angle)
+        return img.rotate(angle=-1 * self.angle, expand=True)
 
     def add_to_action_queue(self, actions):
         for action in actions:

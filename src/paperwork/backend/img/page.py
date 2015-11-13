@@ -171,7 +171,7 @@ class ImgPage(BasicPage):
             img_orientation = ORIENTATION_LANDSCAPE
         if print_orientation != img_orientation:
             logger.info("Rotating the page ...")
-            img = img.rotate(90)
+            img = img.rotate(90, expand=True)
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...

@@ -206,7 +206,7 @@ class PageRotationAction(PageEditionAction):
 
     def do(self, img):
         # PIL angle is counter-clockwise. Ours is clockwise
-        return img.rotate(angle=-1 * self.angle)
+        return img.rotate(angle=-1 * self.angle, expand=True)
 
     def __str__(self):
         return _("Image rotation of %d degrees") % self.angle

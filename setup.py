@@ -50,7 +50,6 @@ setup(
         'paperwork.frontend.labeleditor',
         'paperwork.frontend.mainwindow',
         'paperwork.frontend.multiscan',
-        'paperwork.frontend.pageeditor',
         'paperwork.frontend.searchdialog',
         'paperwork.frontend.settingswindow',
         'paperwork.frontend.util',
@@ -71,7 +70,6 @@ setup(
         'src/paperwork/frontend/labeleditor',
         'paperwork.frontend.mainwindow': 'src/paperwork/frontend/mainwindow',
         'paperwork.frontend.multiscan': 'src/paperwork/frontend/multiscan',
-        'paperwork.frontend.pageeditor': 'src/paperwork/frontend/pageeditor',
         'paperwork.frontend.settingswindow':
         'src/paperwork/frontend/settingswindow',
         'paperwork.frontend.searchdialog':
@@ -141,12 +139,6 @@ setup(
             os.path.join(sys.prefix, 'share/paperwork/multiscan'),
             [
                 'src/paperwork/frontend/multiscan/multiscan.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/pageeditor'),
-            [
-                'src/paperwork/frontend/pageeditor/pageeditor.glade',
             ]
         ),
         (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),

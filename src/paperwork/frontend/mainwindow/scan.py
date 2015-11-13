@@ -281,7 +281,7 @@ class JobOCR(Job):
 
 
     def do_ocr_with_custom_heuristic(self, img):
-        imgs = {angle: img.rotate(angle) for angle in self.angles}
+        imgs = {angle: img.rotate(angle, expand=True) for angle in self.angles}
         self.emit('ocr-angles', imgs.keys())
 
         if len(imgs) <= 0:

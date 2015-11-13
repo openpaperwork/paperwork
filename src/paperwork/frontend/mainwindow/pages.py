@@ -944,17 +944,18 @@ class PageDrawer(Drawer, GObject.GObject):
         click_y = event.y
 
         # check first if the user clicked on a button
-        buttons = self.editor_buttons[self.editor_state]
-        for (b_position, button_pix, callback, tooltip) in buttons:
-            (button_x, button_y) = self._get_button_position(b_position)
-            button_x += self.canvas.offset[0]
-            button_y += self.canvas.offset[1]
-            if (button_x <= click_x
-                    and button_y <= click_y
-                    and click_x <= button_x + self.BUTTON_SIZE
-                    and click_y <= button_y + self.BUTTON_SIZE):
-                callback()
-                return
+        if self.enable_editor:
+            buttons = self.editor_buttons[self.editor_state]
+            for (b_position, button_pix, callback, tooltip) in buttons:
+                (button_x, button_y) = self._get_button_position(b_position)
+                button_x += self.canvas.offset[0]
+                button_y += self.canvas.offset[1]
+                if (button_x <= click_x
+                        and button_y <= click_y
+                        and click_x <= button_x + self.BUTTON_SIZE
+                        and click_y <= button_y + self.BUTTON_SIZE):
+                    callback()
+                    return
 
         if self.editor_state == "before":
             self.emit('page-selected')

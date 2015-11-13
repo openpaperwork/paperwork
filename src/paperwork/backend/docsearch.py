@@ -236,6 +236,14 @@ class DocIndexUpdater(GObject.GObject):
         dochash = doc.get_docfilehash()
         dochash = (u"%X" % dochash)
 
+        doc_txt = doc.get_index_text()
+        assert(isinstance(doc_txt, unicode))
+        labels_txt = doc.get_index_labels()
+        assert(isinstance(labels_txt, unicode))
+
+        query = whoosh.query.Term("docid", docid)
+        index_writer.delete_by_query(query)
+
         index_writer.update_document(
             docid=docid,
             doctype=doc.doctype,
@@ -756,6 +764,9 @@ class DocSearch(object):
             An array of sets of keywords. Each set of keywords (-> one string)
             is a suggestion.
         """
+        if not isinstance(sentence, unicode):
+            sentence = unicode(sentence, encoding="UTF-8")
+
         keywords = sentence.split(" ")
         final_suggestions = []
 

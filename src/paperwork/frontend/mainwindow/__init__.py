@@ -944,7 +944,9 @@ class ActionOpenPageNb(SimpleAction):
             page_nb = int(page_nb) - 1
         except ValueError:
             return
-        if page_nb < 0 or page_nb > self.__main_win.doc.nb_pages:
+        if page_nb > self.__main_win.doc.nb_pages:
+            page_nb = self.__main_win.doc.nb_pages - 1
+        if page_nb < 0:
             return
         page = self.__main_win.doc.pages[page_nb]
         self.__main_win.show_page(page)
@@ -2521,10 +2523,7 @@ class MainWindow(object):
 
     def refresh_header_bar(self):
         # Pages
-        if self.doc.nb_pages > 0:
-            page = self.doc.pages[0]
-        else:
-            page = DummyPage(self.doc)
+        page = self.page
         self.__select_page(page)
         self.page_nb['total'].set_text(_("/ %d") % (self.doc.nb_pages))
 
@@ -2535,14 +2534,11 @@ class MainWindow(object):
         if page is None:
             return
 
-        if page.page_nb == 0 or page.page_nb == 1:
-            assert()
+        logger.info("Showing page %s" % page)
+        self.page = page
 
         if (page.doc != self.doc or force_refresh):
             self._show_doc_internal(page.doc, force_refresh)
-
-        logger.info("Showing page %s" % page)
-        self.page = page
 
         drawer = None
         for d in self.page_drawers:
@@ -2708,9 +2704,12 @@ class MainWindow(object):
 
     def __select_page(self, page):
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
-        self.actions['set_current_page'][1].enabled = False
-        self.page_nb['current'].set_text("%d" % (page.page_nb + 1))
-        self.actions['set_current_page'][1].enabled = True
+        new_text = "%d" % (page.page_nb + 1)
+        current_text = self.page_nb['current'].get_text()
+        if new_text.strip() != current_text.strip():
+            self.actions['set_current_page'][1].enabled = False
+            self.page_nb['current'].set_text(new_text)
+            self.actions['set_current_page'][1].enabled = True
 
     def __on_img_window_moved(self):
         pos = self.img['canvas'].position

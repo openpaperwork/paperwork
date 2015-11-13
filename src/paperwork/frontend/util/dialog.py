@@ -58,6 +58,6 @@ def ask_confirmation(parent):
     response = confirm.run()
     confirm.destroy()
     if response != Gtk.ResponseType.YES:
-        logging.info("User cancelled")
+        logger.info("User cancelled")
         return False
     return True

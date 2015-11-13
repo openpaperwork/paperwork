@@ -2534,7 +2534,7 @@ class MainWindow(object):
         if (page.doc != self.doc or force_refresh):
             self.show_doc(page.doc, force_refresh)
 
-        logging.info("Showing page %s" % page)
+        logger.info("Showing page %s" % page)
         self.page = page
 
         drawer = None
@@ -2549,7 +2549,7 @@ class MainWindow(object):
             )
 
         if self.export['exporter'] is not None:
-            logging.info("Canceling export")
+            logger.info("Canceling export")
             self.actions['cancel_export'][1].do()
 
         self.export['dialog'].set_visible(False)

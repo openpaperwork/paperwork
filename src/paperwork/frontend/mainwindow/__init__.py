@@ -2704,7 +2704,10 @@ class MainWindow(object):
 
     def __select_page(self, page):
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
-        new_text = "%d" % (page.page_nb + 1)
+        if page:
+            new_text = "%d" % (page.page_nb + 1)
+        else:
+            new_text = ""
         current_text = self.page_nb['current'].get_text()
         if new_text.strip() != current_text.strip():
             self.actions['set_current_page'][1].enabled = False

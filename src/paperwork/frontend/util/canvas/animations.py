@@ -165,7 +165,8 @@ class ScanAnimation(Animation):
 
 
 class SpinnerAnimation(Animation):
-    ICON_SIZE = 48
+    SRC_SIZE = 32
+    ICON_SIZE = 64
 
     layer = Drawer.PROGRESSION_INDICATOR_LAYER
 
@@ -176,7 +177,7 @@ class SpinnerAnimation(Animation):
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 
         icon_theme = Gtk.IconTheme.get_default()
-        icon_info = icon_theme.lookup_icon("process-working", self.ICON_SIZE,
+        icon_info = icon_theme.lookup_icon("process-working", self.SRC_SIZE,
                                            Gtk.IconLookupFlags.NO_SVG)
         if not icon_info:
             logger.warning("Spinner icon not available")
@@ -187,8 +188,8 @@ class SpinnerAnimation(Animation):
             self.icon_pixbuf = icon_info.load_icon()
             self.frame = 1
             self.nb_frames = (
-                (max(1, self.icon_pixbuf.get_width() / self.ICON_SIZE)),
-                (max(1, self.icon_pixbuf.get_height() / self.ICON_SIZE)),
+                (max(1, self.icon_pixbuf.get_width() / self.SRC_SIZE)),
+                (max(1, self.icon_pixbuf.get_height() / self.SRC_SIZE)),
             )
 
     def on_tick(self):
@@ -213,8 +214,8 @@ class SpinnerAnimation(Animation):
             (self.frame / self.nb_frames[0]),
         )
         frame = (
-            (frame[0] * self.ICON_SIZE),
-            (frame[1] * self.ICON_SIZE),
+            (frame[0] * self.SRC_SIZE),
+            (frame[1] * self.SRC_SIZE),
         )
 
         img_offset = (max(0, self.canvas.offset[0] - self.position[0]),
@@ -223,20 +224,22 @@ class SpinnerAnimation(Animation):
             img_offset[0] + frame[0],
             img_offset[1] + frame[1],
         )
-        target_offset = (max(0, self.position[0] - self.canvas.offset[0]),
-                         max(0, self.position[1] - self.canvas.offset[1]))
+        target_offset = self.position
 
         cairo_ctx.save()
         try:
+            cairo_ctx.translate(target_offset[0], target_offset[1])
+            cairo_ctx.translate(-self.canvas.offset[0], -self.canvas.offset[1])
+            scale = float(self.ICON_SIZE) / self.SRC_SIZE
+            cairo_ctx.scale(scale, scale)
             Gdk.cairo_set_source_pixbuf(
                 cairo_ctx, self.icon_pixbuf,
-                (target_offset[0] - img_offset[0]),
-                (target_offset[1] - img_offset[1]),
+                -1 * img_offset[0],
+                -1 * img_offset[1],
             )
-            cairo_ctx.rectangle(target_offset[0],
-                                target_offset[1],
-                                self.ICON_SIZE,
-                                self.ICON_SIZE)
+            cairo_ctx.rectangle(0, 0,
+                                self.SRC_SIZE,
+                                self.SRC_SIZE)
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

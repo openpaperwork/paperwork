@@ -152,6 +152,7 @@
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">False</property>
+                                <property name="model">liststoreLoading</property>
                                 <property name="active">0</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext1"/>
@@ -173,6 +174,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="margin_top">2</property>
                                 <property name="active">0</property>
+                                <property name="model">liststoreLoading</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext5"/>
                                   <attributes>
@@ -191,6 +193,7 @@
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">False</property>
                                 <property name="active">0</property>
+                                <property name="model">liststoreLoading</property>
                                 <child>
                                   <object class="GtkCellRendererText" id="cellrenderertext2"/>
                                   <attributes>
@@ -525,6 +528,20 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="liststoreLoading">
+    <columns>
+      <!-- column-name userName -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">Loading ...</col>
+        <col id="1"></col>
+      </row>
+    </data>
   </object>
   <object class="GtkListStore" id="liststoreResolution">
     <columns>

@@ -284,6 +284,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over_button = None
         self.previous_page_drawer = previous_page_drawer
         self.is_drag_source = False
+        self.drag_enabled = True
 
         self.surface = None
         self.boxes = {
@@ -852,6 +853,15 @@ class PageDrawer(Drawer, GObject.GObject):
 
         self.canvas.redraw((position, size))
 
+    def set_drag_enabled(self, drag):
+        self.drag_enabled = drag
+        if drag:
+            self.canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [],
+                                        Gdk.DragAction.MOVE)
+            self.canvas.drag_source_add_text_targets()
+        else:
+            self.canvas.drag_source_unset()
+
     def _on_mouse_motion(self, event):
         position = self.position
         size = self.size
@@ -868,12 +878,9 @@ class PageDrawer(Drawer, GObject.GObject):
                   and event_y < position[1] + size[1])
 
         if self.mouse_over != inside:
-            if inside and self.page.doc.can_edit:
-                self.canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [],
-                                            Gdk.DragAction.MOVE)
-                self.canvas.drag_source_add_text_targets()
-            else:
-                self.canvas.drag_source_unset()
+            self.set_drag_enabled(
+                inside and self.page.doc.can_edit and self.drag_enabled
+            )
 
             self.mouse_over = inside
             must_redraw = True
@@ -965,6 +972,7 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _on_edit_start(self):
         logger.info("Starting page editing")
+        self.set_drag_enabled(False)
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
         self.redraw()
@@ -995,6 +1003,11 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.redraw()
 
     def _on_edit_done(self):
+        self.set_drag_enabled(True)
+        if self.editor_grips:
+            logger.info("Stopping page cropping")
+            self.editor_grips.destroy()
+            self.editor_grips = None
         self.editor_state = "before"
         self.angle = 0
         self.hide()
@@ -1138,7 +1151,8 @@ class PageDropHandler(Drawer):
         logger.info("Drag-n-drop page: %s --> %s %d"
                     % (str(src_page), str(dst_doc), dst_page_nb))
 
-        if ((dst_page_nb == src_page.page_nb or dst_page_nb == src_page.page_nb + 1)
+        if ((dst_page_nb == src_page.page_nb
+                or dst_page_nb == src_page.page_nb + 1)
                 and dst_doc.docid == src_page.doc.docid):
             logger.warn("Drag-n-drop: Dropped to the original position")
             drag_context.finish(False, False, time)  # success = True
@@ -1150,7 +1164,7 @@ class PageDropHandler(Drawer):
         src_page.destroy()
 
         if (dst_doc.docid == src_page.doc.docid
-            and dst_page_nb > src_page.page_nb):
+                and dst_page_nb > src_page.page_nb):
             dst_page_nb -= 1
 
         # .. and re-add it

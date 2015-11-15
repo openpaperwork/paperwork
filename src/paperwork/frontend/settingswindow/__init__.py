@@ -859,9 +859,9 @@ class SettingsWindow(GObject.GObject):
 
         self.__scan_start = time.time()
 
-        elf.__scan_progress_job = self.job_factories['progress_updater'].make(
+        self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=1.0,
-            total_time=self.__config['scan_time'].value['calibration'])
+            total_time= self.__config['scan_time'].value['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_info(self, size):
@@ -889,8 +889,9 @@ class SettingsWindow(GObject.GObject):
             calibration = calibration[1]
         img_drawer = PillowImageDrawer((0, 0), self.calibration['image'])
         self.calibration['image_gui'].remove_all_drawers()
+        self.calibration['image_gui'].add_drawer(img_drawer)
         self.grips = ImgGripHandler(
-            self.calibration['image'], self.calibration['image_gui'],
+            img_drawer, self.calibration['image_gui'],
             self.calibration['zoom'],
             default_grips_positions=calibration
         )

@@ -285,8 +285,7 @@ def load_config():
     return config
 
 
-def get_scanner(config, preferred_sources=None):
-    devid = config['scanner_devid'].value
+def _get_scanner(config, devid, preferred_sources=None):
     logger.info("Will scan using %s" % str(devid))
     resolution = config['scanner_resolution'].value
     logger.info("Will scan at a resolution of %d" % resolution)
@@ -354,3 +353,24 @@ def get_scanner(config, preferred_sources=None):
 
     maximize_scan_area(dev)
     return (dev, resolution)
+
+
+def get_scanner(config, preferred_sources=None):
+    devid = config['scanner_devid'].value
+
+    try:
+        return _get_scanner(config, devid, preferred_sources)
+    except pyinsane.SaneException as exc:
+        logger.warning("Exception while configuring scanner: %s: %s"
+                       % (type(exc), exc))
+        if (int(exc.status) != pyinsane.SaneStatus.IO_ERROR
+            and int(exc.status) != pyinsane.SaneStatus.UNSUPPORTED
+            and int(exc.status) != pyinsane.SaneStatus.INVAL):
+            raise
+        # we didn't find the scanner at the given ID
+        # but maybe there is only one, so we can guess the scanner to use
+        devices = pyinsane.get_devices()
+        if len(devices) != 1:
+            raise
+        logger.info("Will try another scanner id: %s" % devices[0].name)
+        return _get_scanner(config, devices[0].name, preferred_sources)

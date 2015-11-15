@@ -57,14 +57,24 @@ class ImgGrip(Drawer):
 
     def __get_on_canvas_pos(self):
         drawer_position = self.handler.img_drawer.position
-        x = int(self.scale * self._img_position[0]) + drawer_position[0]
-        y = int(self.scale * self._img_position[1]) + drawer_position[1]
+        x = int(self._img_position[0] * self.scale) + drawer_position[0]
+        y = int(self._img_position[1] * self.scale) + drawer_position[1]
         return (x, y)
 
-    position = property(__get_on_canvas_pos)
+    def __set_on_canvas_pos(self, position):
+        drawer_position = self.handler.img_drawer.position
+        position = (
+            (position[0] - drawer_position[0]) / self.scale,
+            (position[1] - drawer_position[1]) / self.scale
+        )
+        self.__set_img_position(position)
+
+    position = property(__get_on_canvas_pos, __set_on_canvas_pos)
 
     def __get_select_area(self, pos):
-        (x, y) = pos
+        (x, y) = self._img_position
+        x *= self.scale
+        y *= self.scale
         x_min = x - (self.GRIP_SIZE / 2)
         y_min = y - (self.GRIP_SIZE / 2)
         x_max = x + (self.GRIP_SIZE / 2)
@@ -83,19 +93,20 @@ class ImgGrip(Drawer):
             True or False
         """
         ((x_min, y_min), (x_max, y_max)) = \
-            self.__get_select_area(self.__get_img_position())
+            self.__get_select_area(self.position)
         return (x_min <= position[0] and position[0] <= x_max
                 and y_min <= position[1] and position[1] <= y_max)
 
     def do_draw(self, cairo_ctx):
         if not self.visible:
             return
+        drawer_position = self.handler.img_drawer.position
         ((a_x, a_y), (b_x, b_y)) = \
             self.__get_select_area(self.__get_on_canvas_pos())
-        a_x -= self.canvas.offset[0]
-        a_y -= self.canvas.offset[1]
-        b_x -= self.canvas.offset[0]
-        b_y -= self.canvas.offset[1]
+        a_x += drawer_position[0] - self.canvas.offset[0]
+        a_y += drawer_position[1] - self.canvas.offset[1]
+        b_x += drawer_position[0] - self.canvas.offset[0]
+        b_y += drawer_position[1] - self.canvas.offset[1]
 
         if self.selected:
             color = self.SELECTED_COLOR
@@ -170,6 +181,8 @@ class ImgGripHandler(GObject.GObject):
                 being the size of the image
         """
         GObject.GObject.__init__(self)
+        assert(img_drawer)
+        assert(canvas)
 
         self.zoom_widget = zoom_widget
 
@@ -344,9 +357,7 @@ class ImgGripHandler(GObject.GObject):
         if not self.selected:
             return None
 
-        new_x = event_pos[0] / self.scale
-        new_y = event_pos[1] / self.scale
-        self.selected.img_position = (new_x, new_y)
+        self.selected.position = (event_pos[0], event_pos[1])
 
     def __on_mouse_motion_cb(self, widget, event):
         if not self.visible:
@@ -356,7 +367,7 @@ class ImgGripHandler(GObject.GObject):
         event_y = event.y - self.img_drawer.position[1]
 
         if self.selected:
-            self.__move_grip((event_x, event_y))
+            self.__move_grip((event.x, event.y))
             is_on_grip = True
             self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
         else:
@@ -385,8 +396,8 @@ class ImgGripHandler(GObject.GObject):
             # figure out the cursor position on the image
             (img_w, img_h) = self.img_size
             rel_cursor_pos = (
-                float(event_x) / (img_w * self.scale),
-                float(event_y) / (img_h * self.scale),
+                float(event_x) / (img_w / self.scale),
+                float(event_y) / (img_h / self.scale),
             )
             self.toggle_zoom(rel_cursor_pos)
             self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)

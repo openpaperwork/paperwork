@@ -443,7 +443,6 @@ class BasicScanWorkflowDrawer(Animation):
                           + PageDrawer.MARGIN)
         self.position = (position_w, position_h)
 
-
     def __get_size(self):
         assert(self.canvas)
         return (
@@ -677,7 +676,7 @@ class BasicScanWorkflowDrawer(Animation):
         drawers = self.ocr_drawers[angle]
         drawer = drawers[0]
 
-        # we got out winner. Shoot the others
+        # we got our winner. Shoot the others
         self.ocr_drawers = {
             angle: [drawer]
         }

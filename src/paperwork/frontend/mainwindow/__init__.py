@@ -1124,8 +1124,8 @@ class ActionSingleScan(SimpleAction):
                 scan_session = dev.scan(multiple=False)
             except Exception, exc:
                 logger.warning("Exception while configuring scanner: %s: %s."
-                            " Assuming scanner is not connected",
-                            type(exc), exc)
+                               " Assuming scanner is not connected",
+                               type(exc), exc)
                 popup_no_scanner_found(self.__main_win.window)
                 return
         finally:

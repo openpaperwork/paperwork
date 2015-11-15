@@ -2415,6 +2415,11 @@ class MainWindow(object):
 
         logger.info("Showing document %s" % doc)
         self.doc = doc
+        if not self.page or self.page.doc.docid != doc.docid:
+            if doc.nb_pages > 0:
+                self.page = self.doc.pages[0]
+            else:
+                self.page = None
 
         self.schedulers['main'].cancel_all(
             self.job_factories['page_img_loader']

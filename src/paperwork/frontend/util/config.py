@@ -262,6 +262,10 @@ def load_config():
             lambda: RECOMMENDED_SCAN_RESOLUTION, int
         ),
         'scanner_source': PaperworkSetting("Scanner", "Source"),
+        'scanner_has_feeder': PaperworkSetting(
+            "Scanner", "Has_Feeder",
+            lambda: False,
+            paperwork_cfg_boolean),
         'scan_time': _ScanTimes(),
         'zoom_level': PaperworkSetting("GUI", "zoom_level",
                                        lambda: 0.0, float),

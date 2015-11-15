@@ -203,6 +203,9 @@ class JobFactorySourceFinder(JobFactory):
                     lambda job: GLib.idle_add(
                         self.__settings_win.on_finding_end_cb,
                         self.__settings_win.device_settings['source']))
+        job.connect('source-finding-end',
+                    lambda job: GLib.idle_add(
+                        self.__settings_win.on_source_finding_end_cb))
         return job
 
 
@@ -539,6 +542,9 @@ class ActionApplySettings(SimpleAction):
             source = setting['stores']['loaded'][idx][1]
             self.__config['scanner_source'].value = source
 
+        has_feeder = self.__settings_win.device_settings['has_feeder']
+        self.__config['scanner_has_feeder'].value = has_feeder
+
         setting = self.__settings_win.device_settings['resolution']
         idx = setting['gui'].get_active()
         if idx >= 0:
@@ -672,6 +678,7 @@ class SettingsWindow(GObject.GObject):
                 'nb_elements': 0,
                 'active_idx': -1,
             },
+            "has_feeder": False,
             "source": {
                 'gui': widget_tree.get_object("comboboxScanSources"),
                 'stores': {
@@ -802,7 +809,8 @@ class SettingsWindow(GObject.GObject):
         self.calibration["scan_button"].set_sensitive(False)
         self.on_finding_start_cb(self.device_settings['devid'])
         for element in self.device_settings.values():
-            element['gui'].set_sensitive(False)
+            if isinstance(element, dict) and 'gui' in element:
+                element['gui'].set_sensitive(False)
 
     def on_value_found_cb(self, settings,
                           user_name, store_name, active):
@@ -821,6 +829,20 @@ class SettingsWindow(GObject.GObject):
         else:
             settings['gui'].set_active(0)
 
+    def on_source_finding_end_cb(self):
+        settings = self.device_settings['source']
+        sources = [x[1].lower() for x in settings['stores']['loaded']]
+        has_feeder = False
+        logger.info("Scanner sources: %s" % str(sources))
+        for src in sources:
+            if "feeder" in src:
+                has_feeder = True
+            if "adf" in src:
+                has_feeder = True
+            if has_feeder:
+                break
+        self.device_settings['has_feeder'] = has_feeder
+
     def set_mouse_cursor(self, cursor):
         self.window.get_window().set_cursor({
             "Normal": None,
@@ -835,7 +857,7 @@ class SettingsWindow(GObject.GObject):
 
         self.__scan_start = time.time()
 
-        self.__scan_progress_job = self.job_factories['progress_updater'].make(
+        elf.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=1.0,
             total_time=self.__config['scan_time'].value['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)

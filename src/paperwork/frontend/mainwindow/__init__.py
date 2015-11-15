@@ -2439,7 +2439,7 @@ class MainWindow(object):
         self.page_drawers = []
         scan_drawers = {}
         if self.doc.docid in self.scan_drawers:
-            scan_drawers = self.scan_drawers[self.doc.docid]
+            scan_drawers = dict(self.scan_drawers[self.doc.docid])
 
         search = unicode(self.search_field.get_text(), encoding='utf-8')
 

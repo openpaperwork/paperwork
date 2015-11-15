@@ -1073,9 +1073,16 @@ class ActionOpenSettings(SimpleAction):
         sw = SettingsWindow(self.__main_win.schedulers['main'],
                             self.__main_win.window, self.__config)
         sw.connect("need-reindex", self.__reindex_cb)
+        sw.connect("config-changed", self.__on_config_changed_cb)
 
     def __reindex_cb(self, settings_window):
         self.__main_win.actions['reindex'][1].do()
+
+    def __on_config_changed_cb(self, setttings_window):
+        set_widget_state(
+            self.__main_win.actions['multi_scan'][0],
+            self.__config['scanner_has_feeder'].value
+        )
 
 
 class ActionSingleScan(SimpleAction):
@@ -2134,15 +2141,15 @@ class MainWindow(object):
             self.actions['open_export_page_dialog'][0]
         )
 
-        self.doc_edit_widgets = set(
-            self.actions['single_scan'][0]
-        )
-
         self.__show_all_boxes_widget = \
             self.actions['show_all_boxes'][0][0]
 
         set_widget_state(self.need_page_widgets, False)
         set_widget_state(self.need_doc_widgets, False)
+        set_widget_state(
+            self.actions['multi_scan'][0],
+            self.__config['scanner_has_feeder'].value
+        )
 
         for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
             assert(not popup_menu[0] is None)
@@ -2160,6 +2167,7 @@ class MainWindow(object):
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 
         self.window.set_visible(True)
+
 
         for scheduler in self.schedulers.values():
             scheduler.start()
@@ -2496,7 +2504,7 @@ class MainWindow(object):
         set_widget_state(self.need_doc_widgets, not is_new)
         set_widget_state(self.need_page_widgets,
                          not is_new and self.layout == 'paged')
-        set_widget_state(self.doc_edit_widgets, can_edit)
+        set_widget_state(self.actions['single_scan'][0], can_edit)
 
         self.refresh_label_list()
         self.refresh_header_bar()

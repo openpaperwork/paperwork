@@ -572,6 +572,7 @@ class ActionApplySettings(SimpleAction):
 
         if need_reindex:
             self.__settings_win.emit("need-reindex")
+        self.__settings_win.emit("config-changed")
 
 
 class ActionScanCalibration(SimpleAction):
@@ -603,6 +604,7 @@ class SettingsWindow(GObject.GObject):
 
     __gsignals__ = {
         'need-reindex': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'config-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     def __init__(self, main_scheduler, mainwindow_gui, config):

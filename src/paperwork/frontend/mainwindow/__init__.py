@@ -1109,19 +1109,27 @@ class ActionSingleScan(SimpleAction):
         self.__main_win.add_page(docid, img, line_boxes)
 
     def do(self):
+        self.__main_win.set_mouse_cursor("Busy")
+        GLib.idle_add(self._do)
+
+    def _do(self):
         SimpleAction.do(self)
-        if not check_scanner(self.__main_win, self.__config):
-            return
 
         try:
-            (dev, resolution) = get_scanner(self.__config)
-            scan_session = dev.scan(multiple=False)
-        except Exception, exc:
-            logger.warning("Exception while configuring scanner: %s: %s."
-                           " Assuming scanner is not connected",
-                           type(exc), exc)
-            popup_no_scanner_found(self.__main_win.window)
-            return
+            if not check_scanner(self.__main_win, self.__config):
+                return
+
+            try:
+                (dev, resolution) = get_scanner(self.__config)
+                scan_session = dev.scan(multiple=False)
+            except Exception, exc:
+                logger.warning("Exception while configuring scanner: %s: %s."
+                            " Assuming scanner is not connected",
+                            type(exc), exc)
+                popup_no_scanner_found(self.__main_win.window)
+                return
+        finally:
+            self.__main_win.set_mouse_cursor("Normal")
 
         scan_workflow = self.__main_win.make_scan_workflow()
         scan_workflow.connect('scan-canceled', lambda scan_workflow:

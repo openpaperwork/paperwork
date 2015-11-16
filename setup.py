@@ -164,12 +164,9 @@ setup(
         "python-Levenshtein",
         "pyinsane >= 1.3.8",
         "pyocr >= 0.3.0",
-        "numpy",
-        "scipy",
-        "scikit-learn",
-        "scikit-image",
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
+        "simplebayes",
         # "PyGObject",  # doesn't work with virtualenv
         # Missing due to the use of gobject introspection:
         # - gtk
@@ -178,8 +175,8 @@ setup(
         # Missing because non-python libraries:
         # - sane
         # - tesseract/cuneiform
-    ],
-    )
+    ]
+)
 
 print ("======================================================================")
 print ("======================================================================")

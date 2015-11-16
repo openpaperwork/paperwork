@@ -200,6 +200,8 @@ class JobDocExaminer(Job):
         self.done = False
         self.started = False
 
+        self.labels = set()
+
     def __progress_cb(self, progression, total, step, doc=None):
         """
         Update the main progress bar
@@ -237,6 +239,7 @@ class JobDocExaminer(Job):
                 self.__on_new_doc,
                 self.__on_doc_changed,
                 self.__on_doc_missing,
+                self.__on_doc_unchanged,
                 self.__progress_cb)
             self.emit('doc-examination-end')
             self.done = True
@@ -250,12 +253,17 @@ class JobDocExaminer(Job):
 
     def __on_new_doc(self, doc):
         self.new_docs.add(doc)
+        self.labels.update(doc.labels)
 
     def __on_doc_changed(self, doc):
         self.docs_changed.add(doc)
+        self.labels.update(doc.labels)
 
     def __on_doc_missing(self, docid):
         self.docs_missing.add(docid)
+
+    def __on_doc_unchanged(self, doc):
+        self.labels.update(doc.labels)
 
 
 GObject.type_register(JobDocExaminer)
@@ -469,8 +477,7 @@ class JobLabelPredictor(Job):
     def do(self):
         self.can_run = True
         try:
-            predicted_labels = self.__docsearch.predict_label_list(
-                self.doc, progress_cb=self._progress_cb)
+            predicted_labels = self.__docsearch.guess_labels(self.doc)
             self.emit('predicted-labels', self.doc, predicted_labels)
         except StopIteration:
             return
@@ -1286,12 +1293,12 @@ class ActionDeleteDoc(SimpleAction):
         self.__main_win.actions['new_doc'][1].do()
 
         logger.info("Deleting ...")
-        doc.destroy()
         index_upd = self.__main_win.docsearch.get_index_updater(
             optimize=False)
-        index_upd.del_doc(docid)
+        index_upd.del_doc(doc)
         index_upd.commit()
         logger.info("Deleted")
+        doc.destroy()
 
         self.__main_win.refresh_doc_list()
 
@@ -1327,7 +1334,7 @@ class ActionDeletePage(SimpleAction):
 
         if doc.nb_pages <= 0:
             job = self.__main_win.job_factories['index_updater'].make(
-                self.__main_win.docsearch, del_docs={doc.docid},
+                self.__main_win.docsearch, del_docs={doc},
                 optimize=False)
         else:
             job = self.__main_win.job_factories['index_updater'].make(
@@ -1742,9 +1749,12 @@ class ActionRefreshIndex(SimpleAction):
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")
+        logger.info("%d labels found" % len(examiner.labels))
         logger.info("New document: %d" % len(examiner.new_docs))
         logger.info("Updated document: %d" % len(examiner.docs_changed))
         logger.info("Deleted document: %d" % len(examiner.docs_missing))
+
+        examiner.docsearch.label_list = examiner.labels
 
         if (len(examiner.new_docs) == 0
                 and len(examiner.docs_changed) == 0
@@ -2354,7 +2364,7 @@ class MainWindow(object):
         for label_line in xrange(0, len(label_model)):
             label = label_model[label_line][2]
             line_iter = label_model.get_iter(label_line)
-            predicted = label.name in predicted_labels
+            predicted = label in predicted_labels
             label_model.set_value(line_iter, 4, predicted)
 
     def drop_boxes(self):
@@ -2817,7 +2827,7 @@ class MainWindow(object):
 
     def __on_predicted_labels(self, doc, predicted_labels):
         for label in self.docsearch.label_list:
-            if label.name in predicted_labels:
+            if label in predicted_labels:
                 self.docsearch.add_label(doc, label, update_index=False)
         self.upd_index({doc}, new=True)
         self.refresh_label_list()
@@ -2830,7 +2840,7 @@ class MainWindow(object):
         for doc in docs:
             if not new and doc.is_new:
                 # assume deleted
-                del_docs.add(doc.docid)
+                del_docs.add(doc)
             elif new:
                 new_docs.add(doc)
             else:

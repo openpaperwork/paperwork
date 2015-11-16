@@ -17,10 +17,14 @@
 """
 Code to manage document labels
 """
+import os
 
 from gi.repository import Gdk
+import simplebayes
 
+from paperwork.backend.util import mkdir_p
 from paperwork.backend.util import strip_accents
+
 
 class Label(object):
 
@@ -114,3 +118,93 @@ class Label(object):
     def __str__(self):
         return ("Color: %s ; Text: %s"
                 % (self.get_html_color(), self.name))
+
+
+class LabelGuessUpdater(object):
+    def __init__(self, guesser):
+        self.guesser = guesser
+        self.updated_docs = set()
+
+    def add_doc(self, doc):
+        doc_txt = doc.text
+        if doc_txt == u"":
+            return
+        doc_txt = doc_txt.encode("utf-8")
+
+        labels = {label.name for label in doc.labels}
+
+        # just in case, make sure all the labels are loaded
+        for label in labels:
+            self.guesser.load(label)
+
+        for (label, guesser) in self.guesser._bayes.iteritems():
+            value = "yes" if label in labels else "no"
+            guesser.train(value, doc_txt)
+
+        self.updated_docs.add(doc)
+
+    def upd_doc(self, doc):
+        self.del_doc(doc)
+        self.add_doc(doc)
+
+    def del_doc(self, doc):
+        doc_txt = doc.text
+        if doc_txt == u"":
+            return
+        doc_txt = doc_txt.encode("utf-8")
+
+        labels = {label.name for label in doc._previous_labels}
+
+        # just in case, make sure all the labels are loaded
+        for label in labels:
+            self.guesser.load(label)
+
+        for (label, guesser) in self.guesser._bayes.iteritems():
+            value = "yes" if label in labels else "no"
+            guesser.untrain(value, doc_txt)
+
+        self.updated_docs.add(doc)
+
+    def commit(self):
+        for baye in self.guesser._bayes.values():
+            baye.cache_persist()
+        for doc in self.updated_docs:
+            # Acknowledge the new labels
+            doc._previous_labels = doc.labels
+        self.updated_docs = set()
+
+    def cancel(self):
+        names = [x for x in self.guesser._bayes.keys()]  # copy
+        for label_name in names:
+            self.guesser.load(label_name, force_reload=True)
+        self.updated_docs = set()
+
+
+class LabelGuesser(object):
+    def __init__(self, bayes_dir):
+        self._bayes_dir = bayes_dir
+        self._bayes = {}
+
+    def load(self, label_name, force_reload=False):
+        assert(os.path.sep not in label_name)
+        baye_dir = os.path.join(self._bayes_dir, label_name)
+        mkdir_p(baye_dir)
+        if label_name not in self._bayes or force_reload:
+            self._bayes[label_name] = simplebayes.SimpleBayes(
+                cache_path=baye_dir
+            )
+            self._bayes[label_name].cache_train()
+
+    def get_updater(self):
+        return LabelGuessUpdater(self)
+
+    def guess(self, doc):
+        doc_txt = doc.text
+        if doc_txt == u"":
+            return set()
+        doc_txt = doc_txt.encode("utf-8")
+        label_names = set()
+        for (label_name, guesser) in self._bayes.iteritems():
+            if guesser.classify(doc_txt) == "yes":
+                label_names.add(label_name)
+        return label_names

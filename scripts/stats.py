@@ -31,7 +31,7 @@ def main():
     print("========")
 
     all_labels = set([l.name for l in dsearch.label_list])
-    label_keys = [ 'global', 'positive', 'negative' ]  # for the order
+    label_keys = ['global', 'positive', 'negative']  # for the order
     total_label_accuracy = {
         'global': 0,
         'positive': 0,
@@ -52,7 +52,7 @@ def main():
         if doc.nb_pages > max_pages:
             max_pages = doc.nb_pages
 
-        ### Keyword stats
+        # Keyword stats
         for page in doc.pages:
             sys.stdout.write("%d " % (page.page_nb + 1))
             sys.stdout.flush()
@@ -63,10 +63,10 @@ def main():
                     # ignore words too short to be useful
                     if (len(word) < 4):
                         continue
-                    if not word in words:
+                    if word not in words:
                         words.add(word)
                         total_nb_unique_words += 1
-                    if not word in doc_words:
+                    if word not in doc_words:
                         doc_words.add(word)
                         total_nb_unique_words_per_doc += 1
 
@@ -75,9 +75,9 @@ def main():
                     if max_word_len < len(word):
                         max_word_len = len(word)
 
-        ### Label predictions stats
-        doc_labels = set([l.name for l in doc.labels])
-        predicated_labels = set(dsearch.predict_label_list(doc))
+        # Label predictions stats
+        doc_labels = {l.name for l in doc.labels}
+        predicated_labels = {l.name for l in dsearch.guess_labels(doc)}
         accurate = {
             'global': 0,
             'negative': 0,

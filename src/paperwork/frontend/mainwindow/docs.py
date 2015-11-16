@@ -587,12 +587,12 @@ class ActionDeleteDoc(SimpleAction):
         self.__main_win.actions['new_doc'][1].do()
 
         logger.info("Deleting ...")
-        doc.destroy()
         index_upd = self.__main_win.docsearch.get_index_updater(
             optimize=False)
-        index_upd.del_doc(docid)
+        index_upd.del_doc(doc)
         index_upd.commit()
         logger.info("Deleted")
+        doc.destroy()
 
         self.__main_win.refresh_doc_list()
 
@@ -1110,14 +1110,15 @@ class DocPropertiesPanel(object):
             if has_changed:
                 self.__main_win.upd_index(self.doc)
         else:
-            old_docid = self.doc.docid
+            old_doc = self.doc.clone()
+            old_docid = old_doc.docid
             self.doc.date = self.new_doc_date
             self.new_doc_date = None
             # this case is more tricky --> del + new
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch,
                 new_docs={self.doc},
-                del_docs={old_docid},
+                del_docs={old_doc},
                 optimize=False,
                 reload_list=True
             )

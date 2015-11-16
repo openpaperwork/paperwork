@@ -72,6 +72,12 @@ class BasicDoc(object):
             self.path = docpath
         self.__cache = {}
 
+        # We need to keep track of the labels:
+        # When updating bayesian filters for label guessing,
+        # we need to know the new label list, but also the *previous* label
+        # list
+        self._previous_labels = self.labels
+
     def drop_cache(self):
         self.__cache = {}
 
@@ -209,6 +215,9 @@ class BasicDoc(object):
         txt = u""
         for page in self.pages:
             txt += u"\n".join([unicode(line) for line in page.text])
+        extra_txt = self.extra_text
+        if extra_txt != u"":
+            txt += u"\n" + extra_txt + u"\n"
         txt = txt.strip()
         return txt
 
@@ -422,3 +431,6 @@ class BasicDoc(object):
     def hash_file(path):
         dochash = hashlib.sha256(open(path, 'rb').read()).hexdigest()
         return int(dochash, 16)
+
+    def clone(self):
+        raise NotImplementedError()

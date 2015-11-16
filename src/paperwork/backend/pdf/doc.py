@@ -104,6 +104,9 @@ class PdfDoc(BasicDoc):
         BasicDoc.__init__(self, docpath, docid)
         self._pdf = None
 
+    def clone(self):
+        return PdfDoc(self.docpath, self.docid)
+
     def __get_last_mod(self):
         pdfpath = os.path.join(self.path, PDF_FILENAME)
         last_mod = os.stat(pdfpath).st_mtime

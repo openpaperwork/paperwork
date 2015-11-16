@@ -219,6 +219,9 @@ class ImgDoc(BasicDoc):
         BasicDoc.__init__(self, docpath, docid)
         self.__pages = None
 
+    def clone(self):
+        return ImgDoc(self.docpath, self.docid)
+
     def __get_last_mod(self):
         last_mod = 0.0
         for page in self.pages:

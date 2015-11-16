@@ -65,12 +65,15 @@ class PaperworkConfig(object):
     Paperwork config. See each accessor to know for what purpose each value is
     used.
     """
+    CURRENT_INDEX_VERSION = "0"
 
     def __init__(self):
         self.settings = {
             'workdir': PaperworkSetting(
                 "Global", "WorkDirectory",
-                lambda: os.path.expanduser("~/papers"))
+                lambda: os.path.expanduser("~/papers")),
+            'index_version': PaperworkSetting(
+                "Global", "IndexVersion", lambda: "-1"),
         }
 
         self._configparser = None

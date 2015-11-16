@@ -189,8 +189,8 @@ class LabelGuesser(object):
         self._bayes = {}
 
     def load(self, label_name, force_reload=False):
-        assert(os.path.sep not in label_name)
-        baye_dir = os.path.join(self._bayes_dir, label_name)
+        label_hash = hex(abs(hash(label_name)))[2:]
+        baye_dir = os.path.join(self._bayes_dir, label_hash)
         mkdir_p(baye_dir)
         if label_name not in self._bayes or force_reload:
             self._bayes[label_name] = simplebayes.SimpleBayes(

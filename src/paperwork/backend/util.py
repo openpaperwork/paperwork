@@ -27,7 +27,7 @@ import enchant.tokenize
 import Levenshtein
 
 logger = logging.getLogger(__name__)
-FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[ '()]", re.UNICODE)
+FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[\n '()]", re.UNICODE)
 WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 
 MIN_KEYWORD_LEN = 3

@@ -1288,7 +1288,6 @@ class ActionDeleteDoc(SimpleAction):
             doc = self.__main_win.doc
         else:
             doc = self.__doc
-        docid = doc.docid
 
         self.__main_win.actions['new_doc'][1].do()
 
@@ -2185,7 +2184,6 @@ class MainWindow(object):
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 
         self.window.set_visible(True)
-
 
         for scheduler in self.schedulers.values():
             scheduler.start()

@@ -23,7 +23,6 @@ from gi.repository import Gdk
 import simplebayes
 
 from paperwork.backend.util import mkdir_p
-from paperwork.backend.util import split_words
 from paperwork.backend.util import strip_accents
 
 
@@ -121,14 +120,6 @@ class Label(object):
                 % (self.get_html_color(), self.name))
 
 
-def _split_words_hook(text):
-    """
-    Takes unicode, and returns str (simplebays works with 'str')
-    """
-    words = [word.encode("utf-8") for word in split_words(text)]
-    return " ".join(words)
-
-
 class LabelGuessUpdater(object):
     def __init__(self, guesser):
         self.guesser = guesser
@@ -138,7 +129,7 @@ class LabelGuessUpdater(object):
         doc_txt = doc.text
         if doc_txt == u"":
             return
-        doc_txt = _split_words_hook(doc_txt)
+        doc_txt = doc_txt.encode("utf-8")
 
         labels = {label.name for label in doc.labels}
 
@@ -160,7 +151,7 @@ class LabelGuessUpdater(object):
         doc_txt = doc.text
         if doc_txt == u"":
             return
-        doc_txt = _split_words_hook(doc_txt)
+        doc_txt = doc_txt.encode("utf-8")
 
         labels = {label.name for label in doc._previous_labels}
 
@@ -214,7 +205,7 @@ class LabelGuesser(object):
         doc_txt = doc.text
         if doc_txt == u"":
             return set()
-        doc_txt = _split_words_hook(doc_txt)
+        doc_txt = doc_txt.encode("utf-8")
         label_names = set()
         for (label_name, guesser) in self._bayes.iteritems():
             # we balance ourselves the scores, otherwise 'no' wins

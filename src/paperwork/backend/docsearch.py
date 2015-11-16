@@ -23,13 +23,8 @@ import logging
 import copy
 import datetime
 import os.path
-import time
 
 from gi.repository import GObject
-
-import numpy
-from sklearn.externals import joblib
-from sklearn.linear_model.passive_aggressive import PassiveAggressiveClassifier
 
 import whoosh.fields
 import whoosh.index
@@ -37,7 +32,6 @@ import whoosh.qparser
 import whoosh.query
 import whoosh.sorting
 
-from paperwork.backend.common.doc import BasicDoc
 from paperwork.backend.common.page import BasicPage
 from paperwork.backend.img.doc import ImgDoc
 from paperwork.backend.img.doc import is_img_doc

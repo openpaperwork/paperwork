@@ -119,7 +119,7 @@ DATA_FILES = [
         ],
         {
             'debian': 'gnome-icon-theme',
-            'ubuntu': 'gnome-icon-theme',
+            'ubuntu': 'gnome-icon-theme-full',
         },
     ),
     (
@@ -280,23 +280,25 @@ def find_missing_dict(lang):
 def check_cairo():
     missing = []
 
+    class CheckCairo(object):
+        def __init__(self):
+            self.test_successful = False
+
+        def on_draw(self, widget, cairo_ctx):
+            from gi.repository import Gtk
+            self.test_successful = True
+            Gtk.main_quit()
+            return False
+
+        def quit(self):
+            from gi.repository import Gtk
+            Gtk.main_quit()
+
+    check = CheckCairo()
+
     try:
         from gi.repository import GLib
         from gi.repository import Gtk
-
-        class CheckCairo(object):
-            def __init__(self):
-                self.test_successful = False
-
-            def on_draw(self, widget, cairo_ctx):
-                self.test_successful = True
-                Gtk.main_quit()
-                return False
-
-            def quit(self):
-                Gtk.main_quit()
-
-        check = CheckCairo()
 
         window = Gtk.Window()
         da = Gtk.DrawingArea()

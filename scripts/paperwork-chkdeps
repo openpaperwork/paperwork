@@ -118,7 +118,7 @@ DATA_FILES = [
         ],
         {
             'debian': 'gnome-icon-theme',
-            'ubuntu': 'gnome-icon-theme',
+            'ubuntu': 'gnome-icon-theme-full',
         },
     ),
 ]

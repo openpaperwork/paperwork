@@ -271,11 +271,13 @@ def check_cairo():
             self.test_successful = False
 
         def on_draw(self, widget, cairo_ctx):
+            from gi.repository import Gtk
             self.test_successful = True
             Gtk.main_quit()
             return False
 
         def quit(self):
+            from gi.repository import Gtk
             Gtk.main_quit()
 
     check = CheckCairo()

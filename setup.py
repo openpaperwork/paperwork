@@ -155,8 +155,6 @@ setup(
         'scripts/paperwork-chkdeps',
     ],
     install_requires=[
-        "Cython",
-        'joblib',
         "Pillow",
         "pycountry",
         # "pycairo",  # doesn't work ?

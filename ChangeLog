@@ -1,3 +1,17 @@
+2015/11/25 - 0.2.5:
+* Scanner support: Fujitsu scanners: handle options 'page-height' and
+  'page-width'
+* Scanner support: Brother MVC-J410: set mode correctly
+  (value = '24bit Color' instead of 'Color' ...)
+* Documents: add support for new label format that will be used in
+  Paperwork >= 0.3.0
+* paperwork-chkdeps: look for required icon themes
+* Fix: work even if the spinner icon is not available
+* Fix: paperwork-chkdeps: work even if Gtk is not yet installed
+* Fix: PDF: reduce file descriptor leak
+* Fix: With Pillow >= 3.x, calls to Image.rotate() must specify expand=True
+* Fix: At startup, when updating the index, prevent infinite loop
+
 2015/04/21 - 0.2.4:
 * Fix python-whoosh 2.7 support
 

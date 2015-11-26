@@ -208,6 +208,7 @@
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
     <property name="icon">paperwork.svg</property>
+    <property name="show_menubar">False</property>
     <child type="titlebar">
       <object class="GtkBox" id="box_headerbar">
         <property name="visible">True</property>

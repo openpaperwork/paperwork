@@ -856,21 +856,23 @@ class ActionUpdateSearchResults(SimpleAction):
         if self.__refresh_pages:
             self.__main_win.refresh_boxes()
 
-    def on_icon_press_cb(self, entry, iconpos=Gtk.EntryIconPosition.SECONDARY,
-                         event=None):
-        if iconpos == Gtk.EntryIconPosition.PRIMARY:
-            entry.grab_focus()
-        elif Gtk.EntryIconPosition.SECONDARY:
-            logger.info("Opening search dialog")
-            dialog = SearchDialog(self.__main_win)
-            response = dialog.run()
-            if response == 1:
-                logger.info("Search dialog: apply")
-                search = dialog.get_search_string()
-                search = search.encode('utf-8')
-                self.__main_win.search_field.set_text(search)
-            else:
-                logger.info("Search dialog: cancelled")
+
+class ActionOpenSearchDialog(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open search dialog")
+        self.__main_win = main_window
+
+    def do(self):
+        logger.info("Opening search dialog")
+        dialog = SearchDialog(self.__main_win)
+        response = dialog.run()
+        if response == 1:
+            logger.info("Search dialog: apply")
+            search = dialog.get_search_string()
+            search = search.encode('utf-8')
+            self.__main_win.search_field.set_text(search)
+        else:
+            logger.info("Search dialog: cancelled")
 
 
 class ActionOpenViewSettings(SimpleAction):
@@ -2109,6 +2111,12 @@ class MainWindow(object):
                     self.search_field,
                 ],
                 ActionUpdateSearchResults(self),
+            ),
+            'open_search_dialog': (
+                [
+                    widget_tree.get_object("buttonOpenSearchDialog"),
+                ],
+                ActionOpenSearchDialog(self),
             ),
             'show_all_boxes': (
                 [

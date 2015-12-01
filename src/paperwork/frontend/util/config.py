@@ -364,12 +364,12 @@ def get_scanner(config, preferred_sources=None):
         logger.warning("Exception while configuring scanner: %s: %s"
                        % (type(exc), exc))
         if (int(exc.status) != pyinsane.SaneStatus.IO_ERROR
-            and int(exc.status) != pyinsane.SaneStatus.UNSUPPORTED
-            and int(exc.status) != pyinsane.SaneStatus.INVAL):
+                and int(exc.status) != pyinsane.SaneStatus.UNSUPPORTED
+                and int(exc.status) != pyinsane.SaneStatus.INVAL):
             raise
         # we didn't find the scanner at the given ID
         # but maybe there is only one, so we can guess the scanner to use
-        devices = pyinsane.get_devices()
+        devices = [x for x in pyinsane.get_devices() if x[:4] != "v4l:"]
         if len(devices) != 1:
             raise
         logger.info("Will try another scanner id: %s" % devices[0].name)

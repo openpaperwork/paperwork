@@ -1108,7 +1108,7 @@ class DocPropertiesPanel(object):
         # Date
         if self.new_doc_date is None:
             if has_changed:
-                self.__main_win.upd_index(self.doc)
+                self.__main_win.upd_index({self.doc})
         else:
             old_doc = self.doc.clone()
             old_docid = old_doc.docid

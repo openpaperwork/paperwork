@@ -51,8 +51,7 @@ class SearchElementText(SearchElement):
     def get_search_string(self):
         txt = self.widget.get_text().decode("utf-8")
         txt = txt.replace('"', '\\"')
-        if " " in txt:
-            txt = '"' + txt + '"'
+        txt = '"' + txt + '"'
         return txt
 
     @staticmethod
@@ -155,6 +154,18 @@ class SearchLine(object):
 
         model = Gtk.ListStore.new([
             GObject.TYPE_STRING,
+            GObject.TYPE_STRING,
+        ])
+        model.append(["", ""])
+        model.append([_("not"), "NOT"])
+        self.combobox_not = Gtk.ComboBoxText.new()
+        self.combobox_not.set_model(model)
+        self.combobox_not.set_size_request(75, -1)
+        self.combobox_not.set_active(0)
+        self.line.add(self.combobox_not)
+
+        model = Gtk.ListStore.new([
+            GObject.TYPE_STRING,
             GObject.TYPE_PYOBJECT,
         ])
         for element in self.SELECT_ORDER:
@@ -209,6 +220,9 @@ class SearchLine(object):
     def select_operator(self, operator):
         self._select_value(self.combobox_operator, operator.upper())
 
+    def select_not(self, not_value):
+        self._select_value(self.combobox_not, not_value)
+
     def select_element_type(self, et):
         self._select_value(self.combobox_type, et)
 
@@ -230,20 +244,27 @@ class SearchLine(object):
             self.line.remove(self.element.get_widget())
             self.element = None
         self.line.add(element.get_widget())
-        self.line.reorder_child(element.get_widget(), 2)
+        self.line.reorder_child(element.get_widget(), 3)
         self.element = element
 
     def get_widget(self):
         return self.line
 
+    @staticmethod
+    def _get_combobox_value(combobox):
+        active_idx = combobox.get_active()
+        if (active_idx < 0):
+            return u""
+        value = combobox.get_model()[active_idx][1]
+        return value.decode("utf-8")
+
     def get_operator(self):
         if not self.combobox_operator:
             return u""
-        active_idx = self.combobox_operator.get_active()
-        if (active_idx < 0):
-            return u""
-        operator = self.combobox_operator.get_model()[active_idx][1]
-        return operator.decode("utf-8")
+        return self._get_combobox_value(self.combobox_operator)
+
+    def get_not(self):
+        return self._get_combobox_value(self.combobox_not)
 
     def get_search_string(self):
         if self.element is None:
@@ -251,7 +272,7 @@ class SearchLine(object):
         return self.element.get_search_string()
 
     @staticmethod
-    def get_from_search(dialog, next_operator, search_txt):
+    def get_from_search(dialog, next_operator, not_value, search_txt):
         for se_class in SearchLine.TXT_EVAL_ORDER:
             se = se_class.get_from_search(dialog, search_txt)
             if not se:
@@ -260,6 +281,7 @@ class SearchLine(object):
             if next_operator:
                 sl.select_operator(next_operator)
             sl.select_element_type(se_class)
+            sl.select_not(not_value)
             sl.set_element(se)
             sl.connect_signals()
             logger.info("Loaded from search: %s --> %s" % (search_txt, str(se)))
@@ -297,18 +319,26 @@ class SearchDialog(object):
             self.add_element()
         else:
             logger.info("Current search: %s" % keywords)
+
             next_operator = None
+            not_value = u""
             for keyword in keywords:
-                if keyword.upper() == "AND":
-                    next_operator = "AND"
+                if keyword.upper() == u"AND":
+                    next_operator = u"AND"
                     continue
-                elif keyword.upper() == "OR":
-                    next_operator = "OR"
+                elif keyword.upper() == u"OR":
+                    next_operator = u"OR"
                     continue
+                elif keyword.upper() == u"NOT":
+                    not_value = u"NOT"
+                    continue
+
                 logger.info("Instantiating line for [%s]" % keyword)
-                sl = SearchLine.get_from_search(self, next_operator, keyword)
+                sl = SearchLine.get_from_search(self, next_operator, not_value, keyword)
                 self.add_element(sl)
-                next_operator = "AND"
+
+                next_operator = u"AND"
+                not_value = u""
 
     def run(self):
         response = self.dialog.run()
@@ -334,6 +364,9 @@ class SearchDialog(object):
         out = u""
         for element in self.search_elements:
             out += element.get_operator() + u" "
+            not_value = element.get_not()
+            if not_value:
+                out += not_value + u" "
             out += element.get_search_string() + u" "
         out = out.strip()
         logger.info("Search: [%s]" % out)

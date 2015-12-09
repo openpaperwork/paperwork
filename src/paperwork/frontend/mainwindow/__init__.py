@@ -1901,7 +1901,6 @@ class MainWindow(object):
 
         self.popovers = {
             'view_settings': widget_tree.get_object("view_settings_popover"),
-            'calendar': widget_tree.get_object("calendar_popover"),
         }
 
         self.popup_menus = {}

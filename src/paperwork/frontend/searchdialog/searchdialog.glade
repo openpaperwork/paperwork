@@ -148,4 +148,12 @@
       <action-widget response="1">buttonApply</action-widget>
     </action-widgets>
   </object>
+
+  <object class="GtkPopover" id="calendar_popover">
+      <child>
+          <object class="GtkCalendar" id="calendar_calendar">
+              <property name="visible">True</property>
+          </object>
+      </child>
+  </object>
 </interface>

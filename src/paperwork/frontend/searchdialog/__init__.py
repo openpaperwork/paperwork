@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 
@@ -118,12 +119,139 @@ class SearchElementLabel(SearchElement):
         return ("Label: [%d]" % self.get_widget().get_active())
 
 
+class SearchElementDate(SearchElement):
+    def __init__(self, dialog):
+        box = Gtk.Box()
+        box.set_spacing(10)
+
+        label = Gtk.Label.new(_("From:"))
+        box.add(label)
+
+        self.start_date = self._make_date_widget()
+        box.add(self.start_date)
+
+        label = Gtk.Label.new(_("to:"))
+        box.add(label)
+
+        self.end_date = self._make_date_widget()
+        box.add(self.end_date)
+        super(SearchElementDate, self).__init__(dialog, box)
+
+        self.calendar_popover = dialog.widget_tree.get_object("calendar_popover")
+        self.calendar = dialog.widget_tree.get_object("calendar_calendar")
+
+        self.current_entry = None
+        self.calendar.connect("day-selected-double-click",
+                              lambda _: GLib.idle_add(self._close_calendar))
+
+    def _make_date_widget(self):
+        entry = Gtk.Entry()
+        entry.set_editable(False)
+        entry.set_text("")
+        entry.set_property("secondary_icon_sensitive", True)
+        entry.set_property("secondary_icon_name", "x-office-calendar-symbolic")
+        entry.connect("icon-release",
+                      lambda entry, icon, event:
+                      GLib.idle_add(self._open_calendar, entry))
+        return entry
+
+    @staticmethod
+    def _parse_date(txt):
+        txt = txt.strip()
+        if txt == u"":
+            dt = datetime.datetime.today()
+        else:
+            try:
+                dt = datetime.datetime.strptime(txt, "%Y%m%d")
+            except ValueError:
+                logger.warning("Failed to parse [%s]. Will use today date"
+                               % txt)
+                dt = datetime.datetime.today()
+        return (dt.year, dt.month, dt.day)
+
+    @staticmethod
+    def _format_date(date):
+        return "%04d%02d%02d" % (date[0], date[1], date[2])
+
+    def _open_calendar(self, entry):
+        self.calendar_popover.set_relative_to(entry)
+        date = self._parse_date(entry.get_text())
+        self.calendar.select_month(date[1] - 1, date[0])
+        self.calendar.select_day(date[2])
+        self.calendar_popover.show_all()
+        self.current_entry = entry
+
+    def _close_calendar(self):
+        date = self.calendar.get_date()
+        date = datetime.datetime(year=date[0], month=date[1] + 1, day=date[2])
+        date = self._format_date((date.year, date.month, date.day))
+        self.current_entry.set_text(date)
+        self.calendar_popover.set_visible(False)
+
+    def get_search_string(self):
+        start_date = self._parse_date(self.start_date.get_text())
+        end_date = self._parse_date(self.end_date.get_text())
+        if end_date < start_date:
+            tmp_date = start_date
+            start_date = end_date
+            end_date = tmp_date
+        if start_date == end_date:
+            return (
+                "date:%04d%02d%02d"
+                % (start_date[0], start_date[1], start_date[2])
+            )
+        return (
+            'date:[%04d%02d%02d to %04d%02d%02d]'
+            % (
+                start_date[0], start_date[1], start_date[2],
+                end_date[0], end_date[1], end_date[2]
+            )
+        )
+
+    @staticmethod
+    def get_from_search(dialog, txt):
+        if not txt.startswith(u"date:"):
+            return None
+
+        txt = txt[len(u"date:"):]
+        txt = strip_quotes(txt)
+
+        if txt[0] == "[" and txt[-1] == "]":
+            txt = txt[1:-1]
+        if " to " in txt:
+            txt = txt.split(" to ", 1)
+        else:
+            txt = [txt, txt]
+
+        dates = [
+            SearchElementDate._parse_date(date)
+            for date in txt
+        ]
+
+        se = SearchElementDate(dialog)
+        se.start_date.set_text(se._format_date(dates[0]))
+        se.end_date.set_text(se._format_date(dates[1]))
+        return se
+
+    @staticmethod
+    def get_name():
+        return _("Date")
+
+    def __str__(self):
+        return (
+            "Date: [%s] - [%s]"
+            % (self.start_date.get_text(), self.end_date.get_text())
+        )
+
+
 class SearchLine(object):
     SELECT_ORDER = [
         SearchElementText,
         SearchElementLabel,
+        SearchElementDate,
     ]
     TXT_EVAL_ORDER = [
+        SearchElementDate,
         SearchElementLabel,
         SearchElementText,
     ]
@@ -291,13 +419,13 @@ class SearchLine(object):
 
 class SearchDialog(object):
     def __init__(self, main_window):
-        widget_tree = load_uifile(
+        self.widget_tree = load_uifile(
             os.path.join("searchdialog", "searchdialog.glade"))
 
         self.__main_win = main_window
         self._labels = self.__main_win.docsearch.label_list
 
-        self.dialog = widget_tree.get_object("searchDialog")
+        self.dialog = self.widget_tree.get_object("searchDialog")
         self.dialog.set_transient_for(main_window.window)
 
         self.__search_string = None
@@ -305,12 +433,14 @@ class SearchDialog(object):
         keywords = self.__main_win.search_field.get_text()
         keywords = unicode(keywords, encoding='utf-8')
         keywords = keywords.strip()
-        keywords = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', keywords)
+        keywords = re.findall(r'(?:\[.*\]|(?:[^\s"]|"(?:\\.|[^"])*"))+', keywords)
 
-        self.search_element_box = widget_tree.get_object("boxSearchElements")
+        self.search_element_box = self.widget_tree.get_object(
+            "boxSearchElements"
+        )
         self.search_elements = []
 
-        add_button = widget_tree.get_object("buttonAdd")
+        add_button = self.widget_tree.get_object("buttonAdd")
         add_button.connect("clicked",
                            lambda w: GLib.idle_add(self.add_element))
 

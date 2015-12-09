@@ -2207,6 +2207,10 @@ class MainWindow(object):
                                                self.__on_img_area_resize_cb)
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 
+        self.img['canvas'].connect(
+            None, "scroll-event", self.__on_scroll_event_cb
+        )
+
         self.window.set_visible(True)
 
         for scheduler in self.schedulers.values():
@@ -2742,6 +2746,30 @@ class MainWindow(object):
     def __on_window_resized_cb(self, _, rectangle):
         (w, h) = (rectangle.width, rectangle.height)
         self.__config['main_win_size'].value = (w, h)
+
+    def __set_zoom_level_on_scroll(self, zoom):
+        zoom_model = self.zoom_level['model']
+        logger.info("Changing zoom level: %f --> %f"
+                    % (zoom_model.get_value(), zoom))
+        zoom_model.set_value(zoom)
+        self.zoom_level['auto'] = False
+        self.update_page_sizes()
+        self.img['canvas'].redraw()
+
+    def __on_scroll_event_cb(self, widget, event):
+        ZOOM_INCREMENT = 0.02
+        if event.state & Gdk.ModifierType.CONTROL_MASK:
+            zoom_model = self.zoom_level['model']
+            zoom = zoom_model.get_value()
+            if event.direction == Gdk.ScrollDirection.UP:
+                zoom += ZOOM_INCREMENT
+            elif event.direction == Gdk.ScrollDirection.DOWN:
+                zoom -= ZOOM_INCREMENT
+            else:
+                return False
+            GLib.idle_add(self.__set_zoom_level_on_scroll, zoom)
+            return True
+        return False
 
     def get_doc_sorting(self):
         # TODO ?

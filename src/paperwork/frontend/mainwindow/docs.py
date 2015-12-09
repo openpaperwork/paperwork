@@ -582,8 +582,6 @@ class ActionDeleteDoc(SimpleAction):
             doc = self.__main_win.doc
         else:
             doc = self.__doc
-        docid = doc.docid
-
         self.__main_win.actions['new_doc'][1].do()
 
         logger.info("Deleting ...")
@@ -651,7 +649,8 @@ class DocList(object):
         img = add_img_border(img, 1)
         return image2pixbuf(img)
 
-    def _on_value_changed(self, vadjustment):
+    def _on_value_changed(self, vadjustment=None):
+        vadjustment = self.scrollbars.get_vadjustment()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
@@ -892,7 +891,7 @@ class DocList(object):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui.select_row(row)
 
-        GLib.idle_add(self._on_value_changed, self.scrollbars.get_vadjustment())
+        GLib.idle_add(self._on_value_changed)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -1111,7 +1110,6 @@ class DocPropertiesPanel(object):
                 self.__main_win.upd_index({self.doc})
         else:
             old_doc = self.doc.clone()
-            old_docid = old_doc.docid
             self.doc.date = self.new_doc_date
             self.new_doc_date = None
             # this case is more tricky --> del + new

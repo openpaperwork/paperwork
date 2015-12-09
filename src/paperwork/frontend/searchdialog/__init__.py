@@ -1,4 +1,5 @@
 import os
+import re
 
 import logging
 import gettext
@@ -11,6 +12,14 @@ from paperwork.frontend.util import load_uifile
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
+
+def strip_quotes(txt):
+    if txt[0] == u'"' and txt[-1] == u'"':
+        return txt[1:-1]
+    if txt[0] == u'\'' and txt[-1] == u'\'':
+        return txt[1:-1]
+    return txt
 
 
 class SearchElement(object):
@@ -48,6 +57,7 @@ class SearchElementText(SearchElement):
 
     @staticmethod
     def get_from_search(dialog, text):
+        text = strip_quotes(text)
         element = SearchElementText(dialog)
         element.widget.set_text(text)
         return element
@@ -55,6 +65,9 @@ class SearchElementText(SearchElement):
     @staticmethod
     def get_name():
         return _("Keyword(s)")
+
+    def __str__(self):
+        return ("Text: [%s]" % self.widget.get_text())
 
 
 class SearchElementLabel(SearchElement):
@@ -78,11 +91,12 @@ class SearchElementLabel(SearchElement):
 
     @staticmethod
     def get_from_search(dialog, text):
-        if not text.startswith("label:"):
+        if not text.startswith(u"label:"):
             return None
 
-        text = text[len("label:"):]
+        text = text[len(u"label:"):]
         text = unicode(text)
+        text = strip_quotes(text)
 
         element = SearchElementLabel(dialog)
 
@@ -101,6 +115,9 @@ class SearchElementLabel(SearchElement):
     def get_name():
         return _("Label")
 
+    def __str__(self):
+        return ("Label: [%d]" % self.get_widget().get_active())
+
 
 class SearchLine(object):
     SELECT_ORDER = [
@@ -113,6 +130,8 @@ class SearchLine(object):
     ]
 
     def __init__(self, dialog, has_operator):
+        logger.info("Search line instantiated")
+
         self.dialog = dialog
         self.line = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
 
@@ -146,15 +165,25 @@ class SearchLine(object):
 
         self.combobox_type = Gtk.ComboBoxText.new()
         self.combobox_type.set_model(model)
-        self.combobox_type.connect(
-            "changed", lambda w: GLib.idle_add(self.change_element)
-        )
 
         self.placeholder = Gtk.Label.new("")
         self.placeholder.set_hexpand(True)
 
         self.element = None
         self.remove_button = Gtk.Button.new_with_label(_("Remove"))
+
+        self.line.add(self.combobox_type)
+        self.line.add(self.placeholder)
+        self.line.add(self.remove_button)
+
+        self.combobox_type.set_active(0)
+
+        self.change_element()
+
+    def connect_signals(self):
+        self.combobox_type.connect(
+            "changed", lambda w: GLib.idle_add(self.change_element)
+        )
         self.remove_button.connect(
             "clicked",
             lambda x: GLib.idle_add(
@@ -163,19 +192,37 @@ class SearchLine(object):
             )
         )
 
-        self.line.add(self.combobox_type)
-        self.line.add(self.placeholder)
-        self.line.add(self.remove_button)
+    @staticmethod
+    def _select_value(combobox, value):
+        if not combobox:
+            return
+        active_idx = 0
+        model = combobox.get_model()
+        for line in model:
+            if line[1] == value:
+                logger.info("Element %d selected" % active_idx)
+                combobox.set_active(active_idx)
+                return
+            active_idx += 1
+        assert()
 
-        self.combobox_type.set_active(0)
+    def select_operator(self, operator):
+        self._select_value(self.combobox_operator, operator.upper())
+
+    def select_element_type(self, et):
+        self._select_value(self.combobox_type, et)
 
     def change_element(self):
+        logger.info("Element changed")
         active_idx = self.combobox_type.get_active()
         if (active_idx < 0):
             return
         element_class = self.combobox_type.get_model()[active_idx][1]
         element = element_class(self.dialog)
+        self.set_element(element)
 
+    def set_element(self, element):
+        logger.info("Set element: %s" % str(element))
         if self.placeholder:
             self.line.remove(self.placeholder)
             self.placeholder = None
@@ -203,6 +250,22 @@ class SearchLine(object):
             return u""
         return self.element.get_search_string()
 
+    @staticmethod
+    def get_from_search(dialog, next_operator, search_txt):
+        for se_class in SearchLine.TXT_EVAL_ORDER:
+            se = se_class.get_from_search(dialog, search_txt)
+            if not se:
+                continue
+            sl = SearchLine(dialog, next_operator is not None)
+            if next_operator:
+                sl.select_operator(next_operator)
+            sl.select_element_type(se_class)
+            sl.set_element(se)
+            sl.connect_signals()
+            logger.info("Loaded from search: %s --> %s" % (search_txt, str(se)))
+            return sl
+        assert()
+
 
 class SearchDialog(object):
     def __init__(self, main_window):
@@ -217,6 +280,11 @@ class SearchDialog(object):
 
         self.__search_string = None
 
+        keywords = self.__main_win.search_field.get_text()
+        keywords = unicode(keywords, encoding='utf-8')
+        keywords = keywords.strip()
+        keywords = re.findall(r'(?:[^\s"]|"(?:\\.|[^"])*")+', keywords)
+
         self.search_element_box = widget_tree.get_object("boxSearchElements")
         self.search_elements = []
 
@@ -224,10 +292,23 @@ class SearchDialog(object):
         add_button.connect("clicked",
                            lambda w: GLib.idle_add(self.add_element))
 
-        self.add_element()
-        self.update_search_elements(
-            self.__main_win.search_field.get_text().decode("utf-8")
-        )
+        if keywords == []:
+            logger.info("Starting from an empty search")
+            self.add_element()
+        else:
+            logger.info("Current search: %s" % keywords)
+            next_operator = None
+            for keyword in keywords:
+                if keyword.upper() == "AND":
+                    next_operator = "AND"
+                    continue
+                elif keyword.upper() == "OR":
+                    next_operator = "OR"
+                    continue
+                logger.info("Instantiating line for [%s]" % keyword)
+                sl = SearchLine.get_from_search(self, next_operator, keyword)
+                self.add_element(sl)
+                next_operator = "AND"
 
     def run(self):
         response = self.dialog.run()
@@ -238,17 +319,16 @@ class SearchDialog(object):
     def add_element(self, sl=None):
         if sl is None:
             sl = SearchLine(self, len(self.search_elements) > 0)
-        sl.get_widget().show_all()
+            sl.get_widget().show_all()
+            sl.connect_signals()
+        else:
+            sl.get_widget().show_all()
         self.search_element_box.add(sl.get_widget())
         self.search_elements.append(sl)
 
     def remove_element(self, sl):
         self.search_element_box.remove(sl.get_widget())
         self.search_elements.remove(sl)
-
-    def update_search_elements(self, search_text):
-        # TODO
-        pass
 
     def __get_search_string(self):
         out = u""

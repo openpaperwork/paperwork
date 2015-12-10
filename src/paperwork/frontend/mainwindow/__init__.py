@@ -748,7 +748,7 @@ class JobImporter(Job):
         def _on_predicted_labels2(self, doc, predicted_labels):
             logger.info("Label predicted on doc %s" % str(doc))
             for label in self._main_win.docsearch.label_list:
-                if label.name in predicted_labels:
+                if label in predicted_labels:
                     self._main_win.docsearch.add_label(doc, label,
                                                        update_index=False)
             self._docs_to_label_predict.remove(doc)

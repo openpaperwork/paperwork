@@ -220,7 +220,7 @@ class ImgDoc(BasicDoc):
         self.__pages = None
 
     def clone(self):
-        return ImgDoc(self.docpath, self.docid)
+        return ImgDoc(self.path, self.docid)
 
     def __get_last_mod(self):
         last_mod = 0.0
@@ -271,7 +271,7 @@ class ImgDoc(BasicDoc):
         except OSError, exc:
             if exc.errno != errno.ENOENT:
                 logger.error("Exception while trying to get the number of"
-                              " pages of '%s': %s" % (self.docid, exc))
+                             " pages of '%s': %s" % (self.docid, exc))
                 raise
             return 0
 
@@ -356,7 +356,7 @@ def is_img_doc(docpath):
         filelist = os.listdir(docpath)
     except OSError, exc:
         logger.warn("Warning: Failed to list files in %s: %s"
-                     % (docpath, str(exc)))
+                    % (docpath, str(exc)))
         return False
     for filename in filelist:
         if (filename.lower().endswith(ImgPage.EXT_IMG)

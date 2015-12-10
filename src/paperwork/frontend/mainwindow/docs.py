@@ -497,7 +497,7 @@ class ActionSetDocDate(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         calendar = self.__main_win.doc_properties_panel.widgets['calendar']
-        popover = self.__main_win.popovers['calendar']
+        popover = self.__main_win.doc_properties_panel.popovers['calendar']
         date = calendar.get_date()
         date = datetime.datetime(year=date[0], month=date[1] + 1, day=date[2])
         date_txt = BasicDoc.get_name(date)
@@ -935,7 +935,7 @@ class DocList(object):
         self.__main_win.schedulers['main'].schedule(job)
 
     def select_doc(self, doc=None, offset=None):
-        assert(doc != None or offset != None)
+        assert(doc is not None or offset is not None)
         if doc is not None:
             row = self.model['by_id'][doc.docid]
         else:
@@ -947,7 +947,6 @@ class DocList(object):
             if not row:
                 return
         self.gui.select_row(row)
-
 
     def on_doc_thumbnailing_start_cb(self, src):
         self.__main_win.set_progression(src, 0.0, _("Loading thumbnails ..."))
@@ -1046,6 +1045,10 @@ class DocPropertiesPanel(object):
             },
         }
 
+        self.popovers = {
+            "calendar": widget_tree.get_object("calendar_popover")
+        }
+
         labels = sorted(main_window.docsearch.label_list)
         self.labels = {label: (None, None) for label in labels}
 
@@ -1072,7 +1075,7 @@ class DocPropertiesPanel(object):
         self.refresh_keywords_textview()
 
     def _open_calendar(self):
-        self.__main_win.popovers['calendar'].set_relative_to(
+        self.popovers['calendar'].set_relative_to(
             self.widgets['name'])
         if self.new_doc_date is not None:
             self.widgets['calendar'].select_month(
@@ -1088,7 +1091,7 @@ class DocPropertiesPanel(object):
             except Exception as exc:
                 logger.warning("Failed to parse document date: %s --> %s"
                                % (str(self.doc.docid), str(exc)))
-        self.__main_win.popovers['calendar'].set_visible(True)
+        self.popovers['calendar'].set_visible(True)
 
     def apply_properties(self):
         has_changed = False
@@ -1125,19 +1128,33 @@ class DocPropertiesPanel(object):
                 self.__main_win.upd_index({self.doc})
         else:
             old_doc = self.doc.clone()
-            self.doc.date = self.new_doc_date
-            self.new_doc_date = None
             # this case is more tricky --> del + new
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch,
-                new_docs={self.doc},
                 del_docs={old_doc},
                 optimize=False,
-                reload_list=True
+                reload_list=False
             )
+            new_doc_date = self.new_doc_date
+            job.connect(
+                "index-update-end", lambda job:
+                GLib.idle_add(self.__rename_doc, old_doc, new_doc_date)
+            )
+            self.new_doc_date = None
             self.__main_win.schedulers['main'].schedule(job)
 
         self.__main_win.refresh_header_bar()
+
+    def __rename_doc(self, old_doc, new_doc_date):
+        old_doc.date = new_doc_date
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch,
+            new_docs={old_doc},
+            optimize=False,
+            reload_list=True
+        )
+        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.doc = old_doc
 
     def _clear_label_list(self):
         self.widgets['labels'].freeze_child_notify()

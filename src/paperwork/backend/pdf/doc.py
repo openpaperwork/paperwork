@@ -105,7 +105,7 @@ class PdfDoc(BasicDoc):
         self._pdf = None
 
     def clone(self):
-        return PdfDoc(self.docpath, self.docid)
+        return PdfDoc(self.path, self.docid)
 
     def __get_last_mod(self):
         pdfpath = os.path.join(self.path, PDF_FILENAME)

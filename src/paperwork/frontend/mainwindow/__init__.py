@@ -1290,37 +1290,6 @@ class ActionImport(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 
-class ActionDeleteDoc(SimpleAction):
-    def __init__(self, main_window, doc=None):
-        SimpleAction.__init__(self, "Delete document")
-        self.__main_win = main_window
-        self.__doc = doc
-
-    def do(self):
-        """
-        Ask for confirmation and then delete the document being viewed.
-        """
-        if not ask_confirmation(self.__main_win.window):
-            return
-        SimpleAction.do(self)
-        if self.__doc is None:
-            doc = self.__main_win.doc
-        else:
-            doc = self.__doc
-
-        self.__main_win.actions['new_doc'][1].do()
-
-        logger.info("Deleting ...")
-        index_upd = self.__main_win.docsearch.get_index_updater(
-            optimize=False)
-        index_upd.del_doc(doc)
-        index_upd.commit()
-        logger.info("Deleted")
-        doc.destroy()
-
-        self.__main_win.refresh_doc_list()
-
-
 class ActionDeletePage(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Delete page")
@@ -2303,6 +2272,9 @@ class MainWindow(object):
         else:
             self.progressbar.visible = False
             self.progressbar.redraw()
+
+    def new_doc(self):
+        self.actions['new_doc'][1].do()
 
     def set_zoom_level(self, level, auto=False):
         self.actions['zoom_level'][1].enabled = False

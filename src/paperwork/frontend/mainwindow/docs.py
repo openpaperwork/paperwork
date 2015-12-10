@@ -577,21 +577,35 @@ class ActionDeleteDoc(SimpleAction):
         """
         if not ask_confirmation(self.__main_win.window):
             return
+        GLib.idle_add(self._do)
+
+    def _do(self):
         SimpleAction.do(self)
         if self.__doc is None:
             doc = self.__main_win.doc
         else:
             doc = self.__doc
+
         self.__main_win.actions['new_doc'][1].do()
 
         logger.info("Deleting ...")
-        index_upd = self.__main_win.docsearch.get_index_updater(
-            optimize=False)
-        index_upd.del_doc(doc)
-        index_upd.commit()
-        logger.info("Deleted")
-        doc.destroy()
+        job = self.__main_win.job_factories['index_updater'].make(
+            self.__main_win.docsearch,
+            del_docs={doc},
+            optimize=False,
+            reload_list=True
+        )
+        job.connect(
+            "index-update-end",
+            lambda job: GLib.idle_add(
+                self._on_doc_deleted_from_index, doc
+            )
+        )
+        self.__main_win.new_doc()
+        self.__main_win.schedulers['main'].schedule(job)
 
+    def _on_doc_deleted_from_index(self, doc):
+        doc.destroy()
         self.__main_win.refresh_doc_list()
 
 

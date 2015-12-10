@@ -517,9 +517,8 @@ class ActionToggleOCRState(SimpleAction):
 
 
 class ActionApplySettings(SimpleAction):
-
     def __init__(self, settings_win, config):
-        SimpleAction.__init__(self, "Apply settings")
+        super(ActionApplySettings, self).__init__("Apply settings")
         self.__settings_win = settings_win
         self.__config = config
 
@@ -530,26 +529,29 @@ class ActionApplySettings(SimpleAction):
             self.__config['workdir'].value = workdir
             need_reindex = True
 
-        setting = self.__settings_win.device_settings['devid']
-        idx = setting['gui'].get_active()
-        if idx >= 0:
-            devid = setting['stores']['loaded'][idx][1]
-            self.__config['scanner_devid'].value = devid
+        try:
+            setting = self.__settings_win.device_settings['devid']
+            idx = setting['gui'].get_active()
+            if idx >= 0:
+                devid = setting['stores']['loaded'][idx][1]
+                self.__config['scanner_devid'].value = devid
 
-        setting = self.__settings_win.device_settings['source']
-        idx = setting['gui'].get_active()
-        if idx >= 0:
-            source = setting['stores']['loaded'][idx][1]
-            self.__config['scanner_source'].value = source
+            setting = self.__settings_win.device_settings['source']
+            idx = setting['gui'].get_active()
+            if idx >= 0:
+                source = setting['stores']['loaded'][idx][1]
+                self.__config['scanner_source'].value = source
 
-        has_feeder = self.__settings_win.device_settings['has_feeder']
-        self.__config['scanner_has_feeder'].value = has_feeder
+            has_feeder = self.__settings_win.device_settings['has_feeder']
+            self.__config['scanner_has_feeder'].value = has_feeder
 
-        setting = self.__settings_win.device_settings['resolution']
-        idx = setting['gui'].get_active()
-        if idx >= 0:
-            resolution = setting['stores']['loaded'][idx][1]
-            self.__config['scanner_resolution'].value = resolution
+            setting = self.__settings_win.device_settings['resolution']
+            idx = setting['gui'].get_active()
+            if idx >= 0:
+                resolution = setting['stores']['loaded'][idx][1]
+                self.__config['scanner_resolution'].value = resolution
+        except Exception as exc:
+            logger.warning("Failed to update scanner settings: %s" % str(exc))
 
         setting = self.__settings_win.ocr_settings['enabled']
         enabled = setting['gui'].get_active()
@@ -861,7 +863,7 @@ class SettingsWindow(GObject.GObject):
 
         self.__scan_progress_job = self.job_factories['progress_updater'].make(
             value_min=0.0, value_max=1.0,
-            total_time= self.__config['scan_time'].value['calibration'])
+            total_time=self.__config['scan_time'].value['calibration'])
         self.schedulers['progress'].schedule(self.__scan_progress_job)
 
     def on_scan_info(self, size):

@@ -454,7 +454,7 @@ class JobFactoryCalibrationScan(JobFactory):
 class ActionSelectScanner(SimpleAction):
 
     def __init__(self, settings_win):
-        SimpleAction.__init__(self, "New scanner selected")
+        super(ActionSelectScanner, self).__init__("New scanner selected")
         self.__settings_win = settings_win
 
     def do(self):
@@ -486,7 +486,7 @@ class ActionSelectScanner(SimpleAction):
 class ActionSelectSource(SimpleAction):
 
     def __init__(self, settings_win):
-        SimpleAction.__init__(self, "New source selected")
+        super(ActionSelectSource, self).__init__("New source selected")
         self.__settings_win = settings_win
 
     def do(self):
@@ -508,7 +508,7 @@ class ActionSelectSource(SimpleAction):
 class ActionToggleOCRState(SimpleAction):
 
     def __init__(self, settings_win):
-        SimpleAction.__init__(self, "Toggle OCR state")
+        super(ActionToggleOCRState, self).__init__("Toggle OCR state")
         self.__settings_win = settings_win
 
     def do(self):
@@ -578,9 +578,8 @@ class ActionApplySettings(SimpleAction):
 
 
 class ActionScanCalibration(SimpleAction):
-
     def __init__(self, settings_win):
-        SimpleAction.__init__(self, "Scan calibration sheet")
+        super(ActionScanCalibration, self).__init__("Scan calibration sheet")
         self.__settings_win = settings_win
 
     def do(self):
@@ -610,7 +609,7 @@ class SettingsWindow(GObject.GObject):
     }
 
     def __init__(self, main_scheduler, mainwindow_gui, config):
-        GObject.GObject.__init__(self)
+        super(SettingsWindow, self).__init__()
 
         self.schedulers = {
             'main': main_scheduler,

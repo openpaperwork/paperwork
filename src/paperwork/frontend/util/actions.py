@@ -29,6 +29,7 @@ class SimpleAction(object):
     """
 
     def __init__(self, name):
+        self.enabled = True
         self.name = name
         self.__signal_handlers = [
             (Gtk.ToolButton, "clicked", self.on_button_clicked_cb, -1),
@@ -53,7 +54,6 @@ class SimpleAction(object):
             (Gtk.Adjustment, "value-changed",
              self.on_adjustment_value_changed_cb, -1)
         ]
-        self.enabled = True
 
     def do(self, **kwargs):
         logger.info("Action: [%s]" % (self.name))

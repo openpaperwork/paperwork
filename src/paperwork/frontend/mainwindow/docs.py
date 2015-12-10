@@ -934,6 +934,21 @@ class DocList(object):
             search)
         self.__main_win.schedulers['main'].schedule(job)
 
+    def select_doc(self, doc=None, offset=None):
+        assert(doc != None or offset != None)
+        if doc is not None:
+            row = self.model['by_id'][doc.docid]
+        else:
+            row = self.gui.get_selected_row()
+        if offset is not None:
+            row_index = row.get_index()
+            row_index += offset
+            row = self.gui.get_row_at_index(row_index)
+            if not row:
+                return
+        self.gui.select_row(row)
+
+
     def on_doc_thumbnailing_start_cb(self, src):
         self.__main_win.set_progression(src, 0.0, _("Loading thumbnails ..."))
         self.gui.freeze_child_notify()

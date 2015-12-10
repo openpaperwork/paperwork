@@ -2210,6 +2210,9 @@ class MainWindow(object):
         self.img['canvas'].connect(
             None, "scroll-event", self.__on_scroll_event_cb
         )
+        self.img['canvas'].connect(
+            None, "key-press-event", self.__on_key_press_event_cb,
+        )
 
         self.window.set_visible(True)
 
@@ -2769,6 +2772,34 @@ class MainWindow(object):
                 return False
             GLib.idle_add(self.__set_zoom_level_on_scroll, zoom)
             return True
+        # don't know what to do, don't care. Let someone else take care of it
+        return False
+
+    def __on_key_press_event_cb(self, widget, event):
+        direction = 0
+        if event.keyval == Gdk.KEY_Page_Up:
+            direction = -1
+        elif event.keyval == Gdk.KEY_Page_Down:
+            direction = 1
+
+        if direction != 0:
+            if not event.state & Gdk.ModifierType.CONTROL_MASK:
+                doc = self.doc
+                if not self.page:
+                    page_nb = doc.nb_pages - 1
+                else:
+                    page_nb = self.page.page_nb
+                page_nb += direction
+                if page_nb >= doc.nb_pages:
+                    page_nb = doc.nb_pages - 1
+                if page_nb < 0:
+                    page_nb = 0
+                self.show_page(doc.pages[page_nb])
+            else:
+                self.doclist.select_doc(offset=direction)
+            return True
+
+        # don't know what to do, don't care. Let someone else take care of it
         return False
 
     def get_doc_sorting(self):

@@ -91,11 +91,14 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+        self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         super(Canvas, self).connect("size-allocate", self.__on_size_allocate)
         super(Canvas, self).connect("draw", self.__on_draw)
-        super(Canvas, self).connect("button-press-event", self.__on_button_pressed)
+        super(Canvas, self).connect("button-press-event",
+                                    self.__on_button_pressed)
         super(Canvas, self).connect("motion-notify-event", self.__on_motion)
-        super(Canvas, self).connect("button-release-event", self.__on_button_released)
+        super(Canvas, self).connect("button-release-event",
+                                    self.__on_button_released)
         super(Canvas, self).connect("key-press-event", self.__on_key_pressed)
 
         hadj.connect("value-changed", self.__on_adjustment_changed)
@@ -255,7 +258,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         """
         handler_id = super(Canvas, self).connect(signal, func, *args, **kwargs)
         if drawer is not None:
-            if not drawer in self._drawer_connections:
+            if drawer not in self._drawer_connections:
                 self._drawer_connections[drawer] = [handler_id]
             else:
                 self._drawer_connections[drawer].append(handler_id)
@@ -322,15 +325,12 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         v = self.vadjustment.get_value()
         h_offset = 100
         v_offset = 100
-        v_page = self.vadjustment.get_page_size()
 
         ops = {
             Gdk.KEY_Left: lambda: (h - h_offset, v),
             Gdk.KEY_Right: lambda: (h + h_offset, v),
             Gdk.KEY_Up: lambda: (h, v - v_offset),
             Gdk.KEY_Down: lambda: (h, v + v_offset),
-            Gdk.KEY_Page_Up: lambda: (h, v - v_page),
-            Gdk.KEY_Page_Down: lambda: (h, v + v_page),
         }
         if event.keyval not in ops:
             return False

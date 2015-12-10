@@ -278,6 +278,12 @@ class DocIndexUpdater(GObject.GObject):
         Delete a document
         """
         logger.info("Removing doc from the index: %s" % doc)
+        if isinstance(doc, str) or isinstance(doc, unicode):
+            # annoying case : we can't know which labels were on it
+            # so we can't roll back the label guesser training ...
+            self._delete_doc_from_index(self.index_writer, doc)
+            self.__need_reload = True
+            return
         self._delete_doc_from_index(self.index_writer, doc.docid)
         self.label_guesser_updater.del_doc(doc)
         self.__need_reload = True

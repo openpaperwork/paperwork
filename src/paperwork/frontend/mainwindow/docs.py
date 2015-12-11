@@ -26,7 +26,6 @@ from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.renderer import LabelWidget
 from paperwork.frontend.widgets import LabelColorButton
 
-
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
@@ -34,103 +33,6 @@ logger = logging.getLogger(__name__)
 def sort_documents_by_date(documents):
     documents.sort()
     documents.reverse()
-
-
-class JobDocSearcher(Job):
-    """
-    Search the documents
-    """
-    __gsignals__ = {
-        'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
-        # user made a typo
-        'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
-        # array of documents
-        'search-results': (GObject.SignalFlags.RUN_LAST, None,
-                           # XXX(Jflesch): TYPE_STRING would turn the Unicode
-                           # object into a string object
-                           (GObject.TYPE_PYOBJECT,
-                            GObject.TYPE_PYOBJECT,)),
-        # array of suggestions
-        'search-suggestions': (GObject.SignalFlags.RUN_LAST, None,
-                               (GObject.TYPE_PYOBJECT,)),
-    }
-
-    can_stop = True
-    priority = 500
-
-    def __init__(self, factory, id, config, docsearch, sort_func, search):
-        Job.__init__(self, factory, id)
-        self.search = search
-        self.__docsearch = docsearch
-        self.__sort_func = sort_func
-        self.__config = config
-
-    def do(self):
-        self.can_run = True
-
-        self._wait(0.5)
-        if not self.can_run:
-            return
-
-        self.emit('search-start')
-
-        try:
-            logger.info("Searching: [%s]" % self.search)
-            documents = self.__docsearch.find_documents(self.search)
-        except Exception, exc:
-            logger.error("Invalid search: [%s]" % self.search)
-            logger.error("Exception was: %s: %s" % (type(exc), str(exc)))
-            self.emit('search-invalid')
-            return
-        if not self.can_run:
-            return
-
-        if self.search == u"":
-            # when no specific search has been done, the sorting is always
-            # the same
-            sort_documents_by_date(documents)
-        else:
-            self.__sort_func(documents)
-        if not self.can_run:
-            return
-        self.emit('search-results', self.search, documents)
-
-        suggestions = self.__docsearch.find_suggestions(self.search)
-        if not self.can_run:
-            return
-        self.emit('search-suggestions', suggestions)
-
-    def stop(self, will_resume=False):
-        self.can_run = False
-        self._stop_wait()
-
-
-GObject.type_register(JobDocSearcher)
-
-
-class JobFactoryDocSearcher(JobFactory):
-    def __init__(self, main_win, config):
-        JobFactory.__init__(self, "Search")
-        self.__main_win = main_win
-        self.__config = config
-
-    def make(self, docsearch, sort_func, search_sentence):
-        job = JobDocSearcher(self, next(self.id_generator), self.__config,
-                             docsearch, sort_func, search_sentence)
-        job.connect('search-start', lambda searcher:
-                    GLib.idle_add(self.__main_win.on_search_start_cb))
-        job.connect('search-results',
-                    lambda searcher, search, documents:
-                    GLib.idle_add(self.__main_win.on_search_results_cb,
-                                  search, documents))
-        job.connect('search-invalid',
-                    lambda searcher: GLib.idle_add(
-                        self.__main_win.on_search_invalid_cb))
-        job.connect('search-suggestions',
-                    lambda searcher, suggestions:
-                    GLib.idle_add(self.__main_win.on_search_suggestions_cb,
-                                  suggestions))
-        return job
 
 
 class JobDocThumbnailer(Job):
@@ -647,7 +549,6 @@ class DocList(object):
 
         self.job_factories = {
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
-            'searcher': JobFactoryDocSearcher(main_win, config),
         }
         self.selected_doc = None
 
@@ -956,12 +857,12 @@ class DocList(object):
         Warning: Will reset all the thumbnail to the default one
         """
         self.__main_win.schedulers['main'].cancel_all(
-            self.job_factories['searcher']
+            self.__main_win.job_factories['doc_searcher']
         )
         self.show_loading()
         search = unicode(self.__main_win.search_field.get_text(),
                          encoding='utf-8')
-        job = self.job_factories['searcher'].make(
+        job = self.__main_win.job_factories['doc_searcher'].make(
             self.__main_win.docsearch, self.__main_win.get_doc_sorting()[1],
             search)
         self.__main_win.schedulers['main'].schedule(job)

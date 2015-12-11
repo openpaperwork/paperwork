@@ -801,12 +801,16 @@ class DocList(object):
             delete_button.set_visible(False)
             edit_button.set_visible(False)
 
-    def show_loading(self):
+    def _show_loading(self):
         # remove the list, put the canvas+spinner instead
         self.gui['loading'].remove_all_drawers()
         self.gui['loading'].add_drawer(self.gui['spinner'])
         self.gui['list'].set_visible(False)
         self.gui['loading'].set_visible(True)
+        self._on_size_allocate()
+
+    def show_loading(self):
+        GLib.idle_add(self._show_loading)
 
     def set_docs(self, documents, need_new_doc=True):
         self.__main_win.schedulers['main'].cancel_all(

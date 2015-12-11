@@ -506,32 +506,6 @@ class JobLabelPredictor(Job):
 GObject.type_register(JobLabelPredictor)
 
 
-class JobFactoryLabelPredictorOnOpenDoc(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "Label predictor (on opened doc)")
-        self.__main_win = main_win
-
-    def make(self, doc):
-        job = JobLabelPredictor(self, next(self.id_generator),
-                                self.__main_win.docsearch, doc)
-        job.connect('predicted-labels',
-                    lambda predictor, doc, labels:
-                    GLib.idle_add(self.__main_win.on_label_prediction_cb,
-                                  doc, labels))
-        return job
-
-
-class JobFactoryLabelPredictorOnNewDoc(JobFactory):
-    def __init__(self, main_win):
-        JobFactory.__init__(self, "Label predictor (on new doc)")
-        self.__main_win = main_win
-
-    def make(self, doc):
-        job = JobLabelPredictor(self, next(self.id_generator),
-                                self.__main_win.docsearch, doc)
-        return job
-
-
 class JobExportPreviewer(Job):
     __gsignals__ = {
         'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -1817,8 +1791,6 @@ class MainWindow(object):
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.search_field = widget_tree.get_object("entrySearch")
-        self.search_field.connect("icon-press",
-                                  self._on_search_field_icon_activated)
 
         self.doc_browsing = {
             'search': self.search_field,
@@ -1943,9 +1915,6 @@ class MainWindow(object):
             'importer': JobFactoryImporter(self, config),
             'index_reloader': JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
-            'label_predictor_on_open_doc': JobFactoryLabelPredictorOnOpenDoc(
-                self
-            ),
             'label_predictor_on_new_doc': JobFactoryLabelPredictorOnNewDoc(
                 self
             ),
@@ -2321,10 +2290,6 @@ class MainWindow(object):
     def on_index_update_write_cb(self, src):
         self.set_search_availability(False)
 
-    def _on_search_field_icon_activated(self, entry, icon_pos, event):
-        if icon_pos != Gtk.EntryIconPosition.SECONDARY:
-            return
-
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
 
@@ -2359,14 +2324,6 @@ class MainWindow(object):
                 self.lists['suggestions']['model'].append([suggestion])
         finally:
             self.lists['suggestions']['gui'].thaw_child_notify()
-
-    def on_label_prediction_cb(self, doc, predicted_labels):
-        label_model = self.lists['labels']['model']
-        for label_line in xrange(0, len(label_model)):
-            label = label_model[label_line][2]
-            line_iter = label_model.get_iter(label_line)
-            predicted = label in predicted_labels
-            label_model.set_value(line_iter, 4, predicted)
 
     def drop_boxes(self):
         self.img['boxes']['all'] = []

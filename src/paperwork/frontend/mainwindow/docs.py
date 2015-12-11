@@ -561,7 +561,9 @@ class DocList(object):
         self.selected_doc = None
 
         self.gui['scrollbars'].get_vadjustment().connect(
-            "value-changed", self._on_value_changed)
+            "value-changed",
+            lambda v: GLib.idle_add(self._on_scrollbar_value_changed)
+        )
 
         self.gui['list'].connect("drag-motion", self._on_drag_motion)
         self.gui['list'].connect("drag-leave", self._on_drag_leave)
@@ -586,7 +588,7 @@ class DocList(object):
         img = add_img_border(img, 1)
         return image2pixbuf(img)
 
-    def _on_value_changed(self, vadjustment=None):
+    def _on_scrollbar_value_changed(self):
         vadjustment = self.gui['scrollbars'].get_vadjustment()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
@@ -607,7 +609,7 @@ class DocList(object):
             start_idx = start_row.get_index()
         end_idx = 0
         if end_row:
-            end_idx = end_row.get_index() + 1
+            end_idx = end_row.get_index()
         if start_row == end_row:
             return
         if end_idx < start_idx:
@@ -616,7 +618,7 @@ class DocList(object):
             end_idx = 99999999
 
         documents = []
-        for row_idx in xrange(start_idx, end_idx):
+        for row_idx in xrange(start_idx, end_idx + 1):
             row = self.gui['list'].get_row_at_index(row_idx)
             if row is None:
                 break
@@ -630,6 +632,9 @@ class DocList(object):
             except KeyError:
                 # Assume new document
                 pass
+
+        logger.info("Will get thumbnails for %d documents [%d-%d]"
+                    % (len(documents), start_idx, end_idx))
 
         if len(documents) > 0:
             job = self.job_factories['doc_thumbnailer'].make(documents)
@@ -846,7 +851,7 @@ class DocList(object):
         self.gui['loading'].set_visible(False)
         self.gui['list'].set_visible(True)
 
-        GLib.idle_add(self._on_value_changed)
+        GLib.idle_add(self._on_scrollbar_value_changed)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """

@@ -839,7 +839,6 @@ class DocList(object):
 
         # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()
-        self.gui['loading'].add_drawer(self.gui['spinner'])
         self.gui['loading'].set_visible(False)
         self.gui['list'].set_visible(True)
 

@@ -506,6 +506,17 @@ class JobLabelPredictor(Job):
 GObject.type_register(JobLabelPredictor)
 
 
+class JobFactoryLabelPredictorOnNewDoc(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "Label predictor (on new doc)")
+        self.__main_win = main_win
+
+    def make(self, doc):
+        job = JobLabelPredictor(self, next(self.id_generator),
+                                self.__main_win.docsearch, doc)
+        return job
+
+
 class JobExportPreviewer(Job):
     __gsignals__ = {
         'export-preview-start': (GObject.SignalFlags.RUN_LAST, None, ()),

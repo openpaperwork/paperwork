@@ -16,6 +16,8 @@ from paperwork.backend.labels import Label
 from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.canvas import Canvas
+from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.dialog import ask_confirmation
 from paperwork.frontend.util.img import add_img_border
 from paperwork.frontend.util.img import image2pixbuf
@@ -460,7 +462,7 @@ class ActionOpenSelectedDocument(SimpleAction):
     def do(self):
         SimpleAction.do(self)
 
-        doclist = self.__doclist.gui
+        doclist = self.__doclist.gui['list']
         row = doclist.get_selected_row()
         if row is None:
             return
@@ -628,8 +630,12 @@ class DocList(object):
         }
         connect_actions(self.actions)
 
-        self.gui = widget_tree.get_object("listboxDocList")
-        self.scrollbars = widget_tree.get_object("scrolledwindowDocList")
+        self.gui = {
+            'list': widget_tree.get_object("listboxDocList"),
+            'scrollbars': widget_tree.get_object("scrolledwindowDocList")
+        }
+        self.gui['loading'] = Canvas(self.gui['scrollbars'])
+
         self.model = {
             'has_new': False,
             'by_row': {},  # Gtk.ListBoxRow: docid
@@ -645,14 +651,20 @@ class DocList(object):
         }
         self.selected_doc = None
 
-        self.scrollbars.get_vadjustment().connect(
+        self.gui['scrollbars'].get_vadjustment().connect(
             "value-changed", self._on_value_changed)
 
-        self.gui.connect("drag-motion", self._on_drag_motion)
-        self.gui.connect("drag-leave", self._on_drag_leave)
-        self.gui.connect("drag-data-received", self._on_drag_data_received)
-        self.gui.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
-        self.gui.drag_dest_add_text_targets()
+        self.gui['list'].connect("drag-motion", self._on_drag_motion)
+        self.gui['list'].connect("drag-leave", self._on_drag_leave)
+        self.gui['list'].connect(
+            "drag-data-received",
+            self._on_drag_data_received
+        )
+        self.gui['list'].drag_dest_set(
+            Gtk.DestDefaults.ALL,
+            [], Gdk.DragAction.MOVE
+        )
+        self.gui['list'].drag_dest_add_text_targets()
 
     def __init_default_thumbnail(self, width=BasicPage.DEFAULT_THUMB_WIDTH,
                                  height=BasicPage.DEFAULT_THUMB_HEIGHT):
@@ -664,7 +676,7 @@ class DocList(object):
         return image2pixbuf(img)
 
     def _on_value_changed(self, vadjustment=None):
-        vadjustment = self.scrollbars.get_vadjustment()
+        vadjustment = self.gui['scrollbars'].get_vadjustment()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
@@ -676,8 +688,8 @@ class DocList(object):
         start_y = value
         end_y = value + page_size
 
-        start_row = self.gui.get_row_at_y(start_y)
-        end_row = self.gui.get_row_at_y(end_y)
+        start_row = self.gui['list'].get_row_at_y(start_y)
+        end_row = self.gui['list'].get_row_at_y(end_y)
 
         start_idx = 0
         if start_row:
@@ -694,7 +706,7 @@ class DocList(object):
 
         documents = []
         for row_idx in xrange(start_idx, end_idx):
-            row = self.gui.get_row_at_index(row_idx)
+            row = self.gui['list'].get_row_at_index(row_idx)
             if row is None:
                 break
             docid = self.model['by_row'][row]
@@ -713,7 +725,7 @@ class DocList(object):
             self.__main_win.schedulers['main'].schedule(job)
 
     def _on_drag_motion(self, canvas, drag_context, x, y, time):
-        target_row = self.gui.get_row_at_y(y)
+        target_row = self.gui['list'].get_row_at_y(y)
         if not target_row or target_row not in self.model['by_row']:
             self._on_drag_leave(canvas, drag_context, time)
             return False
@@ -727,18 +739,18 @@ class DocList(object):
 
         Gdk.drag_status(drag_context, Gdk.DragAction.MOVE, time)
 
-        self.gui.drag_unhighlight_row()
-        self.gui.drag_highlight_row(target_row)
+        self.gui['list'].drag_unhighlight_row()
+        self.gui['list'].drag_highlight_row(target_row)
         return True
 
     def _on_drag_leave(self, canvas, drag_context, time):
-        self.gui.drag_unhighlight_row()
+        self.gui['list'].drag_unhighlight_row()
 
     def _on_drag_data_received(self, widget, drag_context,
                                x, y, data, info, time):
         page_id = data.get_text()
 
-        target_row = self.gui.get_row_at_y(y)
+        target_row = self.gui['list'].get_row_at_y(y)
         if not target_row or target_row not in self.model['by_row']:
             logger.warn("Drag-n-drop: Invalid doc row ?!")
             drag_context.finish(False, False, time)  # success = False
@@ -795,24 +807,24 @@ class DocList(object):
         self._make_listboxrow_doc_widget(doc, rowbox, False)
         self.model['by_row'][rowbox] = doc.docid
         self.model['by_id'][doc.docid] = rowbox
-        self.gui.insert(rowbox, 0)
+        self.gui['list'].insert(rowbox, 0)
         if self.__main_win.doc.is_new:
-            self.gui.select_row(rowbox)
+            self.gui['list'].select_row(rowbox)
 
     def clear(self):
-        self.gui.freeze_child_notify()
+        self.gui['list'].freeze_child_notify()
         try:
             while True:
-                row = self.gui.get_row_at_index(0)
+                row = self.gui['list'].get_row_at_index(0)
                 if row is None:
                     break
-                self.gui.remove(row)
+                self.gui['list'].remove(row)
 
             self.model['by_row'] = {}
             self.model['by_id'] = {}
             self.model['has_new'] = False
         finally:
-            self.gui.thaw_child_notify()
+            self.gui['list'].thaw_child_notify()
 
     def _make_listboxrow_doc_widget(self, doc, rowbox, selected=False):
         globalbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
@@ -885,7 +897,7 @@ class DocList(object):
 
         self.clear()
 
-        self.gui.freeze_child_notify()
+        self.gui['list'].freeze_child_notify()
         try:
             for doc in documents:
                 rowbox = Gtk.ListBoxRow()
@@ -893,9 +905,9 @@ class DocList(object):
                 self._make_listboxrow_doc_widget(doc, rowbox, selected)
                 self.model['by_row'][rowbox] = doc.docid
                 self.model['by_id'][doc.docid] = rowbox
-                self.gui.add(rowbox)
+                self.gui['list'].add(rowbox)
         finally:
-            self.gui.thaw_child_notify()
+            self.gui['list'].thaw_child_notify()
 
         if need_new_doc:
             self.insert_new_doc()
@@ -903,7 +915,12 @@ class DocList(object):
         if (self.__main_win.doc
                 and self.__main_win.doc.docid in self.model['by_id']):
             row = self.model['by_id'][self.__main_win.doc.docid]
-            self.gui.select_row(row)
+            self.gui['list'].select_row(row)
+
+        # switch the list, put the canvas+spinner instead
+        self.gui['scrollbars'].remove(self.gui['loading'])
+        self.gui['loading'].remove_all_drawers()
+        self.gui['scrollbars'].add(self.gui['list'])
 
         GLib.idle_add(self._on_value_changed)
 
@@ -941,6 +958,7 @@ class DocList(object):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['searcher']
         )
+        self.show_loading()
         search = unicode(self.__main_win.search_field.get_text(),
                          encoding='utf-8')
         job = self.job_factories['searcher'].make(
@@ -953,18 +971,18 @@ class DocList(object):
         if doc is not None:
             row = self.model['by_id'][doc.docid]
         else:
-            row = self.gui.get_selected_row()
+            row = self.gui['list'].get_selected_row()
         if offset is not None:
             row_index = row.get_index()
             row_index += offset
-            row = self.gui.get_row_at_index(row_index)
+            row = self.gui['list'].get_row_at_index(row_index)
             if not row:
                 return
         self.gui.select_row(row)
 
     def on_doc_thumbnailing_start_cb(self, src):
         self.__main_win.set_progression(src, 0.0, _("Loading thumbnails ..."))
-        self.gui.freeze_child_notify()
+        self.gui['list'].freeze_child_notify()
 
     def on_doc_thumbnailing_doc_done_cb(self, src, thumbnail,
                                         doc, doc_nb, total_docs):
@@ -980,7 +998,7 @@ class DocList(object):
 
     def on_doc_thumbnailing_end_cb(self, src):
         self.__main_win.set_progression(src, 0.0, None)
-        self.gui.thaw_child_notify()
+        self.gui['list'].thaw_child_notify()
 
     def __set_doc_buttons_visible(self, doc, visible):
         if (doc is None

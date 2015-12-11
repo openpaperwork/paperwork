@@ -522,21 +522,29 @@ class DocList(object):
             JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
             JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
 
+        self.gui = {
+            'list': widget_tree.get_object("listboxDocList"),
+            'box': widget_tree.get_object("doclist_box"),
+            'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
+            'spinner': SpinnerAnimation((0, 0)),
+        }
+        self.gui['loading'] = Canvas(self.gui['scrollbars'])
+        self.gui['loading'].set_visible(False)
+        self.gui['box'].add(self.gui['loading'])
+        self.gui['scrollbars'].connect(
+            "size-allocate",
+            lambda x, s: GLib.idle_add(self._on_size_allocate)
+        )
+
         self.actions = {
             'open_doc': (
                 [
-                    widget_tree.get_object("listboxDocList"),
+                    self.gui['list'],
                 ],
                 ActionOpenSelectedDocument(main_win, config, self)
             ),
         }
         connect_actions(self.actions)
-
-        self.gui = {
-            'list': widget_tree.get_object("listboxDocList"),
-            'scrollbars': widget_tree.get_object("scrolledwindowDocList")
-        }
-        self.gui['loading'] = Canvas(self.gui['scrollbars'])
 
         self.model = {
             'has_new': False,
@@ -566,6 +574,8 @@ class DocList(object):
             [], Gdk.DragAction.MOVE
         )
         self.gui['list'].drag_dest_add_text_targets()
+
+        self.show_loading()
 
     def __init_default_thumbnail(self, width=BasicPage.DEFAULT_THUMB_WIDTH,
                                  height=BasicPage.DEFAULT_THUMB_HEIGHT):
@@ -791,10 +801,19 @@ class DocList(object):
             delete_button.set_visible(False)
             edit_button.set_visible(False)
 
+    def show_loading(self):
+        # remove the list, put the canvas+spinner instead
+        self.gui['loading'].remove_all_drawers()
+        self.gui['loading'].add_drawer(self.gui['spinner'])
+        self.gui['list'].set_visible(False)
+        self.gui['loading'].set_visible(True)
+
     def set_docs(self, documents, need_new_doc=True):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
+
+        logger.info("Got %d documents" % len(documents))
 
         self.clear()
 
@@ -818,10 +837,11 @@ class DocList(object):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
 
-        # switch the list, put the canvas+spinner instead
-        self.gui['scrollbars'].remove(self.gui['loading'])
+        # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()
-        self.gui['scrollbars'].add(self.gui['list'])
+        self.gui['loading'].add_drawer(self.gui['spinner'])
+        self.gui['loading'].set_visible(False)
+        self.gui['list'].set_visible(True)
 
         GLib.idle_add(self._on_value_changed)
 
@@ -859,9 +879,9 @@ class DocList(object):
         self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['doc_searcher']
         )
-        self.show_loading()
         search = unicode(self.__main_win.search_field.get_text(),
                          encoding='utf-8')
+        self.show_loading()
         job = self.__main_win.job_factories['doc_searcher'].make(
             self.__main_win.docsearch, self.__main_win.get_doc_sorting()[1],
             search)
@@ -880,6 +900,14 @@ class DocList(object):
             if not row:
                 return
         self.gui.select_row(row)
+
+    def _on_size_allocate(self):
+        visible = self.gui['scrollbars'].get_allocation()
+        visible = (visible.width, visible.height)
+        self.gui['spinner'].position = (
+            (visible[0] - SpinnerAnimation.ICON_SIZE) / 2,
+            (visible[1] - SpinnerAnimation.ICON_SIZE) / 2
+        )
 
     def on_doc_thumbnailing_start_cb(self, src):
         self.__main_win.set_progression(src, 0.0, _("Loading thumbnails ..."))

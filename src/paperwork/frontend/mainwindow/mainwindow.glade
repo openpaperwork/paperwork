@@ -532,12 +532,19 @@
                         <property name="shadow_type">in</property>
                         <property name="kinetic_scrolling">False</property>
                         <child>
-                          <object class="GtkListBox" id="listboxDocList">
+                          <object class="GtkBox" id="doclist_box">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <style>
-                              <class name="doc-list"/>
-                            </style>
+                            <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkListBox" id="listboxDocList">
+                                <property name="visible">False</property>
+                                <property name="can_focus">True</property>
+                                <style>
+                                  <class name="doc-list"/>
+                                </style>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

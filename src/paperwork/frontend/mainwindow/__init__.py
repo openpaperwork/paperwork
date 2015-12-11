@@ -1848,9 +1848,9 @@ class MainWindow(object):
         self.img = {
             "canvas": img_widget,
             "scrollbar": img_scrollbars,
+            "scrollbar_size": (0, 0),
             "viewport": {
                 "widget": img_widget,
-                "size": (0, 0),
             },
             "eventbox": widget_tree.get_object("eventboxImg"),
             "pixbuf": None,
@@ -2172,8 +2172,8 @@ class MainWindow(object):
         self.window.connect("destroy",
                             ActionRealQuit(self, config).on_window_close_cb)
 
-        self.img['viewport']['widget'].connect(None, "size-allocate",
-                                               self.__on_img_area_resize_cb)
+        self.img['scrollbar'].connect("size-allocate",
+                                      self.__on_img_area_resize_cb)
         self.window.connect("size-allocate", self.__on_window_resized_cb)
 
         self.img['canvas'].connect(
@@ -2695,23 +2695,24 @@ class MainWindow(object):
             self.export['exporter'])
         self.schedulers['main'].schedule(job)
 
-    def __on_img_area_resize_cb(self, viewport, rectangle):
+    def __on_img_area_resize_cb(self, scrollbar, rectangle):
         if self.export['exporter'] is not None:
             return
 
-        old_size = self.img['viewport']['size']
+        old_size = self.img['scrollbar_size']
         new_size = (rectangle.width, rectangle.height)
         if old_size == new_size:
             return
 
         logger.info("Image view port resized. (%d, %d) --> (%d, %d)"
                     % (old_size[0], old_size[1], new_size[0], new_size[1]))
-        self.img['viewport']['size'] = new_size
+        self.img['scrollbar_size'] = new_size
 
         (auto, factor) = self.get_zoom_level()
         if not auto:
             return
 
+        # only if the width has changed
         self.update_page_sizes()
 
     def __on_doc_lines_shown(self, docs):

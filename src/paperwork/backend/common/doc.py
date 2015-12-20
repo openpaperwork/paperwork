@@ -22,10 +22,6 @@ import os.path
 import time
 import hashlib
 
-from scipy import sparse
-from sklearn.feature_extraction.text import HashingVectorizer
-from sklearn.preprocessing import normalize
-
 from paperwork.backend.labels import Label
 from paperwork.backend.util import rm_rf
 
@@ -38,9 +34,6 @@ class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
     EXTRA_TEXT_FILE = "extra.txt"
-    FEATURES_DIR = "features"
-    FEATURES_FILE = "features.jbl"
-    FEATURES_VER = 1
 
     pages = []
     can_edit = False
@@ -222,38 +215,6 @@ class BasicDoc(object):
         return txt
 
     text = property(_get_text)
-
-    def get_features(self):
-        """
-        return an array of features extracted from this doc for the sklearn
-        estimators. Concatenate features from the text and the image
-        """
-        if 'features' in self.__cache:
-            return self.__cache['features']
-
-        features = []
-
-        # add the words count. norm='l2', analyzer='char_wb', ngram_range=(3,3)
-        # are empirical
-        hash_vectorizer = HashingVectorizer(norm='l2', analyzer='char_wb',
-                                            ngram_range=(3, 3))
-        feature = hash_vectorizer.fit_transform([self.get_index_text()])
-        features.append(feature)
-
-        # add image info
-        image_features = normalize(self.pages[0].extract_features(), norm='l1')
-        features.append(image_features*0.3)
-
-        # concatenate all the features
-        features = sparse.hstack(features)
-        features = features.tocsr()
-
-        self.__cache['features'] = features
-
-        return features
-
-    def delete_features_files(self):
-        rm_rf(os.path.join(self.path, self.FEATURES_DIR))
 
     def get_index_labels(self):
         return u",".join([unicode(label.name)

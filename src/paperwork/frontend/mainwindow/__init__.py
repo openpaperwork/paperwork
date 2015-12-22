@@ -2382,6 +2382,7 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
 
     def on_index_update_start_cb(self, src):
+        self.doclist.show_loading()
         self.set_progression(src, 0.0, None)
         self.set_mouse_cursor("Busy")
 

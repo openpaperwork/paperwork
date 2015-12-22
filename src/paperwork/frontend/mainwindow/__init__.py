@@ -562,7 +562,6 @@ class JobFactoryDocSearcher(JobFactory):
         return job
 
 
-
 class JobLabelPredictor(Job):
     """
     Predicts what labels should be on a document
@@ -1802,6 +1801,7 @@ class ActionRefreshIndex(SimpleAction):
             self.__main_win.job_factories['index_updater'])
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
+        self.__main_win.doclist.clear()
         if self.__force:
             docsearch.destroy_index()
 

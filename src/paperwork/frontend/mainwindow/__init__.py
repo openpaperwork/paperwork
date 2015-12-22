@@ -922,6 +922,7 @@ class ActionNewDocument(SimpleAction):
         doclist = self.__doclist.gui['list']
         row = doclist.get_row_at_index(0)
         doclist.select_row(row)
+        self.__doclist.gui['scrollbars'].get_vadjustment().set_value(0)
 
 
 class ActionUpdateSearchResults(SimpleAction):

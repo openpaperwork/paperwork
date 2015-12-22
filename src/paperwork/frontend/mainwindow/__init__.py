@@ -592,6 +592,8 @@ class JobLabelPredictor(Job):
         self.can_run = True
         try:
             predicted_labels = self.__docsearch.guess_labels(self.doc)
+            logger.info("Predicted labels on document [%s]: [%s]"
+                        % (self.doc.docid, predicted_labels))
             self.emit('predicted-labels', self.doc, predicted_labels)
         except StopIteration:
             return

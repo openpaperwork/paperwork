@@ -626,12 +626,9 @@ class DocList(object):
             if docid in self.model['thumbnails']:
                 # already loaded
                 continue
-            try:
-                doc = self.__main_win.docsearch.get(docid)
+            doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+            if doc:
                 documents.append(doc)
-            except KeyError:
-                # Assume new document
-                pass
 
         logger.info("Will get thumbnails for %d documents [%d-%d]"
                     % (len(documents), start_idx, end_idx))
@@ -656,7 +653,10 @@ class DocList(object):
             return False
 
         target_docid = self.model['by_row'][target_row]
-        target_doc = self.__main_win.docsearch.get(target_docid)
+        try:
+            target_doc = self.__main_win.docsearch.get(target_docid)
+        except KeyError:
+            target_doc = self.get_new_doc()
 
         if not target_doc.can_edit:
             self._on_drag_leave(canvas, drag_context, time)
@@ -686,7 +686,11 @@ class DocList(object):
                     % (page_id, target_docid))
 
         src_page = self.__main_win.docsearch.get(page_id)
-        target_doc = self.__main_win.docsearch.get(target_docid)
+        try:
+            target_doc = self.__main_win.docsearch.get(target_docid)
+        except KeyError:
+            target_doc = self.get_new_doc()
+        is_new = target_doc.is_new
 
         if not src_page.doc.can_edit:
             logger.warn("Drag-n-drop: Cannot modify source document")
@@ -708,16 +712,23 @@ class DocList(object):
             src_page.doc.destroy()
         drag_context.finish(True, True, time)  # success = True
 
-        GLib.idle_add(self.__on_drag_reload, src_page,
-                      {target_doc, src_page.doc})
+        if not is_new:
+            GLib.idle_add(self.__on_drag_reload, src_page,
+                        {target_doc, src_page.doc}, set())
+        else:
+            GLib.idle_add(self.__on_drag_reload, src_page,
+                        {src_page.doc}, {target_doc})
 
-    def __on_drag_reload(self, src_page, docs):
+    def __on_drag_reload(self, src_page, upd_docs, new_docs):
         # Will force a redisplay of all the pages, but without
         # the one we destroyed. Will also force a scrolling to
         # where was the one we destroyed
         self.__main_win.show_page(src_page, force_refresh=True)
         self.show_loading()
-        self.__main_win.upd_index(docs)
+        if new_docs:
+            self.__main_win.upd_index(new_docs, new=True)
+        assert(upd_docs)
+        self.__main_win.upd_index(upd_docs, new=False)
 
     def get_new_doc(self):
         if self.new_doc.is_new:

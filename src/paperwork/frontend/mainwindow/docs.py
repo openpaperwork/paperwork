@@ -640,6 +640,15 @@ class DocList(object):
             job = self.job_factories['doc_thumbnailer'].make(documents)
             self.__main_win.schedulers['main'].schedule(job)
 
+    def _scroll_to(self, row):
+        adj = row.get_allocation().y
+        adj -= (self.gui['scrollbars'].get_vadjustment().get_page_size() / 2)
+        adj += (row.get_allocation().height / 2)
+        min_val = self.gui['scrollbars'].get_vadjustment().get_lower()
+        if adj < min_val:
+            adj = min_val
+        self.gui['scrollbars'].get_vadjustment().set_value(adj)
+
     def _on_drag_motion(self, canvas, drag_context, x, y, time):
         target_row = self.gui['list'].get_row_at_y(y)
         if not target_row or target_row not in self.model['by_row']:
@@ -707,6 +716,7 @@ class DocList(object):
         # the one we destroyed. Will also force a scrolling to
         # where was the one we destroyed
         self.__main_win.show_page(src_page, force_refresh=True)
+        self.show_loading()
         self.__main_win.upd_index(docs)
 
     def get_new_doc(self):
@@ -845,6 +855,7 @@ class DocList(object):
                 and self.__main_win.doc.docid in self.model['by_id']):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
+            GLib.idle_add(self._scroll_to, row)
 
         # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()

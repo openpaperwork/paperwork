@@ -917,7 +917,7 @@ class ActionNewDocument(SimpleAction):
         if must_insert_new:
             self.__doclist.insert_new_doc()
 
-        doclist = self.__doclist.gui
+        doclist = self.__doclist.gui['list']
         row = doclist.get_row_at_index(0)
         doclist.select_row(row)
 
@@ -2203,21 +2203,20 @@ class MainWindow(object):
 
         connect_actions(self.actions)
 
-        # accelerators = [
-        #     ('<Primary>e', 'clicked',
-        #      widget_tree.get_object("toolbuttonEditDoc")),
-        #     ('<Primary>n', 'clicked',
-        #      widget_tree.get_object("toolbuttonNew")),
-        #     ('<Primary>f', 'grab-focus',
-        #      self.search_field),
-        # ]
-        # TODO
-        # accel_group = Gtk.AccelGroup()
-        # for (shortcut, signame, widget) in accelerators:
-        #     (key, mod) = Gtk.accelerator_parse(shortcut)
-        #     widget.add_accelerator(signame, accel_group, key, mod,
-        #                            Gtk.AccelFlags.VISIBLE)
-        # self.window.add_accel_group(accel_group)
+        accelerators = [
+            #('<Primary>e', 'clicked',
+            # widget_tree.get_object("toolbuttonEditDoc")),
+            ('<Primary>n', 'clicked',
+             widget_tree.get_object("toolbuttonNewDoc")),
+            ('<Primary>f', 'grab-focus',
+             self.search_field),
+        ]
+        accel_group = Gtk.AccelGroup()
+        for (shortcut, signame, widget) in accelerators:
+            (key, mod) = Gtk.accelerator_parse(shortcut)
+            widget.add_accelerator(signame, accel_group, key, mod,
+                                   Gtk.AccelFlags.VISIBLE)
+        self.window.add_accel_group(accel_group)
 
         self.need_doc_widgets = set(
             self.actions['print'][0]
@@ -2843,7 +2842,6 @@ class MainWindow(object):
         return False
 
     def get_doc_sorting(self):
-        # TODO ?
         return ("scan_date", sort_documents_by_date)
 
     def __get_show_all_boxes(self):

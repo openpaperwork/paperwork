@@ -132,6 +132,11 @@ class DummyDocSearch(object):
         """ Do nothing """
         return None
 
+    @staticmethod
+    def get_doc_from_docid(docid, doc_type_name=None):
+        """ Do nothing """
+        return None
+
 
 class DocDirExaminer(GObject.GObject):
     """

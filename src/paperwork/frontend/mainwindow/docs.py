@@ -577,6 +577,9 @@ class DocList(object):
         )
         self.gui['list'].drag_dest_add_text_targets()
 
+        self.accel_group = Gtk.AccelGroup()
+        self.__main_win.window.add_accel_group(self.accel_group)
+
         self.show_loading()
 
     def __init_default_thumbnail(self, width=BasicPage.DEFAULT_THUMB_WIDTH,
@@ -805,6 +808,11 @@ class DocList(object):
             "clicked",
             lambda _: GLib.idle_add(
                 self.__main_win.switch_leftpane, 'doc_properties'))
+
+        # shortcut
+        (key, mod) = Gtk.accelerator_parse('<Primary>e')
+        edit_button.add_accelerator('clicked', self.accel_group, key, mod,
+                                    Gtk.AccelFlags.VISIBLE)
 
         button_box.add(edit_button)
 

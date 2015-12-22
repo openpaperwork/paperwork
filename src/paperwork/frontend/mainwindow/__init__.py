@@ -2204,8 +2204,6 @@ class MainWindow(object):
         connect_actions(self.actions)
 
         accelerators = [
-            #('<Primary>e', 'clicked',
-            # widget_tree.get_object("toolbuttonEditDoc")),
             ('<Primary>n', 'clicked',
              widget_tree.get_object("toolbuttonNewDoc")),
             ('<Primary>f', 'grab-focus',

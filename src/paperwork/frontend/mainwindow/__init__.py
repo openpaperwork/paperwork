@@ -2484,6 +2484,7 @@ class MainWindow(object):
         if self.doc.docid in self.scan_drawers:
             for drawer in self.scan_drawers[self.doc.docid].values():
                 drawer.relocate()
+        self.img['canvas'].redraw()
 
     def set_layout(self, layout, force_refresh=True):
         if self.layout == layout:
@@ -2778,8 +2779,8 @@ class MainWindow(object):
         if not auto:
             return
 
-        # only if the width has changed
         self.update_page_sizes()
+        self.img['canvas'].recompute_size()
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -2796,7 +2797,6 @@ class MainWindow(object):
         zoom_model.set_value(zoom)
         self.zoom_level['auto'] = False
         self.update_page_sizes()
-        self.img['canvas'].redraw()
 
     def __on_scroll_event_cb(self, widget, event):
         ZOOM_INCREMENT = 0.02

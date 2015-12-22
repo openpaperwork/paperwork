@@ -60,20 +60,21 @@ class JobPageImgLoader(Job):
         self.__cond = threading.Condition()
 
     def do(self):
-        self.can_run = True
         self.__cond.acquire()
         try:
+            self.can_run = True
+            self.emit('page-loading-start')
             self.__cond.wait(0.1)
         finally:
             self.__cond.release()
-        if not self.can_run:
-            return
 
-        self.emit('page-loading-start')
-        use_thumbnail = True
-        if self.size[1] > (BasicPage.DEFAULT_THUMB_HEIGHT * 1.5):
-            use_thumbnail = False
         try:
+            if not self.can_run:
+                return
+
+            use_thumbnail = True
+            if self.size[1] > (BasicPage.DEFAULT_THUMB_HEIGHT * 1.5):
+                use_thumbnail = False
             if not self.can_run:
                 return
             if not use_thumbnail:
@@ -96,9 +97,9 @@ class JobPageImgLoader(Job):
             self.emit('page-loading-done')
 
     def stop(self, will_resume=False):
-        self.can_run = False
         self.__cond.acquire()
         try:
+            self.can_run = False
             self.__cond.notify_all()
         finally:
             self.__cond.release()
@@ -118,6 +119,10 @@ class JobFactoryPageImgLoader(JobFactory):
                     lambda job, img:
                     GLib.idle_add(drawer.on_page_loading_img,
                                   job.page, img))
+        job.connect('page-loading-done',
+                    lambda job:
+                    GLib.idle_add(drawer.on_page_loading_done,
+                                  job.page))
         return job
 
 
@@ -501,17 +506,20 @@ class PageDrawer(Drawer, GObject.GObject):
         self.schedulers['page_img_loader'].schedule(job)
 
     def on_page_loading_img(self, page, surface):
-        if self.loading:
-            self.canvas.remove_drawer(self.spinner)
-            self.loading = False
         if not self.visible:
             return
         self.surface = surface
-        self.redraw()
         if (len(self.boxes['all']) <= 0
                 and (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
+
+    def on_page_loading_done(self, page):
+        if self.loading:
+            self.canvas.remove_drawer(self.spinner)
+            self.loading = False
+        if self.visible and not self.surface:
+            self.load_content()
 
     def _get_highlighted_boxes(self, sentence):
         """

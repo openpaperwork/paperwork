@@ -119,6 +119,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         try:
             if self.need_stop_ticks > 0:
                 self.need_stop_ticks -= 1
+                assert(self.need_ticks >= 0)
                 return False
             return (self.need_ticks > 0)
         finally:
@@ -138,8 +139,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.tick_counter_lock.acquire()
         try:
             self.need_ticks -= 1
-            self.need_stop_ticks += 1
             logger.info("Animators: %d" % self.need_ticks)
+            if self.need_ticks <= 0:
+                self.need_stop_ticks += 1
             assert(self.need_ticks >= 0)
         finally:
             self.tick_counter_lock.release()

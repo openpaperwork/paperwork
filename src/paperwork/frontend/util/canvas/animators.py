@@ -79,7 +79,6 @@ class LinearSimpleAnimator(Animator):
         ]
         if values[-1] != target_value:
             values.append(target_value)
-        print ("VALUES: %s" % str(values))
         Animator.__init__(self, drawer, attr_name, values, canvas)
 
 

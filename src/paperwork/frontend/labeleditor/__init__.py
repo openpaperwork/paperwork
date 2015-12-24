@@ -16,7 +16,6 @@
 
 import os
 
-import gettext
 import logging
 
 from gi.repository import Gdk
@@ -28,7 +27,6 @@ from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
 
 
-_ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 DROPPER_BITS = (

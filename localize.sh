@@ -49,7 +49,7 @@ then
 	done
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \
-		$(find src/paperwork -name \*.py) \
+		$(find src/paperwork -name \*.py ! -path src/paperwork/frontend/labeleditor/__init__.py) \
 		$(find src/paperwork/frontend -name \*.glade.h) \
 		$(find src/paperwork/frontend -name \*.xml.h) \
 		> /dev/null

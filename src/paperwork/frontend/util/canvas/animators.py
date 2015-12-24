@@ -77,6 +77,9 @@ class LinearSimpleAnimator(Animator):
             getattr(drawer, attr_name) + (i * value_intervals)
             for i in xrange(0, nb_values + 1)
         ]
+        if values[-1] != target_value:
+            values.append(target_value)
+        print ("VALUES: %s" % str(values))
         Animator.__init__(self, drawer, attr_name, values, canvas)
 
 

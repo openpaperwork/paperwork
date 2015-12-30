@@ -2468,9 +2468,12 @@ class MainWindow(object):
             # compute the wanted factor
             factor = 1.0
             for page in self.page_drawers:
+                others = [
+                    drawer.page for drawer in self.page_drawers
+                    if drawer.page
+                ]
                 factor = min(factor, self.compute_zoom_level(
-                    page.max_size,
-                    [drawer.page for drawer in self.page_drawers]))
+                    page.max_size, others))
             self.set_zoom_level(factor, auto=True)
 
         self.schedulers['main'].cancel_all(

@@ -97,8 +97,8 @@ class BasicDoc(object):
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
         Arguments:
-            keep_refs --- Workaround ugly as fuck to some object alive (in
-                          other non-garbage-collected) during the whole
+            keep_refs --- Workaround ugly as fuck to keep some object alive
+                          (--> non-garbage-collected) during the whole
                           printing process
         """
         raise NotImplementedError()

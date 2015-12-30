@@ -711,16 +711,17 @@ class DocList(object):
 
         target_doc.add_page(src_page.img, src_page.boxes)
         src_page.destroy()
+        src_page.doc.drop_cache()
         if src_page.doc.nb_pages <= 0:
             src_page.doc.destroy()
         drag_context.finish(True, True, time)  # success = True
 
         if not is_new:
             GLib.idle_add(self.__on_drag_reload, src_page,
-                        {target_doc, src_page.doc}, set())
+                          {target_doc, src_page.doc}, set())
         else:
             GLib.idle_add(self.__on_drag_reload, src_page,
-                        {src_page.doc}, {target_doc})
+                          {src_page.doc}, {target_doc})
 
     def __on_drag_reload(self, src_page, upd_docs, new_docs):
         # Will force a redisplay of all the pages, but without

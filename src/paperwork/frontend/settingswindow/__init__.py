@@ -398,7 +398,7 @@ class JobCalibrationScan(Job):
                 scan_session.scan.read()
 
                 next_line = scan_session.scan.available_lines[1]
-                if (next_line > last_line):
+                if (next_line > last_line + 50):
                     chunk = scan_session.scan.get_image(last_line, next_line)
                     self.emit('calibration-scan-chunk', last_line, chunk)
                     last_line = next_line

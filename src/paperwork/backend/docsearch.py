@@ -394,11 +394,13 @@ class DocSearch(object):
                     prefixlength, constantscore=True
                 )
 
-        facets = [whoosh.sorting.ScoreFacet(),
-                  whoosh.sorting.FieldFacet("date", reverse=True)]
+        facets = [
+            whoosh.sorting.ScoreFacet(),
+            whoosh.sorting.FieldFacet("date", reverse=True)
+        ]
 
         self.search_param_list = {
-            'full': [
+            'fuzzy': [
                 {
                     "query_parser": whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
@@ -412,7 +414,7 @@ class DocSearch(object):
                     "sortedby": facets
                 },
             ],
-            'fast': [
+            'strict': [
                 {
                     "query_parser": whoosh.qparser.MultifieldParser(
                         ["label", "content"], schema=self.index.schema,
@@ -583,7 +585,7 @@ class DocSearch(object):
         return self.__docs_by_id[obj_id]
 
     def find_documents(self, sentence, limit=None, must_sort=True,
-                       search_type='full'):
+                       search_type='fuzzy'):
         """
         Returns all the documents matching the given keywords
 
@@ -665,8 +667,10 @@ class DocSearch(object):
                 new_suggestion[keyword_idx] = keyword_suggestion
                 new_suggestion = u" ".join(new_suggestion)
 
-                docs = self.find_documents(new_suggestion, limit=1,
-                                           must_sort=False, search_type='fast')
+                docs = self.find_documents(
+                    new_suggestion, limit=1, must_sort=False,
+                    search_type='strict'
+                )
                 if len(docs) <= 0:
                     continue
                 final_suggestions.append(new_suggestion)

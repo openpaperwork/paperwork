@@ -487,9 +487,11 @@ class JobDocSearcher(Job):
     can_stop = True
     priority = 500
 
-    def __init__(self, factory, id, config, docsearch, sort_func, search):
+    def __init__(self, factory, id, config, docsearch, sort_func,
+                 search_type, search):
         Job.__init__(self, factory, id)
         self.search = search
+        self.__search_type = search_type
         self.__docsearch = docsearch
         self.__sort_func = sort_func
         self.__config = config
@@ -505,7 +507,9 @@ class JobDocSearcher(Job):
 
         try:
             logger.info("Searching: [%s]" % self.search)
-            documents = self.__docsearch.find_documents(self.search)
+            documents = self.__docsearch.find_documents(
+                self.search,
+                search_type=self.__search_type)
         except Exception, exc:
             logger.error("Invalid search: [%s]" % self.search)
             logger.error("Exception was: %s: %s" % (type(exc), str(exc)))
@@ -543,9 +547,9 @@ class JobFactoryDocSearcher(JobFactory):
         self.__main_win = main_win
         self.__config = config
 
-    def make(self, docsearch, sort_func, search_sentence):
+    def make(self, docsearch, sort_func, search_type, search):
         job = JobDocSearcher(self, next(self.id_generator), self.__config,
-                             docsearch, sort_func, search_sentence)
+                             docsearch, sort_func, search_type, search)
         job.connect('search-start', lambda searcher:
                     GLib.idle_add(self.__main_win.on_search_start_cb))
         job.connect('search-results',

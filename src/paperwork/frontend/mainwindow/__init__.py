@@ -845,7 +845,7 @@ class JobImporter(Job):
             job = self._main_win.job_factories['index_updater'].make(
                 self._main_win.docsearch, new_docs=self._docs_to_upd,
                 optimize=False, reload_list=True)
-            self._main_win.schedulers['main'].schedule(job)
+            self._main_win.schedulers['index'].schedule(job)
             self._docs_to_upd = set()
 
     def do(self):
@@ -1120,7 +1120,7 @@ class ActionToggleLabel(object):
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, upd_docs={self.__main_win.doc},
             optimize=False)
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['index'].schedule(job)
 
     def connect(self, cellrenderers):
         for cellrenderer in cellrenderers:
@@ -1411,7 +1411,7 @@ class ActionDeletePage(SimpleAction):
         else:
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch, upd_docs={doc}, optimize=False)
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['index'].schedule(job)
 
 
 class ActionRedoOCR(SimpleAction):
@@ -1462,7 +1462,7 @@ class ActionRedoOCR(SimpleAction):
                 self._main_win.show_doc(self._main_win.doc, force_refresh=True)
             job = self._main_win.job_factories['index_updater'].make(
                 self._main_win.docsearch, upd_docs=docs_done, optimize=False)
-            self._main_win.schedulers['main'].schedule(job)
+            self._main_win.schedulers['index'].schedule(job)
 
     def do(self, pages_iterator):
         if (self.ask_confirmation
@@ -1738,7 +1738,7 @@ class ActionOptimizeIndex(SimpleAction):
         SimpleAction.do(self)
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch, optimize=True)
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['index'].schedule(job)
 
 
 class ActionAbout(SimpleAction):
@@ -1800,7 +1800,7 @@ class ActionRefreshIndex(SimpleAction):
             self.__main_win.job_factories['index_reloader'])
         self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['doc_examiner'])
-        self.__main_win.schedulers['main'].cancel_all(
+        self.__main_win.schedulers['index'].cancel_all(
             self.__main_win.job_factories['index_updater'])
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
@@ -1843,7 +1843,7 @@ class ActionRefreshIndex(SimpleAction):
             reload_list=True,
             optimize=False
         )
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['index'].schedule(job)
 
 
 class MainWindow(object):
@@ -2306,6 +2306,7 @@ class MainWindow(object):
             'page_boxes_loader': JobScheduler("Page boxes loader"),
             'progress': JobScheduler("Progress"),
             'scan': JobScheduler("Scan"),
+            'index': JobScheduler("Index search / update"),
         }
 
     def __init_app_menu(self, app):
@@ -2385,21 +2386,18 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
 
     def on_index_update_start_cb(self, src):
-        self.doclist.show_loading()
+        self.doclist.refresh()
         self.set_progression(src, 0.0, None)
-        self.set_mouse_cursor("Busy")
 
     def on_index_update_end_cb(self, src):
         self.schedulers['main'].cancel_all(
             self.job_factories['index_reloader'])
 
         self.set_progression(src, 0.0, None)
-        self.set_search_availability(True)
-        self.set_mouse_cursor("Normal")
         gc.collect()
 
     def on_index_update_write_cb(self, src):
-        self.set_search_availability(False)
+        pass
 
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
@@ -2974,4 +2972,4 @@ class MainWindow(object):
         job = self.job_factories['index_updater'].make(
             self.docsearch, new_docs=new_docs, upd_docs=upd_docs,
             del_docs=del_docs, optimize=False, reload_list=True)
-        self.schedulers['main'].schedule(job)
+        self.schedulers['index'].schedule(job)

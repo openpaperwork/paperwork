@@ -336,7 +336,7 @@ class JobCalibrationScan(Job):
     can_stop = True
     priority = 495
 
-    def __init__(self, factory, id, resolutions_store, devid, source):
+    def __init__(self, factory, id, resolutions_store, devid, source=None):
         Job.__init__(self, factory, id)
         self.__resolutions_store = resolutions_store
         self.__devid = devid
@@ -363,9 +363,11 @@ class JobCalibrationScan(Job):
 
         # scan
         dev = pyinsane.Scanner(name=self.__devid)
-        if dev.options['source'].capabilities.is_active():
-            dev.options['source'].value = self.__source
-        logger.info("Scanner source set to '%s'" % self.__source)
+
+        if self.__source:
+            if dev.options['source'].capabilities.is_active():
+                dev.options['source'].value = self.__source
+            logger.info("Scanner source set to '%s'" % self.__source)
         try:
             dev.options['resolution'].value = resolution
         except pyinsane.SaneException as exc:
@@ -452,6 +454,7 @@ class JobFactoryCalibrationScan(JobFactory):
 
 
 class ActionSelectScanner(SimpleAction):
+    enabled = True
 
     def __init__(self, settings_win):
         super(ActionSelectScanner, self).__init__("New scanner selected")
@@ -484,6 +487,7 @@ class ActionSelectScanner(SimpleAction):
 
 
 class ActionSelectSource(SimpleAction):
+    enabled = True
 
     def __init__(self, settings_win):
         super(ActionSelectSource, self).__init__("New source selected")
@@ -492,6 +496,8 @@ class ActionSelectSource(SimpleAction):
     def do(self):
         source_settings = self.__settings_win.device_settings['source']
         idx = source_settings['gui'].get_active()
+        self.__settings_win.calibration["scan_button"].set_sensitive(True)
+        logger.info("Selected source: %d" % idx)
         if idx < 0:
             # happens when the scanner list has been updated
             # but no source has been found
@@ -499,13 +505,11 @@ class ActionSelectSource(SimpleAction):
             settings['stores']['loaded'].clear()
             settings['gui'].set_model(settings['stores']['loaded'])
             settings['gui'].set_sensitive(False)
-            self.__settings_win.calibration["scan_button"].set_sensitive(False)
             return
-        logger.info("Selected source: %d" % idx)
-        self.__settings_win.calibration["scan_button"].set_sensitive(True)
 
 
 class ActionToggleOCRState(SimpleAction):
+    enabled = True
 
     def __init__(self, settings_win):
         super(ActionToggleOCRState, self).__init__("Toggle OCR state")
@@ -517,6 +521,8 @@ class ActionToggleOCRState(SimpleAction):
 
 
 class ActionApplySettings(SimpleAction):
+    enabled = True
+
     def __init__(self, settings_win, config):
         super(ActionApplySettings, self).__init__("Apply settings")
         self.__settings_win = settings_win
@@ -578,27 +584,31 @@ class ActionApplySettings(SimpleAction):
 
 
 class ActionScanCalibration(SimpleAction):
+    enabled = True
+
     def __init__(self, settings_win):
+        self.settings_win = settings_win
         super(ActionScanCalibration, self).__init__("Scan calibration sheet")
-        self.__settings_win = settings_win
 
     def do(self):
-        setting = self.__settings_win.device_settings['devid']
+        win = self.settings_win
+        setting = win.device_settings['devid']
         idx = setting['gui'].get_active()
         assert(idx >= 0)
         devid = setting['stores']['loaded'][idx][1]
 
-        setting = self.__settings_win.device_settings['source']
+        setting = win.device_settings['source']
         idx = setting['gui'].get_active()
-        assert(idx >= 0)
-        source = setting['stores']['loaded'][idx][1]
+        if idx >= 0:
+            source = setting['stores']['loaded'][idx][1]
+        else:
+            source = None
 
-        job = self.__settings_win.job_factories['scan'].make(devid, source)
-        self.__settings_win.schedulers['main'].schedule(job)
+        job = win.job_factories['scan'].make(devid, source)
+        win.schedulers['main'].schedule(job)
 
 
 class SettingsWindow(GObject.GObject):
-
     """
     Settings window.
     """

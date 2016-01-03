@@ -922,8 +922,10 @@ class DocList(object):
                          encoding='utf-8')
         self.show_loading()
         job = self.__main_win.job_factories['doc_searcher'].make(
-            self.__main_win.docsearch, self.__main_win.get_doc_sorting()[1],
-            search)
+            docsearch=self.__main_win.docsearch,
+            sort_func=self.__main_win.get_doc_sorting()[1],
+            search_type='fuzzy',
+            search=search)
         self.__main_win.schedulers['main'].schedule(job)
 
     def select_doc(self, doc=None, offset=None):

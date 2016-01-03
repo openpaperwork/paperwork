@@ -89,7 +89,7 @@ class JobScan(Job):
                     self.scan_session.scan.read()
 
                     next_line = self.scan_session.scan.available_lines[1]
-                    if (next_line > last_line):
+                    if (next_line > last_line + 50):
                         chunk = self.scan_session.scan.get_image(
                             last_line, next_line
                         )

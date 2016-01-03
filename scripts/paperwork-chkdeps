@@ -37,6 +37,10 @@ LANGUAGES = {
         'aspell': 'de',
         'tesseract': 'deu',
     },
+    'en': {
+        'aspell': 'en',
+        'tesseract': 'eng',
+    },
 }
 
 DEFAULT_LANG = {

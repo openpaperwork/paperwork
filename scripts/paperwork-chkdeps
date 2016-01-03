@@ -416,6 +416,11 @@ if __name__ == "__main__":
         print(colored("Suggested command", "yellow") + ":")
         print("  %s" % command)
 
+        if ">" in command:
+            # means there are package for which we don't know the exact name
+            # so we can't run the command
+            sys.exit(1)
+
         answer = "n"
         if interactive:
             print("Do you want to run this command now ? [Y/n]")

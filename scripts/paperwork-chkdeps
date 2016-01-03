@@ -262,10 +262,10 @@ def find_missing_ocr(lang):
 def find_missing_dict(lang):
     missing = []
     try:
-        verbose("Looking for dictionnary '%s'" % lang['aspell'])
+        verbose("Looking for dictionary '%s'" % lang['aspell'])
         enchant.request_dict(lang['aspell'])
     except:
-        warning("Dictionnary '%s' not found" % lang['aspell'])
+        warning("Dictionary '%s' not found" % lang['aspell'])
         missing.append(
             (
                 'Dictionary', '(none)',
@@ -415,6 +415,11 @@ if __name__ == "__main__":
         print("")
         print(colored("Suggested command", "yellow") + ":")
         print("  %s" % command)
+
+        if ">" in command:
+            # means there are package for which we don't know the exact name
+            # so we can't run the command
+            sys.exit(1)
 
         answer = "n"
         if interactive:

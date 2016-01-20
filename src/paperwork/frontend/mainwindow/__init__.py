@@ -340,6 +340,9 @@ class JobIndexUpdater(Job):
         self.new_docs = new_docs
         self.upd_docs = upd_docs
         self.del_docs = del_docs
+
+        self.update_only = len(new_docs) == 0 and len(del_docs) == 0
+
         self.optimize = optimize
         self.index_updater = None
         self.total = (len(self.new_docs) + len(self.upd_docs)
@@ -2390,8 +2393,12 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
 
     def on_index_update_start_cb(self, src):
-        self.doclist.refresh()
+        self.doclist.show_loading()
         self.set_progression(src, 0.0, None)
+
+    def on_index_update_write_cb(self, src):
+        if src.update_only:
+            self.doclist.refresh()
 
     def on_index_update_end_cb(self, src):
         self.schedulers['main'].cancel_all(
@@ -2399,9 +2406,7 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         gc.collect()
-
-    def on_index_update_write_cb(self, src):
-        pass
+        self.doclist.refresh()
 
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)

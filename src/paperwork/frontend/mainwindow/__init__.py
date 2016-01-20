@@ -845,6 +845,7 @@ class JobImporter(Job):
             self._docs_to_label_predict.remove(doc)
             if len(self._docs_to_label_predict) <= 0:
                 self._update_index()
+            self._main_win.refresh_label_list()
 
         def _update_index(self):
             logger.info("Updating index for %d docs"
@@ -2604,11 +2605,10 @@ class MainWindow(object):
                          not is_new and self.layout == 'paged')
         set_widget_state(self.actions['single_scan'][0], can_edit)
 
-        self.refresh_label_list()
         self.refresh_header_bar()
 
         self.doclist.set_selected_doc(self.doc)
-        self.doc_properties_panel.set_doc(doc)
+        self.doc_properties_panel.set_doc(self.doc)
 
         if first_scan_drawer:
             # focus on the activity
@@ -2701,6 +2701,8 @@ class MainWindow(object):
         ActionDeletePage(self).do(page_drawer.page)
 
     def refresh_label_list(self):
+        # make sure the correct doc is taken into account
+        self.doc_properties_panel.set_doc(self.doc)
         self.doc_properties_panel.refresh_label_list()
 
     def on_export_preview_start(self):

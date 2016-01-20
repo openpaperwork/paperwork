@@ -32,8 +32,16 @@ PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 UI_FILES_DIRS = [
     ".",
     "src/paperwork/frontend",
-    PREFIX + "/share/paperwork",
     PREFIX + "/local/share/paperwork",
+    PREFIX + "/share/paperwork",
+
+    # XXX(Jflesch): The following locations are unexpected
+    # but it seems those are the locations used by Pip
+    # (sys.prefix in setup.py ?)
+    PREFIX + "/local/lib/python2.7/dist-packages/usr/share/paperwork",
+    PREFIX + "/local/lib/python2.7/dist-packages/usr/local/share/paperwork",
+    PREFIX + "/lib/python2.7/dist-packages/usr/share/paperwork",
+    PREFIX + "/lib/python2.7/dist-packages/usr/local/share/paperwork",
 ]
 
 

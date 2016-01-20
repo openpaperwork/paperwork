@@ -1301,6 +1301,7 @@ class ActionImport(SimpleAction):
         widget_tree = load_uifile(
             os.path.join("import", "importfileselector.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
+        dialog.set_transient_for(self.__main_win.window)
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
 

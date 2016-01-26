@@ -179,7 +179,6 @@ msgid "Edit"
 msgstr "Bearbeiten"
 
 #: src/paperwork/frontend/mainwindow/pages.py:338
-#, fuzzy
 msgid "Delete page"
 msgstr "Seite löschen"
 
@@ -279,7 +278,6 @@ msgid "Settings"
 msgstr "Einstellungen"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:2
-#, fuzzy
 msgid "Help"
 msgstr "Hilfe"
 
@@ -403,17 +401,14 @@ msgid "Export"
 msgstr "Exportieren"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:6
-#, fuzzy
 msgid "Page"
 msgstr "Seite"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:7
-#, fuzzy
 msgid "Document"
 msgstr "Dokument"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:8
-#, fuzzy
 msgid "Redo OCR"
 msgstr "OCR erneut durchführen ..."
 
@@ -481,7 +476,6 @@ msgid "200%"
 msgstr "200%"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:35
-#, fuzzy
 msgid "Advanced search"
 msgstr "Erweiterte Suche"
 
@@ -506,7 +500,6 @@ msgid " Save as ... "
 msgstr " Speichern als ... "
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:42
-#, fuzzy
 msgid "Highlight words"
 msgstr "Wörter hervorheben"
 

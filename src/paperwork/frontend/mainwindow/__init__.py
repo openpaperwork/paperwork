@@ -2760,7 +2760,10 @@ class MainWindow(object):
             total_width = sum([page.size[0] for page in other_pages])
             canvas_width = self.img['canvas'].visible_size[0]
             canvas_width -= len(other_pages) * (2 * PageDrawer.MARGIN)
-            factor = (float(canvas_width) / float(total_width))
+            if total_width > 0:
+                factor = (float(canvas_width) / float(total_width))
+            else:
+                factor = 1
             expected_width = img_size[0] * factor
             expected_height = img_size[0] * factor
             if (expected_width > BasicPage.DEFAULT_THUMB_WIDTH and

@@ -11,34 +11,13 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
-    $ sudo yum install python-pip python-setuptools python-devel numpy-f2py
+    $ sudo yum install python-pip python-setuptools python-devel
 
     # Pillow build dependencies :
     $ sudo yum install libjpeg-turbo-devel zlib-devel
 
-    # Scipy dependencies
-    $ sudo yum install blas-devel atlas-devel lapack-devel gcc-fortran
-
-    # Sciki-lean dependency
-    $ sudo yum install gcc-c++
-
-    # Scikit-image dependency
-    $ sudo yum install Cython
-
     # PyEnchant dependency
     $ sudo yum install enchant-devel
-
-
-## Runtime dependencies
-
-For some reason,
-[setuptools doesn't work well with Numpy](https://github.com/numpy/numpy/issues/2434),
-so you will have to install some dependencies yourself with python-pip:
-
-    $ sudo yum install python-pip
-    $ sudo pip install pyocr
-    $ sudo pip install numpy scikit-learn
-    $ sudo pip install scipy
 
 
 ## System-wide installation

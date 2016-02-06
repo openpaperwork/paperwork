@@ -1857,6 +1857,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.__init_headerbars()
+
         self.app = self.__init_app()
         gactions = self.__init_gactions(self.app)
 
@@ -2275,6 +2277,22 @@ class MainWindow(object):
 
         for scheduler in self.schedulers.values():
             scheduler.start()
+
+    def __init_headerbars(self):
+        # Fix Unity placement of close/minize/maximize (it *must* be on the
+        # right)
+
+        left = "menu"
+        right = "close"
+
+        settings = Gtk.Settings.get_default()
+        default_layout = settings.get_property("gtk-decoration-layout")
+        if "maximize" in default_layout:
+            right = "maximize," + right
+        if "minimize" in default_layout:
+            right = "minimize," + right
+
+        settings.set_property("gtk-decoration-layout", left + ":" + right)
 
     def __init_app(self):
         GLib.set_application_name(_("Paperwork"))

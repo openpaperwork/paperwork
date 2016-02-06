@@ -372,7 +372,7 @@ class ActionOpenSelectedDocument(SimpleAction):
         doc = self.__main_win.docsearch.get_doc_from_docid(docid)
         if doc is None:
             # assume new doc
-            doc = ImgDoc(self.__config['workdir'].value)
+            doc = self.__doclist.get_new_doc()
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:

@@ -263,7 +263,7 @@ class JobOCR(Job):
             img, lang=self.langs['ocr'])
 
         logger.info("Detected orientation: %d" % orientation['angle'])
-        img = img.rotate(-1 * orientation['angle'])
+        img = img.rotate(-1 * orientation['angle'], expand=True)
 
         for angle in [0, 90, 180, 270]:
             # tell the observer we decided to not OCR some orientations

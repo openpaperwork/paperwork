@@ -135,8 +135,8 @@ class JobIndexLoader(Job):
             self.emit('index-loading-start')
             self.started = True
         try:
-            if (self.__config.CURRENT_INDEX_VERSION
-                    != self.__config['index_version'].value):
+            if (self.__config.CURRENT_INDEX_VERSION !=
+                    self.__config['index_version'].value):
                 logger.info("Index structure is obsolete."
                             " Must rebuild from scratch")
                 docsearch = DocSearch(self.__config['workdir'].value,
@@ -340,10 +340,13 @@ class JobIndexUpdater(Job):
         self.new_docs = new_docs
         self.upd_docs = upd_docs
         self.del_docs = del_docs
+
+        self.update_only = len(new_docs) == 0 and len(del_docs) == 0
+
         self.optimize = optimize
         self.index_updater = None
-        self.total = (len(self.new_docs) + len(self.upd_docs)
-                      + len(self.del_docs))
+        self.total = (len(self.new_docs) + len(self.upd_docs) +
+                      len(self.del_docs))
         self.progression = float(0)
 
     def __wakeup(self):
@@ -842,6 +845,7 @@ class JobImporter(Job):
             self._docs_to_label_predict.remove(doc)
             if len(self._docs_to_label_predict) <= 0:
                 self._update_index()
+            self._main_win.refresh_label_list()
 
         def _update_index(self):
             logger.info("Updating index for %d docs"
@@ -1297,6 +1301,7 @@ class ActionImport(SimpleAction):
         widget_tree = load_uifile(
             os.path.join("import", "importfileselector.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
+        dialog.set_transient_for(self.__main_win.window)
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
 
@@ -1331,8 +1336,8 @@ class ActionImport(SimpleAction):
     def __no_importer(self, file_uri):
         msg = (_("Don't know how to import '%s'. Sorry.") %
                (os.path.basename(file_uri)))
-        flags = (Gtk.DialogFlags.MODAL
-                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        flags = (Gtk.DialogFlags.MODAL |
+                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
                                    flags=flags,
                                    message_type=Gtk.MessageType.ERROR,
@@ -1343,8 +1348,8 @@ class ActionImport(SimpleAction):
 
     def __no_doc_imported(self):
         msg = _("No new document to import found")
-        flags = (Gtk.DialogFlags.MODAL
-                 | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        flags = (Gtk.DialogFlags.MODAL |
+                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
                                    flags=flags,
                                    message_type=Gtk.MessageType.WARNING,
@@ -1469,8 +1474,8 @@ class ActionRedoOCR(SimpleAction):
             self._main_win.schedulers['index'].schedule(job)
 
     def do(self, pages_iterator):
-        if (self.ask_confirmation
-                and not ask_confirmation(self._main_win.window)):
+        if (self.ask_confirmation and
+                not ask_confirmation(self._main_win.window)):
             return
         SimpleAction.do(self)
         self._do_next_page(pages_iterator)
@@ -1833,9 +1838,9 @@ class ActionRefreshIndex(SimpleAction):
 
         examiner.docsearch.label_list = examiner.labels
 
-        if (len(examiner.new_docs) == 0
-                and len(examiner.docs_changed) == 0
-                and len(examiner.docs_missing) == 0):
+        if (len(examiner.new_docs) == 0 and
+                len(examiner.docs_changed) == 0 and
+                len(examiner.docs_missing) == 0):
             logger.info("No changes")
             return
 
@@ -1852,6 +1857,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.__init_headerbars()
+
         self.app = self.__init_app()
         gactions = self.__init_gactions(self.app)
 
@@ -2224,10 +2231,10 @@ class MainWindow(object):
         self.window.add_accel_group(accel_group)
 
         self.need_doc_widgets = set(
-            self.actions['print'][0]
-            + self.actions['open_doc_dir'][0]
-            + self.actions['redo_ocr_doc'][0]
-            + self.actions['open_export_doc_dialog'][0]
+            self.actions['print'][0] +
+            self.actions['open_doc_dir'][0] +
+            self.actions['redo_ocr_doc'][0] +
+            self.actions['open_export_doc_dialog'][0]
         )
 
         self.need_page_widgets = set(
@@ -2270,6 +2277,22 @@ class MainWindow(object):
 
         for scheduler in self.schedulers.values():
             scheduler.start()
+
+    def __init_headerbars(self):
+        # Fix Unity placement of close/minize/maximize (it *must* be on the
+        # right)
+
+        left = "menu"
+        right = "close"
+
+        settings = Gtk.Settings.get_default()
+        default_layout = settings.get_property("gtk-decoration-layout")
+        if "maximize" in default_layout:
+            right = "maximize," + right
+        if "minimize" in default_layout:
+            right = "minimize," + right
+
+        settings.set_property("gtk-decoration-layout", left + ":" + right)
 
     def __init_app(self):
         GLib.set_application_name(_("Paperwork"))
@@ -2390,8 +2413,12 @@ class MainWindow(object):
         self.set_progression(src, 0.0, None)
 
     def on_index_update_start_cb(self, src):
-        self.doclist.refresh()
+        self.doclist.show_loading()
         self.set_progression(src, 0.0, None)
+
+    def on_index_update_write_cb(self, src):
+        if src.update_only:
+            self.doclist.refresh()
 
     def on_index_update_end_cb(self, src):
         self.schedulers['main'].cancel_all(
@@ -2399,9 +2426,7 @@ class MainWindow(object):
 
         self.set_progression(src, 0.0, None)
         gc.collect()
-
-    def on_index_update_write_cb(self, src):
-        pass
+        self.doclist.refresh()
 
     def on_search_start_cb(self):
         self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
@@ -2508,9 +2533,9 @@ class MainWindow(object):
         self.layouts['settings_button'].set_image(img)
 
     def _show_doc_internal(self, doc, force_refresh=False):
-        if (self.doc is not None
-                and self.doc == doc
-                and not force_refresh):
+        if (self.doc is not None and
+                self.doc == doc and
+                not force_refresh):
             logger.info("Doc is already shown")
             return
 
@@ -2599,11 +2624,10 @@ class MainWindow(object):
                          not is_new and self.layout == 'paged')
         set_widget_state(self.actions['single_scan'][0], can_edit)
 
-        self.refresh_label_list()
         self.refresh_header_bar()
 
         self.doclist.set_selected_doc(self.doc)
-        self.doc_properties_panel.set_doc(doc)
+        self.doc_properties_panel.set_doc(self.doc)
 
         if first_scan_drawer:
             # focus on the activity
@@ -2696,6 +2720,8 @@ class MainWindow(object):
         ActionDeletePage(self).do(page_drawer.page)
 
     def refresh_label_list(self):
+        # make sure the correct doc is taken into account
+        self.doc_properties_panel.set_doc(self.doc)
         self.doc_properties_panel.refresh_label_list()
 
     def on_export_preview_start(self):
@@ -2734,11 +2760,14 @@ class MainWindow(object):
             total_width = sum([page.size[0] for page in other_pages])
             canvas_width = self.img['canvas'].visible_size[0]
             canvas_width -= len(other_pages) * (2 * PageDrawer.MARGIN)
-            factor = (float(canvas_width) / float(total_width))
+            if total_width > 0:
+                factor = (float(canvas_width) / float(total_width))
+            else:
+                factor = 1
             expected_width = img_size[0] * factor
             expected_height = img_size[0] * factor
-            if (expected_width > BasicPage.DEFAULT_THUMB_WIDTH
-                    and expected_height > BasicPage.DEFAULT_THUMB_HEIGHT):
+            if (expected_width > BasicPage.DEFAULT_THUMB_WIDTH and
+                    expected_height > BasicPage.DEFAULT_THUMB_HEIGHT):
                 return factor
 
             # otherwise, fall back on the default size
@@ -2905,8 +2934,8 @@ class MainWindow(object):
     def remove_scan_workflow(self, scan_workflow):
         for (docid, drawers) in self.scan_drawers.iteritems():
             for (page_nb, drawer) in drawers.iteritems():
-                if (scan_workflow == drawer
-                        or scan_workflow == drawer.scan_workflow):
+                if (scan_workflow == drawer or
+                        scan_workflow == drawer.scan_workflow):
                     drawers.pop(page_nb)
                     return docid
         raise ValueError("ScanWorkflow not found")
@@ -2916,8 +2945,8 @@ class MainWindow(object):
             self.scan_drawers[doc.docid] = {}
         self.scan_drawers[doc.docid][page_nb] = scan_workflow_drawer
 
-        if (self.doc.docid == doc.docid
-                or (self.doc.is_new and doc.is_new)):
+        if (self.doc.docid == doc.docid or
+                (self.doc.is_new and doc.is_new)):
             self.page = None
             set_widget_state(self.need_page_widgets, False)
             self.show_doc(self.doc, force_refresh=True)

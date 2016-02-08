@@ -95,7 +95,7 @@ class PageScan(GObject.GObject):
     def start_scan_workflow(self):
         self.__make_scan_workflow()
         if not self.doc_scan.doc:
-            self.doc_scan.doc = self.__main_win.get_new_doc()
+            self.doc_scan.doc = self.__main_win.doclist.get_new_doc()
         self.__main_win.show_doc(self.doc_scan.doc)
         drawer = self.__main_win.make_scan_workflow_drawer(
             self.scan_workflow, single_angle=False)

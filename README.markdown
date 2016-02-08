@@ -17,25 +17,25 @@ In other words, let the machine do most of the work for you.
 ### Main Window &amp; Scan
 
 <a href="http://youtu.be/goEgIiq2Tuc">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/main_window.png" width="512" height="347" />
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/main_window.png" width="447" height="262" />
 </a>
 
 ### Search Suggestions
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/suggestions.png" width="512" height="349" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/suggestions.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/suggestions.png" width="155" height="313" />
 </a>
 
 ### Labels
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/multiple_labels.png" width="450" height="557" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/multiple_labels.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/multiple_labels.png" width="187" height="262" />
 </a>
 
 ### Settings window
 
-<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png">
-  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.2/settings.png" width="512" height="374" />
+<a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/settings.png">
+  <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/settings.png" width="443" height="286" />
 </a>
 
 

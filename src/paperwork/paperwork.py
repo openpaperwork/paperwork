@@ -21,6 +21,10 @@ Bootstrapping code
 import os
 
 import gettext
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('Poppler', '0.18')
+gi.require_version('PangoCairo', '1.0')
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import GLib
@@ -49,6 +53,21 @@ LOCALE_PATHS = [
 ]
 
 
+def init_logging():
+    formatter = logging.Formatter(
+        '%(levelname)-6s %(name)-30s %(message)s')
+    handler = logging.StreamHandler()
+    logger = logging.getLogger()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel({
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+    }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
+
+
 def set_locale():
     """
     Enable locale support
@@ -71,26 +90,10 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def init_logging():
-    formatter = logging.Formatter(
-        '%(levelname)-6s %(name)-30s %(message)s')
-    handler = logging.StreamHandler()
-    logger = logging.getLogger()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel({
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
-
-
 def main():
     """
     Where everything start.
     """
-
     init_logging()
     set_locale()
 

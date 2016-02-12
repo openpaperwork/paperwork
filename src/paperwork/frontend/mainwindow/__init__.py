@@ -3012,5 +3012,5 @@ class MainWindow(object):
         self.refresh_docs({doc})
         job = self.job_factories['index_updater'].make(
             self.docsearch, new_docs=new_docs, upd_docs=upd_docs,
-            del_docs=del_docs, optimize=False, reload_list=True)
+            del_docs=del_docs, optimize=False, reload_list=False)
         self.schedulers['index'].schedule(job)

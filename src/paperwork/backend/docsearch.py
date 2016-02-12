@@ -133,7 +133,7 @@ class DummyDocSearch(object):
         return None
 
     @staticmethod
-    def get_doc_from_docid(docid, doc_type_name=None):
+    def get_doc_from_docid(docid, doc_type_name=None, inst=False):
         """ Do nothing """
         return None
 
@@ -179,7 +179,7 @@ class DocDirExaminer(GObject.GObject):
             doctype = None
             if old_infos is not None:
                 doctype = old_infos[0]
-            doc = self.docsearch.get_doc_from_docid(docdir, doctype)
+            doc = self.docsearch.get_doc_from_docid(docdir, doctype, inst=True)
             if doc is None:
                 continue
             if docdir in old_doc_list:
@@ -496,7 +496,7 @@ class DocSearch(object):
 
         return doc
 
-    def get_doc_from_docid(self, docid, doc_type_name=None):
+    def get_doc_from_docid(self, docid, doc_type_name=None, inst=False):
         """
         Try to find a document based on its document id. If it hasn't been
         instantiated yet, it will be.
@@ -504,6 +504,8 @@ class DocSearch(object):
         assert(docid is not None)
         if docid in self._docs_by_id:
             return self._docs_by_id[docid]
+        if not inst:
+            return None
         doc = self.__inst_doc(docid, doc_type_name)
         if doc is None:
             return None

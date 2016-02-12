@@ -63,7 +63,6 @@ from paperwork.backend.common.page import BasicPage
 from paperwork.backend.common.page import DummyPage
 from paperwork.backend.docsearch import DocSearch
 from paperwork.backend.docsearch import DummyDocSearch
-from paperwork.backend.img.doc import ImgDoc
 
 
 _ = gettext.gettext
@@ -1461,7 +1460,7 @@ class ActionRedoOCR(SimpleAction):
 
         docid = self._main_win.remove_scan_workflow(scan_workflow)
 
-        doc = self._main_win.docsearch.get_doc_from_docid(docid)
+        doc = self._main_win.docsearch.get_doc_from_docid(docid, inst=False)
         docs_done.add(doc)
 
         try:
@@ -2533,6 +2532,15 @@ class MainWindow(object):
         self.layouts['settings_button'].set_image(img)
 
     def _show_doc_internal(self, doc, force_refresh=False):
+        # Make sure we display the same instance of the document than the
+        # one in the backend. Not a copy (unless there is no instance in the
+        # backend)
+        # This is required to workaround some issues regarding caching
+        # in the backend
+        doc_inst = self.docsearch.get_doc_from_docid(doc.docid, inst=False)
+        if doc_inst:
+            doc = doc_inst
+
         if (self.doc is not None and
                 self.doc == doc and
                 not force_refresh):
@@ -2952,16 +2960,16 @@ class MainWindow(object):
             self.show_doc(self.doc, force_refresh=True)
 
     def add_page(self, docid, img, line_boxes):
-        doc = self.docsearch.get_doc_from_docid(docid)
+        doc = self.docsearch.get_doc_from_docid(docid, inst=False)
 
         new = False
-        if doc is None or doc.nb_pages <= 0:
+        if doc is None or doc.nb_pages <= 0 or doc.is_new:
             # new doc
             new = True
             if self.doc.is_new:
                 doc = self.doc
             else:
-                doc = ImgDoc(self.__config['workdir'].value)
+                doc = self.doclist.get_new_doc()
 
         doc.add_page(img, line_boxes)
         doc.drop_cache()

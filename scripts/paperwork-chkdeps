@@ -73,19 +73,6 @@ MODULES = [
         },
     ),
 
-    # use_env_var += [ 'introspection' ]  # gentoo
-    (
-        'Glade UI', 'gi.repository.Gladeui',
-        {
-            'debian': 'gir1.2-gladeui-2.0',
-            'fedora': 'glade-libs',
-            'gentoo': 'dev-util/glade',
-            'linuxmint': 'gir1.2-gladeui-2.0',
-            'ubuntu': 'gir1.2-gladeui-2.0',
-            'suse': 'typelib-1_0-Gladeui-2_0',
-        },
-    ),
-
     # TODO(Jflesch): check for jpeg support in PIL
 
     (

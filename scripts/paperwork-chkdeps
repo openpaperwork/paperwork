@@ -9,6 +9,15 @@ import sys
 import enchant
 import termcolor
 
+try:
+    # suppress warnings from GI
+    import gi
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('Poppler', '0.18')
+    gi.require_version('PangoCairo', '1.0')
+except:
+    pass
+
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
 easy_install. So we will just help the user detecting what is missing and what

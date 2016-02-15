@@ -1,3 +1,13 @@
+2016/02/15 - 0.3.0:
+* Whole GUI redesigned
+* Added: dialog to make advanced searches
+* New dependency: simplebayes
+* Removed dependencies:
+  - scikit* (replaced by simplebayes)
+  - numpy* (replaced by simplesbayes)
+  - gir1.2-gladeui (obsolete)
+
+
 2015/11/25 - 0.2.5:
 * Scanner support: Fujitsu scanners: handle options 'page-height' and
   'page-width'
@@ -12,8 +22,10 @@
 * Fix: With Pillow >= 3.x, calls to Image.rotate() must specify expand=True
 * Fix: At startup, when updating the index, prevent infinite loop
 
+
 2015/04/21 - 0.2.4:
 * Fix python-whoosh 2.7 support
+
 
 2015/04/03 - 0.2.3:
 * Whenever possible, page orientation detection is now done using OCR tool

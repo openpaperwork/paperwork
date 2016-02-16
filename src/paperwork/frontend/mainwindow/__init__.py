@@ -2281,17 +2281,26 @@ class MainWindow(object):
         # Fix Unity placement of close/minize/maximize (it *must* be on the
         # right)
 
-        left = "menu"
-        right = "close"
+        try:
+            left = "menu"
+            right = "close"
 
-        settings = Gtk.Settings.get_default()
-        default_layout = settings.get_property("gtk-decoration-layout")
-        if "maximize" in default_layout:
-            right = "maximize," + right
-        if "minimize" in default_layout:
-            right = "minimize," + right
+            settings = Gtk.Settings.get_default()
+            default_layout = settings.get_property("gtk-decoration-layout")
+            if "maximize" in default_layout:
+                right = "maximize," + right
+            if "minimize" in default_layout:
+                right = "minimize," + right
 
-        settings.set_property("gtk-decoration-layout", left + ":" + right)
+            settings.set_property("gtk-decoration-layout", left + ":" + right)
+        except TypeError as exc:
+            # gtk-decoration-layout only appeared in Gtk >= 3.12
+            # Some distribution still have Gtk-3.10 at this time
+            # (Linux Mint 17 for instance)
+            logger.warning(
+                "Exception while configuring GTK decorations: %s: %s"
+                % (str(type(exc)), str(exc))
+            )
 
     def __init_app(self):
         GLib.set_application_name(_("Paperwork"))

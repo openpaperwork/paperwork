@@ -133,7 +133,7 @@ class DummyDocSearch(object):
         return None
 
     @staticmethod
-    def get_doc_from_docid(docid, doc_type_name=None):
+    def get_doc_from_docid(docid, doc_type_name=None, inst=False):
         """ Do nothing """
         return None
 
@@ -179,7 +179,7 @@ class DocDirExaminer(GObject.GObject):
             doctype = None
             if old_infos is not None:
                 doctype = old_infos[0]
-            doc = self.docsearch.get_doc_from_docid(docdir, doctype)
+            doc = self.docsearch.get_doc_from_docid(docdir, doctype, inst=True)
             if doc is None:
                 continue
             if docdir in old_doc_list:
@@ -214,7 +214,6 @@ class DocIndexUpdater(GObject.GObject):
         self.index_writer = docsearch.index.writer()
         self.label_guesser_updater = docsearch.label_guesser.get_updater()
         self.progress_cb = progress_cb
-        self.__need_reload = False
 
     def _update_doc_in_index(self, index_writer, doc):
         """
@@ -268,7 +267,8 @@ class DocIndexUpdater(GObject.GObject):
         logger.info("Indexing new doc: %s" % doc)
         self._update_doc_in_index(self.index_writer, doc)
         self.label_guesser_updater.add_doc(doc)
-        self.__need_reload = True
+        if doc.docid not in self.docsearch._docs_by_id:
+            self.docsearch._docs_by_id[doc.docid] = doc
 
     def upd_doc(self, doc):
         """
@@ -283,15 +283,15 @@ class DocIndexUpdater(GObject.GObject):
         Delete a document
         """
         logger.info("Removing doc from the index: %s" % doc)
+        if doc.docid in self.docsearch._docs_by_id:
+            self.docsearch._docs_by_id.pop(doc.docid)
         if isinstance(doc, str) or isinstance(doc, unicode):
             # annoying case : we can't know which labels were on it
             # so we can't roll back the label guesser training ...
             self._delete_doc_from_index(self.index_writer, doc)
-            self.__need_reload = True
             return
         self._delete_doc_from_index(self.index_writer, doc.docid)
         self.label_guesser_updater.del_doc(doc)
-        self.__need_reload = True
 
     def commit(self):
         """
@@ -303,9 +303,6 @@ class DocIndexUpdater(GObject.GObject):
         self.label_guesser_updater.commit()
 
         self.docsearch.reload_searcher()
-        if self.__need_reload:
-            logger.info("Index: Reloading ...")
-            self.docsearch.reload_index(progress_cb=self.progress_cb)
 
     def cancel(self):
         """
@@ -362,7 +359,7 @@ class DocSearch(object):
         self.indexdir = os.path.join(base_data_dir, "paperwork", "index")
         mkdir_p(self.indexdir)
 
-        self.__docs_by_id = {}  # docid --> doc
+        self._docs_by_id = {}  # docid --> doc
         self.labels = {}  # label name --> label
 
         need_index_rewrite = True
@@ -484,8 +481,10 @@ class DocSearch(object):
                 if doc_type_name_b == doc_type_name:
                     doc = doc_type(docpath, docid)
             if not doc:
-                logger.warning(("Warning: unknown doc type found in the index:"
-                                + " %s") % doc_type_name)
+                logger.warning(
+                    ("Warning: unknown doc type found in the index: %s") %
+                    doc_type_name
+                )
         # otherwise we guess the doc type
         if not doc:
             for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
@@ -497,26 +496,28 @@ class DocSearch(object):
 
         return doc
 
-    def get_doc_from_docid(self, docid, doc_type_name=None):
+    def get_doc_from_docid(self, docid, doc_type_name=None, inst=False):
         """
         Try to find a document based on its document id. If it hasn't been
         instantiated yet, it will be.
         """
         assert(docid is not None)
-        if docid in self.__docs_by_id:
-            return self.__docs_by_id[docid]
+        if docid in self._docs_by_id:
+            return self._docs_by_id[docid]
+        if not inst:
+            return None
         doc = self.__inst_doc(docid, doc_type_name)
         if doc is None:
             return None
-        self.__docs_by_id[docid] = doc
+        self._docs_by_id[docid] = doc
         return doc
 
     def reload_index(self, progress_cb=dummy_progress_cb):
         """
         Read the index, and load the document list from it
         """
-        docs_by_id = self.__docs_by_id
-        self.__docs_by_id = {}
+        docs_by_id = self._docs_by_id
+        self._docs_by_id = {}
         for doc in docs_by_id.values():
             doc.drop_cache()
         del docs_by_id
@@ -535,7 +536,7 @@ class DocSearch(object):
             if doc is None:
                 continue
             progress_cb(progress, nb_results, self.INDEX_STEP_LOADING, doc)
-            self.__docs_by_id[docid] = doc
+            self._docs_by_id[docid] = doc
             for label in doc.labels:
                 labels.add(label)
 
@@ -560,16 +561,16 @@ class DocSearch(object):
         updater = self.get_index_updater(optimize=False)
         updater.upd_doc(page.doc)
         updater.commit()
-        if page.doc.docid not in self.__docs_by_id:
+        if page.doc.docid not in self._docs_by_id:
             logger.info("Adding document '%s' to the index" % page.doc.docid)
             assert(page.doc is not None)
-            self.__docs_by_id[page.doc.docid] = page.doc
+            self._docs_by_id[page.doc.docid] = page.doc
 
     def __get_all_docs(self):
         """
         Return all the documents. Beware, they are unsorted.
         """
-        return self.__docs_by_id.values()
+        return self._docs_by_id.values()
 
     docs = property(__get_all_docs)
 
@@ -581,8 +582,8 @@ class DocSearch(object):
         if BasicPage.PAGE_ID_SEPARATOR in obj_id:
             (docid, page_nb) = obj_id.split(BasicPage.PAGE_ID_SEPARATOR)
             page_nb = int(page_nb)
-            return self.__docs_by_id[docid].pages[page_nb]
-        return self.__docs_by_id[obj_id]
+            return self._docs_by_id[docid].pages[page_nb]
+        return self._docs_by_id[obj_id]
 
     def find_documents(self, sentence, limit=None, must_sort=True,
                        search_type='fuzzy'):
@@ -623,7 +624,7 @@ class DocSearch(object):
         for result_intermediate in result_list_list[1:]:
             results.extend(result_intermediate)
 
-        docs = [self.__docs_by_id.get(result['docid']) for result in results]
+        docs = [self._docs_by_id.get(result['docid']) for result in results]
         try:
             while True:
                 docs.remove(None)

@@ -272,7 +272,11 @@ class JobOCR(Job):
 
         logger.info("Detected orientation: %d" % orientation['angle'])
         if orientation['angle'] != 0:
-            img = img.rotate(-1 * orientation['angle'])
+            # The angle provided by pyocr is clockwise, so we want to rotate
+            # the image with an angle of -1 * <angle of pyocr> (clockwise).
+            # PIL expect a counter-clockwise angle --> -1 * angle
+            # So they both cancel each other.
+            img = img.rotate(orientation['angle'], expand=True)
 
         for angle in self.angles:
             # tell the observer we decided to not OCR some orientations

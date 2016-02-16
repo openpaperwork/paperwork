@@ -369,10 +369,10 @@ class ActionOpenSelectedDocument(SimpleAction):
         if row is None:
             return
         docid = self.__doclist.model['by_row'][row]
-        doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+        doc = self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
         if doc is None:
             # assume new doc
-            doc = ImgDoc(self.__config['workdir'].value)
+            doc = self.__doclist.get_new_doc()
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:
@@ -629,7 +629,7 @@ class DocList(object):
             if docid in self.model['thumbnails']:
                 # already loaded
                 continue
-            doc = self.__main_win.docsearch.get_doc_from_docid(docid)
+            doc = self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
             if doc:
                 documents.append(doc)
 

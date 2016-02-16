@@ -9,6 +9,15 @@ import sys
 import enchant
 import termcolor
 
+try:
+    # suppress warnings from GI
+    import gi
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('Poppler', '0.18')
+    gi.require_version('PangoCairo', '1.0')
+except:
+    pass
+
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
 easy_install. So we will just help the user detecting what is missing and what
@@ -70,19 +79,6 @@ MODULES = [
             'linuxmint': 'gir1.2-gtk-3.0',
             'ubuntu': 'gir1.2-gtk-3.0',
             'suse': 'python-gtk',
-        },
-    ),
-
-    # use_env_var += [ 'introspection' ]  # gentoo
-    (
-        'Glade UI', 'gi.repository.Gladeui',
-        {
-            'debian': 'gir1.2-gladeui-2.0',
-            'fedora': 'glade-libs',
-            'gentoo': 'dev-util/glade',
-            'linuxmint': 'gir1.2-gladeui-2.0',
-            'ubuntu': 'gir1.2-gladeui-2.0',
-            'suse': 'typelib-1_0-Gladeui-2_0',
         },
     ),
 

@@ -11,32 +11,10 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
-    $ sudo apt-get install python-pip python-setuptools python-dev
-
-    # Pillow build dependencies
-    $ sudo apt-get install libjpeg-dev zlib1g-dev
-
-    # Scipy dependencies
-    $ sudo apt-get install libblas-dev libatlas-dev liblapack-dev gfortran
-
-    # Sciki-lean dependency
-    $ sudo apt-get install g++
-
-    # Scikit-image dependency
-    $ sudo apt-get install cython
+    $ sudo apt-get install python-pip python-setuptools python-dev python-pil
 
     # PyEnchant dependency
     $ sudo apt-get install libenchant-dev
-
-
-## Runtime dependencies
-
-For some reason,
-[setuptools doesn't work well with Numpy](https://github.com/numpy/numpy/issues/2434),
-so you will have to install some dependencies yourself with python-pip:
-
-    $ sudo apt-get install python-pip
-    $ sudo pip install numpy scikit-learn
 
 
 ## System-wide installation
@@ -59,7 +37,6 @@ If you're reluctant to install system wide python libraries through pip, you can
     $ sudo apt-get install python-stdeb
     $ sudo pypi-install pyocr
     $ sudo pypi-install pyinsane
-    $ sudo pypi-install scikit-image
     $ sudo pypi-install paperwork
 
 

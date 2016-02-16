@@ -39,26 +39,17 @@ In other words, let the machine do most of the work for you.
 </a>
 
 
-## Details
+## Main features
 
-Papers are organized into documents. Each document contains pages.
-
-It uses mainly 4 other pieces of software:
-
-* [Sane](http://www.sane-project.org/): To scan the pages
-* [Tesseract](http://code.google.com/p/tesseract-ocr/): To extract the words from the pages (OCR)
-* [GTK](http://www.gtk.org/)/[Glade](https://glade.gnome.org/): For the user interface
-* [Whoosh](https://pypi.python.org/pypi/Whoosh/): To index and search documents, and provide keyword suggestions
-
-Page orientation is automatically guessed using OCR.
-
-Since OCR is not perfect, and since some documents don't contain useful keywords,
-Paperwork allows also to put labels on each document.
-
-
-## Licence
-
-GPLv3 or later. See COPYING.
+* Scan
+* Automatic detection of page orientation
+* OCR
+* Document labels
+* Automatic guessing of the labels to apply on new documents
+* Search
+* Keyword suggestions
+* Quick edit of scans
+* PDF support
 
 
 ## Installation
@@ -69,6 +60,32 @@ GPLv3 or later. See COPYING.
 * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
 * [Development](doc/install.devel.markdown)
+
+
+## Contact/Help
+
+* [Extra documentation / FAQ / Tips / Wiki](https://github.com/jflesch/paperwork/wiki)
+* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
+* [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
+
+
+## Details
+
+Papers are organized into documents. Each document contains pages.
+
+It mainly uses:
+
+* [Sane](http://www.sane-project.org/)/[Pyinsane](https://github.com/jflesch/pyinsane/): To scan the pages
+* [Tesseract](http://code.google.com/p/tesseract-ocr/)/[Pyocr](https://github.com/jflesch/pyocr/): To extract the words from the pages (OCR)
+* [GTK](http://www.gtk.org/): For the user interface
+* [Whoosh](https://pypi.python.org/pypi/Whoosh/): To index and search documents, and provide keyword suggestions
+* [Simplebayes](https://pypi.python.org/pypi/simplebayes/): To guess the labels
+* [Pillow](https://pypi.python.org/pypi/Pillow/): Image manipulation
+
+
+## Licence
+
+GPLv3 or later. See COPYING.
 
 
 ## Archives
@@ -89,13 +106,6 @@ convenience for package maintainers.
 * [Paperwork 0.1.2](https://github.com/jflesch/paperwork/archive/0.1.2.tar.gz)
 * [Paperwork 0.1.1](https://github.com/jflesch/paperwork/archive/0.1.1.tar.gz)
 * [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
-
-
-## Contact/Help
-
-* [Extra documentation / FAQ / Tips / Wiki](https://github.com/jflesch/paperwork/wiki)
-* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
-* [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 
 
 ## Development

@@ -198,7 +198,9 @@ class DocDirExaminer(GObject.GObject):
 
         # remove all documents from the index that don't exist anymore
         for old_doc in old_doc_list:
-            on_doc_deleted(old_doc)
+            # Will be a document with 0 pages
+            docpath = os.path.join(self.docsearch.rootdir, old_doc)
+            on_doc_deleted(ImgDoc(docpath, old_doc))
 
         progress_cb(1, 1, DocSearch.INDEX_STEP_CHECKING)
 

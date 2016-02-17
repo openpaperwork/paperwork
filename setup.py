@@ -13,22 +13,36 @@ setup(
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
     version="0.4-unstable",
-    description="Grep for dead trees",
-    long_description="""
-    Paperwork is a tool to make papers searchable.
+    description=(
+        "Using scanner and OCR to grep dead trees the easy way (Linux only)"
+    ),
+    long_description="""Paperwork is a tool to make papers searchable.
 
-    The basic idea behind Paperwork is "scan & forget" : You should be able to
-    just scan a new document and forget about it until the day you need it
-    again.
-    Let the machine do most of the work.
+The basic idea behind Paperwork is "scan & forget" : You should be able to
+just scan a new document and forget about it until the day you need it
+again.
+Let the machine do most of the work.
+
+Main features are:
+- Scan
+- Automatic orientation detection
+- OCR
+- Indexing
+- Document labels
+- Automatic guessing of the labels to apply on new documents
+- Search
+- Keyword suggestions
+- Quick edit of scans
+- PDF support
     """,
     keywords="scanner ocr gui",
     url="https://github.com/jflesch/paperwork",
     download_url=("https://github.com/jflesch/paperwork"
                   "/archive/unstable.tar.gz"),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
+        "Environment :: X11 Applications :: Gnome",
         "Intended Audience :: End Users/Desktop",
         ("License :: OSI Approved ::"
          " GNU General Public License v3 or later (GPLv3+)"),
@@ -37,6 +51,7 @@ setup(
         "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
         "Topic :: Scientific/Engineering :: Image Recognition",
+        "Topic :: Text Processing :: Filters",
         "Topic :: Text Processing :: Indexing",
     ],
     license="GPLv3+",
@@ -157,7 +172,6 @@ setup(
     install_requires=[
         "Pillow",
         "pycountry",
-        # "pycairo",  # doesn't work ?
         "pyenchant",
         "python-Levenshtein",
         "pyinsane >= 1.3.8",
@@ -165,14 +179,11 @@ setup(
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         "simplebayes",
-        # "PyGObject",  # doesn't work with virtualenv
-        # Missing due to the use of gobject introspection:
-        # - gtk
-        # - glade
-        # - poppler
-        # Missing because non-python libraries:
-        # - sane
-        # - tesseract/cuneiform
+        # paperwork-chkdeps take care of all the dependencies that can't be
+        # handled here. For instance:
+        # - Dependencies using gobject introspection
+        # - Dependencies based on language (OCR data files, dictionnaries, etc)
+        # - Dependencies on data files (icons, etc)
     ]
 )
 

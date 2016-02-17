@@ -11,14 +11,17 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
-    $ sudo yum install python-pip python-setuptools python-devel
+    $ sudo dnf install python-pip python-setuptools python-devel
 
     # Pillow build dependencies :
-    $ sudo yum install libjpeg-turbo-devel zlib-devel
+    $ sudo dnf install libjpeg-turbo-devel zlib-devel
 
     # PyEnchant dependency
-    $ sudo yum install enchant-devel
+    $ sudo dnf install enchant-devel
 
+Note that `yum` is deprecated since Fedora 22 and replaced by `dnf`. If
+you use an older Fedora, replace instances of `dnf` above by `yum`. The
+rest of the commands are the same.
 
 ## System-wide installation
 

@@ -26,7 +26,7 @@ must be installed
 
 PACKAGE_TOOLS = {
     'debian': 'apt-get install',
-    'fedora': 'yum install',
+    'fedora': 'dnf install',
     'gentoo': 'emerge',
     'linuxmint': 'apt-get install',
     'ubuntu': 'apt-get install',

@@ -65,7 +65,6 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         "simplebayes",
-        "paperwork-backend>=0.1",
         # paperwork-shell chkdeps take care of all the dependencies that can't
         # be handled here. Mainly, dependencies using gobject introspection
         # (libpoppler, etc)

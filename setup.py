@@ -12,6 +12,7 @@ setup(
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
+    # * update the dependency version on paperwork-backend
     version="0.4-unstable",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
@@ -70,10 +71,6 @@ Main features are:
         'paperwork.frontend.util',
         'paperwork.frontend.util.canvas',
         'paperwork.frontend.widgets',
-        'paperwork.backend',
-        'paperwork.backend.common',
-        'paperwork.backend.pdf',
-        'paperwork.backend.img',
     ],
     package_dir={
         'paperwork': 'src/paperwork',
@@ -93,10 +90,6 @@ Main features are:
         'paperwork.frontend.util.canvas':
         'src/paperwork/frontend/util/canvas',
         'paperwork.frontend.widgets': 'src/paperwork/frontend/widgets',
-        'paperwork.backend': 'src/paperwork/backend',
-        'paperwork.backend.common': 'src/paperwork/backend/common',
-        'paperwork.backend.pdf': 'src/paperwork/backend/pdf',
-        'paperwork.backend.img': 'src/paperwork/backend/img',
     },
     data_files=[
         # css file
@@ -167,18 +160,14 @@ Main features are:
     ],
     scripts=[
         'scripts/paperwork',
-        'scripts/paperwork-chkdeps',
     ],
     install_requires=[
         "Pillow",
         "pycountry",
-        "pyenchant",
-        "python-Levenshtein",
         "pyinsane >= 1.3.8",
         "pyocr >= 0.3.0",
         "termcolor",  # used by paperwork-chkdeps
-        "Whoosh",
-        "simplebayes",
+        "paperwork-backend>=0.4",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection
@@ -187,9 +176,11 @@ Main features are:
     ]
 )
 
-print ("======================================================================")
-print ("======================================================================")
-print ("||                           IMPORTANT                              ||")
-print ("||  Please run 'paperwork-chkdeps' to find any missing dependency   ||")
-print ("======================================================================")
-print ("======================================================================")
+print ("============================================================")
+print ("============================================================")
+print ("||                       IMPORTANT                        ||")
+print ("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
+print ("||        and 'paperwork-shell chkdeps paperwork'         ||")
+print ("||        to find any missing dependency                  ||")
+print ("============================================================")
+print ("============================================================")

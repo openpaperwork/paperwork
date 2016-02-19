@@ -9,10 +9,10 @@ from gi.repository import Gdk
 from gi.repository import Gtk
 import PIL
 
-from paperwork.backend.common.doc import BasicDoc
-from paperwork.backend.common.page import BasicPage
-from paperwork.backend.img.doc import ImgDoc
-from paperwork.backend.labels import Label
+from paperwork_backend.common.doc import BasicDoc
+from paperwork_backend.common.page import BasicPage
+from paperwork_backend.img.doc import ImgDoc
+from paperwork_backend.labels import Label
 from paperwork.frontend.labeleditor import LabelEditor
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util.actions import SimpleAction

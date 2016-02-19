@@ -18,7 +18,7 @@ import cairo
 import math
 import logging
 
-from paperwork.backend.util import image2surface
+from paperwork_backend.util import image2surface
 
 
 logger = logging.getLogger(__name__)

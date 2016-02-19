@@ -22,7 +22,7 @@ import cairo
 from gi.repository import Gdk
 from gi.repository import Gtk
 
-from paperwork.backend.util import image2surface
+from paperwork_backend.util import image2surface
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.canvas.drawers import fit

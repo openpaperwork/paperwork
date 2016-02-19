@@ -28,9 +28,9 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
 
-from paperwork.backend.common.page import BasicPage
-from paperwork.backend.util import image2surface
-from paperwork.backend.util import split_words
+from paperwork_backend.common.page import BasicPage
+from paperwork_backend.util import image2surface
+from paperwork_backend.util import split_words
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.imgcutting import ImgGripHandler

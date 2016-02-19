@@ -1,20 +1,15 @@
 #!/usr/bin/env python2
 
-import getopt
 import locale
 import os
-import platform
 import sys
 
 import enchant
-import termcolor
 
 try:
     # suppress warnings from GI
     import gi
     gi.require_version('Gtk', '3.0')
-    gi.require_version('Poppler', '0.18')
-    gi.require_version('PangoCairo', '1.0')
 except:
     pass
 
@@ -23,15 +18,6 @@ Some modules/libraries required by Paperwork cannot be installed with pip or
 easy_install. So we will just help the user detecting what is missing and what
 must be installed
 """
-
-PACKAGE_TOOLS = {
-    'debian': 'apt-get install',
-    'fedora': 'yum install',
-    'gentoo': 'emerge',
-    'linuxmint': 'apt-get install',
-    'ubuntu': 'apt-get install',
-    'suse': 'zypper in',
-}
 
 LANGUAGES = {
     None: {
@@ -59,18 +45,6 @@ DEFAULT_LANG = {
 
 MODULES = [
     (
-        'Python GObject Introspection', 'gi',
-        {
-            'debian': 'python-gi',
-            'fedora': 'pygobject3',
-            'gentoo': 'dev-python/pygobject',
-            'linuxmint': 'python-gi',
-            'ubuntu': 'python-gi',
-            'suse': 'python-gobject',
-        },
-    ),
-
-    (
         'Gtk', 'gi.repository.Gtk',
         {
             'debian': 'gir1.2-gtk-3.0',
@@ -79,32 +53,6 @@ MODULES = [
             'linuxmint': 'gir1.2-gtk-3.0',
             'ubuntu': 'gir1.2-gtk-3.0',
             'suse': 'python-gtk',
-        },
-    ),
-
-    # TODO(Jflesch): check for jpeg support in PIL
-
-    (
-        'Poppler', 'gi.repository.Poppler',
-        {
-            'debian': 'gir1.2-poppler-0.18',
-            'fedora': 'poppler-glib',
-            'gentoo': 'app-text/poppler',
-            'linuxmint': 'gir1.2-poppler-0.18',
-            'ubuntu': 'gir1.2-poppler-0.18',
-            'suse': 'typelib-1_0-Poppler-0_18',
-        },
-    ),
-
-    (
-        'Cairo', 'cairo',
-        {
-            'debian': 'python-gi-cairo',
-            'fedora': 'pycairo',
-            'gentoo': 'dev-python/pycairo',
-            'linuxmint': 'python-gi-cairo',
-            'ubuntu': 'python-gi-cairo',
-            'suse': 'python-cairo',
         },
     ),
 ]
@@ -137,55 +85,16 @@ DATA_FILES = [
     ),
 ]
 
-isatty = os.isatty(sys.stdout.fileno())
-verbose_enabled = False
-
-
-def colored(txt, color):
-    if isatty:
-        return termcolor.colored(txt, color)
-    return txt
-
-
-def verbose(msg):
-    if verbose_enabled:
-        print (msg)
-
-
-def warning(msg):
-    print ("[%s] %s" % (colored("WARN", "yellow"), msg))
-
-
-def error(msg):
-    print ("[%s] %s" % (colored("ERROR", "red"), msg))
-
-
-def check_python_version():
-    python_ver = [str(x) for x in sys.version_info]
-    verbose("Detected python version: %s" % ".".join(python_ver))
-    if python_ver[0] != "2" or python_ver[1] != "7":
-        error("Expected python 2.7 ! Got python %s" % ".".join(python_ver))
-        return False
-    return True
-
-
-def get_distribution():
-    distribution = platform.dist()
-    verbose("Detected system: %s" % " ".join(distribution))
-    distribution = distribution[0].lower()
-    if distribution not in PACKAGE_TOOLS:
-        warning("Unknown distribution. Can't suggest packages to install")
-    return distribution
-
 
 def get_language():
     lang = locale.getdefaultlocale()[0]
     if lang:
         lang = lang[:2]
-    verbose("Detected language: %s" % lang)
     if lang in LANGUAGES:
         return LANGUAGES[lang]
-    warning("Unable to figure out the exact language package to install")
+    print(
+        "[WARNING] Unable to figure out the exact language package to install"
+    )
     return DEFAULT_LANG
 
 
@@ -197,11 +106,9 @@ def find_missing_modules():
     missing_modules = []
 
     for module in MODULES:
-        verbose("Looking for %s ..." % module[0])
         try:
             __import__(module[1])
         except ImportError:
-            warning("%s is missing !" % module[0])
             missing_modules.append(module)
     return missing_modules
 
@@ -213,18 +120,17 @@ def find_missing_ocr(lang):
     missing = []
     try:
         from pyocr import pyocr
-        verbose("Looking for OCR tool ...")
         ocr_tools = pyocr.get_available_tools()
     except ImportError:
-        warning("Couldn't import Pyocr. Will assume OCR tool is not installed"
-                " yet")
+        print (
+            "[WARNING] Couldn't import Pyocr. Will assume OCR tool is not"
+            " installed yet"
+        )
         ocr_tools = []
     if len(ocr_tools) > 0:
-        verbose("Looking for OCR language data ...")
         langs = ocr_tools[0].get_available_languages()
     else:
         langs = []
-        warning("OCR tool not found")
         missing.append(
             (
                 'Tesseract', '(none)',
@@ -239,7 +145,6 @@ def find_missing_ocr(lang):
         )
 
     if (len(langs) <= 0 or lang['tesseract'] not in langs):
-        warning("OCR language data not found")
         missing.append(
             (
                 'Tesseract language data', '(none)',
@@ -258,10 +163,8 @@ def find_missing_ocr(lang):
 def find_missing_dict(lang):
     missing = []
     try:
-        verbose("Looking for dictionary '%s'" % lang['aspell'])
         enchant.request_dict(lang['aspell'])
     except:
-        warning("Dictionary '%s' not found" % lang['aspell'])
         missing.append(
             (
                 'Dictionary', '(none)',
@@ -278,6 +181,7 @@ def find_missing_dict(lang):
 
 
 def check_cairo():
+    from gi.repository import Gtk
     missing = []
 
     class CheckCairo(object):
@@ -291,14 +195,18 @@ def check_cairo():
             return False
 
         def quit(self):
-            from gi.repository import Gtk
-            Gtk.main_quit()
+            try:
+                Gtk.main_quit()
+            except Exception as exc:
+                print("FAILED TO STOP GTK !")
+                print("ASSUMING python-gi-cairo is not installed")
+                print("Exception was: {}".format(exc))
+                sys.exit(1)
 
     check = CheckCairo()
 
     try:
         from gi.repository import GLib
-        from gi.repository import Gtk
 
         window = Gtk.Window()
         da = Gtk.DrawingArea()
@@ -314,8 +222,8 @@ def check_cairo():
         window.set_visible(False)
         while Gtk.events_pending():
             Gtk.main_iteration()
-    except Exception as exc:
-        verbose("Error while checking if cairo is available: %s" % str(exc))
+    except Exception:
+        pass
 
     if not check.test_successful:
         missing.append(
@@ -345,7 +253,7 @@ def find_missing_data_files():
     return missings
 
 
-def find_all_missing_deps():
+def find_missing_dependencies():
     lang = get_language()
 
     # missing_modules is an array of
@@ -358,71 +266,3 @@ def find_all_missing_deps():
     missing += check_cairo()
     # TODO(Jflesch): check for sane ?
     return missing
-
-
-def usage():
-    print("Usage:")
-    print("\t%s [-v] [-b]" % sys.argv[0])
-    print("\t\t-v : verbose")
-    print("\t\t-b : batch mode (non-interactive)")
-
-
-if __name__ == "__main__":
-    interactive = True
-
-    try:
-        opts = getopt.getopt(sys.argv[1:], "bv")
-        for (opt, val) in opts[0]:
-            if opt == "-b":
-                interactive = False
-            elif opt == "-v":
-                verbose_enabled = True
-    except getopt.GetoptError:
-        usage()
-        sys.exit(1)
-
-    if not check_python_version():
-        sys.exit(2)
-
-    distribution = get_distribution()
-    missing = find_all_missing_deps()
-
-    verbose("")
-    if len(missing) <= 0:
-        print("All dependencies have been " + colored("found", "green") + ".")
-        sys.exit(0)
-
-    print("")
-    print(colored("WARNING", "yellow") + ": Missing dependencies:")
-    pkgs = []
-    for dep in missing:
-        if distribution in dep[2]:
-            print("  - %s (python module: %s ; %s package : %s)"
-                  % (dep[0], dep[1], distribution, dep[2][distribution]))
-            pkgs.append(dep[2][distribution])
-        else:
-            print("  - %s (python module: %s)"
-                  % (dep[0], dep[1]))
-
-    if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
-        command = "sudo %s %s" % (
-            PACKAGE_TOOLS[distribution], " ".join(pkgs)
-        )
-        print("")
-        print(colored("Suggested command", "yellow") + ":")
-        print("  %s" % command)
-
-        if ">" in command:
-            # means there are package for which we don't know the exact name
-            # so we can't run the command
-            sys.exit(1)
-
-        answer = "n"
-        if interactive:
-            print("Do you want to run this command now ? [Y/n]")
-            answer = sys.stdin.readline().strip().lower()
-        if answer == "" or answer == "y":
-            r = os.system(command)
-            sys.exit(r)
-
-    sys.exit(2)

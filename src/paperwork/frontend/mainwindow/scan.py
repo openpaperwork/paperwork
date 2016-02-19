@@ -25,7 +25,7 @@ from gi.repository import GObject
 import pyocr
 import pyocr.builders
 
-from paperwork.backend.util import check_spelling
+from paperwork_backend.util import check_spelling
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory

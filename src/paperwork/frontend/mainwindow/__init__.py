@@ -29,6 +29,11 @@ from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
 
+from paperwork_backend import docimport
+from paperwork_backend.common.page import BasicPage
+from paperwork_backend.common.page import DummyPage
+from paperwork_backend.docsearch import DocSearch
+from paperwork_backend.docsearch import DummyDocSearch
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
@@ -58,11 +63,6 @@ from paperwork.frontend.util.canvas.drawers import ProgressBarDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
-from paperwork.backend import docimport
-from paperwork.backend.common.page import BasicPage
-from paperwork.backend.common.page import DummyPage
-from paperwork.backend.docsearch import DocSearch
-from paperwork.backend.docsearch import DummyDocSearch
 
 
 _ = gettext.gettext

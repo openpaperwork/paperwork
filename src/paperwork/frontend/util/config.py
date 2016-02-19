@@ -23,9 +23,9 @@ import pycountry
 import pyocr
 import pyinsane.abstract_th as pyinsane
 
-from paperwork.backend.config import PaperworkConfig
-from paperwork.backend.config import PaperworkSetting
-from paperwork.backend.config import paperwork_cfg_boolean
+from paperwork_backend.config import PaperworkConfig
+from paperwork_backend.config import PaperworkSetting
+from paperwork_backend.config import paperwork_cfg_boolean
 from paperwork.frontend.util.scanner import maximize_scan_area
 from paperwork.frontend.util.scanner import set_scanner_opt
 

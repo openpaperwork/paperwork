@@ -6,7 +6,7 @@ setup(
     name="paperwork-backend",
     # if you change the version, don't forget to
     # * update the ChangeLog file
-    version="0.1-git",
+    version="0.4-unstable",
     description=(
         "Paperwork's backend"
     ),

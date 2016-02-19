@@ -167,7 +167,7 @@ Main features are:
         "pyinsane >= 1.3.8",
         "pyocr >= 0.3.0",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend>=0.4",
+        "paperwork-backend>=0.4-unstable",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

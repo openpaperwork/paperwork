@@ -83,8 +83,7 @@ class MultiplePdfImporter(object):
             Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
             None)
         for child in children:
-            name = child.get_attribute_as_string(
-                Gio.FILE_ATTRIBUTE_STANDARD_NAME)
+            name = child.get_name()
             child = parent.get_child(name)
             try:
                 for child in MultiplePdfImporter.__get_all_children(child):

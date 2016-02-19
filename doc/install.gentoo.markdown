@@ -2,10 +2,7 @@
 
 ## Package
 
-A package is available in [Lorelei's overlay](https://github.com/bignaux/lorelei-overlay).
-Instructions to use this overlay are available on
-[its Github repository wiki](https://github.com/bignaux/lorelei-overlay/wiki)
-
+    $ emerge paperwork
 
 ## Runtime dependencies
 

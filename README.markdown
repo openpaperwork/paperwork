@@ -14,7 +14,7 @@ In other words, let the machine do most of the work for you.
 
 ## Screenshots
 
-### Main Window &amp; Scan
+### Main Window
 
 <a href="http://youtu.be/goEgIiq2Tuc">
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/main_window.png" width="447" height="262" />

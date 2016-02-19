@@ -28,8 +28,6 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
                   "/archive/unstable.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
-        "Environment :: X11 Applications :: GTK",
-        "Environment :: X11 Applications :: Gnome",
         "Intended Audience :: End Users/Desktop",
         ("License :: OSI Approved ::"
          " GNU General Public License v3 or later (GPLv3+)"),

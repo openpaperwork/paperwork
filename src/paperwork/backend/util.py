@@ -205,18 +205,33 @@ def surface2image(surface):
     """
     Convert a cairo surface into a PIL image
     """
+    # TODO(Jflesch): Python 3 problem
+    # cairo.ImageSurface.get_data() raises NotImplementedYet ...
+
     import PIL.Image
-    import PIL.ImageDraw
 
-    if surface is None:
-        return None
-    dimension = (surface.get_width(), surface.get_height())
-    img = PIL.Image.frombuffer("RGBA", dimension,
-                               surface.get_data(), "raw", "BGRA", 0, 1)
+    # import PIL.ImageDraw
+    #
+    # if surface is None:
+    #     return None
+    # dimension = (surface.get_width(), surface.get_height())
+    # img = PIL.Image.frombuffer("RGBA", dimension,
+    #                            surface.get_data(), "raw", "BGRA", 0, 1)
+    #
+    # background = PIL.Image.new("RGB", img.size, (255, 255, 255))
+    # background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
+    # return background
 
-    background = PIL.Image.new("RGB", img.size, (255, 255, 255))
-    background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
-    return background
+    img_io = io.BytesIO()
+    surface.write_to_png(img_io)
+    img_io.seek(0)
+    img = PIL.Image.open(img_io)
+    img.load()
+
+    img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
+    img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
+
+    return img_no_alpha
 
 
 def image2surface(img):
@@ -225,8 +240,7 @@ def image2surface(img):
     """
     import cairo
 
-    # TODO(Jflesch):
-    # Python 3 problem
+    # TODO(Jflesch): Python 3 problem
     # cairo.ImageSurface.create_for_data() raises NotImplementedYet ...
 
     # img.putalpha(256)

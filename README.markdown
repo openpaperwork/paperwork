@@ -32,7 +32,6 @@ Here are some snippets:
 ```
 import paperwork_backend.config as config
 import paperwork_backend.docsearch as docsearch
-import paperwork_backend.util as util
 
 pconfig = config.PaperworkConfig()
 pconfig.read()

@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import glob
 import logging
 import os
 
@@ -38,10 +39,10 @@ UI_FILES_DIRS = [
     # XXX(Jflesch): The following locations are unexpected
     # but it seems those are the locations used by Pip
     # (sys.prefix in setup.py ?)
-    PREFIX + "/local/lib/python2.7/dist-packages/usr/share/paperwork",
-    PREFIX + "/local/lib/python2.7/dist-packages/usr/local/share/paperwork",
-    PREFIX + "/lib/python2.7/dist-packages/usr/share/paperwork",
-    PREFIX + "/lib/python2.7/dist-packages/usr/local/share/paperwork",
+    PREFIX + "/local/lib/python*/dist-packages/usr/share/paperwork",
+    PREFIX + "/local/lib/python*/dist-packages/usr/local/share/paperwork",
+    PREFIX + "/lib/python*/dist-packages/usr/share/paperwork",
+    PREFIX + "/lib/python*/dist-packages/usr/local/share/paperwork",
 ]
 
 
@@ -62,13 +63,14 @@ def load_uifile(filename):
     """
     widget_tree = Gtk.Builder()
     has_ui_file = False
-    for ui_dir in UI_FILES_DIRS:
-        ui_file = os.path.join(ui_dir, filename)
-        if os.access(ui_file, os.R_OK):
-            logger.info("UI file used: " + ui_file)
-            widget_tree.add_from_file(ui_file)
-            has_ui_file = True
-            break
+    for ui_glob_dir in UI_FILES_DIRS:
+        for ui_dir in glob.glob(ui_glob_dir):
+            ui_file = os.path.join(ui_dir, filename)
+            if os.access(ui_file, os.R_OK):
+                logger.info("UI file used: " + ui_file)
+                widget_tree.add_from_file(ui_file)
+                has_ui_file = True
+                break
     if not has_ui_file:
         logger.error("Can't find resource file '%s'. Aborting" % filename)
         raise Exception("Can't find resource file '%s'. Aborting" % filename)
@@ -89,13 +91,14 @@ def load_cssfile(filename):
     """
     css_provider = Gtk.CssProvider()
     has_css_file = False
-    for css_dir in UI_FILES_DIRS:
-        css_file = os.path.join(css_dir, filename)
-        if os.access(css_file, os.R_OK):
-            logger.info("CSS file used: " + css_file)
-            css_provider.load_from_path(css_file)
-            has_css_file = True
-            break
+    for css_glob_dir in UI_FILES_DIRS:
+        for css_dir in glob.glob(css_glob_dir):
+            css_file = os.path.join(css_dir, filename)
+            if os.access(css_file, os.R_OK):
+                logger.info("CSS file used: " + css_file)
+                css_provider.load_from_path(css_file)
+                has_css_file = True
+                break
     if not has_css_file:
         logger.error("Can't find resource file '%s'. Aborting" % filename)
         raise Exception("Can't find resource file '%s'. Aborting" % filename)
@@ -139,6 +142,9 @@ class PriorityQueueIter(object):
             return heapq.heappop(self.queue)[2]
         except IndexError:
             raise StopIteration()
+
+    def __next__(self):
+        return self.next()
 
     def __iter__(self):
         return self

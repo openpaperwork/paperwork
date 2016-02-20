@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import StringIO
+import io
 
 from gi.repository import GdkPixbuf
 import PIL.ImageDraw
@@ -39,7 +39,7 @@ def image2pixbuf(img):
     """
     if img is None:
         return None
-    file_desc = StringIO.StringIO()
+    file_desc = io.BytesIO()
     try:
         img.save(file_desc, "ppm")
         contents = file_desc.getvalue()

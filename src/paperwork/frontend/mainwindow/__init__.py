@@ -512,7 +512,7 @@ class JobDocSearcher(Job):
             documents = self.__docsearch.find_documents(
                 self.search,
                 search_type=self.__search_type)
-        except Exception, exc:
+        except Exception as exc:
             logger.error("Invalid search: [%s]" % self.search)
             logger.error("Exception was: %s: %s" % (type(exc), str(exc)))
             self.emit('search-invalid')
@@ -1240,7 +1240,7 @@ class ActionSingleScan(SimpleAction):
             try:
                 (dev, resolution) = get_scanner(self.__config)
                 scan_session = dev.scan(multiple=False)
-            except Exception, exc:
+            except Exception as exc:
                 logger.warning("Exception while configuring scanner: %s: %s."
                                " Assuming scanner is not connected",
                                type(exc), exc)
@@ -1496,6 +1496,9 @@ class AllPagesIterator(object):
             except StopIteration:
                 doc = next(self.__doc_iter)
                 self.__page_iter = iter(doc.pages)
+
+    def __next__(self):
+        return self.next()
 
 
 class ActionRedoAllOCR(ActionRedoOCR):
@@ -2250,7 +2253,7 @@ class MainWindow(object):
             self.__config['scanner_has_feeder'].value
         )
 
-        for (popup_menu_name, popup_menu) in self.popup_menus.iteritems():
+        for (popup_menu_name, popup_menu) in self.popup_menus.items():
             assert(not popup_menu[0] is None)
             assert(not popup_menu[1] is None)
             # TODO(Jflesch): Find the correct signal
@@ -2449,7 +2452,7 @@ class MainWindow(object):
         self.clear_doclist()
 
     def switch_leftpane(self, to):
-        for (name, revealers) in self.left_revealers.iteritems():
+        for (name, revealers) in self.left_revealers.items():
             visible = (to == name)
             for revealer in revealers:
                 revealer.set_reveal_child(visible)
@@ -2492,7 +2495,7 @@ class MainWindow(object):
         self.doclist.refresh()
 
     def refresh_boxes(self):
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        search = self.search_field.get_text()
         for page in self.page_drawers:
             page.show_all_boxes = self.show_all_boxes
             page.reload_boxes(search)
@@ -2589,7 +2592,7 @@ class MainWindow(object):
         if self.doc.docid in self.scan_drawers:
             scan_drawers = dict(self.scan_drawers[self.doc.docid])
 
-        search = unicode(self.search_field.get_text(), encoding='utf-8')
+        search = self.search_field.get_text()
 
         previous_drawer = None
         first_scan_drawer = None
@@ -2949,8 +2952,8 @@ class MainWindow(object):
         return drawer
 
     def remove_scan_workflow(self, scan_workflow):
-        for (docid, drawers) in self.scan_drawers.iteritems():
-            for (page_nb, drawer) in drawers.iteritems():
+        for (docid, drawers) in self.scan_drawers.items():
+            for (page_nb, drawer) in drawers.items():
                 if (scan_workflow == drawer or
                         scan_workflow == drawer.scan_workflow):
                     drawers.pop(page_nb)

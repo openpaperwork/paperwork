@@ -433,7 +433,7 @@ class PageDrawer(Drawer, GObject.GObject):
             return
         page_id = self.page.id
         logger.info("Drag-n-drop get: selected: [%s]" % page_id)
-        data.set_text(unicode(page_id), -1)
+        data.set_text(str(page_id), -1)
 
     def _on_drag_failed(self, canvas, drag_context, result):
         if not self.is_drag_source:
@@ -531,7 +531,7 @@ class PageDrawer(Drawer, GObject.GObject):
         Returns:
             an array of boxes (see pyocr boxes)
         """
-        if isinstance(sentence, unicode):
+        if isinstance(sentence, str):
             keywords = split_words(sentence)
         else:
             assert(isinstance(sentence, list))

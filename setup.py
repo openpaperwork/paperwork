@@ -48,7 +48,7 @@ Main features are:
         ("License :: OSI Approved ::"
          " GNU General Public License v3 or later (GPLv3+)"),
         "Operating System :: POSIX :: Linux",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
         "Topic :: Scientific/Engineering :: Image Recognition",

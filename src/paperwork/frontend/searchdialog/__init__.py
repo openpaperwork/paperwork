@@ -95,7 +95,6 @@ class SearchElementLabel(SearchElement):
             return None
 
         text = text[len(u"label:"):]
-        text = unicode(text)
         text = strip_quotes(text)
 
         element = SearchElementLabel(dialog)
@@ -431,7 +430,6 @@ class SearchDialog(object):
         self.__search_string = None
 
         keywords = self.__main_win.search_field.get_text()
-        keywords = unicode(keywords, encoding='utf-8')
         keywords = keywords.strip()
         keywords = re.findall(r'(?:\[.*\]|(?:[^\s"]|"(?:\\.|[^"])*"))+', keywords)
 

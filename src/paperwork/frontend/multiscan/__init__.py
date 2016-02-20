@@ -186,7 +186,7 @@ class ActionScan(SimpleAction):
                 doc_nb_pages = doc.nb_pages
             doc_scan = DocScan(doc)
             drawer = None
-            for page_nb in xrange(doc_nb_pages, doc_nb_pages + nb_pages):
+            for page_nb in range(doc_nb_pages, doc_nb_pages + nb_pages):
                 page_scan = PageScan(self.__main_win, self.__multiscan_win,
                                      self.__config,
                                      resolution, scan_session,

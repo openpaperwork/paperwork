@@ -238,7 +238,7 @@ class LabelEditor(object):
 
         if (response == Gtk.ResponseType.OK):
             logger.info("Label validated")
-            self.label.name = unicode(name_entry.get_text(), encoding='utf-8')
+            self.label.name = name_entry.get_text()
             self.label.color = self._color_chooser.get_rgba()
         else:
             logger.info("Label editing cancelled")

@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import ConfigParser
+import configparser
 import locale
 import logging
 import re
@@ -53,16 +53,16 @@ class _ScanTimes(object):
         self.value = self
 
     def load(self, config):
-        for (k, cfg) in self.__ITEM_2_CONFIG.iteritems():
+        for (k, cfg) in self.__ITEM_2_CONFIG.items():
             try:
                 value = float(config.get(cfg[0], cfg[1]))
                 self.values[k] = value
-            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            except (configparser.NoOptionError, configparser.NoSectionError):
                 if k in self.values:
                     self.values.pop(k)
 
     def update(self, config):
-        for (k, v) in self.values.iteritems():
+        for (k, v) in self.values.items():
             if k not in self.__ITEM_2_CONFIG:
                 logger.warning("Got timing for '%s' but don't know how to"
                                " store it" % k)
@@ -107,14 +107,14 @@ class _PaperworkScannerCalibration(object):
             try:
                 resolution = int(config.get(
                     "Scanner", "Calibration_Resolution"))
-            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+            except (configparser.NoOptionError, configparser.NoSectionError):
                 logger.warning("Calibration resolution is not specified in the"
                                " configuration. Will assume the calibration"
                                " was done with a resolution of %ddpi"
                                % resolution)
 
             self.value = (resolution, ((pt_a_x, pt_a_y), (pt_b_x, pt_b_y)))
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (configparser.NoOptionError, configparser.NoSectionError):
             # no calibration -> no cropping -> we have to keep the whole image
             # each time
             self.value = None
@@ -188,7 +188,7 @@ class _PaperworkSize(object):
                 h = self.min_size[1]
             self.value = (w, h)
             return
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (configparser.NoOptionError, configparser.NoSectionError):
             self.value = self.default_size
 
     def update(self, config):
@@ -219,7 +219,7 @@ class _PaperworkFrontendConfigUtil(object):
             for ocr_lang in (lang.terminology, lang.bibliographic):
                 if ocr_lang in ocr_langs:
                     return ocr_lang
-        except Exception, exc:
+        except Exception as exc:
             logger.error("Warning: Failed to figure out system language"
                          " (locale is [%s]). Will default to %s"
                          % (default_locale_long, DEFAULT_OCR_LANG))
@@ -279,7 +279,7 @@ def load_config():
         _PaperworkLangs(settings['ocr_lang'], settings['spelling_lang'])
     )
 
-    for (k, v) in settings.iteritems():
+    for (k, v) in settings.items():
         config.settings[k] = v
 
     return config
@@ -313,7 +313,7 @@ def _get_scanner(config, devid, preferred_sources=None):
             try:
                 set_scanner_opt('source', dev.options['source'],
                                 preferred_sources)
-            except (KeyError, pyinsane.SaneException), exc:
+            except (KeyError, pyinsane.SaneException) as exc:
                 config_source = config['scanner_source'].value
                 logger.error("Warning: Unable to set scanner source to '%s': %s"
                              % (preferred_sources, exc))

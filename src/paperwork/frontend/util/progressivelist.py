@@ -178,7 +178,7 @@ class ProgressiveList(GObject.GObject):
                 self.model.remove(line_iter)
 
         newly_displayed = []
-        for line_idx in xrange(self.nb_displayed, nb_elements):
+        for line_idx in range(self.nb_displayed, nb_elements):
             if (self.nb_displayed >= nb_elements
                     or line_idx >= len(self.model_content)):
                 break

@@ -176,7 +176,7 @@ class JobScheduler(object):
             self._active_job.already_started_once = True
             try:
                 self._active_job.do()
-            except Exception, exc:
+            except Exception as exc:
                 logger.error("===> Job %s raised an exception: %s: %s"
                              % (str(self._active_job),
                                 type(exc), str(exc)))
@@ -353,7 +353,7 @@ class JobProgressUpdater(Job):
     def do(self):
         self.can_run = True
 
-        for upd in xrange(0, self.NB_UPDATES):
+        for upd in range(0, self.NB_UPDATES):
             if not self.can_run:
                 return
 

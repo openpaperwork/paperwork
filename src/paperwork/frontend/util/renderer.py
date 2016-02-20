@@ -69,7 +69,7 @@ class CellRendererLabels(Gtk.CellRenderer):
                      cell_area_gdk_rect.y + ypad,
                      cell_area_gdk_rect.width - (2*xpad))
 
-        for label_idx in xrange(0, len(self.labels)):
+        for label_idx in range(0, len(self.labels)):
             label = self.labels[label_idx]
 
             (label_x, label_y, label_w, label_h) = (

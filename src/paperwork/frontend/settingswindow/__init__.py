@@ -762,7 +762,7 @@ class SettingsWindow(GObject.GObject):
         for (short_lang, long_lang) in ocr_langs:
             self.ocr_settings['lang']['store'].append([long_lang, short_lang])
 
-        for (k, v) in actions.iteritems():
+        for (k, v) in actions.items():
             v[1].connect(v[0])
 
         self.window.connect("destroy", self.__on_destroy)
@@ -937,7 +937,7 @@ class SettingsWindow(GObject.GObject):
 
     def set_ocr_opts_state(self):
         ocr_enabled = self.ocr_settings['enabled']['gui'].get_active()
-        for (k, v) in self.ocr_settings.iteritems():
+        for (k, v) in self.ocr_settings.items():
             if k == "enabled":
                 continue
             v['gui'].set_sensitive(ocr_enabled)

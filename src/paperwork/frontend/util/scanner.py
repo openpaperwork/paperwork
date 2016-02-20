@@ -65,11 +65,11 @@ def set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
 
     # WORKAROUND(Jflesch): For some reason, my crappy scanner returns
     # I/O errors randomly for fun
-    for t in xrange(0, 5):
+    for t in range(0, 5):
         try:
             _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values)
             break
-        except Exception, exc:
+        except Exception as exc:
             logger.warning("Warning: Failed to set scanner option"
                            " %s=%s: %s (try %d/5)"
                            % (scanner_opt_name, possible_values, str(exc), t))

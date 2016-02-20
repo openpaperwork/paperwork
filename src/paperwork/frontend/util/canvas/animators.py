@@ -75,7 +75,7 @@ class LinearSimpleAnimator(Animator):
         )
         values = [
             getattr(drawer, attr_name) + (i * value_intervals)
-            for i in xrange(0, nb_values + 1)
+            for i in range(0, nb_values + 1)
         ]
         if values[-1] != target_value:
             values.append(target_value)
@@ -101,7 +101,7 @@ class LinearCoordAnimator(Animator):
         coords = [
             (getattr(drawer, attr_name)[0] + (i * pos_intervals[0]),
              getattr(drawer, attr_name)[1] + (i * pos_intervals[1]))
-            for i in xrange(0, nb_coords + 1)
+            for i in range(0, nb_coords + 1)
         ]
         Animator.__init__(self, drawer, attr_name, coords, canvas)
 

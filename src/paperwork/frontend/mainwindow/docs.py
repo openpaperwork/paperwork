@@ -78,7 +78,7 @@ class JobDocThumbnailer(Job):
                 'RGBA', (self.SMALL_THUMBNAIL_WIDTH, height),
                 '#FFFFFF'
             )
-            w = (self.SMALL_THUMBNAIL_WIDTH - width) / 2
+            w = int((self.SMALL_THUMBNAIL_WIDTH - width) / 2)
             new_img.paste(img, (w, 0, w + width, height))
             img = new_img
         return img
@@ -94,7 +94,7 @@ class JobDocThumbnailer(Job):
             self.emit('doc-thumbnailing-start')
             self.__current_idx = 0
 
-        for idx in xrange(self.__current_idx, len(self.__doclist)):
+        for idx in range(self.__current_idx, len(self.__doclist)):
             doc = self.__doclist[idx]
             if doc.nb_pages <= 0:
                 continue
@@ -621,7 +621,7 @@ class DocList(object):
             end_idx = 99999999
 
         documents = []
-        for row_idx in xrange(start_idx, end_idx + 1):
+        for row_idx in range(start_idx, end_idx + 1):
             row = self.gui['list'].get_row_at_index(row_idx)
             if row is None:
                 break
@@ -918,8 +918,7 @@ class DocList(object):
         self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['doc_searcher']
         )
-        search = unicode(self.__main_win.search_field.get_text(),
-                         encoding='utf-8')
+        search = self.__main_win.search_field.get_text()
         self.show_loading()
         job = self.__main_win.job_factories['doc_searcher'].make(
             docsearch=self.__main_win.docsearch,
@@ -1064,8 +1063,7 @@ class DocPropertiesPanel(object):
     def get_text_from_buffer(self, text_buffer):
         start = text_buffer.get_iter_at_offset(0)
         end = text_buffer.get_iter_at_offset(-1)
-        return unicode(text_buffer.get_text(start, end, False),
-                       encoding='utf-8')
+        return text_buffer.get_text(start, end, False)
 
     def set_doc(self, doc):
         self.doc = doc
@@ -1102,7 +1100,7 @@ class DocPropertiesPanel(object):
         logger.info("Checking for new labels")
         doc_labels = sorted(self.doc.labels)
         new_labels = []
-        for (label, (check_button, edit_button)) in self.labels.iteritems():
+        for (label, (check_button, edit_button)) in self.labels.items():
             if check_button.get_active():
                 new_labels.append(label)
         new_labels.sort()

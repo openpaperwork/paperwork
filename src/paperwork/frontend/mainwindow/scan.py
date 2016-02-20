@@ -103,7 +103,7 @@ class JobScan(Job):
                     return
             except EOFError:
                 pass
-        except Exception, exc:
+        except Exception as exc:
             self.emit('scan-error', exc)
             raise
 
@@ -220,7 +220,7 @@ class _ImgOCRThread(threading.Thread):
                 # However, it would be best if we could keep both versions
                 # without increasing too much indexation time
                 return
-            except Exception, exc:
+            except Exception as exc:
                 logger.error("Scoring method '%s' on orientation %s failed !"
                              % (score_method[0], self.name))
                 logger.error("Reason: %s" % exc)
@@ -332,7 +332,7 @@ class JobOCR(Job):
             time.sleep(self.OCR_THREADS_POLLING_TIME)
 
         # We want the higher score first
-        scores.sort(cmp=lambda x, y: cmp(y[0], x[0]))
+        scores.sort(key=lambda x: x[0])
 
         logger.info("Best: %f" % (scores[0][0]))
         return scores[0][1:]
@@ -574,7 +574,7 @@ class BasicScanWorkflowDrawer(Animation):
             self.ocr_drawers[angle] = [drawer]
 
         self.animators = []
-        for (angle, drawers) in self.ocr_drawers.iteritems():
+        for (angle, drawers) in self.ocr_drawers.items():
             drawer = drawers[0]
             drawer.size = size
             logger.info("Animator: Angle %d: %s %s -> %s %s"

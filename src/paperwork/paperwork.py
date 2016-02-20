@@ -22,6 +22,11 @@ import os
 
 import gettext
 import gi
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('Poppler', '0.18')
+gi.require_version('PangoCairo', '1.0')
+
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import GLib
@@ -31,10 +36,6 @@ import signal
 
 from .frontend.mainwindow import ActionRefreshIndex, MainWindow
 from .frontend.util.config import load_config
-
-gi.require_version('Gtk', '3.0')
-gi.require_version('Poppler', '0.18')
-gi.require_version('PangoCairo', '1.0')
 
 logger = logging.getLogger(__name__)
 

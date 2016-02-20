@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import curses.ascii
 import hashlib
 import random
 import sys
@@ -12,9 +11,6 @@ from PIL import ImageDraw
 from pyocr.builders import Box
 from pyocr.builders import LineBox
 
-from paperwork_backend import config
-from paperwork_backend import docsearch
-from paperwork_backend import util
 from paperwork_backend.img.doc import ImgDoc
 from paperwork_backend.img.page import ImgPage
 
@@ -31,11 +27,11 @@ def get_chars(doc):
 
 
 def gen_salt():
-    alphabet = [chr(x) for x in xrange(ord("0"), ord("9"))]
-    alphabet += [chr(x) for x in xrange(ord("a"), ord("z"))]
-    alphabet += [chr(x) for x in xrange(ord("A"), ord("Z"))]
-    chars=[]
-    for i in xrange(512):
+    alphabet = [chr(x) for x in range(ord("0"), ord("9"))]
+    alphabet += [chr(x) for x in range(ord("a"), ord("z"))]
+    alphabet += [chr(x) for x in range(ord("A"), ord("Z"))]
+    chars = []
+    for i in range(512):
         chars.append(random.choice(alphabet))
     return "".join(chars)
 
@@ -43,10 +39,10 @@ def gen_salt():
 def generate_mapping(chars):
     # make sure we have some basic chars in the set
     for rng in [
-            xrange(ord('a'), ord('z')),
-            xrange(ord('A'), ord('Z')),
-            xrange(ord('0'), ord('9')),
-        ]:
+                range(ord('a'), ord('z')),
+                range(ord('A'), ord('Z')),
+                range(ord('0'), ord('9')),
+            ]:
         for ch in rng:
             chars.add(chr(ch))
 
@@ -56,7 +52,7 @@ def generate_mapping(chars):
     random.shuffle(shuffled)
 
     mapping = {}
-    for char_idx in xrange(0, len(chars)):
+    for char_idx in range(0, len(chars)):
         mapping[chars[char_idx]] = shuffled[char_idx]
     return mapping
 
@@ -64,7 +60,7 @@ def generate_mapping(chars):
 def print_mapping(mapping):
     print("==========================")
     print("Mapping that will be used:")
-    for (i, t) in mapping.iteritems():
+    for (i, t) in mapping.items():
         print("  %s --> %s" % (i.encode("utf-8"), t.encode("utf-8")))
     print("==========================")
 
@@ -85,7 +81,7 @@ def clone_box(src_box, mapping, salt):
 
     dst_content = u""
     sha = content_hash.digest()
-    for char_pos in xrange(0, len(src_content)):
+    for char_pos in range(0, len(src_content)):
         if not src_content[char_pos] in mapping:
             dst_content += char
         char = ord(sha[char_pos])
@@ -108,7 +104,7 @@ def clone_img(src_img):
         draw.line((100, 100, img_size[0] - 100, img_size[1] - 100),
                   fill="#ffffff", width=5)
         draw.line((img_size[0] - 100, 100,
-                        100, img_size[1] - 100),
+                   100, img_size[1] - 100),
                   fill="#ffffff", width=5)
     return dst_img
 

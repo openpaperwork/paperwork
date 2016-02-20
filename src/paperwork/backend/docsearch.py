@@ -24,6 +24,7 @@ import copy
 import datetime
 import os.path
 
+import gi
 from gi.repository import GObject
 
 import whoosh.fields
@@ -44,6 +45,8 @@ from .util import mkdir_p
 from .util import rm_rf
 from .util import strip_accents
 
+gi.require_version('PangoCairo', '1.0')
+gi.require_version('Poppler', '0.18')
 
 logger = logging.getLogger(__name__)
 
@@ -230,15 +233,15 @@ class DocIndexUpdater(GObject.GObject):
             self.docsearch.create_label(label)
 
         last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
-        docid = unicode(doc.docid)
+        docid = str(doc.docid)
 
         dochash = doc.get_docfilehash()
         dochash = (u"%X" % dochash)
 
         doc_txt = doc.get_index_text()
-        assert(isinstance(doc_txt, unicode))
+        assert(isinstance(doc_txt, str))
         labels_txt = doc.get_index_labels()
-        assert(isinstance(labels_txt, unicode))
+        assert(isinstance(labels_txt, str))
 
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
@@ -287,7 +290,7 @@ class DocIndexUpdater(GObject.GObject):
         logger.info("Removing doc from the index: %s" % doc)
         if doc.docid in self.docsearch._docs_by_id:
             self.docsearch._docs_by_id.pop(doc.docid)
-        if isinstance(doc, str) or isinstance(doc, unicode):
+        if isinstance(doc, str):
             # annoying case : we can't know which labels were on it
             # so we can't roll back the label guesser training ...
             self._delete_doc_from_index(self.index_writer, doc)
@@ -373,7 +376,7 @@ class DocSearch(object):
             # versions of whoosh don't always implement __eq__
             if str(self.index.schema) == str(self.WHOOSH_SCHEMA):
                 need_index_rewrite = False
-        except whoosh.index.EmptyIndexError, exc:
+        except whoosh.index.EmptyIndexError as exc:
             logger.warning("Failed to open index '%s'" % self.indexdir)
             logger.warning("Exception was: %s" % str(exc))
 
@@ -572,7 +575,7 @@ class DocSearch(object):
         """
         Return all the documents. Beware, they are unsorted.
         """
-        return self._docs_by_id.values()
+        return [x for x in self._docs_by_id.values()]
 
     docs = property(__get_all_docs)
 
@@ -651,8 +654,8 @@ class DocSearch(object):
             An array of sets of keywords. Each set of keywords (-> one string)
             is a suggestion.
         """
-        if not isinstance(sentence, unicode):
-            sentence = unicode(sentence, encoding="UTF-8")
+        if not isinstance(sentence, str):
+            sentence = str(sentence)
 
         keywords = sentence.split(" ")
         final_suggestions = []

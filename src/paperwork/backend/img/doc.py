@@ -103,7 +103,7 @@ class ImgToPdfDocExporter(object):
         # reload the preview
 
         pdfdoc = Poppler.Document.new_from_file(
-            ("file://%s" % urllib.quote(path)), password=None)
+            ("file://%s" % urllib.parse.quote(path)), password=None)
         assert(pdfdoc.get_n_pages() > 0)
 
         pdfpage = pdfdoc.get_page(0)
@@ -162,6 +162,9 @@ class _ImgPagesIterator(object):
         page = self.page_list[self.idx]
         self.idx += 1
         return page
+
+    def __next__(self):
+        return self.next()
 
 
 class _ImgPages(object):
@@ -268,7 +271,7 @@ class ImgDoc(BasicDoc):
                     continue
                 count += 1
             return count
-        except OSError, exc:
+        except OSError as exc:
             if exc.errno != errno.ENOENT:
                 logger.error("Exception while trying to get the number of"
                              " pages of '%s': %s" % (self.docid, exc))
@@ -354,7 +357,7 @@ def is_img_doc(docpath):
         return False
     try:
         filelist = os.listdir(docpath)
-    except OSError, exc:
+    except OSError as exc:
         logger.warn("Warning: Failed to list files in %s: %s"
                     % (docpath, str(exc)))
         return False

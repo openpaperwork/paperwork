@@ -103,11 +103,11 @@ class PdfPage(BasicPage):
                     for line in file_desc.readlines():
                         line = line.strip()
                         txt.append(line)
-            except IOError, exc:
+            except IOError as exc:
                 logger.error("Unable to read [%s]: %s" % (txtfile, str(exc)))
             return txt
 
-        except OSError, exc:  # os.stat() failed
+        except OSError as exc:  # os.stat() failed
             pass
 
         boxfile = self.__get_box_path()
@@ -123,9 +123,8 @@ class PdfPage(BasicPage):
                     txt_line += u" " + box.content
                 txt.append(txt_line)
             return txt
-        except OSError, exc:
+        except OSError as exc:
             txt = self.pdf_page.get_text()
-            txt = unicode(txt, encoding='utf-8')
             return txt.split(u"\n")
 
     def __get_boxes(self):
@@ -146,11 +145,11 @@ class PdfPage(BasicPage):
                 with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                     self.__boxes = box_builder.read_file(file_desc)
                 return self.__boxes
-            except IOError, exc:
+            except IOError as exc:
                 logger.error("Unable to get boxes for '%s': %s"
                              % (self.doc.docid, exc))
                 # will fall back on pdf boxes
-        except OSError, exc:  # os.stat() failed
+        except OSError as exc:  # os.stat() failed
             pass
 
         # fall back on what libpoppler tells us
@@ -162,7 +161,7 @@ class PdfPage(BasicPage):
         words = set()
         self.__boxes = []
         for line in txt.split("\n"):
-            for word in split_words(unicode(line, encoding='utf-8')):
+            for word in split_words(line):
                 words.add(word)
         for word in words:
             for rect in self.pdf_page.find_text(word):

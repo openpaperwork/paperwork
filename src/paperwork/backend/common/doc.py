@@ -194,7 +194,7 @@ class BasicDoc(object):
     def get_index_text(self):
         txt = u""
         for page in self.pages:
-            txt += u"\n".join([unicode(line) for line in page.text])
+            txt += u"\n".join([str(line) for line in page.text])
         extra_txt = self.extra_text
         if extra_txt != u"":
             txt += u"\n" + extra_txt + u"\n"
@@ -207,7 +207,7 @@ class BasicDoc(object):
     def _get_text(self):
         txt = u""
         for page in self.pages:
-            txt += u"\n".join([unicode(line) for line in page.text])
+            txt += u"\n".join([str(line) for line in page.text])
         extra_txt = self.extra_text
         if extra_txt != u"":
             txt += u"\n" + extra_txt + u"\n"
@@ -217,7 +217,7 @@ class BasicDoc(object):
     text = property(_get_text)
 
     def get_index_labels(self):
-        return u",".join([unicode(label.name)
+        return u",".join([str(label.name)
                           for label in self.labels])
 
     def update_label(self, old_label, new_label):
@@ -271,7 +271,12 @@ class BasicDoc(object):
             return -1
         if self.is_new and other.is_new:
             return 0
-        return cmp(self.__docid, other.__docid)
+        if self.__docid < other.__docid:
+            return -1
+        elif self.__docid == other.__docid:
+            return 0
+        else:
+            return 1
 
     def __lt__(self, other):
         return self.__doc_cmp(other) < 0
@@ -319,7 +324,7 @@ class BasicDoc(object):
                 short_docid, self.DOCNAME_FORMAT)
             final = datetime_obj.strftime("%x")
             return final
-        except Exception, exc:
+        except Exception as exc:
             logger.error("Unable to parse document id [%s]: %s"
                          % (self.docid, exc))
             return self.docid

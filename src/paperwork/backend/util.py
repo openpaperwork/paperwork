@@ -14,8 +14,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>
 
-import array
 import errno
+import io
 import logging
 import os
 import re
@@ -225,10 +225,20 @@ def image2surface(img):
     """
     import cairo
 
-    img.putalpha(256)
-    (width, height) = img.size
-    imgd = img.tobytes('raw', 'BGRA')
-    imga = array.array('B', imgd)
-    stride = width * 4
-    return cairo.ImageSurface.create_for_data(
-        imga, cairo.FORMAT_ARGB32, width, height, stride)
+    # TODO(Jflesch):
+    # Python 3 problem
+    # cairo.ImageSurface.create_for_data() raises NotImplementedYet ...
+
+    # img.putalpha(256)
+    # (width, height) = img.size
+    # imgd = img.tobytes('raw', 'BGRA')
+    # imga = array.array('B', imgd)
+    # stride = width * 4
+    #  return cairo.ImageSurface.create_for_data(
+    #      imga, cairo.FORMAT_ARGB32, width, height, stride)
+
+    # So we fall back to this method:
+    img_io = io.BytesIO()
+    img.save(img_io, format="PNG")
+    img_io.seek(0)
+    return cairo.ImageSurface.create_from_png(img_io)

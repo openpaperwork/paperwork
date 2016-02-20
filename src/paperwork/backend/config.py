@@ -17,10 +17,11 @@
 Paperwork configuration management code
 """
 
-import ConfigParser
+import configparser
 import logging
 import os
-import util
+
+from . import util
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ class PaperworkSetting(object):
                 value = None
             self.value = value
             return
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (configparser.NoOptionError, configparser.NoSectionError):
             pass
         self.value = self.default_value_func()
 
@@ -110,7 +111,7 @@ class PaperworkConfig(object):
         logger.info("Reloading %s ..." % self.__configfile)
 
         # smash the previous config
-        self._configparser = ConfigParser.SafeConfigParser()
+        self._configparser = configparser.SafeConfigParser()
         self._configparser.read([self.__configfile])
 
         sections = set()
@@ -136,7 +137,7 @@ class PaperworkConfig(object):
 
         try:
             file_path = self.__configfile
-            with open(file_path, 'wb') as file_descriptor:
+            with open(file_path, 'w') as file_descriptor:
                 self._configparser.write(file_descriptor)
             logger.info("Done")
         except IOError as e:

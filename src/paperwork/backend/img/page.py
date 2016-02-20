@@ -118,7 +118,7 @@ class ImgPage(BasicPage):
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                 boxes = box_builder.read_file(file_desc)
             return boxes
-        except IOError, exc:
+        except IOError as exc:
             logger.error("Unable to get boxes for '%s': %s"
                          % (self.doc.docid, exc))
             return []

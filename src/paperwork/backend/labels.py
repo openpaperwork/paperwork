@@ -38,10 +38,10 @@ class Label(object):
             name --- label name
             color --- label color (string representation, see get_color_str())
         """
-        if type(name) == unicode:
+        if isinstance(name, str):
             self.name = name
         else:
-            self.name = unicode(name, encoding='utf-8')
+            self.name = str(name)
         self.color = Gdk.RGBA()
         self.color.parse(color)
 
@@ -54,12 +54,22 @@ class Label(object):
         """
         if other is None:
             return -1
+
         label_name = strip_accents(self.name).lower()
         other_name = strip_accents(other.name).lower()
-        cmp_r = cmp(label_name, other_name)
-        if cmp_r != 0:
-            return cmp_r
-        return cmp(self.get_color_str(), other.get_color_str())
+        if label_name < other_name:
+            return -1
+        elif label_name == other_name:
+            return 0
+        else:
+            return 1
+
+        if self.get_color_str() < other.get_color_str():
+            return -1
+        elif self.get_color_str() == other.get_color_str():
+            return 0
+        else:
+            return 1
 
     def __lt__(self, other):
         return self.__label_cmp(other) < 0
@@ -137,7 +147,7 @@ class LabelGuessUpdater(object):
         for label in labels:
             self.guesser.load(label)
 
-        for (label, guesser) in self.guesser._bayes.iteritems():
+        for (label, guesser) in self.guesser._bayes.items():
             value = "yes" if label in labels else "no"
             guesser.train(value, doc_txt)
 
@@ -159,7 +169,7 @@ class LabelGuessUpdater(object):
         for label in labels:
             self.guesser.load(label)
 
-        for (label, guesser) in self.guesser._bayes.iteritems():
+        for (label, guesser) in self.guesser._bayes.items():
             value = "yes" if label in labels else "no"
             guesser.untrain(value, doc_txt)
 
@@ -207,7 +217,7 @@ class LabelGuesser(object):
             return set()
         doc_txt = doc_txt.encode("utf-8")
         label_names = set()
-        for (label_name, guesser) in self._bayes.iteritems():
+        for (label_name, guesser) in self._bayes.items():
             # we balance ourselves the scores, otherwise 'no' wins
             # too easily
             scores = guesser.score(doc_txt)

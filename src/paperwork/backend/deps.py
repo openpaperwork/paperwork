@@ -51,10 +51,11 @@ MODULES = [
 
 
 def check_python_version():
-    python_ver = [str(x) for x in sys.version_info]
-    if python_ver[0] != "2" or python_ver[1] != "7":
+    python_ver = (sys.version_info[0], sys.version_info[1])
+    if python_ver < (3, 0):
         raise Exception(
-            "Expected python 2.7 ! Got python {}".format(".".join(python_ver))
+            "Expected python >= 3.0 !"
+            "Got python {}".format(".".join(python_ver))
         )
     return []
 

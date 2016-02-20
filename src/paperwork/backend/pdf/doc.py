@@ -75,6 +75,9 @@ class PdfPagesIterator(object):
         self.idx += 1
         return page
 
+    def __next__(self):
+        return self.next()
+
 
 class PdfPages(object):
     def __init__(self, pdfdoc, pdf):
@@ -139,7 +142,7 @@ class PdfDoc(BasicDoc):
         if self._pdf:
             return self._pdf
         self._pdf = Poppler.Document.new_from_file(
-            ("file://%s/%s" % (urllib.quote(self.path), PDF_FILENAME)),
+            ("file://%s/%s" % (urllib.parse.quote(self.path), PDF_FILENAME)),
             password=None)
         return self._pdf
 
@@ -167,9 +170,11 @@ class PdfDoc(BasicDoc):
     def import_pdf(self, config, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
         try:
-            dest = Gio.File.parse_name("file://%s" % urllib.quote(self.path))
+            dest = Gio.File.parse_name(
+                "file://%s" % urllib.parse.quote(self.path)
+            )
             dest.make_directory(None)
-        except GLib.GError, exc:
+        except GLib.GError as exc:
             logger.exception("Warning: Error while trying to create '%s': %s"
                              % (self.path, exc))
         f = Gio.File.parse_name(file_uri)
@@ -200,7 +205,7 @@ def is_pdf_doc(docpath):
         return False
     try:
         filelist = os.listdir(docpath)
-    except OSError, exc:
+    except OSError as exc:
         logger.exception("Warning: Failed to list files in %s: %s"
                          % (docpath, str(exc)))
         return False

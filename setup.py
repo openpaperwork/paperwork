@@ -170,6 +170,7 @@ Main features are:
         'scripts/paperwork-chkdeps',
     ],
     install_requires=[
+        "python < 3",
         "Pillow",
         "pycountry",
         "pyenchant",

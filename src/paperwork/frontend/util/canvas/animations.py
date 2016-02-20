@@ -209,8 +209,8 @@ class SpinnerAnimation(Animation):
             return
 
         frame = (
-            (self.frame % self.nb_frames[0]),
-            (self.frame / self.nb_frames[0]),
+            int(self.frame % self.nb_frames[0]),
+            int(self.frame / self.nb_frames[0]),
         )
         frame = (
             (frame[0] * self.SRC_SIZE),

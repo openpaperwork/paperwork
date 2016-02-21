@@ -342,7 +342,8 @@ class DocSearch(object):
         last_read=whoosh.fields.DATETIME(stored=True),
     )
 
-    def __init__(self, rootdir, callback=dummy_progress_cb):
+    def __init__(self, rootdir, indexdir=None,
+                 callback=dummy_progress_cb):
         """
         Index files in rootdir (see constructor)
 
@@ -356,9 +357,13 @@ class DocSearch(object):
                     being read
         """
         self.rootdir = rootdir
-        base_data_dir = os.getenv("XDG_DATA_HOME",
-                                  os.path.expanduser("~/.local/share"))
-        self.indexdir = os.path.join(base_data_dir, "paperwork", "index")
+        self.indexdir = indexdir
+        if self.indexdir is None:
+            base_data_dir = os.getenv(
+                "XDG_DATA_HOME",
+                os.path.expanduser("~/.local/share")
+            )
+            self.indexdir = os.path.join(base_data_dir, "paperwork", "index")
         mkdir_p(self.indexdir)
 
         self._docs_by_id = {}  # docid --> doc

@@ -84,7 +84,12 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     if changed:
         upd_index(dst_dsearch, dst_doc, new=False)
 
-    print ("OK: {} / Missing: {} / Wrong: {}".format(correct, missing, wrong))
+    if not wrong:
+        print ("OK: {} / Missing: {}".format(correct, missing))
+    else:
+        print (
+            "OK: {} / Missing: {} / WRONG: {}".format(correct, missing, wrong)
+        )
 
 
 def print_stats():

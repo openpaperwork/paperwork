@@ -357,14 +357,16 @@ class DocSearch(object):
                     being read
         """
         self.rootdir = rootdir
-        self.indexdir = indexdir
-        if self.indexdir is None:
+        if indexdir is None:
             base_data_dir = os.getenv(
                 "XDG_DATA_HOME",
                 os.path.expanduser("~/.local/share")
             )
-            self.indexdir = os.path.join(base_data_dir, "paperwork", "index")
+            indexdir = os.path.join(base_data_dir, "paperwork")
+        self.indexdir = os.path.join(indexdir, "index")
         mkdir_p(self.indexdir)
+        self.label_guesser_dir = os.path.join(indexdir, "label_guessing")
+        mkdir_p(self.label_guesser_dir)
 
         self._docs_by_id = {}  # docid --> doc
         self.labels = {}  # label name --> label
@@ -428,9 +430,6 @@ class DocSearch(object):
             ],
         }
 
-        self.label_guesser_dir = os.path.join(
-            base_data_dir, "paperwork", "label_guessing")
-        mkdir_p(self.label_guesser_dir)
         self.label_guesser = LabelGuesser(self.label_guesser_dir)
 
         self.check_workdir()

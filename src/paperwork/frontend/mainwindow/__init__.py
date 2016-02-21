@@ -859,8 +859,9 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Busy")
         try:
             (docs, page, must_add_labels) = self.importer.import_doc(
-                self.file_uri, self.__config, self.__main_win.docsearch,
-                self.__main_win.doc)
+                self.file_uri, self.__main_win.docsearch,
+                self.__main_win.doc
+            )
         finally:
             self.__main_win.set_mouse_cursor("Normal")
 

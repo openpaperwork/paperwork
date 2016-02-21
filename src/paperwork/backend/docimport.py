@@ -51,13 +51,13 @@ class SinglePdfImporter(object):
         return file_uri.lower().endswith(".pdf")
 
     @staticmethod
-    def import_doc(file_uri, config, docsearch, current_doc=None):
+    def import_doc(file_uri, docsearch, current_doc=None):
         """
         Import the specified PDF file
         """
-        doc = PdfDoc(config.settings['workdir'].value)
+        doc = PdfDoc(docsearch.rootdir)
         logger.info("Importing doc '%s' ..." % file_uri)
-        doc.import_pdf(config, file_uri)
+        doc.import_pdf(file_uri)
         return ([doc], None, True)
 
     def __str__(self):
@@ -107,7 +107,7 @@ class MultiplePdfImporter(object):
         return False
 
     @staticmethod
-    def import_doc(file_uri, config, docsearch, current_doc=None):
+    def import_doc(file_uri, docsearch, current_doc=None):
         """
         Import the specified PDF files
         """
@@ -131,8 +131,8 @@ class MultiplePdfImporter(object):
                                                password=None)
             except Exception:
                 continue
-            doc = PdfDoc(config.settings['workdir'].value)
-            doc.import_pdf(config, child.get_uri())
+            doc = PdfDoc(docsearch.rootdir)
+            doc.import_pdf(child.get_uri())
             docs.append(doc)
             idx += 1
         if doc is None:
@@ -166,13 +166,13 @@ class SingleImageImporter(object):
         return False
 
     @staticmethod
-    def import_doc(file_uri, config, docsearch, current_doc=None):
+    def import_doc(file_uri, docsearch, current_doc=None):
         """
         Import the specified image
         """
         logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
-            current_doc = ImgDoc(config.settings['workdir'].value)
+            current_doc = ImgDoc(docsearch.rootdir)
         new = current_doc.is_new
         if file_uri[:7] == "file://":
             # XXX(Jflesch): bad bad bad

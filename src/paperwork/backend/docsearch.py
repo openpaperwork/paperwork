@@ -716,7 +716,6 @@ class DocSearch(object):
         if update_index:
             updater = self.get_index_updater(optimize=False)
             updater.upd_doc(doc)
-        if update_index:
             updater.commit()
 
     def remove_label(self, doc, label, update_index=True):

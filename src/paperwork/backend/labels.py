@@ -219,7 +219,7 @@ class LabelGuessUpdater(object):
 
 
 class LabelGuesser(object):
-    WEIGHT_YES = 1.0
+    WEIGHT_YES = 5.0
     WEIGHT_NO = 1.0
 
     def __init__(self, bayes_dir):

@@ -135,8 +135,21 @@ class LabelGuessUpdater(object):
         self.guesser = guesser
         self.updated_docs = set()
 
+    def _get_doc_txt(self, doc):
+        if doc.nb_pages <= 0:
+            return u""
+        if not doc.can_edit:
+            # document always come with all its pages
+            return doc.text.strip()
+        # document is added page per page --> the first page only
+        # is used for evaluation
+        txt = doc.pages[0].text
+        txt = u"\n".join(txt)
+        txt = txt.strip()
+        return txt
+
     def add_doc(self, doc):
-        doc_txt = doc.text
+        doc_txt = self._get_doc_txt(doc)
         if doc_txt == u"":
             return
         doc_txt = doc_txt.encode("utf-8")
@@ -154,7 +167,7 @@ class LabelGuessUpdater(object):
         self.updated_docs.add(doc)
 
     def upd_doc(self, doc):
-        doc_txt = doc.text
+        doc_txt = self._get_doc_txt(doc)
         if doc_txt == u"":
             return
         doc_txt = doc_txt.encode("utf-8")
@@ -183,7 +196,7 @@ class LabelGuessUpdater(object):
             guesser.train("no", doc_txt)
 
     def del_doc(self, doc):
-        doc_txt = doc.text
+        doc_txt = self._get_doc_txt(doc)
         if doc_txt == u"":
             return
         doc_txt = doc_txt.encode("utf-8")

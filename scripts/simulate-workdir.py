@@ -19,6 +19,7 @@ g_wrong_guess = 0
 g_nb_documents = 0
 g_nb_src_labels = 0
 g_nb_dst_labels = 0
+g_perfect = 0
 
 
 def upd_index(dst_dsearch, doc, new):
@@ -47,6 +48,7 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     global g_wrong_guess
     global g_nb_src_labels
     global g_nb_dst_labels
+    global g_perfect
 
     g_nb_documents += 1
     g_nb_src_labels += len(src_doc.labels)
@@ -95,6 +97,8 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
 
     if changed:
         upd_index(dst_dsearch, dst_doc, new=False)
+    else:
+        g_perfect += 1
 
 
 def print_stats():
@@ -104,6 +108,7 @@ def print_stats():
     global g_wrong_guess
     global g_nb_src_labels
     global g_nb_dst_labels
+    global g_perfect
 
     # avoid division by zero
     if g_nb_src_labels == 0:
@@ -112,7 +117,10 @@ def print_stats():
         g_nb_dst_labels = -1
 
     print ("---")
-    print ("Nb documents:             {}".format(g_nb_documents))
+    print ("Success/total:            {}/{} = {}%".format(
+        g_perfect, g_nb_documents,
+        int(g_perfect * 100 / g_nb_documents)
+    ))
     print ("Labels correctly guessed: {}/{} = {}%".format(
         g_correct_guess, g_nb_src_labels,
         int(g_correct_guess * 100 / g_nb_src_labels)

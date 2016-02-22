@@ -1,6 +1,24 @@
 #!/usr/bin/env python3
+import sys
+import os
+sys.path = [os.path.abspath('../src/')] + sys.path
 
-from paperwork.paperwork import main
+from paperwork.paperwork import main as GtkMain
+from paperwork.webend import main as WebEndMain
+
+usage = "usage: paperwork [-w]\n"\
+        "   -w: start local webserver on port 8001"
 
 if __name__ == "__main__":
-    main()
+    print("Welcome!")
+
+    if len(sys.argv) == 1:
+        GtkMain()
+    elif len(sys.argv) == 2:
+        # check arguments
+        if sys.argv[1] == "-w":
+            WebEndMain()
+        else:
+            print(usage)
+    else:
+        print(usage)

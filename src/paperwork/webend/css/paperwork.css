@@ -1,0 +1,129 @@
+/**
+ *    Paperwork - Using OCR to grep dead trees the easy way
+ *    Copyright (C) 2012-2014  Jerome Flesch
+ *    Copyright (C) 2012  Sebastien Maccagnoni-Munch
+ *
+ *    Paperwork is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    Paperwork is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+@import url(https://fonts.googleapis.com/css?family=Roboto:500,700);
+@import url(https://fonts.googleapis.com/icon?family=Material+Icons);
+
+
+* {
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    margin: 0 auto;
+}
+
+html, body {
+    height: 100%;
+}
+
+.left-pannel {
+    float: left;
+    width: 20%;
+}
+
+.left-pannel-header {
+    width: 100%;
+    height: 100px;
+    line-height: 100px;
+    padding-left: 25px;
+    background-color: #616161;
+    color: #fff;
+}
+
+.left-pannel-header h3 {
+    display: inline-block;
+}
+
+button {
+    float: right;
+    margin-right: 25px;
+    margin-top: 27px;
+    background: transparent;
+    border: none;
+    border-radius: 2px;
+    padding: 6px 10px;
+    font-weight: 700;
+    color: #fff;
+    font-size: 1.5em;
+}
+
+button:disabled {
+    color: #bdc3c7;
+}
+
+button:hover:enabled {
+    background: #424242;
+}
+
+.left-pannel-header button {
+    float: none;
+}
+
+.searchbar {
+    width: 100%;
+    padding: 25px;
+}
+
+.searchbar input {
+    border: 1px solid #BDBDBD;
+    border-radius: 2px;
+    padding: 10px;
+}
+
+.document-list-item {
+    padding: 25px;
+}
+
+.document-list-item:after {
+  content : "";
+  position: absolute;
+  margin-top: 55px;
+  left: 20px;
+  height  : 1px;
+  width   : 13%;  /* or 100px */
+  border-bottom:1px solid magenta;
+}
+
+.document-list-item h4 {
+    display: inline-block;
+}
+
+.document-list-item i {
+    margin-left: 15px;
+    position: relative;
+    top: 6px;
+}
+
+.main {
+    float: right;
+    width: 80%;
+    height: 100%;
+}
+
+.main-header {
+    width: 100%;
+    height: 100px;
+    line-height: 100px;
+    text-align: center;
+    background-color: #616161;
+    color: #fff;
+}
+iframe {
+    border: none;
+}

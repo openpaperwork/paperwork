@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Paperwork</title>
+        <link rel="shortcut icon" href="img/favicon.ico">
+        <link rel="stylesheet" href="css/paperwork.css">
+
+        <script type="application/javascript" src="js/jquery-2.2.0.min.js">
+        </script>
+        <script type="application/javascript" src="js/search.js">
+        </script>
+        <script type="application/javascript" src="js/filelaunch.js">
+        </script>
+    </head>
+
+    <body>
+        <div class="left-pannel">
+            <div class="left-pannel-header">
+                <h3>Documents</h3>
+                <button disabled title="Coming soon!">
+                    +
+                </button>
+            </div>
+
+            <div class="searchbar">
+                <input type="search" id="searchbox" placeholder="Search">
+                <div id="search-suggestions"></div>
+            </div>
+
+            <!--<div class="document-list-item">
+                <h4>Test.pdf</h4>
+            </div>-->
+        </div>
+
+        <div class="main">
+            <div class="main-header">
+                <button disabled title="Coming soon!">Scan</button>
+            </div>
+
+            <iframe id="pdfviewer" src="pages/web/viewer.html?file=20160220_1327_29/doc.pdf"
+                width="100%" height="87%" />
+        </div>
+    </body>
+</html>

@@ -1,5 +1,7 @@
 *~
 *.pyc
-build
+/build/*
 paperwork.conf
-
+/dist/*
+/paperwork_backend.egg-info/*
+paperwork.egg-info/

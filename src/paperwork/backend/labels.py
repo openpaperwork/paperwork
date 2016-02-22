@@ -154,8 +154,33 @@ class LabelGuessUpdater(object):
         self.updated_docs.add(doc)
 
     def upd_doc(self, doc):
-        self.del_doc(doc)
-        self.add_doc(doc)
+        doc_txt = doc.text
+        if doc_txt == u"":
+            return
+        doc_txt = doc_txt.encode("utf-8")
+
+        new_labels = {label.name for label in doc.labels}
+        old_labels = {label.name for label in doc._previous_labels}
+
+        for new_label in new_labels:
+            if new_label in old_labels:
+                # unchanged
+                continue
+            # just in case, make sure all the labels are loaded
+            self.guesser.load(new_label)
+            guesser = self.guesser._bayes[new_label]
+            guesser.untrain("no", doc_txt)
+            guesser.train("yes", doc_txt)
+
+        for old_label in old_labels:
+            if old_label in new_labels:
+                # unchanged
+                continue
+            # just in case, make sure all the labels are loaded
+            self.guesser.load(old_label)
+            guesser = self.guesser._bayes[old_label]
+            guesser.untrain("yes", doc_txt)
+            guesser.train("no", doc_txt)
 
     def del_doc(self, doc):
         doc_txt = doc.text

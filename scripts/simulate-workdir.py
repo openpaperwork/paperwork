@@ -88,17 +88,22 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
             dst_dsearch.create_label(label)
         dst_dsearch.add_label(dst_doc, label, update_index=False)
 
-    if not wrong:
-        print ("OK: {} / Missing: {}".format(correct, missing))
-    else:
-        print (
-            "OK: {} / Missing: {} / WRONG: {}".format(correct, missing, wrong)
-        )
-
     if changed:
         upd_index(dst_dsearch, dst_doc, new=False)
     else:
         g_perfect += 1
+
+    out = u"success: {}%/{} || ".format(
+        int(g_perfect * 100 / g_nb_documents),
+        g_nb_documents
+    )
+    out += "ok: {}".format(correct)
+    if missing:
+        out += " / MISSING: {}".format(missing)
+    if wrong:
+        out += " / WRONG: {}".format(wrong)
+
+    print (out)
 
 
 def print_stats():

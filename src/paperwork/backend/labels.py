@@ -180,7 +180,7 @@ class LabelGuessUpdater(object):
             baye.cache_persist()
         for doc in self.updated_docs:
             # Acknowledge the new labels
-            doc._previous_labels = doc.labels
+            doc._previous_labels = doc.labels[:]
         self.updated_docs = set()
 
     def cancel(self):

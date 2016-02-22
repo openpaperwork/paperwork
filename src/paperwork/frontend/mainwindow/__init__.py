@@ -139,7 +139,7 @@ class JobIndexLoader(Job):
                 logger.info("Index structure is obsolete."
                             " Must rebuild from scratch")
                 docsearch = DocSearch(self.__config['workdir'].value,
-                                      self.__progress_cb)
+                                      callback=self.__progress_cb)
                 # we destroy the index to force its rebuilding
                 docsearch.destroy_index()
                 self.__config['index_version'].value = \
@@ -150,7 +150,7 @@ class JobIndexLoader(Job):
                 return
 
             docsearch = DocSearch(self.__config['workdir'].value,
-                                  self.__progress_cb)
+                                  callback=self.__progress_cb)
 
             if not self.can_run:
                 return
@@ -859,8 +859,9 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Busy")
         try:
             (docs, page, must_add_labels) = self.importer.import_doc(
-                self.file_uri, self.__config, self.__main_win.docsearch,
-                self.__main_win.doc)
+                self.file_uri, self.__main_win.docsearch,
+                self.__main_win.doc
+            )
         finally:
             self.__main_win.set_mouse_cursor("Normal")
 

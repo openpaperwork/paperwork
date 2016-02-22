@@ -69,7 +69,7 @@ class BasicDoc(object):
         # When updating bayesian filters for label guessing,
         # we need to know the new label list, but also the *previous* label
         # list
-        self._previous_labels = self.labels
+        self._previous_labels = self.labels[:]
 
     def drop_cache(self):
         self.__cache = {}

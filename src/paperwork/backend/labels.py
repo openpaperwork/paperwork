@@ -206,7 +206,7 @@ class LabelGuessUpdater(object):
 
 
 class LabelGuesser(object):
-    WEIGHT_YES = 5.0
+    WEIGHT_YES = 1.0
     WEIGHT_NO = 1.0
 
     def __init__(self, bayes_dir):
@@ -238,6 +238,6 @@ class LabelGuesser(object):
             scores = guesser.score(doc_txt)
             yes = scores['yes'] if 'yes' in scores else 0.0
             no = scores['no'] if 'no' in scores else 0.0
-            if yes * self.WEIGHT_YES >= no * self.WEIGHT_NO:
+            if yes * self.WEIGHT_YES > no * self.WEIGHT_NO:
                 label_names.add(label_name)
         return label_names

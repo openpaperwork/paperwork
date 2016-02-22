@@ -33,10 +33,6 @@ def upd_index(dst_dsearch, doc, new):
 def label_guess(dst_dsearch, src_doc, dst_doc):
     """ Guess the labels, and apply the guess on the document """
     guessed_labels = dst_dsearch.guess_labels(dst_doc)
-    guessed_labels_str = [x.name for x in guessed_labels]
-
-    current_labels = src_doc.labels
-    current_labels_str = [x.name for x in current_labels]
 
     for label in guessed_labels:
         dst_dsearch.add_label(dst_doc, label, update_index=False)
@@ -62,12 +58,18 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     missing = 0
     wrong = 0
 
+    to_remove = set()
+    to_add = set()
+
     for dst_label in dst_doc.labels:
         if dst_label not in src_doc.labels:
             g_wrong_guess += 1
             wrong += 1
-            dst_dsearch.remove_label(dst_doc, dst_label, update_index=False)
+            to_remove.add(dst_label)
             changed = True
+
+    for label in to_remove:
+        dst_dsearch.remove_label(dst_doc, label, update_index=False)
 
     for src_label in src_doc.labels:
         if src_label in dst_doc.labels:
@@ -76,13 +78,13 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
         else:
             g_missing_guess += 1
             missing += 1
-            if src_label not in dst_dsearch.labels.values():
-                dst_dsearch.create_label(src_label)
-            dst_dsearch.add_label(dst_doc, src_label, update_index=False)
+            to_add.add(src_label)
             changed = True
 
-    if changed:
-        upd_index(dst_dsearch, dst_doc, new=False)
+    for label in to_add:
+        if label not in dst_dsearch.labels.values():
+            dst_dsearch.create_label(label)
+        dst_dsearch.add_label(dst_doc, label, update_index=False)
 
     if not wrong:
         print ("OK: {} / Missing: {}".format(correct, missing))
@@ -90,6 +92,9 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
         print (
             "OK: {} / Missing: {} / WRONG: {}".format(correct, missing, wrong)
         )
+
+    if changed:
+        upd_index(dst_dsearch, dst_doc, new=False)
 
 
 def print_stats():

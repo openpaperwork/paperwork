@@ -167,7 +167,7 @@ class PdfDoc(BasicDoc):
         self.pages[page_nb].print_page_cb(print_op, print_context,
                                           keep_refs=keep_refs)
 
-    def import_pdf(self, config, file_uri):
+    def import_pdf(self, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
         try:
             dest = Gio.File.parse_name(

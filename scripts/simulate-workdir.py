@@ -165,8 +165,10 @@ def main():
                 dst_doc = docs[0]
 
                 for page_nb in xrange(0, dst_doc.nb_pages):
-                    dst_doc.pages[page_nb].boxes = src_doc.pages[page_nb].boxes
-                    dst_doc.pages[page_nb].drop_cache()
+                    if dst_doc.can_edit:
+                        dst_doc.pages[page_nb].boxes = \
+                            src_doc.pages[page_nb].boxes
+                        dst_doc.pages[page_nb].drop_cache()
 
                 if current_doc is None:
                     # first page --> guess labels and see if it matchs

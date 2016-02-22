@@ -22,10 +22,9 @@ Scenario tested here:
 for each document:
     - the user scan the first page
     - labels are guessed and added
-    - user fixes the labels
     - user scans the remaining pages of the document
+    - user fixes the labels
 """
-
 
 g_correct_guess = 0
 g_missing_guess = 0
@@ -179,6 +178,7 @@ def main():
             files.sort()
 
             current_doc = None
+            dst_doc = None
             for filename in files:
                 if "thumb" in filename:
                     continue
@@ -205,12 +205,14 @@ def main():
                 if current_doc is None:
                     # first page --> guess labels and see if it matchs
                     label_guess(dst_dsearch, src_doc, dst_doc)
-                    fix_labels(dst_dsearch, src_doc, dst_doc)
                 else:
                     # just update the index
                     upd_index(dst_dsearch, dst_doc, new=False)
 
                 current_doc = docs[0]
+
+            if dst_doc is not None:
+                fix_labels(dst_dsearch, src_doc, dst_doc)
 
     finally:
         rm_rf(dst_doc_dir)

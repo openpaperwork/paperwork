@@ -1114,6 +1114,20 @@
     </widgets>
   </object>
 
+  <object class="GtkSizeGroup" id="header_bar_widgets">
+    <property name="mode">vertical</property>
+    <widgets>
+      <widget name="toolbuttonNewDoc"/>
+      <widget name="toolbuttonValidateDocProperties"/>
+      <widget name="entryPageNb"/>
+      <widget name="labelTotalPages"/>
+      <widget name="viewSettingsButton"/>
+      <widget name="menubuttonWindowAdvanced"/>
+      <widget name="buttonScan"/>
+      <widget name="menubuttonOtherScans"/>
+    </widgets>
+  </object>
+
   <object class="GtkPopover" id="view_settings_popover">
     <child>
       <object class="GtkBox">

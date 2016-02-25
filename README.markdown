@@ -90,7 +90,7 @@ GPLv3 or later. See COPYING.
 
 ## Archives
 
-Github can automatically provides .tar.gz and .zip files if required. However,
+Github can automatically provide .tar.gz and .zip files if required. However,
 they are not required to install Paperwork. They are indicated here as a
 convenience for package maintainers.
 

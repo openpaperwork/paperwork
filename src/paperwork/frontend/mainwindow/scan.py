@@ -294,7 +294,7 @@ class JobOCR(Job):
 
     def do_ocr_with_custom_heuristic(self, img):
         imgs = {angle: img.rotate(angle, expand=True) for angle in self.angles}
-        self.emit('ocr-angles', imgs.keys())
+        self.emit('ocr-angles', list(imgs.keys()))
 
         if len(imgs) <= 0:
             self.emit('ocr-score', 0, 0)
@@ -568,7 +568,7 @@ class BasicScanWorkflowDrawer(Animation):
 
         self.ocr_drawers = {}
 
-        for angle in target_positions.keys():
+        for angle in list(target_positions.keys()):
             drawer = PillowImageDrawer(position, img)
             drawer.set_canvas(self.canvas)
             self.ocr_drawers[angle] = [drawer]
@@ -633,13 +633,13 @@ class BasicScanWorkflowDrawer(Animation):
         # disable all the angles not evaluated
         self.__used_angles = angles
         if self.rotation_done:
-            for angle in self.ocr_drawers.keys()[:]:
+            for angle in list(self.ocr_drawers.keys())[:]:
                 if angle not in self.__used_angles:
                     self._disable_angle(angle)
 
     def __on_ocr_rotation_anim_done_cb(self):
         self.rotation_done = True
-        for angle in self.ocr_drawers.keys()[:]:
+        for angle in list(self.ocr_drawers.keys())[:]:
             if self.__used_angles and angle not in self.__used_angles:
                 self._disable_angle(angle)
             else:
@@ -740,7 +740,7 @@ class SingleAngleScanWorkflowDrawer(BasicScanWorkflowDrawer):
                 self.position[1] + (visible_area[1] / 2)),
         }
 
-        for key in target_positions.keys()[:]:
+        for key in list(target_positions.keys())[:]:
             # image position
             target_positions[key] = (
                 target_positions[key][0] - (target_img_sizes[0] / 2),
@@ -786,7 +786,7 @@ class MultiAnglesScanWorkflowDrawer(BasicScanWorkflowDrawer):
                   self.position[1] + (visible_area[1] * 3 / 4)),
         }
 
-        for key in target_positions.keys()[:]:
+        for key in list(target_positions.keys())[:]:
             # image position
             target_positions[key] = (
                 target_positions[key][0] - (target_img_sizes[0] / 2),

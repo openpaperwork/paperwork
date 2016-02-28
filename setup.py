@@ -12,7 +12,7 @@ setup(
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
-    version="0.3.1-git",
+    version="0.3.1.1-git",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -170,7 +170,6 @@ Main features are:
         'scripts/paperwork-chkdeps',
     ],
     install_requires=[
-        "python < 3",
         "Pillow",
         "pycountry",
         "pyenchant",

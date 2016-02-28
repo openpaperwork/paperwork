@@ -380,7 +380,7 @@ class DocSearch(object):
             # versions of whoosh don't always implement __eq__
             if str(self.index.schema) == str(self.WHOOSH_SCHEMA):
                 need_index_rewrite = False
-        except whoosh.index.EmptyIndexError, exc:
+        except (whoosh.index.EmptyIndexError, ValueError) as exc:
             logger.warning("Failed to open index '%s'" % self.indexdir)
             logger.warning("Exception was: %s" % str(exc))
 

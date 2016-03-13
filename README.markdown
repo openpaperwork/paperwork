@@ -51,7 +51,6 @@ In other words, let the machine do most of the work for you.
 * Quick edit of scans
 * PDF support
 
-
 ## Installation
 
 * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
@@ -59,8 +58,8 @@ In other words, let the machine do most of the work for you.
 * [GNU/Linux Fedora](doc/install.fedora.markdown)
 * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
+* [Docker](doc/install.docker.markdown)
 * [Development](doc/install.devel.markdown)
-
 
 ## Contact/Help
 

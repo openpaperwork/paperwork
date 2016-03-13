@@ -1,0 +1,24 @@
+#!/bin/bash
+set -x
+
+end () {
+  [ -n "${1:-}" ] && EXIT="${1}" || EXIT=0
+  [ -n "${2:-}" ] && echo "$2" >&2
+  exit $EXIT
+}
+
+[ -n "${USER:-}" ] || end 1 "Missing USER environment"
+[ -n "${HOME:-}" ] || end 1 "Missing USER environment"
+
+NEW_USER=$USER
+NEW_GROUP=$USER
+VOLUME=$HOME
+NEW_UID=$(stat -c "%u" $VOLUME )
+NEW_GID=$(stat -c "%g" $VOLUME )
+
+getent group $NEW_GID
+[ $? -gt 0 ] && groupadd --gid $NEW_GID $NEW_GROUP
+getent passwd $NEW_UID
+[ $? -gt 0 ] && useradd --create-home --uid $NEW_UID --gid $NEW_GID $NEW_USER
+exec su $NEW_USER -c "cd $VOLUME;  paperwork"
+

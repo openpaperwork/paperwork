@@ -51,16 +51,6 @@ In other words, let the machine do most of the work for you.
 * Quick edit of scans
 * PDF support
 
-## Test with Docker
-
-clone this repository, switch on good branch, and run 
-
-    docker build -t paperwork .
-    docker run -ti --rm \
-      -e DISPLAY=$DISPLAY -e XAUTHORITY=$HOME/.Xauthority -e HOME=$HOME -e USER=$USER \
-      -v $HOME:$HOME -v /tmp/.X11-unix:/tmp/.X11-unix -v /etc/sane.d/:/etc/sane.d/ \
-      paperwork    
-
 ## Installation
 
 * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
@@ -68,8 +58,8 @@ clone this repository, switch on good branch, and run
 * [GNU/Linux Fedora](doc/install.fedora.markdown)
 * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
+* [Docker](doc/install.docker.markdown)
 * [Development](doc/install.devel.markdown)
-
 
 ## Contact/Help
 

@@ -19,6 +19,7 @@ Bootstrapping code
 """
 
 import os
+import sys
 
 import gettext
 import gi
@@ -38,18 +39,17 @@ from frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
 
-LOCALE_PATHS = [
-    # French
-    ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
-    ('/usr/local/share/locale/fr/LC_MESSAGES/paperwork.mo',
-     '/usr/local/share/locale'),
-    ('/usr/share/locale/fr/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
+LOCALE_LANG = ['fr', 'de']
 
-    # German
-    ('locale/de/LC_MESSAGES/paperwork.mo', 'locale'),
-    ('/usr/local/share/locale/de/LC_MESSAGES/paperwork.mo',
-     '/usr/local/share/locale'),
-    ('/usr/share/locale/de/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
+LOCALE_PATHS = [
+    os.path.join(sys.prefix, 'share', 'locale'),
+    os.path.join(sys.prefix, 'local', 'share', 'locale'),
+    os.path.join(os.environ.get('VIRTUAL_ENV', sys.prefix), 'locale'),
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'locale'),
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'share',
+                 'locale'),
+    'data/locale',
+    'locale',
 ]
 
 
@@ -76,11 +76,16 @@ def set_locale():
 
     got_locales = False
     locales_path = None
-    for (fr_locale_path, locales_path) in LOCALE_PATHS:
-        logger.info("Looking for locales in '%s' ..." % (fr_locale_path))
-        if os.access(fr_locale_path, os.R_OK):
-            logger.info("Will use locales from '%s'" % (locales_path))
-            got_locales = True
+    for language in LOCALE_LANG:
+        for locales_path in LOCALE_PATHS:
+            locale_file = os.path.join(locales_path, language, 'LC_MESSAGES',
+                                       'paperwork.mo')
+            logger.info("Looking for locales in '%s' ..." % (locales_path))
+            if os.access(locale_file, os.R_OK):
+                logger.info("Will use locales from '%s'" % (locales_path))
+                got_locales = True
+                break
+        if got_locales:
             break
     if not got_locales:
         logger.warning("WARNING: Locales not found")

@@ -24,6 +24,7 @@ import sys
 from gi.repository import GdkPixbuf
 
 from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util import find_resource
 
 
 class AboutDialog(object):
@@ -43,8 +44,8 @@ class AboutDialog(object):
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
 
-        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
-        if os.access(logo_path, os.F_OK):
+        logo_path = find_resource(os.path.join('icons', 'paperwork.svg'))
+        if logo_path:
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             self.__dialog.set_logo(logo)
         self.__dialog.connect("response", lambda x, y: x.destroy())

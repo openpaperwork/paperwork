@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-import os
-import sys
-
 from setuptools import setup
 
 setup(
@@ -10,7 +7,7 @@ setup(
     # if you change the version, don't forget to
     # * update the ChangeLog file
     # * change it also in
-    #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
+    #   data/paperwork/aboutdialog/aboutdialog.glade
     # * update the archive list in the README
     version="0.3.1.1-git",
     description=(
@@ -101,69 +98,66 @@ Main features are:
     data_files=[
         # css file
         (
-            os.path.join(sys.prefix, 'share/paperwork'),
+            'share/paperwork',
             [
-                'src/paperwork/frontend/application.css',
+                'data/paperwork/application.css',
             ]
         ),
         # glade files
         (
-            os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
+            'share/paperwork/aboutdialog',
             [
-                'src/paperwork/frontend/aboutdialog/aboutdialog.glade',
+                'data/paperwork/aboutdialog/aboutdialog.glade',
+                'data/icons/paperwork.svg',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/searchdialog'),
+            'share/paperwork/searchdialog',
             [
-                'src/paperwork/frontend/searchdialog/searchdialog.glade',
+                'data/paperwork/searchdialog/searchdialog.glade',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/settingswindow'),
+            'share/paperwork/settingswindow',
             [
-                'src/paperwork/frontend/settingswindow/settingswindow.glade',
+                'data/paperwork/settingswindow/settingswindow.glade',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/import'),
+            'share/paperwork/import',
             [
-                'src/paperwork/frontend/import/importaction.glade',
-                'src/paperwork/frontend/import/importfileselector.glade',
+                'data/paperwork/import/importaction.glade',
+                'data/paperwork/import/importfileselector.glade',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/labeleditor'),
+            'share/paperwork/labeleditor',
             [
-                'src/paperwork/frontend/labeleditor/labeleditor.glade',
+                'data/paperwork/labeleditor/labeleditor.glade',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
+            'share/paperwork/mainwindow',
             [
-                'src/paperwork/frontend/mainwindow/appmenu.xml',
+                'data/paperwork/mainwindow/appmenu.xml',
+                'data/paperwork/mainwindow/mainwindow.glade',
+                'data/icons/paperwork.svg',
             ]
         ),
         (
-            os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
+            'share/paperwork/multiscan',
             [
-                'src/paperwork/frontend/mainwindow/mainwindow.glade',
+                'data/paperwork/multiscan/multiscan.glade',
             ]
         ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/multiscan'),
-            [
-                'src/paperwork/frontend/multiscan/multiscan.glade',
-            ]
-        ),
-        (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
-         ['locale/fr/LC_MESSAGES/paperwork.mo']),
-        (os.path.join(sys.prefix, 'share/locale/de/LC_MESSAGES'),
-         ['locale/de/LC_MESSAGES/paperwork.mo']),
-        (os.path.join(sys.prefix, 'share/applications'),
-         ['data/paperwork.desktop']),
-        (os.path.join(sys.prefix, 'share/icons'),
-         ['data/paperwork.svg']),
+        ('share/locale/fr/LC_MESSAGES',
+         ['data/locale/fr/LC_MESSAGES/paperwork.mo']),
+        ('share/locale/de/LC_MESSAGES',
+         ['data/locale/de/LC_MESSAGES/paperwork.mo']),
+        ('share/applications',
+         ['data/applications/paperwork.desktop']),
+        ('share/icons',
+         ['data/icons/paperwork.svg']),
     ],
     scripts=[
         'scripts/paperwork',

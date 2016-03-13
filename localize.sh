@@ -22,7 +22,7 @@ usage()
 	exit 1
 }
 
-if ! [ -d src ]
+if ! [ -d data ]
 then
 	echo "$0: Must be run from the root of the paperwork source tree" >&2
 	exit 2
@@ -35,11 +35,12 @@ then
 elif [ "$1" = "upd-po" ]
 then
 	mkdir -p locale
+	pot_file=locale/messages.pot
 
-	rm -f locale/messages.pot
+	rm -f ${pot_file}
 	for glade_file in \
-		$(find src/paperwork/frontend -name \*.glade) \
-		$(find src/paperwork/frontend -name \*.xml)
+		$(find data/paperwork -name \*.glade) \
+		$(find data/paperwork -name \*.xml)
 	do
 		echo "${glade_file} --> .(glade|xml).h ..."
 		if ! intltool-extract --type=gettext/glade ${glade_file} > /dev/null; then
@@ -47,18 +48,18 @@ then
 			exit 2
 		fi
 	done
-	echo "*.py + *.glade.h --> locale/messages.pot"
-	xgettext -k_ -kN_ -o locale/messages.pot \
-		$(find src/paperwork -name \*.py ! -path src/paperwork/frontend/labeleditor/__init__.py) \
-		$(find src/paperwork/frontend -name \*.glade.h) \
-		$(find src/paperwork/frontend -name \*.xml.h) \
+	echo "*.py + *.glade.h --> ${pot_file}"
+	xgettext -k_ -kN_ -o ${pot_file} \
+		$(find data/paperwork -name \*.py ! -path data/paperwork/labeleditor/__init__.py) \
+		$(find data/paperwork -name \*.glade.h) \
+		$(find data/paperwork -name \*.xml.h) \
 		> /dev/null
 	if [ $? -ne 0 ]; then
 		echo "xgettext failed ! Unable to extract strings to translate !"
 		exit 3
 	fi
-	rm -f $(find src/paperwork/frontend -name \*.glade.h)
-	rm -f $(find src/paperwork/frontend -name \*.xml.h)
+	rm -f $(find data/paperwork -name \*.glade.h)
+	rm -f $(find data/paperwork -name \*.xml.h)
 
 	for lang in ${LANGS}
 	do
@@ -67,11 +68,11 @@ then
 
 		if ! [ -f ${po_file} ]
 		then
-			echo "locale/messages.pot --> ${po_file} (gen)"
-			msginit --no-translator -l ${locale} -i locale/messages.pot -o ${po_file} > /dev/null
+			echo "${pot_file} --> ${po_file} (gen)"
+			msginit --no-translator -l ${locale} -i ${pot_file} -o ${po_file} > /dev/null
 		else
-			echo "locale/messages.pot --> ${po_file} (upd)"
-			msgmerge -U ${po_file} locale/messages.pot > /dev/null
+			echo "${pot_file} --> ${po_file} (upd)"
+			msgmerge -U ${po_file} ${pot_file} > /dev/null
 		fi
 		if [ $? -ne 0 ] ; then
 			echo "msginit / msgmerge failed ! Unable to create or update .po file !"
@@ -89,10 +90,10 @@ then
 		long_locale=$(echo $lang | cut -d: -f1)
 		short_locale=$(echo $lang | cut -d: -f2)
 		po_file="locale/${short_locale}.po"
-		locale_dir=locale/${short_locale}/LC_MESSAGES
+		locale_dir=data/locale/${short_locale}/LC_MESSAGES
 
 		echo "${po_file} --> ${locale_dir}/paperwork.mo"
-		rm -rf local/${short_locale}
+		rm -rf data/locale/${short_locale}
 		mkdir -p ${locale_dir}
 		if ! msgfmt ${po_file} -o ${locale_dir}/paperwork.mo ; then
 			echo "msgfmt failed ! Unable to update .mo file !"

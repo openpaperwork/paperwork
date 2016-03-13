@@ -46,6 +46,7 @@ from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util import load_cssfile
 from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util import find_resource
 from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
 from paperwork.frontend.util.config import get_scanner
@@ -2361,8 +2362,8 @@ class MainWindow(object):
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
 
-        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
-        if os.access(logo_path, os.F_OK):
+        logo_path = find_resource(os.path.join('icons', 'paperwork.svg'))
+        if logo_path:
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             window.set_icon(logo)
         return window

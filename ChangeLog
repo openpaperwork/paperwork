@@ -2,6 +2,7 @@
 * paperwork-chkdeps: Fix check for python-gi-cairo. When python-gi-cairo
   is not installed, sometimes, an exception pops up at an unexpected moment
   and the script remained stuck.
+* Add Dockerfile to generate a docker image+container to test Paperwork
 
 
 2016/02/25 - 0.3.1.1:

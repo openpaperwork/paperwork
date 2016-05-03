@@ -230,9 +230,9 @@ def check_cairo():
             (
                 'python-gi-cairo', '(none)',
                 {
-                    'debian': 'python-gi-cairo',
-                    'linuxmint': 'python-gi-cairo',
-                    'ubuntu': 'python-gi-cairo',
+                    'debian': 'python3-gi-cairo',
+                    'linuxmint': 'python3-gi-cairo',
+                    'ubuntu': 'python3-gi-cairo',
                 },
             )
         )

@@ -13,12 +13,12 @@ MODULES = [
     (
         'Python GObject Introspection', 'gi',
         {
-            'debian': 'python-gi',
+            'debian': 'python3-gi',
             'fedora': 'pygobject3',
-            'gentoo': 'dev-python/pygobject',
-            'linuxmint': 'python-gi',
-            'ubuntu': 'python-gi',
-            'suse': 'python-gobject',
+            'gentoo': 'dev-python/pygobject',  # Python 3 ?
+            'linuxmint': 'python3-gi',
+            'ubuntu': 'python3-gi',
+            'suse': 'python-gobject',  # Python 3 ?
         },
     ),
 
@@ -39,12 +39,12 @@ MODULES = [
     (
         'Cairo', 'cairo',
         {
-            'debian': 'python-gi-cairo',
-            'fedora': 'pycairo',
-            'gentoo': 'dev-python/pycairo',
-            'linuxmint': 'python-gi-cairo',
-            'ubuntu': 'python-gi-cairo',
-            'suse': 'python-cairo',
+            'debian': 'python3-gi-cairo',
+            'fedora': 'pycairo',  # Python 3 ?
+            'gentoo': 'dev-python/pycairo',  # Python 3 ?
+            'linuxmint': 'python-gi-cairo',  # Python 3 ?
+            'ubuntu': 'python3-gi-cairo',
+            'suse': 'python-cairo',  # Python 3 ?
         },
     ),
 ]

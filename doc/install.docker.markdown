@@ -33,3 +33,27 @@ At least on some systems the packages `apparmor` and `cgroup-lite` are required.
     (paperwork:22): Gtk-WARNING **: cannot open display: :0.0
 
 Run this command: `xhost local:root` (source: http://stackoverflow.com/questions/28392949/running-chromium-inside-docker-gtk-cannot-open-display-0)
+
+## Adding OCR Languages
+
+By default only the english OCR language is pre-installed.
+To add additional languages, run the docker container with an interactive console:
+
+    docker run -it tclavier/paperwork /bin/bash
+    
+Now, it is possible to install the package needed for the missing language. In this example, we will add support for German:
+
+    apt-get install tesseract-ocr-deu
+
+Next, the command ``exit`` exits the docker container. The changes made need to be commited to the docker image. To do so, we first need to know the ID of the docker image.
+The command
+
+    docker ps -a
+
+Gives a list of possible images with their corresponding IDs.
+
+Remeber or copy the correct ID and execute the following command to finally commit the changes:
+
+    docker commit <ID-of-the-image> tclavier/paperwork
+
+Now, the language is available.

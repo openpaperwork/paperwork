@@ -962,7 +962,6 @@ class ActionOpenSearchDialog(SimpleAction):
         if response == 1:
             logger.info("Search dialog: apply")
             search = dialog.get_search_string()
-            search = search.encode('utf-8')
             self.__main_win.search_field.set_text(search)
         else:
             logger.info("Search dialog: cancelled")

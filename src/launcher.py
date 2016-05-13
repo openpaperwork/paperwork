@@ -15,7 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-# just here to run a non-installed version
+# just here to run a non-installed version of paperwork
 
 import os
 import sys
@@ -25,10 +25,10 @@ sys.path += ['src']
 from paperwork.paperwork import main
 
 if __name__ == "__main__":
+    # cd into launcher.py's parent directory
     os.chdir(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            ".."
-            )
-        )
+        os.path.dirname(
+            os.path.dirname(
+                os.path.realpath(__file__))))
+    # and start paperwork
     main()

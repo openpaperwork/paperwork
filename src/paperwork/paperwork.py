@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #    Paperwork - Using OCR to grep dead trees the easy way
 #    Copyright (C) 2012-2014  Jerome Flesch
 #
@@ -39,20 +39,11 @@ from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
 
-LOCALE_PATHS = [
-    # French
-    ('locale/fr/LC_MESSAGES/paperwork.mo', 'locale'),
-    ('/usr/local/share/locale/fr/LC_MESSAGES/paperwork.mo',
-     '/usr/local/share/locale'),
-    ('/usr/share/locale/fr/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
-
-    # German
-    ('locale/de/LC_MESSAGES/paperwork.mo', 'locale'),
-    ('/usr/local/share/locale/de/LC_MESSAGES/paperwork.mo',
-     '/usr/local/share/locale'),
-    ('/usr/share/locale/de/LC_MESSAGES/paperwork.mo', '/usr/share/locale'),
-]
-
+LOCALE_PATHS = (
+    ('./'),
+    ('/usr/local/share/'),
+    ('/usr/share/'),
+)
 
 def init_logging():
     formatter = logging.Formatter(
@@ -73,19 +64,33 @@ def set_locale():
     """
     Enable locale support
     """
-    locale.setlocale(locale.LC_ALL, '')
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except locale.Error:
+        # happens e.g. when LC_ALL is set to a nonexisting locale
+        logger.warning("Failed to set LC_ALL, disabling localization")
+        return
 
     got_locales = False
     locales_path = None
-    for (fr_locale_path, locales_path) in LOCALE_PATHS:
-        logger.info("Looking for locales in '%s' ..." % (fr_locale_path))
-        if os.access(fr_locale_path, os.R_OK):
-            logger.info("Will use locales from '%s'" % (locales_path))
-            got_locales = True
-            break
+
+    for locale_base in LOCALE_PATHS:
+        locales_path = os.path.join(locale_base, "locale")
+        logger.debug("Looking for locales in '%s' ..." % locales_path)
+        mo_file = gettext.find("paperwork", locales_path)
+        if mo_file is None:
+            # No paperwork.mo found, try next path
+            continue
+        if not os.access(mo_file, os.R_OK):
+            logger.debug("No read permission for locale '%s'" % locales_path)
+            continue
+        got_locales = True
+        break
+
     if not got_locales:
-        logger.warning("WARNING: Locales not found")
+        logger.warning("No suitable localization file found.")
     else:
+        logger.info("Using locales in '%s'" % locales_path)
         for module in (gettext, locale):
             module.bindtextdomain('paperwork', locales_path)
             module.textdomain('paperwork')

@@ -46,14 +46,14 @@ class SearchElement(object):
 
 
 class SearchElementText(SearchElement):
+    """This is the keyword search term text field"""
     def __init__(self, dialog):
         super(SearchElementText, self).__init__(dialog, Gtk.Entry())
 
     def get_search_string(self):
-        txt = self.widget.get_text().decode("utf-8")
+        txt = self.widget.get_text()
         txt = txt.replace('"', '\\"')
-        txt = '"' + txt + '"'
-        return txt
+        return '"%s"'% txt
 
     @staticmethod
     def get_from_search(dialog, text):
@@ -83,11 +83,11 @@ class SearchElementLabel(SearchElement):
     def get_search_string(self):
         active_idx = self.get_widget().get_active()
         if active_idx < 0:
-            return u""
+            return ""
         model = self.get_widget().get_model()
-        txt = model[active_idx][0].decode("utf-8")
+        txt = model[active_idx][0]
         txt = txt.replace('"', '\\"')
-        return u"label:\"" + txt + "\""
+        return 'label:"%s"'% txt
 
     @staticmethod
     def get_from_search(dialog, text):
@@ -102,7 +102,7 @@ class SearchElementLabel(SearchElement):
         active_idx = -1
         idx = 0
         for line in element.get_widget().get_model():
-            value = line[0].decode("utf-8")
+            value = line[0]
             if value == text:
                 active_idx = idx
             idx += 1
@@ -119,6 +119,7 @@ class SearchElementLabel(SearchElement):
 
 
 class SearchElementDate(SearchElement):
+    """Search entry using a time span"""
     def __init__(self, dialog):
         box = Gtk.Box()
         box.set_spacing(10)
@@ -145,7 +146,6 @@ class SearchElementDate(SearchElement):
 
     def _make_date_widget(self):
         entry = Gtk.Entry()
-        entry.set_editable(False)
         entry.set_text("")
         entry.set_property("secondary_icon_sensitive", True)
         entry.set_property("secondary_icon_name", "x-office-calendar-symbolic")
@@ -381,9 +381,9 @@ class SearchLine(object):
     def _get_combobox_value(combobox):
         active_idx = combobox.get_active()
         if (active_idx < 0):
-            return u""
+            return ""
         value = combobox.get_model()[active_idx][1]
-        return value.decode("utf-8")
+        return value
 
     def get_operator(self):
         if not self.combobox_operator:
@@ -395,7 +395,7 @@ class SearchLine(object):
 
     def get_search_string(self):
         if self.element is None:
-            return u""
+            return ""
         return self.element.get_search_string()
 
     @staticmethod
@@ -489,13 +489,16 @@ class SearchDialog(object):
         self.search_elements.remove(sl)
 
     def __get_search_string(self):
-        out = u""
+        """concat all our search terms into a single string"""
+        out = ""
         for element in self.search_elements:
-            out += element.get_operator() + u" "
+            # Add AND/OR
+            oper = element.get_operator()
+            out += " %s " % oper
             not_value = element.get_not()
             if not_value:
-                out += not_value + u" "
-            out += element.get_search_string() + u" "
+                out += "%s " % not_value
+            out += element.get_search_string()
         out = out.strip()
         logger.info("Search: [%s]" % out)
         return out

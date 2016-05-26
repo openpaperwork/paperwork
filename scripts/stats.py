@@ -13,6 +13,7 @@ def main():
     print("Opening docs (%s)" % pconfig.settings['workdir'].value)
     print("====================")
     dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
+    dsearch.reload_index()
 
     nb_words = 0
     nb_docs = (len(dsearch.docs))

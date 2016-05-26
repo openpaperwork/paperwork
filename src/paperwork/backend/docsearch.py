@@ -345,19 +345,9 @@ class DocSearch(object):
         last_read=whoosh.fields.DATETIME(stored=True),
     )
 
-    def __init__(self, rootdir, indexdir=None,
-                 callback=dummy_progress_cb):
+    def __init__(self, rootdir, indexdir=None):
         """
         Index files in rootdir (see constructor)
-
-        Arguments:
-            callback --- called during the indexation (may be called *often*).
-                step : DocSearch.INDEX_STEP_READING or
-                    DocSearch.INDEX_STEP_SORTING
-                progression : how many elements done yet
-                total : number of elements to do
-                document (only if step == DocSearch.INDEX_STEP_READING): file
-                    being read
         """
         self.rootdir = rootdir
         if indexdir is None:
@@ -436,7 +426,6 @@ class DocSearch(object):
         self.label_guesser = LabelGuesser(self.label_guesser_dir)
 
         self.check_workdir()
-        self.reload_index(callback)
 
     def check_workdir(self):
         """
@@ -524,6 +513,15 @@ class DocSearch(object):
     def reload_index(self, progress_cb=dummy_progress_cb):
         """
         Read the index, and load the document list from it
+
+        Arguments:
+            callback --- called during the indexation (may be called *often*).
+                step : DocSearch.INDEX_STEP_READING or
+                    DocSearch.INDEX_STEP_SORTING
+                progression : how many elements done yet
+                total : number of elements to do
+                document (only if step == DocSearch.INDEX_STEP_READING): file
+                    being read
         """
         docs_by_id = self._docs_by_id
         self._docs_by_id = {}

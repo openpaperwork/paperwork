@@ -138,8 +138,7 @@ class JobIndexLoader(Job):
                     self.__config['index_version'].value):
                 logger.info("Index structure is obsolete."
                             " Must rebuild from scratch")
-                docsearch = DocSearch(self.__config['workdir'].value,
-                                      callback=self.__progress_cb)
+                docsearch = DocSearch(self.__config['workdir'].value)
                 # we destroy the index to force its rebuilding
                 docsearch.destroy_index()
                 self.__config['index_version'].value = \
@@ -149,8 +148,8 @@ class JobIndexLoader(Job):
             if not self.can_run:
                 return
 
-            docsearch = DocSearch(self.__config['workdir'].value,
-                                  callback=self.__progress_cb)
+            docsearch = DocSearch(self.__config['workdir'].value)
+            docsearch.reload_index(progress_cb=self.__progress_cb)
 
             if not self.can_run:
                 return

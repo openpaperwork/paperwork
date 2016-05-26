@@ -160,6 +160,7 @@ def main():
     src_dir = pconfig.settings['workdir'].value
     print ("Source work directory : {}".format(src_dir))
     src_dsearch = docsearch.DocSearch(src_dir)
+    src_dsearch.reload_index()
 
     dst_doc_dir = tempfile.mkdtemp(suffix="paperwork-simulate-docs")
     dst_index_dir = tempfile.mkdtemp(suffix="paperwork-simulate-index")
@@ -167,6 +168,7 @@ def main():
         "Destination directories : {} | {}".format(dst_doc_dir, dst_index_dir)
     )
     dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
+    dst_dsearch.reload_index()
 
     try:
         documents = [x for x in src_dsearch.docs]

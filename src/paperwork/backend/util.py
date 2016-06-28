@@ -228,9 +228,11 @@ def surface2image(surface):
     img = PIL.Image.open(img_io)
     img.load()
 
+    if not "A" in img.getbands():
+        return img
+
     img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
     img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
-
     return img_no_alpha
 
 

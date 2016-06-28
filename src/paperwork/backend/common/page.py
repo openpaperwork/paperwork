@@ -15,8 +15,11 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
-import PIL.Image
+import os
 import os.path
+import tempfile
+
+import PIL.Image
 
 from ..util import split_words
 
@@ -57,9 +60,13 @@ class PageExporter(object):
         return target_path
 
     def refresh(self):
-        tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
-                         self.valid_exts[0])
-        path = self.save(tmp)
+        (tmpfd, tmppath) = tempfile.mkstemp(
+            suffix=".jpg",
+            prefix="paperwork_export_"
+        )
+        os.close(tmpfd)
+
+        path = self.save(tmppath)
         img = PIL.Image.open(path)
         img.load()
 

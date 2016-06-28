@@ -23,6 +23,7 @@ import os
 import os.path
 import logging
 import urllib
+import tempfile
 
 import cairo
 import PIL.Image
@@ -96,9 +97,13 @@ class ImgToPdfDocExporter(object):
     def refresh(self):
         # make the preview
 
-        tmp = "%s.%s" % (os.tempnam(None, "paperwork_export_"),
-                         self.valid_exts[0])
-        path = self.__save(tmp, pages=(0, 1))
+        (tmpfd, tmppath) = tempfile.mkstemp(
+            suffix=".pdf",
+            prefix="paperwork_export_"
+        )
+        os.close(tmpfd)
+
+        path = self.__save(tmppath, pages=(0, 1))
 
         # reload the preview
 

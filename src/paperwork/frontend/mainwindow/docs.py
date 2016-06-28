@@ -565,6 +565,10 @@ class DocList(object):
             lambda v: GLib.idle_add(self._on_scrollbar_value_changed)
         )
 
+        self.gui['list'].connect("size-allocate",
+            lambda w, s: GLib.idle_add(self._on_scrollbar_value_changed)
+        )
+
         self.gui['list'].connect("drag-motion", self._on_drag_motion)
         self.gui['list'].connect("drag-leave", self._on_drag_leave)
         self.gui['list'].connect(

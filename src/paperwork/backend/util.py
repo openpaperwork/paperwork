@@ -22,9 +22,17 @@ import re
 import threading
 import unicodedata
 
+try:
+    import cairo
+    CAIRO_AVAILABLE = True
+except:
+    CAIRO_AVAILABLE = False
+
 import enchant
 import enchant.tokenize
 import Levenshtein
+
+import PIL.Image
 
 logger = logging.getLogger(__name__)
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[\n '()]", re.UNICODE)
@@ -208,8 +216,6 @@ def surface2image(surface):
     # TODO(Jflesch): Python 3 problem
     # cairo.ImageSurface.get_data() raises NotImplementedYet ...
 
-    import PIL.Image
-
     # import PIL.ImageDraw
     #
     # if surface is None:
@@ -240,7 +246,8 @@ def image2surface(img):
     """
     Convert a PIL image into a Cairo surface
     """
-    import cairo
+    if not CAIRO_AVAILABLE:
+        raise Exception("Cairo not available(). image2surface() cannot work.")
 
     # TODO(Jflesch): Python 3 problem
     # cairo.ImageSurface.create_for_data() raises NotImplementedYet ...

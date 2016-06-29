@@ -190,9 +190,8 @@ def find_missing_dict(lang):
     return missing
 
 
-def check_cairo():
+def _check_cairo():
     from gi.repository import Gtk
-    missing = []
 
     class CheckCairo(object):
         def __init__(self):

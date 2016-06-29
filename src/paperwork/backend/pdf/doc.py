@@ -98,6 +98,10 @@ class PdfPages(object):
     def __iter__(self):
         return PdfPagesIterator(self.pdfdoc)
 
+    def __del__(self):
+        for page in self.page.values():
+            del page
+
 
 class PdfDoc(BasicDoc):
     can_edit = False
@@ -105,6 +109,7 @@ class PdfDoc(BasicDoc):
 
     def __init__(self, docpath, docid=None):
         BasicDoc.__init__(self, docpath, docid)
+        self._pages = None
         self._pdf = None
 
     def clone(self):
@@ -149,7 +154,10 @@ class PdfDoc(BasicDoc):
     pdf = property(_open_pdf)
 
     def __get_pages(self):
-        return PdfPages(self, self.pdf)
+        if self._pages:
+            return self._pages
+        self._pages = PdfPages(self, self.pdf)
+        return self._pages
 
     pages = property(__get_pages)
 
@@ -192,6 +200,9 @@ class PdfDoc(BasicDoc):
 
     def drop_cache(self):
         BasicDoc.drop_cache(self)
+        if self._pages:
+            del self._pages
+        self._pages = None
         if self._pdf:
             del self._pdf
         self._pdf = None

@@ -189,6 +189,7 @@ class DocDirExaminer(GObject.GObject):
                 old_doc_list.remove(docdir)
                 assert(old_infos is not None)
                 last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
+                doc.drop_cache()
                 if old_infos[1] != last_mod:
                     on_doc_modified(doc)
                 else:

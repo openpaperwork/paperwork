@@ -103,6 +103,7 @@ class JobDocThumbnailer(Job):
             # so we don't invalidate cache + previous thumbnails
             img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                              BasicPage.DEFAULT_THUMB_HEIGHT)
+            doc.drop_cache()
             if not self.can_run:
                 return
 
@@ -126,7 +127,6 @@ class JobDocThumbnailer(Job):
                 return
 
             pixbuf = image2pixbuf(img)
-            doc.drop_cache()
 
             self.emit('doc-thumbnailing-doc-done', pixbuf, doc,
                       idx, len(self.__doclist))

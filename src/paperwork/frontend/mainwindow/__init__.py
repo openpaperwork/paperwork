@@ -2562,6 +2562,9 @@ class MainWindow(object):
             logger.info("Doc is already shown")
             return
 
+        if self.doc:
+            self.doc.drop_cache()
+
         logger.info("Showing document %s" % doc)
         self.doc = doc
         if not self.page or self.page.doc.docid != doc.docid:

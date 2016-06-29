@@ -275,6 +275,7 @@ class DocIndexUpdater(GObject.GObject):
         self.label_guesser_updater.add_doc(doc)
         if doc.docid not in self.docsearch._docs_by_id:
             self.docsearch._docs_by_id[doc.docid] = doc
+        doc.drop_cache()
 
     def upd_doc(self, doc):
         """
@@ -283,6 +284,7 @@ class DocIndexUpdater(GObject.GObject):
         logger.info("Updating modified doc: %s" % doc)
         self._update_doc_in_index(self.index_writer, doc)
         self.label_guesser_updater.upd_doc(doc)
+        doc.drop_cache()
 
     def del_doc(self, doc):
         """
@@ -298,6 +300,7 @@ class DocIndexUpdater(GObject.GObject):
             return
         self._delete_doc_from_index(self.index_writer, doc.docid)
         self.label_guesser_updater.del_doc(doc)
+        doc.drop_cache()
 
     def commit(self):
         """

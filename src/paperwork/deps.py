@@ -10,8 +10,18 @@ try:
     # suppress warnings from GI
     import gi
     gi.require_version('Gtk', '3.0')
+    gi.require_version('Poppler', '0.18')
+    gi.require_version('PangoCairo', '1.0')
 except:
     pass
+
+try:
+    from gi.repository import GLib
+    from gi.repository import Gtk
+    g_gtk_available = True
+except Exception as exc:
+    g_gtk_available = False
+
 
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
@@ -189,7 +199,6 @@ def check_cairo():
             self.test_successful = False
 
         def on_draw(self, widget, cairo_ctx):
-            from gi.repository import Gtk
             self.test_successful = True
             Gtk.main_quit()
             return False
@@ -222,10 +231,19 @@ def check_cairo():
         window.set_visible(False)
         while Gtk.events_pending():
             Gtk.main_iteration()
-    except Exception:
-        pass
+    except Exception as exc:
+        verbose("Error while checking if cairo is available: %s" % str(exc))
 
-    if not check.test_successful:
+    return check.test_successful
+
+
+def check_cairo():
+    missing = []
+    if not g_gtk_available:
+        success = False
+    else:
+        success = _check_cairo()
+    if not success:
         missing.append(
             (
                 'python-gi-cairo', '(none)',

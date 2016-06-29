@@ -24,7 +24,7 @@ run apt-get update \
 add . /usr/local/share/paperwork
 workdir /usr/local/share/paperwork
 run python ./setup.py install 
-add start /usr/local/bin/start
+add scripts/start /usr/local/bin/start
 run chmod +x /usr/local/bin/start
 cmd ["/usr/local/bin/start"]
 #run paperwork-chkdeps

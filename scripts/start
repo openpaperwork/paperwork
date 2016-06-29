@@ -1,6 +1,8 @@
 #!/bin/bash
 set -x
 
+# Docker start script for Paperwork
+
 end () {
   [ -n "${1:-}" ] && EXIT="${1}" || EXIT=0
   [ -n "${2:-}" ] && echo "$2" >&2

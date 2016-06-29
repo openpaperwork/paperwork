@@ -27,6 +27,12 @@ import tempfile
 
 import cairo
 import PIL.Image
+try:
+    from gi.repository import Pango
+    from gi.repository import PangoCairo
+    PANGO_AVAILABLE = True
+except:
+    PANGO_AVAILABLE = False
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
@@ -45,7 +51,7 @@ class ImgToPdfDocExporter(object):
 
     def __init__(self, doc):
         self.doc = doc
-        self.__quality = 75
+        self.__quality = 50
         self.__preview = None  # will just contain the first page
         self.__page_format = (0, 0)
 
@@ -55,13 +61,79 @@ class ImgToPdfDocExporter(object):
     def get_file_extensions(self):
         return ['pdf']
 
+    def __paint_txt(self, pdf_surface, pdf_size, pdf_context, page):
+        if not PANGO_AVAILABLE:
+            return
+
+        img = page.img
+
+        scale_factor_x = pdf_size[0] / img.size[0]
+        scale_factor_y = pdf_size[1] / img.size[1]
+        scale_factor = min(scale_factor_x, scale_factor_y)
+
+        for line in page.boxes:
+            for word in line.word_boxes:
+                box_size = (
+                    (word.position[1][0] - word.position[0][0]) * scale_factor,
+                    (word.position[1][1] - word.position[0][1]) * scale_factor
+                )
+
+                layout = PangoCairo.create_layout(pdf_context)
+                layout.set_text(word.content, -1)
+
+                txt_size = layout.get_size()
+                if 0 in txt_size or 0 in box_size:
+                    continue
+
+                txt_factors = (
+                    float(box_size[0]) * Pango.SCALE / txt_size[0],
+                    float(box_size[1]) * Pango.SCALE / txt_size[1],
+                )
+
+                pdf_context.save()
+                try:
+                    pdf_context.set_source_rgb(0, 0, 0)
+                    pdf_context.translate(
+                        word.position[0][0] * scale_factor,
+                        word.position[0][1] * scale_factor
+                    )
+
+                    # make the text use the whole box space
+                    pdf_context.scale(txt_factors[0], txt_factors[1])
+
+                    PangoCairo.update_layout(pdf_context, layout)
+                    PangoCairo.show_layout(pdf_context, layout)
+                finally:
+                    pdf_context.restore()
+
+    def __paint_img(self, pdf_surface, pdf_size, pdf_context, page):
+        img = page.img
+        quality = float(self.__quality) / 100.0
+
+        new_size = (int(quality * img.size[0]),
+                    int(quality * img.size[1]))
+        img = img.resize(new_size, PIL.Image.ANTIALIAS)
+
+        scale_factor_x = pdf_size[0] / img.size[0]
+        scale_factor_y = pdf_size[1] / img.size[1]
+        scale_factor = min(scale_factor_x, scale_factor_y)
+
+        img_surface = image2surface(img)
+
+        pdf_context.save()
+        try:
+            pdf_context.identity_matrix()
+            pdf_context.scale(scale_factor, scale_factor)
+            pdf_context.set_source_surface(img_surface)
+            pdf_context.paint()
+        finally:
+            pdf_context.restore()
+
     def __save(self, target_path, pages):
         pdf_surface = cairo.PDFSurface(target_path,
                                        self.__page_format[0],
                                        self.__page_format[1])
         pdf_context = cairo.Context(pdf_surface)
-
-        quality = float(self.__quality) / 100.0
 
         for page in [self.doc.pages[x] for x in range(pages[0], pages[1])]:
             img = page.img
@@ -72,22 +144,13 @@ class ImgToPdfDocExporter(object):
                 (x, y) = (max(self.__page_format[0], self.__page_format[1]),
                           min(self.__page_format[0], self.__page_format[1]))
             pdf_surface.set_size(x, y)
-            new_size = (int(quality * img.size[0]),
-                        int(quality * img.size[1]))
-            img = img.resize(new_size, PIL.Image.ANTIALIAS)
 
-            scale_factor_x = x / img.size[0]
-            scale_factor_y = y / img.size[1]
-            scale_factor = min(scale_factor_x, scale_factor_y)
-
-            img_surface = image2surface(img)
-
-            pdf_context.identity_matrix()
-            pdf_context.scale(scale_factor, scale_factor)
-            pdf_context.set_source_surface(img_surface)
-            pdf_context.paint()
-
+            logger.info("Adding text to PDF page {} ...".format(page))
+            self.__paint_txt(pdf_surface, (x, y), pdf_context, page)
+            logger.info("Adding image to PDF page {} ...".format(page))
+            self.__paint_img(pdf_surface, (x, y), pdf_context, page)
             pdf_context.show_page()
+            logger.info("Page {} ready".format(page))
 
         return target_path
 

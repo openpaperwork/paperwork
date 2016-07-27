@@ -71,6 +71,8 @@ def load_uifile(filename):
                 widget_tree.add_from_file(ui_file)
                 has_ui_file = True
                 break
+        if has_ui_file:
+            break
     if not has_ui_file:
         logger.error("Can't find resource file '%s'. Aborting" % filename)
         raise Exception("Can't find resource file '%s'. Aborting" % filename)
@@ -99,6 +101,8 @@ def load_cssfile(filename):
                 css_provider.load_from_path(css_file)
                 has_css_file = True
                 break
+        if has_css_file:
+            break
     if not has_css_file:
         logger.error("Can't find resource file '%s'. Aborting" % filename)
         raise Exception("Can't find resource file '%s'. Aborting" % filename)

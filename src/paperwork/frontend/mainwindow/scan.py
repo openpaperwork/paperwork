@@ -884,10 +884,10 @@ class ScanWorkflow(GObject.GObject):
         if self.calibration:
             img = img.crop(
                 (
-                    self.calibration[0][0],
-                    self.calibration[0][1],
-                    self.calibration[1][0],
-                    self.calibration[1][1]
+                    int(self.calibration[0][0]),
+                    int(self.calibration[0][1]),
+                    int(self.calibration[1][0]),
+                    int(self.calibration[1][1])
                 )
             )
 

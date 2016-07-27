@@ -164,10 +164,10 @@ Main features are:
     install_requires=[
         "Pillow",
         "pycountry",
-        "pyinsane >= 1.3.8",
+        "pyinsane >= 1.4.0",
         "pyocr >= 0.3.0",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend>=0.4-unstable",
+        "paperwork-backend >= 0.4-unstable",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

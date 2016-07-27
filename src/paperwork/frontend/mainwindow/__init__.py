@@ -1243,7 +1243,7 @@ class ActionSingleScan(SimpleAction):
                 logger.warning("Exception while configuring scanner: %s: %s."
                                " Assuming scanner is not connected",
                                type(exc), exc)
-                popup_no_scanner_found(self.__main_win.window)
+                popup_no_scanner_found(self.__main_win.window, str(exc))
                 return
         finally:
             self.__main_win.set_mouse_cursor("Normal")

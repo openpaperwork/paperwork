@@ -40,6 +40,8 @@ WISHED_SPLIT_KEYWORDS_REGEX = re.compile("[^\w!]", re.UNICODE)
 
 MIN_KEYWORD_LEN = 3
 
+g_lock = threading.Lock()
+
 
 def strip_accents(string):
     """
@@ -228,18 +230,24 @@ def surface2image(surface):
     # background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
     # return background
 
-    img_io = io.BytesIO()
-    surface.write_to_png(img_io)
-    img_io.seek(0)
-    img = PIL.Image.open(img_io)
-    img.load()
+    global g_lock
+    g_lock.acquire()
 
-    if not "A" in img.getbands():
-        return img
+    try:
+        img_io = io.BytesIO()
+        surface.write_to_png(img_io)
+        img_io.seek(0)
+        img = PIL.Image.open(img_io)
+        img.load()
 
-    img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
-    img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
-    return img_no_alpha
+        if not "A" in img.getbands():
+            return img
+
+        img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
+        img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
+        return img_no_alpha
+    finally:
+        g_lock.release()
 
 
 def image2surface(img):
@@ -261,7 +269,12 @@ def image2surface(img):
     #      imga, cairo.FORMAT_ARGB32, width, height, stride)
 
     # So we fall back to this method:
-    img_io = io.BytesIO()
-    img.save(img_io, format="PNG")
-    img_io.seek(0)
-    return cairo.ImageSurface.create_from_png(img_io)
+    global g_lock
+    g_lock.acquire()
+    try:
+        img_io = io.BytesIO()
+        img.save(img_io, format="PNG")
+        img_io.seek(0)
+        return cairo.ImageSurface.create_from_png(img_io)
+    finally:
+        g_lock.release()

@@ -249,7 +249,7 @@ class LabelEditor(object):
         return (response == Gtk.ResponseType.OK)
 
     def __on_label_entry_changed(self, label_entry):
-        txt = unicode(label_entry.get_text(), encoding='utf-8').strip()
+        txt = label_entry.get_text().strip()
         ok_enabled = True
         ok_enabled = ok_enabled and txt != u""
         ok_enabled = ok_enabled and u"," not in txt

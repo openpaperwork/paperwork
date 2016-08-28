@@ -454,8 +454,8 @@ class ActionEditLabel(SimpleAction):
             logger.warning("No label selected")
             return True
         label_box = selected_row.get_children()[0]
-        label_name = label_box.get_children()[1].get_text()
-        label_color = label_box.get_children()[2].get_rgba().to_string()
+        label_name = label_box.get_children()[2].get_text()
+        label_color = label_box.get_children()[1].get_rgba().to_string()
         label = Label(label_name, label_color)
 
         new_label = copy(label)
@@ -1192,11 +1192,6 @@ class DocPropertiesPanel(object):
                 check_button.connect("clicked", self.on_check_button_clicked)
                 label_box.add(check_button)
 
-                label_widget = Gtk.Label.new(label.name)
-                label_widget.set_halign(Gtk.Align.START)
-                label_box.add(label_widget)
-                label_box.child_set_property(label_widget, 'expand', True)
-
                 # Custom color_button wich opens custom dialog
                 edit_button = LabelColorButton()
                 edit_button.set_rgba(label.color)
@@ -1204,6 +1199,11 @@ class DocPropertiesPanel(object):
                 edit_button.connect("clicked", self.on_label_button_clicked)
                 ActionEditLabel(self.__main_win, self).connect([edit_button])
                 label_box.add(edit_button)
+
+                label_widget = Gtk.Label.new(label.name)
+                label_widget.set_halign(Gtk.Align.START)
+                label_box.add(label_widget)
+                label_box.child_set_property(label_widget, 'expand', True)
 
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)

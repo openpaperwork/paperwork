@@ -14,9 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import shutil
-import logging
 import urllib
 
 from gi.repository import GLib
@@ -25,7 +25,6 @@ from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
 from ..pdf.page import PdfPage
-
 
 PDF_FILENAME = "doc.pdf"
 logger = logging.getLogger(__name__)
@@ -146,9 +145,9 @@ class PdfDoc(BasicDoc):
     def _open_pdf(self):
         if self._pdf:
             return self._pdf
-        self._pdf = Poppler.Document.new_from_file(
-            ("file://%s/%s" % (urllib.parse.quote(self.path), PDF_FILENAME)),
-            password=None)
+        filepath = os.path.join(self.path, PDF_FILENAME)
+        fileuri = GLib.filename_to_uri(filepath)
+        self._pdf = Poppler.Document.new_from_file(fileuri, password=None)
         return self._pdf
 
     pdf = property(_open_pdf)

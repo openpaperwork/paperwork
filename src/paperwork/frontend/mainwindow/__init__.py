@@ -2626,10 +2626,13 @@ class MainWindow(object):
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
 
-        for drawer in scan_drawers.values():
+        for (page_nb, drawer) in scan_drawers.items():
             # remaining scan drawers ("scan new page", etc)
             drawer.previous_drawer = previous_drawer
             drawer.relocate()
+            logger.info("Scan/OCR drawer {} : {} - {}".format(
+                page_nb, drawer.position, drawer.size
+            ))
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
             previous_drawer = drawer
@@ -2969,8 +2972,12 @@ class MainWindow(object):
     def add_scan_workflow(self, doc, scan_workflow_drawer, page_nb=-1):
         if doc.docid not in self.scan_drawers:
             self.scan_drawers[doc.docid] = {}
-        while page_nb in self.scan_drawers[doc.docid]:
-            page_nb += 1
+        if page_nb < 0:
+            page_nb = 0
+            while page_nb in range(0, doc.nb_pages):
+                page_nb += 1
+            while page_nb in self.scan_drawers[doc.docid]:
+                page_nb += 1
         self.scan_drawers[doc.docid][page_nb] = scan_workflow_drawer
 
         if (self.doc.docid == doc.docid or

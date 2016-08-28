@@ -17,6 +17,7 @@
 """
 Code to manage document labels
 """
+import logging
 import os
 
 from gi.repository import Gdk
@@ -24,6 +25,9 @@ import simplebayes
 
 from .util import mkdir_p
 from .util import strip_accents
+
+
+logger = logging.getLogger(__name__)
 
 
 class Label(object):
@@ -152,9 +156,8 @@ class LabelGuessUpdater(object):
 
     def add_doc(self, doc):
         doc_txt = self._get_doc_txt(doc)
-        if doc_txt == u"":
+        if doc_txt == "":
             return
-        doc_txt = doc_txt.encode("utf-8")
 
         labels = {label.name for label in doc.labels}
 
@@ -170,9 +173,8 @@ class LabelGuessUpdater(object):
 
     def upd_doc(self, doc):
         doc_txt = self._get_doc_txt(doc)
-        if doc_txt == u"":
+        if doc_txt == "":
             return
-        doc_txt = doc_txt.encode("utf-8")
 
         new_labels = {label.name for label in doc.labels}
         old_labels = {label.name for label in doc._previous_labels}
@@ -199,9 +201,8 @@ class LabelGuessUpdater(object):
 
     def del_doc(self, doc):
         doc_txt = self._get_doc_txt(doc)
-        if doc_txt == u"":
+        if doc_txt == "":
             return
-        doc_txt = doc_txt.encode("utf-8")
 
         labels = {label.name for label in doc._previous_labels}
 
@@ -255,7 +256,6 @@ class LabelGuesser(object):
         doc_txt = doc.text
         if doc_txt == u"":
             return set()
-        doc_txt = doc_txt.encode("utf-8")
         label_names = set()
         for (label_name, guesser) in self._bayes.items():
             # we balance ourselves the scores, otherwise 'no' wins
@@ -263,6 +263,16 @@ class LabelGuesser(object):
             scores = guesser.score(doc_txt)
             yes = scores['yes'] if 'yes' in scores else 0.0
             no = scores['no'] if 'no' in scores else 0.0
+            logger.info("Score for {}: Yes: {} * {} = {} ({})".format(
+                    label_name, yes, self.WEIGHT_YES, yes * self.WEIGHT_YES,
+                    type(doc_txt)
+                )
+            )
+            logger.info("Score for {}: No: {} * {} = {} ({})".format(
+                    label_name, no, self.WEIGHT_NO, no * self.WEIGHT_NO,
+                    type(doc_txt)
+                )
+            )
             if yes * self.WEIGHT_YES > no * self.WEIGHT_NO:
                 label_names.add(label_name)
         return label_names

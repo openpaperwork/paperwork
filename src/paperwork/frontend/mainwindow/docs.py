@@ -1151,6 +1151,7 @@ class DocPropertiesPanel(object):
 
     def __rename_doc(self, old_doc, new_doc_date):
         old_doc.date = new_doc_date
+        old_doc.drop_cache()
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch,
             new_docs={old_doc},
@@ -1158,7 +1159,7 @@ class DocPropertiesPanel(object):
             reload_list=True
         )
         self.__main_win.schedulers['main'].schedule(job)
-        self.__main_win.doc = old_doc
+        self.__main_win.show_doc(old_doc, force_refresh=True)
 
     def _clear_label_list(self):
         self.widgets['labels'].freeze_child_notify()

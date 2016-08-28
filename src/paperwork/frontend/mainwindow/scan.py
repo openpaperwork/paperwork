@@ -495,9 +495,9 @@ class BasicScanWorkflowDrawer(Animation):
     def __on_scan_info_cb(self, x, y):
         size = fit((x, y), self.canvas.visible_size)
         position = (
-            self.position[0] + (self.canvas.visible_size[0] / 2) -
-            (size[0] / 2),
-            self.position[1],
+            int(self.position[0] + (self.canvas.visible_size[0] / 2) -
+                (size[0] / 2)),
+            int(self.position[1]),
         )
 
         scan_drawer = ScanAnimation(position, (x, y),

@@ -637,10 +637,9 @@ class DocList(object):
             if doc:
                 documents.append(doc)
 
-        logger.info("Will get thumbnails for %d documents [%d-%d]"
-                    % (len(documents), start_idx, end_idx))
-
         if len(documents) > 0:
+            logger.info("Will get thumbnails for %d documents [%d-%d]"
+                        % (len(documents), start_idx, end_idx))
             job = self.job_factories['doc_thumbnailer'].make(documents)
             self.__main_win.schedulers['main'].schedule(job)
 

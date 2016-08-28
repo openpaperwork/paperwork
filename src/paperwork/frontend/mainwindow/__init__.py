@@ -2969,6 +2969,8 @@ class MainWindow(object):
     def add_scan_workflow(self, doc, scan_workflow_drawer, page_nb=-1):
         if doc.docid not in self.scan_drawers:
             self.scan_drawers[doc.docid] = {}
+        while page_nb in self.scan_drawers[doc.docid]:
+            page_nb += 1
         self.scan_drawers[doc.docid][page_nb] = scan_workflow_drawer
 
         if (self.doc.docid == doc.docid or

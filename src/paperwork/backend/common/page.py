@@ -21,6 +21,7 @@ import tempfile
 
 import PIL.Image
 
+from ..util import strip_accents
 from ..util import split_words
 
 
@@ -218,11 +219,10 @@ class BasicPage(object):
         return self.doc == other.doc and self.page_nb == other.page_nb
 
     def __contains__(self, sentence):
-        words = split_words(sentence)
-        words = [word.lower() for word in words]
+        words = split_words(sentence, keep_short=True)
         txt = self.text
         for line in txt:
-            line = line.lower()
+            line = strip_accents(line.lower())
             for word in words:
                 if word in line:
                     return True

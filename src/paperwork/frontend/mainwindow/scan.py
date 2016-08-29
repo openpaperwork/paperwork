@@ -124,7 +124,6 @@ GObject.type_register(JobScan)
 
 
 class JobFactoryScan(JobFactory):
-
     def __init__(self, scan_workflow):
         JobFactory.__init__(self, "Scan")
         self.scan_workflow = scan_workflow
@@ -442,9 +441,11 @@ class BasicScanWorkflowDrawer(Animation):
             position_w = PageDrawer.MARGIN
         else:
             position_w = PageDrawer.MARGIN
-            position_h = (self.previous_drawer.position[1]
-                          + self.previous_drawer.size[1]
-                          + PageDrawer.MARGIN)
+            position_h = (
+                self.previous_drawer.position[1] +
+                self.previous_drawer.size[1] +
+                PageDrawer.MARGIN
+            )
         self.position = (position_w, position_h)
 
     def __get_size(self):
@@ -464,8 +465,8 @@ class BasicScanWorkflowDrawer(Animation):
         self._position = position
         for drawer in self.scan_drawers:
             drawer.position = (
-                position[0] + (self.canvas.visible_size[0] / 2)
-                - (drawer.size[0] / 2),
+                position[0] + (self.canvas.visible_size[0] / 2) -
+                (drawer.size[0] / 2),
                 position[1],
             )
 
@@ -494,9 +495,9 @@ class BasicScanWorkflowDrawer(Animation):
     def __on_scan_info_cb(self, x, y):
         size = fit((x, y), self.canvas.visible_size)
         position = (
-            self.position[0] + (self.canvas.visible_size[0] / 2)
-            - (size[0] / 2),
-            self.position[1],
+            int(self.position[0] + (self.canvas.visible_size[0] / 2) -
+                (size[0] / 2)),
+            int(self.position[1]),
         )
 
         scan_drawer = ScanAnimation(position, (x, y),
@@ -653,10 +654,10 @@ class BasicScanWorkflowDrawer(Animation):
                 spinner_bg.redraw()
                 spinner = SpinnerAnimation(
                     (
-                        (img_drawer.position[0] + (img_drawer.size[0] / 2))
-                        - (SpinnerAnimation.ICON_SIZE / 2),
-                        (img_drawer.position[1] + (img_drawer.size[1] / 2))
-                        - (SpinnerAnimation.ICON_SIZE / 2)
+                        (img_drawer.position[0] + (img_drawer.size[0] / 2)) -
+                        (SpinnerAnimation.ICON_SIZE / 2),
+                        (img_drawer.position[1] + (img_drawer.size[1] / 2)) -
+                        (SpinnerAnimation.ICON_SIZE / 2)
                     )
                 )
                 spinner.set_canvas(self.canvas)
@@ -687,8 +688,8 @@ class BasicScanWorkflowDrawer(Animation):
 
         new_size = fit(drawer.img_size, self.canvas.visible_size, force=True)
         new_position = (
-            (self.position[0] + (self.canvas.visible_size[0] / 2)
-             - (new_size[0] / 2)),
+            (self.position[0] + (self.canvas.visible_size[0] / 2) -
+             (new_size[0] / 2)),
             (self.position[1]),
         )
         self.canvas.redraw()

@@ -454,8 +454,8 @@ class ActionEditLabel(SimpleAction):
             logger.warning("No label selected")
             return True
         label_box = selected_row.get_children()[0]
-        label_name = label_box.get_children()[1].get_text()
-        label_color = label_box.get_children()[2].get_rgba().to_string()
+        label_name = label_box.get_children()[2].get_text()
+        label_color = label_box.get_children()[1].get_rgba().to_string()
         label = Label(label_name, label_color)
 
         new_label = copy(label)
@@ -637,10 +637,9 @@ class DocList(object):
             if doc:
                 documents.append(doc)
 
-        logger.info("Will get thumbnails for %d documents [%d-%d]"
-                    % (len(documents), start_idx, end_idx))
-
         if len(documents) > 0:
+            logger.info("Will get thumbnails for %d documents [%d-%d]"
+                        % (len(documents), start_idx, end_idx))
             job = self.job_factories['doc_thumbnailer'].make(documents)
             self.__main_win.schedulers['main'].schedule(job)
 
@@ -1151,6 +1150,7 @@ class DocPropertiesPanel(object):
 
     def __rename_doc(self, old_doc, new_doc_date):
         old_doc.date = new_doc_date
+        old_doc.drop_cache()
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch,
             new_docs={old_doc},
@@ -1158,7 +1158,7 @@ class DocPropertiesPanel(object):
             reload_list=True
         )
         self.__main_win.schedulers['main'].schedule(job)
-        self.__main_win.doc = old_doc
+        self.__main_win.show_doc(old_doc, force_refresh=True)
 
     def _clear_label_list(self):
         self.widgets['labels'].freeze_child_notify()
@@ -1191,11 +1191,6 @@ class DocPropertiesPanel(object):
                 check_button.connect("clicked", self.on_check_button_clicked)
                 label_box.add(check_button)
 
-                label_widget = Gtk.Label.new(label.name)
-                label_widget.set_halign(Gtk.Align.START)
-                label_box.add(label_widget)
-                label_box.child_set_property(label_widget, 'expand', True)
-
                 # Custom color_button wich opens custom dialog
                 edit_button = LabelColorButton()
                 edit_button.set_rgba(label.color)
@@ -1203,6 +1198,11 @@ class DocPropertiesPanel(object):
                 edit_button.connect("clicked", self.on_label_button_clicked)
                 ActionEditLabel(self.__main_win, self).connect([edit_button])
                 label_box.add(edit_button)
+
+                label_widget = Gtk.Label.new(label.name)
+                label_widget.set_halign(Gtk.Align.START)
+                label_box.add(label_widget)
+                label_box.child_set_property(label_widget, 'expand', True)
 
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)

@@ -654,37 +654,45 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkListBox" id="listboxLabels">
+                              <object class="GtkScrolledWindow">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="hscrollbar_policy">automatic</property>
+                                <property name="vscrollbar_policy">never</property>
                                 <child>
-                                  <object class="GtkListBoxRow" id="rowAddLabel">
+                                  <object class="GtkListBox" id="listboxLabels">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="height_request">30</property>
+                                    <property name="can_focus">True</property>
                                     <child>
-                                      <object class="GtkButton" id="buttonAddLabel">
+                                      <object class="GtkListBoxRow" id="rowAddLabel">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
-                                        <property name="relief">GTK_RELIEF_NONE</property>
+                                        <property name="height_request">30</property>
                                         <child>
-                                          <object class="GtkImage" id="image_button_new_label">
+                                          <object class="GtkButton" id="buttonAddLabel">
                                             <property name="visible">True</property>
                                             <property name="can_focus">False</property>
-                                            <property name="icon_name">list-add-symbolic</property>
-                                            <property name="icon_size">1</property>
+                                            <property name="relief">GTK_RELIEF_NONE</property>
+                                            <child>
+                                              <object class="GtkImage" id="image_button_new_label">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="icon_name">list-add-symbolic</property>
+                                                <property name="icon_size">1</property>
+                                              </object>
+                                            </child>
                                           </object>
                                         </child>
+                                        <style>
+                                          <class name="list-row-last"/>
+                                        </style>
                                       </object>
                                     </child>
                                     <style>
-                                      <class name="list-row-last"/>
+                                      <class name="box-labels"/>
                                     </style>
                                   </object>
                                 </child>
-                                <style>
-                                  <class name="box-labels"/>
-                                </style>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

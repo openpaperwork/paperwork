@@ -13,13 +13,22 @@ indicate extra dependencies to install, so watch carefully the ouput of
 
 ## System-wide installation
 
-    $ mkdir -p ~/git
-    $ cd ~/git
-    $ git clone https://github.com/jflesch/paperwork.git
-    $ cd paperwork
-    $ git checkout unstable
-    $ sudo python ./setup.py install
-    $ paperwork-chkdeps
+```
+$ mkdir -p ~/git
+$ cd ~/git
+$ git clone https://github.com/jflesch/paperwork-backend.git
+$ cd paperwork-backend
+$ git checkout unstable
+$ sudo python3 ./setup.py install
+$ paperwork-shell chkdeps paperwork_backend
+
+$ cd ~/git
+$ git clone https://github.com/jflesch/paperwork.git
+$ cd paperwork
+$ git checkout unstable
+$ sudo python3 ./setup.py install
+$ paperwork-shell chkdeps paperwork
+```
 
 (see [the wiki as to why you probably want to work on the branch 'unstable'](https://github.com/jflesch/paperwork/wiki/Branches))
 
@@ -43,15 +52,24 @@ You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtua
 
 ### Installation
 
-    $ virtualenv --system-site-packages paperwork-virtualenv
-    $ cd paperwork-virtualenv
-    $ source bin/activate
-    # you're now in a virtualenv
-    $ git clone https://github.com/jflesch/paperwork.git
-    $ cd paperwork
-    $ python ./setup.py install
-    $ paperwork-chkdeps
+```
+$ virtualenv --system-site-packages paperwork-virtualenv
+$ cd paperwork-virtualenv
+$ source bin/activate
 
+# you're now in a virtualenv
+
+$ git clone https://github.com/jflesch/paperwork-backend.git
+$ cd paperwork-backend
+$ python3 ./setup.py install
+$ paperwork-shell chkdeps paperwork_backend
+
+$ cd ..
+$ git clone https://github.com/jflesch/paperwork.git
+$ cd paperwork
+$ python3 ./setup.py install
+$ paperwork-shell chkdeps paperwork
+```
 
 ### Note regarding the extra dependencies
 
@@ -60,18 +78,19 @@ instance, all the libraries accessed through GObject introspection have
 no package on Pypi. This is why they can only be installed in a system-wide
 manner.
 
-'paperwork-chkdeps' can find all the missing dependencies.
+'paperwork-shell chkdeps paperwork_backend' and
+'paperwork-shell chkdeps paperwork' can find all the missing dependencies.
 
 
 ### Running Paperwork
 
-    $ src/launcher.py
+    $ python3 src/launcher.py
 
 To restart paperwork:
 
     $ cd paperwork-virtualenv
     $ source bin/activate
     $ cd paperwork
-    $ src/launcher.py
+    $ python3 src/launcher.py
 
 Enjoy :-)

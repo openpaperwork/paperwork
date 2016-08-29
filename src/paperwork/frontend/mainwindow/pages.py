@@ -160,7 +160,11 @@ class JobPageBoxesLoader(Job):
 
             boxes = []
             for line in line_boxes:
-                boxes += line.word_boxes
+                for word in line.word_boxes:
+                    if word.content.strip() == "":
+                        # Shouldn't happen ?!
+                        continue
+                    boxes.append(word)
 
             self.emit('page-loading-boxes', boxes)
         finally:

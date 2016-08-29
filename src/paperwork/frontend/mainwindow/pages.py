@@ -536,7 +536,7 @@ class PageDrawer(Drawer, GObject.GObject):
             an array of boxes (see pyocr boxes)
         """
         if isinstance(sentence, str):
-            keywords = split_words(sentence)
+            keywords = split_words(sentence, keep_shorts=True)
         else:
             assert(isinstance(sentence, list))
             keywords = sentence

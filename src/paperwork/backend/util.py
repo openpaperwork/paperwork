@@ -61,12 +61,12 @@ def __cleanup_word_array(keywords):
             yield word
 
 
-def split_words(sentence):
+def split_words(sentence, modify=True, keep_shorts=False):
     """
     Extract and yield the keywords from the sentence:
-    - Drop keywords that are too short
-    - Drop the accents
-    - Make everything lower case
+    - Drop keywords that are too short (keep_shorts=False)
+    - Drop the accents (modify=True)
+    - Make everything lower case (modify=True)
     - Try to separate the words as much as possible (using 2 list of
       separators, one being more complete than the others)
     """
@@ -75,11 +75,16 @@ def split_words(sentence):
         return
 
     # TODO: i18n
-    sentence = sentence.lower()
-    sentence = strip_accents(sentence)
+    if modify:
+        sentence = sentence.lower()
+        sentence = strip_accents(sentence)
 
     words = FORCED_SPLIT_KEYWORDS_REGEX.split(sentence)
-    for word in __cleanup_word_array(words):
+    if keep_shorts:
+        word_iter = words
+    else:
+        word_iter = __cleanup_word_array(words)
+    for word in word_iter:
         can_split = True
         can_yield = False
         subwords = WISHED_SPLIT_KEYWORDS_REGEX.split(word)
@@ -87,7 +92,7 @@ def split_words(sentence):
             if subword == "":
                 continue
             can_yield = True
-            if len(subword) < MIN_KEYWORD_LEN:
+            if not keep_shorts and len(subword) < MIN_KEYWORD_LEN:
                 can_split = False
                 break
         if can_split:

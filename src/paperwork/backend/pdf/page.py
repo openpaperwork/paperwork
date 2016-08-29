@@ -161,7 +161,7 @@ class PdfPage(BasicPage):
         words = set()
         self.__boxes = []
         for line in txt.split("\n"):
-            for word in split_words(line):
+            for word in split_words(line, modify=False, keep_shorts=True):
                 words.add(word)
         for word in words:
             for rect in self.pdf_page.find_text(word):

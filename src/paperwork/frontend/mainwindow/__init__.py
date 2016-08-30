@@ -2500,8 +2500,9 @@ class MainWindow(object):
     def refresh_boxes(self):
         search = self.search_field.get_text()
         for page in self.page_drawers:
-            page.show_all_boxes = self.show_all_boxes
-            page.reload_boxes(search)
+            if hasattr(page, 'reload_boxes'):
+                page.show_all_boxes = self.show_all_boxes
+                page.reload_boxes(search)
 
     def update_page_sizes(self):
         (auto, factor) = self.get_zoom_level()

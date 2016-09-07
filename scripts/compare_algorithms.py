@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from copy import copy
+import gc
 import multiprocessing
 import sys
 import threading
@@ -107,9 +108,9 @@ g_tknzr = None
 
 
 class JobImageProcessing(Job):
-    def __init__(self, factory, job_id, img_in, algos):
+    def __init__(self, factory, job_id, page_in, algos):
         super(JobImageProcessing, self).__init__(factory, job_id)
-        self.img_in = img_in
+        self.page_in = page_in
         self.algos = algos
 
     def _add_score(self, txt, stats):
@@ -160,10 +161,9 @@ class JobImageProcessing(Job):
 
 
     def do(self):
-        img = self.img_in
-
         LOCK.acquire()
         try:
+            img = self.page_in.img
             img.load()
         finally:
             LOCK.release()
@@ -177,6 +177,7 @@ class JobImageProcessing(Job):
         try:
             self._add_score(txt, self.algos[2])
             self._print_stats()
+            gc.collect()
         finally:
             LOCK.release()
 
@@ -270,9 +271,8 @@ def main():
             nb_docs += 1
             for page in doc.pages:
                 nb_pages += 1
-                img = page.img
                 for algos in ALGORITHMS:
-                    job = factory.make(img, algos)
+                    job = factory.make(page, algos)
                     manager.schedule(job)
 
         print("Queued jobs : {} docs | {} pages".format(nb_docs, nb_pages))

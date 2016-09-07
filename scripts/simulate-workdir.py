@@ -7,10 +7,10 @@ import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('Poppler', '0.18')
 
-from paperwork.backend import config
-from paperwork.backend import docimport
-from paperwork.backend import docsearch
-from paperwork.backend.util import rm_rf
+from paperwork_backend import config
+from paperwork_backend import docimport
+from paperwork_backend import docsearch
+from paperwork_backend.util import rm_rf
 
 """
 Create a work directory progressively, like a user would.

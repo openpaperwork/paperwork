@@ -322,8 +322,12 @@ def main():
         nb_docs = 0
         nb_pages = 0
         for doc in dsearch.docs:
+            if not doc.can_edit:  # probably not an OCR-ized doc
+                continue
             nb_docs += 1
             for page in doc.pages:
+                if not page.can_edit:  # probably not an OCR-ized page
+                    continue
                 nb_pages += 1
                 g_nb_total_pages += 1
                 for algos in ALGORITHMS:

@@ -142,14 +142,19 @@ class JobImageProcessing(Job):
         for algo in ALGORITHMS:
             stats = algo[2]
             print ("{}".format(algo[0]))
-            sys.stdout.write("\t")
+            sys.stdout.write("  ")
             for (name, value) in stats.items():
-                if name.startswith("nb_"):
-                    continue
-                sys.stdout.write("{}: {} ({}%)   ".format(
-                    name, str(value).rjust(5),
-                    str(int(value * 100 / max(1, stats['nb_words']))).rjust(3)
-                ))
+                if not name.startswith("nb_"):
+                    sys.stdout.write("{}: {} ({}%) | ".format(
+                        name, str(value).rjust(5),
+                        str(int(
+                            value * 100 / max(1, stats['nb_words'])
+                        )).rjust(3)
+                    ))
+                else:
+                    sys.stdout.write("{}: {} | ".format(
+                        name, str(value).rjust(5)
+                    ))
             sys.stdout.write("\n")
         print ("-" * 40)
 

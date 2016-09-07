@@ -50,6 +50,39 @@ ALGORITHMS = [
         copy(STATS),
     ),
     (
+        "unpaper",
+        [
+            pillowfight.unpaper_blackfilter,
+            pillowfight.unpaper_noisefilter,
+            pillowfight.unpaper_blurfilter,
+            pillowfight.unpaper_masks,
+            pillowfight.unpaper_grayfilter,
+            pillowfight.unpaper_border,
+        ],
+        copy(STATS),
+    ),
+    (
+        "swt",
+        [
+            pillowfight.swt,  # Stroke Width Transformation
+        ],
+        copy(STATS),
+    ),
+    (
+        "unpaper + swt",
+        [
+            pillowfight.unpaper_blackfilter,
+            pillowfight.unpaper_noisefilter,
+            pillowfight.unpaper_blurfilter,
+            pillowfight.unpaper_masks,
+            pillowfight.unpaper_grayfilter,
+            pillowfight.unpaper_border,
+
+            pillowfight.swt,  # Stroke Width Transformation
+        ],
+        copy(STATS),
+    ),
+    (
         "ace",
         [
             pillowfight.ace,  # automatic color equalization

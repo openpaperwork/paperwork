@@ -94,14 +94,14 @@ ALGORITHMS = [
     (
         "ace",
         [
-            (pillowfight.ace, {}),  # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
         ],
         copy(STATS),
     ),
     (
         "ace + unpaper",
         [
-            (pillowfight.ace, {}),  # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
             (pillowfight.unpaper_blackfilter, {}),
             (pillowfight.unpaper_noisefilter, {}),
             (pillowfight.unpaper_blurfilter, {}),
@@ -114,7 +114,7 @@ ALGORITHMS = [
     (
         "ace + swt",
         [
-            (pillowfight.ace, {}),  # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
             # Stroke Width Transformation
             (
                 pillowfight.swt,
@@ -126,7 +126,7 @@ ALGORITHMS = [
     (
         "ace + unpaper + swt",
         [
-            (pillowfight.ace, {}),  # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
 
             (pillowfight.unpaper_blackfilter, {}),
             (pillowfight.unpaper_noisefilter, {}),

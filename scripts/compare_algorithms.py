@@ -140,7 +140,7 @@ class JobImageProcessing(Job):
             print ("{}".format(algo[0]))
             sys.stdout.write("\t")
             for (name, value) in stats.items():
-                sys.stdout.write("{}: {}   ".format(name, value.rjust(5)))
+                sys.stdout.write("{}: {}   ".format(name, str(value).rjust(5)))
             sys.stdout.write("\n")
         print ("-" * 40)
 

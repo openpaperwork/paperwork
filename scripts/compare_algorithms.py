@@ -4,6 +4,7 @@ from copy import copy
 import gc
 import multiprocessing
 import sys
+import datetime
 import threading
 
 import gi
@@ -138,6 +139,8 @@ MIN_WORD_LEN = 4
 g_lang = "eng"
 g_dictionnary = None
 g_tknzr = None
+g_nb_total_pages = 0
+g_start_time = None
 
 
 class JobImageProcessing(Job):
@@ -168,10 +171,6 @@ class JobImageProcessing(Job):
             stats['maybe'] += 1
 
     def _print_stats(self):
-        print ("")
-        print ("")
-        print ("")
-        print ("")
         print ("-" * 40)
         for algo in ALGORITHMS:
             stats = algo[2]
@@ -192,7 +191,6 @@ class JobImageProcessing(Job):
             sys.stdout.write("\n")
         print ("-" * 40)
 
-
     def do(self):
         LOCK.acquire()
         try:
@@ -209,7 +207,26 @@ class JobImageProcessing(Job):
         LOCK.acquire()
         try:
             self._add_score(txt, self.algos[2])
+
+            stats = self.algos[2]
+
+            current_time = datetime.datetime.now()
+            elapsed_time = current_time - g_start_time
+            time_per_document = elapsed_time / stats['nb_pages']
+            eta = time_per_document * (g_nb_total_pages - stats['nb_pages'])
+
+            print ("")
+            print ("")
+            print ("")
+            print ("")
+            print ("Done: {} ({}/{} = {}% ==> ETA: {})".format(
+                self.page_in,
+                stats['nb_pages'], g_nb_total_pages,
+                int(stats['nb_pages'] * 100 / g_nb_total_pages),
+                current_time + eta
+            ))
             self._print_stats()
+
             gc.collect()
         finally:
             LOCK.release()
@@ -264,6 +281,8 @@ def main():
     global g_lang
     global g_dictionnary
     global g_tknzr
+    global g_nb_total_pages
+    global g_start_time
 
     print ("Will use {} for OCR".format(OCR_TOOL.get_name()))
 
@@ -296,6 +315,8 @@ def main():
     factory = JobFactoryImageProcessing()
     print ("Done")
 
+    g_start_time = datetime.datetime.now()
+
     try:
         print ("Queueing jobs ...")
         nb_docs = 0
@@ -304,6 +325,7 @@ def main():
             nb_docs += 1
             for page in doc.pages:
                 nb_pages += 1
+                g_nb_total_pages += 1
                 for algos in ALGORITHMS:
                     job = factory.make(page, algos)
                     manager.schedule(job)

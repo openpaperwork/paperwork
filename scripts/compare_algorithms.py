@@ -14,8 +14,6 @@ gi.require_version('Pango', '1.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import GObject
-
 import enchant
 import enchant.tokenize
 import Levenshtein
@@ -28,6 +26,8 @@ from paperwork_backend import docsearch
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
+
+from gi.repository import GObject
 
 
 """
@@ -53,77 +53,93 @@ ALGORITHMS = [
     (
         "unpaper",
         [
-            pillowfight.unpaper_blackfilter,
-            pillowfight.unpaper_noisefilter,
-            pillowfight.unpaper_blurfilter,
-            pillowfight.unpaper_masks,
-            pillowfight.unpaper_grayfilter,
-            pillowfight.unpaper_border,
+            (pillowfight.unpaper_blackfilter, {}),
+            (pillowfight.unpaper_noisefilter, {}),
+            (pillowfight.unpaper_blurfilter, {}),
+            (pillowfight.unpaper_masks, {}),
+            (pillowfight.unpaper_grayfilter, {}),
+            (pillowfight.unpaper_border, {}),
         ],
         copy(STATS),
     ),
     (
         "swt",
         [
-            pillowfight.swt,  # Stroke Width Transformation
+            # Stroke Width Transformation
+            (
+                pillowfight.swt,
+                {'output_type': pillowfight.SWT_OUTPUT_ORIGINAL_BOXES}
+            ),
         ],
         copy(STATS),
     ),
     (
         "unpaper + swt",
         [
-            pillowfight.unpaper_blackfilter,
-            pillowfight.unpaper_noisefilter,
-            pillowfight.unpaper_blurfilter,
-            pillowfight.unpaper_masks,
-            pillowfight.unpaper_grayfilter,
-            pillowfight.unpaper_border,
+            (pillowfight.unpaper_blackfilter, {}),
+            (pillowfight.unpaper_noisefilter, {}),
+            (pillowfight.unpaper_blurfilter, {}),
+            (pillowfight.unpaper_masks, {}),
+            (pillowfight.unpaper_grayfilter, {}),
+            (pillowfight.unpaper_border, {}),
 
-            pillowfight.swt,  # Stroke Width Transformation
+            # Stroke Width Transformation
+            (
+                pillowfight.swt,
+                {'output_type': pillowfight.SWT_OUTPUT_ORIGINAL_BOXES}
+            ),
         ],
         copy(STATS),
     ),
     (
         "ace",
         [
-            pillowfight.ace,  # automatic color equalization
+            (pillowfight.ace, {}),  # automatic color equalization
         ],
         copy(STATS),
     ),
     (
         "ace + unpaper",
         [
-            pillowfight.ace,  # automatic color equalization
-            pillowfight.unpaper_blackfilter,
-            pillowfight.unpaper_noisefilter,
-            pillowfight.unpaper_blurfilter,
-            pillowfight.unpaper_masks,
-            pillowfight.unpaper_grayfilter,
-            pillowfight.unpaper_border,
+            (pillowfight.ace, {}),  # automatic color equalization
+            (pillowfight.unpaper_blackfilter, {}),
+            (pillowfight.unpaper_noisefilter, {}),
+            (pillowfight.unpaper_blurfilter, {}),
+            (pillowfight.unpaper_masks, {}),
+            (pillowfight.unpaper_grayfilter, {}),
+            (pillowfight.unpaper_border, {}),
         ],
         copy(STATS),
     ),
     (
         "ace + swt",
         [
-            pillowfight.ace,  # automatic color equalization
-            pillowfight.swt,  # Stroke Width Transformation
+            (pillowfight.ace, {}),  # automatic color equalization
+            # Stroke Width Transformation
+            (
+                pillowfight.swt,
+                {'output_type': pillowfight.SWT_OUTPUT_ORIGINAL_BOXES}
+            ),
         ],
         copy(STATS),
     ),
     (
         "ace + unpaper + swt",
         [
-            pillowfight.ace,  # automatic color equalization
+            (pillowfight.ace, {}),  # automatic color equalization
 
-            pillowfight.unpaper_blackfilter,
-            pillowfight.unpaper_noisefilter,
-            pillowfight.unpaper_blurfilter,
-            pillowfight.unpaper_masks,
-            pillowfight.unpaper_grayfilter,
-            pillowfight.unpaper_border,
+            (pillowfight.unpaper_blackfilter, {}),
+            (pillowfight.unpaper_noisefilter, {}),
+            (pillowfight.unpaper_blurfilter, {}),
+            (pillowfight.unpaper_masks, {}),
+            (pillowfight.unpaper_grayfilter, {}),
+            (pillowfight.unpaper_border, {}),
 
-            pillowfight.swt,  # Stroke Width Transformation
+            # Stroke Width Transformation
+            (
+                pillowfight.swt,
+                {'output_type': pillowfight.SWT_OUTPUT_ORIGINAL_BOXES}
+            ),
         ],
         copy(STATS),
     ),
@@ -199,8 +215,8 @@ class JobImageProcessing(Job):
         finally:
             LOCK.release()
 
-        for algo in self.algos[1]:
-            img = algo(img)
+        for (algo, kwargs) in self.algos[1]:
+            img = algo(img, **kwargs)
 
         txt = OCR_TOOL.image_to_string(img)
 

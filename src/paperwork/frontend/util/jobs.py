@@ -139,6 +139,8 @@ class JobScheduler(object):
 
         self._job_idx_generator = itertools.count()
 
+        self.warnings = True
+
     def start(self):
         """Starts the scheduler"""
         assert(not self.running)
@@ -201,7 +203,7 @@ class JobScheduler(object):
                     or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
                 logger.debug("Job %s took %dms"
                              % (str(self._active_job), diff * 1000))
-            else:
+            elif self.warnings:
                 logger.warning("Job %s took %dms and is unstoppable !"
                                " (maximum allowed: %dms)"
                                % (str(self._active_job), diff * 1000,
@@ -224,7 +226,7 @@ class JobScheduler(object):
             logger.debug("[Scheduler %s] Job %s marked for stopping"
                          % (self.name, str(active_job)))
             active_job.stop(will_resume=will_resume)
-        else:
+        elif self.warnings:
             logger.warning(
                 "[Scheduler %s] Tried to stop job %s, but it can't"
                 " be stopped"
@@ -310,6 +312,16 @@ class JobScheduler(object):
                      % (self.name, factory.name))
         self._cancel_matching_jobs(
             lambda job: (job.factory == factory))
+
+    def wait_for_all(self):
+        while True:
+            self._job_queue_cond.acquire()
+            try:
+                if not self._active_job and len(self._job_queue) < 0:
+                    break
+                self._job_queue_cond.wait()
+            finally:
+                self._job_queue_cond.release()
 
     def stop(self):
         assert(self.running)

@@ -166,6 +166,7 @@ Main features are:
         "pycountry",
         "pyinsane >= 1.4.0",
         "pyocr >= 0.3.0",
+        "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps
         "paperwork-backend >= 0.4-unstable",
         # paperwork-chkdeps take care of all the dependencies that can't be

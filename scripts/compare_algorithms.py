@@ -33,6 +33,8 @@ Compare various image processing algorithm combinations with Tesseract
 """
 
 STATS = {
+    "nb_pages": 0,
+    "nb_words": 0,
     "too_short": 0,  # Maybe garbage if there are a lot
     "perfect": 0,  # direct hit in Enchant's dictionnary
     "garbage": 0,  # no suggestion at all from enchant
@@ -111,7 +113,9 @@ class JobImageProcessing(Job):
         self.algos = algos
 
     def _add_score(self, txt, stats):
+        stats['nb_pages'] += 1
         for (word, word_pos) in g_tknzr(txt):
+            stats['nb_words'] += 1
             if len(word) < MIN_WORD_LEN:
                 stats['too_short'] += 1
                 continue
@@ -140,7 +144,12 @@ class JobImageProcessing(Job):
             print ("{}".format(algo[0]))
             sys.stdout.write("\t")
             for (name, value) in stats.items():
-                sys.stdout.write("{}: {}   ".format(name, str(value).rjust(5)))
+                if name.startswith("nb_"):
+                    continue
+                sys.stdout.write("{}: {} ({}%)   ".format(
+                    name, str(value).rjust(5),
+                    str(int(value * 100 / max(1, stats['nb_words']))).rjust(3)
+                ))
             sys.stdout.write("\n")
         print ("-" * 40)
 
@@ -183,6 +192,8 @@ class JobFactoryImageProcessing(JobFactory):
 
 class WorkerManager(object):
     def __init__(self, nb_workers=multiprocessing.cpu_count()):
+        if (len(ALGORITHMS) % nb_workers) == 0:  # for correct dispatch
+            nb_workers += 1
         self.nb_workers = nb_workers
         self.schedulers = [
             JobScheduler("{}".format(nb)) for nb in range(0, self.nb_workers)

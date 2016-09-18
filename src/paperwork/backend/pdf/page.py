@@ -16,13 +16,13 @@
 
 import cairo
 import codecs
+import itertools
 import os
 import logging
 import pyocr
 import pyocr.builders
 
 from ..common.page import BasicPage
-from ..util import split_words
 from ..util import surface2image
 
 
@@ -32,30 +32,52 @@ PDF_RENDER_FACTOR = 2
 logger = logging.getLogger(__name__)
 
 
+def minmax_rects(rects):
+    (mx1, my1, mx2, my2) = (6553600000, 6553600000, 0, 0)
+    for rectangle in rects:
+        ((x1, y1), (x2, y2)) = (
+            (int(rectangle.x1 * PDF_RENDER_FACTOR),
+            int(rectangle.y2 * PDF_RENDER_FACTOR)),
+            (int(rectangle.x2 * PDF_RENDER_FACTOR),
+            int(rectangle.y1 * PDF_RENDER_FACTOR))
+        )
+        (x1, x2) = (min(x1, x2), max(x1, x2))
+        (y1, y2) = (min(y1, y2), max(y1, y2))
+        mx1 = min(mx1, x1)
+        my1 = min(my1, y1)
+        mx2 = max(mx2, x2)
+        my2 = max(my2, y2)
+    rect = ((mx1, my1), (mx2, my2))
+    return rect
+
+
 class PdfWordBox(object):
-    def __init__(self, content, rectangle, pdf_size):
+    def __init__(self, content, position):
         self.content = content
-        # XXX(Jflesch): Coordinates seem to come from the bottom left of the
-        # page instead of the top left !?
-        self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                          int((pdf_size[1] - rectangle.y2)
-                              * PDF_RENDER_FACTOR)),
-                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                          int((pdf_size[1] - rectangle.y1)
-                              * PDF_RENDER_FACTOR)))
+        self.position = minmax_rects(position)
 
 
 class PdfLineBox(object):
-    def __init__(self, word_boxes, rectangle, pdf_size):
+    def __init__(self, word_boxes, position):
         self.word_boxes = word_boxes
-        # XXX(Jflesch): Coordinates seem to come from the bottom left of the
-        # page instead of the top left !?
-        self.position = ((int(rectangle.x1 * PDF_RENDER_FACTOR),
-                          int((pdf_size[1] - rectangle.y2)
-                              * PDF_RENDER_FACTOR)),
-                         (int(rectangle.x2 * PDF_RENDER_FACTOR),
-                          int((pdf_size[1] - rectangle.y1)
-                              * PDF_RENDER_FACTOR)))
+        self.position = minmax_rects(position)
+
+
+def custom_split(input_str, input_rects, splitter):
+    assert(len(input_str) == len(input_rects))
+    input_el = zip(input_str, input_rects)
+    for (is_split, group) in itertools.groupby(
+                input_el,
+                lambda x: splitter(x[0])
+            ):
+        if is_split:
+            continue
+        letters = ""
+        rects = []
+        for (letter, rect) in group:
+            letters += letter
+            rects.append(rect)
+        yield(letters, rects)
 
 
 class PdfPage(BasicPage):
@@ -154,20 +176,26 @@ class PdfPage(BasicPage):
 
         # fall back on what libpoppler tells us
 
-        # TODO: Line support !
-
         txt = self.pdf_page.get_text()
-        pdf_size = self.pdf_page.get_size()
-        words = set()
         self.__boxes = []
-        for line in txt.split("\n"):
-            for word in split_words(line, modify=False, keep_shorts=True):
-                words.add(word)
-        for word in words:
-            for rect in self.pdf_page.find_text(word):
-                word_box = PdfWordBox(word, rect, pdf_size)
-                line_box = PdfLineBox([word_box], rect, pdf_size)
-                self.__boxes.append(line_box)
+
+        layout = self.pdf_page.get_text_layout()
+        if not layout[0]:
+            layout = []
+            return self.__boxes
+        layout = layout[1]
+
+        for (line, line_rects) in custom_split(
+                    txt, layout, lambda x: x == "\n"
+                ):
+            words = []
+            for (word, word_rects) in custom_split(
+                        line, line_rects, lambda x: x.isspace()
+                    ):
+                word_box = PdfWordBox(word, word_rects)
+                words.append(word_box)
+            line_box = PdfLineBox(words, line_rects)
+            self.__boxes.append(line_box)
         return self.__boxes
 
     def __set_boxes(self, boxes):

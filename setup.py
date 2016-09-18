@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 
+import os
+
 from setuptools import setup
+
+if os.name == "nt":
+    extra_deps = []
+else:
+    extra_deps = [
+        "pyenchant"
+        "python-Levenshtein",
+    ]
 
 setup(
     name="paperwork-backend",
@@ -59,15 +69,13 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     ],
     install_requires=[
         "Pillow",
-        "pyenchant",
-        "python-Levenshtein",
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         "simplebayes",
         # paperwork-shell chkdeps take care of all the dependencies that can't
         # be handled here. Mainly, dependencies using gobject introspection
         # (libpoppler, etc)
-    ]
+    ] + extra_deps
 )
 
 print ("============================================================")

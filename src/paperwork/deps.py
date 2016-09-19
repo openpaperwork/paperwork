@@ -4,8 +4,6 @@ import locale
 import os
 import sys
 
-import enchant
-
 try:
     # suppress warnings from GI
     import gi
@@ -171,6 +169,9 @@ def find_missing_ocr(lang):
 
 
 def find_missing_dict(lang):
+    if os.name == "nt":
+        return []
+    import enchant
     missing = []
     try:
         enchant.request_dict(lang['aspell'])

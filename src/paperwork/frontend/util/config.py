@@ -215,10 +215,15 @@ class _PaperworkFrontendConfigUtil(object):
         # Usually something like "fr_FR" --> we just need the first part
         default_locale = default_locale_long.split("_")[0]
         try:
-            lang = pycountry.pycountry.languages.get(alpha2=default_locale)
-            for ocr_lang in (lang.terminology, lang.bibliographic):
-                if ocr_lang in ocr_langs:
-                    return ocr_lang
+            try:
+                lang = pycountry.pycountry.languages.get(alpha2=default_locale)
+                for ocr_lang in (lang.terminology, lang.bibliographic):
+                    if ocr_lang in ocr_langs:
+                        return ocr_lang
+            except KeyError:
+                lang = pycountry.pycountry.languages.get(iso639_1_code=default_locale)
+                if lang.iso639_3_code in ocr_langs:
+                    return lang.iso_639_3_code
         except Exception as exc:
             logger.error("Warning: Failed to figure out system language"
                          " (locale is [%s]). Will default to %s"
@@ -236,7 +241,10 @@ class _PaperworkFrontendConfigUtil(object):
         try:
             language = pycountry.languages.get(terminology=ocr_lang[:3])
         except KeyError:
-            language = pycountry.languages.get(bibliographic=ocr_lang[:3])
+            try:
+                language = pycountry.languages.get(bibliographic=ocr_lang[:3])
+            except KeyError:
+                language = pycountry.languages.get(iso639_3_code=ocr_lang[:3])
         spelling_lang = language.alpha2
         return spelling_lang
 

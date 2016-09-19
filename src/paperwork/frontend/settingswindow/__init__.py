@@ -29,7 +29,7 @@ from gi.repository import Gdk
 from gi.repository import Gtk
 import logging
 import pycountry
-import pyinsane.abstract_proc as pyinsane
+import pyinsane
 import pyocr
 
 

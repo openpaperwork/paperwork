@@ -21,7 +21,7 @@ import re
 
 import pycountry
 import pyocr
-import pyinsane.abstract_proc as pyinsane
+import pyinsane
 
 from paperwork_backend.config import PaperworkConfig
 from paperwork_backend.config import PaperworkSetting

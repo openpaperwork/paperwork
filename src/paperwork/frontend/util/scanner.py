@@ -17,7 +17,7 @@
 import logging
 import re
 
-import pyinsane.abstract_proc as pyinsane
+import pyinsane
 
 
 logger = logging.getLogger(__name__)

@@ -256,7 +256,11 @@ class JobResolutionFinder(Job):
                 resolutions = device.options['resolution'].constraint
             else:
                 resolutions = []
-            logger.info("Resolutions found: %s" % str(resolutions))
+            if resolutions:
+                logger.info("Resolutions found: %s" % str(resolutions))
+            else:
+                logger.warning("No possible resolutions specified. Assuming default")
+                resolutions = [75, 100, 150, 300, 600, 1200]
             sys.stdout.flush()
             # Sometimes sane return the resolutions as a integer array,
             # sometimes as a range (-> tuple). So if it is a range, we turn
@@ -370,7 +374,7 @@ class JobCalibrationScan(Job):
             logger.info("Scanner source set to '%s'" % self.__source)
         try:
             dev.options['resolution'].value = resolution
-        except pyinsane.SaneException as exc:
+        except pyinsane.PyinsaneException as exc:
             logger.warning("Unable to set scanner resolution to %d: %s"
                            % (resolution, exc))
         if dev.options['mode'].capabilities.is_active():
@@ -410,7 +414,7 @@ class JobCalibrationScan(Job):
         except EOFError:
             pass
 
-        img = scan_session.get_img()
+        img = scan_session.images[-1]
         self.emit('calibration-scan-done', img, resolution)
 
     def stop(self, will_resume=False):

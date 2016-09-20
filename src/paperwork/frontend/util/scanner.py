@@ -27,8 +27,9 @@ def _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
     value = possible_values[0]
     regexs = [re.compile(x, flags=re.IGNORECASE) for x in possible_values]
 
-    if (scanner_opt.constraint_type ==
-            pyinsane.SaneConstraintType.STRING_LIST):
+    if ((scanner_opt.constraint_type ==
+            pyinsane.SaneConstraintType.STRING_LIST) or
+            isinstance(scanner_opt.constraint, list)):
         value = None
         for regex in regexs:
             for constraint in scanner_opt.constraint:
@@ -38,7 +39,7 @@ def _set_scanner_opt(scanner_opt_name, scanner_opt, possible_values):
             if value is not None:
                 break
         if value is None:
-            raise pyinsane.SaneException(
+            raise pyinsane.PyinsaneException(
                 "%s are not a valid values for option %s"
                 % (str(possible_values), scanner_opt_name))
 

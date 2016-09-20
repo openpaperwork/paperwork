@@ -321,7 +321,7 @@ def _get_scanner(config, devid, preferred_sources=None):
             try:
                 set_scanner_opt('source', dev.options['source'],
                                 preferred_sources)
-            except (KeyError, pyinsane.SaneException) as exc:
+            except (KeyError, pyinsane.PyinsaneException) as exc:
                 config_source = config['scanner_source'].value
                 logger.error("Warning: Unable to set scanner source to '%s': %s"
                              % (preferred_sources, exc))
@@ -338,7 +338,7 @@ def _get_scanner(config, devid, preferred_sources=None):
     else:
         try:
             dev.options['resolution'].value = resolution
-        except pyinsane.SaneException:
+        except pyinsane.PyinsaneException:
             logger.warning("Unable to set scanner resolution to %d: %s"
                            % (resolution, exc))
 
@@ -368,13 +368,9 @@ def get_scanner(config, preferred_sources=None):
 
     try:
         return _get_scanner(config, devid, preferred_sources)
-    except pyinsane.SaneException as exc:
+    except pyinsane.PyinsaneException as exc:
         logger.warning("Exception while configuring scanner: %s: %s"
                        % (type(exc), exc))
-        if (int(exc.status) != pyinsane.SaneStatus.IO_ERROR
-                and int(exc.status) != pyinsane.SaneStatus.UNSUPPORTED
-                and int(exc.status) != pyinsane.SaneStatus.INVAL):
-            raise
         # we didn't find the scanner at the given ID
         # but maybe there is only one, so we can guess the scanner to use
         devices = [x for x in pyinsane.get_devices() if x[:4] != "v4l:"]

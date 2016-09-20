@@ -155,7 +155,7 @@ class ActionScan(SimpleAction):
         try:
             (dev, resolution) = get_scanner(
                 self.__config,
-                preferred_sources=["ADF", ".*ADF.*", ".*Feeder.*"]
+                preferred_sources=["ADF", "Feeder"]
             )
             scan_session = dev.scan(multiple=True)
         except Exception as exc:

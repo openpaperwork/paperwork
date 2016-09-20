@@ -164,7 +164,7 @@ Main features are:
     install_requires=[
         "Pillow",
         "pycountry",
-        "pyinsane >= 1.4.0",
+        "pyinsane2",
         "pyocr >= 0.3.0",
         "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps

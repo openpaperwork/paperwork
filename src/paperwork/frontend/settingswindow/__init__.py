@@ -29,7 +29,7 @@ from gi.repository import Gdk
 from gi.repository import Gtk
 import logging
 import pycountry
-import pyinsane
+import pyinsane2
 import pyocr
 
 
@@ -43,7 +43,6 @@ from paperwork.frontend.util.config import RECOMMENDED_SCAN_RESOLUTION
 from paperwork.frontend.util.imgcutting import ImgGripHandler
 from paperwork.frontend.util.jobs import Job, JobFactory, JobScheduler
 from paperwork.frontend.util.jobs import JobFactoryProgressUpdater
-from paperwork.frontend.util.scanner import maximize_scan_area
 
 
 _ = gettext.gettext
@@ -83,7 +82,7 @@ class JobDeviceFinder(Job):
         try:
             logger.info("Looking for scan devices ...")
             sys.stdout.flush()
-            devices = pyinsane.get_devices()
+            devices = pyinsane2.get_devices()
             for device in devices:
                 selected = (self.__selected_devid == device.name)
                 name = self.__get_dev_name(device)
@@ -160,7 +159,7 @@ class JobSourceFinder(Job):
         try:
             logger.info("Looking for resolution of device [%s]"
                         % (self.__devid))
-            device = pyinsane.Scanner(name=self.__devid)
+            device = pyinsane2.Scanner(name=self.__devid)
             sys.stdout.flush()
             if 'source' in device.options:
                 sources = device.options['source'].constraint
@@ -174,7 +173,6 @@ class JobSourceFinder(Job):
                           (source == self.__selected_source))
         finally:
             self.emit("source-finding-end")
-
 
 GObject.type_register(JobSourceFinder)
 
@@ -250,7 +248,7 @@ class JobResolutionFinder(Job):
         try:
             logger.info("Looking for resolution of device [%s]"
                         % (self.__devid))
-            device = pyinsane.Scanner(name=self.__devid)
+            device = pyinsane2.Scanner(name=self.__devid)
             sys.stdout.flush()
             if 'resolution' in device.options:
                 resolutions = device.options['resolution'].constraint
@@ -366,31 +364,34 @@ class JobCalibrationScan(Job):
                     % resolution)
 
         # scan
-        dev = pyinsane.Scanner(name=self.__devid)
+        dev = pyinsane2.Scanner(name=self.__devid)
 
         if self.__source:
             if dev.options['source'].capabilities.is_active():
                 dev.options['source'].value = self.__source
             logger.info("Scanner source set to '%s'" % self.__source)
         try:
-            dev.options['resolution'].value = resolution
-        except pyinsane.PyinsaneException as exc:
-            logger.warning("Unable to set scanner resolution to %d: %s"
-                           % (resolution, exc))
-        if dev.options['mode'].capabilities.is_active():
-            if "Color" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Color"
-                logger.info("Scanner mode set to 'Color'")
-            elif "24bit Color" in dev.options['mode'].constraint:
-                # Brother MVC-J410 support ... (@$*#@#!!)
-                dev.options['mode'].value = "24bit Color"
-                logger.info("Scanner mode set to '24bit Color'")
-            elif "Gray" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Gray"
-                logger.info("Scanner mode set to 'Gray'")
-            else:
-                logger.warning("Unable to set scanner mode ! May be 'Lineart'")
-        maximize_scan_area(dev)
+            pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
+        except pyinsane2.PyinsaneException as exc:
+            logger.warning(
+                "Unable to set scanner resolution to {}: {}".format(
+                    resolution, exc
+                )
+            )
+        try:
+            pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
+        except pyinsane2.PyinsaneException as exc:
+            logger.warning(
+                "Unable to set scanner mode to [{}]: {}".format(
+                    resolution, exc
+                )
+            )
+        try:
+            pyinsane2.set_scanner_opt(dev, 'mode', ["Color"])
+        except pyinsane2.PyinsaneException as exc:
+            logger.warning("Unable to set scanner mode ! May be 'Lineart'")
+
+        pyinsane2.maximize_scan_area(dev)
 
         scan_session = dev.scan(multiple=False)
         scan_size = scan_session.scan.expected_size

@@ -34,7 +34,7 @@ import locale
 import logging
 import signal
 
-import pyinsane
+import pyinsane2
 
 from .frontend.mainwindow import ActionRefreshIndex, MainWindow
 from .frontend.util.config import load_config
@@ -114,7 +114,7 @@ def main():
                              Gtk.main_quit, None)
 
     try:
-        pyinsane.init()
+        pyinsane2.init()
 
         config = load_config()
         config.read()

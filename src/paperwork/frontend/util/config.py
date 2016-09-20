@@ -17,17 +17,14 @@
 import configparser
 import locale
 import logging
-import re
 
 import pycountry
 import pyocr
-import pyinsane
+import pyinsane2
 
 from paperwork_backend.config import PaperworkConfig
 from paperwork_backend.config import PaperworkSetting
 from paperwork_backend.config import paperwork_cfg_boolean
-from paperwork.frontend.util.scanner import maximize_scan_area
-from paperwork.frontend.util.scanner import set_scanner_opt
 
 
 logger = logging.getLogger(__name__)
@@ -221,7 +218,8 @@ class _PaperworkFrontendConfigUtil(object):
                     if ocr_lang in ocr_langs:
                         return ocr_lang
             except KeyError:
-                lang = pycountry.pycountry.languages.get(iso639_1_code=default_locale)
+                lang = pycountry.pycountry.languages.get(
+                    iso639_1_code=default_locale)
                 if lang.iso639_3_code in ocr_langs:
                     return lang.iso_639_3_code
         except Exception as exc:
@@ -298,68 +296,32 @@ def _get_scanner(config, devid, preferred_sources=None):
     resolution = config['scanner_resolution'].value
     logger.info("Will scan at a resolution of %d" % resolution)
 
-    dev = pyinsane.Scanner(name=devid)
+    dev = pyinsane2.Scanner(name=devid)
 
     config_source = config['scanner_source'].value
-    use_config_source = False
 
     if 'source' not in dev.options:
         logger.warning("Can't set the source on this scanner. Option not found")
-    else:
-        if preferred_sources:
-            use_config_source = False
-            regexs = [
-                re.compile(x, flags=re.IGNORECASE)
-                for x in preferred_sources
-            ]
-            for regex in regexs:
-                if regex.match(config_source):
-                    use_config_source = True
-                    break
-
-        if not use_config_source and preferred_sources:
-            try:
-                set_scanner_opt('source', dev.options['source'],
-                                preferred_sources)
-            except (KeyError, pyinsane.PyinsaneException) as exc:
-                config_source = config['scanner_source'].value
-                logger.error("Warning: Unable to set scanner source to '%s': %s"
-                             % (preferred_sources, exc))
-                if dev.options['source'].capabilities.is_active():
-                    dev.options['source'].value = config_source
-        else:
-            if dev.options['source'].capabilities.is_active():
-                dev.options['source'].value = config_source
-            logger.info("Will scan using source %s" % str(config_source))
+    elif preferred_sources:
+        pyinsane2.set_scanner_opt(dev, 'source', preferred_sources)
+    elif config_source:
+        pyinsane2.set_scanner_opt(dev, 'source', config_source)
 
     if 'resolution' not in dev.options:
         logger.warning("Can't set the resolution on this scanner."
                        " Option not found")
     else:
-        try:
-            dev.options['resolution'].value = resolution
-        except pyinsane.PyinsaneException:
-            logger.warning("Unable to set scanner resolution to %d: %s"
-                           % (resolution, exc))
+        pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
 
     if 'mode' not in dev.options:
         logger.warning("Can't set the mode on this scanner. Option not found")
     else:
-        if dev.options['mode'].capabilities.is_active():
-            if "Color" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Color"
-                logger.info("Scanner mode set to 'Color'")
-            elif "24bit Color" in dev.options['mode'].constraint:
-                # Brother MVC-J410 support ... (@$*#@#!!)
-                dev.options['mode'].value = "24bit Color"
-                logger.info("Scanner mode set to '24bit Color'")
-            elif "Gray" in dev.options['mode'].constraint:
-                dev.options['mode'].value = "Gray"
-                logger.info("Scanner mode set to 'Gray'")
-            else:
-                logger.warning("Unable to set scanner mode ! May be 'Lineart'")
+        try:
+            pyinsane2.set_scanner_opt(dev, 'mode', ['Color'])
+        except pyinsane2.PyinsaneException as exc:
+            logger.warning("Failed to set scan mode: {}".format(exc))
 
-    maximize_scan_area(dev)
+    pyinsane2.maximize_scan_area(dev)
     return (dev, resolution)
 
 
@@ -368,12 +330,12 @@ def get_scanner(config, preferred_sources=None):
 
     try:
         return _get_scanner(config, devid, preferred_sources)
-    except pyinsane.PyinsaneException as exc:
+    except (KeyError, pyinsane2.PyinsaneException) as exc:
         logger.warning("Exception while configuring scanner: %s: %s"
                        % (type(exc), exc))
         # we didn't find the scanner at the given ID
         # but maybe there is only one, so we can guess the scanner to use
-        devices = [x for x in pyinsane.get_devices() if x[:4] != "v4l:"]
+        devices = [x for x in pyinsane2.get_devices() if x[:4] != "v4l:"]
         if len(devices) != 1:
             raise
         logger.info("Will try another scanner id: %s" % devices[0].name)

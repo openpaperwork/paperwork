@@ -260,7 +260,7 @@ class JobResolutionFinder(Job):
                 logger.info("Resolutions found: %s" % str(resolutions))
             else:
                 logger.warning("No possible resolutions specified. Assuming default")
-                resolutions = [75, 100, 150, 300, 600, 1200]
+                resolutions = [75, 100, 150, 200, 300, 600, 1200]
             sys.stdout.flush()
             # Sometimes sane return the resolutions as a integer array,
             # sometimes as a range (-> tuple). So if it is a range, we turn

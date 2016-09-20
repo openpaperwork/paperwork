@@ -565,7 +565,8 @@ class DocList(object):
             lambda v: GLib.idle_add(self._on_scrollbar_value_changed)
         )
 
-        self.gui['list'].connect("size-allocate",
+        self.gui['list'].connect(
+            "size-allocate",
             lambda w, s: GLib.idle_add(self._on_scrollbar_value_changed)
         )
 
@@ -633,7 +634,9 @@ class DocList(object):
             if docid in self.model['thumbnails']:
                 # already loaded
                 continue
-            doc = self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
+            doc = self.__main_win.docsearch.get_doc_from_docid(
+                docid, inst=False
+            )
             if doc:
                 documents.append(doc)
 
@@ -868,14 +871,16 @@ class DocList(object):
                 self.model['by_row'][rowbox] = doc.docid
                 self.model['by_id'][doc.docid] = rowbox
                 self.gui['list'].add(rowbox)
+
+            if need_new_doc:
+                self.insert_new_doc()
+
+            self.gui['list'].set_visible(True)
         finally:
             self.gui['list'].thaw_child_notify()
 
-        if need_new_doc:
-            self.insert_new_doc()
-
-        if (self.__main_win.doc
-                and self.__main_win.doc.docid in self.model['by_id']):
+        if (self.__main_win.doc and
+                self.__main_win.doc.docid in self.model['by_id']):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
             GLib.idle_add(self._scroll_to, row)
@@ -883,9 +888,9 @@ class DocList(object):
         # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()
         self.gui['loading'].set_visible(False)
-        self.gui['list'].set_visible(True)
 
         GLib.idle_add(self._on_scrollbar_value_changed)
+        GLib.idle_add(self.__main_win.window.queue_draw)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """
@@ -973,9 +978,9 @@ class DocList(object):
         self.gui['list'].thaw_child_notify()
 
     def __set_doc_buttons_visible(self, doc, visible):
-        if (doc is None
-                or doc.docid not in self.model['by_id']
-                or doc.is_new):
+        if (doc is None or
+                doc.docid not in self.model['by_id'] or
+                doc.is_new):
             return
 
         row = self.model['by_id'][doc.docid]

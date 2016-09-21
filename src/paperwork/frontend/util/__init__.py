@@ -18,6 +18,7 @@
 import glob
 import logging
 import os
+import sys
 
 import heapq
 import gettext
@@ -30,7 +31,10 @@ logger = logging.getLogger(__name__)
 
 PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 
-UI_FILES_DIRS = [
+UI_FILES_DIRS = []
+if getattr(sys, 'frozen', False):
+    UI_FILES_DIRS += [os.path.join(sys._MEIPASS, "data")]
+UI_FILES_DIRS += [
     ".",
     "src/paperwork/frontend",
     PREFIX + "/local/share/paperwork",
@@ -51,9 +55,8 @@ def load_uifile(filename):
     Load a .glade file and return the corresponding widget tree
 
     Arguments:
-        filename -- glade filename to load. Must not contain any directory
-            name, just the filename. This function will (try to) figure out
-            where it must be found.
+        filename -- glade filename to load.
+            This function will (try to) figure out from where it must be loaded.
 
     Returns:
         GTK Widget tree
@@ -84,9 +87,8 @@ def load_cssfile(filename):
     Load a .css file
 
     Arguments:
-        filename -- css filename to load. Must not contain any directory
-            name, just the filename. This function will (try to) figure out
-            where it must be found.
+        filename -- css filename to load.
+            This function will (try to) figure out from where it must be loaded.
 
     Throws:
         Exception -- If the file cannot be found

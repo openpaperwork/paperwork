@@ -19,6 +19,7 @@ Bootstrapping code
 """
 
 import os
+import sys
 
 import gettext
 import gi
@@ -41,11 +42,15 @@ from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
 
-LOCALE_PATHS = (
-    ('./'),
+
+LOCALE_PATHS = []
+if getattr(sys, 'frozen', False):
+    LOCALE_PATHS += [os.path.join(sys._MEIPASS, "data")]
+LOCALE_PATHS += [
+    ('.'),
     ('/usr/local/share/'),
     ('/usr/share/'),
-)
+]
 
 def init_logging():
     formatter = logging.Formatter(

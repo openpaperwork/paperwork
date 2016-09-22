@@ -391,20 +391,20 @@ class PageDrawer(Drawer, GObject.GObject):
         if self.previous_page_drawer is None:
             position_h = self.MARGIN
             position_w = self.MARGIN
-        elif (self.previous_page_drawer.position[0]
-              + self.previous_page_drawer.size[0]
-              + (2 * self.MARGIN)
-              + self.size[0]
-              < self.canvas.visible_size[0]):
-            position_w = (self.previous_page_drawer.position[0]
-                          + self.previous_page_drawer.size[0]
-                          + (2 * self.MARGIN))
+        elif (self.previous_page_drawer.position[0] +
+              self.previous_page_drawer.size[0] +
+              (2 * self.MARGIN) +
+              self.size[0] <
+              self.canvas.visible_size[0]):
+            position_w = (self.previous_page_drawer.position[0] +
+                          self.previous_page_drawer.size[0] +
+                          (2 * self.MARGIN))
             position_h = self.previous_page_drawer.position[1]
         else:
             position_w = self.MARGIN
-            position_h = (self.previous_page_drawer.position[1]
-                          + self.previous_page_drawer.size[1]
-                          + (2 * self.MARGIN))
+            position_h = (self.previous_page_drawer.position[1] +
+                          self.previous_page_drawer.size[1] +
+                          (2 * self.MARGIN))
         self.position = (position_w, position_h)
 
     def set_canvas(self, canvas):
@@ -463,10 +463,10 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def upd_spinner_position(self):
         self.spinner.position = (
-            (self._position[0] + (self._size[0] / 2)
-             - (SpinnerAnimation.ICON_SIZE / 2)),
-            (self._position[1] + (self._size[1] / 2)
-             - (SpinnerAnimation.ICON_SIZE / 2)),
+            (self._position[0] + (self._size[0] / 2) -
+             (SpinnerAnimation.ICON_SIZE / 2)),
+            (self._position[1] + (self._size[1] / 2) -
+             (SpinnerAnimation.ICON_SIZE / 2)),
         )
 
     def _get_position(self):
@@ -513,8 +513,8 @@ class PageDrawer(Drawer, GObject.GObject):
         if not self.visible:
             return
         self.surface = surface
-        if (len(self.boxes['all']) <= 0
-                and (self.show_boxes or self.show_border)):
+        if (len(self.boxes['all']) <= 0 and
+                (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
 
@@ -595,10 +595,10 @@ class PageDrawer(Drawer, GObject.GObject):
         try:
             cairo_context.set_source_rgb(border_color[0], border_color[1],
                                          border_color[2])
-            cairo_context.rectangle(self.position[0] - self.canvas.offset[0]
-                                    - border_width,
-                                    self.position[1] - self.canvas.offset[1]
-                                    - border_width,
+            cairo_context.rectangle(self.position[0] - self.canvas.offset[0] -
+                                    border_width,
+                                    self.position[1] - self.canvas.offset[1] -
+                                    border_width,
                                     self.size[0] + (2 * border_width),
                                     self.size[1] + (2 * border_width))
             cairo_context.clip()
@@ -811,8 +811,8 @@ class PageDrawer(Drawer, GObject.GObject):
         if not self.visible:
             return
 
-        if (self.show_border
-                and (self.mouse_over or self.boxes['highlighted'])):
+        if (self.show_border and
+                (self.mouse_over or self.boxes['highlighted'])):
             self.draw_border(cairo_context)
 
         if not self.surface:
@@ -843,10 +843,10 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
-            if (x >= box.position[0][0]
-                    and x <= box.position[1][0]
-                    and y >= box.position[0][1]
-                    and y <= box.position[1][1]):
+            if (x >= box.position[0][0] and
+                    x <= box.position[1][0] and
+                    y >= box.position[0][1] and
+                    y <= box.position[1][1]):
                 return box
         return None
 
@@ -886,10 +886,10 @@ class PageDrawer(Drawer, GObject.GObject):
         must_redraw = False
         mouse_over_button = None
 
-        inside = (event_x >= position[0]
-                  and event_x < position[0] + size[0]
-                  and event_y >= position[1]
-                  and event_y < position[1] + size[1])
+        inside = (event_x >= position[0] and
+                  event_x < position[0] + size[0] and
+                  event_y >= position[1] and
+                  event_y < position[1] + size[1])
 
         if self.mouse_over != inside:
             self.set_drag_enabled(
@@ -905,10 +905,10 @@ class PageDrawer(Drawer, GObject.GObject):
             (x, y) = self._get_button_position(b_position)
             x += self.canvas.offset[0]
             y += self.canvas.offset[1]
-            if (x <= event_x
-                    and event_x <= x + self.BUTTON_SIZE
-                    and y <= event_y
-                    and event_y <= y + self.BUTTON_SIZE):
+            if (x <= event_x and
+                    event_x <= x + self.BUTTON_SIZE and
+                    y <= event_y and
+                    event_y <= y + self.BUTTON_SIZE):
                 mouse_over_button = button
                 break
 
@@ -956,10 +956,10 @@ class PageDrawer(Drawer, GObject.GObject):
         position = self.position
         size = self.size
 
-        inside = (event.x >= position[0]
-                  and event.x < (position[0] + size[0])
-                  and event.y >= position[1]
-                  and event.y < (position[1] + size[1]))
+        inside = (event.x >= position[0] and
+                  event.x < (position[0] + size[0]) and
+                  event.y >= position[1] and
+                  event.y < (position[1] + size[1]))
 
         if not inside:
             return
@@ -974,10 +974,10 @@ class PageDrawer(Drawer, GObject.GObject):
                 (button_x, button_y) = self._get_button_position(b_position)
                 button_x += self.canvas.offset[0]
                 button_y += self.canvas.offset[1]
-                if (button_x <= click_x
-                        and button_y <= click_y
-                        and click_x <= button_x + self.BUTTON_SIZE
-                        and click_y <= button_y + self.BUTTON_SIZE):
+                if (button_x <= click_x and
+                        button_y <= click_y and
+                        click_x <= button_x + self.BUTTON_SIZE and
+                        click_y <= button_y + self.BUTTON_SIZE):
                     callback()
                     return
 
@@ -1172,9 +1172,9 @@ class PageDropHandler(Drawer):
         logger.info("Drag-n-drop page: %s --> %s %d"
                     % (str(src_page), str(dst_doc), dst_page_nb))
 
-        if ((dst_page_nb == src_page.page_nb
-                or dst_page_nb == src_page.page_nb + 1)
-                and dst_doc.docid == src_page.doc.docid):
+        if ((dst_page_nb == src_page.page_nb or
+                dst_page_nb == src_page.page_nb + 1) and
+                dst_doc.docid == src_page.doc.docid):
             logger.warn("Drag-n-drop: Dropped to the original position")
             drag_context.finish(False, False, time)  # success = True
             return
@@ -1184,8 +1184,8 @@ class PageDropHandler(Drawer):
         img = src_page.img
         src_page.destroy()
 
-        if (dst_doc.docid == src_page.doc.docid
-                and dst_page_nb > src_page.page_nb):
+        if (dst_doc.docid == src_page.doc.docid and
+                dst_page_nb > src_page.page_nb):
             dst_page_nb -= 1
 
         # .. and re-add it

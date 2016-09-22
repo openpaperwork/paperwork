@@ -339,15 +339,15 @@ class RectangleDrawer(Drawer):
 
             if self.angle != 0:
                 angle = math.pi * self.angle / 180
-                cairo_ctx.translate(self.position[0] - self.canvas.offset[0]
-                                    + (self.size[0] / 2),
-                                    self.position[1] - self.canvas.offset[1]
-                                    + (self.size[1] / 2))
+                cairo_ctx.translate(self.position[0] - self.canvas.offset[0] +
+                                    (self.size[0] / 2),
+                                    self.position[1] - self.canvas.offset[1] +
+                                    (self.size[1] / 2))
                 cairo_ctx.rotate(angle)
-                cairo_ctx.translate(-self.position[0] + self.canvas.offset[0]
-                                    - (self.size[0] / 2),
-                                    -self.position[1] + self.canvas.offset[1]
-                                    - (self.size[1] / 2))
+                cairo_ctx.translate(-self.position[0] + self.canvas.offset[0] -
+                                    (self.size[0] / 2),
+                                    -self.position[1] + self.canvas.offset[1] -
+                                    (self.size[1] / 2))
 
             cairo_ctx.rectangle(
                 self.position[0] - self.canvas.offset[0],
@@ -694,8 +694,8 @@ class ProgressBarDrawer(Drawer):
 
         (canvas_w, canvas_h) = self.canvas.size
 
-        w = ((canvas_w * (self.val_current - self.val_min))
-             / (self.val_max - self.val_min))
+        w = ((canvas_w * (self.val_current - self.val_min)) /
+             (self.val_max - self.val_min))
 
         cairo_ctx.save()
         try:

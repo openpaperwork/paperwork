@@ -1000,7 +1000,8 @@ class PageDrawer(Drawer, GObject.GObject):
         if not self.editor_grips:
             logger.info("Starting page cropping")
             self.editor_grips = ImgGripHandler(
-                img_drawer=self, canvas=self.canvas)
+                img_drawer=self)
+            self.canvas.add_drawer(self.editor_grips)
             self.editor_grips.visible = True
         else:
             logger.info("Stopping page cropping")

@@ -34,6 +34,7 @@ class ImgGrip(Drawer):
     SELECTED_COLOR = (1.0, 0.0, 0.0)
 
     def __init__(self, handler, position, max_position):
+        super(ImgGrip, self).__init__()
         self._img_position = position  # position relative to the image
         self.max_position = max_position
         self.size = (0, 0)
@@ -93,8 +94,8 @@ class ImgGrip(Drawer):
         """
         ((x_min, y_min), (x_max, y_max)) = \
             self.__get_select_area(self.position)
-        return (x_min <= position[0] and position[0] <= x_max
-                and y_min <= position[1] and position[1] <= y_max)
+        return (x_min <= position[0] and position[0] <= x_max and
+                y_min <= position[1] and position[1] <= y_max)
 
     def do_draw(self, cairo_ctx):
         if not self.visible:
@@ -125,6 +126,7 @@ class ImgGripRectangle(Drawer):
     COLOR = (0.0, 0.25, 1.0)
 
     def __init__(self, grips):
+        super(ImgGripRectangle, self).__init__()
         self.grips = grips
 
     def __get_size(self):
@@ -166,29 +168,39 @@ class ImgGripRectangle(Drawer):
         cairo_ctx.stroke()
 
 
-class ImgGripHandler(GObject.GObject):
+class ImgGripHandler(GObject.GObject, Drawer):
     __gsignals__ = {
         'grip-moved': (GObject.SignalFlags.RUN_LAST, None, ()),
         'zoom-changed': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    def __init__(self, img_drawer, canvas, zoom_widget=None,
+    layer = (Drawer.BOX_LAYER + 1)  # draw below/before the grips itself
+
+    def __init__(self, img_drawer, zoom_widget=None,
                  default_grips_positions=None):
         """
         Arguments:
             img --- can be Pillow image (will be displayed), or just a tuple
                 being the size of the image
         """
-        GObject.GObject.__init__(self)
         assert(img_drawer)
-        assert(canvas)
+
+        super(ImgGripHandler, self).__init__()
+
+        self.position = (
+            img_drawer.position[0] - ImgGrip.GRIP_SIZE,
+            img_drawer.position[1] - ImgGrip.GRIP_SIZE,
+        )
+        self.size = (
+            img_drawer.size[0] + ImgGrip.GRIP_SIZE,
+            img_drawer.size[1] + ImgGrip.GRIP_SIZE,
+        )
 
         self.zoom_widget = zoom_widget
 
         self.__visible = False
 
         self.img_size = img_drawer.size
-        self.canvas = canvas
 
         self.img_drawer = img_drawer
 
@@ -249,6 +261,19 @@ class ImgGripHandler(GObject.GObject):
         if zoom_widget:
             zoom_widget.connect("value-changed", lambda x:
                                 GLib.idle_add(self.__on_zoom_changed))
+        self.last_rel_position = (False, 0, 0)
+        if zoom_widget:
+            self.toggle_zoom((0.0, 0.0))
+
+        self.drawers = []
+        self.drawers.append(self.select_rectangle)
+        for grip in self.grips:
+            self.drawers.append(grip)
+
+    def set_canvas(self, canvas):
+        super(ImgGripHandler, self).set_canvas(canvas)
+        for drawer in self.drawers:
+            drawer.set_canvas(canvas)
         canvas.connect(self, "absolute-button-press-event",
                        self.__on_mouse_button_pressed_cb)
         canvas.connect(self, "absolute-motion-notify-event",
@@ -256,19 +281,16 @@ class ImgGripHandler(GObject.GObject):
         canvas.connect(self, "absolute-button-release-event",
                        self.__on_mouse_button_released_cb)
 
-        self.last_rel_position = (False, 0, 0)
-        if zoom_widget:
-            self.toggle_zoom((0.0, 0.0))
+    def do_draw(self, cairo_ctx):
+        for drawer in self.drawers:
+            drawer.do_draw(cairo_ctx)
 
-        self.canvas.add_drawer(self.select_rectangle)
-        for grip in self.grips:
-            self.canvas.add_drawer(grip)
-        self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
+    def on_tick(self):
+        for drawer in self.drawers:
+            drawer.on_tick()
 
     def destroy(self):
-        self.canvas.remove_drawer(self.select_rectangle)
-        for grip in self.grips:
-            self.canvas.remove_drawer(grip)
+        pass
 
     def __on_zoom_changed(self):
         assert(self.zoom_widget)
@@ -422,6 +444,12 @@ class ImgGripHandler(GObject.GObject):
         self.img_drawer.redraw(ImgGrip.GRIP_SIZE / 2)
 
     visible = property(__get_visible, __set_visible)
+
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
 
     def get_coords(self):
         a_x = min(self.grips[0].img_position[0],

@@ -909,10 +909,11 @@ class SettingsWindow(GObject.GObject):
         self.calibration['image_gui'].remove_all_drawers()
         self.calibration['image_gui'].add_drawer(img_drawer)
         self.grips = ImgGripHandler(
-            img_drawer, self.calibration['image_gui'],
+            img_drawer,
             self.calibration['zoom'],
             default_grips_positions=calibration
         )
+        self.calibration['image_gui'].add_drawer(self.grips)
         self.grips.visible = True
         self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)

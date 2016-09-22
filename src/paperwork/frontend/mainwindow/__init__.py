@@ -2381,7 +2381,8 @@ class MainWindow(object):
         assert(self.__busy_mouse_counter >= 0)
 
         if self.__busy_mouse_counter > 0:
-            cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
+            display = self.window.get_display()
+            cursor = Gdk.Cursor.new_for_display(display, Gdk.CursorType.WATCH)
         else:
             cursor = None
         self.window.get_window().set_cursor(cursor)

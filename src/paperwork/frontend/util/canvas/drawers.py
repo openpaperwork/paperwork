@@ -30,7 +30,8 @@ class Drawer(object):
     IMG_LAYER = 200
     BOX_LAYER = 50
     PROGRESSION_INDICATOR_LAYER = 25
-    FADDING_EFFECT_LAYER = 0
+    FADDING_EFFECT_LAYER = 10
+    CURSOR_LAYER = 0
     # layer number == priority --> lower is drawn last (higher level)
 
     layer = -1  # must be set by subclass
@@ -58,7 +59,10 @@ class Drawer(object):
             should_be_visible = False
         return should_be_visible
 
-    def draw_surface(self, cairo_ctx, surface, img_position, img_size, angle=0):
+    def draw_surface(self,
+                     cairo_ctx, surface, img_position, img_size, angle=0,
+                     absolute=False,
+            ):
         """
         Draw a surface
 
@@ -82,7 +86,10 @@ class Drawer(object):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(img_position[0], img_position[1])
-            cairo_ctx.translate(-self.canvas.offset[0], -self.canvas.offset[1])
+            if not absolute:
+                cairo_ctx.translate(
+                    -self.canvas.offset[0], -self.canvas.offset[1]
+                )
             if angle != 0:
                 cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
                 cairo_ctx.rotate(angle)
@@ -221,6 +228,81 @@ class BackgroundDrawer(Drawer):
         cairo_ctx.rectangle(0, 0, self.canvas.size[0], self.canvas.size[1])
         cairo_ctx.clip()
         cairo_ctx.paint()
+
+
+class CursorDrawer(Drawer):
+    """
+    Beware ! This drawer is *not* relative.
+    """
+    layer = Drawer.CURSOR_LAYER
+
+    def __init__(self, gdk_cursor, position):
+        self.canvas = None
+        self._position = position
+
+        img = gdk_cursor.get_image()
+        self.size = (img.get_width(), img.get_height())
+
+        (self.cursor_surface, hotspot_x, hotspot_y) = gdk_cursor.get_surface()
+        self.hotspot = (hotspot_x, hotspot_y)
+        self.visible = True
+
+    def set_canvas(self, canvas):
+        self.canvas = canvas
+
+    @staticmethod
+    def compute_visibility(offset, visible_area_size, position, size):
+        return True
+
+    def draw(self, cairo_ctx):
+        if not self.visible:
+            return
+        self.draw_surface(
+            cairo_ctx, self.cursor_surface, self.position, self.size,
+            absolute=True
+        )
+
+    def _get_position(self):
+        return (
+            self._position[0] - self.hotspot[0],
+            self._position[1] - self.hotspot[1]
+        )
+
+    position = property(_get_position)
+
+    def _get_relative_position(self):
+        return self.position
+
+    relative_position = property(_get_relative_position)
+
+    def _get_relative_size(self):
+        return self.size
+
+    relative_size = property(_get_relative_size)
+
+    def redraw(self, extra_border=0):
+        position = self.position
+        size = self.size
+
+        position = (
+            max(0, position[0] - extra_border),
+            max(0, position[1] - extra_border)
+        )
+        size = (
+            size[0] + (2 * extra_border),
+            size[1] + (2 * extra_border)
+        )
+
+        self.canvas.redraw((
+            position,
+            size
+        ))
+
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
 
 
 class RectangleDrawer(Drawer):

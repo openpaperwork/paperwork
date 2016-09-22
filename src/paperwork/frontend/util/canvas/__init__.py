@@ -34,6 +34,8 @@ from gi.repository import Gtk
 
 from paperwork.frontend.util import PriorityQueue
 
+from .drawers import CursorDrawer
+
 
 logger = logging.getLogger(__name__)
 
@@ -128,9 +130,14 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self._drawer_connections = {}  # drawer --> [('signal', func), ...]
 
+        self.__scroll_origin = (0, 0)
+        self.__mouse_position = (0, 0)
+        self.__cursor_drawer = None
+
     def _tick(self):
         for drawer in self.drawers:
             drawer.on_tick()
+        self.__apply_scrolling()
         self.tick_counter_lock.acquire()
         try:
             if self.need_stop_ticks > 0:
@@ -327,47 +334,101 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         return AbsoluteEvent(event, (off_x, off_y))
 
     def __on_button_pressed(self, _, event):
+        if event.button == 2:  # middle button
+            self.__scroll_origin = (event.x, event.y)
+            logger.info("Start scrolling with 3rd button ({})".format(
+                self.__scroll_origin
+            ))
+            self.start_ticks()
+            display = self.get_display()
+            try:
+                mouse_cursor = Gdk.Cursor.new_from_name(display, "all-scroll")
+                origin_cursor = Gdk.Cursor.new_from_name(display, "crosshair")
+            except:
+                mouse_cursor = Gdk.Cursor.new_for_display(
+                    display, Gdk.CursorType.FLEUR
+                )
+                origin_cursor = Gdk.Cursor.new_for_display(
+                    display, Gdk.CursorType.CROSS
+                )
+            self.get_window().set_cursor(mouse_cursor)
+
+            self.__cursor_drawer = CursorDrawer(
+                origin_cursor, (event.x, event.y)
+            )
+            self.add_drawer(self.__cursor_drawer)
+            return False
+
         self.grab_focus()
         event = self.__get_absolute_event(event)
         self.emit('absolute-button-press-event', event)
 
     def __on_motion(self, _, event):
+        self.__mouse_position = (event.x, event.y)
         event = self.__get_absolute_event(event)
         self.emit('absolute-motion-notify-event', event)
 
     def __on_button_released(self, _, event):
+        if self.__scroll_origin != (0, 0):
+            self.stop_ticks()
+            self.__mouse_position = (0, 0)
+            self.__scroll_origin = (0, 0)
+            self.get_window().set_cursor(None)
+            self.remove_drawer(self.__cursor_drawer)
         event = self.__get_absolute_event(event)
         self.emit('absolute-button-release-event', event)
 
-    def __on_key_pressed(self, _, event):
+    def __scroll(self, offset):
         h = self.hadjustment.get_value()
         v = self.vadjustment.get_value()
-        h_offset = 100
-        v_offset = 100
 
-        ops = {
-            Gdk.KEY_Left: lambda: (h - h_offset, v),
-            Gdk.KEY_Right: lambda: (h + h_offset, v),
-            Gdk.KEY_Up: lambda: (h, v - v_offset),
-            Gdk.KEY_Down: lambda: (h, v + v_offset),
-        }
-        if event.keyval not in ops:
-            return False
+        h += offset[0]
+        v += offset[1]
 
-        (h, v) = ops[event.keyval]()
         if h != self.hadjustment.get_value():
             if h < self.hadjustment.get_lower():
                 h = self.hadjustment.get_lower()
             if h > self.hadjustment.get_upper():
                 h = self.hadjustment.get_upper()
+        if h != self.hadjustment.get_value():
             self.hadjustment.set_value(h)
+
         if v != self.vadjustment.get_value():
             if v < self.vadjustment.get_lower():
                 v = self.vadjustment.get_lower()
             if v > self.vadjustment.get_upper():
                 v = self.vadjustment.get_upper()
+        if v != self.vadjustment.get_value():
             self.vadjustment.set_value(v)
+
+    def __on_key_pressed(self, _, event):
+        h_offset = 100
+        v_offset = 100
+
+        ops = {
+            Gdk.KEY_Left: (-h_offset, 0),
+            Gdk.KEY_Right: (h_offset, 0),
+            Gdk.KEY_Up: (0, -v_offset),
+            Gdk.KEY_Down: (0, +v_offset),
+        }
+        if event.keyval not in ops:
+            return False
+        offset = ops[event.keyval]
+        self.__scroll(offset)
         return True
+
+    def __apply_scrolling(self):
+        if (self.__scroll_origin == (0, 0) or self.__mouse_position == (0, 0)):
+            # no scrolling for now
+            return
+        SCROLLING_REDUCTION_FACTOR = 2
+        scroll_x = self.__mouse_position[0] - self.__scroll_origin[0]
+        scroll_y = self.__mouse_position[1] - self.__scroll_origin[1]
+        scroll_x /= SCROLLING_REDUCTION_FACTOR
+        scroll_y /= SCROLLING_REDUCTION_FACTOR
+        scroll_x = max(min(scroll_x, 50), -50)
+        scroll_y = max(min(scroll_y, 50), -50)
+        self.__scroll((scroll_x, scroll_y))
 
     def __get_position(self):
         return (int(self.hadjustment.get_value()),

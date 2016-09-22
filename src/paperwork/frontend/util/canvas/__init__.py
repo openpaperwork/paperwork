@@ -45,15 +45,20 @@ class AbsoluteEvent(object):
     offset = (0, 0)
 
     def __init__(self, base_event, offset):
-        self.base_event = base_event
+        self.attrs = {}
+        for k in dir(base_event):
+            self.attrs[k] = getattr(base_event, k)
+
+        self.x = int(base_event.x)
+        self.y = int(base_event.y)
         self.offset = offset
 
     def __getattr__(self, name):
         if name == "x":
-            return self.base_event.x + self.offset[0]
+            return int(self.x + self.offset[0])
         if name == "y":
-            return self.base_event.y + self.offset[1]
-        return getattr(self.base_event, name)
+            return int(self.y + self.offset[1])
+        return self.attrs[name]
 
 
 class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
@@ -209,8 +214,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             if (full_y < y):
                 full_y = y
         new_size = (full_x, full_y)
-        if (new_size[0] != self.full_size[0]
-                or new_size[1] != self.full_size[1]):
+        if (new_size[0] != self.full_size[0] or
+                new_size[1] != self.full_size[1]):
             self.full_size = new_size
             self.set_size_request(new_size[0], new_size[1])
             self.upd_adjustments(upd_scrollbar_values)
@@ -302,8 +307,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             pt_a = drawer.position
             pt_b = (drawer.position[0] + drawer.size[0],
                     drawer.position[1] + drawer.size[1])
-            if (x >= pt_a[0] and x < pt_b[0]
-                    and y >= pt_a[1] and y < pt_b[1]):
+            if (x >= pt_a[0] and x < pt_b[0] and
+                    y >= pt_a[1] and y < pt_b[1]):
                 return drawer
 
         return None

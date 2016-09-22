@@ -240,13 +240,350 @@ class PageCuttingAction(PageEditionAction):
         return _("Image cutting: %s") % str(self.cut)
 
 
-class PageDrawer(Drawer, GObject.GObject):
+
+class SimplePageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
+    TMP_AREA = (0.85, 0.85, 0.85)
+
+    def __init__(self, parent_drawer, job_factories, job_schedulers,
+                 search_sentence=u"", show_border=True, show_all_boxes=False,
+                 show_boxes=True):
+        super(SimplePageDrawer, self).__init__()
+        self.page = parent_drawer.page
+        self.parent = parent_drawer
+        self.job_factories = job_factories
+        self.job_schedulers = job_schedulers
+        self.surface = None
+        self.visible = False
+        self.boxes = {
+            'all': set(),
+            'highlighted': set(),
+            'mouse_over': None,
+        }
+        self.mouse_over = False
+        self.show_border = show_border
+        self.show_all_boxes = show_all_boxes
+        self.show_boxes = show_boxes
+        self.search_sentence = search_sentence
+        self.factories = job_factories
+        self.schedulers = job_schedulers
+        self.loading = False
+        self.spinner = SpinnerAnimation((0, 0))
+        self.upd_spinner_position()
+
+    def set_canvas(self, canvas):
+        super(SimplePageDrawer, self).set_canvas(canvas)
+        self.spinner.set_canvas(canvas)
+        canvas.connect(self, "absolute-motion-notify-event",
+                       lambda canvas, event:
+                       GLib.idle_add(self._on_mouse_motion, event))
+
+    def __get_position(self):
+        return self.parent.position
+
+    position = property(__get_position)
+
+    def __get_size(self):
+        return self.parent.size
+
+    size = property(__get_size)
+
+    def upd_spinner_position(self):
+        self.spinner.position = (
+            (self.position[0] + (self.size[0] / 2) -
+             (SpinnerAnimation.ICON_SIZE / 2)),
+            (self.position[1] + (self.size[1] / 2) -
+             (SpinnerAnimation.ICON_SIZE / 2)),
+        )
+
+    def load_content(self):
+        if self.loading:
+            return
+        self.canvas.add_drawer(self.spinner)
+        self.loading = True
+        job = self.factories['page_img_loader'].make(self, self.page,
+                                                     self.size)
+        self.schedulers['page_img_loader'].schedule(job)
+
+    def on_page_loading_img(self, page, surface):
+        if not self.visible:
+            return
+        self.surface = surface
+        if (len(self.boxes['all']) <= 0 and
+                (self.show_boxes or self.show_border)):
+            job = self.factories['page_boxes_loader'].make(self, self.page)
+            self.schedulers['page_boxes_loader'].schedule(job)
+
+    def on_page_loading_done(self, page):
+        if self.loading:
+            self.canvas.remove_drawer(self.spinner)
+            self.loading = False
+        if self.visible and not self.surface:
+            self.load_content()
+
+    def _get_highlighted_boxes(self, sentence):
+        """
+        Get all the boxes corresponding the given sentence
+
+        Arguments:
+            sentence --- can be string (will be splited), or an array of
+                strings
+        Returns:
+            an array of boxes (see pyocr boxes)
+        """
+        if isinstance(sentence, str):
+            keywords = split_words(sentence, keep_shorts=True)
+        else:
+            assert(isinstance(sentence, list))
+            keywords = sentence
+
+        output = set()
+        for keyword in keywords:
+            for box in self.boxes["all"]:
+                if keyword in box.content:
+                    output.add(box)
+                    continue
+                # unfold generator output
+                words = [x for x in split_words(box.content)]
+                if keyword in words:
+                    output.add(box)
+                    continue
+        return output
+
+    def reload_boxes(self, new_sentence=None):
+        if new_sentence:
+            self.search_sentence = new_sentence
+        self.boxes["highlighted"] = self._get_highlighted_boxes(
+            self.search_sentence
+        )
+        self.redraw()
+
+    def on_page_loading_boxes(self, page, all_boxes):
+        if not self.visible:
+            return
+        self.boxes['all'] = set(all_boxes)
+        self.reload_boxes()
+
+    def unload_content(self):
+        if self.loading:
+            self.canvas.remove_drawer(self.spinner)
+            self.loading = False
+        if self.surface is not None:
+            del(self.surface)
+            self.surface = None
+        self.boxes = {
+            'all': set(),
+            'highlighted': set(),
+            'mouse_over': None,
+        }
+
+    def draw_border(self, cairo_context):
+        border = self.BORDER_BASIC
+        if self.boxes['highlighted']:
+            border = self.BORDER_HIGHLIGHTED
+
+        border_width = border[0]
+        border_color = border[1]
+
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(border_color[0], border_color[1],
+                                         border_color[2])
+            cairo_context.rectangle(self.position[0] - self.canvas.offset[0] -
+                                    border_width,
+                                    self.position[1] - self.canvas.offset[1] -
+                                    border_width,
+                                    self.size[0] + (2 * border_width),
+                                    self.size[1] + (2 * border_width))
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+
+    def draw_tmp_area(self, cairo_context):
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(self.TMP_AREA[0],
+                                         self.TMP_AREA[1],
+                                         self.TMP_AREA[2])
+            cairo_context.rectangle(self.position[0] - self.canvas.offset[0],
+                                    self.position[1] - self.canvas.offset[1],
+                                    self.size[0], self.size[1])
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+
+    def _get_real_box(self, box):
+        (x_factor, y_factor) = self.parent._get_factors()
+
+        ((a, b), (c, d)) = box.position
+        (w, h) = (c - a, d - b)
+
+        a *= x_factor
+        b *= y_factor
+        w *= x_factor
+        h *= y_factor
+
+        a += self.position[0]
+        b += self.position[1]
+        a -= self.canvas.offset[0]
+        b -= self.canvas.offset[1]
+
+        return (int(a), int(b), int(w), int(h))
+
+    def draw_boxes(self, cairo_context, boxes, color):
+        for box in boxes:
+            (a, b, w, h) = self._get_real_box(box)
+            cairo_context.save()
+            try:
+                cairo_context.set_source_rgb(color[0], color[1], color[2])
+                cairo_context.set_line_width(self.LINE_WIDTH)
+                cairo_context.rectangle(a, b, w, h)
+                cairo_context.stroke()
+            finally:
+                cairo_context.restore()
+
+    def draw_box_txt(self, cairo_context, box):
+        (a, b, w, h) = self._get_real_box(box)
+
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(1.0, 1.0, 1.0)
+            cairo_context.rectangle(a, b, w, h)
+            cairo_context.clip()
+            cairo_context.paint()
+        finally:
+            cairo_context.restore()
+
+        cairo_context.save()
+        try:
+            cairo_context.translate(a, b)
+            cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+
+            layout = PangoCairo.create_layout(cairo_context)
+            layout.set_text(box.content, -1)
+
+            txt_size = layout.get_size()
+            if 0 in txt_size:
+                return
+            txt_factor = min(
+                float(w) / txt_size[0],
+                float(h) / txt_size[1],
+            )
+
+            cairo_context.scale(
+                txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
+            )
+
+            PangoCairo.update_layout(cairo_context, layout)
+            PangoCairo.show_layout(cairo_context, layout)
+        finally:
+            cairo_context.restore()
+
+    def draw(self, cairo_context):
+        should_be_visible = self.compute_visibility(
+            self.canvas.offset, self.canvas.size,
+            self.position, self.size)
+        if should_be_visible and not self.visible:
+            self.load_content()
+        elif not should_be_visible and self.visible:
+            self.unload_content()
+        self.visible = should_be_visible
+
+        if not should_be_visible:
+            return
+
+        if (self.show_border and
+                (self.mouse_over or self.boxes['highlighted'])):
+            self.draw_border(cairo_context)
+
+        if not self.surface:
+            self.draw_tmp_area(cairo_context)
+        else:
+            self.draw_surface(cairo_context,
+                              self.surface, self.position,
+                              self.size, angle=self.angle)
+
+        if self.show_all_boxes:
+            self.draw_boxes(cairo_context,
+                            self.boxes['all'], color=(0.0, 0.0, 0.5))
+        if self.boxes["mouse_over"]:
+            self.draw_boxes(cairo_context,
+                            [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
+            self.draw_box_txt(cairo_context,
+                              self.boxes['mouse_over'])
+        if self.show_boxes:
+            self.draw_boxes(cairo_context,
+                            self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+
+    def _get_box_at(self, x, y):
+        for box in self.boxes["all"]:
+            if (x >= box.position[0][0] and
+                    x <= box.position[1][0] and
+                    y >= box.position[0][1] and
+                    y <= box.position[1][1]):
+                return box
+        return None
+
+    def _on_mouse_motion(self, event):
+        position = self.position
+        size = self.size
+
+        event_x = event.x
+        event_y = event.y
+
+        must_redraw = False
+
+        inside = (event_x >= position[0] and
+                  event_x < position[0] + size[0] and
+                  event_y >= position[1] and
+                  event_y < position[1] + size[1])
+
+        if self.mouse_over != inside:
+            self.mouse_over = inside
+            must_redraw = True
+
+        if inside:
+            (x_factor, y_factor) = self.parent._get_factors()
+            # position on the whole page image
+            (x, y) = (event_x - position[0], event_y - position[1])
+            (x, y) = (
+                x / x_factor,
+                y / y_factor,
+            )
+
+            box = self._get_box_at(x, y)
+            if box != self.boxes["mouse_over"]:
+                # redraw previous box to make the border disappear
+                if not must_redraw and self.boxes["mouse_over"]:
+                    box_pos = self._get_real_box(self.boxes["mouse_over"])
+                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                        box_pos[1] - self.LINE_WIDTH),
+                                        (box_pos[2] + (2 * self.LINE_WIDTH),
+                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+
+                self.boxes["mouse_over"] = box
+
+                # draw new one to make the border appear
+                if not must_redraw and box:
+                    box_pos = self._get_real_box(box)
+                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
+                                        box_pos[1] - self.LINE_WIDTH),
+                                        (box_pos[2] + (2 * self.LINE_WIDTH),
+                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+
+        if must_redraw:
+            self.redraw()
+            return
+
+
+class PageDrawer(Drawer, GObject.GObject):
+    layer = Drawer.BUTTON_LAYER
     MARGIN = 20
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
-    TMP_AREA = (0.85, 0.85, 0.85)
 
     BUTTON_SIZE = 32
     BUTTON_BACKGROUND = (0.85, 0.85, 0.85)
@@ -287,7 +624,6 @@ class PageDrawer(Drawer, GObject.GObject):
         self.page = page
         self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
-        self.show_border = show_border
         self.enable_editor = enable_editor
         self.mouse_over = False
         self.mouse_over_button = None
@@ -295,29 +631,23 @@ class PageDrawer(Drawer, GObject.GObject):
         self.is_drag_source = False
         self.drag_enabled = True
 
-        self.surface = None
-        self.boxes = {
-            'all': set(),
-            'highlighted': set(),
-            'mouse_over': None,
-        }
-        self.sentence = sentence
         self.visible = False
-        self.loading = False
 
         self.factories = job_factories
         self.schedulers = job_schedulers
 
         self._size = self.max_size
         self._position = (0, 0)
-        self.angle = 0
-        self.spinner = SpinnerAnimation((0, 0))
-        self.upd_spinner_position()
 
         icon_theme = Gtk.IconTheme.get_default()
 
         first_editor_buttons = []
         first_editor_buttons_pos = 10
+
+        self.simple_page_drawer = SimplePageDrawer(
+            self, job_factories, job_schedulers, sentence,
+            show_border, show_all_boxes, show_boxes
+        )
 
         if self.page.can_edit:
             first_editor_buttons.append(
@@ -384,7 +714,6 @@ class PageDrawer(Drawer, GObject.GObject):
             ]
         }
         self.editor_state = "before"
-        self.editor_grips = None
 
     def relocate(self):
         assert(self.canvas)
@@ -408,8 +737,9 @@ class PageDrawer(Drawer, GObject.GObject):
         self.position = (position_w, position_h)
 
     def set_canvas(self, canvas):
-        Drawer.set_canvas(self, canvas)
-        self.spinner.set_canvas(canvas)
+        super(PageDrawer, self).set_canvas(canvas)
+        # self.simple_page_drawer.set_canvas(canvas)
+        canvas.add_drawer(self.simple_page_drawer)
         self.relocate()
         canvas.connect(self, "absolute-motion-notify-event",
                        lambda canvas, event:
@@ -458,23 +788,16 @@ class PageDrawer(Drawer, GObject.GObject):
         GLib.idle_add(self.relocate)
 
     def on_tick(self):
-        Drawer.on_tick(self)
-        self.spinner.on_tick()
-
-    def upd_spinner_position(self):
-        self.spinner.position = (
-            (self._position[0] + (self._size[0] / 2) -
-             (SpinnerAnimation.ICON_SIZE / 2)),
-            (self._position[1] + (self._size[1] / 2) -
-             (SpinnerAnimation.ICON_SIZE / 2)),
-        )
+        super(PageDrawer, self).on_tick()
+        self.simple_page_drawer.spinner.on_tick()
+        self.simple_page_drawer.on_tick()
 
     def _get_position(self):
         return self._position
 
     def _set_position(self, position):
         self._position = position
-        self.upd_spinner_position()
+        self.simple_page_drawer.upd_spinner_position()
 
     position = property(_get_position, _set_position)
 
@@ -485,14 +808,11 @@ class PageDrawer(Drawer, GObject.GObject):
         if size == self._size:
             return
 
-        if self.editor_grips:
-            # TODO(Jflesch): resize grips
-            pass
-
         self._size = size
-        self.unload_content()
+        self.simple_page_drawer.unload_content()
         self.visible = False  # will force a reload if visible
-        self.upd_spinner_position()
+        self.simple_page_drawer.visible = False
+        self.simple_page_drawer.upd_spinner_position()
 
     size = property(_get_size, _set_size)
 
@@ -500,198 +820,16 @@ class PageDrawer(Drawer, GObject.GObject):
         self.size = (int(factor * self.max_size[0]),
                      int(factor * self.max_size[1]))
 
-    def load_content(self):
-        if self.loading:
-            return
-        self.canvas.add_drawer(self.spinner)
-        self.loading = True
-        job = self.factories['page_img_loader'].make(self, self.page,
-                                                     self.size)
-        self.schedulers['page_img_loader'].schedule(job)
-
-    def on_page_loading_img(self, page, surface):
-        if not self.visible:
-            return
-        self.surface = surface
-        if (len(self.boxes['all']) <= 0 and
-                (self.show_boxes or self.show_border)):
-            job = self.factories['page_boxes_loader'].make(self, self.page)
-            self.schedulers['page_boxes_loader'].schedule(job)
-
-    def on_page_loading_done(self, page):
-        if self.loading:
-            self.canvas.remove_drawer(self.spinner)
-            self.loading = False
-        if self.visible and not self.surface:
-            self.load_content()
-
-    def _get_highlighted_boxes(self, sentence):
-        """
-        Get all the boxes corresponding the given sentence
-
-        Arguments:
-            sentence --- can be string (will be splited), or an array of
-                strings
-        Returns:
-            an array of boxes (see pyocr boxes)
-        """
-        if isinstance(sentence, str):
-            keywords = split_words(sentence, keep_shorts=True)
-        else:
-            assert(isinstance(sentence, list))
-            keywords = sentence
-
-        output = set()
-        for keyword in keywords:
-            for box in self.boxes["all"]:
-                if keyword in box.content:
-                    output.add(box)
-                    continue
-                # unfold generator output
-                words = [x for x in split_words(box.content)]
-                if keyword in words:
-                    output.add(box)
-                    continue
-        return output
-
-    def reload_boxes(self, new_sentence=None):
-        if new_sentence:
-            self.sentence = new_sentence
-        self.boxes["highlighted"] = self._get_highlighted_boxes(self.sentence)
-        self.redraw()
-
-    def on_page_loading_boxes(self, page, all_boxes):
-        if not self.visible:
-            return
-        self.boxes['all'] = set(all_boxes)
-        self.reload_boxes()
-
-    def unload_content(self):
-        if self.loading:
-            self.canvas.remove_drawer(self.spinner)
-            self.loading = False
-        if self.surface is not None:
-            del(self.surface)
-            self.surface = None
-        self.boxes = {
-            'all': set(),
-            'highlighted': set(),
-            'mouse_over': None,
-        }
-
     def hide(self):
-        self.unload_content()
+        self.simple_page_drawer.unload_content()
+        self.simple_page_drawer.visible = False
         self.visible = False
-
-    def draw_border(self, cairo_context):
-        border = self.BORDER_BASIC
-        if self.boxes['highlighted']:
-            border = self.BORDER_HIGHLIGHTED
-
-        border_width = border[0]
-        border_color = border[1]
-
-        cairo_context.save()
-        try:
-            cairo_context.set_source_rgb(border_color[0], border_color[1],
-                                         border_color[2])
-            cairo_context.rectangle(self.position[0] - self.canvas.offset[0] -
-                                    border_width,
-                                    self.position[1] - self.canvas.offset[1] -
-                                    border_width,
-                                    self.size[0] + (2 * border_width),
-                                    self.size[1] + (2 * border_width))
-            cairo_context.clip()
-            cairo_context.paint()
-        finally:
-            cairo_context.restore()
-
-    def draw_tmp_area(self, cairo_context):
-        cairo_context.save()
-        try:
-            cairo_context.set_source_rgb(self.TMP_AREA[0],
-                                         self.TMP_AREA[1],
-                                         self.TMP_AREA[2])
-            cairo_context.rectangle(self.position[0] - self.canvas.offset[0],
-                                    self.position[1] - self.canvas.offset[1],
-                                    self.size[0], self.size[1])
-            cairo_context.clip()
-            cairo_context.paint()
-        finally:
-            cairo_context.restore()
 
     def _get_factors(self):
         return (
             (float(self._size[0]) / self.max_size[0]),
             (float(self._size[1]) / self.max_size[1]),
         )
-
-    def _get_real_box(self, box):
-        (x_factor, y_factor) = self._get_factors()
-
-        ((a, b), (c, d)) = box.position
-        (w, h) = (c - a, d - b)
-
-        a *= x_factor
-        b *= y_factor
-        w *= x_factor
-        h *= y_factor
-
-        a += self.position[0]
-        b += self.position[1]
-        a -= self.canvas.offset[0]
-        b -= self.canvas.offset[1]
-
-        return (int(a), int(b), int(w), int(h))
-
-    def draw_boxes(self, cairo_context, boxes, color):
-        for box in boxes:
-            (a, b, w, h) = self._get_real_box(box)
-            cairo_context.save()
-            try:
-                cairo_context.set_source_rgb(color[0], color[1], color[2])
-                cairo_context.set_line_width(self.LINE_WIDTH)
-                cairo_context.rectangle(a, b, w, h)
-                cairo_context.stroke()
-            finally:
-                cairo_context.restore()
-
-    def draw_box_txt(self, cairo_context, box):
-        (a, b, w, h) = self._get_real_box(box)
-
-        cairo_context.save()
-        try:
-            cairo_context.set_source_rgb(1.0, 1.0, 1.0)
-            cairo_context.rectangle(a, b, w, h)
-            cairo_context.clip()
-            cairo_context.paint()
-        finally:
-            cairo_context.restore()
-
-        cairo_context.save()
-        try:
-            cairo_context.translate(a, b)
-            cairo_context.set_source_rgb(0.0, 0.0, 0.0)
-
-            layout = PangoCairo.create_layout(cairo_context)
-            layout.set_text(box.content, -1)
-
-            txt_size = layout.get_size()
-            if 0 in txt_size:
-                return
-            txt_factor = min(
-                float(w) / txt_size[0],
-                float(h) / txt_size[1],
-            )
-
-            cairo_context.scale(
-                txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
-            )
-
-            PangoCairo.update_layout(cairo_context, layout)
-            PangoCairo.show_layout(cairo_context, layout)
-        finally:
-            cairo_context.restore()
 
     def _get_button_position(self, b_position):
         position = self.position
@@ -748,42 +886,43 @@ class PageDrawer(Drawer, GObject.GObject):
                 cairo_context.restore()
 
     def draw_editor_button_tooltip(self, cairo_context):
-        if self.mouse_over_button:
-            (b_position, button, callback, tooltip) = self.mouse_over_button
-            (x, y) = self._get_button_position(b_position)
-            x -= self.TOOLTIP_LENGTH + 2
+        if not self.mouse_over_button:
+            return
+        (b_position, button, callback, tooltip) = self.mouse_over_button
+        (x, y) = self._get_button_position(b_position)
+        x -= self.TOOLTIP_LENGTH + 2
 
-            cairo_context.save()
-            try:
-                cairo_context.set_source_rgb(
-                    self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
-                    self.BUTTON_BACKGROUND[2])
-                cairo_context.rectangle(x, y + 5,
-                                        self.TOOLTIP_LENGTH,
-                                        self.BUTTON_SIZE - 10)
-                cairo_context.clip()
-                cairo_context.paint()
+        cairo_context.save()
+        try:
+            cairo_context.set_source_rgb(
+                self.BUTTON_BACKGROUND[0], self.BUTTON_BACKGROUND[1],
+                self.BUTTON_BACKGROUND[2])
+            cairo_context.rectangle(x, y + 5,
+                                    self.TOOLTIP_LENGTH,
+                                    self.BUTTON_SIZE - 10)
+            cairo_context.clip()
+            cairo_context.paint()
 
-                cairo_context.translate(
-                    x + 5,
-                    y + ((self.BUTTON_SIZE - self.FONT_SIZE) / 2))
-                cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+            cairo_context.translate(
+                x + 5,
+                y + ((self.BUTTON_SIZE - self.FONT_SIZE) / 2))
+            cairo_context.set_source_rgb(0.0, 0.0, 0.0)
 
-                layout = PangoCairo.create_layout(cairo_context)
-                layout.set_text(tooltip, -1)
+            layout = PangoCairo.create_layout(cairo_context)
+            layout.set_text(tooltip, -1)
 
-                txt_size = layout.get_size()
-                if 0 in txt_size:
-                    return
-                txt_factor = min(
-                    float(self.TOOLTIP_LENGTH - 10) * Pango.SCALE / txt_size[0],
-                    float(self.FONT_SIZE) * Pango.SCALE / txt_size[1],
-                )
-                cairo_context.scale(txt_factor, txt_factor)
-                PangoCairo.update_layout(cairo_context, layout)
-                PangoCairo.show_layout(cairo_context, layout)
-            finally:
-                cairo_context.restore()
+            txt_size = layout.get_size()
+            if 0 in txt_size:
+                return
+            txt_factor = min(
+                float(self.TOOLTIP_LENGTH - 10) * Pango.SCALE / txt_size[0],
+                float(self.FONT_SIZE) * Pango.SCALE / txt_size[1],
+            )
+            cairo_context.scale(txt_factor, txt_factor)
+            PangoCairo.update_layout(cairo_context, layout)
+            PangoCairo.show_layout(cairo_context, layout)
+        finally:
+            cairo_context.restore()
 
     def draw_mask(self, cairo_ctx, mask_color):
         cairo_ctx.save()
@@ -799,40 +938,11 @@ class PageDrawer(Drawer, GObject.GObject):
             cairo_ctx.restore()
 
     def draw(self, cairo_context):
-        should_be_visible = self.compute_visibility(
+        self.visible = self.compute_visibility(
             self.canvas.offset, self.canvas.size,
             self.position, self.size)
-        if should_be_visible and not self.visible:
-            self.load_content()
-        elif not should_be_visible and self.visible:
-            self.unload_content()
-        self.visible = should_be_visible
-
         if not self.visible:
             return
-
-        if (self.show_border and
-                (self.mouse_over or self.boxes['highlighted'])):
-            self.draw_border(cairo_context)
-
-        if not self.surface:
-            self.draw_tmp_area(cairo_context)
-        else:
-            self.draw_surface(cairo_context,
-                              self.surface, self.position,
-                              self.size, angle=self.angle)
-
-        if self.show_all_boxes:
-            self.draw_boxes(cairo_context,
-                            self.boxes['all'], color=(0.0, 0.0, 0.5))
-        if self.boxes["mouse_over"]:
-            self.draw_boxes(cairo_context,
-                            [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
-            self.draw_box_txt(cairo_context,
-                              self.boxes['mouse_over'])
-        if self.show_boxes:
-            self.draw_boxes(cairo_context,
-                            self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
 
         if self.enable_editor and self.mouse_over:
             self.draw_editor_buttons(cairo_context)
@@ -841,18 +951,9 @@ class PageDrawer(Drawer, GObject.GObject):
         if self.is_drag_source:
             self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
-    def _get_box_at(self, x, y):
-        for box in self.boxes["all"]:
-            if (x >= box.position[0][0] and
-                    x <= box.position[1][0] and
-                    y >= box.position[0][1] and
-                    y <= box.position[1][1]):
-                return box
-        return None
-
     def redraw(self, extra_border=0):
         border = self.BORDER_BASIC
-        if self.boxes['highlighted']:
+        if self.simple_page_drawer.boxes['highlighted']:
             border = self.BORDER_HIGHLIGHTED
 
         border_width = max(border[0], extra_border)
@@ -895,9 +996,8 @@ class PageDrawer(Drawer, GObject.GObject):
             self.set_drag_enabled(
                 inside and self.page.doc.can_edit and self.drag_enabled
             )
-
-            self.mouse_over = inside
             must_redraw = True
+            self.mouse_over = inside
 
         buttons = self.editor_buttons[self.editor_state]
         for button in buttons:
@@ -916,38 +1016,10 @@ class PageDrawer(Drawer, GObject.GObject):
             self.mouse_over_button = mouse_over_button
             must_redraw = True
 
-        if inside:
-            (x_factor, y_factor) = self._get_factors()
-            # position on the whole page image
-            (x, y) = (event_x - position[0], event_y - position[1])
-            (x, y) = (
-                x / x_factor,
-                y / y_factor,
-            )
-
-            box = self._get_box_at(x, y)
-            if box != self.boxes["mouse_over"]:
-                # redraw previous box to make the border disappear
-                if not must_redraw and self.boxes["mouse_over"]:
-                    box_pos = self._get_real_box(self.boxes["mouse_over"])
-                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                        box_pos[1] - self.LINE_WIDTH),
-                                        (box_pos[2] + (2 * self.LINE_WIDTH),
-                                        box_pos[2] + (2 * self.LINE_WIDTH))))
-
-                self.boxes["mouse_over"] = box
-
-                # draw new one to make the border appear
-                if not must_redraw and box:
-                    box_pos = self._get_real_box(box)
-                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                        box_pos[1] - self.LINE_WIDTH),
-                                        (box_pos[2] + (2 * self.LINE_WIDTH),
-                                        box_pos[2] + (2 * self.LINE_WIDTH))))
-
         if must_redraw:
             self.redraw()
-            return
+
+        return self.mouse_over_button is not None
 
     def _on_mouse_button_release(self, event):
         if event.button != 1:
@@ -995,39 +1067,22 @@ class PageDrawer(Drawer, GObject.GObject):
         self.redraw()
 
     def _on_edit_crop(self):
-        # TODO(JFlesch): support rotation + crop at the same time
-        self.angle = 0
-        if not self.editor_grips:
-            logger.info("Starting page cropping")
-            self.editor_grips = ImgGripHandler(
-                img_drawer=self)
-            self.canvas.add_drawer(self.editor_grips)
-            self.editor_grips.visible = True
-        else:
-            logger.info("Stopping page cropping")
-            self.editor_grips.destroy()
-            self.editor_grips = None
+        # TODO
+        pass
 
     def _on_edit_counterclockwise(self):
-        logger.info("Rotating -90")
-        self.angle -= 90
-        self.angle %= 360
-        self.canvas.redraw()
+        # TODO
+        pass
 
     def _on_edit_clockwise(self):
-        logger.info("Rotating 90")
-        self.angle += 90
-        self.angle %= 360
-        self.canvas.redraw()
+        # TODO
+        pass
 
     def _on_edit_done(self):
+        # TODO
+        self.simple_page_drawer.unload_content()
         self.set_drag_enabled(True)
-        if self.editor_grips:
-            logger.info("Stopping page cropping")
-            self.editor_grips.destroy()
-            self.editor_grips = None
         self.editor_state = "before"
-        self.angle = 0
         self.hide()
         self.canvas.redraw()
 
@@ -1037,24 +1092,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self._on_edit_done()
 
     def _on_edit_apply(self):
-        actions = []
-        if self.angle != 0:
-            actions.append(PageRotationAction(self.angle))
-        if self.editor_grips:
-            img_real_size = self.max_size
-            current_size = self.size
-            zoom_level = float(img_real_size[0]) / float(current_size[0])
-            logger.info("Zoom level: %f" % zoom_level)
-            coords = self.editor_grips.get_coords()
-            coords = (
-                (int(coords[0][0] * zoom_level),
-                 int(coords[0][1] * zoom_level)),
-                (int(coords[1][0] * zoom_level),
-                 int(coords[1][1] * zoom_level)),
-            )
-            actions.append(PageCuttingAction(coords))
-        logger.info("Page edition applied: %s"
-                    % ", ".join([str(a) for a in actions]))
+        # TODO
         self.emit("page-edited", actions)
         self._on_edit_done()
 

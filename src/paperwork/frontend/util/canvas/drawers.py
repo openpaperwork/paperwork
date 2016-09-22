@@ -33,6 +33,7 @@ class Drawer(object):
     IMG_LAYER = 200
     BOX_LAYER = 50
     PROGRESSION_INDICATOR_LAYER = 25
+    BUTTON_LAYER = 20
     FADDING_EFFECT_LAYER = 10
     CURSOR_LAYER = 0
     # layer number == priority --> lower is drawn last (higher level)

@@ -28,7 +28,7 @@ from ..util import surface2image
 
 # By default, PDF are too small for a good image rendering
 # so we increase their size
-PDF_RENDER_FACTOR = 2
+PDF_RENDER_FACTOR = 4
 logger = logging.getLogger(__name__)
 
 

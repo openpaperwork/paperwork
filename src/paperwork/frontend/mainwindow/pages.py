@@ -240,11 +240,11 @@ class PageCuttingAction(PageEditionAction):
         return _("Image cutting: %s") % str(self.cut)
 
 
-
 class SimplePageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
     TMP_AREA = (0.85, 0.85, 0.85)
+    BORDER_BASIC = (5, (0.85, 0.85, 0.85))
 
     def __init__(self, parent_drawer, job_factories, job_schedulers,
                  search_sentence=u"", show_border=True, show_all_boxes=False,
@@ -582,7 +582,6 @@ class SimplePageDrawer(Drawer):
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.BUTTON_LAYER
     MARGIN = 20
-    BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
 
     BUTTON_SIZE = 32
@@ -952,7 +951,7 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
     def redraw(self, extra_border=0):
-        border = self.BORDER_BASIC
+        border = self.simple_page_drawer.BORDER_BASIC
         if self.simple_page_drawer.boxes['highlighted']:
             border = self.BORDER_HIGHLIGHTED
 
@@ -1093,7 +1092,7 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _on_edit_apply(self):
         # TODO
-        self.emit("page-edited", actions)
+        # self.emit("page-edited", actions)
         self._on_edit_done()
 
     def _on_delete(self):

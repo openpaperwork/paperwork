@@ -680,11 +680,13 @@ class PageDrawer(Drawer, GObject.GObject):
             if 0 in txt_size:
                 return
             txt_factor = min(
-                float(w) * Pango.SCALE / txt_size[0],
-                float(h) * Pango.SCALE / txt_size[1],
+                float(w) / txt_size[0],
+                float(h) / txt_size[1],
             )
 
-            cairo_context.scale(txt_factor, txt_factor)
+            cairo_context.scale(
+                txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
+            )
 
             PangoCairo.update_layout(cairo_context, layout)
             PangoCairo.show_layout(cairo_context, layout)

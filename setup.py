@@ -11,9 +11,11 @@ setup(
     # * update the ChangeLog file
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
+    # * change it also in
+    #   src/paperwork/frontend/mainwindow/__init__.py:__version__
     # * update the archive list in the README
     # * update the dependency version on paperwork-backend
-    version="0.4",
+    version="1.0",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),

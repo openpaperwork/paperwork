@@ -18,6 +18,9 @@ import cairo
 import math
 import logging
 
+from gi.repository import Pango
+from gi.repository import PangoCairo
+
 from paperwork_backend.util import image2surface
 
 
@@ -434,6 +437,50 @@ class PillowImageDrawer(Drawer):
         self.draw_surface(cairo_ctx,
                           self.surface, self.position,
                           self.size, self.angle)
+
+
+class TextDrawer(Drawer):
+    """
+    Centered text
+    """
+    layer = Drawer.IMG_LAYER
+    visible = True
+
+    def __init__(self, position, text, height=12):
+        Drawer.__init__(self)
+        self.size = (10, 10)  # will be updated later when text will be rendered
+        self.center_position = position
+        # In this case, it's actually the center of the text.
+        # Will be updated later to be the top-left
+        self.position = position
+        self.angle = 0
+        self.text = text
+        self.height = height
+
+    def do_draw(self, cairo_ctx):
+        cairo_ctx.save()
+        try:
+            layout = PangoCairo.create_layout(cairo_ctx)
+            layout.set_text(self.text, -1)
+            txt_size = layout.get_size()
+            if 0 in txt_size:
+                return
+            txt_factor = float(self.height) / txt_size[1]
+            self.size = (
+                int(txt_size[0] * txt_factor),
+                int(txt_size[1] * txt_factor)
+            )
+            self.position = (
+                int(self.center_position[0] - (self.size[0] / 2)),
+                int(self.center_position[1] - (self.size[1] / 2))
+            )
+            cairo_ctx.translate(self.position[0], self.position[1])
+            cairo_ctx.scale(txt_factor * Pango.SCALE, txt_factor * Pango.SCALE)
+            cairo_ctx.set_source_rgb(0.0, 0.0, 0.0)
+            PangoCairo.update_layout(cairo_ctx, layout)
+            PangoCairo.show_layout(cairo_ctx, layout)
+        finally:
+            cairo_ctx.restore()
 
 
 class TargetAreaDrawer(Drawer):

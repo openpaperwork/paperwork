@@ -61,6 +61,7 @@ from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
 from paperwork.frontend.util.canvas.drawers import ProgressBarDrawer
+from paperwork.frontend.util.canvas.drawers import TextDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
@@ -68,6 +69,9 @@ from paperwork.frontend.util.jobs import JobScheduler
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
+
+__version__ = '1.0-git'
 
 
 def check_scanner(main_win, config):
@@ -2374,17 +2378,30 @@ class MainWindow(object):
         return window
 
     def __init_canvas(self):
+        canvas_size = self.img['canvas'].visible_size
         try:
-            canvas_size = self.img['canvas'].visible_size
             logo = load_image("paperwork_100.png")
             logo_size = logo.size
             logo_drawer = PillowImageDrawer((
                 canvas_size[0] / 2 - (logo_size[0] / 2),
                 canvas_size[1] / 2 - (logo_size[1] / 2)
             ), logo)
+            logo_drawer.layer = logo_drawer.BACKGROUND_LAYER
             self.img['canvas'].add_drawer(logo_drawer)
         except Exception as exc:
             logger.warning("Failed to display logo: {}".format(exc))
+
+        if __version__ != "1.0":
+            txt = "Paperwork {}".format(__version__)
+        else:
+            # "Paperwork 1.0" looks ugly... :p
+            txt = "Paperwork"
+        txt_drawer = TextDrawer((
+            int(canvas_size[0] / 2),
+            int((canvas_size[1] / 2) + (logo_size[1] / 2) + 12),
+        ), txt, height=24)
+        self.img['canvas'].add_drawer(txt_drawer)
+
 
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)

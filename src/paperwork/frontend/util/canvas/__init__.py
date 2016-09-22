@@ -38,6 +38,22 @@ from paperwork.frontend.util import PriorityQueue
 logger = logging.getLogger(__name__)
 
 
+class AbsoluteEvent(object):
+    base_event = None
+    offset = (0, 0)
+
+    def __init__(self, base_event, offset):
+        self.base_event = base_event
+        self.offset = offset
+
+    def __getattr__(self, name):
+        if name == "x":
+            return self.base_event.x + self.offset[0]
+        if name == "y":
+            return self.base_event.y + self.offset[1]
+        return getattr(self.base_event, name)
+
+
 class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     """
@@ -308,10 +324,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __get_absolute_event(self, event):
         off_x = int(self.hadjustment.get_value())
         off_y = int(self.vadjustment.get_value())
-        event = event.copy()
-        event.x += off_x
-        event.y += off_y
-        return event
+        return AbsoluteEvent(event, (off_x, off_y))
 
     def __on_button_pressed(self, _, event):
         self.grab_focus()

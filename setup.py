@@ -8,7 +8,7 @@ if os.name == "nt":
     extra_deps = []
 else:
     extra_deps = [
-        "pyenchant"
+        "pyenchant",
         "python-Levenshtein",
     ]
 

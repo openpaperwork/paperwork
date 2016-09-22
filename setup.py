@@ -157,6 +157,8 @@ Main features are:
          ['data/paperwork.desktop']),
         (os.path.join(sys.prefix, 'share/icons'),
          ['data/paperwork.svg']),
+        (os.path.join(sys.prefix, 'share/paperwork'),
+         ['data/paperwork_100.png']),
     ],
     scripts=[
         'scripts/paperwork',

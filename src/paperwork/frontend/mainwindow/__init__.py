@@ -50,6 +50,7 @@ from paperwork.frontend.searchdialog import SearchDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.util import connect_actions
 from paperwork.frontend.util import load_cssfile
+from paperwork.frontend.util import load_image
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util import sizeof_fmt
 from paperwork.frontend.util.actions import SimpleAction
@@ -2281,6 +2282,8 @@ class MainWindow(object):
         for scheduler in self.schedulers.values():
             scheduler.start()
 
+        GLib.idle_add(self.__init_canvas)
+
     def __init_headerbars(self, widget_tree):
         # Fix Unity placement of close/minize/maximize (it *must* be on the
         # right)
@@ -2369,6 +2372,19 @@ class MainWindow(object):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             window.set_icon(logo)
         return window
+
+    def __init_canvas(self):
+        try:
+            canvas_size = self.img['canvas'].visible_size
+            logo = load_image("paperwork_100.png")
+            logo_size = logo.size
+            logo_drawer = PillowImageDrawer((
+                canvas_size[0] / 2 - (logo_size[0] / 2),
+                canvas_size[1] / 2 - (logo_size[1] / 2)
+            ), logo)
+            self.img['canvas'].add_drawer(logo_drawer)
+        except Exception as exc:
+            logger.warning("Failed to display logo: {}".format(exc))
 
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)

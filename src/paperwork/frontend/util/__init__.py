@@ -25,6 +25,8 @@ import gettext
 from gi.repository import Gdk
 from gi.repository import Gtk
 
+import PIL.Image
+
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -37,6 +39,7 @@ if getattr(sys, 'frozen', False):
 UI_FILES_DIRS += [
     ".",
     "src/paperwork/frontend",
+    "data",
     PREFIX + "/local/share/paperwork",
     PREFIX + "/share/paperwork",
 
@@ -121,6 +124,18 @@ _SIZEOF_FMT_STRINGS = [
     _('%3.1f GB'),
     _('%3.1f TB'),
 ]
+
+
+def load_image(filename):
+    """
+    Load an image from Paperwork data
+    """
+    for img_directory in UI_FILES_DIRS:
+        for img_dir in glob.glob(img_directory):
+            img = os.path.join(img_dir, filename)
+            if os.path.exists(img):
+                return PIL.Image.open(img)
+    raise Exception("Can't find image '{}' !".format(filename))
 
 
 def sizeof_fmt(num):

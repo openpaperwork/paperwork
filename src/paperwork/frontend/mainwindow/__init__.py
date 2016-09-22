@@ -2539,33 +2539,7 @@ class MainWindow(object):
         }[layout]
         self.layouts['settings_button'].set_image(img)
 
-    def _show_doc_internal(self, doc, force_refresh=False):
-        # Make sure we display the same instance of the document than the
-        # one in the backend. Not a copy (unless there is no instance in the
-        # backend)
-        # This is required to workaround some issues regarding caching
-        # in the backend
-        doc_inst = self.docsearch.get_doc_from_docid(doc.docid, inst=False)
-        if doc_inst:
-            doc = doc_inst
-
-        if (self.doc is not None and
-                self.doc == doc and
-                not force_refresh):
-            logger.info("Doc is already shown")
-            return
-
-        if self.doc:
-            self.doc.drop_cache()
-
-        logger.info("Showing document %s" % doc)
-        self.doc = doc
-        if not self.page or self.page.doc.docid != doc.docid:
-            if doc.nb_pages > 0:
-                self.page = self.doc.pages[0]
-            else:
-                self.page = None
-
+    def __reset_page_drawers(self, doc):
         self.schedulers['main'].cancel_all(
             self.job_factories['page_img_loader']
         )
@@ -2631,6 +2605,37 @@ class MainWindow(object):
             previous_drawer = drawer
             if not first_scan_drawer:
                 first_scan_drawer = drawer
+
+        return first_scan_drawer
+
+    def _show_doc_internal(self, doc, force_refresh=False):
+        # Make sure we display the same instance of the document than the
+        # one in the backend. Not a copy (unless there is no instance in the
+        # backend)
+        # This is required to workaround some issues regarding caching
+        # in the backend
+        doc_inst = self.docsearch.get_doc_from_docid(doc.docid, inst=False)
+        if doc_inst:
+            doc = doc_inst
+
+        if (self.doc is not None and
+                self.doc == doc and
+                not force_refresh):
+            logger.info("Doc is already shown")
+            return
+
+        if self.doc:
+            self.doc.drop_cache()
+
+        logger.info("Showing document %s" % doc)
+        self.doc = doc
+        if not self.page or self.page.doc.docid != doc.docid:
+            if doc.nb_pages > 0:
+                self.page = self.doc.pages[0]
+            else:
+                self.page = None
+
+        first_scan_drawer = self.__reset_page_drawers(doc)
 
         # reset zoom level
         self.set_zoom_level(1.0, auto=True)

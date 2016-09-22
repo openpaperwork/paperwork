@@ -1063,6 +1063,10 @@ GObject.type_register(PageDrawer)
 
 
 class PageDropHandler(Drawer):
+    """
+    Drag'n'drop: Used when the user drop a page on the canvas.
+    Display where the page will land
+    """
     LINE_BORDERS = 10
     LINE_WIDTH = 3
     LINE_COLOR = (0.0, 0.8, 1.0, 1.0)

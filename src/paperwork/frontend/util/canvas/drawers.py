@@ -62,7 +62,7 @@ class Drawer(object):
     def draw_surface(self,
                      cairo_ctx, surface, img_position, img_size, angle=0,
                      absolute=False,
-            ):
+                     ):
         """
         Draw a surface
 
@@ -635,7 +635,7 @@ class ProgressBarDrawer(Drawer):
         position = (0, self.canvas.size[1] - self.__last_text_height)
 
         cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
-                                cairo.FONT_WEIGHT_BOLD)
+                                   cairo.FONT_WEIGHT_BOLD)
         txt_ext = cairo_ctx.text_extents(txt)
         (p_x1, p_y1, p_x2, p_y2, p_x3, p_y3) = txt_ext
         txt_h = p_y2
@@ -650,27 +650,26 @@ class ProgressBarDrawer(Drawer):
         w = ((canvas_w * (self.val_current - self.val_min))
              / (self.val_max - self.val_min))
 
-
         cairo_ctx.save()
         try:
             for (color, rect_pos, rect_size) in [
-                    (
-                        self.bar_color,
-                        (position[0], position[1]),
-                        (w, size[1])
-                    ),
-                    (
-                        self.back_color,
-                        (position[0] + w, position[1]),
-                        (canvas_w - position[0] - w, size[1])
-                    ),
-                ]:
-                    cairo_ctx.set_source_rgb(color[0], color[1], color[2])
-                    cairo_ctx.rectangle(
-                        rect_pos[0], rect_pos[1],
-                        rect_size[0], rect_size[1]
-                    )
-                    cairo_ctx.fill()
+                (
+                    self.bar_color,
+                    (position[0], position[1]),
+                    (w, size[1])
+                ),
+                (
+                    self.back_color,
+                    (position[0] + w, position[1]),
+                    (canvas_w - position[0] - w, size[1])
+                ),
+            ]:
+                cairo_ctx.set_source_rgb(color[0], color[1], color[2])
+                cairo_ctx.rectangle(
+                    rect_pos[0], rect_pos[1],
+                    rect_size[0], rect_size[1]
+                )
+                cairo_ctx.fill()
         finally:
             cairo_ctx.restore()
 

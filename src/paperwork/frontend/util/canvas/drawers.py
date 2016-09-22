@@ -212,6 +212,56 @@ class Drawer(object):
         pass
 
 
+class Centerer(Drawer):
+    """
+    Wrapper to keep a drawer centered
+    """
+    def __init__(self, child):
+        super(Centerer, self).__init__()
+        self.child = child
+
+    def set_canvas(self, canvas):
+        super(Centerer, self).set_canvas(canvas)
+        self.child.set_canvas(canvas)
+
+    def __get_layer(self):
+        return self.child.layer
+
+    def __set_layer(self, v):
+        self.child.layer = v
+
+    layer = property(__get_layer, __set_layer)
+
+    def __get_size(self):
+        return self.child.size
+
+    size = property(__get_size)
+
+    def __get_position(self):
+        if not self.canvas:
+            logger.warning(
+                "Centerer: Canvas not set yet. Cannot center drawer !"
+            )
+            return self.child.position
+        return (
+            self.child.position[0] + (self.canvas.visible_size[0] / 2),
+            self.child.position[1] + (self.canvas.visible_size[1] / 2),
+        )
+
+    position = property(__get_position)
+
+    def do_draw(self, cairo_ctx):
+        cairo_ctx.save()
+        try:
+            cairo_ctx.translate(
+                int(self.canvas.visible_size[0] / 2),
+                int(self.canvas.visible_size[1] / 2)
+            )
+            self.child.do_draw(cairo_ctx)
+        finally:
+            cairo_ctx.restore()
+
+
 class BackgroundDrawer(Drawer):
     layer = Drawer.BACKGROUND_LAYER
 
@@ -426,7 +476,7 @@ class PillowImageDrawer(Drawer):
     visible = True
 
     def __init__(self, position, image):
-        Drawer.__init__(self)
+        super(PillowImageDrawer, self).__init__()
         self.size = image.size
         self.img_size = self.size
         self.position = position
@@ -447,7 +497,7 @@ class TextDrawer(Drawer):
     visible = True
 
     def __init__(self, position, text, height=12):
-        Drawer.__init__(self)
+        super(TextDrawer, self).__init__()
         self.size = (10, 10)  # will be updated later when text will be rendered
         self.center_position = position
         # In this case, it's actually the center of the text.

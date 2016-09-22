@@ -1082,6 +1082,8 @@ class ActionUpdPageSizes(SimpleAction):
         mw = self.__main_win
         mw.zoom_level['auto'] = False
         mw.update_page_sizes()
+        mw.img['canvas'].recompute_size(upd_scrollbar_values=True)
+        mw.img['canvas'].redraw()
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -2270,8 +2272,8 @@ class MainWindow(object):
         self.img['canvas'].connect(
             None, "scroll-event", self.__on_scroll_event_cb
         )
-        self.img['canvas'].connect(
-            None, "key-press-event", self.__on_key_press_event_cb,
+        self.window.connect(
+            "key-press-event", self.__on_key_press_event_cb,
         )
 
         self.window.set_visible(True)
@@ -2507,17 +2509,7 @@ class MainWindow(object):
 
     def update_page_sizes(self):
         (auto, factor) = self.get_zoom_level()
-        if auto:
-            # compute the wanted factor
-            factor = 1.0
-            for page in self.page_drawers:
-                others = [
-                    drawer.page for drawer in self.page_drawers
-                    if drawer.page
-                ]
-                factor = min(factor, self.compute_zoom_level(
-                    page.max_size, others))
-            self.set_zoom_level(factor, auto=True)
+        self.zoom_level['model'].set_value(factor)
 
         self.schedulers['main'].cancel_all(
             self.job_factories['page_img_loader']
@@ -2532,7 +2524,6 @@ class MainWindow(object):
         if self.doc.docid in self.scan_drawers:
             for drawer in self.scan_drawers[self.doc.docid].values():
                 drawer.relocate()
-        self.img['canvas'].redraw()
 
     def set_layout(self, layout, force_refresh=True):
         if self.layout == layout:
@@ -2644,8 +2635,7 @@ class MainWindow(object):
         # reset zoom level
         self.set_zoom_level(1.0, auto=True)
         self.update_page_sizes()
-        self.img['canvas'].recompute_size()
-        self.img['canvas'].upd_adjustments()
+        self.img['canvas'].recompute_size(upd_scrollbar_values=False)
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -2785,7 +2775,20 @@ class MainWindow(object):
         return h
 
     def get_zoom_level(self):
-        return (self.zoom_level['auto'], self.zoom_level['model'].get_value())
+        auto = self.zoom_level['auto']
+        if auto:
+            # compute the wanted factor
+            factor = 1.0
+            for page in self.page_drawers:
+                others = [
+                    drawer.page for drawer in self.page_drawers
+                    if drawer.page
+                ]
+                factor = min(factor, self.compute_zoom_level(
+                    page.max_size, others))
+        else:
+            factor = self.zoom_level['model'].get_value()
+        return (auto, factor)
 
     def compute_zoom_level(self, img_size, other_pages):
         if self.layout == "grid":
@@ -2807,7 +2810,8 @@ class MainWindow(object):
             wanted_height = BasicPage.DEFAULT_THUMB_HEIGHT
             return float(wanted_height) / img_size[1]
         else:
-            (auto, factor) = self.get_zoom_level()
+            auto = self.zoom_level['auto']
+            factor = self.zoom_level['model'].get_value()
             # factor is a postive float if user defined, 0 for full width and
             # -1 for full page
             if not auto:
@@ -2849,7 +2853,8 @@ class MainWindow(object):
             return
 
         self.update_page_sizes()
-        self.img['canvas'].recompute_size()
+        self.img['canvas'].recompute_size(upd_scrollbar_values=True)
+        self.img['canvas'].redraw()
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -2860,12 +2865,12 @@ class MainWindow(object):
         self.__config['main_win_size'].value = (w, h)
 
     def __set_zoom_level_on_scroll(self, zoom):
-        zoom_model = self.zoom_level['model']
-        logger.info("Changing zoom level: %f --> %f"
-                    % (zoom_model.get_value(), zoom))
-        zoom_model.set_value(zoom)
-        self.zoom_level['auto'] = False
+        logger.info("Changing zoom level: %f"
+                    % zoom)
+        self.set_zoom_level(zoom, auto=False)
         self.update_page_sizes()
+        self.img['canvas'].recompute_size(upd_scrollbar_values=True)
+        self.img['canvas'].redraw()
 
     def __on_scroll_event_cb(self, widget, event):
         ZOOM_INCREMENT = 0.02

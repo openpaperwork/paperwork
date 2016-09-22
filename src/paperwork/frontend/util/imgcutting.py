@@ -15,7 +15,6 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from gi.repository import Gdk
-from gi.repository import Gtk
 from gi.repository import GLib
 from gi.repository import GObject
 
@@ -302,7 +301,7 @@ class ImgGripHandler(GObject.GObject):
         if len(rel_pos) >= 2:
             GLib.idle_add(self.__replace_scrollbars, rel_pos)
 
-        self.canvas.recompute_size()
+        self.canvas.recompute_size(upd_scrollbar_values=False)
 
         self.emit("zoom-changed")
 

@@ -98,6 +98,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.full_size = (1, 1)
         self.visible_size = (1, 1)
+        self.mouse_position = (0, 0)
 
         self.drawers = PriorityQueue()
         self.tick_counter_lock = threading.Lock()
@@ -110,6 +111,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self.add_events(Gdk.EventMask.LEAVE_NOTIFY_MASK)
         super(Canvas, self).connect("size-allocate", self.__on_size_allocate)
         super(Canvas, self).connect("draw", self.__on_draw)
         super(Canvas, self).connect("button-press-event",
@@ -118,6 +120,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         super(Canvas, self).connect("button-release-event",
                                     self.__on_button_released)
         super(Canvas, self).connect("key-press-event", self.__on_key_pressed)
+        super(Canvas, self).connect("leave-notify-event", self.__on_mouse_leave)
 
         hadj.connect("value-changed", self.__on_adjustment_changed)
         vadj.connect("value-changed", self.__on_adjustment_changed)
@@ -131,7 +134,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self._drawer_connections = {}  # drawer --> [('signal', func), ...]
 
         self.__scroll_origin = (0, 0)
-        self.__mouse_position = (0, 0)
         self.__cursor_drawer = None
 
     def _tick(self):
@@ -173,18 +175,18 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         return self.hadjustment
 
     def set_hadjustment(self, h):
+        self.upd_adjustments(upd_scrollbar_values=False)
         Gtk.Scrollable.set_hadjustment(self, h)
         self.set_property("hadjustment", h)
-        self.upd_adjustments()
         h.connect("value-changed", self.__on_adjustment_changed)
 
     def get_vadjustment(self):
         return self.vadjustment
 
     def set_vadjustment(self, v):
+        self.upd_adjustments(upd_scrollbar_values=False)
         Gtk.Scrollable.set_vadjustment(self, v)
         self.set_property("vadjustment", v)
-        self.upd_adjustments()
         v.connect("value-changed", self.__on_adjustment_changed)
 
     def __on_adjustment_changed(self, adjustment):
@@ -194,10 +196,10 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
     def __on_size_allocate(self, _, size_allocate):
         self.visible_size = (size_allocate.width,
                              size_allocate.height)
-        self.upd_adjustments()
+        self.upd_adjustments(upd_scrollbar_values=False)
         self.redraw()
 
-    def recompute_size(self):
+    def recompute_size(self, upd_scrollbar_values=False):
         (full_x, full_y) = (1, 1)
         for drawer in self.drawers:
             x = drawer.position[0] + drawer.size[0]
@@ -211,30 +213,60 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                 or new_size[1] != self.full_size[1]):
             self.full_size = new_size
             self.set_size_request(new_size[0], new_size[1])
-            self.upd_adjustments()
+            self.upd_adjustments(upd_scrollbar_values)
 
-    def upd_adjustments(self):
-        val_h = float(self.hadjustment.get_value())
-        val_v = float(self.vadjustment.get_value())
+    def upd_adjustments(self, upd_scrollbar_values=False):
         max_h = max(float(self.visible_size[0]),
                     float(self.full_size[0]), 100.0)
         max_v = max(float(self.visible_size[1]),
                     float(self.full_size[1]), 100.0)
-        if val_h > self.full_size[0]:
-            val_h = self.full_size[0]
-        if val_v > self.full_size[1]:
-            val_v = self.full_size[1]
-        self.hadjustment.set_lower(0)
-        self.vadjustment.set_lower(0)
-        self.hadjustment.set_upper(max_h)
-        self.vadjustment.set_upper(max_v)
-        self.hadjustment.set_page_size(self.visible_size[0])
-        self.vadjustment.set_page_size(self.visible_size[1])
-        self.hadjustment.set_value(int(val_h))
-        self.vadjustment.set_value(int(val_v))
+
+        current = [
+            float(self.hadjustment.get_value()),
+            float(self.vadjustment.get_value())
+        ]
+        if not upd_scrollbar_values:
+            vals = list(current)
+        else:
+            if self.mouse_position == (0, 0):
+                current_center = (
+                    current[0] + (self.visible_size[0] / 2),
+                    current[1] + (self.visible_size[1] / 2)
+                )
+            else:
+                # track the mouse pointer
+                current_center = (
+                    current[0] + self.mouse_position[0],
+                    current[1] + self.mouse_position[1]
+                )
+
+            vals = [0, 0]
+            for (adj, pos, new_max, idx) in [
+                        (self.hadjustment, current_center[0], max_h, 0),
+                        (self.vadjustment, current_center[1], max_v, 1)
+                    ]:
+                adj_min = adj.get_lower()
+                adj_max = max(1, adj.get_upper())
+                proportional = ((float(pos) - adj_min) / adj_max)
+                vals[idx] = int(proportional * new_max)
+                if self.mouse_position == (0, 0):
+                    vals[idx] -= self.visible_size[idx] / 2
+                else:
+                    vals[idx] -= self.mouse_position[idx]
+
+        for (adj, pos, new_max, idx) in [
+                    (self.hadjustment, self.mouse_position[0], max_h, 0),
+                    (self.vadjustment, self.mouse_position[1], max_v, 1)
+                ]:
+            if vals[idx] > self.full_size[idx]:
+                vals[idx] = self.full_size[idx]
+            adj.set_lower(0)
+            adj.set_upper(new_max)
+            adj.set_page_size(self.visible_size[idx])
+            adj.set_value(int(vals[idx]))
 
     def __on_draw(self, _, cairo_ctx):
-        self.recompute_size()
+        self.recompute_size(upd_scrollbar_values=False)
 
         for drawer in self.drawers:
             cairo_ctx.save()
@@ -260,7 +292,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
-        self.recompute_size()
+        self.recompute_size(upd_scrollbar_values=False)
         self.redraw((drawer.relative_position, drawer.relative_size))
 
     def get_drawer_at(self, position):
@@ -303,7 +335,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.disconnect_drawer(drawer)
         drawer.hide()
         self.drawers.remove(drawer)
-        self.recompute_size()
+        self.recompute_size(upd_scrollbar_values=False)
         self.redraw()
 
     def remove_drawers(self, drawers):
@@ -311,7 +343,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             self.disconnect_drawer(drawer)
             drawer.hide()
             self.drawers.remove(drawer)
-        self.recompute_size()
+        self.recompute_size(upd_scrollbar_values=False)
         self.redraw()
 
     def remove_all_drawers(self):
@@ -319,7 +351,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             self.disconnect_drawer(drawer)
             drawer.hide()
         self.drawers.purge()
-        self.recompute_size()
+        self.recompute_size(upd_scrollbar_values=False)
         self.redraw()
 
     def redraw(self, area=None):
@@ -364,14 +396,13 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.emit('absolute-button-press-event', event)
 
     def __on_motion(self, _, event):
-        self.__mouse_position = (event.x, event.y)
+        self.mouse_position = (event.x, event.y)
         event = self.__get_absolute_event(event)
         self.emit('absolute-motion-notify-event', event)
 
     def __on_button_released(self, _, event):
         if self.__scroll_origin != (0, 0):
             self.stop_ticks()
-            self.__mouse_position = (0, 0)
             self.__scroll_origin = (0, 0)
             self.get_window().set_cursor(None)
             self.remove_drawer(self.__cursor_drawer)
@@ -401,6 +432,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         if v != self.vadjustment.get_value():
             self.vadjustment.set_value(v)
 
+        return True
+
     def __on_key_pressed(self, _, event):
         h_offset = 100
         v_offset = 100
@@ -414,21 +447,23 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         if event.keyval not in ops:
             return False
         offset = ops[event.keyval]
-        self.__scroll(offset)
-        return True
+        return self.__scroll(offset)
+
+    def __on_mouse_leave(self, _, event):
+        self.mouse_position = (0, 0)
 
     def __apply_scrolling(self):
-        if (self.__scroll_origin == (0, 0) or self.__mouse_position == (0, 0)):
+        if (self.__scroll_origin == (0, 0) or self.mouse_position == (0, 0)):
             # no scrolling for now
             return
         SCROLLING_REDUCTION_FACTOR = 2
-        scroll_x = self.__mouse_position[0] - self.__scroll_origin[0]
-        scroll_y = self.__mouse_position[1] - self.__scroll_origin[1]
+        scroll_x = self.mouse_position[0] - self.__scroll_origin[0]
+        scroll_y = self.mouse_position[1] - self.__scroll_origin[1]
         scroll_x /= SCROLLING_REDUCTION_FACTOR
         scroll_y /= SCROLLING_REDUCTION_FACTOR
         scroll_x = max(min(scroll_x, 50), -50)
         scroll_y = max(min(scroll_y, 50), -50)
-        self.__scroll((scroll_x, scroll_y))
+        return self.__scroll((scroll_x, scroll_y))
 
     def __get_position(self):
         return (int(self.hadjustment.get_value()),

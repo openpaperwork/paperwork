@@ -602,6 +602,12 @@ class DocList(object):
             self.job_factories['doc_thumbnailer']
         )
 
+        # because we use GLib.idle_add() before calling this function
+        # the scrollbar may have disappear (--> application close)
+        # before we are called
+        if vadjustment is None:
+            return
+
         # XXX(Jflesch): assumptions: values are in px
         value = vadjustment.get_value()
         page_size = vadjustment.get_page_size()

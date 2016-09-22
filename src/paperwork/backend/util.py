@@ -28,9 +28,10 @@ try:
 except:
     CAIRO_AVAILABLE = False
 
-import enchant
-import enchant.tokenize
-import Levenshtein
+if os.name != "nt":
+    import enchant
+    import enchant.tokenize
+    import Levenshtein
 
 import PIL.Image
 
@@ -134,6 +135,9 @@ def check_spelling(spelling_lang, txt):
     Returns:
         A tuple : (fixed text, score)
     """
+    if os.name == "nt":
+        assert(not "check_spelling() not available on Windows")
+        return
     _ENCHANT_LOCK.acquire()
     try:
         # Maximum distance from the first suggestion from python-enchant

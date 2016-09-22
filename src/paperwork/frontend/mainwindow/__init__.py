@@ -2733,6 +2733,8 @@ class MainWindow(object):
         GLib.idle_add(self._show_page_hook, page, force_refresh)
 
     def _on_page_drawer_selected(self, page_drawer):
+        if self.layout == 'paged':
+            return
         self.set_layout('paged', force_refresh=False)
         self.show_page(page_drawer.page, force_refresh=True)
 

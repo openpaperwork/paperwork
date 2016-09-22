@@ -2399,9 +2399,7 @@ class MainWindow(object):
         else:
             # "Paperwork 1.0" looks ugly... :p
             txt = "Paperwork"
-        txt_drawer = TextDrawer((
-            0, (logo_size[1] / 2),
-        ), txt, height=24)
+        txt_drawer = TextDrawer((0, (logo_size[1] / 2)), txt, height=24)
         txt_drawer = Centerer(txt_drawer)
         self.img['canvas'].add_drawer(txt_drawer)
 

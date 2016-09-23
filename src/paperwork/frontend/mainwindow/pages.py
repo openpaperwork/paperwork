@@ -212,7 +212,11 @@ class PageEditAction(Drawer):
             y = min(y, child.position[1])
         return (x, y)
 
-    position = property(_get_position)
+    def _set_position(self, position):
+        for child in self.child_drawers:
+            child.position = position
+
+    position = property(_get_position, _set_position)
 
     def _get_size(self):
         x = 0
@@ -222,7 +226,23 @@ class PageEditAction(Drawer):
             y = max(y, child.size[1])
         return (x, y)
 
-    size = property(_get_size)
+    def _set_size(self, size):
+        for child in self.child_drawers:
+            child.size = size
+
+    size = property(_get_size, _set_size)
+
+    def _get_max_size(self):
+        x = 0
+        y = 0
+        for child in self.child_drawers:
+            if not hasattr(child, "max_size"):
+                continue
+            x = max(x, child.max_size[0])
+            y = max(y, child.max_size[1])
+        return (x, y)
+
+    max_size = property(_get_max_size)
 
     def _get_angle(self):
         # Assume the first child defines the orientation
@@ -282,7 +302,20 @@ class PageRotationAction(PageEditAction):
             size = (size[1], size[0])
         return size
 
-    size = property(_get_size)
+    def _set_size(self, size):
+        if self._angle % 180 == 90:
+            size = (size[1], size[0])
+        self.child_drawers[0].size = size
+
+    size = property(_get_size, _set_size)
+
+    def _get_max_size(self):
+        size = self.child_drawers[0].max_size
+        if self._angle % 180 == 90:
+            size = (size[1], size[0])
+        return size
+
+    max_size = property(_get_max_size)
 
     def do_draw(self, cairo_ctx):
         cairo_ctx.save()
@@ -316,7 +349,9 @@ class PageCuttingAction(PageEditAction):
         Arguments:
             cut --- ((a, b), (c, d))
         """
-        self.imggrips = ImgGripHandler(child_drawer)
+        self.imggrips = ImgGripHandler(
+            child_drawer, child_drawer.max_size
+        )
         super(PageCuttingAction, self).__init__([child_drawer, self.imggrips])
 
     def apply(self, pil_img):
@@ -337,10 +372,11 @@ class SimplePageDrawer(Drawer):
     TMP_AREA = (0.85, 0.85, 0.85)
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
 
-    def __init__(self, parent_drawer, job_factories, job_schedulers,
+    def __init__(self, parent_drawer, max_size, job_factories, job_schedulers,
                  search_sentence=u"", show_border=True, show_all_boxes=False,
                  show_boxes=True):
         super(SimplePageDrawer, self).__init__()
+        self.max_size = max_size
         self.page = parent_drawer.page
         self.parent = parent_drawer
         self.job_factories = job_factories
@@ -360,6 +396,8 @@ class SimplePageDrawer(Drawer):
         self.factories = job_factories
         self.schedulers = job_schedulers
         self.loading = False
+        self._size = max_size
+        self._position = (0, 0)
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
 
@@ -370,15 +408,27 @@ class SimplePageDrawer(Drawer):
                        lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
 
-    def __get_position(self):
-        return self.parent.position
+    def _get_size(self):
+        return self._size
 
-    position = property(__get_position)
+    def _set_size(self, size):
+        if self._size == size:
+            return
+        self.unload_content()
+        self.visible = False  # will force a reload if visible
+        self._size = size
+        self.upd_spinner_position()
 
-    def __get_size(self):
-        return self.parent.size
+    size = property(_get_size, _set_size)
 
-    size = property(__get_size)
+    def _get_position(self):
+        return self._position
+
+    def _set_position(self, position):
+        self._position = position
+        self.upd_spinner_position()
+
+    position = property(_get_position, _set_position)
 
     def upd_spinner_position(self):
         self.spinner.position = (
@@ -693,6 +743,7 @@ class PageDrawer(Drawer, GObject.GObject):
     PAGE_DRAG_ID = 128
 
     __gsignals__ = {
+        'may-need-resize': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-edited': (GObject.SignalFlags.RUN_LAST, None,
                         (
@@ -713,7 +764,6 @@ class PageDrawer(Drawer, GObject.GObject):
         GObject.GObject.__init__(self)
         Drawer.__init__(self)
 
-        self.max_size = page.size
         self.page = page
         self.show_boxes = show_boxes
         self.show_all_boxes = show_all_boxes
@@ -729,19 +779,15 @@ class PageDrawer(Drawer, GObject.GObject):
         self.factories = job_factories
         self.schedulers = job_schedulers
 
-        self._size = self.max_size
-        self._position = (0, 0)
-
         icon_theme = Gtk.IconTheme.get_default()
 
         first_editor_buttons = []
         first_editor_buttons_pos = 10
 
         self.simple_page_drawer = SimplePageDrawer(
-            self, job_factories, job_schedulers, sentence,
+            self, page.size, job_factories, job_schedulers, sentence,
             show_border, show_all_boxes, show_boxes
         )
-
         self.edit_chain = [self.simple_page_drawer]
 
         if self.page.can_edit:
@@ -887,33 +933,31 @@ class PageDrawer(Drawer, GObject.GObject):
         self.simple_page_drawer.spinner.on_tick()
         self.simple_page_drawer.on_tick()
 
-    def _get_position(self):
-        return self._position
-
-    def _set_position(self, position):
-        self._position = position
-        self.simple_page_drawer.upd_spinner_position()
-
-    position = property(_get_position, _set_position)
-
     def _get_size(self):
-        return self._size
+        return self.edit_chain[-1].size
 
     def _set_size(self, size):
-        if size == self._size:
-            return
-
-        self._size = size
-        self.simple_page_drawer.unload_content()
-        self.visible = False  # will force a reload if visible
-        self.simple_page_drawer.visible = False
-        self.simple_page_drawer.upd_spinner_position()
+        self.edit_chain[-1].size = size
 
     size = property(_get_size, _set_size)
 
+    def _get_position(self):
+        return self.edit_chain[-1].position
+
+    def _set_position(self, position):
+        self.edit_chain[-1].position = position
+
+    position = property(_get_position, _set_position)
+
+    def _get_max_size(self):
+        r = self.edit_chain[-1].max_size
+        return r
+
+    max_size = property(_get_max_size)
+
     def set_size_ratio(self, factor):
-        self.size = (int(factor * self.max_size[0]),
-                     int(factor * self.max_size[1]))
+        self.size = (int(factor * self.edit_chain[-1].max_size[0]),
+                     int(factor * self.edit_chain[-1].max_size[1]))
 
     def hide(self):
         self.simple_page_drawer.unload_content()
@@ -922,8 +966,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _get_factors(self):
         return (
-            (float(self._size[0]) / self.max_size[0]),
-            (float(self._size[1]) / self.max_size[1]),
+            (float(self.size[0]) / self.edit_chain[-1].max_size[0]),
+            (float(self.size[1]) / self.edit_chain[-1].max_size[1]),
         )
 
     def _get_button_position(self, b_position):
@@ -1158,10 +1202,11 @@ class PageDrawer(Drawer, GObject.GObject):
         self.redraw()
 
     def _add_edit_action(self, action):
+        logger.info("Adding edit action: {}".format(str(type(action))))
         self.canvas.remove_drawer(self.edit_chain[-1])
         self.edit_chain.append(action)
         self.canvas.add_drawer(self.edit_chain[-1])
-        self.canvas.recompute_size()
+        self.emit("may-need-resize")
 
     def _on_edit_crop(self):
         child = self.edit_chain[-1]

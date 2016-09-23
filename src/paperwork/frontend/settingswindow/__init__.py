@@ -909,7 +909,7 @@ class SettingsWindow(GObject.GObject):
         self.calibration['image_gui'].remove_all_drawers()
         self.calibration['image_gui'].add_drawer(img_drawer)
         self.grips = ImgGripHandler(
-            img_drawer,
+            img_drawer, img_drawer.size,
             self.calibration['zoom'],
             default_grips_positions=calibration
         )

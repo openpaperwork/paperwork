@@ -38,7 +38,6 @@ class ImgGrip(Drawer):
         self._img_position = position  # position relative to the image
         self.max_position = max_position
         self.size = (0, 0)
-        self.scale = 1.0
         self.selected = False
         self.hover = False
         self.visible = True
@@ -57,15 +56,15 @@ class ImgGrip(Drawer):
 
     def __get_on_canvas_pos(self):
         drawer_position = self.handler.img_drawer.position
-        x = int(self._img_position[0] * self.scale) + drawer_position[0]
-        y = int(self._img_position[1] * self.scale) + drawer_position[1]
+        x = int(self._img_position[0] * self.handler.scale) + drawer_position[0]
+        y = int(self._img_position[1] * self.handler.scale) + drawer_position[1]
         return (x, y)
 
     def __set_on_canvas_pos(self, position):
         drawer_position = self.handler.img_drawer.position
         position = (
-            (position[0] - drawer_position[0]) / self.scale,
-            (position[1] - drawer_position[1]) / self.scale
+            (position[0] - drawer_position[0]) / self.handler.scale,
+            (position[1] - drawer_position[1]) / self.handler.scale
         )
         self.__set_img_position(position)
 
@@ -73,8 +72,8 @@ class ImgGrip(Drawer):
 
     def __get_select_area(self, pos):
         (x, y) = self._img_position
-        x *= self.scale
-        y *= self.scale
+        x *= self.handler.scale
+        y *= self.handler.scale
         x_min = x - (self.GRIP_SIZE / 2)
         y_min = y - (self.GRIP_SIZE / 2)
         x_max = x + (self.GRIP_SIZE / 2)
@@ -144,7 +143,11 @@ class ImgGripRectangle(Drawer):
                 min(self.grips[0].position[1],
                     self.grips[1].position[1]))
 
-    position = property(__get_position)
+    def __set_position(self, _):
+        # No op
+        pass
+
+    position = property(__get_position, __set_position)
 
     def do_draw(self, cairo_ctx):
         visible = False
@@ -172,7 +175,7 @@ class ImgGripHandler(GObject.GObject, Drawer):
 
     layer = (Drawer.BOX_LAYER + 1)  # draw below/before the grips itself
 
-    def __init__(self, img_drawer, zoom_widget=None,
+    def __init__(self, img_drawer, img_size, zoom_widget=None,
                  default_grips_positions=None):
         """
         Arguments:
@@ -183,21 +186,11 @@ class ImgGripHandler(GObject.GObject, Drawer):
 
         super(ImgGripHandler, self).__init__()
 
-        self.position = (
-            img_drawer.position[0] - ImgGrip.GRIP_SIZE,
-            img_drawer.position[1] - ImgGrip.GRIP_SIZE,
-        )
-        self.size = (
-            img_drawer.size[0] + ImgGrip.GRIP_SIZE,
-            img_drawer.size[1] + ImgGrip.GRIP_SIZE,
-        )
-
         self.zoom_widget = zoom_widget
 
         self.__visible = False
 
-        self.img_size = img_drawer.size
-
+        self.img_size = img_size
         self.img_drawer = img_drawer
 
         if default_grips_positions is None:
@@ -277,6 +270,30 @@ class ImgGripHandler(GObject.GObject, Drawer):
         canvas.connect(self, "absolute-button-release-event",
                        self.__on_mouse_button_released_cb)
 
+    def _set_size(self, _):
+        # no op
+        pass
+
+    def _get_size(self):
+        return (
+            self.img_drawer.size[0] + ImgGrip.GRIP_SIZE,
+            self.img_drawer.size[1] + ImgGrip.GRIP_SIZE,
+        )
+
+    size = property(_get_size, _set_size)
+
+    def _get_position(self):
+        return (
+            self.img_drawer.position[0] - ImgGrip.GRIP_SIZE,
+            self.img_drawer.position[1] - ImgGrip.GRIP_SIZE,
+        )
+
+    def _set_position(self, _):
+        # no op
+        return
+
+    position = property(_get_position, _set_position)
+
     def do_draw(self, cairo_ctx):
         for drawer in self.drawers:
             drawer.do_draw(cairo_ctx)
@@ -335,9 +352,7 @@ class ImgGripHandler(GObject.GObject, Drawer):
             adjustment.set_value(int(val))
 
     def __get_scale(self):
-        if not self.zoom_widget:
-            return 1.0
-        return float(self.zoom_widget.get_value())
+        return self.img_drawer.size[0] / self.img_size[0]
 
     scale = property(__get_scale)
 
@@ -350,6 +365,10 @@ class ImgGripHandler(GObject.GObject, Drawer):
                 float(self.canvas.visible_size[0]) / self.img_size[0],
                 float(self.canvas.visible_size[1]) / self.img_size[1]
             )
+        self.img_drawer.size = (
+            self.img_size[0] * scale,
+            self.img_size[1] * scale,
+        )
         self.last_rel_position = (True, rel_cursor_pos[0], rel_cursor_pos[1])
         self.zoom_widget.set_value(scale)
 

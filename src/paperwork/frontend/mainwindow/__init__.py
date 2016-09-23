@@ -2434,6 +2434,9 @@ class MainWindow(object):
         self.actions['new_doc'][1].do()
 
     def set_zoom_level(self, level, auto=False):
+        logger.info("Changing zoom level (internal): {}/{}".format(
+            auto, level
+        ))
         self.actions['zoom_level'][1].enabled = False
         self.zoom_level['model'].set_value(level)
         self.zoom_level['auto'] = auto
@@ -2542,7 +2545,8 @@ class MainWindow(object):
 
     def update_page_sizes(self):
         (auto, factor) = self.get_zoom_level()
-        self.zoom_level['model'].set_value(factor)
+        # apply the computed factor to the widget managing the zoom level
+        self.set_zoom_level(factor, auto)
 
         self.schedulers['main'].cancel_all(
             self.job_factories['page_img_loader']
@@ -2621,6 +2625,8 @@ class MainWindow(object):
                                     sentence=search)
                 drawer.connect("page-selected", self._on_page_drawer_selected)
                 drawer.connect("page-edited", self._on_page_drawer_edited)
+                drawer.connect("may-need-resize",
+                               self._on_page_drawer_need_resize)
                 drawer.connect("page-deleted", self._on_page_drawer_deleted)
             previous_drawer = drawer
             self.page_drawers.append(drawer)
@@ -2777,6 +2783,14 @@ class MainWindow(object):
         ActionRedoPageOCR(self).do(page)
         self.refresh_docs([page.doc])
 
+    def __on_page_drawer_need_resize(self, page_drawer):
+        self.update_page_sizes()
+        self.img['canvas'].recompute_size(upd_scrollbar_values=False)
+        self.img['canvas'].redraw()
+
+    def _on_page_drawer_need_resize(self, page_drawer):
+        GLib.idle_add(self.__on_page_drawer_need_resize, page_drawer)
+
     def _on_page_drawer_deleted(self, page_drawer):
         ActionDeletePage(self).do(page_drawer.page)
 
@@ -2903,7 +2917,7 @@ class MainWindow(object):
         self.__config['main_win_size'].value = (w, h)
 
     def __set_zoom_level_on_scroll(self, zoom):
-        logger.info("Changing zoom level: %f"
+        logger.info("Changing zoom level (scroll): %f"
                     % zoom)
         self.set_zoom_level(zoom, auto=False)
         self.update_page_sizes()

@@ -196,45 +196,129 @@ class JobFactoryPageBoxesLoader(JobFactory):
         return job
 
 
-class PageEditionAction(object):
-    def __init__(self):
-        pass
+class PageEditAction(Drawer):
+    layer = Drawer.IMG_LAYER
 
-    def do(self, img):
+    def __init__(self, child_drawers):
+        super(PageEditAction, self).__init__()
+        assert(len(child_drawers) > 0)
+        self.child_drawers = child_drawers
+
+    def _get_position(self):
+        x = 0xFFFFFFF
+        y = 0xFFFFFFF
+        for child in self.child_drawers:
+            x = min(x, child.position[0])
+            y = min(y, child.position[1])
+        return (x, y)
+
+    position = property(_get_position)
+
+    def _get_size(self):
+        x = 0
+        y = 0
+        for child in self.child_drawers:
+            x = max(x, child.size[0])
+            y = max(y, child.size[1])
+        return (x, y)
+
+    size = property(_get_size)
+
+    def _get_angle(self):
+        # Assume the first child defines the orientation
+        return self.child_drawers[0].angle
+
+    angle = property(_get_angle)
+
+    def apply(self, pil_img):
         raise NotImplementedError()
+
+    def set_canvas(self, canvas):
+        super(PageEditAction, self).set_canvas(canvas)
+        for child in self.child_drawers:
+            child.set_canvas(canvas)
+
+    def do_draw(self, cairo_ctx):
+        for child in self.child_drawers:
+            child.do_draw(cairo_ctx)
+
+    def on_tick(self):
+        super(PageEditAction, self).on_tick()
+        for child in self.child_drawers:
+            child.on_tick()
+
+    def show(self):
+        super(PageEditAction, self).show()
+        for child in self.child_drawers:
+            child.show()
+
+    def hide(self):
+        super(PageEditAction, self).hide()
+        for child in self.child_drawers:
+            child.hide()
 
     def __str__(self):
         raise NotImplementedError()
 
 
-class PageRotationAction(PageEditionAction):
+class PageRotationAction(PageEditAction):
+    def __init__(self, child_drawer, angle):
+        assert(angle % 90 == 0)
+        self._angle = angle % 360
+        super(PageRotationAction, self).__init__([child_drawer])
 
-    def __init__(self, angle):
-        PageEditionAction.__init__(self)
-        self.angle = angle
+    def _get_angle(self):
+        angle = self.child_drawers[0].angle + self._angle
+        angle %= 360
+        return angle
 
-    def do(self, img):
+    def apply(self, pil_img):
         # PIL angle is counter-clockwise. Ours is clockwise
-        return img.rotate(angle=-1 * self.angle, expand=True)
+        return pil_img.rotate(angle=-1 * self._angle, expand=True)
+
+    def _get_size(self):
+        size = self.child_drawers[0].size
+        if self._angle % 180 == 90:
+            size = (size[1], size[0])
+        return size
+
+    size = property(_get_size)
+
+    def do_draw(self, cairo_ctx):
+        cairo_ctx.save()
+        try:
+            size = self.size
+            child_size = self.child_drawers[0].size
+
+            cairo_ctx.translate(size[0] / 2, size[1] / 2)
+            # degrees to rads
+            cairo_ctx.rotate(self._angle * math.pi / 180)
+            cairo_ctx.translate(-child_size[0] / 2, -child_size[1] / 2)
+
+            self.child_drawers[0].do_draw(cairo_ctx)
+        finally:
+            cairo_ctx.restore()
 
     def __str__(self):
         return _("Image rotation of %d degrees") % self.angle
 
 
-class PageCuttingAction(PageEditionAction):
-    def __init__(self, cut):
+class PageCuttingAction(PageEditAction):
+    def __init__(self, child_drawer):
         """
         Arguments:
             cut --- ((a, b), (c, d))
         """
-        self.cut = cut
+        self.imggrips = ImgGripHandler(child_drawer)
+        super(PageCuttingAction, self).__init__([child_drawer, self.imggrips])
 
-    def do(self, img):
+    def apply(self, pil_img):
+        cut = self.imggrips.get_coords()
         cut = (int(self.cut[0][0]),
                int(self.cut[0][1]),
                int(self.cut[1][0]),
                int(self.cut[1][1]))
-        return img.crop(cut)
+        return pil_img.crop(cut)
 
     def __str__(self):
         return _("Image cutting: %s") % str(self.cut)
@@ -480,7 +564,7 @@ class SimplePageDrawer(Drawer):
         finally:
             cairo_context.restore()
 
-    def draw(self, cairo_context):
+    def do_draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
             self.canvas.offset, self.canvas.size,
             self.position, self.size)
@@ -515,6 +599,11 @@ class SimplePageDrawer(Drawer):
         if self.show_boxes:
             self.draw_boxes(cairo_context,
                             self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
+
+    def draw(self, cairo_context):
+        # Bypass visibility test : we do them ourselves because we need
+        # to load the page when we become visible
+        self.do_draw(cairo_context)
 
     def _get_box_at(self, x, y):
         for box in self.boxes["all"]:
@@ -600,7 +689,7 @@ class PageDrawer(Drawer, GObject.GObject):
         'page-selected': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-edited': (GObject.SignalFlags.RUN_LAST, None,
                         (
-                            GObject.TYPE_PYOBJECT,  # List of PageEditionAction
+                            GObject.TYPE_PYOBJECT,  # List of PageEditAction
                         )),
         'page-deleted': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
@@ -645,6 +734,8 @@ class PageDrawer(Drawer, GObject.GObject):
             self, job_factories, job_schedulers, sentence,
             show_border, show_all_boxes, show_boxes
         )
+
+        self.edit_chain = [self.simple_page_drawer]
 
         if self.page.can_edit:
             first_editor_buttons.append(
@@ -1059,21 +1150,33 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over_button = self.editor_buttons['during'][0]
         self.redraw()
 
+    def _add_edit_action(self, action):
+        self.canvas.remove_drawer(self.edit_chain[-1])
+        self.edit_chain.append(action)
+        self.canvas.add_drawer(self.edit_chain[-1])
+        self.canvas.recompute_size()
+
     def _on_edit_crop(self):
-        # TODO
-        pass
+        child = self.edit_chain[-1]
+        action = PageCuttingAction(child)
+        self._add_edit_action(action)
 
     def _on_edit_counterclockwise(self):
-        # TODO
-        pass
+        child = self.edit_chain[-1]
+        action = PageRotationAction(child, -90)
+        self._add_edit_action(action)
 
     def _on_edit_clockwise(self):
-        # TODO
-        pass
+        child = self.edit_chain[-1]
+        action = PageRotationAction(child, 90)
+        self._add_edit_action(action)
 
     def _on_edit_done(self):
-        # TODO
+        self.canvas.remove_drawer(self.edit_chain[-1])
+        self.edit_chain = [self.simple_page_drawer]
         self.simple_page_drawer.unload_content()
+        self.canvas.add_drawer(self.edit_chain[-1])
+
         self.set_drag_enabled(True)
         self.editor_state = "before"
         self.hide()

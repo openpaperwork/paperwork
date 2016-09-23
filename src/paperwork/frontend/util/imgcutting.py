@@ -103,10 +103,10 @@ class ImgGrip(Drawer):
         drawer_position = self.handler.img_drawer.position
         ((a_x, a_y), (b_x, b_y)) = \
             self.__get_select_area(self.__get_on_canvas_pos())
-        a_x += drawer_position[0] - self.canvas.offset[0]
-        a_y += drawer_position[1] - self.canvas.offset[1]
-        b_x += drawer_position[0] - self.canvas.offset[0]
-        b_y += drawer_position[1] - self.canvas.offset[1]
+        a_x += drawer_position[0]
+        a_y += drawer_position[1]
+        b_x += drawer_position[0]
+        b_y += drawer_position[1]
 
         if self.selected:
             color = self.SELECTED_COLOR
@@ -157,10 +157,6 @@ class ImgGripRectangle(Drawer):
 
         (a_x, a_y) = self.grips[0].position
         (b_x, b_y) = self.grips[1].position
-        a_x -= self.canvas.offset[0]
-        a_y -= self.canvas.offset[1]
-        b_x -= self.canvas.offset[0]
-        b_y -= self.canvas.offset[1]
 
         cairo_ctx.set_source_rgb(self.COLOR[0], self.COLOR[1], self.COLOR[2])
         cairo_ctx.set_line_width(1.0)

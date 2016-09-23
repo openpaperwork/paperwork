@@ -103,8 +103,8 @@ class ScanAnimation(Animation):
 
     def draw_chunks(self, cairo_ctx):
         position = (
-            self.position[0] - self.canvas.offset[0],
-            self.position[1] - self.canvas.offset[1],
+            self.position[0],
+            self.position[1],
         )
 
         cairo_ctx.save()
@@ -131,9 +131,9 @@ class ScanAnimation(Animation):
             return
 
         position = (
-            self.position[0] - self.canvas.offset[0],
+            self.position[0],
             (
-                self.position[1] - self.canvas.offset[1]
+                self.position[1]
                 + (self.surfaces[-1][0])
                 + (self.surfaces[-1][1].get_height())
             ),
@@ -220,8 +220,8 @@ class SpinnerAnimation(Animation):
             (frame[1] * self.src_size),
         )
 
-        img_offset = (max(0, self.canvas.offset[0] - self.position[0]),
-                      max(0, self.canvas.offset[1] - self.position[1]))
+        img_offset = (max(0, - self.position[0]),
+                      max(0, - self.position[1]))
         img_offset = (
             img_offset[0] + frame[0],
             img_offset[1] + frame[1],
@@ -231,7 +231,6 @@ class SpinnerAnimation(Animation):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(target_offset[0], target_offset[1])
-            cairo_ctx.translate(-self.canvas.offset[0], -self.canvas.offset[1])
             scale = float(self.ICON_SIZE) / self.src_size
             cairo_ctx.scale(scale, scale)
             Gdk.cairo_set_source_pixbuf(

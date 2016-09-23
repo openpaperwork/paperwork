@@ -90,9 +90,9 @@ class Drawer(object):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(img_position[0], img_position[1])
-            if not absolute:
+            if absolute:
                 cairo_ctx.translate(
-                    -self.canvas.offset[0], -self.canvas.offset[1]
+                    self.canvas.offset[0], self.canvas.offset[1]
                 )
             if angle != 0:
                 cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
@@ -111,12 +111,6 @@ class Drawer(object):
             cairo_ctx.restore()
 
     def do_draw(self, cairo_ctx):
-        """
-        Arguments:
-            offset --- Position of the area in which to draw:
-                       (offset_x, offset_y)
-            size --- Size of the area in which to draw: (width, height) = size
-        """
         assert()
 
     def on_tick(self):
@@ -390,19 +384,19 @@ class RectangleDrawer(Drawer):
 
             if self.angle != 0:
                 angle = math.pi * self.angle / 180
-                cairo_ctx.translate(self.position[0] - self.canvas.offset[0] +
+                cairo_ctx.translate(self.position[0] +
                                     (self.size[0] / 2),
-                                    self.position[1] - self.canvas.offset[1] +
+                                    self.position[1] +
                                     (self.size[1] / 2))
                 cairo_ctx.rotate(angle)
-                cairo_ctx.translate(-self.position[0] + self.canvas.offset[0] -
+                cairo_ctx.translate(-self.position[0] -
                                     (self.size[0] / 2),
-                                    -self.position[1] + self.canvas.offset[1] -
+                                    -self.position[1] -
                                     (self.size[1] / 2))
 
             cairo_ctx.rectangle(
-                self.position[0] - self.canvas.offset[0],
-                self.position[1] - self.canvas.offset[1],
+                self.position[0],
+                self.position[1],
                 self.size[0], self.size[1]
             )
             cairo_ctx.clip()
@@ -463,10 +457,10 @@ class LineDrawer(Drawer):
             cairo_ctx.set_source_rgba(self.color[0], self.color[1],
                                       self.color[2], self.color[3])
             cairo_ctx.set_line_width(self.width)
-            cairo_ctx.move_to(self.start[0] - self.canvas.offset[0],
-                              self.start[1] - self.canvas.offset[1])
-            cairo_ctx.line_to(self.end[0] - self.canvas.offset[0],
-                              self.end[1] - self.canvas.offset[1])
+            cairo_ctx.move_to(self.start[0],
+                              self.start[1])
+            cairo_ctx.line_to(self.end[0],
+                              self.end[1])
             cairo_ctx.stroke()
         finally:
             cairo_ctx.restore()
@@ -670,12 +664,12 @@ class TargetAreaDrawer(Drawer):
                 func,
                 (
                     (
-                        rect[0][0] - self.canvas.offset[0],
-                        rect[0][1] - self.canvas.offset[1],
+                        rect[0][0],
+                        rect[0][1],
                     ),
                     (
-                        rect[1][0] - self.canvas.offset[0],
-                        rect[1][1] - self.canvas.offset[1],
+                        rect[1][0],
+                        rect[1][1],
                     ),
                 )
             )

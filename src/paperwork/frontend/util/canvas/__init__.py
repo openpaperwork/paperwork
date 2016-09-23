@@ -49,15 +49,15 @@ class AbsoluteEvent(object):
         for k in dir(base_event):
             self.attrs[k] = getattr(base_event, k)
 
-        self.x = int(base_event.x)
-        self.y = int(base_event.y)
+        self._x = int(base_event.x)
+        self._y = int(base_event.y)
         self.offset = offset
 
     def __getattr__(self, name):
         if name == "x":
-            return int(self.x + self.offset[0])
+            return int(self._x + self.offset[0])
         if name == "y":
-            return int(self.y + self.offset[1])
+            return int(self._y + self.offset[1])
         return self.attrs[name]
 
 
@@ -276,6 +276,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         for drawer in self.drawers:
             cairo_ctx.save()
             try:
+                offset = self.offset
+                cairo_ctx.translate(-offset[0], -offset[1])
                 drawer.draw(cairo_ctx)
             finally:
                 cairo_ctx.restore()

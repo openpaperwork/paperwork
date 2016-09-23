@@ -390,9 +390,9 @@ class SimplePageDrawer(Drawer):
         try:
             cairo_context.set_source_rgb(border_color[0], border_color[1],
                                          border_color[2])
-            cairo_context.rectangle(self.position[0] - self.canvas.offset[0] -
+            cairo_context.rectangle(self.position[0] -
                                     border_width,
-                                    self.position[1] - self.canvas.offset[1] -
+                                    self.position[1] -
                                     border_width,
                                     self.size[0] + (2 * border_width),
                                     self.size[1] + (2 * border_width))
@@ -407,8 +407,8 @@ class SimplePageDrawer(Drawer):
             cairo_context.set_source_rgb(self.TMP_AREA[0],
                                          self.TMP_AREA[1],
                                          self.TMP_AREA[2])
-            cairo_context.rectangle(self.position[0] - self.canvas.offset[0],
-                                    self.position[1] - self.canvas.offset[1],
+            cairo_context.rectangle(self.position[0],
+                                    self.position[1],
                                     self.size[0], self.size[1])
             cairo_context.clip()
             cairo_context.paint()
@@ -428,8 +428,6 @@ class SimplePageDrawer(Drawer):
 
         a += self.position[0]
         b += self.position[1]
-        a -= self.canvas.offset[0]
-        b -= self.canvas.offset[1]
 
         return (int(a), int(b), int(w), int(h))
 
@@ -837,11 +835,11 @@ class PageDrawer(Drawer, GObject.GObject):
         x = b_position[0]
         y = b_position[1]
         if x < 0:
-            x = size[0] + x
+            x += size[0]
         if y < 0:
-            y = size[1] + y
-        x += position[0] - self.canvas.offset[0]
-        y += position[1] - self.canvas.offset[1]
+            y += size[1]
+        x += position[0]
+        y += position[1]
 
         # keep the buttons visible
         if (y < b_position[1]):
@@ -928,8 +926,8 @@ class PageDrawer(Drawer, GObject.GObject):
         try:
             cairo_ctx.set_source_rgba(mask_color[0], mask_color[1],
                                       mask_color[2], mask_color[3])
-            cairo_ctx.rectangle(self.position[0] - self.canvas.offset[0],
-                                self.position[1] - self.canvas.offset[1],
+            cairo_ctx.rectangle(self.position[0],
+                                self.position[1],
                                 self.size[0], self.size[1])
             cairo_ctx.clip()
             cairo_ctx.paint()
@@ -1002,8 +1000,6 @@ class PageDrawer(Drawer, GObject.GObject):
         for button in buttons:
             (b_position, b_pix, callback, tooltip) = button
             (x, y) = self._get_button_position(b_position)
-            x += self.canvas.offset[0]
-            y += self.canvas.offset[1]
             if (x <= event_x and
                     event_x <= x + self.BUTTON_SIZE and
                     y <= event_y and
@@ -1043,8 +1039,6 @@ class PageDrawer(Drawer, GObject.GObject):
             buttons = self.editor_buttons[self.editor_state]
             for (b_position, button_pix, callback, tooltip) in buttons:
                 (button_x, button_y) = self._get_button_position(b_position)
-                button_x += self.canvas.offset[0]
-                button_y += self.canvas.offset[1]
                 if (button_x <= click_x and
                         button_y <= click_y and
                         click_x <= button_x + self.BUTTON_SIZE and
@@ -1273,8 +1267,8 @@ class PageDropHandler(Drawer):
         size = self.size
 
         position = (
-            position[0] - self.canvas.offset[0],
-            position[1] - self.canvas.offset[1]
+            position[0],
+            position[1]
         )
 
         cairo_ctx.save()

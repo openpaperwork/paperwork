@@ -288,12 +288,19 @@ class PageRotationAction(PageEditAction):
         cairo_ctx.save()
         try:
             size = self.size
+            position = self.position
             child_size = self.child_drawers[0].size
 
-            cairo_ctx.translate(size[0] / 2, size[1] / 2)
+            cairo_ctx.translate(
+                position[0] + (size[0] / 2),
+                position[1] + (size[1] / 2)
+            )
             # degrees to rads
             cairo_ctx.rotate(self._angle * math.pi / 180)
-            cairo_ctx.translate(-child_size[0] / 2, -child_size[1] / 2)
+            cairo_ctx.translate(
+                - position[0] - (child_size[0] / 2),
+                - position[1] - (child_size[1] / 2)
+            )
 
             self.child_drawers[0].do_draw(cairo_ctx)
         finally:

@@ -871,12 +871,12 @@ class PageDrawer(Drawer, GObject.GObject):
         first_editor_buttons = []
         first_editor_buttons_pos = 10
 
-        self.base_page_drawer = BasePageDrawer(
+        self.simple_page_drawer = BasePageDrawer(
             self, page.size, job_factories, job_schedulers, sentence,
             show_border, show_all_boxes, show_boxes,
             previous_page_drawer
         )
-        self.edit_chain = [self.base_page_drawer]
+        self.edit_chain = [self.simple_page_drawer]
 
         if self.page.can_edit:
             first_editor_buttons.append(
@@ -949,8 +949,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def set_canvas(self, canvas):
         super(PageDrawer, self).set_canvas(canvas)
-        # self.base_page_drawer.set_canvas(canvas)
-        canvas.add_drawer(self.base_page_drawer)
+        # self.simple_page_drawer.set_canvas(canvas)
+        canvas.add_drawer(self.simple_page_drawer)
         self.relocate()
         canvas.connect(self, "absolute-motion-notify-event",
                        lambda canvas, event:
@@ -1000,8 +1000,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def on_tick(self):
         super(PageDrawer, self).on_tick()
-        self.base_page_drawer.spinner.on_tick()
-        self.base_page_drawer.on_tick()
+        self.simple_page_drawer.spinner.on_tick()
+        self.simple_page_drawer.on_tick()
 
     def _get_size(self):
         return self.edit_chain[-1].size
@@ -1030,8 +1030,8 @@ class PageDrawer(Drawer, GObject.GObject):
                      int(factor * self.edit_chain[-1].max_size[1]))
 
     def hide(self):
-        self.base_page_drawer.unload_content()
-        self.base_page_drawer.visible = False
+        self.simple_page_drawer.unload_content()
+        self.simple_page_drawer.visible = False
         self.visible = False
 
     def _get_factors(self):
@@ -1161,8 +1161,8 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
     def redraw(self, extra_border=0):
-        border = self.base_page_drawer.BORDER_BASIC
-        if self.base_page_drawer.boxes['highlighted']:
+        border = self.simple_page_drawer.BORDER_BASIC
+        if self.simple_page_drawer.boxes['highlighted']:
             border = self.BORDER_HIGHLIGHTED
 
         border_width = max(border[0], extra_border)
@@ -1306,8 +1306,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _on_edit_done(self):
         self.canvas.remove_drawer(self.edit_chain[-1])
-        self.edit_chain = [self.base_page_drawer]
-        self.base_page_drawer.unload_content()
+        self.edit_chain = [self.simple_page_drawer]
+        self.simple_page_drawer.unload_content()
         self.canvas.add_drawer(self.edit_chain[-1])
 
         self.set_drag_enabled(True)

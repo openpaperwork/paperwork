@@ -139,7 +139,7 @@ class JobImgProcesser(Job):
     __gsignals__ = {
         'img-processing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'img-processing-img': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                               (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
         'img-processing-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -998,7 +998,6 @@ class PageDrawer(Drawer, GObject.GObject):
 
         self.page = page
         self.show_boxes = show_boxes
-        self.show_all_boxes = show_all_boxes
         self.enable_editor = enable_editor
         self.mouse_over = False
         self.mouse_over_button = None
@@ -1095,6 +1094,17 @@ class PageDrawer(Drawer, GObject.GObject):
             ]
         }
         self.editor_state = "before"
+
+    def reload_boxes(self, new_sentence=None):
+        self.simple_page_drawer.reload_boxes(new_sentence)
+
+    def __set_show_all_boxes(self, value):
+        self.simple_page_drawer.show_all_boxes = value
+
+    def __get_show_all_boxes(self):
+        return self.simple_page_drawer.show_all_boxes
+
+    show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 
     def relocate(self):
         self.edit_chain[-1].relocate()

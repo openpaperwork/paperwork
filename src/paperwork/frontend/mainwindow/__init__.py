@@ -747,6 +747,8 @@ class JobFactoryPageImgRenderer(JobFactory):
 
 class JobImporter(Job):
     __gsignals__ = {
+        'import-error': (GObject.SignalFlags.RUN_LAST, None,
+                         (GObject.TYPE_PYOBJECT, )),
         'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -865,12 +867,16 @@ class JobImporter(Job):
     def do(self):
         self.__main_win.set_mouse_cursor("Busy")
         try:
-            (docs, page, must_add_labels) = self.importer.import_doc(
-                self.file_uri, self.__main_win.docsearch,
-                self.__main_win.doc
-            )
-        finally:
-            self.__main_win.set_mouse_cursor("Normal")
+            try:
+                (docs, page, must_add_labels) = self.importer.import_doc(
+                    self.file_uri, self.__main_win.docsearch,
+                    self.__main_win.doc
+                )
+            finally:
+                self.__main_win.set_mouse_cursor("Normal")
+        except Exception as exc:
+            self.emit('import-error', str(exc))
+            raise
 
         if docs is None or len(docs) <= 0:
             self.emit('no-doc-imported')
@@ -903,6 +909,9 @@ class JobImporter(Job):
             if len(pages) > 0:
                 self.IndexAdder(self.__main_win, iter(pages),
                                 must_add_labels).start()
+
+
+GObject.type_register(JobImporter)
 
 
 class JobFactoryImporter(JobFactory):
@@ -1366,6 +1375,18 @@ class ActionImport(SimpleAction):
         dialog.run()
         dialog.destroy()
 
+    def __import_error(self, msg):
+        msg = _("Import failed: {}").format(msg)
+        flags = (Gtk.DialogFlags.MODAL |
+                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.WARNING,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.run()
+        dialog.destroy()
+
     def do(self):
         SimpleAction.do(self)
 
@@ -1389,6 +1410,8 @@ class ActionImport(SimpleAction):
         job_importer = job_importer.make(importer, file_uri)
         job_importer.connect('no-doc-imported',
                              lambda _: self.__no_doc_imported())
+        job_importer.connect('import-error',
+                             lambda _, msg: self.__import_error(msg))
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 

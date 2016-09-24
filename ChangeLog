@@ -1,3 +1,25 @@
+* Export: Add an option to automatically simplify the content (makes it
+  smaller in size)
+* Import: Display a popup when the import fails
+* Page editing: Add an option to adjust automatically colors
+* Page editing: Fix display when making many edit operations at once (Rotation
+  Cropping + ...)
+* When starting, instead of displaying an empty document, display Paperwork's
+  logo and the version (if different of "1.0")
+* Improve zooming/unzooming with Ctrl+MouseWheel (try to target the mouse
+  cursor)
+* Allow scrolling using the middle click
+* Support for pyinstaller packaging
+* Fix running the OCR while scanning at the same time
+* Split backend and frontend (separate Python packages and separate Git
+  repositories)
+* Handle very long label names more gracefully
+* Word box highlighting: Highlight correctly all the boxes
+* Fix spinner animation when getting an icon size other than the expected one
+* Switch to Python 3
+* Switch from Pyinsane to Pyinsane2
+* Fix file descriptor leak related to PDFs
+
 2016/04/06 - 0.3.2:
 * paperwork-chkdeps: Fix check for python-gi-cairo. When python-gi-cairo
   is not installed, sometimes, an exception pops up at an unexpected moment

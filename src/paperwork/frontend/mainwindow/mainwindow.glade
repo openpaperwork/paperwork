@@ -131,6 +131,14 @@
       <column type="gdouble"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststorePageSimplification">
+    <columns>
+      <!-- column-name pageFormatSimplificationStr -->
+      <column type="gchararray"/>
+      <!-- column-name simplificationFunc -->
+      <column type="PyObject"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststoreSuggestion">
     <columns>
       <!-- column-name suggestion -->
@@ -892,6 +900,18 @@
                                   </packing>
                                 </child>
                                 <child>
+                                  <object class="GtkLabel" id="labelPageSimplification">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Simplification</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
                                   <object class="GtkLabel" id="labelExportQuality">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -968,6 +988,26 @@
                                     <property name="id_column">0</property>
                                     <child>
                                       <object class="GtkCellRendererText" id="cellrenderertextPageFormatStr"/>
+                                      <attributes>
+                                        <attribute name="text">0</attribute>
+                                      </attributes>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkComboBox" id="comboboxPageSimplification">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="model">liststorePageSimplification</property>
+                                    <property name="active">0</property>
+                                    <property name="id_column">0</property>
+                                    <child>
+                                      <object class="GtkCellRendererText" id="cellrenderertextPageSimplificationStr"/>
                                       <attributes>
                                         <attribute name="text">0</attribute>
                                       </attributes>

@@ -28,6 +28,7 @@ from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
+import pillowfight
 
 from paperwork_backend import docimport
 from paperwork_backend.common.page import BasicPage
@@ -1568,6 +1569,37 @@ class BasicActionOpenExportDialog(SimpleAction):
         SimpleAction.__init__(self, action_txt)
         self.main_win = main_window
 
+        self.simplifications = [
+            (_("No simplification"), self._noop,),
+            (_("Soft"), self._unpaper,),
+            (_("Hard"), self._swt_soft,),
+            (_("Extreme"), self._swt_hard,),
+        ]
+
+    def _noop(self, pil_img):
+        return pil_img
+
+    def _unpaper(self, pil_img):
+        # unpaper order
+        out_img = pil_img
+        out_img = pillowfight.unpaper_blackfilter(out_img)
+        out_img = pillowfight.unpaper_noisefilter(out_img)
+        out_img = pillowfight.unpaper_blurfilter(out_img)
+        out_img = pillowfight.unpaper_masks(out_img)
+        out_img = pillowfight.unpaper_grayfilter(out_img)
+        out_img = pillowfight.unpaper_border(out_img)
+        return out_img
+
+    def _swt_soft(self, pil_img):
+        return pillowfight.swt(
+            pil_img, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES
+        )
+
+    def _swt_hard(self, pil_img):
+        return pillowfight.swt(
+            pil_img, output_type=pillowfight.SWT_OUTPUT_BW_TEXT
+        )
+
     def open_dialog(self, to_export):
         SimpleAction.do(self)
         self.main_win.export['estimated_size'].set_text("")
@@ -1604,6 +1636,13 @@ class BasicActionOpenExportDialog(SimpleAction):
         if default_idx >= 0:
             widget = self.main_win.export['pageFormat']['widget']
             widget.set_active(default_idx)
+
+        self.main_win.export['pageSimplification']['model'].clear()
+        for simplification in self.simplifications:
+            self.main_win.export['pageSimplification']['model'].append(
+                simplification
+            )
+        self.main_win.export['pageSimplification']['widget'].set_active(1)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
@@ -1651,7 +1690,7 @@ class ActionSelectExportFormat(SimpleAction):
         logger.info("[Export] Format: %s" % (exporter))
         logger.info("[Export] Can change quality ? %s"
                     % exporter.can_change_quality)
-        logger.info("[Export] Can_select_format ? %s"
+        logger.info("[Export] Can select format ? %s"
                     % exporter.can_select_format)
 
         widgets = [
@@ -1659,6 +1698,8 @@ class ActionSelectExportFormat(SimpleAction):
              [
                  self.__main_win.export['quality']['widget'],
                  self.__main_win.export['quality']['label'],
+                 self.__main_win.export['pageSimplification']['widget'],
+                 self.__main_win.export['pageSimplification']['label'],
              ]),
             (exporter.can_select_format,
              [
@@ -1683,7 +1724,10 @@ class ActionChangeExportProperty(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        assert(self.__main_win.export['exporter'] is not None)
+        if self.__main_win.export['exporter'] is None:
+            # may be triggered when we initialized the export form
+            return
+
         if self.__main_win.export['exporter'].can_select_format:
             page_format_widget = self.__main_win.export['pageFormat']['widget']
             format_idx = page_format_widget.get_active()
@@ -1692,9 +1736,20 @@ class ActionChangeExportProperty(SimpleAction):
             page_format_model = self.__main_win.export['pageFormat']['model']
             (name, x, y) = page_format_model[format_idx]
             self.__main_win.export['exporter'].set_page_format((x, y))
+
         if self.__main_win.export['exporter'].can_change_quality:
             quality = self.__main_win.export['quality']['model'].get_value()
             self.__main_win.export['exporter'].set_quality(quality)
+
+            widget = self.__main_win.export['pageSimplification']['widget']
+            model = self.__main_win.export['pageSimplification']['model']
+            active = widget.get_active()
+            if active >= 0:
+                (_, simplification_func) = model[widget.get_active()]
+                self.__main_win.export['exporter'].set_postprocess_func(
+                    simplification_func
+                )
+
         self.__main_win.refresh_export_preview()
 
 
@@ -2033,6 +2088,11 @@ class MainWindow(object):
                 'widget': widget_tree.get_object("comboboxExportFormat"),
                 'model': widget_tree.get_object("liststoreExportFormat"),
             },
+            'pageSimplification': {
+                'label': widget_tree.get_object("labelPageSimplification"),
+                'widget': widget_tree.get_object("comboboxPageSimplification"),
+                'model': widget_tree.get_object("liststorePageSimplification"),
+            },
             'pageFormat': {
                 'label': widget_tree.get_object("labelPageFormat"),
                 'widget': widget_tree.get_object("comboboxPageFormat"),
@@ -2155,6 +2215,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("scaleQuality"),
                     widget_tree.get_object("comboboxPageFormat"),
+                    widget_tree.get_object("comboboxPageSimplification"),
                 ],
                 ActionChangeExportProperty(self),
             ),

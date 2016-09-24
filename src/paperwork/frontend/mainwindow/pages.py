@@ -541,6 +541,8 @@ class PageACEAction(PageEditAction):
         self.recompute_ace()
 
     def apply(self, pil_img):
+        if self.img is not None:
+            return self.img
         return pillowfight.ace(pil_img)
 
     def do_draw(self, cairo_ctx):

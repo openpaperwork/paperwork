@@ -29,7 +29,7 @@ You can find some examples in scripts/. You can also look at the code of [Paperw
 
 Here are some snippets:
 
-```
+```py
 import paperwork_backend.config as config
 import paperwork_backend.docsearch as docsearch
 

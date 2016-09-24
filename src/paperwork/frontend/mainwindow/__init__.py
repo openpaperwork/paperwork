@@ -42,6 +42,7 @@ from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import PageDropHandler
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
 from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
+from paperwork.frontend.mainwindow.pages import SimplePageDrawer
 from paperwork.frontend.mainwindow.scan import ScanWorkflow
 from paperwork.frontend.mainwindow.scan import MultiAnglesScanWorkflowDrawer
 from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
@@ -2743,7 +2744,7 @@ class MainWindow(object):
 
         if drawer is not None:
             self.img['canvas'].get_vadjustment().set_value(
-                drawer.position[1] - drawer.MARGIN
+                drawer.position[1] - SimplePageDrawer.MARGIN
             )
 
         if self.export['exporter'] is not None:
@@ -2818,12 +2819,12 @@ class MainWindow(object):
 
     def __get_img_area_width(self):
         w = self.img['viewport']['widget'].get_allocation().width
-        w -= 2 * PageDrawer.MARGIN
+        w -= 2 * SimplePageDrawer.MARGIN
         return w
 
     def __get_img_area_height(self):
         h = self.img['viewport']['widget'].get_allocation().height
-        h -= 2 * PageDrawer.MARGIN
+        h -= 2 * SimplePageDrawer.MARGIN
         return h
 
     def get_zoom_level(self):
@@ -2847,7 +2848,7 @@ class MainWindow(object):
             # see if we could fit all the pages on one line
             total_width = sum([page.size[0] for page in other_pages])
             canvas_width = self.img['canvas'].visible_size[0]
-            canvas_width -= len(other_pages) * (2 * PageDrawer.MARGIN)
+            canvas_width -= len(other_pages) * (2 * SimplePageDrawer.MARGIN)
             if total_width > 0:
                 factor = (float(canvas_width) / float(total_width))
             else:

@@ -198,11 +198,31 @@ class JobFactoryPageBoxesLoader(JobFactory):
 
 class PageEditAction(Drawer):
     layer = Drawer.IMG_LAYER
+    priority = -1
 
     def __init__(self, child_drawers):
         super(PageEditAction, self).__init__()
         assert(len(child_drawers) > 0)
         self.child_drawers = child_drawers
+
+    def set_child_drawer(self, child_drawer):
+        self.child_drawers[0] = child_drawer
+
+    def add_to_edit_chain(self, chain):
+        chain.append(self)
+        chain.sort(key=lambda x: x.priority)
+        chain = self.rebuild_edit_chain(chain)
+        return chain
+
+    def rebuild_edit_chain(self, chain):
+        # update the drawer chain
+        pdrawer = None
+        for link in chain:
+            if pdrawer is not None:
+                cdrawer = link.child_drawers[0]
+                link.set_child_drawer(pdrawer)
+            pdrawer = link
+        return chain
 
     def _get_position(self):
         x = 0xFFFFFFF
@@ -231,6 +251,11 @@ class PageEditAction(Drawer):
             child.size = size
 
     size = property(_get_size, _set_size)
+
+    def relocate(self):
+        for child in self.child_drawers:
+            if hasattr(child, 'relocate'):
+                child.relocate()
 
     def _get_max_size(self):
         x = 0
@@ -282,15 +307,28 @@ class PageEditAction(Drawer):
 
 
 class PageRotationAction(PageEditAction):
+    priority = 50
+
     def __init__(self, child_drawer, angle):
         assert(angle % 90 == 0)
         self._angle = angle % 360
         super(PageRotationAction, self).__init__([child_drawer])
 
+    def add_to_edit_chain(self, chain):
+        chain = super(PageRotationAction, self).add_to_edit_chain(chain)
+        for link in reversed(chain):
+            if link == self:
+                break
+            if hasattr(link, 'rotate_coords'):
+                link.rotate_coords(self._angle)
+        return chain
+
     def _get_angle(self):
         angle = self.child_drawers[0].angle + self._angle
         angle %= 360
         return angle
+
+    angle = property(_get_angle)
 
     def apply(self, pil_img):
         # PIL angle is counter-clockwise. Ours is clockwise
@@ -340,10 +378,12 @@ class PageRotationAction(PageEditAction):
             cairo_ctx.restore()
 
     def __str__(self):
-        return _("Image rotation of %d degrees") % self.angle
+        return "Image rotation of {} degrees".format(self._angle)
 
 
 class PageCuttingAction(PageEditAction):
+    priority = 100
+
     def __init__(self, child_drawer):
         """
         Arguments:
@@ -354,16 +394,37 @@ class PageCuttingAction(PageEditAction):
         )
         super(PageCuttingAction, self).__init__([child_drawer, self.imggrips])
 
+    def set_child_drawer(self, child):
+        super(PageCuttingAction, self).set_child_drawer(child)
+        self.imggrips.img_drawer = child
+        self.imggrips.img_size = child.max_size
+
+    def add_to_edit_chain(self, chain):
+        to_remove = None
+        for link in chain:
+            if isinstance(link, PageCuttingAction):
+                # we actually remove ourselves
+                to_remove = link
+        if to_remove:
+            chain.remove(to_remove)
+            chain = self.rebuild_edit_chain(chain)
+            return chain
+        return super(PageCuttingAction, self).add_to_edit_chain(chain)
+
+    def rotate_coords(self, angle):
+        self.imggrips.rotate_coords(angle)
+
     def apply(self, pil_img):
         cut = self.imggrips.get_coords()
-        cut = (int(self.cut[0][0]),
-               int(self.cut[0][1]),
-               int(self.cut[1][0]),
-               int(self.cut[1][1]))
+        cut = (int(cut[0][0]),
+               int(cut[0][1]),
+               int(cut[1][0]),
+               int(cut[1][1]))
+        logger.info("Cropping the page to {}".format(cut))
         return pil_img.crop(cut)
 
     def __str__(self):
-        return _("Image cutting: %s") % str(self.cut)
+        return "Image cutting: {}".format(self.imggrips.get_coords())
 
 
 class SimplePageDrawer(Drawer):
@@ -371,10 +432,13 @@ class SimplePageDrawer(Drawer):
     LINE_WIDTH = 1.0
     TMP_AREA = (0.85, 0.85, 0.85)
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
+    MARGIN = 20
+
+    priority = 0
 
     def __init__(self, parent_drawer, max_size, job_factories, job_schedulers,
                  search_sentence=u"", show_border=True, show_all_boxes=False,
-                 show_boxes=True):
+                 show_boxes=True, previous_page_drawer=None):
         super(SimplePageDrawer, self).__init__()
         self.max_size = max_size
         self.page = parent_drawer.page
@@ -397,6 +461,7 @@ class SimplePageDrawer(Drawer):
         self.schedulers = job_schedulers
         self.loading = False
         self._size = max_size
+        self.previous_page_drawer = previous_page_drawer
         self._position = (0, 0)
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
@@ -407,6 +472,27 @@ class SimplePageDrawer(Drawer):
         canvas.connect(self, "absolute-motion-notify-event",
                        lambda canvas, event:
                        GLib.idle_add(self._on_mouse_motion, event))
+
+    def relocate(self):
+        assert(self.canvas)
+        if self.previous_page_drawer is None:
+            position_h = self.MARGIN
+            position_w = self.MARGIN
+        elif (self.previous_page_drawer.position[0] +
+              self.previous_page_drawer.size[0] +
+              (2 * self.MARGIN) +
+              self.size[0] <
+              self.canvas.visible_size[0]):
+            position_w = (self.previous_page_drawer.position[0] +
+                          self.previous_page_drawer.size[0] +
+                          (2 * self.MARGIN))
+            position_h = self.previous_page_drawer.position[1]
+        else:
+            position_w = self.MARGIN
+            position_h = (self.previous_page_drawer.position[1] +
+                          self.previous_page_drawer.size[1] +
+                          (2 * self.MARGIN))
+        self.position = (position_w, position_h)
 
     def _get_size(self):
         return self._size
@@ -429,6 +515,9 @@ class SimplePageDrawer(Drawer):
         self.upd_spinner_position()
 
     position = property(_get_position, _set_position)
+
+    def apply(self, pil_img):
+        return self.page.img
 
     def upd_spinner_position(self):
         self.spinner.position = (
@@ -725,7 +814,6 @@ class SimplePageDrawer(Drawer):
 
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.BUTTON_LAYER
-    MARGIN = 20
     BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
 
     BUTTON_SIZE = 32
@@ -770,7 +858,6 @@ class PageDrawer(Drawer, GObject.GObject):
         self.enable_editor = enable_editor
         self.mouse_over = False
         self.mouse_over_button = None
-        self.previous_page_drawer = previous_page_drawer
         self.is_drag_source = False
         self.drag_enabled = True
 
@@ -786,7 +873,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
         self.simple_page_drawer = SimplePageDrawer(
             self, page.size, job_factories, job_schedulers, sentence,
-            show_border, show_all_boxes, show_boxes
+            show_border, show_all_boxes, show_boxes,
+            previous_page_drawer
         )
         self.edit_chain = [self.simple_page_drawer]
 
@@ -857,25 +945,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.editor_state = "before"
 
     def relocate(self):
-        assert(self.canvas)
-        if self.previous_page_drawer is None:
-            position_h = self.MARGIN
-            position_w = self.MARGIN
-        elif (self.previous_page_drawer.position[0] +
-              self.previous_page_drawer.size[0] +
-              (2 * self.MARGIN) +
-              self.size[0] <
-              self.canvas.visible_size[0]):
-            position_w = (self.previous_page_drawer.position[0] +
-                          self.previous_page_drawer.size[0] +
-                          (2 * self.MARGIN))
-            position_h = self.previous_page_drawer.position[1]
-        else:
-            position_w = self.MARGIN
-            position_h = (self.previous_page_drawer.position[1] +
-                          self.previous_page_drawer.size[1] +
-                          (2 * self.MARGIN))
-        self.position = (position_w, position_h)
+        self.edit_chain[-1].relocate()
 
     def set_canvas(self, canvas):
         super(PageDrawer, self).set_canvas(canvas)
@@ -1201,12 +1271,23 @@ class PageDrawer(Drawer, GObject.GObject):
         self.mouse_over_button = self.editor_buttons['during'][0]
         self.redraw()
 
+    def print_chain(self):
+        logger.info("Edit chain:")
+        for link in self.edit_chain:
+            child = None
+            if hasattr(link, "child_drawers"):
+                child = link.child_drawers[0]
+            logger.info("- Link: {} (child: {})".format(
+                link, child
+            ))
+
     def _add_edit_action(self, action):
         logger.info("Adding edit action: {}".format(str(type(action))))
         self.canvas.remove_drawer(self.edit_chain[-1])
-        self.edit_chain.append(action)
+        self.edit_chain = action.add_to_edit_chain(self.edit_chain)
         self.canvas.add_drawer(self.edit_chain[-1])
         self.emit("may-need-resize")
+        self.print_chain()
 
     def _on_edit_crop(self):
         child = self.edit_chain[-1]

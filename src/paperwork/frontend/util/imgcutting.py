@@ -14,11 +14,16 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 
 from paperwork.frontend.util.canvas.drawers import Drawer
+
+
+logger = logging.getLogger(__name__)
 
 
 class ImgGrip(Drawer):
@@ -33,10 +38,9 @@ class ImgGrip(Drawer):
     HOVER_COLOR = (0.0, 1.0, 0.0)
     SELECTED_COLOR = (1.0, 0.0, 0.0)
 
-    def __init__(self, handler, position, max_position):
+    def __init__(self, handler, position):
         super(ImgGrip, self).__init__()
         self._img_position = position  # position relative to the image
-        self.max_position = max_position
         self.size = (0, 0)
         self.selected = False
         self.hover = False
@@ -53,6 +57,11 @@ class ImgGrip(Drawer):
         )
 
     img_position = property(__get_img_position, __set_img_position)
+
+    def __get_max_position(self):
+        return self.handler.img_size
+
+    max_position = property(__get_max_position)
 
     def __get_on_canvas_pos(self):
         drawer_position = self.handler.img_drawer.position
@@ -234,8 +243,8 @@ class ImgGripHandler(GObject.GObject, Drawer):
             )
 
         self.grips = (
-            ImgGrip(self, default_grips_positions[0], self.img_size),
-            ImgGrip(self, default_grips_positions[1], self.img_size),
+            ImgGrip(self, default_grips_positions[0]),
+            ImgGrip(self, default_grips_positions[1]),
         )
         self.select_rectangle = ImgGripRectangle(self.grips)
 
@@ -476,6 +485,48 @@ class ImgGripHandler(GObject.GObject, Drawer):
         b_y = max(self.grips[0].img_position[1],
                   self.grips[1].img_position[1])
         return ((int(a_x), int(a_y)), (int(b_x), int(b_y)))
+
+    def rotate_coords(self, angle):
+        # The drawer may already be rotated while the image is not.
+        # We have to take that into account
+        (size_x, size_y) = self.img_size
+
+        assert(angle % 90 == 0)
+        assert(angle >= 0 and angle < 360)
+        if angle == 0:
+            return
+
+        a_x = self.grips[0].img_position[0]
+        a_y = self.grips[0].img_position[1]
+        b_x = self.grips[1].img_position[0]
+        b_y = self.grips[1].img_position[1]
+
+        logger.info(
+            "Rotating chopping coords {} by {} degrees (img size: {})".format(
+                (a_x, a_y, b_x, b_y),
+                angle, (size_x, size_y)
+            )
+        )
+
+        if angle == 90:
+            # beware: img_size has already been changed, but not our coords
+            (a_x, a_y, b_x, b_y) = (size_x - b_y, a_x, size_x - a_y, b_x)
+        elif angle == 180:
+            (a_x, a_y, b_x, b_y) = (
+                size_x - b_x, size_y - b_y, size_x - a_x, size_y - a_y
+            )
+        elif angle == 270:
+            # beware: img_size has already been changed, but not our coords
+            (a_x, a_y, b_x, b_y) = (a_y, size_y - b_x, b_y, size_y - a_x)
+
+        logger.info(
+            "Rotation result: {} (img size: {})".format(
+                (a_x, a_y, b_x, b_y), (size_x, size_y)
+            )
+        )
+
+        self.grips[0].img_position = (a_x, a_y)
+        self.grips[1].img_position = (b_x, b_y)
 
 
 GObject.type_register(ImgGripHandler)

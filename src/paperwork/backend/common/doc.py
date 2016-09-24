@@ -254,7 +254,8 @@ class BasicDoc(object):
         Returns:
             Returned object must implement the following methods/attributes:
             .can_change_quality = (True|False)
-            .set_quality(quality_pourcent)
+            .set_quality(quality_pourcent)  # if can_change_quality
+            .set_postprocess_func(func)  # if can_change_quality
             .estimate_size() : returns the size in bytes
             .get_img() : returns a Pillow Image
             .get_mime_type()

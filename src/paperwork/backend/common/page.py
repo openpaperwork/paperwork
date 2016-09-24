@@ -37,6 +37,7 @@ class PageExporter(object):
         self.valid_exts = valid_exts
         self.__quality = 75
         self.__img = None
+        self.__postprocess_func = None
 
     def get_mime_type(self):
         return self.mime
@@ -57,6 +58,9 @@ class PageExporter(object):
                     int(resize_factor * img.size[1]))
         img = img.resize(new_size, PIL.Image.ANTIALIAS)
 
+        if self.__postprocess_func:
+            img = self.__postprocess_func(img)
+
         img.save(target_path, self.img_format, quality=quality)
         return target_path
 
@@ -75,6 +79,10 @@ class PageExporter(object):
 
     def set_quality(self, quality):
         self.__quality = int(quality)
+        self.__img = None
+
+    def set_postprocess_func(self, postprocess_func):
+        self.__postprocess_func = postprocess_func
         self.__img = None
 
     def estimate_size(self):

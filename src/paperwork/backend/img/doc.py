@@ -54,6 +54,7 @@ class ImgToPdfDocExporter(object):
         self.__quality = 50
         self.__preview = None  # will just contain the first page
         self.__page_format = (0, 0)
+        self.__postprocess_func = None
 
     def get_mime_type(self):
         return 'application/pdf'
@@ -184,6 +185,9 @@ class ImgToPdfDocExporter(object):
         pdfpage.render(ctx)
         img = surface2image(surface)
 
+        if self.__postprocess_func:
+            img = self.__postprocess_func(img)
+
         self.__preview = (path, img)
 
     def set_quality(self, quality):
@@ -192,6 +196,10 @@ class ImgToPdfDocExporter(object):
 
     def set_page_format(self, page_format):
         self.__page_format = page_format
+        self.__preview = None
+
+    def set_postprocess_func(self, postprocess_func):
+        self.__postprocess_func = postprocess_func
         self.__preview = None
 
     def estimate_size(self):
@@ -332,9 +340,9 @@ class ImgDoc(BasicDoc):
             filelist = os.listdir(self.path)
             count = 0
             for filename in filelist:
-                if (filename[-4:].lower() != "." + ImgPage.EXT_IMG
-                    or (filename[-10:].lower() == "." + ImgPage.EXT_THUMB)
-                    or (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
+                if (filename[-4:].lower() != "." + ImgPage.EXT_IMG or
+                    (filename[-10:].lower() == "." + ImgPage.EXT_THUMB) or
+                    (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
                         ImgPage.FILE_PREFIX)):
                     continue
                 count += 1
@@ -430,7 +438,7 @@ def is_img_doc(docpath):
                     % (docpath, str(exc)))
         return False
     for filename in filelist:
-        if (filename.lower().endswith(ImgPage.EXT_IMG)
-                and not filename.lower().endswith(ImgPage.EXT_THUMB)):
+        if (filename.lower().endswith(ImgPage.EXT_IMG) and
+                not filename.lower().endswith(ImgPage.EXT_THUMB)):
             return True
     return False

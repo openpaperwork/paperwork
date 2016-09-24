@@ -427,7 +427,7 @@ class PageCuttingAction(PageEditAction):
         return "Image cutting: {}".format(self.imggrips.get_coords())
 
 
-class BasePageDrawer(Drawer):
+class SimplePageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
     TMP_AREA = (0.85, 0.85, 0.85)
@@ -439,7 +439,7 @@ class BasePageDrawer(Drawer):
     def __init__(self, parent_drawer, max_size, job_factories, job_schedulers,
                  search_sentence=u"", show_border=True, show_all_boxes=False,
                  show_boxes=True, previous_page_drawer=None):
-        super(BasePageDrawer, self).__init__()
+        super(SimplePageDrawer, self).__init__()
         self.max_size = max_size
         self.page = parent_drawer.page
         self.parent = parent_drawer
@@ -467,7 +467,7 @@ class BasePageDrawer(Drawer):
         self.upd_spinner_position()
 
     def set_canvas(self, canvas):
-        super(BasePageDrawer, self).set_canvas(canvas)
+        super(SimplePageDrawer, self).set_canvas(canvas)
         self.spinner.set_canvas(canvas)
         canvas.connect(self, "absolute-motion-notify-event",
                        lambda canvas, event:
@@ -871,7 +871,7 @@ class PageDrawer(Drawer, GObject.GObject):
         first_editor_buttons = []
         first_editor_buttons_pos = 10
 
-        self.simple_page_drawer = BasePageDrawer(
+        self.simple_page_drawer = SimplePageDrawer(
             self, page.size, job_factories, job_schedulers, sentence,
             show_border, show_all_boxes, show_boxes,
             previous_page_drawer

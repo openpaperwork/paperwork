@@ -74,12 +74,12 @@ Papers are organized into documents. Each document contains pages.
 
 It mainly uses:
 
-* [Sane](http://www.sane-project.org/)/[Pyinsane](https://github.com/jflesch/pyinsane/): To scan the pages
-* [Tesseract](http://code.google.com/p/tesseract-ocr/)/[Pyocr](https://github.com/jflesch/pyocr/): To extract the words from the pages (OCR)
+* [Sane](http://www.sane-project.org/)/[Pyinsane](https://github.com/jflesch/pyinsane/#readme): To scan the pages
+* [Tesseract](http://code.google.com/p/tesseract-ocr/)/[Pyocr](https://github.com/jflesch/pyocr/#readme): To extract the words from the pages (OCR)
 * [GTK](http://www.gtk.org/): For the user interface
 * [Whoosh](https://pypi.python.org/pypi/Whoosh/): To index and search documents, and provide keyword suggestions
 * [Simplebayes](https://pypi.python.org/pypi/simplebayes/): To guess the labels
-* [Pillow](https://pypi.python.org/pypi/Pillow/): Image manipulation
+* [Pillow](https://pypi.python.org/pypi/Pillow/)/[Libpillowfight](https://github.com/jflesch/libpillowfight#readme): Image manipulation
 
 
 ## Licence

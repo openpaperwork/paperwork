@@ -161,6 +161,8 @@ Main features are:
          ['data/paperwork.svg']),
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/paperwork_100.png']),
+        (os.path.join(sys.prefix, 'share/paperwork'),
+         ['data/magic_colors.png']),
     ],
     scripts=[
         'scripts/paperwork',

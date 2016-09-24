@@ -20,6 +20,7 @@ import threading
 
 import gettext
 
+import cairo
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
@@ -27,6 +28,7 @@ from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
+import pillowfight
 
 from paperwork_backend.common.page import BasicPage
 from paperwork_backend.util import image2surface
@@ -34,6 +36,7 @@ from paperwork_backend.util import split_words
 from paperwork.frontend.util.canvas.animations import SpinnerAnimation
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.imgcutting import ImgGripHandler
+from paperwork.frontend.util import load_image
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 
@@ -49,7 +52,7 @@ class JobPageImgLoader(Job):
     __gsignals__ = {
         'page-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-loading-img': (GObject.SignalFlags.RUN_LAST, None,
-                             (GObject.TYPE_PYOBJECT,)),
+                             (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
@@ -58,6 +61,7 @@ class JobPageImgLoader(Job):
         self.page = page
         self.size = size
         self.__cond = threading.Condition()
+        self.can_run = True
 
     def do(self):
         self.__cond.acquire()
@@ -91,7 +95,10 @@ class JobPageImgLoader(Job):
             img.load()
             if not self.can_run:
                 return
-            self.emit('page-loading-img', image2surface(img))
+            surface = image2surface(img)
+            if not self.can_run:
+                return
+            self.emit('page-loading-img', img, surface)
 
         finally:
             self.emit('page-loading-done')
@@ -109,20 +116,97 @@ GObject.type_register(JobPageImgLoader)
 
 
 class JobFactoryPageImgLoader(JobFactory):
-
     def __init__(self):
         JobFactory.__init__(self, "PageImgLoader")
 
     def make(self, drawer, page, size):
         job = JobPageImgLoader(self, next(self.id_generator), page, size)
         job.connect('page-loading-img',
-                    lambda job, img:
+                    lambda job, img, surface:
                     GLib.idle_add(drawer.on_page_loading_img,
-                                  job.page, img))
+                                  job.page, img, surface))
         job.connect('page-loading-done',
                     lambda job:
                     GLib.idle_add(drawer.on_page_loading_done,
                                   job.page))
+        return job
+
+
+class JobImgProcesser(Job):
+    can_stop = True
+    priority = 500
+
+    __gsignals__ = {
+        'img-processing-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'img-processing-img': (GObject.SignalFlags.RUN_LAST, None,
+                             (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+        'img-processing-done': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
+    def __init__(self, factory, job_id, pil_img, process_func):
+        Job.__init__(self, factory, job_id)
+        self.pil_img = pil_img
+        self.process_func = process_func
+        self.can_run = True
+
+    def do(self):
+        self.can_run = True
+        self.emit('img-processing-start')
+        try:
+            if not self.can_run:
+                return
+
+            if not self.can_run:
+                return
+            self.pil_img.load()
+            if not self.can_run:
+                return
+            img = self.process_func(self.pil_img)
+            if not self.can_run:
+                return
+            img.load()
+            if not self.can_run:
+                return
+            surface = image2surface(img)
+            if not self.can_run:
+                return
+            self.emit('img-processing-img', img, surface)
+
+        finally:
+            self.emit('img-processing-done')
+
+    def stop(self, will_resume=False):
+        self.can_run = False
+
+
+GObject.type_register(JobImgProcesser)
+
+
+class JobFactoryImgProcesser(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "ImgProcesser")
+        self.__main_win = main_win
+
+    def make(self, drawer, pil_img, process_func):
+        job = JobImgProcesser(
+            self, next(self.id_generator),
+            pil_img, process_func
+        )
+        job.connect('img-processing-start',
+                    lambda job: GLib.idle_add(
+                        self.__main_win._on_img_processing_start
+                    ))
+        job.connect('img-processing-img',
+                    lambda job, img, surface:
+                    GLib.idle_add(drawer.on_img_processing_img,
+                                  img, surface))
+        job.connect('img-processing-done',
+                    lambda job:
+                    GLib.idle_add(drawer.on_img_processing_done))
+        job.connect('img-processing-done',
+                    lambda job: GLib.idle_add(
+                        self.__main_win._on_img_processing_done
+                    ))
         return job
 
 
@@ -426,6 +510,60 @@ class PageCuttingAction(PageEditAction):
         return "Image cutting: {}".format(self.imggrips.get_coords())
 
 
+class PageACEAction(PageEditAction):
+    priority = 25
+
+    def __init__(self, child_drawer, factories, schedulers):
+        super(PageACEAction, self).__init__([child_drawer])
+        self.img = None
+        self.surface = None
+        self.factories = factories
+        self.schedulers = schedulers
+        self.recompute_ace()
+
+    def _ace(self, img):
+        return pillowfight.ace(img)
+
+    def recompute_ace(self):
+        if not hasattr(self.child_drawers[0], 'img'):
+            # we may temporarily be assigned a drawer
+            # that doesn't provide a PIL image.
+            # (before drawer priority is updated0
+            return
+        img = self.child_drawers[0].img
+        assert(img is not None)
+        job = self.factories['img_processer'].make(
+            self, img, self._ace)
+        self.schedulers['page_img_loader'].schedule(job)
+
+    def set_child_drawer(self, child):
+        super(PageACEAction, self).set_child_drawer(child)
+        self.recompute_ace()
+
+    def apply(self, pil_img):
+        return pillowfight.ace(pil_img)
+
+    def do_draw(self, cairo_ctx):
+        if self.surface is None:
+            super(PageACEAction, self).do_draw(cairo_ctx)
+        else:
+            self.draw_surface(
+                cairo_ctx,
+                self.surface, self.position,
+                self.size, angle=self.angle
+            )
+
+    def on_img_processing_img(self, img, surface):
+        self.img = img
+        self.surface = surface
+
+    def on_img_processing_done(self):
+        GLib.idle_add(self.redraw)
+
+    def __str__(self):
+        return "Automatic Color Equalization"
+
+
 class SimplePageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
     LINE_WIDTH = 1.0
@@ -445,6 +583,7 @@ class SimplePageDrawer(Drawer):
         self.job_factories = job_factories
         self.job_schedulers = job_schedulers
         self.surface = None
+        self.img = None
         self.visible = False
         self.boxes = {
             'all': set(),
@@ -535,10 +674,11 @@ class SimplePageDrawer(Drawer):
                                                      self.size)
         self.schedulers['page_img_loader'].schedule(job)
 
-    def on_page_loading_img(self, page, surface):
+    def on_page_loading_img(self, page, img, surface):
         if not self.visible:
             return
         self.surface = surface
+        self.img = img
         if (len(self.boxes['all']) <= 0 and
                 (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
@@ -810,6 +950,9 @@ class SimplePageDrawer(Drawer):
             self.redraw()
             return
 
+    def __str__(self):
+        return "Base page (size: {}|{})".format(self.size, self.max_size)
+
 
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.BUTTON_LAYER
@@ -901,6 +1044,9 @@ class PageDrawer(Drawer, GObject.GObject):
             )
             first_editor_buttons_pos += 10 + self.BUTTON_SIZE
 
+        ace_button_img = load_image("magic_colors.png")
+        ace_button_surface = image2surface(ace_button_img)
+
         self.editor_buttons = {
             "before": first_editor_buttons,
             "during": [
@@ -932,8 +1078,13 @@ class PageDrawer(Drawer, GObject.GObject):
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
                  self._on_edit_clockwise,
                  _("Rotate clockwise")),
-                # button 'done'
+                # button 'ace'
                 ((-10 - self.BUTTON_SIZE, 10 + (4 * (10 + self.BUTTON_SIZE))),
+                 ace_button_surface,
+                 self._on_edit_ace,
+                 _("Automatic Color Equalization")),
+                # button 'done'
+                ((-10 - self.BUTTON_SIZE, 10 + (5 * (10 + self.BUTTON_SIZE))),
                  icon_theme.lookup_icon(
                      self.ICON_EDIT_APPLY, self.BUTTON_SIZE,
                      Gtk.IconLookupFlags.NO_SVG).load_icon(),
@@ -1085,11 +1236,18 @@ class PageDrawer(Drawer, GObject.GObject):
                 cairo_context.clip()
                 cairo_context.paint()
 
-                Gdk.cairo_set_source_pixbuf(cairo_context, button, x, y)
-                cairo_context.rectangle(
-                    x, y, self.BUTTON_SIZE, self.BUTTON_SIZE)
-                cairo_context.clip()
-                cairo_context.paint()
+                if isinstance(button, cairo.Surface):
+                    self.draw_surface(
+                        cairo_context, button,
+                        (x, y),
+                        (self.BUTTON_SIZE, self.BUTTON_SIZE)
+                    )
+                else:
+                    Gdk.cairo_set_source_pixbuf(cairo_context, button, x, y)
+                    cairo_context.rectangle(
+                        x, y, self.BUTTON_SIZE, self.BUTTON_SIZE)
+                    cairo_context.clip()
+                    cairo_context.paint()
             finally:
                 cairo_context.restore()
 
@@ -1287,6 +1445,16 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.add_drawer(self.edit_chain[-1])
         self.emit("may-need-resize")
         self.print_chain()
+
+    def _on_edit_ace(self):
+        for link in self.edit_chain:
+            if hasattr(link, 'img') and link.img is None:
+                # some element in the chain didn't finish loading
+                # it's not safe adding a new one
+                return
+        child = self.edit_chain[-1]
+        action = PageACEAction(child, self.factories, self.schedulers)
+        self._add_edit_action(action)
 
     def _on_edit_crop(self):
         child = self.edit_chain[-1]

@@ -40,6 +40,7 @@ from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
 from paperwork.frontend.mainwindow.docs import sort_documents_by_date
 from paperwork.frontend.mainwindow.pages import PageDrawer
 from paperwork.frontend.mainwindow.pages import PageDropHandler
+from paperwork.frontend.mainwindow.pages import JobFactoryImgProcesser
 from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
 from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
 from paperwork.frontend.mainwindow.pages import SimplePageDrawer
@@ -2046,6 +2047,7 @@ class MainWindow(object):
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_searcher': JobFactoryDocSearcher(self, config),
             'export_previewer': JobFactoryExportPreviewer(self),
+            'img_processer': JobFactoryImgProcesser(self),
             'importer': JobFactoryImporter(self, config),
             'index_reloader': JobFactoryIndexLoader(self, config),
             'index_updater': JobFactoryIndexUpdater(self, config),
@@ -2590,6 +2592,7 @@ class MainWindow(object):
         assert(self.progressbar.canvas)
 
         factories = {
+            'img_processer': self.job_factories['img_processer'],
             'page_img_loader': self.job_factories['page_img_loader'],
             'page_boxes_loader': self.job_factories['page_boxes_loader']
         }
@@ -2767,6 +2770,12 @@ class MainWindow(object):
     def show_page(self, page, force_refresh=False):
         self.set_mouse_cursor("Busy")
         GLib.idle_add(self._show_page_hook, page, force_refresh)
+
+    def _on_img_processing_start(self):
+        self.set_mouse_cursor("Busy")
+
+    def _on_img_processing_done(self):
+        self.set_mouse_cursor("Normal")
 
     def _on_page_drawer_selected(self, page_drawer):
         if self.layout == 'paged':

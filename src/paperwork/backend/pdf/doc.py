@@ -177,18 +177,32 @@ class PdfDoc(BasicDoc):
     def import_pdf(self, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
         try:
+            # try opening it to make sure it's valid
+            pdf = Poppler.Document.new_from_file(file_uri)
+            pdf.get_n_pages()
+        except GLib.GError as exc:
+            logger.error(
+                "Warning: Unable to open the PDF to import: {}/{}".format(
+                    file_uri, exc
+                )
+            )
+            return False
+
+        try:
             dest = Gio.File.parse_name(
                 "file://%s" % urllib.parse.quote(self.path)
             )
             dest.make_directory(None)
         except GLib.GError as exc:
-            logger.exception("Warning: Error while trying to create '%s': %s"
-                             % (self.path, exc))
+            logger.error("Warning: Error while trying to create '%s': %s"
+                         % (self.path, exc))
+            return False
         f = Gio.File.parse_name(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
+        return True
 
     @staticmethod
     def get_export_formats():

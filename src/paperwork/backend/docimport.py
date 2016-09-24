@@ -57,7 +57,8 @@ class SinglePdfImporter(object):
         """
         doc = PdfDoc(docsearch.rootdir)
         logger.info("Importing doc '%s' ..." % file_uri)
-        doc.import_pdf(file_uri)
+        if not doc.import_pdf(file_uri):
+            raise Exception("Import of {} failed".format(file_uri))
         return ([doc], None, True)
 
     def __str__(self):
@@ -125,14 +126,9 @@ class MultiplePdfImporter(object):
                 logger.info("Document %s already found in the index. Skipped"
                             % (child.get_path()))
                 continue
-            try:
-                # make sure we can import it
-                Poppler.Document.new_from_file(child.get_uri(),
-                                               password=None)
-            except Exception:
-                continue
             doc = PdfDoc(docsearch.rootdir)
-            doc.import_pdf(child.get_uri())
+            if not doc.import_pdf(child.get_uri()):
+                continue
             docs.append(doc)
             idx += 1
         if doc is None:

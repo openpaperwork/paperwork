@@ -24,7 +24,6 @@ import urllib
 
 from gi.repository import GLib
 from gi.repository import Gio
-from gi.repository import Poppler
 from PIL import Image
 
 from .pdf.doc import PdfDoc
@@ -57,8 +56,9 @@ class SinglePdfImporter(object):
         """
         doc = PdfDoc(docsearch.rootdir)
         logger.info("Importing doc '%s' ..." % file_uri)
-        if not doc.import_pdf(file_uri):
-            raise Exception("Import of {} failed".format(file_uri))
+        error = doc.import_pdf(file_uri)
+        if error:
+            raise Exception("Import of {} failed: {}".format(file_uri, error))
         return ([doc], None, True)
 
     def __str__(self):
@@ -127,7 +127,8 @@ class MultiplePdfImporter(object):
                             % (child.get_path()))
                 continue
             doc = PdfDoc(docsearch.rootdir)
-            if not doc.import_pdf(child.get_uri()):
+            error = doc.import_pdf(child.get_uri())
+            if error:
                 continue
             docs.append(doc)
             idx += 1

@@ -186,7 +186,7 @@ class PdfDoc(BasicDoc):
                     file_uri, exc
                 )
             )
-            return False
+            return str(exc)
 
         try:
             dest = Gio.File.parse_name(
@@ -196,13 +196,13 @@ class PdfDoc(BasicDoc):
         except GLib.GError as exc:
             logger.error("Warning: Error while trying to create '%s': %s"
                          % (self.path, exc))
-            return False
+            return str(exc)
         f = Gio.File.parse_name(file_uri)
         dest = dest.get_child(PDF_FILENAME)
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
-        return True
+        return None
 
     @staticmethod
     def get_export_formats():

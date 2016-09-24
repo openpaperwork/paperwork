@@ -219,7 +219,6 @@ class PageEditAction(Drawer):
         pdrawer = None
         for link in chain:
             if pdrawer is not None:
-                cdrawer = link.child_drawers[0]
                 link.set_child_drawer(pdrawer)
             pdrawer = link
         return chain
@@ -1321,8 +1320,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self._on_edit_done()
 
     def _on_edit_apply(self):
-        # TODO
-        # self.emit("page-edited", actions)
+        self.emit("page-edited", self.edit_chain)
         self._on_edit_done()
 
     def _on_delete(self):

@@ -2775,10 +2775,10 @@ class MainWindow(object):
         self.show_page(page_drawer.page, force_refresh=True)
 
     def _on_page_drawer_edited(self, page_drawer, actions):
-        page = page_drawer.page
-        img = page.img
+        img = None
         for action in actions:
-            img = action.do(img)
+            img = action.apply(img)
+        page = page_drawer.page
         page.img = img  # will save the new image
 
         ActionRedoPageOCR(self).do(page)

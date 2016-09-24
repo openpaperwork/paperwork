@@ -26,7 +26,7 @@ import pyocr
 import pyocr.builders
 
 from paperwork_backend.util import check_spelling
-from paperwork.frontend.mainwindow.pages import PageDrawer
+from paperwork.frontend.mainwindow.pages import SimplePageDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.canvas.animations import Animation
@@ -438,13 +438,13 @@ class BasicScanWorkflowDrawer(Animation):
         assert(self.canvas)
         if self.previous_drawer is None:
             position_h = 0
-            position_w = PageDrawer.MARGIN
+            position_w = SimplePageDrawer.MARGIN
         else:
-            position_w = PageDrawer.MARGIN
+            position_w = SimplePageDrawer.MARGIN
             position_h = (
                 self.previous_drawer.position[1] +
                 self.previous_drawer.size[1] +
-                PageDrawer.MARGIN
+                SimplePageDrawer.MARGIN
             )
         self.position = (position_w, position_h)
 

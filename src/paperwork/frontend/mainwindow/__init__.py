@@ -1642,7 +1642,7 @@ class BasicActionOpenExportDialog(SimpleAction):
             self.main_win.export['pageSimplification']['model'].append(
                 simplification
             )
-        self.main_win.export['pageSimplification']['widget'].set_active(1)
+        self.main_win.export['pageSimplification']['widget'].set_active(0)
 
 
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):

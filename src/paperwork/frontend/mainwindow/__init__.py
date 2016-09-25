@@ -1813,10 +1813,17 @@ class ActionExport(BasicActionEndExport):
         BasicActionEndExport.__init__(self, main_window, "Export")
         self.main_win = main_window
 
+    def _do(self):
+        try:
+            filepath = self.main_win.export['export_path'].get_text()
+            self.main_win.export['exporter'].save(filepath)
+            BasicActionEndExport.do(self)
+        finally:
+            self.main_win.set_mouse_cursor("Normal")
+
     def do(self):
-        filepath = self.main_win.export['export_path'].get_text()
-        self.main_win.export['exporter'].save(filepath)
-        BasicActionEndExport.do(self)
+        self.main_win.set_mouse_cursor("Busy")
+        GLib.idle_add(self._do)
 
 
 class ActionCancelExport(BasicActionEndExport):

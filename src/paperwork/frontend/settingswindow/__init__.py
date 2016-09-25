@@ -333,6 +333,8 @@ class JobCalibrationScan(Job):
         'calibration-scan-done': (GObject.SignalFlags.RUN_LAST, None,
                                   (GObject.TYPE_PYOBJECT,  # Pillow image
                                    GObject.TYPE_INT, )),  # scan resolution
+        'calibration-scan-error': (GObject.SignalFlags.RUN_LAST, None,
+                                  (GObject.TYPE_STRING,)),  # error message
         'calibration-scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                                       ()),
     }
@@ -350,6 +352,24 @@ class JobCalibrationScan(Job):
     def do(self):
         self.can_run = True
         self.emit('calibration-scan-start')
+
+        try:
+            self._do()
+        except StopIteration as exc:
+            logger.warning("Calibration scan failed: No paper to scan")
+            self.emit('calibration-scan-error',
+                      _("No paper to scan"))
+            raise
+        except Exception as exc:
+            logger.warning("Calibration scan failed: {}".format(str(exc)))
+            self.emit('calibration-scan-error',
+                      _("Error while scanning: {}".format(str(exc))))
+            raise
+
+        img = scan_session.images[-1]
+        self.emit('calibration-scan-done', img, resolution)
+
+    def _do(self):
 
         # find the best resolution : the default calibration resolution
         # is not always available
@@ -414,11 +434,9 @@ class JobCalibrationScan(Job):
             if not self.can_run:
                 self.emit('calibration-scan-canceled')
                 scan_session.scan.cancel()
+                return
         except EOFError:
             pass
-
-        img = scan_session.images[-1]
-        self.emit('calibration-scan-done', img, resolution)
 
     def stop(self, will_resume=False):
         assert(not will_resume)
@@ -450,6 +468,9 @@ class JobFactoryCalibrationScan(JobFactory):
                     lambda job, line, img:
                     GLib.idle_add(self.__settings_win.on_scan_chunk, line,
                                   img))
+        job.connect('calibration-scan-error',
+                    lambda job, error:
+                    GLib.idle_add(self.__settings_win.on_scan_error, error))
         job.connect('calibration-scan-done',
                     lambda job, img, resolution:
                     GLib.idle_add(self.__settings_win.on_scan_done, img,
@@ -892,21 +913,40 @@ class SettingsWindow(GObject.GObject):
     def on_scan_chunk(self, line, img):
         self.calibration['scan_drawer'].add_chunk(line, img)
 
+    def _on_scan_end(self):
+        self.progressbar.set_fraction(0.0)
+        self.schedulers['progress'].cancel(self.__scan_progress_job)
+        self.calibration['image_gui'].remove_all_drawers()
+        self.set_mouse_cursor("Normal")
+
+    def on_scan_error(self, error):
+        self._on_scan_end()
+        self.calibration["scan_button"].set_sensitive(False)
+        msg = (_("Error while scanning: {}").format(error))
+        flags = (Gtk.DialogFlags.MODAL |
+                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.run()
+        dialog.destroy()
+
     def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()
-        self.schedulers['progress'].cancel(self.__scan_progress_job)
         self.__config['scan_time'].value['calibration'] = (
             scan_stop - self.__scan_start
         )
 
+        self._on_scan_end()
+
         self.calibration['image'] = img
         self.calibration['resolution'] = scan_resolution
-        self.progressbar.set_fraction(0.0)
         calibration = self.__config['scanner_calibration'].value
         if calibration:
             calibration = calibration[1]
         img_drawer = PillowImageDrawer((0, 0), self.calibration['image'])
-        self.calibration['image_gui'].remove_all_drawers()
         self.calibration['image_gui'].add_drawer(img_drawer)
         self.grips = ImgGripHandler(
             img_drawer, img_drawer.size,
@@ -915,7 +955,6 @@ class SettingsWindow(GObject.GObject):
         )
         self.calibration['image_gui'].add_drawer(self.grips)
         self.grips.visible = True
-        self.set_mouse_cursor("Normal")
         self.calibration["scan_button"].set_sensitive(True)
 
     def on_scan_canceled(self):

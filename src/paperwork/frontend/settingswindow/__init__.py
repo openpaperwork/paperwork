@@ -334,7 +334,7 @@ class JobCalibrationScan(Job):
                                   (GObject.TYPE_PYOBJECT,  # Pillow image
                                    GObject.TYPE_INT, )),  # scan resolution
         'calibration-scan-error': (GObject.SignalFlags.RUN_LAST, None,
-                                  (GObject.TYPE_STRING,)),  # error message
+                                   (GObject.TYPE_STRING,)),  # error message
         'calibration-scan-canceled': (GObject.SignalFlags.RUN_LAST, None,
                                       ()),
     }
@@ -354,7 +354,7 @@ class JobCalibrationScan(Job):
         self.emit('calibration-scan-start')
 
         try:
-            self._do()
+            (img, resolution) = self._do()
         except StopIteration as exc:
             logger.warning("Calibration scan failed: No paper to scan")
             self.emit('calibration-scan-error',
@@ -366,11 +366,9 @@ class JobCalibrationScan(Job):
                       _("Error while scanning: {}".format(str(exc))))
             raise
 
-        img = scan_session.images[-1]
         self.emit('calibration-scan-done', img, resolution)
 
     def _do(self):
-
         # find the best resolution : the default calibration resolution
         # is not always available
         resolutions = [x[1] for x in self.__resolutions_store]
@@ -437,6 +435,8 @@ class JobCalibrationScan(Job):
                 return
         except EOFError:
             pass
+
+        return (scan_session.images[-1], resolution)
 
     def stop(self, will_resume=False):
         assert(not will_resume)
@@ -951,7 +951,8 @@ class SettingsWindow(GObject.GObject):
         self.grips = ImgGripHandler(
             img_drawer, img_drawer.size,
             self.calibration['zoom'],
-            default_grips_positions=calibration
+            default_grips_positions=calibration,
+            canvas=self.calibration['image_gui']
         )
         self.calibration['image_gui'].add_drawer(self.grips)
         self.grips.visible = True

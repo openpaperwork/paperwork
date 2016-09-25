@@ -185,7 +185,7 @@ class ImgGripHandler(GObject.GObject, Drawer):
     layer = (Drawer.BOX_LAYER + 1)  # draw below/before the grips itself
 
     def __init__(self, img_drawer, img_size, zoom_widget=None,
-                 default_grips_positions=None):
+                 default_grips_positions=None, canvas=None):
         """
         Arguments:
             img --- can be Pillow image (will be displayed), or just a tuple
@@ -195,6 +195,7 @@ class ImgGripHandler(GObject.GObject, Drawer):
 
         super(ImgGripHandler, self).__init__()
 
+        self.canvas = canvas
         self.zoom_widget = zoom_widget
 
         self.__visible = False
@@ -367,7 +368,7 @@ class ImgGripHandler(GObject.GObject, Drawer):
 
     def toggle_zoom(self, rel_cursor_pos):
         assert(self.zoom_widget)
-        if self.scale != 1.0:
+        if self.scale != 1.0 or self.canvas is None:
             scale = 1.0
         else:
             scale = min(

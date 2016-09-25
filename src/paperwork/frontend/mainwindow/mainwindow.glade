@@ -548,6 +548,7 @@
                               <object class="GtkListBox" id="listboxDocList">
                                 <property name="visible">False</property>
                                 <property name="can_focus">True</property>
+                                <property name="selection_mode">multiple</property>
                                 <style>
                                   <class name="doc-list"/>
                                 </style>

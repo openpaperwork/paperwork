@@ -1962,6 +1962,8 @@ class MainWindow(object):
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
 
+        self.__allow_multiselect = False
+
         self.__advanced_app_menu = self.__init_app_menu(self.app)
 
         load_cssfile("application.css")
@@ -2375,6 +2377,9 @@ class MainWindow(object):
         self.window.connect(
             "key-press-event", self.__on_key_press_event_cb,
         )
+        self.window.connect(
+            "key-release-event", self.__on_key_release_event_cb,
+        )
 
         self.window.set_visible(True)
 
@@ -2758,6 +2763,9 @@ class MainWindow(object):
             logger.info("Doc is already shown")
             return
 
+        if not self.__allow_multiselect:
+            self.doclist.select_doc(doc)
+
         if self.doc:
             self.doc.drop_cache()
 
@@ -3048,6 +3056,9 @@ class MainWindow(object):
         elif event.keyval == Gdk.KEY_Page_Down:
             direction = 1
 
+        if event.state & Gdk.ModifierType.MODIFIER_MASK:
+            self.__allow_multiselect = True
+
         if direction != 0:
             if not event.state & Gdk.ModifierType.CONTROL_MASK:
                 doc = self.doc
@@ -3067,6 +3078,10 @@ class MainWindow(object):
 
         # don't know what to do, don't care. Let someone else take care of it
         return False
+
+    def __on_key_release_event_cb(self, widget, event):
+        if event.state & Gdk.ModifierType.MODIFIER_MASK:
+            self.__allow_multiselect = False
 
     def get_doc_sorting(self):
         return ("scan_date", sort_documents_by_date)

@@ -953,6 +953,7 @@ class DocList(object):
             row = self.gui['list'].get_row_at_index(row_index)
             if not row:
                 return
+        self.gui['list'].unselect_all()
         self.gui['list'].select_row(row)
 
     def _on_size_allocate(self):

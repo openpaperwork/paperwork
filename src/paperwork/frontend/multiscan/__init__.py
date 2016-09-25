@@ -149,6 +149,20 @@ class ActionScan(SimpleAction):
         self.__docsearch = docsearch
         self.__main_win = main_win
 
+    def __on_scan_error(self, exc):
+        if isinstance(exc, StopIteration):
+            msg = _("Scan failed: No paper found")
+        else:
+            msg = _("Scan failed: {}").format(str(exc))
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.run()
+        dialog.destroy()
+
     def do(self):
         SimpleAction.do(self)
 
@@ -157,13 +171,19 @@ class ActionScan(SimpleAction):
                 self.__config,
                 preferred_sources=["ADF", "Feeder"]
             )
-            scan_session = dev.scan(multiple=True)
         except Exception as exc:
             logger.warning("Exception while configuring scanner: %s: %s."
                            " Assuming scanner is not connected",
                            type(exc), exc)
             popup_no_scanner_found(self.__multiscan_win.window)
-            return
+            raise
+
+        try:
+            scan_session = dev.scan(multiple=True)
+        except Exception as exc:
+            logger.warning("Exception while scanning: {}".format(exc))
+            self.__on_scan_error(exc)
+            raise
 
         self.__multiscan_win.on_global_scan_start_cb()
 

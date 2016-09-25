@@ -1239,8 +1239,7 @@ class ActionSingleScan(SimpleAction):
             msg = _("Scan failed: No paper found")
         else:
             msg = _("Scan failed: {}").format(str(exc))
-        flags = (Gtk.DialogFlags.MODAL |
-                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
                                    flags=flags,
                                    message_type=Gtk.MessageType.ERROR,

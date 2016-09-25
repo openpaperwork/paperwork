@@ -943,7 +943,13 @@ class DocList(object):
 
     def select_doc(self, doc=None, offset=None):
         assert(doc is not None or offset is not None)
+        self.gui['list'].unselect_all()
         if doc is not None:
+            if doc.docid not in self.model['by_id']:
+                logger.warning("Cannot select document {}. Not found !".format(
+                    doc.docid
+                ))
+                return
             row = self.model['by_id'][doc.docid]
         else:
             row = self.gui['list'].get_selected_row()
@@ -953,7 +959,6 @@ class DocList(object):
             row = self.gui['list'].get_row_at_index(row_index)
             if not row:
                 return
-        self.gui['list'].unselect_all()
         self.gui['list'].select_row(row)
 
     def _on_size_allocate(self):

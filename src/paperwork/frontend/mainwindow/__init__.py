@@ -1235,7 +1235,22 @@ class ActionSingleScan(SimpleAction):
                                       force_refresh=True)
 
     def __on_scan_error(self, scan_workflow, exc):
-        # TODO
+        if isinstance(exc, StopIteration):
+            msg = _("Scan failed: No paper found")
+        else:
+            msg = _("Scan failed: {}").format(str(exc))
+        flags = (Gtk.DialogFlags.MODAL |
+                 Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.run()
+        dialog.destroy()
+
+        if not scan_workflow:
+            return
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
         if self.__main_win.doc.docid == docid:
             self.__main_win.show_page(self.__main_win.doc.pages[-1],
@@ -1258,13 +1273,18 @@ class ActionSingleScan(SimpleAction):
 
             try:
                 (dev, resolution) = get_scanner(self.__config)
-                scan_session = dev.scan(multiple=False)
             except Exception as exc:
                 logger.warning("Exception while configuring scanner: %s: %s."
                                " Assuming scanner is not connected",
                                type(exc), exc)
                 popup_no_scanner_found(self.__main_win.window, str(exc))
                 return
+            try:
+                scan_session = dev.scan(multiple=False)
+            except Exception as exc:
+                logger.warning("Error while scanning: {}".format(str(exc)))
+                self.__on_scan_error(None, exc)
+                raise
         finally:
             self.__main_win.set_mouse_cursor("Normal")
 

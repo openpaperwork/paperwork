@@ -303,9 +303,9 @@ def _get_scanner(config, devid, preferred_sources=None):
     if 'source' not in dev.options:
         logger.warning("Can't set the source on this scanner. Option not found")
     elif preferred_sources:
-        pyinsane2.set_scanner_opt(dev, 'source', preferred_sources)
+        pyinsane2.set_scanner_opt(dev, 'source', [preferred_sources])
     elif config_source:
-        pyinsane2.set_scanner_opt(dev, 'source', config_source)
+        pyinsane2.set_scanner_opt(dev, 'source', [config_source])
 
     if 'resolution' not in dev.options:
         logger.warning("Can't set the resolution on this scanner."

@@ -10,8 +10,8 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="81mm"
-   height="51mm"
-   viewBox="0 0 287.00782 180.70855"
+   height="81mm"
+   viewBox="0 0 287.00782 287.0077"
    id="svg2"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="164.02736"
-     inkscape:cy="49.79025"
+     inkscape:zoom="2.8"
+     inkscape:cx="170.32919"
+     inkscape:cy="147.04218"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -48,7 +48,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -56,21 +56,21 @@
      inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-871.65369)">
+     transform="translate(0,-765.35449)">
     <path
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 275,882.36231 -200,134.99999 10,20 10,-15 -10,15 z"
+       d="m 274.28571,830.93375 -199.999996,134.99999 10,20 10,-15 -10,15 z"
        id="path3347"
        inkscape:connector-curvature="0" />
     <path
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 8.6366242,1003.2521 275.01268,882.38547 75.080971,1017.4538 c -22.03319,-13.8385 -38.350657,-15.8512 -66.4443468,-14.2017 z"
+       d="M 7.9223387,951.82354 274.29839,830.95691 74.366685,966.02524 c -22.03319,-13.8385 -38.350657,-15.8512 -66.4443463,-14.2017 z"
        id="path3408"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
     <path
        style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 95.124293,1022.5864 275.01268,882.4078 175.30286,1042.9435 c -24.91066,-12.2273 -51.24125,-20.8808 -80.178567,-20.3571 z"
+       d="m 94.410007,971.15784 179.888383,-140.1786 -99.70982,160.5357 c -24.91066,-12.2273 -51.24125,-20.8808 -80.178563,-20.3571 z"
        id="path3410"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />

@@ -312,6 +312,10 @@ class BasicDoc(object):
     def get_name(date):
         return date.strftime("%x")
 
+    @staticmethod
+    def parse_name(date_str):
+        return datetime.datetime.strptime(date_str, "%x")
+
     def __get_name(self):
         """
         Returns the localized name of the document (see l10n)

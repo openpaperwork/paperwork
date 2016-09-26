@@ -362,6 +362,9 @@ class ActionOpenSelectedDocument(SimpleAction):
         self.__doclist = doclist
 
     def do(self):
+        if not self.__doclist.enabled:
+            return
+
         SimpleAction.do(self)
 
         doclist = self.__doclist.gui['list']
@@ -373,6 +376,14 @@ class ActionOpenSelectedDocument(SimpleAction):
         if doc is None:
             # assume new doc
             doc = self.__doclist.get_new_doc()
+
+        if doc == self.__main_win.doc:
+            logger.info(
+                "Document {} selected, but already displayed. Ignored".format(
+                    doc.docid
+                )
+            )
+            return
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:
@@ -517,6 +528,7 @@ class DocList(object):
     def __init__(self, main_win, config, widget_tree):
         self.__main_win = main_win
         self.__config = config
+        self.enabled = True
 
         self.default_thumbnail = self.__init_default_thumbnail(
             JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
@@ -941,25 +953,31 @@ class DocList(object):
             search=search)
         self.__main_win.schedulers['main'].schedule(job)
 
-    def select_doc(self, doc=None, offset=None):
-        assert(doc is not None or offset is not None)
-        self.gui['list'].unselect_all()
-        if doc is not None:
-            if doc.docid not in self.model['by_id']:
-                logger.warning("Cannot select document {}. Not found !".format(
-                    doc.docid
-                ))
-                return
-            row = self.model['by_id'][doc.docid]
-        else:
-            row = self.gui['list'].get_selected_row()
-        if offset is not None:
-            row_index = row.get_index()
-            row_index += offset
-            row = self.gui['list'].get_row_at_index(row_index)
-            if not row:
-                return
-        self.gui['list'].select_row(row)
+    def select_doc(self, doc=None, offset=None, open_doc=True):
+        self.enabled = open_doc
+        try:
+            assert(doc is not None or offset is not None)
+            self.gui['list'].unselect_all()
+            if doc is not None:
+                if doc.docid not in self.model['by_id']:
+                    logger.warning(
+                        "Cannot select document {}. Not found !".format(
+                            doc.docid
+                        )
+                    )
+                    return
+                row = self.model['by_id'][doc.docid]
+            else:
+                row = self.gui['list'].get_selected_row()
+            if offset is not None:
+                row_index = row.get_index()
+                row_index += offset
+                row = self.gui['list'].get_row_at_index(row_index)
+                if not row:
+                    return
+            self.gui['list'].select_row(row)
+        finally:
+            self.enabled = True
 
     def _on_size_allocate(self):
         visible = self.gui['scrollbars'].get_allocation()

@@ -2783,7 +2783,7 @@ class MainWindow(object):
             return
 
         if not self.__allow_multiselect:
-            self.doclist.select_doc(doc)
+            self.doclist.select_doc(doc, open_doc=False)
 
         if self.doc:
             self.doc.drop_cache()
@@ -3092,7 +3092,7 @@ class MainWindow(object):
                     page_nb = 0
                 self.show_page(doc.pages[page_nb])
             else:
-                self.doclist.select_doc(offset=direction)
+                self.doclist.select_doc(offset=direction, open_doc=True)
             return True
 
         # don't know what to do, don't care. Let someone else take care of it

@@ -1,3 +1,5 @@
+* Export: generated PDF now includes the text from the OCR
+* 'paperwork-chkdeps' has been replaced by 'paperwork-shell'
 * Export: Add an option to automatically simplify the content (makes it
   smaller in size)
 * Import: Display a popup when the import fails

@@ -2354,6 +2354,8 @@ class MainWindow(object):
                                    Gtk.AccelFlags.VISIBLE)
         self.window.add_accel_group(accel_group)
 
+        self.window.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+
         self.need_doc_widgets = set(
             self.actions['print'][0] +
             self.actions['open_doc_dir'][0] +
@@ -3075,7 +3077,11 @@ class MainWindow(object):
         elif event.keyval == Gdk.KEY_Page_Down:
             direction = 1
 
-        if event.state & Gdk.ModifierType.MODIFIER_MASK:
+        if (event.keyval == Gdk.KEY_Control_L or
+                event.keyval == Gdk.KEY_Control_R or
+                event.keyval == Gdk.KEY_Shift_L or
+                event.keyval == Gdk.KEY_Shift_R or
+                event.state & Gdk.ModifierType.MODIFIER_MASK):
             self.__allow_multiselect = True
 
         if direction != 0:
@@ -3099,7 +3105,11 @@ class MainWindow(object):
         return False
 
     def __on_key_release_event_cb(self, widget, event):
-        if event.state & Gdk.ModifierType.MODIFIER_MASK:
+        if (event.keyval == Gdk.KEY_Control_L or
+                event.keyval == Gdk.KEY_Control_R or
+                event.keyval == Gdk.KEY_Shift_L or
+                event.keyval == Gdk.KEY_Shift_R or
+                event.state & Gdk.ModifierType.MODIFIER_MASK):
             self.__allow_multiselect = False
 
     def get_doc_sorting(self):

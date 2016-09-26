@@ -933,20 +933,24 @@ class SimplePageDrawer(Drawer):
                 # redraw previous box to make the border disappear
                 if not must_redraw and self.boxes["mouse_over"]:
                     box_pos = self._get_real_box(self.boxes["mouse_over"])
-                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                        box_pos[1] - self.LINE_WIDTH),
-                                        (box_pos[2] + (2 * self.LINE_WIDTH),
-                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+                    self.canvas.redraw(
+                        ((box_pos[0] - self.LINE_WIDTH,
+                          box_pos[1] - self.LINE_WIDTH),
+                         (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
+                          box_pos[1] + box_pos[3] + (2 * self.LINE_WIDTH)))
+                    )
 
                 self.boxes["mouse_over"] = box
 
                 # draw new one to make the border appear
                 if not must_redraw and box:
                     box_pos = self._get_real_box(box)
-                    self.canvas.redraw(((box_pos[0] - self.LINE_WIDTH,
-                                        box_pos[1] - self.LINE_WIDTH),
-                                        (box_pos[2] + (2 * self.LINE_WIDTH),
-                                        box_pos[2] + (2 * self.LINE_WIDTH))))
+                    self.canvas.redraw(
+                        ((box_pos[0] - self.LINE_WIDTH,
+                          box_pos[1] - self.LINE_WIDTH),
+                         (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
+                          box_pos[1] + box_pos[3] + (2 * self.LINE_WIDTH)))
+                    )
 
         if must_redraw:
             self.redraw()

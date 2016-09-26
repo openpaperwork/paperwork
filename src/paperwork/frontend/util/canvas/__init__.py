@@ -247,9 +247,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
             vals = [0, 0]
             for (adj, pos, new_max, idx) in [
-                        (self.hadjustment, current_center[0], max_h, 0),
-                        (self.vadjustment, current_center[1], max_v, 1)
-                    ]:
+                (self.hadjustment, current_center[0], max_h, 0),
+                (self.vadjustment, current_center[1], max_v, 1)
+            ]:
                 adj_min = adj.get_lower()
                 adj_max = max(1, adj.get_upper())
                 proportional = ((float(pos) - adj_min) / adj_max)
@@ -260,9 +260,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                     vals[idx] -= self.mouse_position[idx]
 
         for (adj, pos, new_max, idx) in [
-                    (self.hadjustment, self.mouse_position[0], max_h, 0),
-                    (self.vadjustment, self.mouse_position[1], max_v, 1)
-                ]:
+            (self.hadjustment, self.mouse_position[0], max_h, 0),
+            (self.vadjustment, self.mouse_position[1], max_v, 1)
+        ]:
             if vals[idx] > self.full_size[idx]:
                 vals[idx] = self.full_size[idx]
             adj.set_lower(0)
@@ -365,7 +365,12 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         if area is None:
             self.queue_draw()
         else:
-            self.queue_draw_area(area[0][0], area[0][1], area[1][0], area[1][1])
+            self.queue_draw_area(
+                area[0][0] - self.offset[0],
+                area[0][1] - self.offset[1],
+                area[1][0] - self.offset[0],
+                area[1][1] - self.offset[1]
+            )
 
     def __get_absolute_event(self, event):
         off_x = int(self.hadjustment.get_value())

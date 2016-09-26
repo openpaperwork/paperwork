@@ -1863,7 +1863,7 @@ class BasicActionEndExport(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         for button in self.main_win.actions['open_view_settings'][0]:
-            button.set_sensitive(False)
+            button.set_sensitive(True)
         self.main_win.export['dialog'].set_visible(False)
         self.main_win.export['exporter'] = None
         # force refresh of the current page
@@ -2821,6 +2821,9 @@ class MainWindow(object):
         if doc_inst:
             doc = doc_inst
 
+        # make sure the export dialog didn't screw up
+        for button in self.actions['open_view_settings'][0]:
+            button.set_sensitive(True)
         self.export['dialog'].set_visible(False)
 
         if (self.doc is not None and

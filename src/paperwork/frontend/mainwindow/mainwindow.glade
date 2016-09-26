@@ -43,7 +43,7 @@
           <attribute name="action">app.export_page</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Document</attribute>
+          <attribute name="label" translatable="yes">Document(s)</attribute>
           <attribute name="action">app.export_doc</attribute>
         </item>
       </submenu>

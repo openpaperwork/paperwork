@@ -572,6 +572,7 @@ class SimplePageDrawer(Drawer):
     TMP_AREA = (0.85, 0.85, 0.85)
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     MARGIN = 20
+    BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
 
     priority = 0
 
@@ -962,7 +963,6 @@ class SimplePageDrawer(Drawer):
 
 class PageDrawer(Drawer, GObject.GObject):
     layer = Drawer.BUTTON_LAYER
-    BORDER_HIGHLIGHTED = (5, (0, 0.85, 0))
 
     BUTTON_SIZE = 32
     BUTTON_BACKGROUND = (0.85, 0.85, 0.85)
@@ -1336,7 +1336,7 @@ class PageDrawer(Drawer, GObject.GObject):
     def redraw(self, extra_border=0):
         border = self.simple_page_drawer.BORDER_BASIC
         if self.simple_page_drawer.boxes['highlighted']:
-            border = self.BORDER_HIGHLIGHTED
+            border = self.simple_page_drawer.BORDER_HIGHLIGHTED
 
         border_width = max(border[0], extra_border)
 

@@ -30,6 +30,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 import pillowfight
 
+from paperwork_backend import docexport
 from paperwork_backend import docimport
 from paperwork_backend.common.page import BasicPage
 from paperwork_backend.common.page import DummyPage
@@ -1664,6 +1665,21 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['pageSimplification']['widget'].set_active(0)
 
 
+class MultipleExportTarget(object):
+    def __init__(self, doclist):
+        self.doclist = []
+        for doc in doclist:
+            if doc.is_new:
+                continue
+            self.doclist.append(doc)
+
+    def get_export_formats(self):
+        return [_("Multiple PDF in a folder")]
+
+    def build_exporter(self, format):
+        return docexport.MultipleDocExporter(self.doclist)
+
+
 class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
     def __init__(self, main_window):
         BasicActionOpenExportDialog.__init__(self, main_window,
@@ -1683,9 +1699,25 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
-        self.main_win.export['to_export'] = self.main_win.doc
-        self.main_win.export['buttons']['ok'].set_label(_("Export document"))
-        BasicActionOpenExportDialog.open_dialog(self, self.main_win.doc)
+        docs = self.main_win.doclist.get_selected_docs()
+        if len(docs) == 0:
+            logger.warning("Export: no document selected !?")
+            return
+        if len(docs) == 1:
+            target = docs[0]
+            self.main_win.export['buttons']['ok'].set_label(
+                _("Export document")
+            )
+        else:
+            target = MultipleExportTarget(docs)
+            self.main_win.export['buttons']['ok'].set_label(
+                _("Export documents")
+            )
+            if len(target.doclist) <= 0:
+                logger.warning("Export: no valid document to export selected")
+                return
+        self.main_win.export['to_export'] = target
+        BasicActionOpenExportDialog.open_dialog(self, target)
 
 
 class ActionSelectExportFormat(SimpleAction):
@@ -1779,19 +1811,29 @@ class ActionSelectExportPath(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        chooser = Gtk.FileChooserDialog(title=_("Save as"),
-                                        transient_for=self.__main_win.window,
-                                        action=Gtk.FileChooserAction.SAVE)
+
+        mime = self.__main_win.export['exporter'].get_mime_type()
+        if mime:
+            chooser = Gtk.FileChooserDialog(
+                title=_("Save as"),
+                transient_for=self.__main_win.window,
+                action=Gtk.FileChooserAction.SAVE
+            )
+            file_filter = Gtk.FileFilter()
+            file_filter.set_name(str(self.__main_win.export['exporter']))
+            file_filter.add_mime_type(mime)
+            chooser.add_filter(file_filter)
+        else: # directory
+            chooser = Gtk.FileChooserDialog(
+                title=_("Save in"),
+                transient_for=self.__main_win.window,
+                action=Gtk.FileChooserAction.SELECT_FOLDER
+            )
+
         chooser.add_buttons(Gtk.STOCK_CANCEL,
                             Gtk.ResponseType.CANCEL,
                             Gtk.STOCK_SAVE,
                             Gtk.ResponseType.OK)
-        file_filter = Gtk.FileFilter()
-        file_filter.set_name(str(self.__main_win.export['exporter']))
-        mime = self.__main_win.export['exporter'].get_mime_type()
-        file_filter.add_mime_type(mime)
-        chooser.add_filter(file_filter)
-
         response = chooser.run()
         filepath = chooser.get_filename()
         chooser.destroy()
@@ -1800,13 +1842,14 @@ class ActionSelectExportPath(SimpleAction):
             return
 
         valid_exts = self.__main_win.export['exporter'].get_file_extensions()
-        has_valid_ext = False
-        for valid_ext in valid_exts:
-            if filepath.lower().endswith(valid_ext.lower()):
-                has_valid_ext = True
-                break
-        if not has_valid_ext:
-            filepath += ".%s" % valid_exts[0]
+        if valid_exts:
+            has_valid_ext = False
+            for valid_ext in valid_exts:
+                if filepath.lower().endswith(valid_ext.lower()):
+                    has_valid_ext = True
+                    break
+            if not has_valid_ext:
+                filepath += ".%s" % valid_exts[0]
 
         self.__main_win.export['export_path'].set_text(filepath)
         self.__main_win.export['buttons']['ok'].set_sensitive(True)
@@ -2140,7 +2183,7 @@ class MainWindow(object):
                 'ok': widget_tree.get_object("buttonExport"),
                 'cancel': widget_tree.get_object("buttonCancelExport"),
             },
-            'to_export': None,  # usually self.page or self.doc
+            'to_export': None,  # usually self.page or self.doc, or list of doc
             'exporter': None,
         }
 
@@ -2777,6 +2820,8 @@ class MainWindow(object):
         doc_inst = self.docsearch.get_doc_from_docid(doc.docid, inst=False)
         if doc_inst:
             doc = doc_inst
+
+        self.export['dialog'].set_visible(False)
 
         if (self.doc is not None and
                 self.doc == doc and

@@ -1029,6 +1029,14 @@ class DocList(object):
         if self.selected_doc:
             self.__set_doc_buttons_visible(self.selected_doc, True)
 
+    def get_selected_docs(self):
+        rows = self.gui['list'].get_selected_rows()
+        docids = [self.model['by_row'][row] for row in rows]
+        return [
+            self.__main_win.docsearch.get_doc_from_docid(docid)
+            for docid in docids
+        ]
+
 
 class DocPropertiesPanel(object):
     def __init__(self, main_window, widget_tree):

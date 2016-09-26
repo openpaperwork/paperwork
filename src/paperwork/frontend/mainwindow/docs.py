@@ -404,7 +404,47 @@ class ActionSwitchToDocList(SimpleAction):
         self.__main_win.switch_leftpane("doc_list")
 
 
-class ActionSetDocDate(SimpleAction):
+class ActionParseDocDate(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Set document date")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        calendar = self.__main_win.doc_properties_panel.widgets['calendar']
+        date_entry = self.__main_win.doc_properties_panel.widgets['name']
+        date_txt = date_entry.get_text()
+
+        # make sure the format is standardized
+        valid = True
+        try:
+            date = BasicDoc.parse_name(date_txt)
+            logger.info("Valid date: {}".format(date_txt))
+            css = "GtkEntry { color: black; background: #70CC70; }"
+        except ValueError:
+            logger.info("Invalid date: {}".format(date_txt))
+            valid = False
+            css = "GtkEntry { color: black; background: #CC3030; }"
+
+        if valid and date == self.__main_win.doc_properties_panel.doc.date:
+            css = "GtkEntry { color: black; background: #CCCCCC; }"
+
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(css.encode())
+        css_context = date_entry.get_style_context()
+        css_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+        if not valid:
+            return
+
+        self.__main_win.doc_properties_panel._set_calendar(date)
+        if self.__main_win.doc_properties_panel.doc.date != date:
+            self.__main_win.doc_properties_panel.new_doc_date = date
+        else:
+            self.__main_win.doc_properties_panel.new_doc_date = None
+
+
+class ActionSetDocDateFromCalendar(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Set document date")
         self.__main_win = main_window
@@ -1061,11 +1101,17 @@ class DocPropertiesPanel(object):
                 ],
                 ActionSwitchToDocList(self.__main_win),
             ),
+            'parse_doc_date': (
+                [
+                    self.widgets['name'],
+                ],
+                ActionParseDocDate(self.__main_win),
+            ),
             'set_day': (
                 [
                     self.widgets['calendar']
                 ],
-                ActionSetDocDate(self.__main_win),
+                ActionSetDocDateFromCalendar(self.__main_win),
             ),
             'create_label': (
                 [
@@ -1120,15 +1166,15 @@ class DocPropertiesPanel(object):
         self.refresh_label_list()
         self.refresh_keywords_textview()
 
+    def _set_calendar(self, date):
+        self.widgets['calendar'].select_month(date.month - 1, date.year)
+        self.widgets['calendar'].select_day(date.day)
+
     def _open_calendar(self):
         self.popovers['calendar'].set_relative_to(
             self.widgets['name'])
         if self.new_doc_date is not None:
-            self.widgets['calendar'].select_month(
-                self.new_doc_date.month - 1,
-                self.new_doc_date.year
-            )
-            self.widgets['calendar'].select_day(self.new_doc_date.day)
+            self._set_calendar(self.new_doc_date)
         else:
             try:
                 date = self.doc.date
@@ -1141,6 +1187,23 @@ class DocPropertiesPanel(object):
 
     def apply_properties(self):
         has_changed = False
+
+        date_txt = self.widgets['name'].get_text()
+        try:
+            date = BasicDoc.parse_name(date_txt)
+        except ValueError:
+            logger.warning("Invalid date format: {}".format(date_txt))
+            msg = _("Invalid date format: {}").format(date_txt)
+            dialog = Gtk.MessageDialog(
+                parent=self.__main_win.window,
+                flags=Gtk.DialogFlags.MODAL,
+                message_type=Gtk.MessageType.WARNING,
+                buttons=Gtk.ButtonsType.OK,
+                text=msg
+            )
+            dialog.run()
+            dialog.destroy()
+            raise
 
         # Labels
         logger.info("Checking for new labels")
@@ -1169,7 +1232,7 @@ class DocPropertiesPanel(object):
             has_changed = True
 
         # Date
-        if self.new_doc_date is None:
+        if self.doc.date == date:
             if has_changed:
                 self.__main_win.upd_index({self.doc})
         else:

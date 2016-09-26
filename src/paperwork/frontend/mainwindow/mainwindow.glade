@@ -620,7 +620,7 @@
                                 <property name="visible">True</property>
                                 <property name="sensitive">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="editable">False</property>
+                                <property name="editable">True</property>
                                 <property name="invisible_char">●</property>
                                 <property name="text"> </property>
                                 <property name="secondary_icon_name">x-office-calendar-symbolic</property>

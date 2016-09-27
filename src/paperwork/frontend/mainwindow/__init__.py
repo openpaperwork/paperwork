@@ -977,17 +977,19 @@ class ActionOpenSearchDialog(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Open search dialog")
         self.__main_win = main_window
+        self.dialog = None  # for tests
 
     def do(self):
         logger.info("Opening search dialog")
-        dialog = SearchDialog(self.__main_win)
-        response = dialog.run()
+        self.dialog = SearchDialog(self.__main_win)
+        response = self.dialog.run()
         if response == 1:
             logger.info("Search dialog: apply")
-            search = dialog.get_search_string()
+            search = self.dialog.get_search_string()
             self.__main_win.search_field.set_text(search)
         else:
             logger.info("Search dialog: cancelled")
+        self.dialog = None
 
 
 class ActionOpenViewSettings(SimpleAction):
@@ -1210,13 +1212,14 @@ class ActionOpenSettings(SimpleAction):
         SimpleAction.__init__(self, "Open settings dialog")
         self.__main_win = main_window
         self.__config = config
+        self.dialog = None  # for tests only
 
     def do(self):
         SimpleAction.do(self)
-        sw = SettingsWindow(self.__main_win.schedulers['main'],
-                            self.__main_win.window, self.__config)
-        sw.connect("need-reindex", self.__reindex_cb)
-        sw.connect("config-changed", self.__on_config_changed_cb)
+        self.dialog = SettingsWindow(self.__main_win.schedulers['main'],
+                                     self.__main_win.window, self.__config)
+        self.dialog.connect("need-reindex", self.__reindex_cb)
+        self.dialog.connect("config-changed", self.__on_config_changed_cb)
 
     def __reindex_cb(self, settings_window):
         self.__main_win.actions['reindex'][1].do()

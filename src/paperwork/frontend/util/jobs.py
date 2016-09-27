@@ -317,7 +317,7 @@ class JobScheduler(object):
         while True:
             self._job_queue_cond.acquire()
             try:
-                if not self._active_job and len(self._job_queue) < 0:
+                if not self._active_job and len(self._job_queue) <= 0:
                     break
                 self._job_queue_cond.wait()
             finally:

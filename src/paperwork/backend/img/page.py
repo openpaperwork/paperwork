@@ -117,7 +117,9 @@ class ImgPage(BasicPage):
             box_builder = pyocr.builders.WordBoxBuilder()
             with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
                 boxes = box_builder.read_file(file_desc)
-            return boxes
+            if len(boxes) <= 0:
+                return []
+            return [pyocr.builders.LineBox(boxes, boxes[0].position)]
         except IOError as exc:
             logger.error("Unable to get boxes for '%s': %s"
                          % (self.doc.docid, exc))

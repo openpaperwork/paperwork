@@ -145,8 +145,9 @@ class PdfDoc(BasicDoc):
     def _open_pdf(self):
         if self._pdf:
             return self._pdf
-        filepath = os.path.join(self.path, PDF_FILENAME)
-        fileuri = GLib.filename_to_uri(filepath)
+        dirpath = Gio.File.new_for_path(self.path)
+        filepath = dirpath.resolve_relative_path(PDF_FILENAME)
+        fileuri = GLib.filename_to_uri(filepath.get_path())
         self._pdf = Poppler.Document.new_from_file(fileuri, password=None)
         return self._pdf
 

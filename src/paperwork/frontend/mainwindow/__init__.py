@@ -79,6 +79,11 @@ logger = logging.getLogger(__name__)
 __version__ = '1.0-git'
 
 
+# during tests, we have multiple instatiations of MainWindow(), but we must
+# not register the app again
+g_must_init_app = True
+
+
 def check_scanner(main_win, config):
     if config['scanner_devid'].value is not None:
         return True
@@ -1823,7 +1828,7 @@ class ActionSelectExportPath(SimpleAction):
             file_filter.set_name(str(self.__main_win.export['exporter']))
             file_filter.add_mime_type(mime)
             chooser.add_filter(file_filter)
-        else: # directory
+        else:  # directory
             chooser = Gtk.FileChooserDialog(
                 title=_("Save in"),
                 transient_for=self.__main_win.window,
@@ -2015,7 +2020,10 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
-        self.app = self.__init_app()
+        if g_must_init_app:
+            self.app = self.__init_app()
+        else:
+            self.app = None
         gactions = self.__init_gactions(self.app)
 
         self.schedulers = self.__init_schedulers()
@@ -2026,7 +2034,8 @@ class MainWindow(object):
 
         self.__allow_multiselect = False
 
-        self.__advanced_app_menu = self.__init_app_menu(self.app)
+        if g_must_init_app:
+            self.__advanced_app_menu = self.__init_app_menu(self.app)
 
         load_cssfile("application.css")
         widget_tree = load_uifile(
@@ -2509,8 +2518,9 @@ class MainWindow(object):
             'scan_from_feeder': Gio.SimpleAction.new("scan_from_feeder", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
-        for action in gactions.values():
-            app.add_action(action)
+        if g_must_init_app:
+            for action in gactions.values():
+                app.add_action(action)
         return gactions
 
     def __init_schedulers(self):
@@ -2531,7 +2541,8 @@ class MainWindow(object):
 
     def __init_window(self, widget_tree, config):
         window = widget_tree.get_object("mainWindow")
-        window.set_application(self.app)
+        if g_must_init_app:
+            window.set_application(self.app)
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
 

@@ -244,6 +244,9 @@ class DocIndexUpdater(GObject.GObject):
         labels_txt = doc.get_index_labels()
         assert(isinstance(labels_txt, str))
 
+        # append labels to doc txt, because we usually search on doc_txt
+        doc_txt += " " + labels_txt
+
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
 
@@ -251,8 +254,8 @@ class DocIndexUpdater(GObject.GObject):
             docid=docid,
             doctype=doc.doctype,
             docfilehash=dochash,
-            content=strip_accents(doc.get_index_text()),
-            label=strip_accents(doc.get_index_labels()),
+            content=strip_accents(doc_txt),
+            label=strip_accents(labels_txt),
             date=doc.date,
             last_read=last_mod
         )

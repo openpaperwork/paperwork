@@ -146,7 +146,7 @@ class JobScheduler(object):
         assert(not self.running)
         assert(self._thread is None)
         logger.info("[Scheduler %s] Starting" % self.name)
-        self._thread = threading.Thread(target=self._run)
+        self._thread = threading.Thread(target=self._run, name=self.name)
         self.running = True
         self._thread.start()
 

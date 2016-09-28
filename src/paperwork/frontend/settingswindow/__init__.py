@@ -89,6 +89,7 @@ class JobDeviceFinder(Job):
                 logger.info("Device found: [%s] -> [%s]" % (name, device.name))
                 sys.stdout.flush()
                 self.emit('device-found', name, device.name, selected)
+            logger.info("End of scan for device")
         finally:
             self.emit("device-finding-end")
 
@@ -157,7 +158,7 @@ class JobSourceFinder(Job):
     def do(self):
         self.emit("source-finding-start")
         try:
-            logger.info("Looking for resolution of device [%s]"
+            logger.info("Looking for sources of device [%s]"
                         % (self.__devid))
             device = pyinsane2.Scanner(name=self.__devid)
             sys.stdout.flush()
@@ -171,6 +172,7 @@ class JobSourceFinder(Job):
                 name = self.__get_source_name_translated(source)
                 self.emit('source-found', name, source,
                           (source == self.__selected_source))
+            logger.info("Got all the sources")
         finally:
             self.emit("source-finding-end")
 
@@ -279,6 +281,7 @@ class JobResolutionFinder(Job):
                 name = self.__get_resolution_name(resolution)
                 self.emit('resolution-found', name, resolution,
                           (resolution == self.__selected_resolution))
+            logger.info("Got all the resolutions")
         finally:
             self.emit("resolution-finding-end")
 

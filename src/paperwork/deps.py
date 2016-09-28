@@ -232,7 +232,7 @@ def _check_cairo():
         while Gtk.events_pending():
             Gtk.main_iteration()
     except Exception as exc:
-        verbose("Error while checking if cairo is available: %s" % str(exc))
+        pass
 
     return check.test_successful
 

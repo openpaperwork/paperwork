@@ -829,11 +829,19 @@ class SettingsWindow(GObject.GObject):
                 short_lang = short_lang[:3]
                 if extra != "" and (extra[0] == "-" or extra[0] == "_"):
                     extra = extra[1:]
+                lang = None
                 try:
-                    country = pycountry.languages.get(terminology=short_lang)
+                    lang = pycountry.languages.get(terminology=short_lang)
                 except KeyError:
-                    country = pycountry.languages.get(bibliographic=short_lang)
-                long_lang = country.name
+                    pass
+                if lang is None:
+                    try:
+                        lang = pycountry.languages.get(bibliographic=short_lang)
+                    except KeyError:
+                        pass
+                if lang is None:
+                    lang = pycountry.languages.get(iso639_3_code=short_lang)
+                long_lang = lang.name
                 if extra != "":
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))

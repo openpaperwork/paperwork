@@ -143,12 +143,7 @@ class Drawer(object):
                 position = (position[0] - (diff / 2), position[1])
             else:
                 position = (position[0], position[1] - (diff / 2))
-
-        p = (max(0, position[0] - self.canvas.offset[0]),
-             max(0, position[1] - self.canvas.offset[1]))
-        p = (min(p[0], self.canvas.size[0]),
-             min(p[1], self.canvas.size[1]))
-        return p
+        return position
 
     relative_position = property(_get_relative_position)
 
@@ -168,10 +163,6 @@ class Drawer(object):
 
         edge = (position[0] + size[0],
                 position[1] + size[1])
-        edge = (max(0, edge[0] - self.canvas.offset[0]),
-                max(0, edge[1] - self.canvas.offset[1]))
-        edge = (min(edge[0], self.canvas.size[0]),
-                min(edge[1], self.canvas.size[1]))
         return edge
 
     def _get_relative_size(self):

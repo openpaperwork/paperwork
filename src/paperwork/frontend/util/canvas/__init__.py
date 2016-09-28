@@ -365,11 +365,26 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         if area is None:
             self.queue_draw()
         else:
+            offset = self.offset
+            visible = self.visible_size
+            position = [area[0][0] - offset[0], area[0][1] - offset[1]]
+            size = [area[1][0], area[1][1]]
+
+            if position[0] < 0:
+                size[0] += position[0]
+                position[0] = 0
+            if position[1] < 0:
+                size[1] += position[1]
+                position[1] = 0
+
+            if (position[0] > visible[0] or position[1] > visible[1] or
+                    size[0] <= 0 or size[1] <= 0):
+                logger.warning("Ignore useless call to redraw()")
+                return
+
             self.queue_draw_area(
-                area[0][0] - self.offset[0],
-                area[0][1] - self.offset[1],
-                area[1][0] - self.offset[0],
-                area[1][1] - self.offset[1]
+                position[0], position[1],
+                size[0], size[1]
             )
 
     def __get_absolute_event(self, event):

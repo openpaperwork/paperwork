@@ -729,7 +729,7 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
-        self.redraw()
+        GLib.idle_add(self.redraw)
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
@@ -934,7 +934,7 @@ class SimplePageDrawer(Drawer):
                 # redraw previous box to make the border disappear
                 if not must_redraw and self.boxes["mouse_over"]:
                     box_pos = self._get_real_box(self.boxes["mouse_over"])
-                    self.canvas.redraw(
+                    GLib.idle_add(self.canvas.redraw,
                         ((box_pos[0] - self.LINE_WIDTH,
                           box_pos[1] - self.LINE_WIDTH),
                          (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
@@ -946,7 +946,7 @@ class SimplePageDrawer(Drawer):
                 # draw new one to make the border appear
                 if not must_redraw and box:
                     box_pos = self._get_real_box(box)
-                    self.canvas.redraw(
+                    GLib.idle_add(self.canvas.redraw,
                         ((box_pos[0] - self.LINE_WIDTH,
                           box_pos[1] - self.LINE_WIDTH),
                          (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
@@ -954,7 +954,7 @@ class SimplePageDrawer(Drawer):
                     )
 
         if must_redraw:
-            self.redraw()
+            GLib.idle_add(self.redraw)
             return
 
     def __str__(self):

@@ -79,6 +79,7 @@ class JobDeviceFinder(Job):
 
     def do(self):
         self.emit("device-finding-start")
+        self._wait(2.0)
         try:
             logger.info("Looking for scan devices ...")
             sys.stdout.flush()

@@ -174,6 +174,9 @@ class Drawer(object):
     relative_size = property(_get_relative_size)
 
     def redraw(self, extra_border=0):
+        if not self.visible:
+            return
+
         position = self.relative_position
         size = self.relative_size
 

@@ -234,10 +234,19 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             vals = list(current)
         else:
             if self.mouse_position == (0, 0):
-                current_center = (
+                current_center = [
                     current[0] + (self.visible_size[0] / 2),
                     current[1] + (self.visible_size[1] / 2)
-                )
+                ]
+                # special cases: extreme values
+                if current[0] == 0:
+                    current_center[0] = 0
+                if current[1] == 0:
+                    current_center[1] = 0
+                if current[0] >= self.hadjustment.get_upper():
+                    current_center[0] = self.hadjustment.get_upper()
+                if current[1] >= self.vadjustment.get_upper():
+                    current_center[1] = self.vadjustment.get_upper()
             else:
                 # track the mouse pointer
                 current_center = (

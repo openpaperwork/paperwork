@@ -232,7 +232,10 @@ class LabelGuessUpdater(object):
 
 
 class LabelGuesser(object):
-    WEIGHT_YES = 5.0
+    # found empirically
+    # with these values, I get 68% success rate with 150 documents
+    # and scripts/simulate_workdir.py
+    WEIGHT_YES = 0.79
     WEIGHT_NO = 1.0
 
     def __init__(self, bayes_dir):
@@ -273,6 +276,8 @@ class LabelGuesser(object):
                     type(doc_txt)
                 )
             )
-            if yes * self.WEIGHT_YES > no * self.WEIGHT_NO:
+            yes *= self.WEIGHT_YES
+            no *= self.WEIGHT_NO
+            if yes > no:
                 label_names.add(label_name)
         return label_names

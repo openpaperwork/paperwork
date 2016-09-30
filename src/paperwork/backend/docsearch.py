@@ -430,7 +430,9 @@ class DocSearch(object):
             ],
         }
 
-        self.label_guesser = LabelGuesser(self.label_guesser_dir)
+        self.label_guesser = LabelGuesser(
+            self.label_guesser_dir, len(self._docs_by_id.keys())
+        )
 
         self.check_workdir()
 
@@ -464,6 +466,7 @@ class DocSearch(object):
         """
         if doc.nb_pages <= 0:
             return []
+        self.label_guesser.total_nb_documents = len(self._docs_by_id.keys())
         label_names = self.label_guesser.guess(doc)
         labels = set()
         for label_name in label_names:
@@ -557,7 +560,10 @@ class DocSearch(object):
             progress += 1
         progress_cb(1, 1, self.INDEX_STEP_LOADING)
 
-        self.label_guesser = LabelGuesser(self.label_guesser_dir)
+        self.label_guesser = LabelGuesser(
+            self.label_guesser_dir,
+            len(self._docs_by_id.keys())
+        )
         for label in labels:
             self.label_guesser.load(label.name)
 

@@ -232,14 +232,9 @@ class LabelGuessUpdater(object):
 
 
 class LabelGuesser(object):
-    # found empirically
-    # with these values, I get 68% success rate with 150 documents
-    # and scripts/simulate_workdir.py
-    WEIGHT_YES = 0.79
-    WEIGHT_NO = 1.0
-
-    def __init__(self, bayes_dir):
+    def __init__(self, bayes_dir, total_nb_documents):
         self._bayes_dir = bayes_dir
+        self.total_nb_documents = total_nb_documents
         self._bayes = {}
 
     def load(self, label_name, force_reload=False):
@@ -256,6 +251,34 @@ class LabelGuesser(object):
         return LabelGuessUpdater(self)
 
     def guess(self, doc):
+        weight_yes = 0.0
+        weight_no = 1.0
+
+        # * when we have 0 documents, we have a confidence of 0 ==> yes = 0
+        # * we assume the confidence increase linearly
+        # * the base value has been found empirically.
+        #   At 150 documents, success rate is:
+        #     0.005 = 62%
+        #     0.0075 = 66%
+        #     0.008 = 67%
+        #     0.0085 = 68%
+        #     0.009 = 68%
+        #     0.00925 = 68% <--
+        #     0.0095 = 68%
+        #     0.01 = 68%
+        #     0.02 = 66%
+        #     0.03 = 64%
+        #   At 300 documents, success rate is:
+        #     0.008 = 60%
+        #     0.009 = 61%
+        #     0.00925 = 61% <--
+        #     0.01 = 61%
+        #     0.015 = 60%
+        #     0.02 = 59%
+        weight_yes = 0.00925 * self.total_nb_documents
+        # and don't be too confident
+        weight_yes = min(weight_yes, 5.0)
+
         doc_txt = doc.text
         if doc_txt == u"":
             return set()
@@ -267,17 +290,17 @@ class LabelGuesser(object):
             yes = scores['yes'] if 'yes' in scores else 0.0
             no = scores['no'] if 'no' in scores else 0.0
             logger.info("Score for {}: Yes: {} * {} = {} ({})".format(
-                    label_name, yes, self.WEIGHT_YES, yes * self.WEIGHT_YES,
+                    label_name, yes, weight_yes, yes * weight_yes,
                     type(doc_txt)
                 )
             )
             logger.info("Score for {}: No: {} * {} = {} ({})".format(
-                    label_name, no, self.WEIGHT_NO, no * self.WEIGHT_NO,
+                    label_name, no, weight_no, no * weight_no,
                     type(doc_txt)
                 )
             )
-            yes *= self.WEIGHT_YES
-            no *= self.WEIGHT_NO
+            yes *= weight_yes
+            no *= weight_no
             if yes > no:
                 label_names.add(label_name)
         return label_names

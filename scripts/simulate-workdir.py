@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import tempfile
@@ -134,11 +134,14 @@ def print_stats():
         g_nb_src_labels = -1
     if g_nb_dst_labels == 0:
         g_nb_dst_labels = -1
+    nb_documents = g_nb_documents
+    if nb_documents == 0:
+        nb_documents += 1
 
     print ("---")
     print ("Success/total:            {}/{} = {}%".format(
-        g_perfect, g_nb_documents,
-        int(g_perfect * 100 / g_nb_documents)
+        g_perfect, nb_documents,
+        int(g_perfect * 100 / nb_documents)
     ))
     print ("Labels correctly guessed: {}/{} = {}%".format(
         g_correct_guess, g_nb_src_labels,
@@ -198,7 +201,7 @@ def main():
                 )
                 dst_doc = docs[0]
 
-                for page_nb in xrange(0, dst_doc.nb_pages):
+                for page_nb in range(0, dst_doc.nb_pages):
                     if dst_doc.can_edit:
                         dst_doc.pages[page_nb].boxes = \
                             src_doc.pages[page_nb].boxes

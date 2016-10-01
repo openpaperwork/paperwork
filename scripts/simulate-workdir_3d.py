@@ -2,8 +2,12 @@
 
 import csv
 import os
+import multiprocessing
+import multiprocessing.pool
 import sys
 import tempfile
+import traceback
+import threading
 
 import gi
 gi.require_version('Gdk', '3.0')
@@ -30,13 +34,7 @@ for each document:
 """
 
 
-g_correct_guess = 0
-g_missing_guess = 0
-g_wrong_guess = 0
-g_nb_documents = 0
-g_nb_src_labels = 0
-g_nb_dst_labels = 0
-g_perfect = 0
+g_lock = threading.Lock()
 
 
 def upd_index(dst_dsearch, doc, new):
@@ -57,19 +55,11 @@ def label_guess(dst_dsearch, src_doc, dst_doc):
     upd_index(dst_dsearch, dst_doc, new=True)
 
 
-def fix_labels(dst_dsearch, src_doc, dst_doc):
+def fix_labels(stats, dst_dsearch, src_doc, dst_doc):
     """ Acts like the user fixing the labels """
-    global g_nb_documents
-    global g_correct_guess
-    global g_missing_guess
-    global g_wrong_guess
-    global g_nb_src_labels
-    global g_nb_dst_labels
-    global g_perfect
-
-    g_nb_documents += 1
-    g_nb_src_labels += len(src_doc.labels)
-    g_nb_dst_labels += len(dst_doc.labels)
+    stats['nb_documents'] += 1
+    stats['nb_src_labels'] += len(src_doc.labels)
+    stats['nb_dst_labels'] += len(dst_doc.labels)
 
     changed = False
 
@@ -82,7 +72,7 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
 
     for dst_label in dst_doc.labels:
         if dst_label not in src_doc.labels:
-            g_wrong_guess += 1
+            stats['wrong_guess'] += 1
             wrong += 1
             to_remove.add(dst_label)
             changed = True
@@ -92,10 +82,10 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
 
     for src_label in src_doc.labels:
         if src_label in dst_doc.labels:
-            g_correct_guess += 1
+            stats['correct_guess'] += 1
             correct += 1
         else:
-            g_missing_guess += 1
+            stats['missing_guess'] += 1
             missing += 1
             to_add.add(src_label)
             changed = True
@@ -108,74 +98,77 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     if changed:
         upd_index(dst_dsearch, dst_doc, new=False)
     else:
-        g_perfect += 1
+        stats['perfect'] += 1
 
-    out = u"success: {}%/{} || ".format(
-        int(g_perfect * 100 / g_nb_documents),
-        g_nb_documents
-    )
-    out += "ok: {}".format(correct)
-    if missing:
-        out += " / MISSING: {}".format(missing)
-    if wrong:
-        out += " / WRONG: {}".format(wrong)
+    g_lock.acquire()
+    try:
+        print("Document [{}|{}|{}|{}]".format(
+            dst_dsearch.label_guesser.weight_no,
+            dst_dsearch.label_guesser.weight_nb_documents,
+            dst_dsearch.label_guesser.minimum_yes,
+            src_doc.docid
+        ))
+
+        out = u"success: {}%/{} || ".format(
+            int(stats['perfect'] * 100 / stats['nb_documents']),
+            stats['nb_documents']
+        )
+        out += "ok: {}".format(correct)
+        if missing:
+            out += " / MISSING: {}".format(missing)
+        if wrong:
+            out += " / WRONG: {}".format(wrong)
+    finally:
+        g_lock.release()
 
     print(out)
 
 
-def print_stats():
-    global g_nb_documents
-    global g_correct_guess
-    global g_missing_guess
-    global g_wrong_guess
-    global g_nb_src_labels
-    global g_nb_dst_labels
-    global g_perfect
-
+def print_stats(stats):
     # avoid division by zero
-    if g_nb_src_labels == 0:
-        g_nb_src_labels = -1
-    if g_nb_dst_labels == 0:
-        g_nb_dst_labels = -1
-    nb_documents = g_nb_documents
+    if stats['nb_src_labels'] == 0:
+        stats['nb_src_labels'] = -1
+    if stats['nb_dst_labels'] == 0:
+        stats['nb_dst_labels'] = -1
+    nb_documents = stats['nb_documents']
     if nb_documents == 0:
         nb_documents += 1
 
-    print("---")
-    print("Success/total:            {}/{} = {}%".format(
-        g_perfect, nb_documents,
-        int(g_perfect * 100 / nb_documents)
-    ))
-    print("Labels correctly guessed: {}/{} = {}%".format(
-        g_correct_guess, g_nb_src_labels,
-        int(g_correct_guess * 100 / g_nb_src_labels)
-    ))
-    print("Labels not guessed:       {}/{} = {}%".format(
-        g_missing_guess, g_nb_src_labels,
-        int(g_missing_guess * 100 / g_nb_src_labels)
-    ))
-    print("Labels wrongly guessed:   {}/{} = {}%".format(
-        g_wrong_guess, g_nb_dst_labels,
-        int(g_wrong_guess * 100 / g_nb_dst_labels)
-    ))
+    g_lock.acquire()
+    try:
+        print("---")
+        print("Success/total:            {}/{} = {}%".format(
+            stats['perfect'], nb_documents,
+            int(stats['perfect'] * 100 / nb_documents)
+        ))
+        print("Labels correctly guessed: {}/{} = {}%".format(
+            stats['correct_guess'], stats['nb_src_labels'],
+            int(stats['correct_guess'] * 100 / stats['nb_src_labels'])
+        ))
+        print("Labels not guessed:       {}/{} = {}%".format(
+            stats['missing_guess'], stats['nb_src_labels'],
+            int(stats['missing_guess'] * 100 / stats['nb_src_labels'])
+        ))
+        print("Labels wrongly guessed:   {}/{} = {}%".format(
+            stats['wrong_guess'], stats['nb_dst_labels'],
+            int(stats['wrong_guess'] * 100 / stats['nb_dst_labels'])
+        ))
+    finally:
+        g_lock.release()
 
 
-def run_test(src_dsearch, weight_no, weight_nb_docs, minimum_yes):
-    global g_nb_documents
-    global g_correct_guess
-    global g_missing_guess
-    global g_wrong_guess
-    global g_nb_src_labels
-    global g_nb_dst_labels
-    global g_perfect
-
-    g_correct_guess = 0
-    g_missing_guess = 0
-    g_wrong_guess = 0
-    g_nb_documents = 0
-    g_nb_src_labels = 0
-    g_nb_dst_labels = 0
-    g_perfect = 0
+def run_simulation(
+    src_dsearch, weight_no, weight_nb_docs, minimum_yes, csvwriter
+):
+    stats = {
+        'nb_documents': 0,
+        'correct_guess': 0,
+        'missing_guess': 0,
+        'wrong_guess': 0,
+        'nb_src_labels': 0,
+        'nb_dst_labels': 0,
+        'perfect': 0,
+    }
 
     dst_doc_dir = tempfile.mkdtemp(suffix="paperwork-simulate-docs")
     dst_index_dir = tempfile.mkdtemp(suffix="paperwork-simulate-index")
@@ -194,7 +187,6 @@ def run_test(src_dsearch, weight_no, weight_nb_docs, minimum_yes):
         documents.sort(key=lambda doc: doc.docid)
 
         for src_doc in documents:
-            print("Document [{}]".format(src_doc.docid))
             files = os.listdir(src_doc.path)
             files.sort()
 
@@ -225,18 +217,34 @@ def run_test(src_dsearch, weight_no, weight_nb_docs, minimum_yes):
                 if current_doc is None:
                     # first page --> guess labels and see if it matchs
                     label_guess(dst_dsearch, src_doc, dst_doc)
-                    fix_labels(dst_dsearch, src_doc, dst_doc)
+                    fix_labels(stats, dst_dsearch, src_doc, dst_doc)
                 else:
                     # just update the index
                     upd_index(dst_dsearch, dst_doc, new=False)
 
                 current_doc = docs[0]
-            yield (g_nb_documents, g_perfect)
+            g_lock.acquire()
+            try:
+                csvwriter.writerow([
+                    weight_no, weight_nb_docs, minimum_yes,
+                    stats['nb_documents'], stats['perfect'],
+                ])
+            finally:
+                g_lock.release()
 
     finally:
         rm_rf(dst_doc_dir)
         rm_rf(dst_index_dir)
-        print_stats()
+        print_stats(stats)
+
+
+def _run_simulation(*args):
+    try:
+        run_simulation(*args)
+    except Exception as exc:
+        print ("EXCEPTION: {}".format(exc))
+        traceback.print_exc()
+        raise
 
 
 def main():
@@ -263,18 +271,22 @@ def main():
     src_dsearch = docsearch.DocSearch(src_dir)
     src_dsearch.reload_index()
 
+    nb_threads = multiprocessing.cpu_count()
+    pool = multiprocessing.pool.ThreadPool(processes=nb_threads)
+
     with open(out_csv_file, 'a', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         for weight_no in weights_no:
             for weight_nb_docs in weights_nb_documents:
                 for minimum_yes in minimums_yes:
-                    for result in run_test(
-                        src_dsearch, weight_no, weight_nb_docs, minimum_yes
-                    ):
-                        csvwriter.writerow([
-                            weight_no, weight_nb_docs, minimum_yes,
-                            result[0], result[1],
-                        ])
+                    pool.apply_async(
+                        _run_simulation,
+                        (src_dsearch, weight_no, weight_nb_docs, minimum_yes,
+                         csvwriter,)
+                    )
+        pool.close()
+        pool.join()
+    print("All done !")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import csv
 import os
+import sys
 import tempfile
 
 import gi
 gi.require_version('Gdk', '3.0')
+gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
 
 from paperwork_backend import config
@@ -22,9 +25,10 @@ Scenario tested here:
 for each document:
     - the user scan the first page
     - labels are guessed and added
-    - user scans the remaining pages of the document
     - user fixes the labels
+    - user scans the remaining pages of the document
 """
+
 
 g_correct_guess = 0
 g_missing_guess = 0
@@ -116,7 +120,7 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     if wrong:
         out += " / WRONG: {}".format(wrong)
 
-    print (out)
+    print(out)
 
 
 def print_stats():
@@ -137,41 +141,53 @@ def print_stats():
     if nb_documents == 0:
         nb_documents += 1
 
-    print ("---")
-    print ("Success/total:            {}/{} = {}%".format(
+    print("---")
+    print("Success/total:            {}/{} = {}%".format(
         g_perfect, nb_documents,
         int(g_perfect * 100 / nb_documents)
     ))
-    print ("Labels correctly guessed: {}/{} = {}%".format(
+    print("Labels correctly guessed: {}/{} = {}%".format(
         g_correct_guess, g_nb_src_labels,
         int(g_correct_guess * 100 / g_nb_src_labels)
     ))
-    print ("Labels not guessed:       {}/{} = {}%".format(
+    print("Labels not guessed:       {}/{} = {}%".format(
         g_missing_guess, g_nb_src_labels,
         int(g_missing_guess * 100 / g_nb_src_labels)
     ))
-    print ("Labels wrongly guessed:   {}/{} = {}%".format(
+    print("Labels wrongly guessed:   {}/{} = {}%".format(
         g_wrong_guess, g_nb_dst_labels,
         int(g_wrong_guess * 100 / g_nb_dst_labels)
     ))
 
 
-def main():
-    pconfig = config.PaperworkConfig()
-    pconfig.read()
+def run_test(src_dsearch, weight_no, weight_nb_docs, minimum_yes):
+    global g_nb_documents
+    global g_correct_guess
+    global g_missing_guess
+    global g_wrong_guess
+    global g_nb_src_labels
+    global g_nb_dst_labels
+    global g_perfect
 
-    src_dir = pconfig.settings['workdir'].value
-    print ("Source work directory : {}".format(src_dir))
-    src_dsearch = docsearch.DocSearch(src_dir)
-    src_dsearch.reload_index()
+    g_correct_guess = 0
+    g_missing_guess = 0
+    g_wrong_guess = 0
+    g_nb_documents = 0
+    g_nb_src_labels = 0
+    g_nb_dst_labels = 0
+    g_perfect = 0
 
     dst_doc_dir = tempfile.mkdtemp(suffix="paperwork-simulate-docs")
     dst_index_dir = tempfile.mkdtemp(suffix="paperwork-simulate-index")
-    print (
+    print(
         "Destination directories : {} | {}".format(dst_doc_dir, dst_index_dir)
     )
     dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
     dst_dsearch.reload_index()
+
+    dst_dsearch.label_guesser.weight_no = weight_no
+    dst_dsearch.label_guesser.weight_nb_documents = weight_nb_docs
+    dst_dsearch.label_guesser.minimum_yes = minimum_yes
 
     try:
         documents = [x for x in src_dsearch.docs]
@@ -183,7 +199,6 @@ def main():
             files.sort()
 
             current_doc = None
-            dst_doc = None
             for filename in files:
                 if "thumb" in filename:
                     continue
@@ -210,14 +225,13 @@ def main():
                 if current_doc is None:
                     # first page --> guess labels and see if it matchs
                     label_guess(dst_dsearch, src_doc, dst_doc)
+                    fix_labels(dst_dsearch, src_doc, dst_doc)
                 else:
                     # just update the index
                     upd_index(dst_dsearch, dst_doc, new=False)
 
                 current_doc = docs[0]
-
-            if dst_doc is not None:
-                fix_labels(dst_dsearch, src_doc, dst_doc)
+            yield (g_nb_documents, g_perfect)
 
     finally:
         rm_rf(dst_doc_dir)
@@ -225,8 +239,46 @@ def main():
         print_stats()
 
 
+def main():
+    if len(sys.argv) < 5:
+        print("Syntax:")
+        print(
+            "  {} [weights_no] [weights_nb_documents] [minimums_yes]"
+            " [out_csv_file]".format(
+                sys.argv[0]
+            )
+        )
+        sys.exit(1)
+
+    weights_no = eval(sys.argv[1])
+    weights_nb_documents = eval(sys.argv[2])
+    minimums_yes = eval(sys.argv[3])
+    out_csv_file = sys.argv[4]
+
+    pconfig = config.PaperworkConfig()
+    pconfig.read()
+
+    src_dir = pconfig.settings['workdir'].value
+    print("Source work directory : {}".format(src_dir))
+    src_dsearch = docsearch.DocSearch(src_dir)
+    src_dsearch.reload_index()
+
+    with open(out_csv_file, 'a', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        for weight_no in weights_no:
+            for weight_nb_docs in weights_nb_documents:
+                for minimum_yes in minimums_yes:
+                    for result in run_test(
+                        src_dsearch, weight_no, weight_nb_docs, minimum_yes
+                    ):
+                        csvwriter.writerow([
+                            weight_no, weight_nb_docs, minimum_yes,
+                            result[0], result[1],
+                        ])
+
+
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print ("Interrupted")
+        print("Interrupted")

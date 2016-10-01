@@ -39,10 +39,10 @@ g_perfect = 0
 def upd_index(dst_dsearch, doc, new):
     index_updater = dst_dsearch.get_index_updater(optimize=False)
     if new:
-        index_updater.add_doc(doc)
+        index_updater.add_doc(doc, index_update=False)
     else:
-        index_updater.upd_doc(doc)
-    index_updater.commit()
+        index_updater.upd_doc(doc, index_update=False)
+    index_updater.commit(index_update=False)
 
 
 def label_guess(dst_dsearch, src_doc, dst_doc):

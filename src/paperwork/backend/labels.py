@@ -251,33 +251,15 @@ class LabelGuesser(object):
         return LabelGuessUpdater(self)
 
     def guess(self, doc):
-        weight_yes = 0.0
+        weight_yes = 1.0
         weight_no = 1.0
 
-        # * when we have 0 documents, we have a confidence of 0 ==> yes = 0
-        # * we assume the confidence increase linearly
-        # * the base value has been found empirically.
-        #   At 150 documents, success rate is:
-        #     0.005 = 62%
-        #     0.0075 = 66%
-        #     0.008 = 67%
-        #     0.0085 = 68%
-        #     0.009 = 68%
-        #     0.00925 = 68% <--
-        #     0.0095 = 68%
-        #     0.01 = 68%
-        #     0.02 = 66%
-        #     0.03 = 64%
-        #   At 300 documents, success rate is:
-        #     0.008 = 60%
-        #     0.009 = 61%
-        #     0.00925 = 61% <--
-        #     0.01 = 61%
-        #     0.015 = 60%
-        #     0.02 = 59%
-        weight_yes = 0.00925 * self.total_nb_documents
-        # and don't be too confident
-        weight_yes = min(weight_yes, 5.0)
+        nb_documents = self.total_nb_documents
+        if nb_documents == 0:
+            nb_documents = 1
+
+        weight_no /= max(0.75, nb_documents / 80)
+        weight_no = max(0.1, weight_no)
 
         doc_txt = doc.text
         if doc_txt == u"":
@@ -299,8 +281,11 @@ class LabelGuesser(object):
                     type(doc_txt)
                 )
             )
+            if yes < 15.0:
+                continue
             yes *= weight_yes
             no *= weight_no
-            if yes > no:
-                label_names.add(label_name)
+            if yes < no:
+                continue
+            label_names.add(label_name)
         return label_names

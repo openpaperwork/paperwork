@@ -237,6 +237,10 @@ class LabelGuesser(object):
         self.total_nb_documents = total_nb_documents
         self._bayes = {}
 
+        self.weight_no = 1.0
+        self.weight_nb_documents = 0.0125
+        self.minimum_yes = 17.5
+
     def load(self, label_name, force_reload=False):
         label_hash = hex(abs(hash(label_name)))[2:]
         baye_dir = os.path.join(self._bayes_dir, label_hash)
@@ -250,42 +254,46 @@ class LabelGuesser(object):
     def get_updater(self):
         return LabelGuessUpdater(self)
 
-    def guess(self, doc):
-        weight_yes = 1.0
-        weight_no = 1.0
+    def score(self, doc):
+        doc_txt = doc.text
+        if doc_txt == u"":
+            return {}
+        out = {}
+        for (label_name, guesser) in self._bayes.items():
+            scores = guesser.score(doc_txt)
+            yes = scores['yes'] if 'yes' in scores else 0.0
+            no = scores['no'] if 'no' in scores else 0.0
+            logger.info("Score for {}: Yes: {} ({})".format(
+                    label_name, yes, type(doc_txt)
+                )
+            )
+            logger.info("Score for {}: No: {} ({})".format(
+                    label_name, no, type(doc_txt)
+                )
+            )
+            out[label_name] = {"yes": yes, "no": no}
+        return out
+
+    def guess(self, doc, scores=None):
+        if not scores:
+            scores = self.score(doc)
 
         nb_documents = self.total_nb_documents
         if nb_documents == 0:
             nb_documents = 1
 
-        weight_no /= max(0.75, nb_documents / 80)
-        weight_no = max(0.1, weight_no)
+        weight_no = self.weight_no
+        weight_no /= self.weight_nb_documents * nb_documents
 
-        doc_txt = doc.text
-        if doc_txt == u"":
-            return set()
         label_names = set()
-        for (label_name, guesser) in self._bayes.items():
-            # we balance ourselves the scores, otherwise 'no' wins
-            # too easily
-            scores = guesser.score(doc_txt)
-            yes = scores['yes'] if 'yes' in scores else 0.0
-            no = scores['no'] if 'no' in scores else 0.0
-            logger.info("Score for {}: Yes: {} * {} = {} ({})".format(
-                    label_name, yes, weight_yes, yes * weight_yes,
-                    type(doc_txt)
-                )
-            )
-            logger.info("Score for {}: No: {} * {} = {} ({})".format(
-                    label_name, no, weight_no, no * weight_no,
-                    type(doc_txt)
-                )
-            )
-            if yes < 15.0:
+        for (label_name, scores) in scores.items():
+            yes = scores['yes']
+            no = scores['no']
+            if yes < self.minimum_yes:
                 continue
-            yes *= weight_yes
             no *= weight_no
             if yes < no:
                 continue
             label_names.add(label_name)
+
         return label_names

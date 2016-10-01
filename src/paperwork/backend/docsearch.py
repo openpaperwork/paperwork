@@ -269,24 +269,28 @@ class DocIndexUpdater(GObject.GObject):
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
 
-    def add_doc(self, doc):
+    def add_doc(self, doc, index_update=True, label_guesser_update=True):
         """
         Add a document to the index
         """
         logger.info("Indexing new doc: %s" % doc)
-        self._update_doc_in_index(self.index_writer, doc)
-        self.label_guesser_updater.add_doc(doc)
+        if index_update:
+            self._update_doc_in_index(self.index_writer, doc)
+        if label_guesser_update:
+            self.label_guesser_updater.add_doc(doc)
         if doc.docid not in self.docsearch._docs_by_id:
             self.docsearch._docs_by_id[doc.docid] = doc
         doc.drop_cache()
 
-    def upd_doc(self, doc):
+    def upd_doc(self, doc, index_update=True, label_guesser_update=True):
         """
         Update a document in the index
         """
         logger.info("Updating modified doc: %s" % doc)
-        self._update_doc_in_index(self.index_writer, doc)
-        self.label_guesser_updater.upd_doc(doc)
+        if index_update:
+            self._update_doc_in_index(self.index_writer, doc)
+        if label_guesser_update:
+            self.label_guesser_updater.upd_doc(doc)
         doc.drop_cache()
 
     def del_doc(self, doc):
@@ -305,16 +309,20 @@ class DocIndexUpdater(GObject.GObject):
         self.label_guesser_updater.del_doc(doc)
         doc.drop_cache()
 
-    def commit(self):
+    def commit(self, index_update=True, label_guesser_update=True):
         """
         Apply the changes to the index
         """
         logger.info("Index: Commiting changes")
-        self.index_writer.commit()
+        if index_update:
+            self.index_writer.commit()
+        else:
+            self.index_writer.cancel()
         del self.index_writer
-        self.label_guesser_updater.commit()
-
-        self.docsearch.reload_searcher()
+        if label_guesser_update:
+            self.label_guesser_updater.commit()
+        if index_update:
+            self.docsearch.reload_searcher()
 
     def cancel(self):
         """

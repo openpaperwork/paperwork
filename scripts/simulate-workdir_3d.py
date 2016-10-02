@@ -223,16 +223,15 @@ def run_simulation(
                     upd_index(dst_dsearch, dst_doc, new=False)
 
                 current_doc = docs[0]
-            g_lock.acquire()
-            try:
-                csvwriter.writerow([
-                    weight_no, weight_nb_docs, minimum_yes,
-                    stats['nb_documents'], stats['perfect'],
-                ])
-            finally:
-                g_lock.release()
-
     finally:
+        g_lock.acquire()
+        try:
+            csvwriter.writerow([
+                weight_no, weight_nb_docs, minimum_yes,
+                stats['nb_documents'], stats['perfect'],
+            ])
+        finally:
+            g_lock.release()
         rm_rf(dst_doc_dir)
         rm_rf(dst_index_dir)
         print_stats(stats)
@@ -242,7 +241,7 @@ def _run_simulation(*args):
     try:
         run_simulation(*args)
     except Exception as exc:
-        print ("EXCEPTION: {}".format(exc))
+        print("EXCEPTION: {}".format(exc))
         traceback.print_exc()
         raise
 

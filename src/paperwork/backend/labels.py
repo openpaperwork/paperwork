@@ -283,7 +283,8 @@ class LabelGuesser(object):
             nb_documents = 1
 
         weight_no = self.weight_no
-        weight_no /= self.weight_nb_documents * nb_documents
+        if self.weight_nb_documents != 0:
+            weight_no /= self.weight_nb_documents * nb_documents
 
         label_names = set()
         for (label_name, scores) in scores.items():

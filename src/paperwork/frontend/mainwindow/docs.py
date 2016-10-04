@@ -948,7 +948,6 @@ class DocList(object):
         self.gui['loading'].set_visible(False)
 
         GLib.idle_add(self._on_scrollbar_value_changed)
-        GLib.idle_add(self.__main_win.window.queue_draw)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """

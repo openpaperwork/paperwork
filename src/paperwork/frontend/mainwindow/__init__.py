@@ -2457,12 +2457,11 @@ class MainWindow(object):
             "key-release-event", self.__on_key_release_event_cb,
         )
 
-        self.window.set_visible(True)
-
         for scheduler in self.schedulers.values():
             scheduler.start()
 
         GLib.idle_add(self.__init_canvas)
+        GLib.idle_add(self.window.set_visible, True)
 
     def __init_headerbars(self, widget_tree):
         # Fix Unity placement of close/minize/maximize (it *must* be on the

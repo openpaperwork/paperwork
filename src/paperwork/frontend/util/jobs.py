@@ -199,8 +199,8 @@ class JobScheduler(object):
             stop = time.time()
 
             diff = stop - start
-            if (self._active_job.can_stop
-                    or diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
+            if (self._active_job.can_stop or
+                    diff <= Job.MAX_TIME_FOR_UNSTOPPABLE_JOB):
                 logger.debug("Job %s took %dms"
                              % (str(self._active_job), diff * 1000))
             elif self.warnings:
@@ -257,8 +257,8 @@ class JobScheduler(object):
             # if a job with a lower priority is running, we try to stop
             # it and take its place
             active = self._active_job
-            if (active is not None
-                    and active.priority < job.priority):
+            if (active is not None and
+                    active.priority < job.priority):
                 if not active.can_stop:
                     logger.debug("Job %s has a higher priority than %s,"
                                  " but %s can't be stopped"
@@ -314,14 +314,17 @@ class JobScheduler(object):
             lambda job: (job.factory == factory))
 
     def wait_for_all(self):
+        had_to_wait = False
         while True:
             self._job_queue_cond.acquire()
             try:
                 if not self._active_job and len(self._job_queue) <= 0:
-                    break
+                    return had_to_wait
+                had_to_wait = True
                 self._job_queue_cond.wait()
             finally:
                 self._job_queue_cond.release()
+        return had_to_wait
 
     def stop(self):
         assert(self.running)

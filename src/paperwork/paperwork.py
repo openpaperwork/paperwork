@@ -20,6 +20,7 @@ Bootstrapping code
 
 import os
 import sys
+import threading
 
 import gettext
 import gi
@@ -103,7 +104,7 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def main():
+def main(hook_func=None):
     """
     Where everything start.
     """
@@ -126,6 +127,11 @@ def main():
 
         main_win = MainWindow(config)
         ActionRefreshIndex(main_win, config).do()
+
+        if hook_func:
+            thread = threading.Thread(target=hook_func, args=(config, main_win))
+            thread.start()
+
         Gtk.main()
 
         for scheduler in main_win.schedulers.values():

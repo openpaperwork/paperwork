@@ -673,7 +673,7 @@ class DocList(object):
         start_idx = 0
         if start_row:
             start_idx = start_row.get_index()
-        end_idx = 0
+        end_idx = len(self.gui['list'])
         if end_row:
             end_idx = end_row.get_index()
         if start_row == end_row:

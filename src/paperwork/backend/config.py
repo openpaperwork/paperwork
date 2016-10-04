@@ -66,7 +66,7 @@ class PaperworkConfig(object):
     Paperwork config. See each accessor to know for what purpose each value is
     used.
     """
-    CURRENT_INDEX_VERSION = "3"
+    CURRENT_INDEX_VERSION = "4"
 
     def __init__(self):
         self.settings = {

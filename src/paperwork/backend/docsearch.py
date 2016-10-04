@@ -473,7 +473,7 @@ class DocSearch(object):
         return a prediction of label names
         """
         if doc.nb_pages <= 0:
-            return []
+            return set()
         self.label_guesser.total_nb_documents = len(self._docs_by_id.keys())
         label_names = self.label_guesser.guess(doc)
         labels = set()

@@ -17,6 +17,8 @@
 """
 Code to manage document labels
 """
+import base64
+import hashlib
 import logging
 import os
 
@@ -242,7 +244,9 @@ class LabelGuesser(object):
         self.minimum_yes = 17.5
 
     def load(self, label_name, force_reload=False):
-        label_hash = hex(abs(hash(label_name)))[2:]
+        label_bytes = label_name.encode("utf-8")
+        label_hash = hashlib.sha1(label_bytes).digest()
+        label_hash = base64.encodebytes(label_hash).decode('utf-8').strip()
         baye_dir = os.path.join(self._bayes_dir, label_hash)
         mkdir_p(baye_dir)
         if label_name not in self._bayes or force_reload:

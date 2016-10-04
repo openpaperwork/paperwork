@@ -29,7 +29,6 @@ gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
 from gi.repository import GObject
-from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GLib
 import locale
@@ -52,7 +51,6 @@ LOCALE_PATHS += [
     ('/usr/local/share/'),
     ('/usr/share/'),
 ]
-
 
 def init_logging():
     formatter = logging.Formatter(
@@ -112,9 +110,7 @@ def main():
     init_logging()
     set_locale()
 
-    GLib.threads_init()
     GObject.threads_init()
-    Gdk.threads_init()
 
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Categories=Office;
+Categories=Graphics;Scanning;
 Terminal=false
 Comment=Make dead trees grepable
 Exec=paperwork

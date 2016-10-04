@@ -239,9 +239,8 @@ class LabelGuesser(object):
         self.total_nb_documents = total_nb_documents
         self._bayes = {}
 
-        self.weight_no = 1.0
-        self.weight_nb_documents = 0.0125
-        self.minimum_yes = 17.5
+        self.minimum_yes = 1
+        self.yes_diff_ratio = 3.275
 
     def load(self, label_name, force_reload=False):
         label_bytes = label_name.encode("utf-8")
@@ -286,18 +285,15 @@ class LabelGuesser(object):
         if nb_documents == 0:
             nb_documents = 1
 
-        weight_no = self.weight_no
-        if self.weight_nb_documents != 0:
-            weight_no /= self.weight_nb_documents * nb_documents
-
         label_names = set()
         for (label_name, scores) in scores.items():
             yes = scores['yes']
             no = scores['no']
             if yes < self.minimum_yes:
                 continue
-            no *= weight_no
-            if yes < no:
+            diff = no - yes
+            diff /= yes * self.yes_diff_ratio
+            if diff > 1.0:
                 continue
             label_names.add(label_name)
 

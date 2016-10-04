@@ -143,7 +143,7 @@ def main():
     for key in label_keys:
         total = total_labels[key]
         value = total_label_accuracy[key]
-        print ("Average accuracy of label prediction (%s): %d%%"
+        print ("Average accuracy of label prediction (%s): %f%%"
                % (key, (100 * value / total)))
 
 

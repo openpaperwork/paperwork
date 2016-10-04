@@ -7,6 +7,12 @@ import sys
 
 import termcolor
 
+try:
+    import paperwork.frontend.shell
+    FRONTEND_COMMANDS = paperwork.frontend.shell.COMMANDS
+except:
+    FRONTEND_COMMANDS = {}
+
 
 PACKAGE_TOOLS = {
     'debian': 'apt-get install',
@@ -31,15 +37,15 @@ def colored(txt, color):
 
 def verbose(msg):
     if verbose_enabled:
-        print (msg)
+        print(msg)
 
 
 def warning(msg):
-    print ("[%s] %s" % (colored("WARN", "yellow"), msg))
+    print("[%s] %s" % (colored("WARN", "yellow"), msg))
 
 
 def error(msg):
-    print ("[%s] %s" % (colored("ERROR", "red"), msg))
+    print("[%s] %s" % (colored("ERROR", "red"), msg))
 
 
 def get_distribution():
@@ -104,7 +110,14 @@ def _chkdeps(module_name, distribution):
             sys.exit(r)
 
 
-def chkdeps(module_names):
+def chkdeps(*args):
+    """
+    Look for missing dependencies.
+    Arguments: list of paperwork components.
+    A paperwork component must be specified.
+    Ex: 'paperwork_backend' or 'paperwork'
+    """
+    module_names = args
     if len(module_names) <= 0:
         error("No module specified")
         return
@@ -113,9 +126,24 @@ def chkdeps(module_names):
         _chkdeps(module_name, distribution)
 
 
+def list_commands(*args):
+    """
+    List available commands
+    """
+    print("Possible commands are:")
+    print("")
+    for cmd_name in sorted(COMMANDS.keys()):
+        cmd_func = COMMANDS[cmd_name]
+        print("\t{}: {}".format(cmd_name, cmd_func.__doc__.strip()))
+        print("")
+
+
 COMMANDS = {
     "chkdeps": chkdeps,
+    "list_commands": list_commands,
 }
+if FRONTEND_COMMANDS:
+    COMMANDS.update(FRONTEND_COMMANDS)
 
 
 if __name__ == "__main__":
@@ -140,8 +168,7 @@ if __name__ == "__main__":
 
     if args.cmd not in COMMANDS:
         print("Unknown command {}".format(args.cmd))
-        print("Possible commands are:")
-        print("\t{}".format("\n\t".join(COMMANDS.keys())))
+        list_commands()
         sys.exit(1)
 
-    sys.exit(COMMANDS[args.cmd](args.cmd_args))
+    sys.exit(COMMANDS[args.cmd](*args.cmd_args))

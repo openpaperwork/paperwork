@@ -157,7 +157,7 @@ Main features are:
          ['locale/de/LC_MESSAGES/paperwork.mo']),
         (os.path.join(sys.prefix, 'share/applications'),
          ['data/paperwork.desktop']),
-        (os.path.join(sys.prefix, 'share/icons'),
+        (os.path.join(sys.prefix, 'share/icons/hicolor/scalable/apps'),
          ['data/paperwork.svg']),
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/paperwork_100.png']),

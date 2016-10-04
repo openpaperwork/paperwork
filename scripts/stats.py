@@ -32,13 +32,15 @@ def main():
     print("========")
 
     all_labels = set([l.name for l in dsearch.label_list])
-    label_keys = ['global', 'positive', 'negative']  # for the order
+    label_keys = ['exact', 'global', 'positive', 'negative']  # for the order
     total_label_accuracy = {
+        'exact': 0,
         'global': 0,
         'positive': 0,
         'negative': 0,
     }
     total_labels = {
+        'exact': 0,
         'global': 0,
         'positive': 0,
         'negative': 0,
@@ -78,13 +80,15 @@ def main():
 
         # Label predictions stats
         doc_labels = {l.name for l in doc.labels}
-        predicated_labels = {l.name for l in dsearch.guess_labels(doc)}
+        predicted_labels = {l.name for l in dsearch.guess_labels(doc)}
         accurate = {
+            'exact': 1,
             'global': 0,
             'negative': 0,
             'positive': 0,
         }
         nb_labels = {
+            'exact': 1,
             'global': len(all_labels),
             'positive': len(doc_labels),
             'negative': len(all_labels) - len(doc_labels),
@@ -92,7 +96,7 @@ def main():
         for key in label_keys:
             total_labels[key] += nb_labels[key]
         for label in all_labels:
-            if not ((label in doc_labels) ^ (label in predicated_labels)):
+            if not ((label in doc_labels) ^ (label in predicted_labels)):
                 accurate['global'] += 1
                 total_label_accuracy['global'] += 1
                 if label in doc_labels:
@@ -101,6 +105,10 @@ def main():
                 else:
                     accurate['negative'] += 1
                     total_label_accuracy['negative'] += 1
+            else:
+                accurate['exact'] = 0
+        if accurate['exact']:
+            total_label_accuracy['exact'] += 1
         for key in label_keys:
             total = nb_labels[key]
             value = accurate[key]

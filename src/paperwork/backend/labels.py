@@ -249,7 +249,10 @@ class LabelGuesser(object):
         self.min_yes = 0.15
 
     def set_language(self, language):
-        available = snowballstemmer.Stemmer.algorithms()
+        if hasattr(snowballstemmer, 'Stemmer'):
+            available = snowballstemmer.Stemmer.algorithms()
+        else:
+            available = snowballstemmer.algorithms()
         if language in available:
             lang = language
         else:

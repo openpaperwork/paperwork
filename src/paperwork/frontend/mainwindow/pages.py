@@ -514,8 +514,9 @@ class PageCuttingAction(PageEditAction):
 class PageACEAction(PageEditAction):
     priority = 25
 
-    def __init__(self, child_drawer, factories, schedulers):
+    def __init__(self, parent, child_drawer, factories, schedulers):
         super(PageACEAction, self).__init__([child_drawer])
+        self.parent = parent
         self.img = None
         self.surface = None
         self.factories = factories
@@ -561,7 +562,7 @@ class PageACEAction(PageEditAction):
         self.surface = surface
 
     def on_img_processing_done(self):
-        GLib.idle_add(self.redraw)
+        GLib.idle_add(self.parent.redraw)
 
     def __str__(self):
         return "Automatic Color Equalization"
@@ -730,7 +731,7 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
-        GLib.idle_add(self.redraw)
+        GLib.idle_add(self.parent.redraw)
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
@@ -958,7 +959,7 @@ class SimplePageDrawer(Drawer):
                     )
 
         if must_redraw:
-            GLib.idle_add(self.redraw)
+            GLib.idle_add(self.parent.redraw)
             return
 
     def __str__(self):
@@ -1475,7 +1476,7 @@ class PageDrawer(Drawer, GObject.GObject):
                 # it's not safe adding a new one
                 return
         child = self.edit_chain[-1]
-        action = PageACEAction(child, self.factories, self.schedulers)
+        action = PageACEAction(self, child, self.factories, self.schedulers)
         self._add_edit_action(action)
 
     def _on_edit_crop(self):

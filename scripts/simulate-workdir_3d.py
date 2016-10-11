@@ -102,10 +102,8 @@ def fix_labels(stats, dst_dsearch, src_doc, dst_doc):
 
     g_lock.acquire()
     try:
-        print("Document [{}|{}|{}|{}]".format(
-            dst_dsearch.label_guesser.weight_no,
-            dst_dsearch.label_guesser.weight_nb_documents,
-            dst_dsearch.label_guesser.minimum_yes,
+        print("Document [{}|{}]".format(
+            dst_dsearch.label_guesser.yes_diff_ratio,
             src_doc.docid
         ))
 
@@ -158,7 +156,9 @@ def print_stats(stats):
 
 
 def run_simulation(
-    src_dsearch, weight_no, weight_nb_docs, minimum_yes, csvwriter
+    src_dsearch,
+    yes_diff_ratio,
+    csvwriter
 ):
     stats = {
         'nb_documents': 0,
@@ -178,9 +178,7 @@ def run_simulation(
     dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
     dst_dsearch.reload_index()
 
-    dst_dsearch.label_guesser.weight_no = weight_no
-    dst_dsearch.label_guesser.weight_nb_documents = weight_nb_docs
-    dst_dsearch.label_guesser.minimum_yes = minimum_yes
+    dst_dsearch.label_guesser.yes_diff_ratio = yes_diff_ratio
 
     try:
         documents = [x for x in src_dsearch.docs]
@@ -227,7 +225,7 @@ def run_simulation(
         g_lock.acquire()
         try:
             csvwriter.writerow([
-                weight_no, weight_nb_docs, minimum_yes,
+                yes_diff_ratio,
                 stats['nb_documents'], stats['perfect'],
             ])
         finally:
@@ -247,20 +245,17 @@ def _run_simulation(*args):
 
 
 def main():
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         print("Syntax:")
         print(
-            "  {} [weights_no] [weights_nb_documents] [minimums_yes]"
-            " [out_csv_file]".format(
+            "  {} [yes_diff_ratios] [out_csv_file]".format(
                 sys.argv[0]
             )
         )
         sys.exit(1)
 
-    weights_no = eval(sys.argv[1])
-    weights_nb_documents = eval(sys.argv[2])
-    minimums_yes = eval(sys.argv[3])
-    out_csv_file = sys.argv[4]
+    yes_diff_ratios = eval(sys.argv[1])
+    out_csv_file = sys.argv[2]
 
     pconfig = config.PaperworkConfig()
     pconfig.read()
@@ -275,14 +270,11 @@ def main():
 
     with open(out_csv_file, 'a', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        for weight_no in weights_no:
-            for weight_nb_docs in weights_nb_documents:
-                for minimum_yes in minimums_yes:
-                    pool.apply_async(
-                        _run_simulation,
-                        (src_dsearch, weight_no, weight_nb_docs, minimum_yes,
-                         csvwriter,)
-                    )
+        for ratio in yes_diff_ratios:
+            pool.apply_async(
+                _run_simulation,
+                (src_dsearch, ratio, csvwriter,)
+            )
         pool.close()
         pool.join()
     print("All done !")

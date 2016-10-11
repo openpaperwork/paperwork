@@ -111,6 +111,7 @@ def main(hook_func=None):
     init_logging()
     set_locale()
 
+    GLib.threads_init()
     GObject.threads_init()
 
     if hasattr(GLib, "unix_signal_add"):

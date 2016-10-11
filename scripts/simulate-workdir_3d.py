@@ -103,7 +103,7 @@ def fix_labels(stats, dst_dsearch, src_doc, dst_doc):
     g_lock.acquire()
     try:
         print("Document [{}|{}]".format(
-            dst_dsearch.label_guesser.yes_diff_ratio,
+            dst_dsearch.label_guesser.min_yes,
             src_doc.docid
         ))
 
@@ -157,7 +157,7 @@ def print_stats(stats):
 
 def run_simulation(
     src_dsearch,
-    yes_diff_ratio,
+    min_yes,
     csvwriter
 ):
     stats = {
@@ -178,7 +178,7 @@ def run_simulation(
     dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
     dst_dsearch.reload_index()
 
-    dst_dsearch.label_guesser.yes_diff_ratio = yes_diff_ratio
+    dst_dsearch.label_guesser.min_yes = min_yes
 
     try:
         documents = [x for x in src_dsearch.docs]
@@ -225,7 +225,7 @@ def run_simulation(
         g_lock.acquire()
         try:
             csvwriter.writerow([
-                yes_diff_ratio,
+                min_yes,
                 stats['nb_documents'], stats['perfect'],
             ])
         finally:
@@ -248,13 +248,13 @@ def main():
     if len(sys.argv) < 3:
         print("Syntax:")
         print(
-            "  {} [yes_diff_ratios] [out_csv_file]".format(
+            "  {} [min_yeses] [out_csv_file]".format(
                 sys.argv[0]
             )
         )
         sys.exit(1)
 
-    yes_diff_ratios = eval(sys.argv[1])
+    min_yeses = eval(sys.argv[1])
     out_csv_file = sys.argv[2]
 
     pconfig = config.PaperworkConfig()
@@ -270,10 +270,10 @@ def main():
 
     with open(out_csv_file, 'a', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        for ratio in yes_diff_ratios:
+        for min_yes in min_yeses:
             pool.apply_async(
                 _run_simulation,
-                (src_dsearch, ratio, csvwriter,)
+                (src_dsearch, min_yes, csvwriter,)
             )
         pool.close()
         pool.join()

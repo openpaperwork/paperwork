@@ -1348,7 +1348,7 @@ class PageDrawer(Drawer, GObject.GObject):
         size = (size[0] + (2 * border_width),
                 size[1] + (2 * border_width))
 
-        self.canvas.redraw((position, size))
+        GLib.idle_add(self.canvas.redraw, (position, size))
 
     def set_drag_enabled(self, drag):
         self.drag_enabled = drag
@@ -1397,7 +1397,7 @@ class PageDrawer(Drawer, GObject.GObject):
             must_redraw = True
 
         if must_redraw:
-            self.redraw()
+            GLib.idle_add(self.redraw)
 
         return self.mouse_over_button is not None
 
@@ -1442,7 +1442,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(False)
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
-        self.redraw()
+        GLib.idle_add(self.redraw)
 
     def print_chain(self):
         logger.info("Edit chain:")
@@ -1496,7 +1496,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(True)
         self.editor_state = "before"
         self.hide()
-        self.canvas.redraw()
+        GLib.idle_add(self.canvas.redraw)
 
     def _on_edit_cancel(self):
         logger.info("Page edition canceled")

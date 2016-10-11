@@ -98,6 +98,8 @@ class Drawer(object):
                 cairo_ctx.translate(img_size[0] / 2, img_size[1] / 2)
                 cairo_ctx.rotate(angle)
                 cairo_ctx.translate(-img_size[0] / 2, -img_size[1] / 2)
+            if scaling[0] <= 0.0 or scaling[1] <= 0.0:
+                return
             cairo_ctx.scale(scaling[0], scaling[1])
 
             cairo_ctx.set_source_surface(
@@ -514,6 +516,8 @@ class TextDrawer(Drawer):
                 int(self.center_position[1] - (self.size[1] / 2))
             )
             cairo_ctx.translate(self.position[0], self.position[1])
+            if txt_factor <= 0.0:
+                return
             cairo_ctx.scale(txt_factor * Pango.SCALE, txt_factor * Pango.SCALE)
             cairo_ctx.set_source_rgb(0.0, 0.0, 0.0)
             PangoCairo.update_layout(cairo_ctx, layout)

@@ -843,7 +843,8 @@ class SimplePageDrawer(Drawer):
                 float(w) / txt_size[0],
                 float(h) / txt_size[1],
             )
-
+            if txt_factor <= 0.0:
+                return
             cairo_context.scale(
                 txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
             )
@@ -1303,6 +1304,8 @@ class PageDrawer(Drawer, GObject.GObject):
                 float(self.TOOLTIP_LENGTH - 10) * Pango.SCALE / txt_size[0],
                 float(self.FONT_SIZE) * Pango.SCALE / txt_size[1],
             )
+            if txt_factor <= 0:
+                return
             cairo_context.scale(txt_factor, txt_factor)
             PangoCairo.update_layout(cairo_context, layout)
             PangoCairo.show_layout(cairo_context, layout)

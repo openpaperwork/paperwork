@@ -18,13 +18,13 @@ import configparser
 import locale
 import logging
 
-import pycountry
 import pyocr
 import pyinsane2
 
 from paperwork_backend.config import PaperworkConfig
 from paperwork_backend.config import PaperworkSetting
 from paperwork_backend.config import paperwork_cfg_boolean
+from paperwork_backend.util import find_language
 
 
 logger = logging.getLogger(__name__)
@@ -205,29 +205,12 @@ class _PaperworkFrontendConfigUtil(object):
             return DEFAULT_OCR_LANG
         ocr_langs = ocr_tools[0].get_available_languages()
 
-        default_locale_long = locale.getdefaultlocale()[0]
-        if default_locale_long is None:
-            return DEFAULT_OCR_LANG
-
-        # Usually something like "fr_FR" --> we just need the first part
-        default_locale = default_locale_long.split("_")[0]
-        try:
-            try:
-                lang = pycountry.pycountry.languages.get(alpha2=default_locale)
-                for ocr_lang in (lang.terminology, lang.bibliographic):
-                    if ocr_lang in ocr_langs:
-                        return ocr_lang
-            except KeyError:
-                lang = pycountry.pycountry.languages.get(
-                    iso639_1_code=default_locale)
-                if lang.iso639_3_code in ocr_langs:
-                    return lang.iso_639_3_code
-        except Exception as exc:
-            logger.error("Warning: Failed to figure out system language"
-                         " (locale is [%s]). Will default to %s"
-                         % (default_locale_long, DEFAULT_OCR_LANG))
-            logger.error('Exception was: %s' % exc)
-        return DEFAULT_OCR_LANG
+        lang = find_language()
+        if hasattr(lang, 'iso639_3_code') and lang.iso639_3_code in ocr_langs:
+            return lang.iso639_3_code
+        if hasattr(lang, 'terminology') and lang.terminology in ocr_langs:
+            return lang.terminology
+        return DEFAULT_OCR
 
     @staticmethod
     def get_default_spellcheck_lang(ocr_lang):
@@ -236,15 +219,10 @@ class _PaperworkFrontendConfigUtil(object):
             return None
 
         # Try to guess the lang based on the ocr lang
-        try:
-            language = pycountry.languages.get(terminology=ocr_lang[:3])
-        except KeyError:
-            try:
-                language = pycountry.languages.get(bibliographic=ocr_lang[:3])
-            except KeyError:
-                language = pycountry.languages.get(iso639_3_code=ocr_lang[:3])
-        spelling_lang = language.alpha2
-        return spelling_lang
+        lang = find_language(ocr_lang)
+        if hasattr(lang, 'iso639_1_code'):
+            return lang.iso639_1_code
+        return lang.alpha2
 
 
 def load_config():

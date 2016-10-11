@@ -28,10 +28,10 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 import logging
-import pycountry
 import pyinsane2
 import pyocr
 
+from paperwork_backend.util import find_language
 
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
@@ -827,21 +827,12 @@ class SettingsWindow(GObject.GObject):
             try:
                 extra = short_lang[3:]
                 short_lang = short_lang[:3]
+                long_lang = short_lang
                 if extra != "" and (extra[0] == "-" or extra[0] == "_"):
                     extra = extra[1:]
-                lang = None
-                try:
-                    lang = pycountry.languages.get(terminology=short_lang)
-                except KeyError:
-                    pass
-                if lang is None:
-                    try:
-                        lang = pycountry.languages.get(bibliographic=short_lang)
-                    except KeyError:
-                        pass
-                if lang is None:
-                    lang = pycountry.languages.get(iso639_3_code=short_lang)
-                long_lang = lang.name
+                lang = find_language(short_lang, allow_none=True)
+                if lang:
+                    long_lang = lang.name
                 if extra != "":
                     long_lang += " (%s)" % (extra)
                 langs.append((short_lang, long_lang))

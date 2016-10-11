@@ -30,6 +30,7 @@ gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
 from gi.repository import GObject
+from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import GLib
 import locale
@@ -113,6 +114,7 @@ def main(hook_func=None):
 
     GLib.threads_init()
     GObject.threads_init()
+    Gdk.threads_init()
 
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,

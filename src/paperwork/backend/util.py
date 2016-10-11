@@ -291,12 +291,15 @@ def image2surface(img):
         g_lock.release()
 
 
-def find_language(lang_str=None):
+def find_language(lang_str=None, allow_none=False):
     if lang_str is None:
         lang_str = locale.getdefaultlocale()[0]
-        if lang_str is None:
+        if lang_str is None and not allow_none:
             logger.warning("Unable to figure out locale. Assuming english !")
             return find_language('eng')
+        if lang_str is None:
+            logger.warning("Unable to figure out locale !")
+            return None
 
     lang_str = lang_str.lower()
     if "_" in lang_str:
@@ -331,6 +334,9 @@ def find_language(lang_str=None):
         return pycountry.pycountry.languages.get(alpha2=lang_str)
     except KeyError:
         pass
+    if allow_none:
+        logger.warning("Unknown language [{}]".format(lang_str))
+        return None
     logger.warning("Unknown language [{}]. Switching back to english".format(
         lang_str
     ))

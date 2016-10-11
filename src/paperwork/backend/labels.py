@@ -246,7 +246,6 @@ class LabelGuesser(object):
         self._stemmer = None
         self.set_language(lang)
 
-        self.minimum_base_yes = 0.5
         self.min_yes = 0.15
 
     def set_language(self, language):
@@ -306,9 +305,9 @@ class LabelGuesser(object):
         for (label_name, scores) in scores.items():
             yes = scores['yes']
             no = scores['no']
-            if yes < self.minimum_base_yes:
-                continue
             total = yes + no
+            if total == 0:
+                continue
             yes /= total
             no /= total
             if yes > self.min_yes:

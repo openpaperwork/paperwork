@@ -164,6 +164,7 @@ class JobIndexLoader(Job):
                 return
 
             docsearch = DocSearch(self.__config['workdir'].value)
+            docsearch.set_language(self.__config['ocr_lang'].value)
             docsearch.reload_index(progress_cb=self.__progress_cb)
 
             if not self.can_run:
@@ -1225,6 +1226,7 @@ class ActionOpenSettings(SimpleAction):
         self.__main_win.actions['reindex'][1].do()
 
     def __on_config_changed_cb(self, setttings_window):
+        self.__main_win.docsearch.set_language(self.__config['ocr_lang'].value)
         set_widget_state(
             self.__main_win.actions['multi_scan'][0],
             self.__config['scanner_has_feeder'].value

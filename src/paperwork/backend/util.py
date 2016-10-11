@@ -16,7 +16,9 @@
 
 import errno
 import io
+import locale
 import logging
+import pycountry
 import os
 import re
 import threading
@@ -287,3 +289,49 @@ def image2surface(img):
         return cairo.ImageSurface.create_from_png(img_io)
     finally:
         g_lock.release()
+
+
+def find_language(lang_str=None):
+    if lang_str is None:
+        lang_str = locale.getdefaultlocale()[0]
+        if lang_str is None:
+            logger.warning("Unable to figure out locale. Assuming english !")
+            return find_language('eng')
+
+    lang_str = lang_str.lower()
+    if "_" in lang_str:
+        lang_str = lang_str.split("_")[0]
+
+    lang = None
+    try:
+        return pycountry.pycountry.languages.get(name=lang_str.title())
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(iso_639_3_code=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(iso639_2T_code=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(iso639_1_code=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(terminology=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(bibliographic=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(alpha2=lang_str)
+    except KeyError:
+        pass
+    logger.warning("Unknown language [{}]. Switching back to english".format(
+        lang_str
+    ))
+    return find_language('eng')

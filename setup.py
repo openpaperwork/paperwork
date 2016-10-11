@@ -69,6 +69,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     ],
     install_requires=[
         "Pillow",
+        "pycountry",
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         "simplebayes",

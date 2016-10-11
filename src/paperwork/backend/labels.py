@@ -25,7 +25,10 @@ import os
 from gi.repository import Gdk
 import simplebayes
 
+import snowballstemmer
+
 from .util import mkdir_p
+from .util import find_language
 from .util import strip_accents
 
 
@@ -146,11 +149,10 @@ class LabelGuessUpdater(object):
     def _get_doc_txt(self, doc):
         if doc.nb_pages <= 0:
             return u""
-        if not doc.can_edit:
-            # document always come with all its pages
-            return doc.text.strip()
         # document is added page per page --> the first page only
         # is used for evaluation
+        # For consistency, we do the same thing even for documents that are not
+        # scanned
         txt = doc.pages[0].text
         txt = u"\n".join(txt)
         txt = txt.strip()
@@ -201,6 +203,8 @@ class LabelGuessUpdater(object):
             guesser.untrain("yes", doc_txt)
             guesser.train("no", doc_txt)
 
+        self.updated_docs.add(doc)
+
     def del_doc(self, doc):
         doc_txt = self._get_doc_txt(doc)
         if doc_txt == "":
@@ -234,13 +238,25 @@ class LabelGuessUpdater(object):
 
 
 class LabelGuesser(object):
-    def __init__(self, bayes_dir, total_nb_documents):
+    def __init__(self, bayes_dir, total_nb_documents, lang=None):
         self._bayes_dir = bayes_dir
         self.total_nb_documents = total_nb_documents
         self._bayes = {}
 
+        self._stemmer = None
+        self.set_language(lang)
+
         self.minimum_yes = 1
         self.yes_diff_ratio = 3.275
+
+    def set_language(self, language):
+        available = snowballstemmer.Stemmer.algorithms()
+        if language in available:
+            lang = language
+        else:
+            lang = find_language(language).name.lower()
+        logger.info("Label guessing: Using stemmer [{}]".format(lang))
+        self._stemmer = snowballstemmer.stemmer(lang)
 
     def load(self, label_name, force_reload=False):
         label_bytes = label_name.encode("utf-8")
@@ -253,6 +269,11 @@ class LabelGuesser(object):
                 cache_path=baye_dir
             )
             self._bayes[label_name].cache_train()
+
+    def _tokenizer(self, text):
+        text = text.lower()
+        text = strip_accents(text)
+        return [self._stemmer.stemWord(w) for w in text.split() if len(w) >= 4]
 
     def get_updater(self):
         return LabelGuessUpdater(self)

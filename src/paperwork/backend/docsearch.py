@@ -360,7 +360,7 @@ class DocSearch(object):
         last_read=whoosh.fields.DATETIME(stored=True),
     )
 
-    def __init__(self, rootdir, indexdir=None):
+    def __init__(self, rootdir, indexdir=None, language=None):
         """
         Index files in rootdir (see constructor)
         """
@@ -441,8 +441,12 @@ class DocSearch(object):
         self.label_guesser = LabelGuesser(
             self.label_guesser_dir, len(self._docs_by_id.keys())
         )
+        self.label_guesser.set_language(language)
 
         self.check_workdir()
+
+    def set_language(self, language):
+        self.label_guesser.set_language(language)
 
     def check_workdir(self):
         """

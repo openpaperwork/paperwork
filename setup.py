@@ -72,6 +72,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
         "pycountry",
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
+        "snowballstemmer",
         "simplebayes",
         # paperwork-shell chkdeps take care of all the dependencies that can't
         # be handled here. Mainly, dependencies using gobject introspection

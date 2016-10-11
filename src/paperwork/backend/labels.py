@@ -246,8 +246,8 @@ class LabelGuesser(object):
         self._stemmer = None
         self.set_language(lang)
 
-        self.minimum_yes = 1
-        self.yes_diff_ratio = 3.275
+        self.minimum_base_yes = 0.5
+        self.min_yes = 0.15
 
     def set_language(self, language):
         available = snowballstemmer.Stemmer.algorithms()
@@ -302,20 +302,16 @@ class LabelGuesser(object):
         if not scores:
             scores = self.score(doc)
 
-        nb_documents = self.total_nb_documents
-        if nb_documents == 0:
-            nb_documents = 1
-
         label_names = set()
         for (label_name, scores) in scores.items():
             yes = scores['yes']
             no = scores['no']
-            if yes < self.minimum_yes:
+            if yes < self.minimum_base_yes:
                 continue
-            diff = no - yes
-            diff /= yes * self.yes_diff_ratio
-            if diff > 1.0:
-                continue
-            label_names.add(label_name)
+            total = yes + no
+            yes /= total
+            no /= total
+            if yes > self.min_yes:
+                label_names.add(label_name)
 
         return label_names

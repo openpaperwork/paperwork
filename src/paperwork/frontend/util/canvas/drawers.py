@@ -715,14 +715,31 @@ class ProgressBarDrawer(Drawer):
                 (txt_h + 2 * self.TXT_MARGIN))
         self.canvas.redraw((position, size))
 
+    def _get_position(self):
+        if not self.canvas:
+            return (0, 0)
+        offset = self.canvas.offset
+        size = self.canvas.size
+        return (offset[0] + 1,
+                size[1] + offset[1] -
+                (self.__last_text_height + (2 * self.TXT_MARGIN)) - 1)
+
+    position = property(_get_position)
+
+    def _get_size(self):
+        if not self.canvas:
+            return (200, self.__last_text_height + 2 * self.TXT_MARGIN)
+        return (self.canvas.size[0] - 1,
+                (self.__last_text_height + 2 * self.TXT_MARGIN))
+
+    size = property(_get_size)
+
     def draw(self, cairo_ctx):
         if not self.visible:
             return
         txt = self.text
         if txt is None or txt == "":
             txt = u"T"
-
-        position = (0, self.canvas.size[1] - self.__last_text_height)
 
         cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
                                    cairo.FONT_WEIGHT_BOLD)
@@ -731,9 +748,8 @@ class ProgressBarDrawer(Drawer):
         txt_h = p_y2
         self.__last_text_height = txt_h
 
-        position = (0, self.canvas.size[1] - (txt_h + (2 * self.TXT_MARGIN)))
-        size = (self.canvas.size[0] + (2 * self.TXT_MARGIN),
-                (txt_h + 2 * self.TXT_MARGIN))
+        position = self.position
+        size = self.size
 
         (canvas_w, canvas_h) = self.canvas.size
 
@@ -766,7 +782,8 @@ class ProgressBarDrawer(Drawer):
         cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
                                  self.text_color[2])
         cairo_ctx.move_to(self.TXT_MARGIN,
-                          self.canvas.size[1] - self.TXT_MARGIN)
+                          self.canvas.size[1] + self.canvas.offset[1] -
+                          self.TXT_MARGIN)
         cairo_ctx.text_path(self.text)
         cairo_ctx.fill()
 

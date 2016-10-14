@@ -246,7 +246,7 @@ class LabelGuesser(object):
         self._stemmer = None
         self.set_language(lang)
 
-        self.min_yes = 0.15
+        self.min_yes = 0.195
 
     def set_language(self, language):
         if hasattr(snowballstemmer, 'Stemmer'):

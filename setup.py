@@ -113,7 +113,7 @@ Main features are:
         (
             os.path.join(sys.prefix, 'share/paperwork/diag'),
             [
-                'src/paperwork/frontend/diag/diag.glade',
+                'src/paperwork/frontend/diag/diagdialog.glade',
             ]
         ),
         (

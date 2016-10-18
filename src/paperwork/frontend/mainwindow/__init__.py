@@ -1214,7 +1214,8 @@ class ActionOpenSettings(SimpleAction):
         SimpleAction.__init__(self, "Open settings dialog")
         self.__main_win = main_window
         self.__config = config
-        self.dialog = None  # for tests only
+        # for tests only / prevent also the dialog from being GC
+        self.dialog = None
 
     def do(self):
         SimpleAction.do(self)

@@ -50,13 +50,27 @@ class DiagDialog(object):
             os.path.join("diag", "diagdialog.glade"))
 
         self.buf = widget_tree.get_object("textbufferDiag")
-        self.buf.set_text(g_log_tracker.get_logs(), -1)
 
         self.dialog = widget_tree.get_object("dialogDiag")
         self.dialog.set_transient_for(main_win.window)
         self.dialog.connect("response", self._on_response)
 
+        self.scrollwin = widget_tree.get_object("scrolledwindowDiag")
+
         self._main_win = main_win
+
+        self.set_text(g_log_tracker.get_logs())
+
+        txt_view = widget_tree.get_object("textviewDiag")
+        txt_view.connect("size-allocate", self.scroll_to_bottom)
+
+    def set_text(self, txt):
+        self.buf.set_text(txt, -1)
+        GLib.idle_add(self.scroll_to_bottom)
+
+    def scroll_to_bottom(self, *args, **kwargs):
+        vadj = self.scrollwin.get_vadjustment()
+        vadj.set_value(vadj.get_upper())
 
     def _on_response(self, widget, response):
         if response == 0:  # close
@@ -95,7 +109,12 @@ class DiagDialog(object):
 
             return True
         if response == 2:  # copy
-            # TODO
+            gdk_win = self._main_win.window.get_window()
+            clipboard = Gtk.Clipboard.get_default(gdk_win.get_display())
+            start = self.buf.get_iter_at_offset(0)
+            end = self.buf.get_iter_at_offset(-1)
+            text = self.buf.get_text(start, end, False)
+            clipboard.set_text(text, -1)
             return True
 
     def show(self):

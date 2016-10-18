@@ -1,5 +1,8 @@
 import logging
 import os
+import multiprocessing
+import platform
+import sys
 
 import pyinsane2
 import gettext
@@ -29,7 +32,44 @@ class JobScannerScanner(Job):
     def do(self):
         # Simply log everything
         try:
-            logger.info("====== START OF SCANNER INFORMATIONS ======")
+            logger.info("====== START OF SYSTEM INFO ======")
+            logger.info("os.name: {}".format(os.name))
+            logger.info("sys.version: {}".format(sys.version))
+            if hasattr(os, 'uname'):
+                try:
+                    logger.info("os.uname: {}".format(os.uname()))
+                except:
+                    pass
+            try:
+                logger.info("platform.architecture: {}".format(
+                    platform.architecture()
+                ))
+                logger.info("platform.platform: {}".format(platform.platform()))
+                logger.info("platform.processor: {}".format(
+                    platform.processor())
+                )
+                logger.info("platform.version: {}".format(platform.version()))
+                if hasattr(platform, 'linux_distribution'):
+                    logger.info("platform.linux_distribution: {}".format(
+                        platform.linux_distribution()
+                    ))
+                if hasattr(platform, 'win32_ver'):
+                    logger.info("platform.win32_ver: {}".format(
+                        platform.win32_ver()
+                    ))
+                logger.info("multiprocessing.cpu_count: {}".format(
+                    multiprocessing.cpu_count()
+                ))
+            except Exception as exc:
+                logger.exception(exc)
+            try:
+                mem = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+                logger.info("Available memory: {}".format(mem))
+            except Exception as exc:
+                logger.exception(exc)
+            logger.info("====== END OF SYSTEM INFO ======")
+
+            logger.info("====== START OF SCANNER INFO ======")
             devices = pyinsane2.get_devices()
             logger.info("{} scanners found".format(len(devices)))
 

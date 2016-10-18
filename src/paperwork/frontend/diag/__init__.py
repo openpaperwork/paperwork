@@ -1,14 +1,89 @@
 import logging
 import os
 
+import pyinsane2
 import gettext
 from gi.repository import GLib
+from gi.repository import GObject
 from gi.repository import Gtk
 
 from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util.jobs import Job, JobFactory
 
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
+
+
+class JobScannerScanner(Job):
+    __gsignals__ = {
+        'scan-done': (GObject.SignalFlags.RUN_LAST, None, ()),
+    }
+
+    can_stop = False
+    priority = 1000
+
+    def __init__(self, factory, id):
+        Job.__init__(self, factory, id)
+
+    def do(self):
+        # Simply log everything
+        try:
+            logger.info("====== START OF SCANNER INFORMATIONS ======")
+            devices = pyinsane2.get_devices()
+            logger.info("{} scanners found".format(len(devices)))
+
+            for device in pyinsane2.get_devices():
+                logger.info("=== {} ===".format(str(device)))
+
+                for opt in device.options.values():
+                    logger.info("Option: {}".format(opt.name))
+                    logger.info("  Title: {}".format(opt.title))
+                    logger.info("  Desc: {}".format(opt.desc))
+                    logger.info("  Type: {}".format(str(opt.val_type)))
+                    logger.info("  Unit: {}".format(str(opt.unit)))
+                    logger.info("  Size: {}".format(opt.size))
+                    logger.info("  Capabilities: {}".format(
+                        str(opt.capabilities))
+                    )
+                    logger.info("  Constraint type: {}".format(
+                        str(opt.constraint_type))
+                    )
+                    logger.info("  Constraint: {}".format(str(opt.constraint)))
+                    try:
+                        logger.info("  Value: {}".format(str(opt.value)))
+                    except pyinsane2.PyinsaneException as exc:
+                        # Some scanner allow changing a value, but not reading
+                        # it. For instance Canon Lide 110 allow setting the
+                        # resolution, but not reading it ...
+                        logger.warning("    Value: *FAILED*")
+                        logger.exception(exc)
+
+            logger.info("====== END OF SCANNER INFORMATIONS ======")
+        except Exception as exc:
+            logger.exception(exc)
+        finally:
+            self.emit('scan-done')
+
+
+GObject.type_register(JobScannerScanner)
+
+
+class JobFactoryScannerScanner(JobFactory):
+
+    def __init__(self, diag_win):
+        JobFactory.__init__(self, "ScannerScanner")
+        self.diag_win = diag_win
+
+    def make(self):
+        job = JobScannerScanner(self, next(self.id_generator))
+        job.connect(
+            'scan-done',
+            lambda job: GLib.idle_add(
+                self.diag_win.on_scan_done_cb
+            )
+        )
+        return job
 
 
 class LogTracker(logging.Handler):
@@ -53,16 +128,21 @@ class DiagDialog(object):
 
         self.dialog = widget_tree.get_object("dialogDiag")
         self.dialog.set_transient_for(main_win.window)
-        self.dialog.connect("response", self._on_response)
+        self.dialog.connect("response", self.on_response_cb)
 
         self.scrollwin = widget_tree.get_object("scrolledwindowDiag")
 
         self._main_win = main_win
 
-        self.set_text(g_log_tracker.get_logs())
+        self.set_text(_("Loading ..."))
 
         txt_view = widget_tree.get_object("textviewDiag")
         txt_view.connect("size-allocate", self.scroll_to_bottom)
+
+        scheduler = main_win.schedulers['main']
+        factory = JobFactoryScannerScanner(self)
+        job = factory.make()
+        scheduler.schedule(job)
 
     def set_text(self, txt):
         self.buf.set_text(txt, -1)
@@ -72,7 +152,10 @@ class DiagDialog(object):
         vadj = self.scrollwin.get_vadjustment()
         vadj.set_value(vadj.get_upper())
 
-    def _on_response(self, widget, response):
+    def on_scan_done_cb(self):
+        self.set_text(g_log_tracker.get_logs())
+
+    def on_response_cb(self, widget, response):
         if response == 0:  # close
             self.dialog.set_visible(False)
             self.dialog.destroy()

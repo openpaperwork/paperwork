@@ -64,6 +64,7 @@ Main features are:
         'paperwork',
         'paperwork.frontend',
         'paperwork.frontend.aboutdialog',
+        'paperwork.frontend.diag',
         'paperwork.frontend.import',
         'paperwork.frontend.labeleditor',
         'paperwork.frontend.mainwindow',
@@ -79,6 +80,7 @@ Main features are:
         'paperwork.frontend': 'src/paperwork/frontend',
         'paperwork.frontend.aboutdialog':
         'src/paperwork/frontend/aboutdialog',
+        'paperwork.frontend.diag': 'src/paperwork/frontend/diag',
         'paperwork.frontend.import': 'src/paperwork/frontend/import',
         'paperwork.frontend.labeleditor':
         'src/paperwork/frontend/labeleditor',
@@ -106,6 +108,12 @@ Main features are:
             os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
             [
                 'src/paperwork/frontend/aboutdialog/aboutdialog.glade',
+            ]
+        ),
+        (
+            os.path.join(sys.prefix, 'share/paperwork/diag'),
+            [
+                'src/paperwork/frontend/diag/diag.glade',
             ]
         ),
         (

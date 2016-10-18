@@ -28,6 +28,10 @@
 			</section>
 			<section>
 				<item>
+					<attribute name="label" translatable="yes">_Diagnostic</attribute>
+					<attribute name="action">app.diag</attribute>
+				</item>
+				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>
 				</item>

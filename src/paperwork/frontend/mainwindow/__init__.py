@@ -37,6 +37,7 @@ from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork.frontend.aboutdialog import AboutDialog
+from paperwork.frontend.diag import DiagDialog
 from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
 from paperwork.frontend.mainwindow.docs import sort_documents_by_date
@@ -1918,15 +1919,28 @@ class ActionOptimizeIndex(SimpleAction):
         self.__main_win.schedulers['index'].schedule(job)
 
 
+class ActionOpenDiagnostic(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Opening diagnostic dialog")
+        self.__main_win = main_window
+        self.diag = None  # used to prevent gc
+
+    def do(self):
+        SimpleAction.do(self)
+        self.diag = DiagDialog(self.__main_win)
+        self.diag.show()
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
         self.__main_win = main_window
+        self.diag = None  # used to prevent gc
 
     def do(self):
         SimpleAction.do(self)
-        about = AboutDialog(self.__main_win.window)
-        about.show()
+        self.diag = AboutDialog(self.__main_win.window)
+        self.diag.show()
 
 
 class ActionQuit(SimpleAction):
@@ -2388,6 +2402,12 @@ class MainWindow(object):
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
+            'diagnostic': (
+                [
+                    gactions['diagnostic'],
+                ],
+                ActionOpenDiagnostic(self),
+            ),
             'about': (
                 [
                     gactions['about'],
@@ -2508,6 +2528,7 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'diagnostic': Gio.SimpleAction.new("diag", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
             'import': Gio.SimpleAction.new("import", None),

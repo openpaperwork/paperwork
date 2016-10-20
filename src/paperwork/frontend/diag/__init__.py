@@ -18,7 +18,7 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-class JobScannerScanner(Job):
+class JobInfoGetter(Job):
     __gsignals__ = {
         'scan-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
@@ -26,97 +26,144 @@ class JobScannerScanner(Job):
     can_stop = False
     priority = 1000
 
-    def __init__(self, factory, id):
-        Job.__init__(self, factory, id)
+    def __init__(self, factory, id, main_win):
+        super(JobInfoGetter, self).__init__(factory, id)
+        self.main_win = main_win
+
+    def _get_sysinfo(self):
+        logger.info("====== START OF SYSTEM INFO ======")
+        logger.info("os.name: {}".format(os.name))
+        logger.info("sys.version: {}".format(sys.version))
+        if hasattr(os, 'uname'):
+            try:
+                logger.info("os.uname: {}".format(os.uname()))
+            except:
+                pass
+        try:
+            logger.info("platform.architecture: {}".format(
+                platform.architecture()
+            ))
+            logger.info("platform.platform: {}".format(platform.platform()))
+            logger.info("platform.processor: {}".format(
+                platform.processor())
+            )
+            logger.info("platform.version: {}".format(platform.version()))
+            if hasattr(platform, 'linux_distribution'):
+                logger.info("platform.linux_distribution: {}".format(
+                    platform.linux_distribution()
+                ))
+            if hasattr(platform, 'win32_ver'):
+                logger.info("platform.win32_ver: {}".format(
+                    platform.win32_ver()
+                ))
+            logger.info("multiprocessing.cpu_count: {}".format(
+                multiprocessing.cpu_count()
+            ))
+        except Exception as exc:
+            logger.exception(exc)
+        try:
+            mem = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
+            logger.info("Available memory: {}".format(mem))
+        except Exception as exc:
+            logger.exception(exc)
+        logger.info("====== END OF SYSTEM INFO ======")
+
+    def _get_paperwork_info(self):
+        logger.info("====== START OF PAPERWORK INFO ======")
+        logger.info("Paperwork version: {}".format(self.main_win.version))
+
+        nb_docs = 0
+        nb_pages = 0
+        max_pages = 0
+        nb_words = 0
+        max_word_len = 0
+        total_word_len = 0
+
+        for doc in self.main_win.docsearch.docs:
+            nb_docs += 1
+            max_pages = max(max_pages, doc.nb_pages)
+            for page in doc.pages:
+                nb_pages += 1
+                for line in page.boxes:
+                    for word in line.word_boxes:
+                        nb_words += 1
+                        max_word_len = max(max_word_len, len(word.content))
+                        total_word_len += len(word.content)
+                page.drop_cache()
+            doc.drop_cache()
+
+        logger.info("Total number of documents: {}".format(nb_docs))
+        logger.info("Total number of pages: {} (average: {}/doc)".format(
+            nb_pages, nb_pages / nb_docs
+        ))
+        logger.info("Maximum number of pages in one document: {}".format(
+            max_pages
+        ))
+        logger.info("Total number of words: {} (average: {}/page)".format(
+            nb_words, nb_words / nb_pages
+        ))
+        logger.info("Average word length: {}".format(total_word_len / nb_words))
+        logger.info("Max word length: {}".format(max_word_len))
+
+        logger.info("====== END OF PAPERWORK INFO ======")
+
+    def _get_scanner_info(self):
+        logger.info("====== START OF SCANNER INFO ======")
+        devices = pyinsane2.get_devices()
+        logger.info("{} scanners found".format(len(devices)))
+
+        for device in pyinsane2.get_devices():
+            logger.info("=== {} ===".format(str(device)))
+
+            for opt in device.options.values():
+                logger.info("Option: {}".format(opt.name))
+                logger.info("  Title: {}".format(opt.title))
+                logger.info("  Desc: {}".format(opt.desc))
+                logger.info("  Type: {}".format(str(opt.val_type)))
+                logger.info("  Unit: {}".format(str(opt.unit)))
+                logger.info("  Size: {}".format(opt.size))
+                logger.info("  Capabilities: {}".format(
+                    str(opt.capabilities))
+                )
+                logger.info("  Constraint type: {}".format(
+                    str(opt.constraint_type))
+                )
+                logger.info("  Constraint: {}".format(str(opt.constraint)))
+                try:
+                    logger.info("  Value: {}".format(str(opt.value)))
+                except pyinsane2.PyinsaneException as exc:
+                    # Some scanner allow changing a value, but not reading
+                    # it. For instance Canon Lide 110 allow setting the
+                    # resolution, but not reading it ...
+                    logger.warning("    Value: *FAILED*")
+                    logger.exception(exc)
+
+        logger.info("====== END OF SCANNER INFORMATIONS ======")
 
     def do(self):
         # Simply log everything
         try:
-            logger.info("====== START OF SYSTEM INFO ======")
-            logger.info("os.name: {}".format(os.name))
-            logger.info("sys.version: {}".format(sys.version))
-            if hasattr(os, 'uname'):
-                try:
-                    logger.info("os.uname: {}".format(os.uname()))
-                except:
-                    pass
-            try:
-                logger.info("platform.architecture: {}".format(
-                    platform.architecture()
-                ))
-                logger.info("platform.platform: {}".format(platform.platform()))
-                logger.info("platform.processor: {}".format(
-                    platform.processor())
-                )
-                logger.info("platform.version: {}".format(platform.version()))
-                if hasattr(platform, 'linux_distribution'):
-                    logger.info("platform.linux_distribution: {}".format(
-                        platform.linux_distribution()
-                    ))
-                if hasattr(platform, 'win32_ver'):
-                    logger.info("platform.win32_ver: {}".format(
-                        platform.win32_ver()
-                    ))
-                logger.info("multiprocessing.cpu_count: {}".format(
-                    multiprocessing.cpu_count()
-                ))
-            except Exception as exc:
-                logger.exception(exc)
-            try:
-                mem = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES')
-                logger.info("Available memory: {}".format(mem))
-            except Exception as exc:
-                logger.exception(exc)
-            logger.info("====== END OF SYSTEM INFO ======")
-
-            logger.info("====== START OF SCANNER INFO ======")
-            devices = pyinsane2.get_devices()
-            logger.info("{} scanners found".format(len(devices)))
-
-            for device in pyinsane2.get_devices():
-                logger.info("=== {} ===".format(str(device)))
-
-                for opt in device.options.values():
-                    logger.info("Option: {}".format(opt.name))
-                    logger.info("  Title: {}".format(opt.title))
-                    logger.info("  Desc: {}".format(opt.desc))
-                    logger.info("  Type: {}".format(str(opt.val_type)))
-                    logger.info("  Unit: {}".format(str(opt.unit)))
-                    logger.info("  Size: {}".format(opt.size))
-                    logger.info("  Capabilities: {}".format(
-                        str(opt.capabilities))
-                    )
-                    logger.info("  Constraint type: {}".format(
-                        str(opt.constraint_type))
-                    )
-                    logger.info("  Constraint: {}".format(str(opt.constraint)))
-                    try:
-                        logger.info("  Value: {}".format(str(opt.value)))
-                    except pyinsane2.PyinsaneException as exc:
-                        # Some scanner allow changing a value, but not reading
-                        # it. For instance Canon Lide 110 allow setting the
-                        # resolution, but not reading it ...
-                        logger.warning("    Value: *FAILED*")
-                        logger.exception(exc)
-
-            logger.info("====== END OF SCANNER INFORMATIONS ======")
+            self._get_sysinfo()
+            self._get_paperwork_info()
+            self._get_scanner_info()
         except Exception as exc:
             logger.exception(exc)
         finally:
             self.emit('scan-done')
 
 
-GObject.type_register(JobScannerScanner)
+GObject.type_register(JobInfoGetter)
 
 
-class JobFactoryScannerScanner(JobFactory):
+class JobFactoryInfoGetter(JobFactory):
 
-    def __init__(self, diag_win):
-        JobFactory.__init__(self, "ScannerScanner")
+    def __init__(self, diag_win, main_win):
+        super(JobFactoryInfoGetter, self).__init__("InfoGetter")
         self.diag_win = diag_win
+        self.main_win = main_win
 
     def make(self):
-        job = JobScannerScanner(self, next(self.id_generator))
+        job = JobInfoGetter(self, next(self.id_generator), self.main_win)
         job.connect(
             'scan-done',
             lambda job: GLib.idle_add(
@@ -174,13 +221,13 @@ class DiagDialog(object):
 
         self._main_win = main_win
 
-        self.set_text(_("Loading ..."))
+        self.set_text(_("Please wait. It may take a few minutes ..."))
 
         txt_view = widget_tree.get_object("textviewDiag")
         txt_view.connect("size-allocate", self.scroll_to_bottom)
 
         scheduler = main_win.schedulers['main']
-        factory = JobFactoryScannerScanner(self)
+        factory = JobFactoryInfoGetter(self, main_win)
         job = factory.make()
         scheduler.schedule(job)
 

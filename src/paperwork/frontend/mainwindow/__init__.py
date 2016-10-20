@@ -2040,6 +2040,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.version = __version__
+
         if g_must_init_app:
             self.app = self.__init_app()
         else:

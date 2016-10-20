@@ -20,8 +20,16 @@ logger = logging.getLogger(__name__)
 
 class JobInfoGetter(Job):
     __gsignals__ = {
+        'scan-progression': (GObject.SignalFlags.RUN_LAST, None,
+                             (GObject.TYPE_STRING,  # step
+                              GObject.TYPE_FLOAT,  # [0.0-1.0]
+                              )),
         'scan-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
+
+    STEP_SYSINFO = _("system's information")
+    STEP_PAPERWORK = _("paperwork's information")
+    STEP_SCANNER = _("scanner's information")
 
     can_stop = True
     priority = 1000
@@ -31,6 +39,7 @@ class JobInfoGetter(Job):
         self.main_win = main_win
 
     def _get_sysinfo(self):
+        self.emit('scan-progression', self.STEP_SYSINFO, 0.0)
         logger.info("====== START OF SYSTEM INFO ======")
         logger.info("os.name: {}".format(os.name))
         logger.info("sys.version: {}".format(sys.version))
@@ -69,6 +78,7 @@ class JobInfoGetter(Job):
         logger.info("====== END OF SYSTEM INFO ======")
 
     def _get_paperwork_info(self):
+        self.emit('scan-progression', self.STEP_PAPERWORK, 0.0)
         logger.info("====== START OF PAPERWORK INFO ======")
         logger.info("Paperwork version: {}".format(self.main_win.version))
 
@@ -79,8 +89,14 @@ class JobInfoGetter(Job):
         max_word_len = 0
         total_word_len = 0
 
-        for doc in self.main_win.docsearch.docs:
-            nb_docs += 1
+        docs = self.main_win.docsearch.docs
+        nb_docs = len(docs)
+        doc_idx = 0
+        for doc in docs:
+            if doc_idx % 10 == 0:
+                self.emit(
+                    'scan-progression', self.STEP_PAPERWORK, doc_idx / nb_docs
+                )
             max_pages = max(max_pages, doc.nb_pages)
             for page in doc.pages:
                 if not self.can_run:
@@ -93,6 +109,7 @@ class JobInfoGetter(Job):
                         total_word_len += len(word.content)
                 page.drop_cache()
             doc.drop_cache()
+            doc_idx += 1
 
         logger.info("Total number of documents: {}".format(nb_docs))
         logger.info("Total number of pages: {} (average: {}/doc)".format(
@@ -110,6 +127,7 @@ class JobInfoGetter(Job):
         logger.info("====== END OF PAPERWORK INFO ======")
 
     def _get_scanner_info(self):
+        self.emit('scan-progression', self.STEP_SCANNER, 0.0)
         logger.info("====== START OF SCANNER INFO ======")
         devices = pyinsane2.get_devices()
         logger.info("{} scanners found".format(len(devices)))
@@ -176,6 +194,12 @@ class JobFactoryInfoGetter(JobFactory):
     def make(self):
         job = JobInfoGetter(self, next(self.id_generator), self.main_win)
         job.connect(
+            'scan-progression',
+            lambda job, step, progression: GLib.idle_add(
+                self.diag_win.on_scan_progression_cb, step, progression
+            )
+        )
+        job.connect(
             'scan-done',
             lambda job: GLib.idle_add(
                 self.diag_win.on_scan_done_cb
@@ -228,6 +252,8 @@ class DiagDialog(object):
         self.dialog.set_transient_for(main_win.window)
         self.dialog.connect("response", self.on_response_cb)
 
+        self.progressbar = widget_tree.get_object("progressbarDiag")
+
         self.scrollwin = widget_tree.get_object("scrolledwindowDiag")
 
         self._main_win = main_win
@@ -254,8 +280,16 @@ class DiagDialog(object):
             return
         vadj.set_value(vadj.get_upper())
 
+    def on_scan_progression_cb(self, step, progression):
+        self.progressbar.set_text(_("Getting {} ({}%)").format(
+            step, int(progression * 100))
+        )
+        self.progressbar.set_fraction(progression)
+
     def on_scan_done_cb(self):
         self.set_text(g_log_tracker.get_logs())
+        self.progressbar.set_text(_("Diagnostic information are ready"))
+        self.progressbar.set_fraction(1.0)
 
     def on_response_cb(self, widget, response):
         if response == 0:  # close

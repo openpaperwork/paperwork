@@ -13,6 +13,10 @@
 				<submenu id="advanced">
 					<attribute name="label" translatable="yes">_Advanced</attribute>
 					<item>
+						<attribute name="label" translatable="yes">_Diagnostic</attribute>
+						<attribute name="action">app.diag</attribute>
+					</item>
+					<item>
 						<attribute name="label" translatable="yes">Optimize index</attribute>
 						<attribute name="action">app.optimize_index</attribute>
 					</item>
@@ -27,10 +31,6 @@
 				</submenu>
 			</section>
 			<section>
-				<item>
-					<attribute name="label" translatable="yes">_Diagnostic</attribute>
-					<attribute name="action">app.diag</attribute>
-				</item>
 				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>

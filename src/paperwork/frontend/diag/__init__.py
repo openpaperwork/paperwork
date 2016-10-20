@@ -23,7 +23,7 @@ class JobInfoGetter(Job):
         'scan-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    can_stop = False
+    can_stop = True
     priority = 1000
 
     def __init__(self, factory, id, main_win):
@@ -83,6 +83,8 @@ class JobInfoGetter(Job):
             nb_docs += 1
             max_pages = max(max_pages, doc.nb_pages)
             for page in doc.pages:
+                if not self.can_run:
+                    return
                 nb_pages += 1
                 for line in page.boxes:
                     for word in line.word_boxes:
@@ -142,14 +144,23 @@ class JobInfoGetter(Job):
 
     def do(self):
         # Simply log everything
+        self.can_run = True
         try:
             self._get_sysinfo()
+            if not self.can_run:
+                return
             self._get_paperwork_info()
+            if not self.can_run:
+                return
             self._get_scanner_info()
         except Exception as exc:
             logger.exception(exc)
         finally:
             self.emit('scan-done')
+
+    def stop(self, will_resume=False):
+        logger.info("InfoGetter interrupted")
+        self.can_run = False
 
 
 GObject.type_register(JobInfoGetter)
@@ -226,10 +237,12 @@ class DiagDialog(object):
         txt_view = widget_tree.get_object("textviewDiag")
         txt_view.connect("size-allocate", self.scroll_to_bottom)
 
-        scheduler = main_win.schedulers['main']
-        factory = JobFactoryInfoGetter(self, main_win)
-        job = factory.make()
-        scheduler.schedule(job)
+        self.scheduler = main_win.schedulers['main']
+        self.factory = JobFactoryInfoGetter(self, main_win)
+        job = self.factory.make()
+        self.scheduler.schedule(job)
+
+        self.dialog.connect("destroy", self.on_destroy_cb)
 
     def set_text(self, txt):
         self.buf.set_text(txt, -1)
@@ -237,6 +250,8 @@ class DiagDialog(object):
 
     def scroll_to_bottom(self, *args, **kwargs):
         vadj = self.scrollwin.get_vadjustment()
+        if vadj is None:  # dialog has been closed
+            return
         vadj.set_value(vadj.get_upper())
 
     def on_scan_done_cb(self):
@@ -286,6 +301,9 @@ class DiagDialog(object):
             text = self.buf.get_text(start, end, False)
             clipboard.set_text(text, -1)
             return True
+
+    def on_destroy_cb(self, _):
+        self.scheduler.cancel_all(self.factory)
 
     def show(self):
         self.dialog.set_visible(True)

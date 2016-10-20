@@ -37,6 +37,7 @@ from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork.frontend.aboutdialog import AboutDialog
+from paperwork.frontend.diag import DiagDialog
 from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
 from paperwork.frontend.mainwindow.docs import sort_documents_by_date
@@ -164,6 +165,7 @@ class JobIndexLoader(Job):
                 return
 
             docsearch = DocSearch(self.__config['workdir'].value)
+            docsearch.set_language(self.__config['ocr_lang'].value)
             docsearch.reload_index(progress_cb=self.__progress_cb)
 
             if not self.can_run:
@@ -1212,7 +1214,8 @@ class ActionOpenSettings(SimpleAction):
         SimpleAction.__init__(self, "Open settings dialog")
         self.__main_win = main_window
         self.__config = config
-        self.dialog = None  # for tests only
+        # for tests only / prevent also the dialog from being GC
+        self.dialog = None
 
     def do(self):
         SimpleAction.do(self)
@@ -1225,6 +1228,7 @@ class ActionOpenSettings(SimpleAction):
         self.__main_win.actions['reindex'][1].do()
 
     def __on_config_changed_cb(self, setttings_window):
+        self.__main_win.docsearch.set_language(self.__config['ocr_lang'].value)
         set_widget_state(
             self.__main_win.actions['multi_scan'][0],
             self.__config['scanner_has_feeder'].value
@@ -1916,15 +1920,28 @@ class ActionOptimizeIndex(SimpleAction):
         self.__main_win.schedulers['index'].schedule(job)
 
 
+class ActionOpenDiagnostic(SimpleAction):
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Opening diagnostic dialog")
+        self.__main_win = main_window
+        self.diag = None  # used to prevent gc
+
+    def do(self):
+        SimpleAction.do(self)
+        self.diag = DiagDialog(self.__main_win)
+        self.diag.show()
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
         self.__main_win = main_window
+        self.diag = None  # used to prevent gc
 
     def do(self):
         SimpleAction.do(self)
-        about = AboutDialog(self.__main_win.window)
-        about.show()
+        self.diag = AboutDialog(self.__main_win.window)
+        self.diag.show()
 
 
 class ActionQuit(SimpleAction):
@@ -2023,6 +2040,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.version = __version__
+
         if g_must_init_app:
             self.app = self.__init_app()
         else:
@@ -2386,6 +2405,12 @@ class MainWindow(object):
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
+            'diagnostic': (
+                [
+                    gactions['diagnostic'],
+                ],
+                ActionOpenDiagnostic(self),
+            ),
             'about': (
                 [
                     gactions['about'],
@@ -2506,6 +2531,7 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'diagnostic': Gio.SimpleAction.new("diag", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
             'import': Gio.SimpleAction.new("import", None),

@@ -1,4 +1,6 @@
 * Export: generated PDF now includes the text from the OCR
+* New command 'paperwork-shell scan' that starts Paperwork and immediately
+  tries to scan a page
 * 'paperwork-chkdeps' has been replaced by 'paperwork-shell'
 * Export: Add an option to automatically simplify the content (makes it
   smaller in size)

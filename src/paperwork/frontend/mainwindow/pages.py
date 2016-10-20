@@ -283,6 +283,7 @@ class JobFactoryPageBoxesLoader(JobFactory):
 class PageEditAction(Drawer):
     layer = Drawer.IMG_LAYER
     priority = -1
+    visible = True
 
     def __init__(self, child_drawers):
         super(PageEditAction, self).__init__()
@@ -513,8 +514,9 @@ class PageCuttingAction(PageEditAction):
 class PageACEAction(PageEditAction):
     priority = 25
 
-    def __init__(self, child_drawer, factories, schedulers):
+    def __init__(self, parent, child_drawer, factories, schedulers):
         super(PageACEAction, self).__init__([child_drawer])
+        self.parent = parent
         self.img = None
         self.surface = None
         self.factories = factories
@@ -560,7 +562,7 @@ class PageACEAction(PageEditAction):
         self.surface = surface
 
     def on_img_processing_done(self):
-        GLib.idle_add(self.redraw)
+        GLib.idle_add(self.parent.redraw)
 
     def __str__(self):
         return "Automatic Color Equalization"
@@ -729,7 +731,7 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
-        GLib.idle_add(self.redraw)
+        GLib.idle_add(self.parent.redraw)
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
@@ -842,7 +844,8 @@ class SimplePageDrawer(Drawer):
                 float(w) / txt_size[0],
                 float(h) / txt_size[1],
             )
-
+            if txt_factor <= 0.0:
+                return
             cairo_context.scale(
                 txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
             )
@@ -934,7 +937,8 @@ class SimplePageDrawer(Drawer):
                 # redraw previous box to make the border disappear
                 if not must_redraw and self.boxes["mouse_over"]:
                     box_pos = self._get_real_box(self.boxes["mouse_over"])
-                    GLib.idle_add(self.canvas.redraw,
+                    GLib.idle_add(
+                        self.canvas.redraw,
                         ((box_pos[0] - self.LINE_WIDTH,
                           box_pos[1] - self.LINE_WIDTH),
                          (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
@@ -946,7 +950,8 @@ class SimplePageDrawer(Drawer):
                 # draw new one to make the border appear
                 if not must_redraw and box:
                     box_pos = self._get_real_box(box)
-                    GLib.idle_add(self.canvas.redraw,
+                    GLib.idle_add(
+                        self.canvas.redraw,
                         ((box_pos[0] - self.LINE_WIDTH,
                           box_pos[1] - self.LINE_WIDTH),
                          (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
@@ -954,7 +959,7 @@ class SimplePageDrawer(Drawer):
                     )
 
         if must_redraw:
-            GLib.idle_add(self.redraw)
+            GLib.idle_add(self.parent.redraw)
             return
 
     def __str__(self):
@@ -1300,6 +1305,8 @@ class PageDrawer(Drawer, GObject.GObject):
                 float(self.TOOLTIP_LENGTH - 10) * Pango.SCALE / txt_size[0],
                 float(self.FONT_SIZE) * Pango.SCALE / txt_size[1],
             )
+            if txt_factor <= 0:
+                return
             cairo_context.scale(txt_factor, txt_factor)
             PangoCairo.update_layout(cairo_context, layout)
             PangoCairo.show_layout(cairo_context, layout)
@@ -1348,7 +1355,7 @@ class PageDrawer(Drawer, GObject.GObject):
         size = (size[0] + (2 * border_width),
                 size[1] + (2 * border_width))
 
-        self.canvas.redraw((position, size))
+        GLib.idle_add(self.canvas.redraw, (position, size))
 
     def set_drag_enabled(self, drag):
         self.drag_enabled = drag
@@ -1397,7 +1404,7 @@ class PageDrawer(Drawer, GObject.GObject):
             must_redraw = True
 
         if must_redraw:
-            self.redraw()
+            GLib.idle_add(self.redraw)
 
         return self.mouse_over_button is not None
 
@@ -1442,7 +1449,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(False)
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
-        self.redraw()
+        GLib.idle_add(self.redraw)
 
     def print_chain(self):
         logger.info("Edit chain:")
@@ -1469,7 +1476,7 @@ class PageDrawer(Drawer, GObject.GObject):
                 # it's not safe adding a new one
                 return
         child = self.edit_chain[-1]
-        action = PageACEAction(child, self.factories, self.schedulers)
+        action = PageACEAction(self, child, self.factories, self.schedulers)
         self._add_edit_action(action)
 
     def _on_edit_crop(self):
@@ -1496,7 +1503,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(True)
         self.editor_state = "before"
         self.hide()
-        self.canvas.redraw()
+        GLib.idle_add(self.canvas.redraw)
 
     def _on_edit_cancel(self):
         logger.info("Page edition canceled")

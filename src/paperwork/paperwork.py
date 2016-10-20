@@ -38,6 +38,7 @@ import signal
 
 import pyinsane2
 
+from .frontend.diag import LogTracker
 from .frontend.mainwindow import ActionRefreshIndex, MainWindow
 from .frontend.util.config import load_config
 
@@ -53,19 +54,6 @@ LOCALE_PATHS += [
     ('/usr/share/'),
 ]
 
-def init_logging():
-    formatter = logging.Formatter(
-        '%(levelname)-6s %(name)-30s %(message)s')
-    handler = logging.StreamHandler()
-    logger = logging.getLogger()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    logger.setLevel({
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
 
 
 def set_locale():
@@ -108,9 +96,11 @@ def main(hook_func=None):
     """
     Where everything start.
     """
-    init_logging()
+    LogTracker.init()
+
     set_locale()
 
+    GLib.threads_init()
     GObject.threads_init()
 
     if hasattr(GLib, "unix_signal_add"):

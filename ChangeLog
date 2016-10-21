@@ -23,6 +23,8 @@
 * Switch to Python 3
 * Switch from Pyinsane to Pyinsane2
 * Fix file descriptor leak related to PDFs
+* Add a dialog to help bug diagnostics
+
 
 2016/04/06 - 0.3.2:
 * paperwork-chkdeps: Fix check for python-gi-cairo. When python-gi-cairo

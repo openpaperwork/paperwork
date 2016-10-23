@@ -28,7 +28,7 @@ class JobInfoGetter(Job):
     }
 
     STEP_SYSINFO = _("system's information")
-    STEP_PAPERWORK = _("paperwork's information")
+    STEP_PAPERWORK = _("document statistics")
     STEP_SCANNER = _("scanner's information")
 
     can_stop = True
@@ -88,6 +88,7 @@ class JobInfoGetter(Job):
         nb_words = 0
         max_word_len = 0
         total_word_len = 0
+        doc_types = {}
 
         docs = self.main_win.docsearch.docs
         nb_docs = len(docs)
@@ -97,6 +98,13 @@ class JobInfoGetter(Job):
                 self.emit(
                     'scan-progression', self.STEP_PAPERWORK, doc_idx / nb_docs
                 )
+
+            doc_type = str(type(doc))
+            if doc_type not in doc_types:
+                doc_types[doc_type] = 0
+            else:
+                doc_types[doc_type] += 1
+
             max_pages = max(max_pages, doc.nb_pages)
             for page in doc.pages:
                 if not self.can_run:
@@ -112,6 +120,7 @@ class JobInfoGetter(Job):
             doc_idx += 1
 
         logger.info("Total number of documents: {}".format(nb_docs))
+        logger.info("Document types: {}".format(str(doc_types)))
         logger.info("Total number of pages: {} (average: {}/doc)".format(
             nb_pages, nb_pages / nb_docs
         ))

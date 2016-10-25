@@ -54,7 +54,7 @@ class ImgToPdfDocExporter(object):
         self.__quality = 50
         self.__preview = None  # will just contain the first page
         self.__page_format = (0, 0)
-        self.__postprocess_func = None
+        self.__process_func = None
 
     def get_mime_type(self):
         return 'application/pdf'
@@ -107,8 +107,11 @@ class ImgToPdfDocExporter(object):
                 finally:
                     pdf_context.restore()
 
-    def __paint_img(self, pdf_surface, pdf_size, pdf_context, page):
+    def __paint_img(self, pdf_surface, pdf_size, pdf_context, page,
+                    preview=False):
         img = page.img
+        if self.__process_func:
+            img = self.__process_func(img)
         quality = float(self.__quality) / 100.0
 
         new_size = (int(quality * img.size[0]),
@@ -185,9 +188,6 @@ class ImgToPdfDocExporter(object):
         pdfpage.render(ctx)
         img = surface2image(surface)
 
-        if self.__postprocess_func:
-            img = self.__postprocess_func(img)
-
         self.__preview = (path, img)
 
     def set_quality(self, quality):
@@ -199,7 +199,7 @@ class ImgToPdfDocExporter(object):
         self.__preview = None
 
     def set_postprocess_func(self, postprocess_func):
-        self.__postprocess_func = postprocess_func
+        self.__process_func = postprocess_func
         self.__preview = None
 
     def estimate_size(self):

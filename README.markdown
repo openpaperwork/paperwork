@@ -59,7 +59,8 @@ In other words, let the machine do most of the work for you.
 * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
 * [Docker](doc/install.docker.markdown)
-* [Development](doc/install.devel.markdown)
+* [GNU/Linux Development](doc/install.devel.markdown)
+* Windows: [Installation](https://openpaper.work/download) / [Development](doc/devel.windows.markdown)
 
 ## Contact/Help
 

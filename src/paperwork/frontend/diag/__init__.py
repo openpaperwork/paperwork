@@ -27,9 +27,9 @@ class JobInfoGetter(Job):
         'scan-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
-    STEP_SYSINFO = _("system's information")
-    STEP_PAPERWORK = _("document statistics")
-    STEP_SCANNER = _("scanner's information")
+    STEP_SYSINFO = "a"
+    STEP_PAPERWORK = "b"
+    STEP_SCANNER = "c"
 
     can_stop = True
     priority = 1000
@@ -37,6 +37,10 @@ class JobInfoGetter(Job):
     def __init__(self, factory, id, main_win):
         super(JobInfoGetter, self).__init__(factory, id)
         self.main_win = main_win
+        # update translations
+        JobInfoGetter.STEP_SYSINFO = _("system's information")
+        JobInfoGetter.STEP_PAPERWORK = _("document statistics")
+        JobInfoGetter.STEP_SCANNER = _("scanner's information")
 
     def _get_sysinfo(self):
         self.emit('scan-progression', self.STEP_SYSINFO, 0.0)

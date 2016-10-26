@@ -77,6 +77,12 @@ Developement is strongly related to Paperwork-gui.
 * [Bug trackers](https://github.com/jflesch/paperwork-backend/wiki/Contact#bug-trackers)
 
 
+## Contact
+
+* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
+* [Bug tracker](https://github.com/jflesch/paperwork-backend/issues/)
+
+
 ## Licence
 
 GPLv3 or later. See LICENSE.

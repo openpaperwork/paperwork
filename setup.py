@@ -163,6 +163,8 @@ Main features are:
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
         (os.path.join(sys.prefix, 'share/locale/de/LC_MESSAGES'),
          ['locale/de/LC_MESSAGES/paperwork.mo']),
+        (os.path.join(sys.prefix, 'share/paperwork'),
+         ['data/bad.png']),
         (os.path.join(sys.prefix, 'share/applications'),
          ['data/paperwork.desktop']),
         (os.path.join(sys.prefix, 'share/icons/hicolor/scalable/apps'),

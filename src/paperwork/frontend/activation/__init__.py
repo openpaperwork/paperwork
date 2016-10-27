@@ -13,6 +13,12 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
+def to_bool(txt):
+    if isinstance(txt, bool):
+        return txt
+    return txt.lower() == "true"
+
+
 def get_os():
     return os.getenv("PAPERWORK_OS_NAME", os.name)
 
@@ -21,13 +27,21 @@ def is_activated(config):
     if get_os() != 'nt':
         return True
     # TODO
-    return False
+    return to_bool(os.getenv("PAPERWORK_ACTIVATED", False))
 
 
-def remaining_time(config):
+def has_expired(config):
+    if get_os() != 'nt':
+        return False
+    expired = False
+    # TODO
+    return to_bool(os.getenv("PAPERWORK_EXPIRED", expired))
+
+
+def get_remaining_days(config):
     remaining = 60
     # TODO
-    return os.getenv("PAPERWORK_REMAINING", remaining)
+    return int(os.getenv("PAPERWORK_REMAINING", remaining))
 
 
 class ActivationDialog(object):

@@ -18,6 +18,7 @@ import cairo
 import math
 import logging
 
+from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
@@ -497,12 +498,18 @@ class TextDrawer(Drawer):
         self.angle = 0
         self.text = text
         self.height = height
+        self.font = None
 
     def do_draw(self, cairo_ctx):
         cairo_ctx.save()
         try:
             layout = PangoCairo.create_layout(cairo_ctx)
+            if self.font:
+                font = Pango.FontDescription()
+                font.set_family(self.font)
+                layout.set_font_description(font)
             layout.set_text(self.text, -1)
+
             txt_size = layout.get_size()
             if 0 in txt_size:
                 return

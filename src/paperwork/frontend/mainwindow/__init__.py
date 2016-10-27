@@ -37,6 +37,7 @@ from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork.frontend.aboutdialog import AboutDialog
+from paperwork.frontend import activation
 from paperwork.frontend.diag import DiagDialog
 from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
@@ -1932,6 +1933,19 @@ class ActionOpenDiagnostic(SimpleAction):
         self.diag.show()
 
 
+class ActionOpenActivation(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Opening activaton dialog")
+        self.__config = config
+        self.__main_win = main_window
+        self.diag = None  # used to prevent gc
+
+    def do(self):
+        SimpleAction.do(self)
+        self.diag = activation.ActivationDialog(self.__main_win, self.__config)
+        self.diag.show()
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2057,7 +2071,7 @@ class MainWindow(object):
         self.__allow_multiselect = False
 
         if g_must_init_app:
-            self.__advanced_app_menu = self.__init_app_menu(self.app)
+            self.__advanced_app_menu = self.__init_app_menu(config, self.app)
 
         load_cssfile("application.css")
         widget_tree = load_uifile(
@@ -2411,6 +2425,12 @@ class MainWindow(object):
                 ],
                 ActionOpenDiagnostic(self),
             ),
+            'activation': (
+                [
+                    gactions['activate'],
+                ],
+                ActionOpenActivation(self, config),
+            ),
             'about': (
                 [
                     gactions['about'],
@@ -2531,6 +2551,7 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'activate': Gio.SimpleAction.new("activate", None),
             'diagnostic': Gio.SimpleAction.new("diag", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
@@ -2561,9 +2582,14 @@ class MainWindow(object):
             'index': JobScheduler("Index search / update"),
         }
 
-    def __init_app_menu(self, app):
+    def __init_app_menu(self, config, app):
         app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         advanced_menu = app_menu.get_object("advanced")
+
+        if activation.is_activated(config):
+            menu = app_menu.get_object("menu_end")
+            menu.remove(0)
+
         app.set_app_menu(app_menu.get_object("app-menu"))
         return advanced_menu
 

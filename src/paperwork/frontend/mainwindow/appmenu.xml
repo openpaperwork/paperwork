@@ -30,7 +30,15 @@
 					</item>
 				</submenu>
 			</section>
-			<section>
+			<section id="menu_end">
+				<item>
+					<!--
+					     Beware : This element is removed based on its
+					     position in the menu
+					-->
+					<attribute name="label" translatable="yes">A_ctivate</attribute>
+					<attribute name="action">app.activate</attribute>
+				</item>
 				<item>
 					<attribute name="label" translatable="yes">_About</attribute>
 					<attribute name="action">app.about</attribute>

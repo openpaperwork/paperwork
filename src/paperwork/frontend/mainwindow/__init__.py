@@ -72,6 +72,7 @@ from paperwork.frontend.util.canvas.drawers import TextDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
+from paperwork.frontend.util import renderer
 
 
 _ = gettext.gettext
@@ -2522,6 +2523,7 @@ class MainWindow(object):
             self.default_font = "Comic Sans MS"
             if os.name != "nt":
                 self.default_font = "URW Chancery L"
+            renderer.FONT = self.default_font
             css_provider.load_from_data(
                 "* {{ font: {}; }}".format(self.default_font).encode("utf-8")
             )

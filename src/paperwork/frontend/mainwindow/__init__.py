@@ -2665,14 +2665,19 @@ class MainWindow(object):
 
         if not activated:
             if expired:
-                txt = _("Trial period has expired")
-                txt_drawer = TextDrawer(
-                    (0, (logo_size[1] / 2) + 30),
-                    txt, height=30
-                )
-                txt_drawer.font = self.default_font
-                txt_drawer = Centerer(txt_drawer)
-                self.img['canvas'].add_drawer(txt_drawer)
+                pos = logo_size[1] / 2 + 30
+                for (txt, font_size) in [
+                    (_("Trial period has expired"), 30),
+                    (_("Everything will work as usual, except we've"), 24),
+                    (_("switched all the fonts to {}".format(
+                        self.default_font)), 24),
+                    (_("until you get an activation key"), 24),
+                ]:
+                    txt_drawer = TextDrawer((0, pos), txt, height=font_size)
+                    txt_drawer.font = self.default_font
+                    txt_drawer = Centerer(txt_drawer)
+                    self.img['canvas'].add_drawer(txt_drawer)
+                    pos += font_size + 5
             else:
                 remaining = activation.get_remaining_days(config)
                 txt = _("Trial period: {} days remaining").format(remaining)

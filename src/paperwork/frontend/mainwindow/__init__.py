@@ -37,6 +37,7 @@ from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork.frontend.aboutdialog import AboutDialog
+from paperwork.frontend import activation
 from paperwork.frontend.diag import DiagDialog
 from paperwork.frontend.mainwindow.docs import DocList
 from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
@@ -71,6 +72,7 @@ from paperwork.frontend.util.canvas.drawers import TextDrawer
 from paperwork.frontend.util.jobs import Job
 from paperwork.frontend.util.jobs import JobFactory
 from paperwork.frontend.util.jobs import JobScheduler
+from paperwork.frontend.util import renderer
 
 
 _ = gettext.gettext
@@ -1932,6 +1934,19 @@ class ActionOpenDiagnostic(SimpleAction):
         self.diag.show()
 
 
+class ActionOpenActivation(SimpleAction):
+    def __init__(self, main_window, config):
+        SimpleAction.__init__(self, "Opening activaton dialog")
+        self.__config = config
+        self.__main_win = main_window
+        self.diag = None  # used to prevent gc
+
+    def do(self):
+        SimpleAction.do(self)
+        self.diag = activation.ActivationDialog(self.__main_win, self.__config)
+        self.diag.show()
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2057,9 +2072,12 @@ class MainWindow(object):
         self.__allow_multiselect = False
 
         if g_must_init_app:
-            self.__advanced_app_menu = self.__init_app_menu(self.app)
+            self.__advanced_app_menu = self.__init_app_menu(config, self.app)
 
         load_cssfile("application.css")
+        self.default_font = None
+        self.__init_cruel_and_unusual_drm(config)
+
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
 
@@ -2411,6 +2429,12 @@ class MainWindow(object):
                 ],
                 ActionOpenDiagnostic(self),
             ),
+            'activation': (
+                [
+                    gactions['activate'],
+                ],
+                ActionOpenActivation(self, config),
+            ),
             'about': (
                 [
                     gactions['about'],
@@ -2485,8 +2509,29 @@ class MainWindow(object):
         for scheduler in self.schedulers.values():
             scheduler.start()
 
-        GLib.idle_add(self.__init_canvas)
+        GLib.idle_add(self.__init_canvas, config)
         GLib.idle_add(self.window.set_visible, True)
+
+    def __init_cruel_and_unusual_drm(self, config):
+        activated = activation.is_activated(config)
+        expired = activation.has_expired(config)
+
+        if not activated and expired:
+            css_provider = Gtk.CssProvider()
+
+            # May have God mercy on my soul
+            self.default_font = "Comic Sans MS"
+            if os.name != "nt":
+                self.default_font = "URW Chancery L"
+            renderer.FONT = self.default_font
+            css_provider.load_from_data(
+                "* {{ font: {}; }}".format(self.default_font).encode("utf-8")
+            )
+            Gtk.StyleContext.add_provider_for_screen(
+                Gdk.Screen.get_default(),
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
 
     def __init_headerbars(self, widget_tree):
         # Fix Unity placement of close/minize/maximize (it *must* be on the
@@ -2531,6 +2576,7 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
+            'activate': Gio.SimpleAction.new("activate", None),
             'diagnostic': Gio.SimpleAction.new("diag", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
@@ -2561,9 +2607,14 @@ class MainWindow(object):
             'index': JobScheduler("Index search / update"),
         }
 
-    def __init_app_menu(self, app):
+    def __init_app_menu(self, config, app):
         app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         advanced_menu = app_menu.get_object("advanced")
+
+        if activation.is_activated(config):
+            menu = app_menu.get_object("menu_end")
+            menu.remove(0)
+
         app.set_app_menu(app_menu.get_object("app-menu"))
         return advanced_menu
 
@@ -2580,10 +2631,18 @@ class MainWindow(object):
             window.set_icon(logo)
         return window
 
-    def __init_canvas(self):
+    def __init_canvas(self, config):
+        logo = "paperwork_100.png"
+
+        activated = activation.is_activated(config)
+        expired = activation.has_expired(config)
+
+        if not activated and expired:
+            logo = "bad.png"
+
         logo_size = (0, 0)
         try:
-            logo = load_image("paperwork_100.png")
+            logo = load_image(logo)
             logo_size = logo.size
             logo_drawer = PillowImageDrawer((
                 - (logo_size[0] / 2),
@@ -2602,8 +2661,35 @@ class MainWindow(object):
             # "Paperwork 1.0" looks ugly... :p
             txt = "Paperwork"
         txt_drawer = TextDrawer((0, (logo_size[1] / 2)), txt, height=24)
+        txt_drawer.font = self.default_font
         txt_drawer = Centerer(txt_drawer)
         self.img['canvas'].add_drawer(txt_drawer)
+
+        if not activated:
+            if expired:
+                pos = logo_size[1] / 2 + 30
+                for (txt, font_size) in [
+                    (_("Trial period has expired"), 30),
+                    (_("Everything will work as usual, except we've"), 24),
+                    (_("switched all the fonts to {}".format(
+                        self.default_font)), 24),
+                    (_("until you get an activation key"), 24),
+                ]:
+                    txt_drawer = TextDrawer((0, pos), txt, height=font_size)
+                    txt_drawer.font = self.default_font
+                    txt_drawer = Centerer(txt_drawer)
+                    self.img['canvas'].add_drawer(txt_drawer)
+                    pos += font_size + 5
+            else:
+                remaining = activation.get_remaining_days(config)
+                txt = _("Trial period: {} days remaining").format(remaining)
+                txt_drawer = TextDrawer(
+                    (0, (logo_size[1] / 2) + 30),
+                    txt, height=20
+                )
+                txt_drawer.font = self.default_font
+                txt_drawer = Centerer(txt_drawer)
+                self.img['canvas'].add_drawer(txt_drawer)
 
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)

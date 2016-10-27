@@ -20,6 +20,9 @@ from gi.repository import GObject
 from gi.repository import Gtk
 
 
+FONT = ""
+
+
 class CellRendererLabels(Gtk.CellRenderer):
     LABEL_HEIGHT = 25
     LABEL_SPACING = 3
@@ -57,10 +60,10 @@ class CellRendererLabels(Gtk.CellRenderer):
         cairo_ctx.set_font_size(self.LABEL_TEXT_SIZE)
 
         if not self.highlight:
-            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+            cairo_ctx.select_font_face(FONT, cairo.FONT_SLANT_NORMAL,
                                        cairo.FONT_WEIGHT_NORMAL)
         else:
-            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+            cairo_ctx.select_font_face(FONT, cairo.FONT_SLANT_NORMAL,
                                        cairo.FONT_WEIGHT_BOLD)
 
         xpad = self.get_property('xpad')
@@ -128,14 +131,16 @@ class LabelWidget(Gtk.DrawingArea):
         if self.labels is None or len(self.labels) == 0:
             return
 
-        txt_offset = (self.LABEL_HEIGHT - self.LABEL_TEXT_SIZE) / 2 + self.LABEL_TEXT_SHIFT
+        txt_offset = ((self.LABEL_HEIGHT -
+                      self.LABEL_TEXT_SIZE) / 2 +
+                      self.LABEL_TEXT_SHIFT)
         cairo_ctx.set_font_size(self.LABEL_TEXT_SIZE)
 
         if not self.highlight:
-            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+            cairo_ctx.select_font_face(FONT, cairo.FONT_SLANT_NORMAL,
                                        cairo.FONT_WEIGHT_NORMAL)
         else:
-            cairo_ctx.select_font_face("", cairo.FONT_SLANT_NORMAL,
+            cairo_ctx.select_font_face(FONT, cairo.FONT_SLANT_NORMAL,
                                        cairo.FONT_WEIGHT_BOLD)
 
         (x, y, h) = (0, 0, self.LABEL_HEIGHT)

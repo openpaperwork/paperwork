@@ -2523,6 +2523,9 @@ class MainWindow(object):
             self.default_font = "Comic Sans MS"
             if os.name != "nt":
                 self.default_font = "URW Chancery L"
+            self.default_font = os.getenv(
+                "PAPERWORK_EXPIRED_FONT", self.default_font
+            )
             renderer.FONT = self.default_font
             css_provider.load_from_data(
                 "* {{ font: {}; }}".format(self.default_font).encode("utf-8")

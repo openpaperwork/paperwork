@@ -2074,9 +2074,11 @@ class MainWindow(object):
         if g_must_init_app:
             self.__advanced_app_menu = self.__init_app_menu(config, self.app)
 
-        load_cssfile("application.css")
         self.default_font = None
         self.__init_cruel_and_unusual_drm(config)
+        # Except for a few widget, the CSS doesn't specify any font, so we
+        # can load it after the cruel and unusual DRM
+        load_cssfile("application.css")
 
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
@@ -2523,6 +2525,9 @@ class MainWindow(object):
             self.default_font = "Comic Sans MS"
             if os.name != "nt":
                 self.default_font = "URW Chancery L"
+            self.default_font = os.getenv(
+                "PAPERWORK_EXPIRED_FONT", self.default_font
+            )
             renderer.FONT = self.default_font
             css_provider.load_from_data(
                 "* {{ font: {}; }}".format(self.default_font).encode("utf-8")

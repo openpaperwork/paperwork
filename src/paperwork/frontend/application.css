@@ -72,3 +72,7 @@ GtkButton GtkColorSwatch {
 .extra-hint {
   color: mix (@theme_fg_color, @theme_bg_color, 0.3);
 }
+
+.monofont {
+	font: Lucida Console, Andale Mono;
+}

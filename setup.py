@@ -5,6 +5,13 @@ import sys
 
 from setuptools import setup
 
+extra_deps = []
+
+if os.name == "nt":
+    extra_deps = [
+        "pycrypto"  # used to check the activation keys
+    ]
+
 setup(
     name="paperwork",
     # if you change the version, don't forget to
@@ -199,7 +206,7 @@ Main features are:
         # - Dependencies using gobject introspection
         # - Dependencies based on language (OCR data files, dictionnaries, etc)
         # - Dependencies on data files (icons, etc)
-    ]
+    ] + extra_deps
 )
 
 print ("============================================================")

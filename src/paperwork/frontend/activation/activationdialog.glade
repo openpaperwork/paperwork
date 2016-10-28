@@ -69,7 +69,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="entry1">
+              <object class="GtkEntry" id="entryEmail">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="placeholder_text" translatable="yes">Must be the same than the one used to get the activation key</property>
@@ -106,10 +106,13 @@
               </packing>
             </child>
             <child>
-              <object class="GtkEntry" id="entry2">
+              <object class="GtkEntry" id="entryKey">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="input_hints">GTK_INPUT_HINT_NO_SPELLCHECK | GTK_INPUT_HINT_NONE</property>
+                <style>
+                  <class name="monofont"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">True</property>

@@ -2074,9 +2074,11 @@ class MainWindow(object):
         if g_must_init_app:
             self.__advanced_app_menu = self.__init_app_menu(config, self.app)
 
-        load_cssfile("application.css")
         self.default_font = None
         self.__init_cruel_and_unusual_drm(config)
+        # Except for a few widget, the CSS doesn't specify any font, so we
+        # can load it after the cruel and unusual DRM
+        load_cssfile("application.css")
 
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))

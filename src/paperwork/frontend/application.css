@@ -74,5 +74,5 @@ GtkButton GtkColorSwatch {
 }
 
 .monofont {
-	font: Lucida Console, Andale Mono;
+  font-family: Lucida Console, Andale Mono;
 }

@@ -20,17 +20,20 @@ In other words, let the machine do most of the work for you.
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/main_window.png" width="447" height="262" />
 </a>
 
+
 ### Search Suggestions
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/suggestions.png">
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/suggestions.png" width="155" height="313" />
 </a>
 
+
 ### Labels
 
 <a href="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/multiple_labels.png">
   <img src="https://raw.github.com/jflesch/paperwork-screenshots/master/0.3/multiple_labels.png" width="187" height="262" />
 </a>
+
 
 ### Settings window
 
@@ -51,6 +54,7 @@ In other words, let the machine do most of the work for you.
 * Quick edit of scans
 * PDF support
 
+
 ## Installation
 
 * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
@@ -61,6 +65,14 @@ In other words, let the machine do most of the work for you.
 * [Docker](doc/install.docker.markdown)
 * [GNU/Linux Development](doc/install.devel.markdown)
 * Windows: [Installation](https://openpaper.work/download) / [Development](doc/devel.windows.markdown)
+
+
+## Donate
+
+<a href="https://flattr.com/submit/auto?fid=0ywr1d&url=https%3A%2F%2Fopenpaper.work">
+<img src="//button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
+</a>
+
 
 ## Contact/Help
 

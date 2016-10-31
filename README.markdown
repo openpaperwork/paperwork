@@ -70,7 +70,7 @@ In other words, let the machine do most of the work for you.
 ## Donate
 
 <a href="https://flattr.com/submit/auto?fid=0ywr1d&url=https%3A%2F%2Fopenpaper.work">
-<img src="//button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
+<img src="https://button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
 </a>
 
 

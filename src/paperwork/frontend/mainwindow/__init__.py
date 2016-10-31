@@ -2530,7 +2530,7 @@ class MainWindow(object):
             )
             renderer.FONT = self.default_font
             css_provider.load_from_data(
-                "* {{ font: {}; }}".format(self.default_font).encode("utf-8")
+                "* {{ font-family: {}; }}".format(self.default_font).encode("utf-8")
             )
             Gtk.StyleContext.add_provider_for_screen(
                 Gdk.Screen.get_default(),

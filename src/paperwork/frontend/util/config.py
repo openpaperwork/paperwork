@@ -15,7 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import configparser
-import locale
+import datetime
 import logging
 
 import pyocr
@@ -131,6 +131,30 @@ class _PaperworkScannerCalibration(object):
                    str(self.value[1][1][1]))
 
 
+class _PaperworkDate(object):
+    def __init__(self, section, token):
+        self.section = section
+        self.setting = PaperworkSetting(section, token)
+        self.value = datetime.date.today()  # default
+
+    def load(self, config):
+        self.setting.load(config)
+        value = self.setting.value
+        if value is None:
+            self.value = None
+            return
+        dt = datetime.datetime.strptime(value, "%Y-%m-%d")
+        self.value = dt.date()
+
+    def update(self, config):
+        if self.value is None:
+            value = None
+        else:
+            value = self.value.isoformat()
+        self.setting.value = value
+        self.setting.update(config)
+
+
 class _PaperworkLangs(object):
 
     """
@@ -210,7 +234,7 @@ class _PaperworkFrontendConfigUtil(object):
             return lang.iso639_3_code
         if hasattr(lang, 'terminology') and lang.terminology in ocr_langs:
             return lang.terminology
-        return DEFAULT_OCR
+        return DEFAULT_OCR_LANG
 
     @staticmethod
     def get_default_spellcheck_lang(ocr_lang):
@@ -253,6 +277,15 @@ def load_config():
         'scan_time': _ScanTimes(),
         'zoom_level': PaperworkSetting("GUI", "zoom_level",
                                        lambda: 0.0, float),
+
+        # activation
+        'activation_email': PaperworkSetting(
+            "Activation", "email", lambda: None, str
+        ),
+        'activation_key': PaperworkSetting(
+            "Activation", "key", lambda: None, str
+        ),
+        'first_start': _PaperworkDate("Activation", "first_start")
     }
     ocr_lang = _PaperworkFrontendConfigUtil.get_default_spellcheck_lang
     settings['spelling_lang'] = (

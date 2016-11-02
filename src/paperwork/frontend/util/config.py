@@ -210,7 +210,7 @@ class _PaperworkFrontendConfigUtil(object):
             return lang.iso639_3_code
         if hasattr(lang, 'terminology') and lang.terminology in ocr_langs:
             return lang.terminology
-        return DEFAULT_OCR
+        return DEFAULT_OCR_LANG
 
     @staticmethod
     def get_default_spellcheck_lang(ocr_lang):

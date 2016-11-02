@@ -26,5 +26,55 @@ They must be installed *before* the rest of Paperwork. Once everything is instal
 
 ## Running
 
+
 Frontend can be started like on GNU/Linux. Go to where you checked out Paperwork frontend,
-and run ```python src/launcher.py```.
+and run ```python src\launcher.py```. Tesseract must be in your PATH.
+
+
+## Packaging
+
+```
+cd git\paperwork
+pyinstaller pyinstaller\win64.spec
+```
+
+It should create a directory 'paperwork' with all the required files, except Tesseract.
+This directory can be stored in a .zip file and deploy wherever you wish.
+
+
+## Adding Tesseract
+
+[PyOCR](https://github.com/jflesch/pyocr) has 2 ways to call Tesseract. Either
+by running its executable (module ```pyocr.tesseract```), or using its library
+(module ```pyocr.libtesseract```). Currently, for convenience reasons, the
+packaged version of Paperwork uses only ```pyocr.tesseract```.
+
+By default, this module looks for tesseract in the PATH only, and let Tesseract
+look for its data files in the default location. However, when packaged with
+Pyinstaller, PyOCR will also look for tesseract in the subdirectory ```tesseract```
+of the current directory (```os.path.join(os.getcwd(), 'tesseract')```). It will
+also set an environment variable so Tesseract looks for its data files in
+the subdirectory ```data\tessdata```.
+
+So in the end, you can put Paperwork in a directory with the following hierarchy:
+
+```
+C:\Program Files (x86)\OpenPaper\ (for example)
+|-- Paperwork\ (for example)
+    |
+    |-- Paperwork.exe
+    |-- (...).dll
+    |
+    |-- Tesseract\
+    |   |-- Tesseract.exe
+    |   |-- (...).dll
+    |
+    |-- Data
+        |
+        |-- paperwork.svg
+        |-- (...)
+        |
+        |-- Tessdata\
+            |-- eng.traineddata
+            |-- fra.traineddata
+```

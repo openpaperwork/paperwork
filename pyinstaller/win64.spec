@@ -6,7 +6,10 @@ import sys
 
 block_cipher = None
 
-BASE_PATH = os.path.join(os.path.expanduser("~"), "git", "paperwork")
+if os.path.exists(os.path.join("src", "launcher.py")):
+    BASE_PATH = os.getcwd()
+else:
+    BASE_PATH = os.path.join(os.path.expanduser("~"), "git", "paperwork")
 
 # Pyinstaller misses some .dll (GObject & co) --> we have to request them
 # explicitly

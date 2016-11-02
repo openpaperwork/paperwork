@@ -2679,6 +2679,9 @@ class MainWindow(object):
                     (_("switched all the fonts to {}".format(
                         self.default_font)), 24),
                     (_("until you get an activation key"), 24),
+                    # TODO(Jflesch): Make that a link
+                    (_("Go to https://openpaper.work/activation/"), 24),
+                    (_("to get an activation key"), 24),
                 ]:
                     txt_drawer = TextDrawer((0, pos), txt, height=font_size)
                     txt_drawer.font = self.default_font

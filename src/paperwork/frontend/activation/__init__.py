@@ -1,4 +1,6 @@
 import base64
+import binascii
+import datetime
 import logging
 import pickle
 import os
@@ -58,6 +60,9 @@ def check_activation_key(activation_key, email):
         None --- if OK
         a string --- message telling what's wrong
     """
+    if activation_key is None:
+        return _("No activation key provided")
+
     # We use ElGamal signature to forge and check the activation keys.
     # As you can guess from the key length and the signature length,
     # this is not secure *at* *all*, and this is not the point.
@@ -101,7 +106,10 @@ def check_activation_key(activation_key, email):
     h = SHA.new(payload).digest()
 
     signature = pad_base64(signature)
-    signature = base64.decodebytes(signature)
+    try:
+        signature = base64.decodebytes(signature)
+    except binascii.Error:
+        return _("Activation key is corrupted")
     try:
         signature = pickle.loads(signature)
     except EOFError:
@@ -114,6 +122,8 @@ def check_activation_key(activation_key, email):
 
 
 def to_bool(txt):
+    if txt is None:
+        return False
     if isinstance(txt, bool):
         return txt
     return txt.lower() == "true"
@@ -123,22 +133,53 @@ def is_activated(config):
     # Just add 'return True' here to disable this whole thingie.
     if get_os() != 'nt':
         return True
-    # TODO
-    return to_bool(os.getenv("PAPERWORK_ACTIVATED", False))
 
+    key = config['activation_key'].value
+    email = config['activation_email'].value
 
-def has_expired(config):
-    if get_os() != 'nt':
-        return False
-    expired = False
-    # TODO
-    return to_bool(os.getenv("PAPERWORK_EXPIRED", expired))
+    activated = not check_activation_key(key, email)
+    return to_bool(os.getenv("PAPERWORK_ACTIVATED", activated))
 
 
 def get_remaining_days(config):
-    remaining = 60
-    # TODO
-    return int(os.getenv("PAPERWORK_REMAINING", remaining))
+    TRIAL_PERIOD = 60  # days
+
+    if is_activated(config):
+        return False
+    if get_os() != 'nt':
+        return False
+
+    valid = True
+
+    first_start = config['first_start'].value
+
+    today = os.getenv("PAPERWORK_TODAY", None)
+    if today:
+        today = datetime.datetime.strptime(today, "%Y-%m-%d").date()
+    else:
+        today = datetime.date.today()
+
+    if first_start is None:
+        valid = False
+
+    if valid:
+        diff = today - first_start
+        if diff.days < 0:
+            valid = False
+
+    if valid and diff.days > TRIAL_PERIOD:
+        return 0
+
+    if not valid:
+        config['first_start'].value = today
+        config.write()
+        return TRIAL_PERIOD
+
+    return (TRIAL_PERIOD - diff.days)
+
+
+def has_expired(config):
+    return get_remaining_days(config) <= 0
 
 
 class ActionFormatKey(SimpleAction):
@@ -224,7 +265,11 @@ class ActivationDialog(object):
         logger.info("Checking activation key: [{}]/[{}]".format(key, email))
         if not error:
             logger.info("Activation key ok !")
-            # TODO: Write it in the configuration
+
+            self._config['activation_key'].value = key
+            self._config['activation_email'].value = email
+            self._config.write()
+
             msg = _("Activation successful. Please restart Paperwork")
             dialog = Gtk.MessageDialog(
                 parent=self.dialog,

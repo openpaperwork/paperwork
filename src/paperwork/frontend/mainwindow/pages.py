@@ -684,7 +684,8 @@ class SimplePageDrawer(Drawer):
             return
         self.surface = surface
         self.img = img
-        if (len(self.boxes['all']) <= 0 and self.show_boxes):
+        if (len(self.boxes['all']) <= 0 and
+                (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
 
@@ -1005,6 +1006,7 @@ class PageDrawer(Drawer, GObject.GObject):
         Drawer.__init__(self)
 
         self.page = page
+        self.show_boxes = show_boxes
         self.enable_editor = enable_editor
         self.mouse_over = False
         self.mouse_over_button = None

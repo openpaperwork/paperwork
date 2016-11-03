@@ -2,6 +2,7 @@ from copy import copy
 import datetime
 import gettext
 import logging
+import gc
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -411,7 +412,6 @@ class ActionParseDocDate(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        calendar = self.__main_win.doc_properties_panel.widgets['calendar']
         date_entry = self.__main_win.doc_properties_panel.widgets['name']
         date_txt = date_entry.get_text()
 
@@ -1045,6 +1045,7 @@ class DocList(object):
     def on_doc_thumbnailing_end_cb(self, src):
         self.__main_win.set_progression(src, 0.0, None)
         self.gui['list'].thaw_child_notify()
+        gc.collect()
 
     def __set_doc_buttons_visible(self, doc, visible):
         if (doc is None or

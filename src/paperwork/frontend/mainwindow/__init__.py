@@ -2970,6 +2970,7 @@ class MainWindow(object):
 
         if self.doc:
             self.doc.drop_cache()
+        gc.collect()
 
         logger.info("Showing document %s" % doc)
         self.doc = doc

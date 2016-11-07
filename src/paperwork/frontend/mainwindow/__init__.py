@@ -1172,6 +1172,9 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        if os.name == 'nt':
+            os.startfile(self.__main_win.doc.path)
+            return
         os.system('xdg-open "%s" &' % (self.__main_win.doc.path))
 
 
@@ -2529,9 +2532,9 @@ class MainWindow(object):
                 "PAPERWORK_EXPIRED_FONT", self.default_font
             )
             renderer.FONT = self.default_font
-            css_provider.load_from_data(
-                "* {{ font-family: {}; }}".format(self.default_font).encode("utf-8")
-            )
+            css = "* {{ font-family: {}; }}".format(self.default_font)
+            css = css.encode("utf-8")
+            css_provider.load_from_data(css)
             Gtk.StyleContext.add_provider_for_screen(
                 Gdk.Screen.get_default(),
                 css_provider,

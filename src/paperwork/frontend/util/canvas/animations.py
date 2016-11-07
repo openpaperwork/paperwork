@@ -20,12 +20,14 @@ import math
 import cairo
 
 from gi.repository import Gdk
-from gi.repository import Gtk
 
 from paperwork_backend.util import image2surface
+from paperwork.frontend.util import load_image
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.canvas.drawers import fit
+from paperwork.frontend.util.img import image2pixbuf
+
 
 logger = logging.getLogger(__name__)
 
@@ -74,9 +76,9 @@ class ScanAnimation(Animation):
 
         self.anim = {
             "position": 0,
-            "offset": (float(self.size[1])
-                       / (self.ANIM_LENGTH
-                          / Canvas.TICK_INTERVAL)),
+            "offset": (float(self.size[1]) /
+                       (self.ANIM_LENGTH /
+                        Canvas.TICK_INTERVAL)),
         }
 
     def on_tick(self):
@@ -133,9 +135,9 @@ class ScanAnimation(Animation):
         position = (
             self.position[0],
             (
-                self.position[1]
-                + (self.surfaces[-1][0])
-                + (self.surfaces[-1][1].get_height())
+                self.position[1] +
+                (self.surfaces[-1][0]) +
+                (self.surfaces[-1][1].get_height())
             ),
         )
 
@@ -164,7 +166,7 @@ class ScanAnimation(Animation):
 
 
 class SpinnerAnimation(Animation):
-    src_size = 32
+    src_size = 48
     ICON_SIZE = 64
 
     layer = Drawer.PROGRESSION_INDICATOR_LAYER
@@ -175,27 +177,17 @@ class SpinnerAnimation(Animation):
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 
-        icon_theme = Gtk.IconTheme.get_default()
-        icon_info = icon_theme.lookup_icon("process-working", self.src_size,
-                                           Gtk.IconLookupFlags.NO_SVG)
-        if not icon_info:
-            logger.warning("Spinner icon not available")
-            self.icon_pixbuf = None
-            self.frame = 1
-            self.nb_frames = (1, 1)
-        else:
-            base_size = icon_info.get_base_size()
-            if base_size:
-                self.src_size = base_size
-            self.icon_pixbuf = icon_info.load_icon()
-            self.frame = 1
-            self.nb_frames = (
-                (max(1, self.icon_pixbuf.get_width() / self.src_size)),
-                (max(1, self.icon_pixbuf.get_height() / self.src_size)),
-            )
+        img = load_image("gnome-spinner.png")
+        img.load()
+        self.icon_surface = image2surface(img)
+        self.frame = 1
+        self.nb_frames = (
+            (max(1, img.size[0] / self.src_size)),
+            (max(1, img.size[1] / self.src_size)),
+        )
 
     def on_tick(self):
-        if not self.icon_pixbuf:
+        if not self.icon_surface:
             return
 
         self.frame += 1
@@ -208,7 +200,7 @@ class SpinnerAnimation(Animation):
         self.redraw()
 
     def draw(self, cairo_ctx):
-        if not self.icon_pixbuf:
+        if not self.icon_surface:
             return
 
         frame = (
@@ -233,8 +225,8 @@ class SpinnerAnimation(Animation):
             cairo_ctx.translate(target_offset[0], target_offset[1])
             scale = float(self.ICON_SIZE) / self.src_size
             cairo_ctx.scale(scale, scale)
-            Gdk.cairo_set_source_pixbuf(
-                cairo_ctx, self.icon_pixbuf,
+            cairo_ctx.set_source_surface(
+                self.icon_surface,
                 -1 * img_offset[0],
                 -1 * img_offset[1],
             )

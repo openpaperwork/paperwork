@@ -46,7 +46,7 @@ def main():
         'negative': 0,
     }
 
-    for doc in dsearch.docs:
+    for doc in sorted(dsearch.docs, key=lambda x: x.docid):
         sys.stdout.write(str(doc) + ": ")
         sys.stdout.flush()
 
@@ -95,6 +95,7 @@ def main():
         }
         for key in label_keys:
             total_labels[key] += nb_labels[key]
+        missing = []
         for label in all_labels:
             if not ((label in doc_labels) ^ (label in predicted_labels)):
                 accurate['global'] += 1
@@ -106,6 +107,8 @@ def main():
                     accurate['negative'] += 1
                     total_label_accuracy['negative'] += 1
             else:
+                if label in predicted_labels:
+                    missing.append(label)
                 accurate['exact'] = 0
         if accurate['exact']:
             total_label_accuracy['exact'] += 1
@@ -117,8 +120,9 @@ def main():
             value = accurate[key]
             sys.stdout.write("\n\t- label prediction accuracy (%s): %d%%"
                              % (key, (100 * accurate[key] / total)))
-
         sys.stdout.write("\n")
+        for missing_label in missing:
+            sys.stdout.write("Missing: {}\n".format(missing_label))
 
     print("")
     print("Statistics")

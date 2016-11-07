@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>
 
+import ctypes
 import errno
 import io
 import locale
@@ -251,7 +252,7 @@ def surface2image(surface):
         img = PIL.Image.open(img_io)
         img.load()
 
-        if not "A" in img.getbands():
+        if "A" not in img.getbands():
             return img
 
         img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
@@ -305,7 +306,6 @@ def find_language(lang_str=None, allow_none=False):
     if "_" in lang_str:
         lang_str = lang_str.split("_")[0]
 
-    lang = None
     try:
         return pycountry.pycountry.languages.get(name=lang_str.title())
     except KeyError:
@@ -341,3 +341,15 @@ def find_language(lang_str=None, allow_none=False):
         lang_str
     ))
     return find_language('eng')
+
+
+def hide_file(filepath):
+    if os.name != 'nt':
+        # win32 only
+        return
+    logger.info("Hiding file: {}".format(filepath))
+    ret = ctypes.windll.kernel32.SetFileAttributesW(
+        filepath, 0x02  # hidden
+    )
+    if not ret:
+        raise ctypes.WinError()

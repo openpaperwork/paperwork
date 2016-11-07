@@ -135,14 +135,23 @@ class PaperworkConfig(object):
         for setting in self.settings.values():
             setting.update(self._configparser)
 
+        file_path = self.__configfile
         try:
-            file_path = self.__configfile
             with open(file_path, 'w') as file_descriptor:
                 self._configparser.write(file_descriptor)
             logger.info("Done")
         except IOError as e:
-            logger.warn("Cannot write to configuration file %s : %s" % (self.__configfile, e.strerror))
+            logger.warn(
+                "Cannot write to configuration file %s : %s"
+                % (self.__configfile, e.strerror)
+            )
             return False
+
+        try:
+            util.hide_file(file_path)
+        except Exception as exc:
+            logger.warn("Failed to hide configuration file")
+            logger.exception(exc)
 
         return True
 

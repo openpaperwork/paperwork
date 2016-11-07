@@ -40,6 +40,7 @@ from .labels import LabelGuesser
 from .pdf.doc import PdfDoc
 from .pdf.doc import is_pdf_doc
 from .util import dummy_progress_cb
+from .util import hide_file
 from .util import MIN_KEYWORD_LEN
 from .util import mkdir_p
 from .util import rm_rf
@@ -365,10 +366,11 @@ class DocSearch(object):
         Index files in rootdir (see constructor)
         """
         self.rootdir = rootdir
+        localdir = os.path.expanduser("~/.local")
         if indexdir is None:
             base_data_dir = os.getenv(
                 "XDG_DATA_HOME",
-                os.path.expanduser("~/.local/share")
+                os.path.join(localdir, "share")
             )
             indexdir = os.path.join(base_data_dir, "paperwork")
         self.indexdir = os.path.join(indexdir, "index")
@@ -397,6 +399,9 @@ class DocSearch(object):
             self.index = whoosh.index.create_in(self.indexdir,
                                                 self.WHOOSH_SCHEMA)
             logger.info("Index '%s' created" % self.indexdir)
+            if localdir in base_data_dir:
+                # windows support
+                hide_file(localdir)
 
         self.__searcher = self.index.searcher()
 

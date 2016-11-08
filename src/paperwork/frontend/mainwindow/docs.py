@@ -913,8 +913,6 @@ class DocList(object):
             self.job_factories['doc_thumbnailer']
         )
 
-        logger.info("Got %d documents" % len(documents))
-
         self.clear()
 
         self.gui['list'].freeze_child_notify()

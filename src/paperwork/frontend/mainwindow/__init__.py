@@ -545,13 +545,12 @@ class JobDocSearcher(Job):
             sort_documents_by_date(documents)
         else:
             self.__sort_func(documents)
-        if not self.can_run:
-            return
         self.emit('search-results', self.search, documents)
 
-        suggestions = self.__docsearch.find_suggestions(self.search)
         if not self.can_run:
+            logger.info("Search cancelled. Won't look for suggestions")
             return
+        suggestions = self.__docsearch.find_suggestions(self.search)
         self.emit('search-suggestions', suggestions)
 
     def stop(self, will_resume=False):
@@ -2128,6 +2127,7 @@ class MainWindow(object):
         search_completion.set_model(self.lists['suggestions']['model'])
         search_completion.set_text_column(0)
         search_completion.set_match_func(lambda a, b, c, d: True, None)
+        self.lists['suggestions']['completion'] = search_completion
         self.lists['suggestions']['gui'].set_completion(search_completion)
 
         self.search_field = widget_tree.get_object("entrySearch")
@@ -2803,14 +2803,14 @@ class MainWindow(object):
                 revealer.set_reveal_child(visible)
 
     def on_search_results_cb(self, search, documents):
-        logger.debug("Got %d documents" % len(documents))
+        logger.info("Got {} documents".format(len(documents)))
         self.doclist.set_docs(
             documents,
             need_new_doc=(search.strip() == u"")
         )
 
     def on_search_suggestions_cb(self, suggestions):
-        logger.debug("Got %d suggestions" % len(suggestions))
+        logger.info("Got {} suggestions".format(len(suggestions)))
         self.lists['suggestions']['gui'].freeze_child_notify()
         try:
             self.lists['suggestions']['model'].clear()
@@ -2818,6 +2818,7 @@ class MainWindow(object):
                 self.lists['suggestions']['model'].append([suggestion])
         finally:
             self.lists['suggestions']['gui'].thaw_child_notify()
+        GLib.idle_add(self.lists['suggestions']['completion'].complete)
 
     def drop_boxes(self):
         self.img['boxes']['all'] = []

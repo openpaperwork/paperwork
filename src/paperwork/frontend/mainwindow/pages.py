@@ -16,7 +16,6 @@
 
 import logging
 import math
-import multiprocessing
 import threading
 
 import gettext
@@ -64,19 +63,6 @@ class JobPageImgLoader(Job):
         self.__cond = threading.Condition()
         self.can_run = True
 
-    @staticmethod
-    def _get_img_wrapper(page, size, out_queue):
-        try:
-            if size is None:
-                img = page.img
-            else:
-                img = page.get_thumbnail(size[0], size[1])
-            img.load()
-            out_queue.put(img)
-        except:
-            out_queue.put(None)
-            raise
-
     def do(self):
         self.__cond.acquire()
         try:
@@ -96,20 +82,10 @@ class JobPageImgLoader(Job):
             if not self.can_run:
                 return
             if not use_thumbnail:
-                size = None
+                img = self.page.img
             else:
-                size = (BasicPage.DEFAULT_THUMB_WIDTH,
-                        BasicPage.DEFAULT_THUMB_HEIGHT)
-
-            queue = multiprocessing.Queue()
-            process = multiprocessing.Process(
-                target=self._get_img_wrapper,
-                args=(self.page, size, queue)
-            )
-            process.start()
-            img = queue.get()
-            process.join()
-
+                img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
+                                              BasicPage.DEFAULT_THUMB_HEIGHT)
             if not self.can_run:
                 return
             if self.size != img.size:

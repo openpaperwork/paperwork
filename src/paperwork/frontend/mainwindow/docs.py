@@ -670,7 +670,7 @@ class DocList(object):
         # if we are in the lower part (10%), add the next chunk of boxes
         u = upper - lower
         v = value - lower + page_size
-        if v >= u:
+        if lower + page_size < upper and v >= u:
             self._add_boxes()
 
         start_y = value
@@ -1020,7 +1020,7 @@ class DocList(object):
         return (len(self.gui['list'].get_selected_rows()) > 1)
 
     def unselect_doc(self, doc):
-        if not doc.docid in self.model['by_id']:
+        if doc.docid not in self.model['by_id']:
             return
         row = self.model['by_id'][doc.docid]
         self.gui['list'].unselect_row(row)
@@ -1041,6 +1041,8 @@ class DocList(object):
         return self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
 
     def make_doc_box_visible(self, doc):
+        if doc.docid not in self.model['docids']:
+            return
         doc_pos = self.model['docids'].index(doc.docid)
         logger.info(
             "Document position: {}"

@@ -190,7 +190,7 @@ Main features are:
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/magic_colors.png']),
         (os.path.join(sys.prefix, 'share/paperwork'),
-         ['data/gnome-spinner.png']),
+         ['data/waiting.png']),
     ],
     scripts=[
         'scripts/paperwork',

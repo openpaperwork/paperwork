@@ -20,9 +20,11 @@ suggestions)
 """
 
 import logging
+import multiprocessing
 import copy
 import datetime
 import os.path
+import sys
 
 import gi
 from gi.repository import GObject
@@ -537,6 +539,24 @@ class DocSearch(object):
         self._docs_by_id[docid] = doc
         return doc
 
+    @staticmethod
+    def _search_wrapper(searcher, query, limit, sorted_by, output_queue):
+        try:
+            if sorted_by:
+                results = searcher.search(
+                    query, limit=limit, sortedby=sorted_by
+                )
+            else:
+                results = searcher.search(query, limit=limit)
+            results = [
+                (result['docid'], result['doctype'])
+                for result in results
+            ]
+            output_queue.put(results)
+        except:
+            output_queue.put(None)
+            raise
+
     def reload_index(self, progress_cb=dummy_progress_cb):
         """
         Read the index, and load the document list from it
@@ -557,15 +577,27 @@ class DocSearch(object):
         del docs_by_id
 
         query = whoosh.query.Every()
-        results = self.__searcher.search(query, limit=None)
+
+        # HACK(Jflesch):
+        # we do the search in the separate process to not block the Python
+        # interpreter (see Python's Global Lock)
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(
+            target=self._search_wrapper,
+            args=(self.__searcher, query, None, None, queue)
+        )
+        process.start()
+        results = queue.get()
+        sys.stdout.flush()
+        process.join()
 
         nb_results = len(results)
         progress = 0
         labels = set()
 
         for result in results:
-            docid = result['docid']
-            doctype = result['doctype']
+            docid = result[0]
+            doctype = result[1]
             doc = self.__inst_doc(docid, doctype)
             if doc is None:
                 continue
@@ -643,31 +675,42 @@ class DocSearch(object):
 
         for query_parser in self.search_param_list[search_type]:
             query = query_parser["query_parser"].parse(sentence)
-            if must_sort and "sortedby" in query_parser:
-                result_list = self.__searcher.search(
-                    query, limit=limit, sortedby=query_parser["sortedby"])
-            else:
-                result_list = self.__searcher.search(
-                    query, limit=limit)
 
-            result_list_list.append(result_list)
-            total_results += len(result_list)
+            # HACK(Jflesch):
+            # we do the search in the separate process to not block the Python
+            # interpreter (see Python's Global Lock)
+            sortedby = None
+            if must_sort and "sortedby" in query_parser:
+                sortedby = query_parser['sortedby']
+            queue = multiprocessing.Queue()
+            process = multiprocessing.Process(
+                target=self._search_wrapper,
+                args=(self.__searcher, query, limit, sortedby, queue)
+            )
+            process.start()
+            results = queue.get()
+            sys.stdout.flush()
+            process.join()
+
+            result_list_list.append(results)
+            total_results += len(results)
 
             if not must_sort and total_results >= limit:
                 break
 
         # merging results
-        results = result_list_list[0]
-        for result_intermediate in result_list_list[1:]:
-            results.extend(result_intermediate)
+        results = set()
+        for result_intermediate in result_list_list:
+            for result in result_intermediate:
+                results.add(result)
 
-        docs = [self._docs_by_id.get(result['docid']) for result in results]
+        docs = set([self._docs_by_id.get(result[0]) for result in results])
         try:
-            while True:
-                docs.remove(None)
-        except ValueError:
+            docs.remove(None)
+        except KeyError:
             pass
         assert (None not in docs)
+        docs = [doc for doc in docs]
 
         if limit is not None:
             docs = docs[:limit]

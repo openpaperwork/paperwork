@@ -1553,7 +1553,7 @@ class ActionRedoOCR(SimpleAction):
 class AllPagesIterator(object):
     def __init__(self, docsearch):
         self.__doc_iter = iter(docsearch.docs)
-        doc = self.__doc_iter.next()
+        doc = next(self.__doc_iter)
         self.__page_iter = iter(doc.pages)
 
     def __iter__(self):

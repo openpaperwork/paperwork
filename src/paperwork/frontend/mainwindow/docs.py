@@ -530,6 +530,7 @@ class ActionDeleteDoc(SimpleAction):
         """
         Ask for confirmation and then delete the document being viewed.
         """
+        super().do()
         if not ask_confirmation(self.__main_win.window):
             return
         GLib.idle_add(self._do)

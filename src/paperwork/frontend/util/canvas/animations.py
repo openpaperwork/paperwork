@@ -18,15 +18,13 @@ import logging
 import math
 
 import cairo
-
-from gi.repository import Gdk
+import PIL.Image
 
 from paperwork_backend.util import image2surface
 from paperwork.frontend.util import load_image
 from paperwork.frontend.util.canvas import Canvas
 from paperwork.frontend.util.canvas.drawers import Drawer
 from paperwork.frontend.util.canvas.drawers import fit
-from paperwork.frontend.util.img import image2pixbuf
 
 
 logger = logging.getLogger(__name__)
@@ -177,13 +175,16 @@ class SpinnerAnimation(Animation):
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 
-        img = load_image("gnome-spinner.png")
+        img = load_image("waiting.png")
+        factor = self.ICON_SIZE / self.src_size
+        img = img.resize((int(img.size[0] * factor), int(img.size[1] * factor)),
+                         PIL.Image.ANTIALIAS)
         img.load()
         self.icon_surface = image2surface(img)
         self.frame = 1
         self.nb_frames = (
-            (max(1, img.size[0] / self.src_size)),
-            (max(1, img.size[1] / self.src_size)),
+            (max(1, img.size[0] / self.ICON_SIZE)),
+            (max(1, img.size[1] / self.ICON_SIZE)),
         )
 
     def on_tick(self):
@@ -208,8 +209,8 @@ class SpinnerAnimation(Animation):
             int(self.frame / self.nb_frames[0]),
         )
         frame = (
-            (frame[0] * self.src_size),
-            (frame[1] * self.src_size),
+            (frame[0] * self.ICON_SIZE),
+            (frame[1] * self.ICON_SIZE),
         )
 
         img_offset = (max(0, - self.position[0]),
@@ -223,16 +224,14 @@ class SpinnerAnimation(Animation):
         cairo_ctx.save()
         try:
             cairo_ctx.translate(target_offset[0], target_offset[1])
-            scale = float(self.ICON_SIZE) / self.src_size
-            cairo_ctx.scale(scale, scale)
             cairo_ctx.set_source_surface(
                 self.icon_surface,
                 -1 * img_offset[0],
                 -1 * img_offset[1],
             )
             cairo_ctx.rectangle(0, 0,
-                                self.src_size,
-                                self.src_size)
+                                self.ICON_SIZE,
+                                self.ICON_SIZE)
             cairo_ctx.clip()
             cairo_ctx.paint()
         finally:

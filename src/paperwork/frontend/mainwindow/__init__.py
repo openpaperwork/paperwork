@@ -2964,14 +2964,19 @@ class MainWindow(object):
         self.export['dialog'].set_visible(False)
 
         if self.__allow_multiselect:
-            if self.doc is not None and self.doc == doc:
+            if doc.is_new:
+                logger.info("Selecting \"New document\" with other documents"
+                            " isn't allowed")
                 self.doclist.unselect_doc(doc)
-                next_docid = self.doclist.get_closest_selected_doc(doc)
-                if not next_docid:
-                    return
-                doc = self.docsearch.get_doc_from_docid(next_docid, inst=False)
+                return
+            if self.doc is not None and self.doc == doc:
+                logger.info("Unselecting {}".format(doc))
+                self.doclist.unselect_doc(doc)
+                doc = self.doclist.get_closest_selected_doc(doc)
                 if not doc:
                     return
+            # Make sure the new document is not selected
+            self.doclist.unselect_doc(self.doclist.new_doc)
         elif self.doclist.has_multiselect():
             # current selection isn't valid anymore
             force_refresh = True
@@ -2982,6 +2987,8 @@ class MainWindow(object):
             logger.info("Doc is already shown")
             return
 
+        logger.info("Showing document {}".format(doc))
+
         if not self.__allow_multiselect:
             self.doclist.select_doc(doc, open_doc=False)
 
@@ -2989,7 +2996,6 @@ class MainWindow(object):
             self.doc.drop_cache()
         gc.collect()
 
-        logger.info("Showing document %s" % doc)
         self.doc = doc
         if not self.page or self.page.doc.docid != doc.docid:
             if doc.nb_pages > 0:

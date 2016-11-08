@@ -993,6 +993,8 @@ class DocList(object):
         return (len(self.gui['list'].get_selected_rows()) > 1)
 
     def unselect_doc(self, doc):
+        if not doc.docid in self.model['by_id']:
+            return
         row = self.model['by_id'][doc.docid]
         self.gui['list'].unselect_row(row)
 
@@ -1008,7 +1010,8 @@ class DocList(object):
                 best_row = row
         if not best_row:
             return
-        return self.model['by_row'][best_row]
+        docid = self.model['by_row'][best_row]
+        return self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
 
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc
@@ -1091,7 +1094,7 @@ class DocList(object):
         rows = self.gui['list'].get_selected_rows()
         docids = [self.model['by_row'][row] for row in rows]
         return [
-            self.__main_win.docsearch.get_doc_from_docid(docid)
+            self.__main_win.docsearch.get_doc_from_docid(docid, inst=True)
             for docid in docids
         ]
 

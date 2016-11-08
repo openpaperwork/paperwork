@@ -1652,7 +1652,6 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['buttons']['select_path'].set_sensitive(
             nb_export_formats >= 1)
         self.main_win.export['fileFormat']['widget'].set_active(0)
-        self.main_win.export['dialog'].set_visible(True)
         self.main_win.export['buttons']['ok'].set_sensitive(False)
         self.main_win.export['export_path'].set_text("")
         for button in self.main_win.actions['open_view_settings'][0]:
@@ -1682,6 +1681,7 @@ class BasicActionOpenExportDialog(SimpleAction):
                 simplification
             )
         self.main_win.export['pageSimplification']['widget'].set_active(0)
+        self.main_win.export['dialog'].set_visible(True)
 
 
 class MultipleExportTarget(object):
@@ -1708,7 +1708,7 @@ class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
         SimpleAction.do(self)
         self.main_win.export['to_export'] = self.main_win.page
         self.main_win.export['buttons']['ok'].set_label(_("Export page"))
-        BasicActionOpenExportDialog.open_dialog(self, self.main_win.page)
+        GLib.idle_add(self.open_dialog, self.main_win.page)
 
 
 class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
@@ -1736,7 +1736,7 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
                 logger.warning("Export: no valid document to export selected")
                 return
         self.main_win.export['to_export'] = target
-        BasicActionOpenExportDialog.open_dialog(self, target)
+        GLib.idle_add(self.open_dialog, target)
 
 
 class ActionSelectExportFormat(SimpleAction):
@@ -1793,10 +1793,10 @@ class ActionChangeExportProperty(SimpleAction):
         self.__main_win = main_window
 
     def do(self):
-        SimpleAction.do(self)
         if self.__main_win.export['exporter'] is None:
             # may be triggered when we initialized the export form
             return
+        SimpleAction.do(self)
 
         if self.__main_win.export['exporter'].can_select_format:
             page_format_widget = self.__main_win.export['pageFormat']['widget']
@@ -1876,29 +1876,31 @@ class ActionSelectExportPath(SimpleAction):
 
 class BasicActionEndExport(SimpleAction):
     def __init__(self, main_win, name):
-        SimpleAction.__init__(self, name)
+        super().__init__(name)
         self.main_win = main_win
 
-    def do(self):
-        SimpleAction.do(self)
+    def _do(self):
+        super().do()
+        self.main_win.export['exporter'] = None
         for button in self.main_win.actions['open_view_settings'][0]:
             button.set_sensitive(True)
-        self.main_win.export['dialog'].set_visible(False)
-        self.main_win.export['exporter'] = None
         # force refresh of the current page
         self.main_win.show_page(self.main_win.page, force_refresh=True)
+
+    def do(self):
+        GLib.idle_add(self._do)
 
 
 class ActionExport(BasicActionEndExport):
     def __init__(self, main_window):
-        BasicActionEndExport.__init__(self, main_window, "Export")
+        super().__init__(main_window, "Export")
         self.main_win = main_window
 
     def _do(self):
         try:
             filepath = self.main_win.export['export_path'].get_text()
             self.main_win.export['exporter'].save(filepath)
-            BasicActionEndExport.do(self)
+            super().do()
         finally:
             self.main_win.set_mouse_cursor("Normal")
 
@@ -1909,10 +1911,10 @@ class ActionExport(BasicActionEndExport):
 
 class ActionCancelExport(BasicActionEndExport):
     def __init__(self, main_window):
-        BasicActionEndExport.__init__(self, main_window, "Cancel export")
+        super().__init__(main_window, "Cancel export")
 
     def do(self):
-        BasicActionEndExport.do(self)
+        super().do()
 
 
 class ActionOptimizeIndex(SimpleAction):

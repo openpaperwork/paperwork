@@ -317,9 +317,10 @@ class ImgGripHandler(GObject.GObject, Drawer):
 
     def __on_zoom_changed(self):
         assert(self.zoom_widget)
+        scale = self.zoom_widget.get_value()
         self.img_drawer.size = (
-            self.img_size[0] * self.scale,
-            self.img_size[1] * self.scale,
+            self.img_size[0] * scale,
+            self.img_size[1] * scale,
         )
 
         for grip in self.grips:

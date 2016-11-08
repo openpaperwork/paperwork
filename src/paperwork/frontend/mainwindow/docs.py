@@ -962,6 +962,7 @@ class DocList(object):
 
         if (self.__main_win.doc and
                 self.__main_win.doc.docid in self.model['by_id']):
+            self.make_doc_box_visible(self.__main_win.doc)
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
             GLib.idle_add(self._scroll_to, row)
@@ -1039,9 +1040,29 @@ class DocList(object):
         docid = self.model['by_row'][best_row]
         return self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
 
+    def make_doc_box_visible(self, doc):
+        doc_pos = self.model['docids'].index(doc.docid)
+        logger.info(
+            "Document position: {}"
+            " | Number of boxes currently displayed: {}".format(
+                doc_pos, self.gui['nb_boxes']
+            )
+        )
+        if doc_pos < self.gui['nb_boxes']:
+            return
+        self.gui['list'].freeze_child_notify()
+        try:
+            while doc_pos >= self.gui['nb_boxes']:
+                self._add_boxes()
+        finally:
+            self.gui['list'].thaw_child_notify()
+
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc
         try:
+            if doc:
+                self.make_doc_box_visible(doc)
+
             assert(doc is not None or offset is not None)
             self.gui['list'].unselect_all()
             if doc is not None:

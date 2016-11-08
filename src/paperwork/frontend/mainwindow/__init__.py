@@ -2963,6 +2963,10 @@ class MainWindow(object):
             button.set_sensitive(True)
         self.export['dialog'].set_visible(False)
 
+        if not self.__allow_multiselect and self.doclist.has_multiselect():
+            # current selection isn't valid anymore
+            force_refresh = True
+
         if (self.doc is not None and
                 self.doc == doc and
                 not force_refresh):

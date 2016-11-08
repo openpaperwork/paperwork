@@ -363,13 +363,17 @@ class ActionOpenSelectedDocument(SimpleAction):
         self.__doclist = doclist
 
     def do(self):
+        self.on_row_activated_cb(self)
+
+    def on_row_activated_cb(self, _=None, row=None):
         if not self.__doclist.enabled:
             return
 
         SimpleAction.do(self)
 
         doclist = self.__doclist.gui['list']
-        row = doclist.get_selected_row()
+        if row is None:
+            row = doclist.get_selected_row()
         if row is None:
             return
         docid = self.__doclist.model['by_row'][row]
@@ -377,14 +381,6 @@ class ActionOpenSelectedDocument(SimpleAction):
         if doc is None:
             # assume new doc
             doc = self.__doclist.get_new_doc()
-
-        if doc == self.__main_win.doc:
-            logger.info(
-                "Document {} selected, but already displayed. Ignored".format(
-                    doc.docid
-                )
-            )
-            return
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:
@@ -992,6 +988,9 @@ class DocList(object):
             search_type='fuzzy',
             search=search)
         self.__main_win.schedulers['main'].schedule(job)
+
+    def has_multiselect(self):
+        return (len(self.gui['list'].get_selected_rows()) > 1)
 
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc

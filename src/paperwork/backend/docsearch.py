@@ -660,7 +660,7 @@ class DocSearch(object):
         docs = set()
         for result_intermediate in result_list_list:
             for result in result_intermediate:
-                doc = self.docs_by_id.get(result['docid'])
+                doc = self._docs_by_id.get(result['docid'])
                 if doc is None:
                     continue
                 docs.add(doc)

@@ -2963,7 +2963,16 @@ class MainWindow(object):
             button.set_sensitive(True)
         self.export['dialog'].set_visible(False)
 
-        if not self.__allow_multiselect and self.doclist.has_multiselect():
+        if self.__allow_multiselect:
+            if self.doc is not None and self.doc == doc:
+                self.doclist.unselect_doc(doc)
+                next_docid = self.doclist.get_closest_selected_doc(doc)
+                if not next_docid:
+                    return
+                doc = self.docsearch.get_doc_from_docid(next_docid, inst=False)
+                if not doc:
+                    return
+        elif self.doclist.has_multiselect():
             # current selection isn't valid anymore
             force_refresh = True
 

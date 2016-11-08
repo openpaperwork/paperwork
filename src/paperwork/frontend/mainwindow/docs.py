@@ -992,6 +992,24 @@ class DocList(object):
     def has_multiselect(self):
         return (len(self.gui['list'].get_selected_rows()) > 1)
 
+    def unselect_doc(self, doc):
+        row = self.model['by_id'][doc.docid]
+        self.gui['list'].unselect_row(row)
+
+    def get_closest_selected_doc(self, doc):
+        current = self.model['by_id'][doc.docid].get_index()
+        best_row = None
+        best_distance = 9999999999
+        for row in self.gui['list'].get_selected_rows():
+            distance = abs(row.get_index() - current)
+            assert distance > 0, "'doc' should have been unselected first"
+            if distance < best_distance:
+                best_distance = distance
+                best_row = row
+        if not best_row:
+            return
+        return self.model['by_row'][best_row]
+
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc
         try:

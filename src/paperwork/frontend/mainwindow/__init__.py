@@ -3309,7 +3309,10 @@ class MainWindow(object):
                     page_nb = 0
                 self.show_page(doc.pages[page_nb])
             else:
-                self.doclist.select_doc(offset=direction, open_doc=True)
+                self.doclist.select_doc(
+                    doc=self.doc,
+                    offset=direction, open_doc=True
+                )
             return True
 
         # don't know what to do, don't care. Let someone else take care of it

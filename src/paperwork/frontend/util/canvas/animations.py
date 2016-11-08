@@ -173,7 +173,7 @@ class SpinnerAnimation(Animation):
 
     def __init__(self, position):
         Animation.__init__(self)
-        self.visible = False
+        self.visible = True
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 

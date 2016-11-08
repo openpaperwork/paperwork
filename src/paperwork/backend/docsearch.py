@@ -137,7 +137,7 @@ class DummyDocSearch(object):
         return None
 
     @staticmethod
-    def get_doc_from_docid(docid, doc_type_name=None, inst=False):
+    def get_doc_from_docid(docid, doc_type_name=None, inst=True):
         """ Do nothing """
         return None
 
@@ -521,10 +521,10 @@ class DocSearch(object):
 
         return doc
 
-    def get_doc_from_docid(self, docid, doc_type_name=None, inst=False):
+    def get_doc_from_docid(self, docid, doc_type_name=None, inst=True):
         """
-        Try to find a document based on its document id. If it hasn't been
-        instantiated yet, it will be.
+        Try to find a document based on its document id. if inst=True, if it
+        hasn't been instantiated yet, it will be.
         """
         assert(docid is not None)
         if docid in self._docs_by_id:

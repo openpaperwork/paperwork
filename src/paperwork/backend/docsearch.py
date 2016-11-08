@@ -699,20 +699,17 @@ class DocSearch(object):
                 break
 
         # merging results
-        results = set()
+        docs = set()
         for result_intermediate in result_list_list:
             for result in result_intermediate:
-                results.add(result)
+                doc = self._docs_by_id.get(result['docid'])
+                if doc is None:
+                    continue
+                docs.add(doc)
 
-        docs = set([self._docs_by_id.get(result[0]) for result in results])
-        try:
-            docs.remove(None)
-        except KeyError:
-            pass
-        assert (None not in docs)
-        docs = [doc for doc in docs]
+        docs = [d for d in docs]
 
-        if limit is not None:
+        if not must_sort and limit is not None:
             docs = docs[:limit]
 
         return docs

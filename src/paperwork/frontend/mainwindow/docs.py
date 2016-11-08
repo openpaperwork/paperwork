@@ -562,6 +562,8 @@ class ActionDeleteDoc(SimpleAction):
 
 
 class DocList(object):
+    LIST_CHUNK = 50
+
     def __init__(self, main_win, config, widget_tree):
         self.__main_win = main_win
         self.__config = config
@@ -576,6 +578,7 @@ class DocList(object):
             'box': widget_tree.get_object("doclist_box"),
             'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
             'spinner': SpinnerAnimation((0, 0)),
+            'nb_boxes': 0,
         }
         self.gui['loading'] = Canvas(self.gui['scrollbars'])
         self.gui['loading'].set_visible(False)
@@ -597,6 +600,7 @@ class DocList(object):
 
         self.model = {
             'has_new': False,
+            'docids': [],
             'by_row': {},  # Gtk.ListBoxRow: docid
             'by_id': {},  # docid: Gtk.ListBoxRow
             # keep the thumbnails in cache
@@ -659,7 +663,15 @@ class DocList(object):
 
         # XXX(Jflesch): assumptions: values are in px
         value = vadjustment.get_value()
+        lower = vadjustment.get_lower()
+        upper = vadjustment.get_upper()
         page_size = vadjustment.get_page_size()
+
+        # if we are in the lower part (10%), add the next chunk of boxes
+        u = upper - lower
+        v = value - lower + page_size
+        if v >= (u * 95 / 100):
+            self._add_boxes()
 
         start_y = value
         end_y = value + page_size
@@ -908,6 +920,15 @@ class DocList(object):
     def show_loading(self):
         GLib.idle_add(self._show_loading)
 
+    def _add_boxes(self):
+        start = self.gui['nb_boxes']
+        stop = self.gui['nb_boxes'] + self.LIST_CHUNK
+
+        for docid in self.model['docids'][start:stop]:
+            rowbox = self.model['by_id'][docid]
+            self.gui['list'].add(rowbox)
+            self.gui['nb_boxes'] += 1
+
     def set_docs(self, documents, need_new_doc=True):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
@@ -917,16 +938,17 @@ class DocList(object):
 
         self.clear()
 
+        self.model['docids'] = [doc.docid for doc in documents]
+        for doc in documents:
+            rowbox = Gtk.ListBoxRow()
+            selected = (doc.docid == self.__main_win.doc.docid)
+            self._make_listboxrow_doc_widget(doc, rowbox, selected)
+            self.model['by_row'][rowbox] = doc.docid
+            self.model['by_id'][doc.docid] = rowbox
+
         self.gui['list'].freeze_child_notify()
         try:
-            for doc in documents:
-                rowbox = Gtk.ListBoxRow()
-                selected = (doc.docid == self.__main_win.doc.docid)
-                self._make_listboxrow_doc_widget(doc, rowbox, selected)
-                self.model['by_row'][rowbox] = doc.docid
-                self.model['by_id'][doc.docid] = rowbox
-                self.gui['list'].add(rowbox)
-
+            self._add_boxes()
             if need_new_doc:
                 self.insert_new_doc()
 

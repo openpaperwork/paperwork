@@ -940,8 +940,6 @@ class DocList(object):
             self.job_factories['doc_thumbnailer']
         )
 
-        logger.info("Got %d documents" % len(documents))
-
         self.clear()
 
         self.model['docids'] = [doc.docid for doc in documents]

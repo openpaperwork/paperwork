@@ -497,6 +497,7 @@
                             <property name="placeholder_text" translatable="yes">Search</property>
                             <property name="invisible_char">•</property>
                             <property name="margin">5</property>
+                            <property name="input_hints">GTK_INPUT_HINT_SPELLCHECK | GTK_INPUT_HINT_WORD_COMPLETION</property>
                           </object>
                           <packing>
                             <property name="expand">True</property>

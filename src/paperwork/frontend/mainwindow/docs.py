@@ -670,7 +670,7 @@ class DocList(object):
         # if we are in the lower part (10%), add the next chunk of boxes
         u = upper - lower
         v = value - lower + page_size
-        if v >= (u * 95 / 100):
+        if v >= u:
             self._add_boxes()
 
         start_y = value

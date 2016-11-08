@@ -1015,7 +1015,6 @@ class DocList(object):
         self.enabled = open_doc
         try:
             assert(doc is not None or offset is not None)
-            self.gui['list'].unselect_all()
             if doc is not None:
                 if doc.docid not in self.model['by_id']:
                     logger.warning(
@@ -1027,6 +1026,10 @@ class DocList(object):
                 row = self.model['by_id'][doc.docid]
             else:
                 row = self.gui['list'].get_selected_row()
+            if row is None:
+                logger.warning("Unable to get doc row")
+                return
+            self.gui['list'].unselect_all()
             if offset is not None:
                 row_index = row.get_index()
                 row_index += offset
@@ -1034,6 +1037,12 @@ class DocList(object):
                 if not row:
                     return
             self.gui['list'].select_row(row)
+            if open_doc and doc:
+                # WORKAROUND(Jflesch): Gtk behavior has changed between
+                # debian stable (jessie) and sid (2016/11/08) ?!
+                # --> we switch document explicitly here but we shouldn't have
+                # to
+                self.__main_win.show_doc(doc)
         finally:
             self.enabled = True
 

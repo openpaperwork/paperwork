@@ -24,7 +24,6 @@ import multiprocessing
 import copy
 import datetime
 import os.path
-import sys
 
 import gi
 from gi.repository import GObject
@@ -588,7 +587,6 @@ class DocSearch(object):
         )
         process.start()
         results = queue.get()
-        sys.stdout.flush()
         process.join()
 
         nb_results = len(results)
@@ -689,7 +687,6 @@ class DocSearch(object):
             )
             process.start()
             results = queue.get()
-            sys.stdout.flush()
             process.join()
 
             result_list_list.append(results)
@@ -702,7 +699,7 @@ class DocSearch(object):
         docs = set()
         for result_intermediate in result_list_list:
             for result in result_intermediate:
-                doc = self._docs_by_id.get(result['docid'])
+                doc = self._docs_by_id.get(result[0])
                 if doc is None:
                     continue
                 docs.add(doc)
@@ -713,6 +710,35 @@ class DocSearch(object):
             docs = docs[:limit]
 
         return docs
+
+    @staticmethod
+    def _suggestion_wrapper(searcher, keywords, query_parser, output_queue):
+        try:
+            final_suggestions = []
+            corrector = searcher.corrector("content")
+            label_corrector = searcher.corrector("label")
+            for keyword_idx in range(0, len(keywords)):
+                keyword = keywords[keyword_idx]
+                if (len(keyword) <= MIN_KEYWORD_LEN):
+                    continue
+                keyword_suggestions = label_corrector.suggest(keyword, limit=2)[:]
+                keyword_suggestions += corrector.suggest(keyword, limit=5)[:]
+                for keyword_suggestion in keyword_suggestions:
+                    new_suggestion = keywords[:]
+                    new_suggestion[keyword_idx] = keyword_suggestion
+                    new_suggestion = u" ".join(new_suggestion)
+
+                    # make sure it would return results
+                    query = query_parser.parse(new_suggestion)
+                    results = searcher.search(query, limit=1)
+                    if len(results) <= 0:
+                        continue
+                    final_suggestions.append(new_suggestion)
+            final_suggestions.sort()
+            output_queue.put(final_suggestions)
+        except:
+            output_queue.put([])
+            raise
 
     def find_suggestions(self, sentence):
         """
@@ -730,30 +756,24 @@ class DocSearch(object):
             sentence = str(sentence)
 
         keywords = sentence.split(" ")
-        final_suggestions = []
 
-        corrector = self.__searcher.corrector("content")
-        label_corrector = self.__searcher.corrector("label")
-        for keyword_idx in range(0, len(keywords)):
-            keyword = keywords[keyword_idx]
-            if (len(keyword) <= MIN_KEYWORD_LEN):
-                continue
-            keyword_suggestions = label_corrector.suggest(keyword, limit=2)[:]
-            keyword_suggestions += corrector.suggest(keyword, limit=5)[:]
-            for keyword_suggestion in keyword_suggestions:
-                new_suggestion = keywords[:]
-                new_suggestion[keyword_idx] = keyword_suggestion
-                new_suggestion = u" ".join(new_suggestion)
-
-                docs = self.find_documents(
-                    new_suggestion, limit=1, must_sort=False,
-                    search_type='strict'
-                )
-                if len(docs) <= 0:
-                    continue
-                final_suggestions.append(new_suggestion)
-        final_suggestions.sort()
-        return final_suggestions
+        # HACK(Jflesch):
+        # we do the search in the separate process to not block the Python
+        # interpreter (see Python's Global Lock)
+        queue = multiprocessing.Queue()
+        process = multiprocessing.Process(
+            target=self._suggestion_wrapper,
+            args=(
+                self.__searcher,
+                keywords,
+                self.search_param_list['strict'][0]['query_parser'],
+                queue
+            )
+        )
+        process.start()
+        results = queue.get()
+        process.join()
+        return results
 
     def create_label(self, label, doc=None, callback=dummy_progress_cb):
         """

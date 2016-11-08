@@ -732,6 +732,7 @@ class DocSearch(object):
     @staticmethod
     def _suggestion_wrapper(searcher, keywords, query_parser, output_queue):
         try:
+            base_search = u" ".join(keywords).strip()
             final_suggestions = []
             corrector = searcher.corrector("content")
             label_corrector = searcher.corrector("label")
@@ -744,7 +745,10 @@ class DocSearch(object):
                 for keyword_suggestion in keyword_suggestions:
                     new_suggestion = keywords[:]
                     new_suggestion[keyword_idx] = keyword_suggestion
-                    new_suggestion = u" ".join(new_suggestion)
+                    new_suggestion = u" ".join(new_suggestion).strip()
+
+                    if new_suggestion == base_search:
+                        continue
 
                     # make sure it would return results
                     query = query_parser.parse(new_suggestion)

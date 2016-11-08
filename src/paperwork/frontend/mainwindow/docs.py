@@ -812,6 +812,14 @@ class DocList(object):
         self.gui['list'].insert(rowbox, 0)
         if self.__main_win.doc.is_new:
             self.gui['list'].select_row(rowbox)
+        return doc
+
+    def open_new_doc(self):
+        if not self.model['has_new']:
+            self.insert_new_doc()
+        self.gui['list'].unselect_all()
+        doc = self.get_new_doc()
+        self.__main_win.show_doc(doc)
 
     def clear(self):
         self.gui['list'].freeze_child_notify()

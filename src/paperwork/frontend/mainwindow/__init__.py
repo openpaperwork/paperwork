@@ -941,23 +941,16 @@ class ActionNewDocument(SimpleAction):
     """
     Starts a new docume.
     """
-    def __init__(self, doclist):
+    def __init__(self, doclist, main_win):
         SimpleAction.__init__(self, "New document")
         self.__doclist = doclist
+        self.__main_win = main_win
 
     def do(self):
         SimpleAction.do(self)
 
-        must_insert_new = False
-
-        must_insert_new = not self.__doclist.model['has_new']
-        if must_insert_new:
-            self.__doclist.insert_new_doc()
-
-        doclist = self.__doclist.gui['list']
-        row = doclist.get_row_at_index(0)
-        doclist.unselect_all()
-        doclist.select_row(row)
+        self.__main_win.allow_multiselect = False
+        self.__doclist.open_new_doc()
         self.__doclist.gui['scrollbars'].get_vadjustment().set_value(0)
 
 
@@ -2076,7 +2069,7 @@ class MainWindow(object):
         # threads / jobs requested a busy mouse cursor
         self.__busy_mouse_counter = 0
 
-        self.__allow_multiselect = False
+        self.allow_multiselect = False
 
         if g_must_init_app:
             self.__advanced_app_menu = self.__init_app_menu(config, self.app)
@@ -2277,7 +2270,7 @@ class MainWindow(object):
                 [
                     widget_tree.get_object("toolbuttonNewDoc"),
                 ],
-                ActionNewDocument(self.doclist),
+                ActionNewDocument(self.doclist, self),
             ),
             'open_view_settings': (
                 [
@@ -2969,7 +2962,7 @@ class MainWindow(object):
             button.set_sensitive(True)
         self.export['dialog'].set_visible(False)
 
-        if self.__allow_multiselect:
+        if self.allow_multiselect:
             if doc.is_new:
                 logger.info("Selecting \"New document\" with other documents"
                             " isn't allowed")
@@ -2995,7 +2988,7 @@ class MainWindow(object):
 
         logger.info("Showing document {}".format(doc))
 
-        if not self.__allow_multiselect:
+        if not self.allow_multiselect:
             self.doclist.select_doc(doc, open_doc=False)
 
         if self.doc:
@@ -3293,7 +3286,7 @@ class MainWindow(object):
                 event.keyval == Gdk.KEY_Shift_L or
                 event.keyval == Gdk.KEY_Shift_R or
                 event.state & Gdk.ModifierType.MODIFIER_MASK):
-            self.__allow_multiselect = True
+            self.allow_multiselect = True
 
         if direction != 0:
             if not event.state & Gdk.ModifierType.CONTROL_MASK:
@@ -3324,7 +3317,7 @@ class MainWindow(object):
                 event.keyval == Gdk.KEY_Shift_L or
                 event.keyval == Gdk.KEY_Shift_R or
                 event.state & Gdk.ModifierType.MODIFIER_MASK):
-            self.__allow_multiselect = False
+            self.allow_multiselect = False
 
     def get_doc_sorting(self):
         return ("scan_date", sort_documents_by_date)

@@ -311,18 +311,36 @@ class DocIndexUpdater(GObject.GObject):
         self.label_guesser_updater.del_doc(doc)
         doc.drop_cache()
 
+    @staticmethod
+    def _commit_wrapper(to_commit):
+        to_commit.commit()
+
     def commit(self, index_update=True, label_guesser_update=True):
         """
         Apply the changes to the index
         """
         logger.info("Index: Commiting changes")
+        # HACK(Jflesch):
+        # we do the commits in the separate process to not block the Python
+        # interpreter (see Python's Global Lock)
         if index_update:
-            self.index_writer.commit()
+            process = multiprocessing.Process(
+                target=self._commit_wrapper,
+                args=(self.index_writer,)
+            )
+            process.start()
+            process.join()
         else:
             self.index_writer.cancel()
         del self.index_writer
+        self.docsearch.index.refresh()
         if label_guesser_update:
-            self.label_guesser_updater.commit()
+            process = multiprocessing.Process(
+                target=self._commit_wrapper,
+                args=(self.label_guesser_updater,)
+            )
+            process.start()
+            process.join()
         if index_update:
             self.docsearch.reload_searcher()
 

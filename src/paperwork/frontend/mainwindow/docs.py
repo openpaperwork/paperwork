@@ -837,6 +837,7 @@ class DocList(object):
             self.model['by_row'] = {}
             self.model['by_id'] = {}
             self.model['has_new'] = False
+            self.gui['nb_boxes'] = 0
         finally:
             self.gui['list'].thaw_child_notify()
 
@@ -923,8 +924,13 @@ class DocList(object):
     def _add_boxes(self):
         start = self.gui['nb_boxes']
         stop = self.gui['nb_boxes'] + self.LIST_CHUNK
+        docs = self.model['docids'][start:stop]
 
-        for docid in self.model['docids'][start:stop]:
+        logger.info("Will display documents {}:{} (actual number: {})".format(
+            start, stop, len(docs)
+        ))
+
+        for docid in docs:
             rowbox = self.model['by_id'][docid]
             self.gui['list'].add(rowbox)
             self.gui['nb_boxes'] += 1

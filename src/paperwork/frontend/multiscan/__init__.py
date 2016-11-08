@@ -175,13 +175,15 @@ class ActionScan(SimpleAction):
             logger.warning("Exception while configuring scanner: %s: %s."
                            " Assuming scanner is not connected",
                            type(exc), exc)
+            logger.exception(exc)
             popup_no_scanner_found(self.__multiscan_win.window)
             raise
 
         try:
             scan_session = dev.scan(multiple=True)
         except Exception as exc:
-            logger.warning("Exception while scanning: {}".format(exc))
+            logger.error("Exception while scanning: {}".format(exc))
+            logger.exception(exc)
             self.__on_scan_error(exc)
             raise
 
@@ -413,6 +415,7 @@ class MultiscanDialog(GObject.GObject):
 
     def on_scan_error_cb(self, page_scan, exception):
         logger.warning("Scan failed: %s" % str(exception))
+        logger.exception(exception)
         logger.info("Scan job cancelled")
 
         self.emit('need-doclist-refresh')

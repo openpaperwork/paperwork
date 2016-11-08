@@ -344,6 +344,7 @@ def get_scanner(config, preferred_sources=None):
     except (KeyError, pyinsane2.PyinsaneException) as exc:
         logger.warning("Exception while configuring scanner: %s: %s"
                        % (type(exc), exc))
+        logger.exception(exc)
         # we didn't find the scanner at the given ID
         # but maybe there is only one, so we can guess the scanner to use
         devices = [x for x in pyinsane2.get_devices() if x[:4] != "v4l:"]

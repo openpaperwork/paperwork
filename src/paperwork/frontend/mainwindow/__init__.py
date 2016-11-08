@@ -533,6 +533,7 @@ class JobDocSearcher(Job):
         except Exception as exc:
             logger.error("Invalid search: [%s]" % self.search)
             logger.error("Exception was: %s: %s" % (type(exc), str(exc)))
+            logger.exception(exc)
             self.emit('search-invalid')
             return
         if not self.can_run:
@@ -1295,6 +1296,7 @@ class ActionSingleScan(SimpleAction):
                 logger.warning("Exception while configuring scanner: %s: %s."
                                " Assuming scanner is not connected",
                                type(exc), exc)
+                logger.exception(exc)
                 popup_no_scanner_found(self.__main_win.window, str(exc))
                 return
             try:
@@ -2566,6 +2568,7 @@ class MainWindow(object):
                 "Exception while configuring GTK decorations: %s: %s"
                 % (str(type(exc)), str(exc))
             )
+            logger.exception(exc)
 
         widget_tree.get_object("labelTotalPages").set_size_request(1, 30)
         widget_tree.get_object("entryPageNb").set_size_request(1, 30)

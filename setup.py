@@ -189,6 +189,8 @@ Main features are:
          ['data/paperwork_100.png']),
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/magic_colors.png']),
+        (os.path.join(sys.prefix, 'share/paperwork'),
+         ['data/gnome-spinner.png']),
     ],
     scripts=[
         'scripts/paperwork',

@@ -956,6 +956,7 @@ class ActionNewDocument(SimpleAction):
 
         doclist = self.__doclist.gui['list']
         row = doclist.get_row_at_index(0)
+        doclist.unselect_all()
         doclist.select_row(row)
         self.__doclist.gui['scrollbars'].get_vadjustment().set_value(0)
 
@@ -1172,6 +1173,9 @@ class ActionOpenDocDir(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        if os.name == 'nt':
+            os.startfile(self.__main_win.doc.path)
+            return
         os.system('xdg-open "%s" &' % (self.__main_win.doc.path))
 
 
@@ -1550,7 +1554,7 @@ class ActionRedoOCR(SimpleAction):
 class AllPagesIterator(object):
     def __init__(self, docsearch):
         self.__doc_iter = iter(docsearch.docs)
-        doc = self.__doc_iter.next()
+        doc = next(self.__doc_iter)
         self.__page_iter = iter(doc.pages)
 
     def __iter__(self):
@@ -2529,9 +2533,9 @@ class MainWindow(object):
                 "PAPERWORK_EXPIRED_FONT", self.default_font
             )
             renderer.FONT = self.default_font
-            css_provider.load_from_data(
-                "* {{ font-family: {}; }}".format(self.default_font).encode("utf-8")
-            )
+            css = "* {{ font-family: {}; }}".format(self.default_font)
+            css = css.encode("utf-8")
+            css_provider.load_from_data(css)
             Gtk.StyleContext.add_provider_for_screen(
                 Gdk.Screen.get_default(),
                 css_provider,
@@ -2959,11 +2963,31 @@ class MainWindow(object):
             button.set_sensitive(True)
         self.export['dialog'].set_visible(False)
 
+        if self.__allow_multiselect:
+            if doc.is_new:
+                logger.info("Selecting \"New document\" with other documents"
+                            " isn't allowed")
+                self.doclist.unselect_doc(doc)
+                return
+            if self.doc is not None and self.doc == doc:
+                logger.info("Unselecting {}".format(doc))
+                self.doclist.unselect_doc(doc)
+                doc = self.doclist.get_closest_selected_doc(doc)
+                if not doc:
+                    return
+            # Make sure the new document is not selected
+            self.doclist.unselect_doc(self.doclist.new_doc)
+        elif self.doclist.has_multiselect():
+            # current selection isn't valid anymore
+            force_refresh = True
+
         if (self.doc is not None and
                 self.doc == doc and
                 not force_refresh):
             logger.info("Doc is already shown")
             return
+
+        logger.info("Showing document {}".format(doc))
 
         if not self.__allow_multiselect:
             self.doclist.select_doc(doc, open_doc=False)
@@ -2972,7 +2996,6 @@ class MainWindow(object):
             self.doc.drop_cache()
         gc.collect()
 
-        logger.info("Showing document %s" % doc)
         self.doc = doc
         if not self.page or self.page.doc.docid != doc.docid:
             if doc.nb_pages > 0:

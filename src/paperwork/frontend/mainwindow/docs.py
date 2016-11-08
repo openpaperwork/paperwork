@@ -363,13 +363,17 @@ class ActionOpenSelectedDocument(SimpleAction):
         self.__doclist = doclist
 
     def do(self):
+        self.on_row_activated_cb(self)
+
+    def on_row_activated_cb(self, _=None, row=None):
         if not self.__doclist.enabled:
             return
 
         SimpleAction.do(self)
 
         doclist = self.__doclist.gui['list']
-        row = doclist.get_selected_row()
+        if row is None:
+            row = doclist.get_selected_row()
         if row is None:
             return
         docid = self.__doclist.model['by_row'][row]
@@ -377,14 +381,6 @@ class ActionOpenSelectedDocument(SimpleAction):
         if doc is None:
             # assume new doc
             doc = self.__doclist.get_new_doc()
-
-        if doc == self.__main_win.doc:
-            logger.info(
-                "Document {} selected, but already displayed. Ignored".format(
-                    doc.docid
-                )
-            )
-            return
 
         logger.info("Showing doc %s" % doc)
         if doc.nb_pages <= 1:
@@ -530,6 +526,7 @@ class ActionDeleteDoc(SimpleAction):
         """
         Ask for confirmation and then delete the document being viewed.
         """
+        super().do()
         if not ask_confirmation(self.__main_win.window):
             return
         GLib.idle_add(self._do)
@@ -992,6 +989,30 @@ class DocList(object):
             search=search)
         self.__main_win.schedulers['main'].schedule(job)
 
+    def has_multiselect(self):
+        return (len(self.gui['list'].get_selected_rows()) > 1)
+
+    def unselect_doc(self, doc):
+        if not doc.docid in self.model['by_id']:
+            return
+        row = self.model['by_id'][doc.docid]
+        self.gui['list'].unselect_row(row)
+
+    def get_closest_selected_doc(self, doc):
+        current = self.model['by_id'][doc.docid].get_index()
+        best_row = None
+        best_distance = 9999999999
+        for row in self.gui['list'].get_selected_rows():
+            distance = abs(row.get_index() - current)
+            assert distance > 0, "'doc' should have been unselected first"
+            if distance < best_distance:
+                best_distance = distance
+                best_row = row
+        if not best_row:
+            return
+        docid = self.model['by_row'][best_row]
+        return self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
+
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc
         try:
@@ -1073,7 +1094,7 @@ class DocList(object):
         rows = self.gui['list'].get_selected_rows()
         docids = [self.model['by_row'][row] for row in rows]
         return [
-            self.__main_win.docsearch.get_doc_from_docid(docid)
+            self.__main_win.docsearch.get_doc_from_docid(docid, inst=True)
             for docid in docids
         ]
 

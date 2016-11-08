@@ -1684,6 +1684,11 @@ class PageDropHandler(Drawer):
 
     size = property(get_size)
 
+    def get_visible(self):
+        return self.active
+
+    visible = property(get_visible)
+
     def do_draw(self, cairo_ctx):
         if not self.active:
             return

@@ -2791,7 +2791,7 @@ class MainWindow(object):
             Gtk.StateFlags.NORMAL,
             Gdk.RGBA(red=1.0, green=0.0, blue=0.0, alpha=1.0)
         )
-        self.clear_doclist()
+        self.doclist.clear()
 
     def switch_leftpane(self, to):
         for (name, revealers) in self.left_revealers.items():

@@ -67,18 +67,6 @@ MODULES = [
 
 DATA_FILES = [
     (
-        "Gnome spinner icon"
-        " (/usr/share/icons/gnome/(...)/process-working.png)",
-        [
-            "/usr/share/icons/gnome/48x48/animations/process-working.png",
-            "/usr/local/share/icons/gnome/48x48/animations/process-working.png",
-        ],
-        {
-            'debian': 'gnome-icon-theme',
-            'ubuntu': 'gnome-icon-theme-full',
-        },
-    ),
-    (
         "Gnome symbolic icons"
         " (/usr/share/icons/gnome/(...)/go-previous-symbolic.svg",
         [

@@ -11,6 +11,9 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
+    # Note: Paperwork now uses Python 3, and this package list hasn't
+    # been updated yet. If you know the correct package names, please
+    # send a pull request
     $ sudo dnf install python-pip python-setuptools python-devel
 
     # Pillow build dependencies :
@@ -25,7 +28,7 @@ rest of the commands are the same.
 
 ## System-wide installation
 
-    $ sudo pip install paperwork
+    $ sudo python3 -m pip install paperwork
     # This command will install Paperwork and tell you if some extra
     # dependencies are required.
     # IMPORTANT: the extra dependencies list may be drown in the output. You

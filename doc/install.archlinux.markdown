@@ -15,17 +15,16 @@ Please do **not** report issue with packages on Paperwork's bugtracker. It is
 See the [Fedora](install.fedora.markdown) or [Debian](install.debian.markdown) installation
 guides for reference.
 
-Please note that there is a key difference between ArchLinux and other
-distributions: It's using Python 3.x by default instead of Python 2.7.
-So you must replace the following commands:
-
-* pip / python-pip --> pip2.7
-* python --> python2.7
-
 
 ## Runtime dependencies
 
-### Paperwork &gt;= 0.2.1
+### Paperwork &gt;= 1.0
+
+Once installed, please run ```paperwork-shell chkdeps paperwork_backend```
+and ```paperwork-shell chkdeps paperwork``` to make sure all the required
+depencies are installed.
+
+### Paperwork &gt;= 0.2.1 and &lt; 1.0
 
 Once installed, please run 'paperwork-chkdeps' to make sure all the required depencies are installed.
 

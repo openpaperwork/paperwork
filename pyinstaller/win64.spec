@@ -38,7 +38,8 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
             or "egg" in dirpath.lower()):
         continue
     for filename in filenames:
-        if (not filename.lower().endswith(".svg")
+        if (not filename.lower().endswith(".png")
+                and not filename.lower().endswith(".svg")
                 and not filename.lower().endswith(".xml")
                 and not filename.lower().endswith(".glade")
                 and not filename.lower().endswith(".css")
@@ -47,7 +48,7 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
         filepath = os.path.join(dirpath, filename)
 
         basename = os.path.basename(dirpath)
-        if basename != "frontend":
+        if basename != "frontend" and basename != "data":
             dest = os.path.join("data", os.path.basename(dirpath))
         else:
             dest = "data"
@@ -79,7 +80,7 @@ exe = EXE(
     debug=False,
     strip=False,
     upx=True,
-    console=True
+    console=False
 )
 coll = COLLECT(
     exe,

@@ -8,7 +8,7 @@ Currently, there is no official Debian or Ubuntu package for Paperwork.
 
 ## Build dependencies
 
-    $ sudo apt-get install python-pip python-setuptools python-dev python-pil
+    $ sudo apt-get install python3-pip python3-setuptools python3-dev python3-pil
 
     # PyEnchant dependency
     $ sudo apt-get install libenchant-dev
@@ -18,7 +18,7 @@ Currently, there is no official Debian or Ubuntu package for Paperwork.
 
 You can then install paperwork using pip:
 
-    $ sudo pip install paperwork
+    $ sudo pip3 install paperwork
 
 Some dependencies cannot be installed automatically, because they depend on
 your language. You can find all the required dependencies not yet installed by
@@ -32,7 +32,7 @@ running 'paperwork-chkdeps'
 
 If you're reluctant to install system wide python libraries through pip, you can also use debian packages generated on the fly by [python-stdeb](https://pypi.python.org/pypi/stdeb) (install build dependencies above first):
 
-    $ sudo apt-get install python-stdeb
+    $ sudo apt-get install python3-stdeb
     $ sudo pypi-install pyocr
     $ sudo pypi-install pyinsane
     $ sudo pypi-install paperwork

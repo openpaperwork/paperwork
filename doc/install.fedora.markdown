@@ -34,7 +34,8 @@ rest of the commands are the same.
 Some dependencies cannot be installed automatically. You can find all the
 missing dependencies by running 'paperwork-chkdeps'.
 
-    $ paperwork-chkdeps
+    $ paperwork-shell chkdeps paperwork_backend
+    $ paperwork-shell chkdeps paperwork
 
 
 ## Running Paperwork

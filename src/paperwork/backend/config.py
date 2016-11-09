@@ -148,7 +148,8 @@ class PaperworkConfig(object):
             return False
 
         try:
-            util.hide_file(file_path)
+            # Windows support
+            util.hide_file(os.path.expanduser(os.path.join("~", ".config")))
         except Exception as exc:
             logger.warn("Failed to hide configuration file")
             logger.exception(exc)

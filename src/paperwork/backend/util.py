@@ -315,6 +315,10 @@ def find_language(lang_str=None, allow_none=False):
     except KeyError:
         pass
     try:
+        return pycountry.pycountry.languages.get(iso639_3_code=lang_str)
+    except KeyError:
+        pass
+    try:
         return pycountry.pycountry.languages.get(iso639_2T_code=lang_str)
     except KeyError:
         pass
@@ -331,12 +335,22 @@ def find_language(lang_str=None, allow_none=False):
     except KeyError:
         pass
     try:
+        return pycountry.pycountry.languages.get(alpha_3=lang_str)
+    except KeyError:
+        pass
+    try:
+        return pycountry.pycountry.languages.get(alpha_2=lang_str)
+    except KeyError:
+        pass
+    try:
         return pycountry.pycountry.languages.get(alpha2=lang_str)
     except KeyError:
         pass
     if allow_none:
         logger.warning("Unknown language [{}]".format(lang_str))
         return None
+    if lang_str is not None and lang_str == 'eng':
+        raise Exception("Unable to find language !")
     logger.warning("Unknown language [{}]. Switching back to english".format(
         lang_str
     ))

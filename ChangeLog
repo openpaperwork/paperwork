@@ -1,3 +1,4 @@
+2016/11/09 - 1.0:
 * Export: generated PDF now includes the text from the OCR
 * New command 'paperwork-shell scan' that starts Paperwork and immediately
   tries to scan a page
@@ -24,6 +25,7 @@
 * Switch from Pyinsane to Pyinsane2
 * Fix file descriptor leak related to PDFs
 * Add a dialog to help bug diagnostics
+* Replace gnome spinner by a custom spinner
 
 
 2016/04/06 - 0.3.2:

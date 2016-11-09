@@ -202,7 +202,7 @@ Main features are:
         "pyocr >= 0.3.0",
         "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend >= 0.4",
+        "paperwork-backend >= 1.0",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

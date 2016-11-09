@@ -246,7 +246,9 @@ class _PaperworkFrontendConfigUtil(object):
         lang = find_language(ocr_lang)
         if hasattr(lang, 'iso639_1_code'):
             return lang.iso639_1_code
-        return lang.alpha2
+        if hasattr(lang, 'alpha2'):
+            return lang.alpha2
+        return lang.alpha_2
 
 
 def load_config():

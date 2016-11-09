@@ -38,7 +38,8 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
             or "egg" in dirpath.lower()):
         continue
     for filename in filenames:
-        if (not filename.lower().endswith(".png")
+        if (not filename.lower().endswith(".ico")
+                and not filename.lower().endswith(".png")
                 and not filename.lower().endswith(".svg")
                 and not filename.lower().endswith(".xml")
                 and not filename.lower().endswith(".glade")
@@ -80,7 +81,8 @@ exe = EXE(
     debug=False,
     strip=False,
     upx=True,
-    console=False
+    console=False,
+    icon=os.path.join(BASE_PATH, 'data', 'paperwork_32.ico')
 )
 coll = COLLECT(
     exe,

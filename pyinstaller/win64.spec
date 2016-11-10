@@ -49,10 +49,13 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
         filepath = os.path.join(dirpath, filename)
 
         basename = os.path.basename(dirpath)
-        if basename != "frontend" and basename != "data":
-            dest = os.path.join("data", os.path.basename(dirpath))
-        else:
+        if basename == "frontend" or basename == "data":
             dest = "data"
+        elif filename.lower().endswith(".mo"):
+            dirpath = os.path.dirname(dirpath)  # drop 'LC_MESSAGES'
+            dest = os.path.join("share", "locale", os.path.basename(dirpath), "LC_MESSAGES")
+        else:
+            dest = os.path.join("data", os.path.basename(dirpath))
         sys.stderr.write(
             "=== Adding file [{}] --> [{}] ===\n".format(filepath, dest)
         )

@@ -47,7 +47,7 @@ logger = logging.getLogger(__name__)
 
 LOCALE_PATHS = []
 if getattr(sys, 'frozen', False):
-    LOCALE_PATHS += [os.path.join(sys._MEIPASS, "data")]
+    LOCALE_PATHS += [os.path.join(sys._MEIPASS, "share")]
 LOCALE_PATHS += [
     ('.'),
     ('/usr/local/share/'),
@@ -55,11 +55,28 @@ LOCALE_PATHS += [
 ]
 
 
+def set_locale_windows(locales_dir):
+    if not getattr(sys, 'frozen', False):
+        logger.warning("Gtk locales only supported with Pyinstaller")
+        return
+    import ctypes
+    libintl_path = os.path.abspath(os.path.join(sys._MEIPASS, "libintl-8.dll"))
+    libintl = ctypes.cdll.LoadLibrary(libintl_path)
+    libintl.bindtextdomain('paperwork', locales_dir)
+    libintl.bind_textdomain_codeset('paperwork', 'UTF-8')
+    logger.info("[Win] Locale path successfully set {}".format(locales_dir))
+
 
 def set_locale():
     """
     Enable locale support
     """
+    if os.name == "nt":
+        lang = locale.getdefaultlocale()[0]
+        os.environ['LANG'] = lang
+        logger.info("System locale: {}".format(lang))
+        logger.info("Glib locale: {}".format(GLib.get_language_names()))
+
     try:
         locale.setlocale(locale.LC_ALL, '')
     except locale.Error:
@@ -85,10 +102,21 @@ def set_locale():
 
     if not got_locales:
         logger.warning("No suitable localization file found.")
-    else:
-        logger.info("Using locales in '%s'" % locales_path)
-        for module in (gettext, locale):
+        return
+
+    if os.name == "nt":
+        try:
+            set_locale_windows(locales_path)
+        except Exception as exc:
+            logger.warning("Failed to set windows locale: {}".format(exc))
+            logger.exception(exc)
+            raise
+
+    logger.info("Using locales in '%s'" % locales_path)
+    for module in (gettext, locale):
+        if hasattr(module, 'bindtextdomain'):
             module.bindtextdomain('paperwork', locales_path)
+        if hasattr(module, 'textdomain'):
             module.textdomain('paperwork')
 
 

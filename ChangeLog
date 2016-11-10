@@ -1,3 +1,8 @@
+2016/11/10 - 1.0.1:
+* Config: Fix pycountry db lookup (prevent Paperwork's first start)
+* Pyinstaller: Add .ico + .png in the package
+
+
 2016/11/09 - 1.0:
 * Export: generated PDF now includes the text from the OCR
 * New command 'paperwork-shell scan' that starts Paperwork and immediately

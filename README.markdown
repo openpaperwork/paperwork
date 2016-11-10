@@ -57,6 +57,10 @@ In other words, let the machine do most of the work for you.
 
 ## Installation
 
+Note regarding updates:
+If you're upgrading from a previous version installed with pip, it is strongly recommended you uninstall
+it first before installing the new version.
+
 * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
 * [GNU/Linux Debian](doc/install.debian.markdown)
 * [GNU/Linux Fedora](doc/install.fedora.markdown)
@@ -65,6 +69,21 @@ In other words, let the machine do most of the work for you.
 * [Docker](doc/install.docker.markdown)
 * [GNU/Linux Development](doc/install.devel.markdown)
 * Windows: [Installation](https://openpaper.work/download) / [Development](doc/devel.windows.markdown)
+
+
+## Uninstall
+
+### GNU/Linux
+
+[Doc](doc/uninstall.linux.markdown)
+
+### Windows
+
+If you used the installer from [OpenPaper](https://openpaper.work), Paperwork can be uninstalled like any
+other Windows application (something like Control Panel --> Applications --> Uninstall).
+
+If you installed it manually (for development), you can follow the same process than for
+[GNU/Linux](doc/uninstall.linux.markdown)
 
 
 ## Donate

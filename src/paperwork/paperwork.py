@@ -38,6 +38,8 @@ import signal
 
 import pyinsane2
 
+from .frontend.diag import LogTracker
+from .frontend.mainwindow import ActionRefreshIndex, MainWindow
 from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
@@ -118,42 +120,10 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-class SplashScreen(object):
-    def __init__(self):
-        self.window = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-        self.window.set_title("Paperwork")
-        self.window.set_decorated(False)
-        self.window.set_position(Gtk.WindowPosition.CENTER)
-        if getattr(sys, 'frozen', False):
-            imgpath = os.path.join(sys._MEIPASS, "data", "paperwork_100.png")
-        else:
-            imgpath = os.path.join("data", "paperwork_100.png")
-        img = Gtk.Image.new_from_file(imgpath)
-        self.window.add(img)
-
-    def show(self):
-        self.window.show_all()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-
-    def _hide(self):
-        self.window.destroy()
-        self.window = None
-
-    def hide(self):
-        GLib.idle_add(self._hide)
-
-
 def main(hook_func=None):
     """
     Where everything start.
     """
-    if os.name == "nt":
-        # start on Windows can be *REALLY* slow
-        splashscreen = SplashScreen()
-        splashscreen.show()
-
-    from .frontend.diag import LogTracker
     LogTracker.init()
 
     set_locale()
@@ -173,17 +143,12 @@ def main(hook_func=None):
         config = load_config()
         config.read()
 
-        from .frontend.mainwindow import ActionRefreshIndex, MainWindow
-
         main_win = MainWindow(config)
         ActionRefreshIndex(main_win, config).do()
 
         if hook_func:
             thread = threading.Thread(target=hook_func, args=(config, main_win))
             thread.start()
-
-        if os.name == "nt":
-            splashscreen.hide()
 
         Gtk.main()
 

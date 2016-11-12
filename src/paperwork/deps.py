@@ -77,6 +77,7 @@ DATA_FILES = [
         {
             'debian': 'gnome-icon-theme-symbolic',
             'ubuntu': 'gnome-icon-theme-symbolic',
+            'fedora': 'gnome-icon-theme-symbolic',
         }
     ),
 ]

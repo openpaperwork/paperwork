@@ -1943,9 +1943,7 @@ class BasicActionEndExport(SimpleAction):
         super().__init__(name)
         self.main_win = main_win
 
-    def _do(self):
-        super().do()
-
+    def hide_dialog(self):
         if self.main_win.export['dialog']:
             self.main_win.global_page_box.remove(self.main_win.export['dialog'])
             self.main_win.export['dialog'].set_visible(False)
@@ -1957,21 +1955,22 @@ class BasicActionEndExport(SimpleAction):
         # force refresh of the current page
         self.main_win.show_page(self.main_win.page, force_refresh=True)
 
-    def do(self):
-        GLib.idle_add(self._do)
-
 
 class ActionExport(BasicActionEndExport):
     def __init__(self, main_window):
         super().__init__(main_window, "Export")
         self.main_win = main_window
 
+    def _do(self):
+        filepath = self.main_win.export['export_path'].get_text()
+        self.main_win.export['exporter'].save(filepath)
+        self.hide_dialog()
+
     def do(self):
+        super().do()
         self.main_win.set_mouse_cursor("Busy")
         try:
-            filepath = self.main_win.export['export_path'].get_text()
-            self.main_win.export['exporter'].save(filepath)
-            super().do()
+            GLib.idle_add(self._do)
         finally:
             self.main_win.set_mouse_cursor("Normal")
 
@@ -1982,6 +1981,7 @@ class ActionCancelExport(BasicActionEndExport):
 
     def do(self):
         super().do()
+        GLib.idle_add(self.hide_dialog)
 
 
 class ActionOptimizeIndex(SimpleAction):

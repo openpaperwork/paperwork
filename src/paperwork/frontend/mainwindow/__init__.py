@@ -1632,9 +1632,73 @@ class BasicActionOpenExportDialog(SimpleAction):
             pil_img, output_type=pillowfight.SWT_OUTPUT_BW_TEXT
         )
 
+    def init_dialog(self):
+        widget_tree = load_uifile(os.path.join("mainwindow", "export.glade"))
+        self.main_win.export['dialog'] = widget_tree.get_object("infobarExport")
+        self.main_win.export['fileFormat'] = {
+            'widget': widget_tree.get_object("comboboxExportFormat"),
+            'model': widget_tree.get_object("liststoreExportFormat"),
+        }
+        self.main_win.export['pageSimplification'] = {
+            'label': widget_tree.get_object("labelPageSimplification"),
+            'widget': widget_tree.get_object("comboboxPageSimplification"),
+            'model': widget_tree.get_object("liststorePageSimplification"),
+        }
+        self.main_win.export['pageFormat'] = {
+            'label': widget_tree.get_object("labelPageFormat"),
+            'widget': widget_tree.get_object("comboboxPageFormat"),
+            'model': widget_tree.get_object("liststorePageFormat"),
+        }
+        self.main_win.export['quality'] = {
+            'label': widget_tree.get_object("labelExportQuality"),
+            'widget': widget_tree.get_object("scaleQuality"),
+            'model': widget_tree.get_object("adjustmentQuality"),
+        }
+        self.main_win.export['estimated_size'] = \
+            widget_tree.get_object("labelEstimatedExportSize")
+        self.main_win.export['export_path'] = \
+            widget_tree.get_object("entryExportPath")
+        self.main_win.export['buttons'] = {
+                'select_path':
+                widget_tree.get_object("buttonSelectExportPath"),
+                'ok': widget_tree.get_object("buttonExport"),
+                'cancel': widget_tree.get_object("buttonCancelExport"),
+        }
+
+        self.main_win.export['estimated_size'].set_text("")
+
+        actions = {
+            'cancel_export': (
+                [widget_tree.get_object("buttonCancelExport")],
+                ActionCancelExport(self.main_win),
+            ),
+            'select_export_format': (
+                [widget_tree.get_object("comboboxExportFormat")],
+                ActionSelectExportFormat(self.main_win),
+            ),
+            'change_export_property': (
+                [
+                    widget_tree.get_object("scaleQuality"),
+                    widget_tree.get_object("comboboxPageFormat"),
+                    widget_tree.get_object("comboboxPageSimplification"),
+                ],
+                ActionChangeExportProperty(self.main_win),
+            ),
+            'select_export_path': (
+                [widget_tree.get_object("buttonSelectExportPath")],
+                ActionSelectExportPath(self.main_win),
+            ),
+            'export': (
+                [widget_tree.get_object("buttonExport")],
+                ActionExport(self.main_win),
+            ),
+        }
+        connect_actions(actions)
+
+
     def open_dialog(self, to_export):
         SimpleAction.do(self)
-        self.main_win.export['estimated_size'].set_text("")
+
         self.main_win.export['fileFormat']['model'].clear()
         nb_export_formats = 0
         formats = to_export.get_export_formats()
@@ -1674,7 +1738,12 @@ class BasicActionOpenExportDialog(SimpleAction):
                 simplification
             )
         self.main_win.export['pageSimplification']['widget'].set_active(0)
-        self.main_win.export['dialog'].set_visible(True)
+
+        self.main_win.export['dialog'].show_all()
+        self.main_win.global_page_box.add(self.main_win.export['dialog'])
+        self.main_win.global_page_box.reorder_child(
+            self.main_win.export['dialog'], 0
+        )
 
 
 class MultipleExportTarget(object):
@@ -1699,6 +1768,7 @@ class ActionOpenExportPageDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
+        self.init_dialog()
         self.main_win.export['to_export'] = self.main_win.page
         self.main_win.export['buttons']['ok'].set_label(_("Export page"))
         GLib.idle_add(self.open_dialog, self.main_win.page)
@@ -1711,6 +1781,7 @@ class ActionOpenExportDocDialog(BasicActionOpenExportDialog):
 
     def do(self):
         SimpleAction.do(self)
+        self.init_dialog()
         docs = self.main_win.doclist.get_selected_docs()
         if len(docs) == 0:
             logger.warning("Export: no document selected !?")
@@ -1872,16 +1943,17 @@ class BasicActionEndExport(SimpleAction):
         super().__init__(name)
         self.main_win = main_win
 
-    def _do(self):
-        super().do()
+    def hide_dialog(self):
+        if self.main_win.export['dialog']:
+            self.main_win.global_page_box.remove(self.main_win.export['dialog'])
+            self.main_win.export['dialog'].set_visible(False)
+            self.main_win.export['dialog'] = None
+
         self.main_win.export['exporter'] = None
         for button in self.main_win.actions['open_view_settings'][0]:
             button.set_sensitive(True)
         # force refresh of the current page
         self.main_win.show_page(self.main_win.page, force_refresh=True)
-
-    def do(self):
-        GLib.idle_add(self._do)
 
 
 class ActionExport(BasicActionEndExport):
@@ -1890,16 +1962,17 @@ class ActionExport(BasicActionEndExport):
         self.main_win = main_window
 
     def _do(self):
-        try:
-            filepath = self.main_win.export['export_path'].get_text()
-            self.main_win.export['exporter'].save(filepath)
-            super().do()
-        finally:
-            self.main_win.set_mouse_cursor("Normal")
+        filepath = self.main_win.export['export_path'].get_text()
+        self.main_win.export['exporter'].save(filepath)
+        self.hide_dialog()
 
     def do(self):
+        super().do()
         self.main_win.set_mouse_cursor("Busy")
-        GLib.idle_add(self._do)
+        try:
+            GLib.idle_add(self._do)
+        finally:
+            self.main_win.set_mouse_cursor("Normal")
 
 
 class ActionCancelExport(BasicActionEndExport):
@@ -1908,6 +1981,7 @@ class ActionCancelExport(BasicActionEndExport):
 
     def do(self):
         super().do()
+        GLib.idle_add(self.hide_dialog)
 
 
 class ActionOptimizeIndex(SimpleAction):
@@ -2205,37 +2279,9 @@ class MainWindow(object):
             'total': widget_tree.get_object("labelTotalPages"),
         }
 
+        self.global_page_box = widget_tree.get_object("globalPageBox")
         self.export = {
-            'dialog': widget_tree.get_object("infobarExport"),
-            'fileFormat': {
-                'widget': widget_tree.get_object("comboboxExportFormat"),
-                'model': widget_tree.get_object("liststoreExportFormat"),
-            },
-            'pageSimplification': {
-                'label': widget_tree.get_object("labelPageSimplification"),
-                'widget': widget_tree.get_object("comboboxPageSimplification"),
-                'model': widget_tree.get_object("liststorePageSimplification"),
-            },
-            'pageFormat': {
-                'label': widget_tree.get_object("labelPageFormat"),
-                'widget': widget_tree.get_object("comboboxPageFormat"),
-                'model': widget_tree.get_object("liststorePageFormat"),
-            },
-            'quality': {
-                'label': widget_tree.get_object("labelExportQuality"),
-                'widget': widget_tree.get_object("scaleQuality"),
-                'model': widget_tree.get_object("adjustmentQuality"),
-            },
-            'estimated_size':
-            widget_tree.get_object("labelEstimatedExportSize"),
-            'export_path': widget_tree.get_object("entryExportPath"),
-            'buttons': {
-                'select_path':
-                widget_tree.get_object("buttonSelectExportPath"),
-                'ok': widget_tree.get_object("buttonExport"),
-                'cancel': widget_tree.get_object("buttonCancelExport"),
-            },
-            'to_export': None,  # usually self.page or self.doc, or list of doc
+            'dialog': None,
             'exporter': None,
         }
 
@@ -2325,30 +2371,6 @@ class MainWindow(object):
                     gactions['export_page'],
                 ],
                 ActionOpenExportPageDialog(self)
-            ),
-            'cancel_export': (
-                [widget_tree.get_object("buttonCancelExport")],
-                ActionCancelExport(self),
-            ),
-            'select_export_format': (
-                [widget_tree.get_object("comboboxExportFormat")],
-                ActionSelectExportFormat(self),
-            ),
-            'change_export_property': (
-                [
-                    widget_tree.get_object("scaleQuality"),
-                    widget_tree.get_object("comboboxPageFormat"),
-                    widget_tree.get_object("comboboxPageSimplification"),
-                ],
-                ActionChangeExportProperty(self),
-            ),
-            'select_export_path': (
-                [widget_tree.get_object("buttonSelectExportPath")],
-                ActionSelectExportPath(self),
-            ),
-            'export': (
-                [widget_tree.get_object("buttonExport")],
-                ActionExport(self),
             ),
             'open_settings': (
                 [
@@ -2960,7 +2982,11 @@ class MainWindow(object):
         # make sure the export dialog didn't screw up
         for button in self.actions['open_view_settings'][0]:
             button.set_sensitive(True)
-        self.export['dialog'].set_visible(False)
+
+        if self.export['dialog']:
+            self.global_page_box.remove(self.export['dialog'])
+            self.export['dialog'].set_visible(False)
+            self.main_win.export['dialog'] = None
 
         if self.allow_multiselect:
             if doc.is_new:
@@ -3063,6 +3089,11 @@ class MainWindow(object):
         if (page.doc != self.doc or force_refresh):
             self._show_doc_internal(page.doc, force_refresh)
 
+        if self.export['dialog']:
+            self.global_page_box.remove(self.export['dialog'])
+            self.export['dialog'].set_visible(False)
+            self.main_win.export['dialog'] = None
+
         drawer = None
         for d in self.page_drawers:
             if d.page == page:
@@ -3077,8 +3108,6 @@ class MainWindow(object):
         if self.export['exporter'] is not None:
             logger.info("Canceling export")
             self.actions['cancel_export'][1].do()
-
-        self.export['dialog'].set_visible(False)
 
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
         self.img['canvas'].redraw()

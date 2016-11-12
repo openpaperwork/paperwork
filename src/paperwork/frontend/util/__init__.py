@@ -53,6 +53,16 @@ UI_FILES_DIRS += [
 ]
 
 
+def translate_xml(xml_str):
+    from xml.etree import ElementTree
+    root = ElementTree.fromstring(xml_str)
+    labels = root.findall('.//*[@name="label"][@translatable="yes"]')
+    for label in labels:
+        label.text = _(label.text)
+    out = ElementTree.tostring(root, encoding='UTF-8')
+    return out.decode('utf-8')
+
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
@@ -74,7 +84,16 @@ def load_uifile(filename):
             ui_file = os.path.join(ui_dir, filename)
             if os.access(ui_file, os.R_OK):
                 logger.info("UI file used: " + ui_file)
-                widget_tree.add_from_file(ui_file)
+                if os.name == "nt":
+                    # WORKAROUND(Jflesch):
+                    # for some reason, add_from_file() doesn't translate
+                    # on Windows
+                    with open(ui_file, "r", encoding='utf-8') as file_desc:
+                        content = file_desc.read()
+                    content = translate_xml(content)
+                    widget_tree.add_from_string(content)
+                else:
+                    widget_tree.add_from_file(ui_file)
                 has_ui_file = True
                 break
         if has_ui_file:

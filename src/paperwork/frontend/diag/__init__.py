@@ -126,15 +126,17 @@ class JobInfoGetter(Job):
         logger.info("Total number of documents: {}".format(nb_docs))
         logger.info("Document types: {}".format(str(doc_types)))
         logger.info("Total number of pages: {} (average: {}/doc)".format(
-            nb_pages, nb_pages / nb_docs
+            nb_pages, nb_pages / (nb_docs if nb_docs else -1)
         ))
         logger.info("Maximum number of pages in one document: {}".format(
             max_pages
         ))
         logger.info("Total number of words: {} (average: {}/page)".format(
-            nb_words, nb_words / nb_pages
+            nb_words, nb_words / (nb_pages if nb_pages else -1)
         ))
-        logger.info("Average word length: {}".format(total_word_len / nb_words))
+        logger.info("Average word length: {}".format(
+            total_word_len / (nb_words if nb_words else -1)
+        ))
         logger.info("Max word length: {}".format(max_word_len))
 
         logger.info("====== END OF PAPERWORK INFO ======")

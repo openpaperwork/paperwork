@@ -1968,7 +1968,6 @@ class ActionExport(BasicActionEndExport):
 
     def do(self):
         self.main_win.set_mouse_cursor("Busy")
-        GLib.idle_add(self._do)
         try:
             filepath = self.main_win.export['export_path'].get_text()
             self.main_win.export['exporter'].save(filepath)

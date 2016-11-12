@@ -166,6 +166,7 @@ Main features are:
         (
             os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
             [
+                'src/paperwork/frontend/mainwindow/export.glade',
                 'src/paperwork/frontend/mainwindow/mainwindow.glade',
             ]
         ),

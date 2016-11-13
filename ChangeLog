@@ -1,3 +1,6 @@
+1.0.2:
+- No change. Versions created only to match Paperwork-gui versions.
+
 1.0.1:
 - util/find_language(): fix pycountry db lookup
 - Windows: hide ~/.config instead of ~/.config/paperwork.conf

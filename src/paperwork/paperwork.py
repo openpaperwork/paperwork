@@ -131,6 +131,8 @@ def main(hook_func=None):
     GLib.threads_init()
     GObject.threads_init()
 
+    if hasattr(GLib, 'set_application_name'):
+        GLib.set_application_name("Paperwork")
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
                              Gtk.main_quit, None)

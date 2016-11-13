@@ -1695,7 +1695,6 @@ class BasicActionOpenExportDialog(SimpleAction):
         }
         connect_actions(actions)
 
-
     def open_dialog(self, to_export):
         SimpleAction.do(self)
 

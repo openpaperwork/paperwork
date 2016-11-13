@@ -393,6 +393,8 @@ class BasicScanWorkflowDrawer(Animation):
 
     layer = Animation.IMG_LAYER
 
+    visible = True
+
     def __init__(self, scan_workflow, page=None, previous_drawer=None):
         Animation.__init__(self)
 

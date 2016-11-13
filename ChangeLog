@@ -1,3 +1,15 @@
+2016/11/13 - 1.0.2:
+* Fix export dialog:
+  - Don't use GtkWidget.set_visible(False) / GtkWidget.set_visible(True)
+    anymore to avoid weird GTK behavior when reopening
+  - Fix endless loop that occured with some versions of the GLib
+* French translations: "Scanner" --> "Numeriser"
+* Windows support: Fix translations support
+* CSS: Add small padding to make sure the GtkEntry and GtkButton in the header
+  bar all have the same heights on all environments.
+* Fix menu icon: Add PNG versions of the PAperwork icon.
+
+
 2016/11/10 - 1.0.1:
 * Config: Fix pycountry db lookup (prevent Paperwork's first start)
 * Pyinstaller: Add .ico + .png in the package

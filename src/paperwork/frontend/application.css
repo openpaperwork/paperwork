@@ -11,6 +11,11 @@
   border-bottom-right-radius: 0px;
   border-right-width: 0px;
 }
+GtkEntry.button-left, GtkEntry.button-center {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  font-size: 11px;
+}
 .button-center {
   border-radius: 0px;
   border-right-width: 0px;

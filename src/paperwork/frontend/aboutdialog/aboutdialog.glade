@@ -718,7 +718,7 @@ Tristan Kohl &lt;blobbyjj@ymail.com&gt; (German)
     <property name="documenters">
 ludo &lt;ludo@zyrianes.net&gt;
     </property>
-    <property name="logo">paperwork.svg</property>
+    <property name="logo">paperwork</property>
     <property name="license_type">gpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox1">

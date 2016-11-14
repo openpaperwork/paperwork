@@ -2654,7 +2654,10 @@ class MainWindow(object):
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
 
-        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
+        logo_path = os.path.join(
+            sys.prefix,
+            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork.svg'
+        )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             window.set_icon(logo)

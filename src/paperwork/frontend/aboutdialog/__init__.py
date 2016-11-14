@@ -43,7 +43,10 @@ class AboutDialog(object):
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
 
-        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
+        logo_path = os.path.join(
+            sys.prefix, 'share', 'icons', 'hicolor', 'scalable', 'apps',
+            'paperwork.svg'
+        )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             self.__dialog.set_logo(logo)

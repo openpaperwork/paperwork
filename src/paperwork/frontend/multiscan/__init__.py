@@ -160,8 +160,9 @@ class ActionScan(SimpleAction):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def do(self):
         SimpleAction.do(self)
@@ -409,9 +410,11 @@ class MultiscanDialog(GObject.GObject):
                                    message_type=Gtk.MessageType.INFO,
                                    buttons=Gtk.ButtonsType.OK,
                                    message_format=msg)
-        dialog.run()
-        dialog.destroy()
-        self.dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(self.dialog.destroy))
+        dialog.show_all()
 
     def on_scan_error_cb(self, page_scan, exception):
         logger.warning("Scan failed: %s" % str(exception))
@@ -429,11 +432,14 @@ class MultiscanDialog(GObject.GObject):
                                        message_type=Gtk.MessageType.WARNING,
                                        buttons=Gtk.ButtonsType.OK,
                                        message_format=msg)
-            dialog.run()
-            dialog.destroy()
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(dialog.destroy))
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(self.dialog.destroy))
+            dialog.show_all()
         else:
+            # TODO(Jflesch): Dialog
             raise exception
-        self.dialog.destroy()
 
     def __on_destroy(self, window=None):
         logger.info("Multi-scan dialog destroyed")

@@ -1257,8 +1257,9 @@ class ActionSingleScan(SimpleAction):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
         if not scan_workflow:
             return
@@ -1393,8 +1394,9 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def __no_doc_imported(self):
         msg = _("No new document to import found")
@@ -1405,8 +1407,9 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def __import_error(self, msg):
         msg = _("Import failed: {}").format(msg)
@@ -1417,8 +1420,9 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def do(self):
         SimpleAction.do(self)
@@ -1452,13 +1456,17 @@ class ActionDeletePage(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Delete page")
         self.__main_win = main_window
+        self.page = None
 
     def do(self, page=None):
         """
         Ask for confirmation and then delete the page being viewed.
         """
-        if not ask_confirmation(self.__main_win.window):
-            return
+        self.page = page
+        ask_confirmation(self.__main_win.window, self._do)
+
+    def _do(self):
+        page = self.page
 
         if page is None:
             page = self.__main_win.page
@@ -1492,6 +1500,7 @@ class ActionRedoOCR(SimpleAction):
         SimpleAction.__init__(self, name)
         self._main_win = main_window
         self.ask_confirmation = ask_confirmation
+        self._iterator = None
 
     def _do_next_page(self, page_iterator, docs_done=None):
         try:
@@ -1537,12 +1546,15 @@ class ActionRedoOCR(SimpleAction):
                 self._main_win.docsearch, upd_docs=docs_done, optimize=False)
             self._main_win.schedulers['index'].schedule(job)
 
-    def do(self, pages_iterator):
-        if (self.ask_confirmation and
-                not ask_confirmation(self._main_win.window)):
-            return
+    def _do(self):
         SimpleAction.do(self)
-        self._do_next_page(pages_iterator)
+        self._do_next_page(self._iterator)
+
+    def do(self, pages_iterator):
+        self._iterator = pages_iterator
+        if not self.ask_confirmation:
+            return self._do()
+        ask_confirmation(self._main_win.window, self._do)
 
 
 class AllPagesIterator(object):
@@ -1659,10 +1671,10 @@ class BasicActionOpenExportDialog(SimpleAction):
         self.main_win.export['export_path'] = \
             widget_tree.get_object("entryExportPath")
         self.main_win.export['buttons'] = {
-                'select_path':
-                widget_tree.get_object("buttonSelectExportPath"),
-                'ok': widget_tree.get_object("buttonExport"),
-                'cancel': widget_tree.get_object("buttonCancelExport"),
+            'select_path':
+            widget_tree.get_object("buttonSelectExportPath"),
+            'ok': widget_tree.get_object("buttonExport"),
+            'cancel': widget_tree.get_object("buttonCancelExport"),
         }
 
         self.main_win.export['estimated_size'].set_text("")

@@ -527,9 +527,7 @@ class ActionDeleteDoc(SimpleAction):
         Ask for confirmation and then delete the document being viewed.
         """
         super().do()
-        if not ask_confirmation(self.__main_win.window):
-            return
-        GLib.idle_add(self._do)
+        ask_confirmation(self.__main_win.window, self._do)
 
     def _do(self):
         SimpleAction.do(self)
@@ -1288,8 +1286,9 @@ class DocPropertiesPanel(object):
                 buttons=Gtk.ButtonsType.OK,
                 text=msg
             )
-            dialog.run()
-            dialog.destroy()
+            dialog.connect("response", lambda dialog, response:
+                        GLib.idle_add(dialog.destroy))
+            dialog.show_all()
             raise
 
         # Labels

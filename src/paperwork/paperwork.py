@@ -29,9 +29,10 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
+from gi.repository import Gdk
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Gtk
-from gi.repository import GLib
 import locale
 import logging
 import signal
@@ -130,6 +131,7 @@ def main(hook_func=None):
 
     GLib.threads_init()
     GObject.threads_init()
+    Gdk.threads_init()
 
     if hasattr(GLib, 'set_application_name'):
         GLib.set_application_name("Paperwork")

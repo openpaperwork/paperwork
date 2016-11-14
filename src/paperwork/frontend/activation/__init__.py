@@ -277,11 +277,11 @@ class ActivationDialog(object):
                 message_type=Gtk.MessageType.INFO,
                 buttons=Gtk.ButtonsType.OK,
                 text=msg)
-            dialog.run()
-            dialog.destroy()
-            self.dialog.set_visible(False)
-            self.dialog.destroy()
-            self.dialog = None
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(dialog.destroy))
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(self.dialog.destroy))
+            dialog.show_all()
             return True
         logger.info("Invalid key: {}".format(error))
         self.label_error.set_text(error)

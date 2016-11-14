@@ -933,8 +933,9 @@ class SettingsWindow(GObject.GObject):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def on_scan_done(self, img, scan_resolution):
         scan_stop = time.time()

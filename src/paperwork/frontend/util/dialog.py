@@ -17,6 +17,7 @@
 import logging
 
 import gettext
+from gi.repository import GLib
 from gi.repository import Gtk
 
 
@@ -43,11 +44,21 @@ def popup_no_scanner_found(parent, error_msg=None):
                                message_type=Gtk.MessageType.WARNING,
                                buttons=Gtk.ButtonsType.OK,
                                text=msg)
-    dialog.run()
+    dialog.connect("response", lambda dialog, response:
+                   GLib.idle_add(dialog.destroy))
+    dialog.show_all()
+
+
+def _ask_confirmation_goto_next(dialog, response, next_func):
     dialog.destroy()
+    if response != Gtk.ResponseType.YES:
+        logger.info("User cancelled")
+        return
+    logger.info("User validated")
+    next_func()
 
 
-def ask_confirmation(parent):
+def ask_confirmation(parent, next_func):
     """
     Ask the user "Are you sure ?"
 
@@ -55,15 +66,17 @@ def ask_confirmation(parent):
         True --- if they are
         False --- if they aren't
     """
+    logger.info("Asking user confirmation")
     confirm = Gtk.MessageDialog(parent=parent,
                                 flags=Gtk.DialogFlags.MODAL
                                 | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                 message_type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
                                 text=_('Are you sure ?'))
-    response = confirm.run()
-    confirm.destroy()
-    if response != Gtk.ResponseType.YES:
-        logger.info("User cancelled")
-        return False
+    confirm.connect("response",
+                    lambda dialog, response: GLib.idle_add(
+                        _ask_confirmation_goto_next, dialog, response, next_func
+                    )
+                )
+    confirm.show_all()
     return True

@@ -14,7 +14,7 @@
     <property name="copyright" translatable="yes">
 </property>
     <property name="comments" translatable="yes">Grep for Dead Trees</property>
-    <property name="website">https://github.com/jflesch/paperwork#readme</property>
+    <property name="website">https://openpaper.work/</property>
     <property name="license">                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 

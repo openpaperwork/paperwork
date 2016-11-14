@@ -80,6 +80,8 @@ C:\Program Files (x86)\OpenPaper\ (for example)
             |-- fra.traineddata
 ```
 
+Note that it will only work if packaged with Pyinstaller.
+
 
 ## Disabling the cruel and unusual DRM
 

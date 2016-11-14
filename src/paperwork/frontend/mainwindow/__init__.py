@@ -1169,7 +1169,11 @@ class ActionOpenDocDir(SimpleAction):
         if os.name == 'nt':
             os.startfile(self.__main_win.doc.path)
             return
-        os.system('xdg-open "%s" &' % (self.__main_win.doc.path))
+        Gtk.show_uri(
+            self.__main_win.window.get_window().get_screen(),
+            GLib.filename_to_uri(self.__main_win.doc.path),
+            Gdk.CURRENT_TIME
+        )
 
 
 class ActionPrintDoc(SimpleAction):
@@ -2665,7 +2669,10 @@ class MainWindow(object):
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
 
-        logo_path = os.path.join(sys.prefix, 'share', 'icons', 'paperwork.svg')
+        logo_path = os.path.join(
+            sys.prefix,
+            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork.svg'
+        )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             window.set_icon(logo)

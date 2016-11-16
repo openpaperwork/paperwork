@@ -2493,7 +2493,9 @@ class MainWindow(object):
             self.actions['print'][0] +
             self.actions['open_doc_dir'][0] +
             self.actions['redo_ocr_doc'][0] +
-            self.actions['open_export_doc_dialog'][0]
+            self.actions['open_export_doc_dialog'][0] +
+            self.actions['set_current_page'][0] +
+            self.actions['open_view_settings'][0]
         )
 
         self.need_page_widgets = set(

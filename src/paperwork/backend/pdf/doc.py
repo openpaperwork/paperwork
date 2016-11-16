@@ -190,9 +190,7 @@ class PdfDoc(BasicDoc):
             return str(exc)
 
         try:
-            dest = Gio.File.parse_name(
-                "file://%s" % urllib.parse.quote(self.path)
-            )
+            dest = Gio.File.new_for_path(self.path)
             dest.make_directory(None)
         except GLib.GError as exc:
             logger.error("Warning: Error while trying to create '%s': %s"

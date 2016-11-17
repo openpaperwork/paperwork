@@ -201,6 +201,7 @@ class JobLabelCreator(Job):
 
     def do(self):
         self.emit('label-creation-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.create_label(self.__new_label, self.__doc,
                                           self.__progress_cb)
@@ -261,6 +262,7 @@ class JobLabelUpdater(Job):
 
     def do(self):
         self.emit('label-updating-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.update_label(self.__old_label, self.__new_label,
                                           self.__progress_cb)
@@ -320,6 +322,7 @@ class JobLabelDeleter(Job):
 
     def do(self):
         self.emit('label-deletion-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
@@ -473,13 +476,14 @@ class ActionCreateLabel(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         labeleditor = LabelEditor()
-        if labeleditor.edit(self.__main_win.window):
+        if labeleditor.edit(self.__main_win.window) == "ok":
             logger.info("Adding label %s to doc %s"
                         % (labeleditor.label.name, self.__main_win.doc))
             job = self.__doc_properties.job_factories['label_creator'].make(
                 self.__main_win.docsearch, labeleditor.label,
                 self.__main_win.doc)
             self.__main_win.schedulers['main'].schedule(job)
+            self.__doc_properties.refresh_label_list()
 
 
 class ActionEditLabel(SimpleAction):
@@ -507,13 +511,48 @@ class ActionEditLabel(SimpleAction):
 
         new_label = copy(label)
         editor = LabelEditor(new_label)
-        if not editor.edit(self.__main_win.window):
+        reply = editor.edit(self.__main_win.window)
+        if reply != "ok":
             logger.warning("Label edition cancelled")
             return
         logger.info("Label edited. Applying changes")
         job = self.__doc_properties.job_factories['label_updater'].make(
             self.__main_win.docsearch, label, new_label)
         self.__main_win.schedulers['main'].schedule(job)
+        self.__doc_properties.refresh_label_list()
+
+
+class ActionDeleteLabel(SimpleAction):
+    """
+    Delete the selected label.
+    """
+    def __init__(self, main_window, doc_properties):
+        SimpleAction.__init__(self, "Deleting label")
+        self.__main_win = main_window
+        self.__doc_properties = doc_properties
+
+    def do(self):
+        SimpleAction.do(self)
+
+        # Open the russian dolls to retrieve the selected label.
+        label_list = self.__doc_properties.lists['labels']['gui']
+        selected_row = label_list.get_selected_row()
+        if selected_row is None:
+            logger.warning("No label selected")
+            return True
+        label_box = selected_row.get_children()[0]
+        label_name = label_box.get_children()[2].get_text()
+        label_color = label_box.get_children()[1].get_rgba().to_string()
+        label = Label(label_name, label_color)
+
+        if not ask_confirmation(self.__main_win.window):
+            return
+
+        logger.info("Label {} must be deleted. Applying changes".format(label))
+        job = self.__doc_properties.job_factories['label_deleter'].make(
+            self.__main_win.docsearch, label)
+        self.__main_win.schedulers['main'].schedule(job)
+        self.__doc_properties.refresh_label_list()
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1295,7 +1334,8 @@ class DocPropertiesPanel(object):
         logger.info("Checking for new labels")
         doc_labels = sorted(self.doc.labels)
         new_labels = []
-        for (label, (check_button, edit_button)) in self.labels.items():
+        for (label, (row, check_button, edit_button, delete_button)) \
+                in self.labels.items():
             if check_button.get_active():
                 new_labels.append(label)
         new_labels.sort()
@@ -1396,13 +1436,24 @@ class DocPropertiesPanel(object):
                 label_box.add(label_widget)
                 label_box.child_set_property(label_widget, 'expand', True)
 
+                delete_button = Gtk.Button.new_from_icon_name(
+                    "edit-delete", Gtk.IconSize.MENU
+                )
+                delete_button.set_relief(Gtk.ReliefStyle.NONE)
+                delete_button.connect("clicked", self.on_label_button_clicked)
+                ActionDeleteLabel(self.__main_win, self).connect([delete_button])
+                label_box.add(delete_button)
+
                 rowbox = Gtk.ListBoxRow()
                 rowbox.add(label_box)
                 rowbox.set_property('height_request', 30)
                 rowbox.show_all()
+                delete_button.set_visible(False)
                 self.widgets['labels'].add(rowbox)
 
-                label_widgets[label] = (check_button, edit_button)
+                label_widgets[label] = (
+                    rowbox, check_button, edit_button, delete_button
+                )
 
             # The last row allows to add new labels
             self.widgets['labels'].add(self.widgets['row_add_label'])
@@ -1438,8 +1489,13 @@ class DocPropertiesPanel(object):
         When no specific part of a row is clicked on, do as if user had clicked
         on it's check_button. This requires less precision for the user.
         """
-        row = rowbox.get_selected_row()
-        label_box = row.get_children()[0]
+        selected_row = rowbox.get_selected_row()
+
+        for (label, (row, check_button, edit_button, delete_button)) \
+                in self.labels.items():
+            delete_button.set_visible(row == selected_row)
+
+        label_box = selected_row.get_children()[0]
         check_button = label_box.get_children()[0]
         if check_button.get_active():
             check_button.set_active(False)
@@ -1449,15 +1505,14 @@ class DocPropertiesPanel(object):
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
         current_labels = sorted(self.labels.keys())
-        if all_labels != current_labels:
-            self._clear_label_list()
-            self._readd_label_widgets(all_labels)
+        self._clear_label_list()
+        self._readd_label_widgets(all_labels)
         for label in self.labels:
             if self.doc:
                 active = label in self.doc.labels
             else:
                 active = False
-            self.labels[label][0].set_active(active)
+            self.labels[label][1].set_active(active)
 
     def on_keywords_focus_in(self, textarea, event):
         extra_style = self.widgets['extra_keywords'].get_style_context()

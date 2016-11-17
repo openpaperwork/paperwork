@@ -1683,7 +1683,7 @@ class BasicActionOpenExportDialog(SimpleAction):
 
         self.main_win.export['estimated_size'].set_text("")
 
-        actions = {
+        self.main_win.export['actions'] = {
             'cancel_export': (
                 [widget_tree.get_object("buttonCancelExport")],
                 ActionCancelExport(self.main_win),
@@ -1709,7 +1709,7 @@ class BasicActionOpenExportDialog(SimpleAction):
                 ActionExport(self.main_win),
             ),
         }
-        connect_actions(actions)
+        connect_actions(self.main_win.export['actions'])
 
     def open_dialog(self, to_export):
         SimpleAction.do(self)
@@ -1860,7 +1860,7 @@ class ActionSelectExportFormat(SimpleAction):
             set_widget_state(widgets, sensitive)
 
         if exporter.can_change_quality or exporter.can_select_format:
-            self.__main_win.actions['change_export_property'][1].do()
+            self.__main_win.export['actions']['change_export_property'][1].do()
         else:
             size_txt = sizeof_fmt(exporter.estimate_size())
             self.__main_win.export['estimated_size'].set_text(size_txt)
@@ -2164,6 +2164,7 @@ class MainWindow(object):
             self.__advanced_app_menu = self.__init_app_menu(config, self.app)
 
         self.default_font = None
+        self.__fix_css()
         self.__init_cruel_and_unusual_drm(config)
         # Except for a few widget, the CSS doesn't specify any font, so we
         # can load it after the cruel and unusual DRM
@@ -2298,6 +2299,7 @@ class MainWindow(object):
         self.export = {
             'dialog': None,
             'exporter': None,
+            'actions': {},
         }
 
         self.layouts = {
@@ -2504,7 +2506,9 @@ class MainWindow(object):
             self.actions['print'][0] +
             self.actions['open_doc_dir'][0] +
             self.actions['redo_ocr_doc'][0] +
-            self.actions['open_export_doc_dialog'][0]
+            self.actions['open_export_doc_dialog'][0] +
+            self.actions['set_current_page'][0] +
+            self.actions['open_view_settings'][0]
         )
 
         self.need_page_widgets = set(
@@ -2606,6 +2610,38 @@ class MainWindow(object):
         widget_tree.get_object("entryPageNb").set_size_request(1, 30)
         widget_tree.get_object("viewSettingsButton").set_size_request(1, 30)
 
+    def __fix_css(self):
+        """
+        Fix problem from adwaita theme: the application menu button
+        must have a border, like the others ! But it's painful to select
+        """
+        settings = Gtk.Settings.get_default()
+        theme = settings.get_property("gtk-theme-name")
+        dark = settings.get_property("gtk-application-prefer-dark-theme")
+
+        css_fix = ""
+
+        if theme == "Adwaita":
+            css_fix += """
+            GtkHeaderBar GtkButton:first-child {
+                border: 1px solid @borders;
+            }
+            """
+
+        if css_fix.strip() != "":
+            try:
+                css_fix = css_fix.encode("utf-8")
+                css_provider = Gtk.CssProvider()
+                css_provider.load_from_data(css_fix)
+                Gtk.StyleContext.add_provider_for_screen(
+                    Gdk.Screen.get_default(),
+                    css_provider,
+                    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+                )
+            except Exception as exc:
+                logger.warning("Failed to apply CSS theme fixes")
+                logger.exception(exc)
+
     def __init_app(self):
         GLib.set_application_name(_("Paperwork"))
         GLib.set_prgname("paperwork")
@@ -2671,7 +2707,7 @@ class MainWindow(object):
 
         logo_path = os.path.join(
             sys.prefix,
-            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork.svg'
+            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork_halo.svg'
         )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
@@ -3004,7 +3040,7 @@ class MainWindow(object):
         if self.export['dialog']:
             self.global_page_box.remove(self.export['dialog'])
             self.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
+            self.export['dialog'] = None
 
         if self.allow_multiselect:
             if doc.is_new:
@@ -3125,7 +3161,7 @@ class MainWindow(object):
 
         if self.export['exporter'] is not None:
             logger.info("Canceling export")
-            self.actions['cancel_export'][1].do()
+            self.export['actions']['cancel_export'][1].do()
 
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
         self.img['canvas'].redraw()

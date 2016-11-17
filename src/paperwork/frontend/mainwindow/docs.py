@@ -201,6 +201,7 @@ class JobLabelCreator(Job):
 
     def do(self):
         self.emit('label-creation-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.create_label(self.__new_label, self.__doc,
                                           self.__progress_cb)
@@ -261,6 +262,7 @@ class JobLabelUpdater(Job):
 
     def do(self):
         self.emit('label-updating-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.update_label(self.__old_label, self.__new_label,
                                           self.__progress_cb)
@@ -320,6 +322,7 @@ class JobLabelDeleter(Job):
 
     def do(self):
         self.emit('label-deletion-start')
+        self._wait(0.5) # give a little bit of time to Gtk to update
         try:
             self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
@@ -480,6 +483,7 @@ class ActionCreateLabel(SimpleAction):
                 self.__main_win.docsearch, labeleditor.label,
                 self.__main_win.doc)
             self.__main_win.schedulers['main'].schedule(job)
+            self.__doc_properties.refresh_label_list()
 
 
 class ActionEditLabel(SimpleAction):
@@ -514,6 +518,7 @@ class ActionEditLabel(SimpleAction):
         job = self.__doc_properties.job_factories['label_updater'].make(
             self.__main_win.docsearch, label, new_label)
         self.__main_win.schedulers['main'].schedule(job)
+        self.__doc_properties.refresh_label_list()
 
 
 class ActionDeleteDoc(SimpleAction):
@@ -1399,9 +1404,8 @@ class DocPropertiesPanel(object):
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
         current_labels = sorted(self.labels.keys())
-        if all_labels != current_labels:
-            self._clear_label_list()
-            self._readd_label_widgets(all_labels)
+        self._clear_label_list()
+        self._readd_label_widgets(all_labels)
         for label in self.labels:
             if self.doc:
                 active = label in self.doc.labels

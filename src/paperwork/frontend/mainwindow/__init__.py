@@ -1671,7 +1671,7 @@ class BasicActionOpenExportDialog(SimpleAction):
 
         self.main_win.export['estimated_size'].set_text("")
 
-        actions = {
+        self.main_win.export['actions'] = {
             'cancel_export': (
                 [widget_tree.get_object("buttonCancelExport")],
                 ActionCancelExport(self.main_win),
@@ -1697,7 +1697,7 @@ class BasicActionOpenExportDialog(SimpleAction):
                 ActionExport(self.main_win),
             ),
         }
-        connect_actions(actions)
+        connect_actions(self.main_win.export['actions'])
 
 
     def open_dialog(self, to_export):
@@ -1849,7 +1849,7 @@ class ActionSelectExportFormat(SimpleAction):
             set_widget_state(widgets, sensitive)
 
         if exporter.can_change_quality or exporter.can_select_format:
-            self.__main_win.actions['change_export_property'][1].do()
+            self.__main_win.export['actions']['change_export_property'][1].do()
         else:
             size_txt = sizeof_fmt(exporter.estimate_size())
             self.__main_win.export['estimated_size'].set_text(size_txt)
@@ -2288,6 +2288,7 @@ class MainWindow(object):
         self.export = {
             'dialog': None,
             'exporter': None,
+            'actions': {},
         }
 
         self.layouts = {
@@ -3149,7 +3150,7 @@ class MainWindow(object):
 
         if self.export['exporter'] is not None:
             logger.info("Canceling export")
-            self.actions['cancel_export'][1].do()
+            self.export['actions']['cancel_export'][1].do()
 
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
         self.img['canvas'].redraw()

@@ -16,7 +16,7 @@ setup(
     name="paperwork-backend",
     # if you change the version, don't forget to
     # * update the ChangeLog file
-    version="1.0.2",
+    version="1.0.3",
     description=(
         "Paperwork's backend"
     ),
@@ -79,10 +79,10 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     ] + extra_deps
 )
 
-print ("============================================================")
-print ("============================================================")
-print ("||                       IMPORTANT                        ||")
-print ("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
-print ("||            to find any missing dependency              ||")
-print ("============================================================")
-print ("============================================================")
+print("============================================================")
+print("============================================================")
+print("||                       IMPORTANT                        ||")
+print("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
+print("||            to find any missing dependency              ||")
+print("============================================================")
+print("============================================================")

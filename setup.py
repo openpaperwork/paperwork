@@ -189,7 +189,7 @@ Main features are:
          ['data/paperwork.desktop']),
 
         (os.path.join(sys.prefix, 'share/icons/hicolor/scalable/apps'),
-         ['data/paperwork.svg']),
+         ['data/paperwork.svg', 'data/paperwork_halo.svg']),
         (os.path.join(sys.prefix, 'share/icons/hicolor/16x16/apps'),
          ['data/16/paperwork.png']),
         (os.path.join(sys.prefix, 'share/icons/hicolor/22x22/apps'),

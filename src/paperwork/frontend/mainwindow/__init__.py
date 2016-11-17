@@ -2662,7 +2662,7 @@ class MainWindow(object):
 
         logo_path = os.path.join(
             sys.prefix,
-            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork.svg'
+            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork_halo.svg'
         )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)

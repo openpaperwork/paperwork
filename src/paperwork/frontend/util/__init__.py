@@ -25,6 +25,9 @@ import gettext
 from gi.repository import Gdk
 from gi.repository import Gtk
 
+if os.name == "nt":
+    from xml.etree import ElementTree
+
 import PIL.Image
 
 
@@ -54,7 +57,6 @@ UI_FILES_DIRS += [
 
 
 def translate_xml(xml_str):
-    from xml.etree import ElementTree
     root = ElementTree.fromstring(xml_str)
     labels = root.findall('.//*[@name="label"][@translatable="yes"]')
     for label in labels:
@@ -90,8 +92,8 @@ def load_uifile(filename):
                     # on Windows
                     with open(ui_file, "r", encoding='utf-8') as file_desc:
                         content = file_desc.read()
-                    content = translate_xml(content)
-                    widget_tree.add_from_string(content)
+                        content = translate_xml(content)
+                        widget_tree.add_from_string(content)
                 else:
                     widget_tree.add_from_file(ui_file)
                 has_ui_file = True

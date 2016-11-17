@@ -3028,7 +3028,7 @@ class MainWindow(object):
         if self.export['dialog']:
             self.global_page_box.remove(self.export['dialog'])
             self.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
+            self.export['dialog'] = None
 
         if self.allow_multiselect:
             if doc.is_new:

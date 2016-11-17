@@ -12,8 +12,8 @@
   border-right-width: 0px;
 }
 GtkEntry.button-left, GtkEntry.button-center {
-  padding-top: 7px;
-  padding-bottom: 7px;
+  padding-top: 8px;
+  padding-bottom: 8px;
   font-size: 11px;
 }
 .button-center {

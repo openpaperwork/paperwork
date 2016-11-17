@@ -33,6 +33,7 @@ try:
     PANGO_AVAILABLE = True
 except:
     PANGO_AVAILABLE = False
+from gi.repository import Gio
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
@@ -174,8 +175,8 @@ class ImgToPdfDocExporter(object):
 
         # reload the preview
 
-        pdfdoc = Poppler.Document.new_from_file(
-            ("file://%s" % urllib.parse.quote(path)), password=None)
+        file = Gio.File.new_for_path(path)
+        pdfdoc = Poppler.Document.new_from_gfile(file, password=None)
         assert(pdfdoc.get_n_pages() > 0)
 
         pdfpage = pdfdoc.get_page(0)

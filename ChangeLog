@@ -1,3 +1,18 @@
+2016/11/17 - 1.0.3:
+- Windows: Fix opening of export dialog
+- Application menu button: Make its style consistent with the other buttons in
+  the header bar
+- Label list: Add a button to delete labels
+- Label editor: Fix the reloading of the label list when a label has been
+ changed
+- Label editor/Color picker: Fix the switch of the mouse cursor to a pipette
+- Small Paperwork icons: add a discrete blue background to make the icon more
+  visible
+- Main window: When on "new document", disable the page number entry field +
+  the view settings button
+- Fix icons (application icon, main window, about dialog)
+
+
 2016/11/13 - 1.0.2:
 * Fix export dialog:
   - Don't use GtkWidget.set_visible(False) / GtkWidget.set_visible(True)

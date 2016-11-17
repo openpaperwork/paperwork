@@ -79,7 +79,7 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must
@@ -1699,7 +1699,6 @@ class BasicActionOpenExportDialog(SimpleAction):
         }
         connect_actions(self.main_win.export['actions'])
 
-
     def open_dialog(self, to_export):
         SimpleAction.do(self)
 
@@ -2606,7 +2605,6 @@ class MainWindow(object):
         """
         settings = Gtk.Settings.get_default()
         theme = settings.get_property("gtk-theme-name")
-        dark = settings.get_property("gtk-application-prefer-dark-theme")
 
         css_fix = ""
 
@@ -2696,7 +2694,8 @@ class MainWindow(object):
 
         logo_path = os.path.join(
             sys.prefix,
-            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork_halo.svg'
+            'share', 'icons', 'hicolor', 'scalable', 'apps',
+            'paperwork_halo.svg'
         )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)

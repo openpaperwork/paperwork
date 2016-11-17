@@ -94,7 +94,9 @@ class PickColorAction(SimpleAction):
         self._get_screen_color()
 
     def _make_picker_cursor(self, display):
-        # XXX(Jflesch) ... do not work
+        if os.name == 'nt':
+            return Gdk.Cursor.new_for_display(display, Gdk.CursorType.CIRCLE)
+
         try:
             cursor = Gdk.Cursor.new_from_name(display, "color-picker")
             if cursor is not None:

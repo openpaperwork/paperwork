@@ -2607,11 +2607,10 @@ class MainWindow(object):
         theme = settings.get_property("gtk-theme-name")
         dark = settings.get_property("gtk-application-prefer-dark-theme")
 
-        if theme == "Adwaita" and not dark:
+        if theme == "Adwaita":
             css_fix = """
             GtkHeaderBar GtkButton:first-child {
-                /* make style consistent in the header bar */
-                border: 1px solid #a8a8a8;
+                border: 1px solid @borders;
             }
             """.encode("utf-8")
             css_provider = Gtk.CssProvider()

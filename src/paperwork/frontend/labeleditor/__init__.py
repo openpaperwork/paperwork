@@ -25,6 +25,7 @@ from gi.repository import Gtk
 from paperwork_backend.labels import Label
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
+from paperwork.frontend.util.dialog import ask_confirmation
 
 
 logger = logging.getLogger(__name__)
@@ -252,13 +253,16 @@ class LabelEditor(object):
             logger.info("Label validated")
             self.label.name = name_entry.get_text()
             self.label.color = self._color_chooser.get_rgba()
+            logger.info("Label after editing: %s" % self.label)
         else:
-            logger.info("Label editing cancelled")
+            logger.info("Label editing canceled")
 
         dialog.destroy()
 
-        logger.info("Label after editing: %s" % self.label)
-        return (response == Gtk.ResponseType.OK)
+        if response == Gtk.ResponseType.OK:
+            return "ok"
+        else:
+            return "canceled"
 
     def __on_label_entry_changed(self, label_entry):
         txt = label_entry.get_text().strip()

@@ -146,9 +146,8 @@ class PdfDoc(BasicDoc):
         if self._pdf:
             return self._pdf
         dirpath = Gio.File.new_for_path(self.path)
-        filepath = dirpath.resolve_relative_path(PDF_FILENAME)
-        fileuri = GLib.filename_to_uri(filepath.get_path())
-        self._pdf = Poppler.Document.new_from_file(fileuri, password=None)
+        file = dirpath.resolve_relative_path(PDF_FILENAME)
+        self._pdf = Poppler.Document.new_from_gfile(file, password=None)
         return self._pdf
 
     pdf = property(_open_pdf)
@@ -190,9 +189,7 @@ class PdfDoc(BasicDoc):
             return str(exc)
 
         try:
-            dest = Gio.File.parse_name(
-                "file://%s" % urllib.parse.quote(self.path)
-            )
+            dest = Gio.File.new_for_path(self.path)
             dest.make_directory(None)
         except GLib.GError as exc:
             logger.error("Warning: Error while trying to create '%s': %s"

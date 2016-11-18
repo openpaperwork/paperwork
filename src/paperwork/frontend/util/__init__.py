@@ -29,9 +29,10 @@ from gi.repository import Gtk
 if os.name == "nt":
     import webbrowser
     from xml.etree import ElementTree
-    from .actions import SimpleAction
 
 import PIL.Image
+
+from .actions import SimpleAction
 
 
 _ = gettext.gettext
@@ -96,7 +97,8 @@ def fix_widgets(widget_tree):
             ShowUriAction(obj.get_uri()).connect([obj])
         elif isinstance(obj, Gtk.AboutDialog):
             action = ShowUriAction("(about dialog)")
-            obj.connect("activate-link", lambda widget, uri:
+            obj.connect(
+                "activate-link", lambda widget, uri:
                 GLib.idle_add(action.do, uri)
             )
 

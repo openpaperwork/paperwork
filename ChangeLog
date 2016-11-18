@@ -1,3 +1,7 @@
+2016/11/18 - 1.0.4:
+- Windows: Fix import error dialog
+- Windows: Fix GtkLinkButtons (didn't do anything when clicked)
+
 2016/11/17 - 1.0.3:
 - Windows: Fix opening of export dialog
 - Application menu button: Make its style consistent with the other buttons in

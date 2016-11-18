@@ -83,7 +83,7 @@ exe = EXE(
     name='paperwork',
     debug=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
     icon=os.path.join(BASE_PATH, 'data', 'paperwork_32.ico')
 )

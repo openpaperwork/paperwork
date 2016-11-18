@@ -1426,7 +1426,9 @@ class ActionImport(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        GLib.idle_add(self._do)
 
+    def _do(self):
         file_uri = self.__select_file()
         if file_uri is None:
             return

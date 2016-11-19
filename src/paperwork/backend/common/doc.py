@@ -125,10 +125,10 @@ class BasicDoc(object):
         """
         Delete the document. The *whole* document. There will be no survivors.
         """
+        self.drop_cache()
         logger.info("Destroying doc: %s" % self.path)
         rm_rf(self.path)
         logger.info("Done")
-        self.drop_cache()
 
     def add_label(self, label):
         """

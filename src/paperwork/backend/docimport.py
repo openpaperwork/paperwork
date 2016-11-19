@@ -171,10 +171,8 @@ class SingleImageImporter(object):
         if current_doc is None:
             current_doc = ImgDoc(docsearch.rootdir)
         new = current_doc.is_new
-        if file_uri[:7] == "file://":
-            # XXX(Jflesch): bad bad bad
-            file_uri = urllib.parse.unquote(file_uri[7:])
-        img = Image.open(file_uri)
+        file = Gio.File.new_for_uri(file_uri)
+        img = Image.open(file.get_path())
         page = current_doc.add_page(img, [])
         return ([current_doc], page, new)
 

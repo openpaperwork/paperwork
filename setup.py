@@ -79,10 +79,10 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     ] + extra_deps
 )
 
-print ("============================================================")
-print ("============================================================")
-print ("||                       IMPORTANT                        ||")
-print ("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
-print ("||            to find any missing dependency              ||")
-print ("============================================================")
-print ("============================================================")
+print("============================================================")
+print("============================================================")
+print("||                       IMPORTANT                        ||")
+print("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
+print("||            to find any missing dependency              ||")
+print("============================================================")
+print("============================================================")

@@ -276,7 +276,7 @@ msgstr "Reindexation de documents modifiés ..."
 
 #: src/paperwork/frontend/mainwindow/__init__.py:408
 msgid "Removing deleted document from index ..."
-msgstr "Suppression de l'index d'un document effacé"
+msgstr "Suppression d'un document effacé de l'index"
 
 #: src/paperwork/frontend/mainwindow/__init__.py:433
 msgid "Writing index ..."

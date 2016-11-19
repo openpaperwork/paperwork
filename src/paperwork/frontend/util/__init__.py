@@ -23,12 +23,16 @@ import sys
 import heapq
 import gettext
 from gi.repository import Gdk
+from gi.repository import GLib
 from gi.repository import Gtk
 
 if os.name == "nt":
+    import webbrowser
     from xml.etree import ElementTree
 
 import PIL.Image
+
+from .actions import SimpleAction
 
 
 _ = gettext.gettext
@@ -65,6 +69,40 @@ def translate_xml(xml_str):
     return out.decode('utf-8')
 
 
+class ShowUriAction(SimpleAction):
+    """
+    WORKAROUND(JFlesch):
+    On Windows without Python/Gobject installed by the user,
+    Gtk.show_uri() doesn't seem to work.
+    So we open the browser ourselves using Python lib.
+    Worst case scenario, the browser is opened 2 times.
+    """
+    def __init__(self, uri):
+        super().__init__("Open URI {}".format(uri))
+        self.uri = uri
+
+    def do(self, uri=None):
+        super().do()
+        uri = uri if uri else self.uri
+        if uri is None:
+            logger.warning("Should open a link, but don't know which one")
+            return False
+        webbrowser.open(uri)
+        return False
+
+
+def fix_widgets(widget_tree):
+    for obj in widget_tree.get_objects():
+        if isinstance(obj, Gtk.LinkButton):
+            ShowUriAction(obj.get_uri()).connect([obj])
+        elif isinstance(obj, Gtk.AboutDialog):
+            action = ShowUriAction("(about dialog)")
+            obj.connect(
+                "activate-link", lambda widget, uri:
+                GLib.idle_add(action.do, uri)
+            )
+
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
@@ -92,8 +130,9 @@ def load_uifile(filename):
                     # on Windows
                     with open(ui_file, "r", encoding='utf-8') as file_desc:
                         content = file_desc.read()
-                        content = translate_xml(content)
-                        widget_tree.add_from_string(content)
+                        xml_string = translate_xml(content)
+                        widget_tree.add_from_string(xml_string)
+                        fix_widgets(widget_tree)
                 else:
                     widget_tree.add_from_file(ui_file)
                 has_ui_file = True

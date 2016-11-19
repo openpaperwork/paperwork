@@ -1430,7 +1430,9 @@ class ActionImport(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        GLib.idle_add(self._do)
 
+    def _do(self):
         file_uri = self.__select_file()
         if file_uri is None:
             return
@@ -1450,9 +1452,9 @@ class ActionImport(SimpleAction):
         job_importer = self.__main_win.job_factories['importer']
         job_importer = job_importer.make(importer, file_uri)
         job_importer.connect('no-doc-imported',
-                             lambda _: self.__no_doc_imported())
+                             lambda _: GLib.idle_add(self.__no_doc_imported))
         job_importer.connect('import-error',
-                             lambda _, msg: self.__import_error(msg))
+                             lambda _, msg: GLib.idle_add(self.__import_error, msg))
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 
@@ -2617,7 +2619,6 @@ class MainWindow(object):
         """
         settings = Gtk.Settings.get_default()
         theme = settings.get_property("gtk-theme-name")
-        dark = settings.get_property("gtk-application-prefer-dark-theme")
 
         css_fix = ""
 
@@ -2707,7 +2708,8 @@ class MainWindow(object):
 
         logo_path = os.path.join(
             sys.prefix,
-            'share', 'icons', 'hicolor', 'scalable', 'apps', 'paperwork_halo.svg'
+            'share', 'icons', 'hicolor', 'scalable', 'apps',
+            'paperwork_halo.svg'
         )
         if os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)

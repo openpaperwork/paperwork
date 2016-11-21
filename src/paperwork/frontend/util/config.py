@@ -306,8 +306,6 @@ def load_config():
 
 def _get_scanner(config, devid, preferred_sources=None):
     logger.info("Will scan using %s" % str(devid))
-    resolution = config['scanner_resolution'].value
-    logger.info("Will scan at a resolution of %d" % resolution)
 
     dev = pyinsane2.Scanner(name=devid)
 
@@ -319,6 +317,9 @@ def _get_scanner(config, devid, preferred_sources=None):
         pyinsane2.set_scanner_opt(dev, 'source', preferred_sources)
     elif config_source:
         pyinsane2.set_scanner_opt(dev, 'source', [config_source])
+
+    resolution = config['scanner_resolution'].value
+    logger.info("Will scan at a resolution of %d" % resolution)
 
     if 'resolution' not in dev.options:
         logger.warning("Can't set the resolution on this scanner."

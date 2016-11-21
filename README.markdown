@@ -68,7 +68,7 @@ it first before installing the new version.
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
 * [Docker](doc/install.docker.markdown)
 * [GNU/Linux Development](doc/install.devel.markdown)
-* Windows: [Installation](https://openpaper.work/download) / [Development](doc/devel.windows.markdown)
+* Windows: [Installation](https://openpaper.work) / [Development](doc/devel.windows.markdown)
 
 
 ## Uninstall

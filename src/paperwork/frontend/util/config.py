@@ -318,14 +318,20 @@ def _get_scanner(config, devid, preferred_sources=None):
     elif config_source:
         pyinsane2.set_scanner_opt(dev, 'source', [config_source])
 
-    resolution = config['scanner_resolution'].value
+    resolution = int(config['scanner_resolution'].value)
     logger.info("Will scan at a resolution of %d" % resolution)
 
     if 'resolution' not in dev.options:
         logger.warning("Can't set the resolution on this scanner."
                        " Option not found")
     else:
-        pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
+        try:
+            pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
+        except pyinsane2.PyinsaneException as exc:
+            resolution = int(dev.options['resolution'].value)
+            logger.warning("Failed to set resolution. Will fall back to the"
+                           " current one: {}".format(resolution))
+            logger.exception(exc)
 
     if 'mode' not in dev.options:
         logger.warning("Can't set the mode on this scanner. Option not found")

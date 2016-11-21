@@ -402,14 +402,7 @@ class JobCalibrationScan(Job):
                     resolution, exc
                 )
             )
-        try:
-            pyinsane2.set_scanner_opt(dev, 'resolution', [resolution])
-        except pyinsane2.PyinsaneException as exc:
-            logger.warning(
-                "Unable to set scanner mode to [{}]: {}".format(
-                    resolution, exc
-                )
-            )
+            resolution = int(dev.options['resolution'].value)
         try:
             pyinsane2.set_scanner_opt(dev, 'mode', ["Color"])
         except pyinsane2.PyinsaneException as exc:

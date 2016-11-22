@@ -1,3 +1,9 @@
+2016/11/22 - 1.0.5:
+- Setting the resolution on the scanner may not actually work. If it is not
+  possible to set the resolution, fall back on the current one.
+- Improve tolerance to crappy scanner drivers: don't stop
+  if pyinsane2.maximize_scan_area() fails
+
 2016/11/18 - 1.0.4:
 - Windows: Fix import error dialog
 - Windows: Fix GtkLinkButtons (didn't do anything when clicked)

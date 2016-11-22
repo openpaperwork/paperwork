@@ -340,8 +340,13 @@ def _get_scanner(config, devid, preferred_sources=None):
             pyinsane2.set_scanner_opt(dev, 'mode', ['Color'])
         except pyinsane2.PyinsaneException as exc:
             logger.warning("Failed to set scan mode: {}".format(exc))
+            logger.exception(exc)
 
-    pyinsane2.maximize_scan_area(dev)
+    try:
+        pyinsane2.maximize_scan_area(dev)
+    except pyinsane2.PyinsaneException as exc:
+        logger.warning("Failed to maximize scan area: {}".format(exc))
+        logger.exception(exc)
     return (dev, resolution)
 
 
@@ -354,10 +359,15 @@ def get_scanner(config, preferred_sources=None):
         logger.warning("Exception while configuring scanner: %s: %s"
                        % (type(exc), exc))
         logger.exception(exc)
-        # we didn't find the scanner at the given ID
-        # but maybe there is only one, so we can guess the scanner to use
-        devices = [x for x in pyinsane2.get_devices() if x[:4] != "v4l:"]
-        if len(devices) != 1:
-            raise
-        logger.info("Will try another scanner id: %s" % devices[0].name)
-        return _get_scanner(config, devices[0].name, preferred_sources)
+        try:
+            # we didn't find the scanner at the given ID
+            # but maybe there is only one, so we can guess the scanner to use
+            devices = [x for x in pyinsane2.get_devices() if x.name[:4] != "v4l:"]
+            if len(devices) != 1:
+                raise
+            logger.info("Will try another scanner id: %s" % devices[0].name)
+            return _get_scanner(config, devices[0].name, preferred_sources)
+        except pyinsane2.PyinsaneException:
+            # this is a fallback mechanism, but what interrest us is the first exception,
+            # not the one from the fallback
+            raise exc

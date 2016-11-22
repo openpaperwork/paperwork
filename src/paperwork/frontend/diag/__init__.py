@@ -224,6 +224,10 @@ class JobFactoryInfoGetter(JobFactory):
 
 
 class LogTracker(logging.Handler):
+    # Assuming 1KB per line, it makes about 50MB of RAM
+    # (+ memory allocator overhead)
+    MAX_LINES = 50 * 1000
+
     def __init__(self):
         super(LogTracker, self).__init__()
         self._formatter = logging.Formatter(
@@ -234,6 +238,8 @@ class LogTracker(logging.Handler):
     def emit(self, record):
         line = self._formatter.format(record)
         self.output.append(line)
+        if len(self.output) > self.MAX_LINES:
+            self.output.pop(0)
 
     def get_logs(self):
         return "\n".join(self.output)

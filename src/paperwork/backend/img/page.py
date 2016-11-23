@@ -53,6 +53,7 @@ class ImgPage(BasicPage):
         if page_nb is None:
             page_nb = doc.nb_pages
         BasicPage.__init__(self, doc, page_nb)
+        self._img_cache = None
         self.surface_cache = None
 
     def __get_box_path(self):
@@ -138,13 +139,19 @@ class ImgPage(BasicPage):
         """
         Returns an image object corresponding to the page
         """
-        return PIL.Image.open(self.__img_path)
+        if not self._img_cache:
+            self._img_cache = PIL.Image.open(self.__img_path)
+        return self._img_cache
 
     def __set_img(self, img):
         img.save(self.__img_path)
         self.drop_cache()
 
     img = property(__get_img, __set_img)
+
+    def get_image(self, size):
+        img = self.img
+        return img.resize(size, PIL.Image.ANTIALIAS)
 
     def __get_size(self):
         return self.img.size
@@ -286,3 +293,7 @@ class ImgPage(BasicPage):
 
     def get_docfilehash(self):
         return self.doc.hash_file(self.__get_img_path())
+
+    def drop_cache(self):
+        super().drop_cache()
+        self._img_cache = None

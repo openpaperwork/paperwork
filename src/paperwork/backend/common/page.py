@@ -273,6 +273,9 @@ class DummyPage(object):
     def destroy(self):
         pass
 
+    def get_image(self, size):
+        return None
+
     def get_boxes(self, sentence):
         return []
 

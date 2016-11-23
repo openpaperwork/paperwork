@@ -207,30 +207,38 @@ class PdfPage(BasicPage):
 
     boxes = property(__get_boxes, __set_boxes)
 
-    def __render_img(self, factor):
+    def __render_img(self, size):
         # TODO(Jflesch): In a perfect world, we shouldn't use ImageSurface.
         # we should draw directly on the GtkImage.window.cairo_create()
         # context. It would be much more efficient.
 
-        if factor not in self.__img_cache:
-            logger.debug('Building img from pdf with factor: %s'
-                         % factor)
-            width = int(factor * self._size[0])
-            height = int(factor * self._size[1])
+        logger.debug('Building img from pdf: {}'.format(size))
+        width = int(size[0])
+        height = int(size[1])
+        factor = min(
+            width / self._size[0],
+            height / self._size[1]
+        )
 
-            surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-            ctx = cairo.Context(surface)
-            ctx.scale(factor, factor)
-            self.pdf_page.render(ctx)
-            self.__img_cache[factor] = surface2image(surface)
-        return self.__img_cache[factor]
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        ctx = cairo.Context(surface)
+        ctx.scale(factor, factor)
+        self.pdf_page.render(ctx)
+        return surface2image(surface)
 
     def __get_img(self):
-        return self.__render_img(PDF_RENDER_FACTOR)
+        return self.__render_img(
+            (self._size[0] * PDF_RENDER_FACTOR,
+             self._size[1] * PDF_RENDER_FACTOR)
+        )
 
     img = property(__get_img)
 
+    def get_image(self, size):
+        return self.__render_img(size)
+
     def __get_size(self):
+        # default size
         return (self._size[0] * PDF_RENDER_FACTOR,
                 self._size[1] * PDF_RENDER_FACTOR)
 

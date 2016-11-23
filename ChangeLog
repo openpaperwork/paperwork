@@ -1,3 +1,7 @@
+1.0.5:
+- Doc deletion: Drop cache and file descripts *before* deleting document
+(optional on GNU/Linux, but required on Windows)
+
 1.0.4:
 - Windows: Fix image import
 

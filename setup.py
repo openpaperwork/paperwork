@@ -51,7 +51,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     ],
     license="GPLv3+",
     author="Jerome Flesch",
-    author_email="jflesch@gmail.com",
+    author_email="jflesch@openpaper.work",
     packages=[
         'paperwork_backend',
         'paperwork_backend.common',

@@ -1351,6 +1351,17 @@ class ActionImport(SimpleAction):
         SimpleAction.__init__(self, "Import file(s)")
         self.__main_win = main_window
         self.__config = config
+        self.__select_file_dialog = None
+
+    def __select_file_cb(self, dialog, response):
+        if response != 0:
+            logger.info("Import: Canceled by user")
+            dialog.destroy()
+            return None
+        file_uri = dialog.get_uri()
+        dialog.destroy()
+        logger.info("Import: %s" % file_uri)
+        GLib.idle_add(self._do_import, file_uri)
 
     def __select_file(self):
         widget_tree = load_uifile(
@@ -1360,15 +1371,10 @@ class ActionImport(SimpleAction):
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
 
-        response = dialog.run()
-        if response != 0:
-            logger.info("Import: Canceled by user")
-            dialog.destroy()
-            return None
-        file_uri = dialog.get_uri()
-        dialog.destroy()
-        logger.info("Import: %s" % file_uri)
-        return file_uri
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(self.__select_file_cb, dialog, response))
+
+        dialog.show_all()
 
     def __select_importer(self, importers):
         widget_tree = load_uifile(
@@ -1433,10 +1439,9 @@ class ActionImport(SimpleAction):
         GLib.idle_add(self._do)
 
     def _do(self):
-        file_uri = self.__select_file()
-        if file_uri is None:
-            return
+        self.__select_file()
 
+    def _do_import(self, file_uri):
         importers = docimport.get_possible_importers(
             file_uri, self.__main_win.doc)
         if len(importers) <= 0:

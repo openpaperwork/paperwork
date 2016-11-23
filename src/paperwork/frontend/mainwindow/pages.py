@@ -688,6 +688,7 @@ class SimplePageDrawer(Drawer):
                 (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
+        self.redraw()
 
     def on_page_loading_done(self, page):
         if self.loading:

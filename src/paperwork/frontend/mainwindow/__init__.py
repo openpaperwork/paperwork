@@ -1107,7 +1107,7 @@ class ActionUpdPageSizes(SimpleAction):
         mw.zoom_level['auto'] = False
         mw.update_page_sizes()
         mw.img['canvas'].recompute_size(upd_scrollbar_values=True)
-        mw.img['canvas'].redraw()
+        mw.img['canvas'].redraw(checked=True)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -3330,7 +3330,7 @@ class MainWindow(object):
 
         self.update_page_sizes()
         self.img['canvas'].recompute_size(upd_scrollbar_values=True)
-        self.img['canvas'].redraw()
+        self.img['canvas'].redraw(checked=True)
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)

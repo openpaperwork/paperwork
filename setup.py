@@ -231,6 +231,7 @@ Main features are:
         'scripts/paperwork',
     ],
     install_requires=[
+        "python-Levenshtein",
         "Pillow",
         "pycountry",
         "pyinsane2",

@@ -29,6 +29,7 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
 import pillowfight
+import Levenshtein
 
 from paperwork_backend.common.page import BasicPage
 from paperwork_backend.util import image2surface
@@ -715,13 +716,15 @@ class SimplePageDrawer(Drawer):
 
         output = set()
         for keyword in keywords:
+            keyword = keyword.strip().lower()
             for box in self.boxes["all"]:
-                if keyword in box.content:
+                box_txt = box.content.strip().lower()
+                threshold = int(min(len(keyword) / 2.5, len(box_txt) / 2.5))
+                if threshold <= 0 and box_txt == keyword:
                     output.add(box)
                     continue
-                # unfold generator output
-                words = [x for x in split_words(box.content)]
-                if keyword in words:
+                dist = Levenshtein.distance(box_txt, keyword)
+                if dist <= threshold:
                     output.add(box)
                     continue
         return output

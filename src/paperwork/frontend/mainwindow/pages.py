@@ -82,7 +82,7 @@ class JobPageImgLoader(Job):
             if not self.can_run:
                 return
             if not use_thumbnail:
-                img = self.page.img
+                img = self.page.get_image(self.size)
             else:
                 img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                               BasicPage.DEFAULT_THUMB_HEIGHT)

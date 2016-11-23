@@ -25,6 +25,7 @@ Here are the elements that must drawn on it:
 """
 
 import logging
+import os
 import threading
 
 from gi.repository import GLib
@@ -38,6 +39,15 @@ from .drawers import CursorDrawer
 
 
 logger = logging.getLogger(__name__)
+
+
+CANVAS_ERROR_ON_USELESS = bool(
+    int(os.getenv("PAPERWORK_CANVAS_ERROR_ON_USELESS", "0"))
+)
+
+
+class CanvasException(Exception):
+    pass
 
 
 class AbsoluteEvent(object):
@@ -309,7 +319,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
         self.recompute_size(upd_scrollbar_values=False)
-        self.redraw((drawer.relative_position, drawer.relative_size))
+        drawer.redraw()
 
     def get_drawer_at(self, position):
         (x, y) = position
@@ -388,7 +398,16 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
             if (position[0] > visible[0] or position[1] > visible[1] or
                     size[0] <= 0 or size[1] <= 0):
-                logger.warning("Ignore useless call to redraw()")
+                if CANVAS_ERROR_ON_USELESS:
+                    if (visible <= (1, 1)):
+                        # Main window isn't visible yet
+                        return
+                    raise CanvasException(
+                        "Useless call to redraw():"
+                        " {} --> {} (visible: {})".format(
+                            area, (position, size), visible
+                        )
+                    )
                 return
 
             self.queue_draw_area(

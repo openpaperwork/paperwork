@@ -122,15 +122,14 @@ class Drawer(object):
         """
         pass
 
+    def _is_visible(self):
+        if not self.canvas:
+            return False
+        return self.compute_visibility(self.canvas.offset, self.canvas.size,
+                                       self.position, self.size)
     def draw(self, cairo_ctx):
-        # don't bother drawing if it's not visible
-        if self.canvas.offset[0] + self.canvas.size[0] < self.position[0]:
-            return
-        if self.canvas.offset[1] + self.canvas.size[1] < self.position[1]:
-            return
-        if self.position[0] + self.size[0] < self.canvas.offset[0]:
-            return
-        if self.position[1] + self.size[1] < self.canvas.offset[1]:
+        if not self._is_visible():
+            # don't bother drawing if it's not visible
             return
         self.do_draw(cairo_ctx)
 
@@ -179,6 +178,11 @@ class Drawer(object):
     def redraw(self, extra_border=0):
         if not self.visible:
             logger.warning("redraw() called on non-visible element")
+            return
+
+        if not self._is_visible():
+            # not in the visible part of the canvas. Requesting a redraw
+            # could have unwanted results with Cairo
             return
 
         position = self.relative_position
@@ -242,6 +246,10 @@ class Centerer(Drawer):
         )
 
     position = property(__get_position)
+
+    @property
+    def visible(self):
+        return self.child.visible
 
     def do_draw(self, cairo_ctx):
         cairo_ctx.save()

@@ -562,7 +562,7 @@ class PageACEAction(PageEditAction):
         self.surface = surface
 
     def on_img_processing_done(self):
-        GLib.idle_add(self.parent.redraw)
+        self.parent.redraw()
 
     def __str__(self):
         return "Automatic Color Equalization"
@@ -731,7 +731,7 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
-        GLib.idle_add(self.parent.redraw)
+        self.parent.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
@@ -959,7 +959,7 @@ class SimplePageDrawer(Drawer):
                     )
 
         if must_redraw:
-            GLib.idle_add(self.parent.redraw)
+            self.parent.redraw()
             return
 
     def __str__(self):
@@ -1341,6 +1341,9 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
     def redraw(self, extra_border=0):
+        if not self._is_visible():
+            return
+
         border = self.simple_page_drawer.BORDER_BASIC
         if self.simple_page_drawer.boxes['highlighted']:
             border = self.simple_page_drawer.BORDER_HIGHLIGHTED
@@ -1355,7 +1358,7 @@ class PageDrawer(Drawer, GObject.GObject):
         size = (size[0] + (2 * border_width),
                 size[1] + (2 * border_width))
 
-        GLib.idle_add(self.canvas.redraw, (position, size))
+        self.canvas.redraw((position, size))
 
     def set_drag_enabled(self, drag):
         self.drag_enabled = drag
@@ -1404,7 +1407,7 @@ class PageDrawer(Drawer, GObject.GObject):
             must_redraw = True
 
         if must_redraw:
-            GLib.idle_add(self.redraw)
+            self.redraw()
 
         return self.mouse_over_button is not None
 
@@ -1449,7 +1452,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(False)
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
-        GLib.idle_add(self.redraw)
+        self.redraw()
 
     def print_chain(self):
         logger.info("Edit chain:")
@@ -1503,7 +1506,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(True)
         self.editor_state = "before"
         self.hide()
-        GLib.idle_add(self.canvas.redraw)
+        self.canvas.redraw()
 
     def _on_edit_cancel(self):
         logger.info("Page edition canceled")
@@ -1598,7 +1601,7 @@ class PageDropHandler(Drawer):
             self.target_previous_page_drawer = distances[0][1]
 
         # issue a redraw order on our new position
-        GLib.idle_add(self.redraw)
+        self.redraw()
         return True
 
     def _on_drag_leave(self, canvas, drag_context, time):

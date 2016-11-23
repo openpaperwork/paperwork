@@ -20,7 +20,6 @@ setup(
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * change it also in
     #   src/paperwork/frontend/mainwindow/__init__.py:__version__
-    # * update the archive list in the README
     # * update the dependency version on paperwork-backend
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()

@@ -128,34 +128,6 @@ they are stored in a separate Git repository:
 GPLv3 or later. See COPYING.
 
 
-## Archives
-
-Github can automatically provide .tar.gz and .zip files if required. However,
-they are not required to install Paperwork. They are indicated here as a
-convenience for package maintainers.
-
-* [Paperwork 1.0.4](https://github.com/jflesch/paperwork/archive/1.0.4.tar.gz)
-* [Paperwork 1.0.3](https://github.com/jflesch/paperwork/archive/1.0.3.tar.gz)
-* [Paperwork 1.0.2](https://github.com/jflesch/paperwork/archive/1.0.2.tar.gz)
-* [Paperwork 1.0.1](https://github.com/jflesch/paperwork/archive/1.0.1.tar.gz)
-* [Paperwork 1.0](https://github.com/jflesch/paperwork/archive/1.0.tar.gz)
-* [Paperwork 0.3.2](https://github.com/jflesch/paperwork/archive/0.3.2.tar.gz)
-* [Paperwork 0.3.1.1](https://github.com/jflesch/paperwork/archive/0.3.1.1.tar.gz)
-* [Paperwork 0.3.1](https://github.com/jflesch/paperwork/archive/0.3.1.tar.gz)
-* [Paperwork 0.3.0.1](https://github.com/jflesch/paperwork/archive/0.3.0.1.tar.gz)
-* [Paperwork 0.3.0](https://github.com/jflesch/paperwork/archive/0.3.0.tar.gz)
-* [Paperwork 0.2.5](https://github.com/jflesch/paperwork/archive/0.2.5.tar.gz)
-* [Paperwork 0.2.4](https://github.com/jflesch/paperwork/archive/0.2.4.tar.gz)
-* [Paperwork 0.2.3](https://github.com/jflesch/paperwork/archive/0.2.3.tar.gz)
-* [Paperwork 0.2.2](https://github.com/jflesch/paperwork/archive/0.2.2.tar.gz)
-* [Paperwork 0.2.1](https://github.com/jflesch/paperwork/archive/0.2.1.tar.gz)
-* [Paperwork 0.2](https://github.com/jflesch/paperwork/archive/0.2.tar.gz)
-* [Paperwork 0.1.3](https://github.com/jflesch/paperwork/archive/0.1.3.tar.gz)
-* [Paperwork 0.1.2](https://github.com/jflesch/paperwork/archive/0.1.2.tar.gz)
-* [Paperwork 0.1.1](https://github.com/jflesch/paperwork/archive/0.1.1.tar.gz)
-* [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
-
-
 ## Development
 
 All the information can be found on [the wiki](https://github.com/jflesch/paperwork/wiki#for-developers)

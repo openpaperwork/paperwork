@@ -138,6 +138,11 @@ def is_activated(config):
     email = config['activation_email'].value
 
     activated = not check_activation_key(key, email)
+    if activated:
+        # when the user switch to a new version, the trial period
+        # must restart from the update date
+        config['first_start'].value = None
+        config.write()
     return to_bool(os.getenv("PAPERWORK_ACTIVATED", activated))
 
 

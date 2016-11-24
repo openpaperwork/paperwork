@@ -701,6 +701,66 @@ class JobFactoryExportPreviewer(JobFactory):
         return job
 
 
+class JobExport(Job):
+    __gsignals__ = {
+        'export-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-progress': (GObject.SignalFlags.RUN_LAST, None,
+                            (GObject.TYPE_INT, GObject.TYPE_INT)),
+        'export-done': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-error': (GObject.SignalFlags.RUN_LAST, None,
+                         (GObject.TYPE_PYOBJECT, )),
+    }
+
+    can_stop = False
+    priority = 500
+
+    def __init__(self, factory, id, exporter, target_path):
+        Job.__init__(self, factory, id)
+        self._exporter = exporter
+        self._target_path = target_path
+
+    def _on_progress_cb(self, current, total):
+        self.emit('export-progress', current, total)
+
+    def do(self):
+        self.emit('export-start')
+
+        try:
+            self._exporter.save(self._target_path, self._on_progress_cb)
+        except Exception as exc:
+            logger.exception("Export failed")
+            self.emit('export-error', exc)
+            raise
+
+        self.emit('export-done')
+
+
+GObject.type_register(JobExport)
+
+
+class JobFactoryExport(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "Export")
+        self.__main_win = main_win
+
+    def make(self, exporter, target_path):
+        job = JobExport(self, next(self.id_generator), exporter, target_path)
+        job.connect('export-start',
+                    lambda job:
+                    GLib.idle_add(self.__main_win.on_export_start))
+        job.connect('export-progress',
+                    lambda job, current, total:
+                    GLib.idle_add(self.__main_win.on_export_progress,
+                                  current, total))
+        job.connect('export-error',
+                    lambda job, error:
+                    GLib.idle_add(self.__main_win.on_export_error, error))
+        job.connect('export-done',
+                    lambda job:
+                    GLib.idle_add(self.__main_win.on_export_done))
+        return job
+
+
 class JobPageEditor(Job):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
@@ -1840,7 +1900,9 @@ class ActionSelectExportFormat(SimpleAction):
         imgformat = file_format_model[format_idx][0]
 
         target = self.__main_win.export['to_export']
-        exporter = target.build_exporter(imgformat)
+        exporter = target.build_exporter(
+            imgformat, self.__main_win.page.page_nb
+        )
         self.__main_win.export['exporter'] = exporter
 
         logger.info("[Export] Format: %s" % (exporter))
@@ -1965,36 +2027,20 @@ class BasicActionEndExport(SimpleAction):
         super().__init__(name)
         self.main_win = main_win
 
-    def hide_dialog(self):
-        if self.main_win.export['dialog']:
-            self.main_win.global_page_box.remove(self.main_win.export['dialog'])
-            self.main_win.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
-
-        self.main_win.export['exporter'] = None
-        for button in self.main_win.actions['open_view_settings'][0]:
-            button.set_sensitive(True)
-        # force refresh of the current page
-        self.main_win.show_page(self.main_win.page, force_refresh=True)
-
 
 class ActionExport(BasicActionEndExport):
     def __init__(self, main_window):
         super().__init__(main_window, "Export")
         self.main_win = main_window
 
-    def _do(self):
-        filepath = self.main_win.export['export_path'].get_text()
-        self.main_win.export['exporter'].save(filepath)
-        self.hide_dialog()
-
     def do(self):
         super().do()
-        self.main_win.set_mouse_cursor("Busy")
-        try:
-            GLib.idle_add(self._do)
-        finally:
-            self.main_win.set_mouse_cursor("Normal")
+        filepath = self.main_win.export['export_path'].get_text()
+        job = self.main_win.job_factories['export'].make(
+            self.main_win.export['exporter'], filepath
+        )
+        self.main_win.schedulers['main'].schedule(job)
+        self.main_win.hide_export_dialog()
 
 
 class ActionCancelExport(BasicActionEndExport):
@@ -2003,7 +2049,7 @@ class ActionCancelExport(BasicActionEndExport):
 
     def do(self):
         super().do()
-        GLib.idle_add(self.hide_dialog)
+        GLib.idle_add(self.main_win.hide_export_dialog)
 
 
 class ActionOptimizeIndex(SimpleAction):
@@ -2322,6 +2368,7 @@ class MainWindow(object):
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_searcher': JobFactoryDocSearcher(self, config),
+            'export': JobFactoryExport(self),
             'export_previewer': JobFactoryExportPreviewer(self),
             'img_processer': JobFactoryImgProcesser(self),
             'importer': JobFactoryImporter(self, config),
@@ -3151,9 +3198,7 @@ class MainWindow(object):
             self._show_doc_internal(page.doc, force_refresh)
 
         if self.export['dialog']:
-            self.global_page_box.remove(self.export['dialog'])
-            self.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
+            self.hide_export_dialog()
 
         drawer = None
         for d in self.page_drawers:
@@ -3421,6 +3466,7 @@ class MainWindow(object):
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 
     def __select_page(self, page):
+        self.page = page
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
         if page:
             new_text = "%d" % (page.page_nb + 1)
@@ -3544,3 +3590,37 @@ class MainWindow(object):
             self.docsearch, new_docs=new_docs, upd_docs=upd_docs,
             del_docs=del_docs, optimize=False, reload_list=False)
         self.schedulers['index'].schedule(job)
+
+    def hide_export_dialog(self):
+        # force refresh of the current page
+        self.global_page_box.remove(self.export['dialog'])
+        self.export['dialog'].set_visible(False)
+        self.export['dialog'] = None
+        self.export['exporter'] = None
+        for button in self.actions['open_view_settings'][0]:
+            button.set_sensitive(True)
+        self.show_page(self.page, force_refresh=True)
+
+    def on_export_start(self):
+        self.set_mouse_cursor("Busy")
+        self.set_progression(None, 0.0, _("Exporting ..."))
+
+    def on_export_progress(self, current, total):
+        self.set_progression(None, current / total, _("Exporting ..."))
+
+    def on_export_done(self):
+        self.set_mouse_cursor("Normal")
+        self.set_progression(None, 0.0, None)
+
+    def on_export_error(self, error):
+        self._on_export_done()
+        msg = _("Export failed: {}").format(str(error))
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()

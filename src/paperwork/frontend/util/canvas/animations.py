@@ -167,7 +167,7 @@ class SpinnerAnimation(Animation):
     src_size = 48
     ICON_SIZE = 64
 
-    layer = Drawer.PROGRESSION_INDICATOR_LAYER
+    layer = Drawer.SPINNER
 
     def __init__(self, position):
         Animation.__init__(self)

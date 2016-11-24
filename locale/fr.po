@@ -166,7 +166,7 @@ msgstr "Document actuel (%s)"
 
 #: src/paperwork/frontend/multiscan/__init__.py:387
 msgid "Scanning"
-msgstr "Scan"
+msgstr "Numérisation"
 
 #: src/paperwork/frontend/multiscan/__init__.py:392
 msgid "Reading"

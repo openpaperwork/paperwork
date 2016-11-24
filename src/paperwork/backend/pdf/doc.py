@@ -17,13 +17,13 @@
 import logging
 import os
 import shutil
-import urllib
 
 from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
+from ..common.doc import dummy_export_progress_cb
 from ..pdf.page import PdfPage
 
 PDF_FILENAME = "doc.pdf"
@@ -34,8 +34,9 @@ class PdfDocExporter(object):
     can_select_format = False
     can_change_quality = False
 
-    def __init__(self, doc):
+    def __init__(self, doc, page_nb):
         self.doc = doc
+        self.page = doc.pages[page_nb]
         self.pdfpath = ("%s/%s" % (doc.path, PDF_FILENAME))
 
     def get_mime_type(self):
@@ -44,15 +45,17 @@ class PdfDocExporter(object):
     def get_file_extensions(self):
         return ['pdf']
 
-    def save(self, target_path):
+    def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        progress_cb(0, 1)
         shutil.copy(self.pdfpath, target_path)
+        progress_cb(1, 1)
         return target_path
 
     def estimate_size(self):
         return os.path.getsize(self.pdfpath)
 
     def get_img(self):
-        return self.doc.pages[0].img
+        return self.page.img
 
     def __str__(self):
         return 'PDF'
@@ -206,8 +209,9 @@ class PdfDoc(BasicDoc):
     def get_export_formats():
         return ['PDF']
 
-    def build_exporter(self, file_format='pdf'):
-        return PdfDocExporter(self)
+    def build_exporter(self, file_format='pdf', preview_page_nb=0):
+        assert(file_format.lower() == 'pdf')
+        return PdfDocExporter(self, preview_page_nb)
 
     def drop_cache(self):
         BasicDoc.drop_cache(self)

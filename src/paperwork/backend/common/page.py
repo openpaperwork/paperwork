@@ -21,6 +21,7 @@ import tempfile
 
 import PIL.Image
 
+from ..common.doc import dummy_export_progress_cb
 from ..util import strip_accents
 from ..util import split_words
 
@@ -45,7 +46,9 @@ class PageExporter(object):
     def get_file_extensions(self):
         return self.valid_exts
 
-    def save(self, target_path):
+    def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        progress_cb(0, 4)
+
         # the user gives us a quality between 0 and 100
         # but PIL expects a quality between 1 and 75
         quality = int(float(self.__quality) / 100.0 * 74.0) + 1
@@ -53,15 +56,21 @@ class PageExporter(object):
         resize_factor = float(self.__quality) / 100.0
 
         img = self.page.img
+        img.load()
+        progress_cb(1, 4)
 
         new_size = (int(resize_factor * img.size[0]),
                     int(resize_factor * img.size[1]))
         img = img.resize(new_size, PIL.Image.ANTIALIAS)
+        progress_cb(2, 4)
 
         if self.__postprocess_func:
             img = self.__postprocess_func(img)
+            progress_cb(3, 4)
 
         img.save(target_path, self.img_format, quality=quality)
+        progress_cb(4, 4)
+
         return target_path
 
     def refresh(self):
@@ -212,7 +221,11 @@ class BasicPage(object):
     def get_export_formats(self):
         return self.__prototype_exporters.keys()
 
-    def build_exporter(self, file_format='PNG'):
+    def build_exporter(self, file_format='PNG', preview_page_nb=0):
+        """
+        Arguments:
+            preview_page_nb: Juste here for consistency with doc.build_exporter()
+        """
         return copy(self.__prototype_exporters[file_format.upper()])
 
     def __str__(self):

@@ -22,7 +22,6 @@ import errno
 import os
 import os.path
 import logging
-import urllib
 import tempfile
 
 import cairo
@@ -37,6 +36,7 @@ from gi.repository import Gio
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
+from ..common.doc import dummy_export_progress_cb
 from ..img.page import ImgPage
 from ..util import image2surface
 from ..util import surface2image
@@ -50,8 +50,9 @@ class ImgToPdfDocExporter(object):
     can_select_format = True
     valid_exts = ['pdf']
 
-    def __init__(self, doc):
+    def __init__(self, doc, page_nb):
         self.doc = doc
+        self.page_nb = page_nb
         self.__quality = 50
         self.__preview = None  # will just contain the first page
         self.__page_format = (0, 0)
@@ -134,13 +135,15 @@ class ImgToPdfDocExporter(object):
         finally:
             pdf_context.restore()
 
-    def __save(self, target_path, pages):
+    def __save(self, target_path, pages, progress_cb=dummy_export_progress_cb):
         pdf_surface = cairo.PDFSurface(target_path,
                                        self.__page_format[0],
                                        self.__page_format[1])
         pdf_context = cairo.Context(pdf_surface)
 
-        for page in [self.doc.pages[x] for x in range(pages[0], pages[1])]:
+        pages = [self.doc.pages[x] for x in range(pages[0], pages[1])]
+        for page_idx, page in enumerate(pages):
+            progress_cb(page_idx, len(pages))
             img = page.img
             if (img.size[0] < img.size[1]):
                 (x, y) = (min(self.__page_format[0], self.__page_format[1]),
@@ -157,10 +160,11 @@ class ImgToPdfDocExporter(object):
             pdf_context.show_page()
             logger.info("Page {} ready".format(page))
 
+        progress_cb(len(pages), len(pages))
         return target_path
 
-    def save(self, target_path):
-        return self.__save(target_path, (0, self.doc.nb_pages))
+    def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        return self.__save(target_path, (0, self.doc.nb_pages), progress_cb)
 
     def refresh(self):
         # make the preview
@@ -171,7 +175,7 @@ class ImgToPdfDocExporter(object):
         )
         os.close(tmpfd)
 
-        path = self.__save(tmppath, pages=(0, 1))
+        path = self.__save(tmppath, pages=(self.page_nb, self.page_nb + 1))
 
         # reload the preview
 
@@ -366,8 +370,9 @@ class ImgDoc(BasicDoc):
     def get_export_formats():
         return ['PDF']
 
-    def build_exporter(self, file_format='pdf'):
-        return ImgToPdfDocExporter(self)
+    def build_exporter(self, file_format='pdf', preview_page_nb=0):
+        assert(file_format.lower() == 'pdf')
+        return ImgToPdfDocExporter(self, preview_page_nb)
 
     def steal_page(self, page):
         """

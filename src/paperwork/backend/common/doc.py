@@ -30,6 +30,10 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
+def dummy_export_progress_cb(*args, **kwargs):
+    pass
+
+
 class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
@@ -249,7 +253,7 @@ class BasicDoc(object):
     def get_export_formats():
         raise NotImplementedError()
 
-    def build_exporter(self, file_format='pdf'):
+    def build_exporter(self, file_format='pdf', preview_page_nb=0):
         """
         Returns:
             Returned object must implement the following methods/attributes:
@@ -260,7 +264,8 @@ class BasicDoc(object):
             .get_img() : returns a Pillow Image
             .get_mime_type()
             .get_file_extensions()
-            .save(file_path)
+            .save(file_path, progress_cb=dummy_export_progress_cb)
+            progress_cb(current, total)
         """
         raise NotImplementedError()
 

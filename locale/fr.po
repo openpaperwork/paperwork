@@ -98,7 +98,7 @@ msgstr "informations du scanner"
 
 #: src/paperwork/frontend/diag/__init__.py:274
 msgid "Please wait. It may take a few minutes ..."
-msgstr "Veuillez patienter. Le diagnostique peut prendre quelques minutes ..."
+msgstr "Veuillez patienter. Le diagnostic peut prendre quelques minutes ..."
 
 #: src/paperwork/frontend/diag/__init__.py:297
 msgid "Getting {} ({}%)"
@@ -106,7 +106,7 @@ msgstr "Récupération: {} ({}%)"
 
 #: src/paperwork/frontend/diag/__init__.py:304
 msgid "Diagnostic information are ready"
-msgstr "Les informations de diagnostique sont prêtes"
+msgstr "Les informations de diagnostic sont prêtes"
 
 #: src/paperwork/frontend/diag/__init__.py:315
 #: src/paperwork/frontend/mainwindow/__init__.py:1830
@@ -660,7 +660,7 @@ msgstr "_Avancé"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:4
 msgid "_Diagnostic"
-msgstr "_Diagnostique"
+msgstr "_Diagnostic"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:5
 msgid "Optimize index"

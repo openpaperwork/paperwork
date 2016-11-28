@@ -2856,7 +2856,7 @@ class MainWindow(object):
             self.progressbar.set_progression(100 * progression, text)
         else:
             self.progressbar.visible = False
-            self.progressbar.redraw()
+        self.progressbar.redraw()
 
     def new_doc(self):
         self.actions['new_doc'][1].do()

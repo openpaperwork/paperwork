@@ -794,7 +794,9 @@ GObject.type_register(JobPageEditor)
 class JobPageImgRenderer(Job):
     __gsignals__ = {
         'rendered': (GObject.SignalFlags.RUN_LAST, None,
-                     (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                     (GObject.TYPE_INT, GObject.TYPE_INT,
+                         GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+        'rendering-error': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
 
     can_stop = False
@@ -805,15 +807,32 @@ class JobPageImgRenderer(Job):
         self.page = page
 
     def do(self):
-        self.emit("rendered", self.page.img, self.page.boxes)
+        try:
+            self.emit("rendered",
+                      self.page.page_nb, self.page.doc.nb_pages,
+                      self.page.img, self.page.boxes)
+        except:
+            # TODO(Jflesch)
+            # We get "MemoryError" sometimes ? oO
+            self.emit("rendering-error")
+            raise
 
 
 class JobFactoryPageImgRenderer(JobFactory):
-    def __init__(self):
+    def __init__(self, main_win):
         JobFactory.__init__(self, "PageImgRenderer")
+        self.__main_win = main_win
 
     def make(self, page):
-        return JobPageImgRenderer(self, next(self.id_generator), page)
+        job = JobPageImgRenderer(self, next(self.id_generator), page)
+        job.connect("rendered",
+                    lambda renderer, page_nb, total_pages, img, boxes:
+                    GLib.idle_add(self.__main_win.on_page_img_rendered,
+                                  renderer, page_nb, total_pages))
+        job.connect("rendering-error",
+                    lambda renderer: GLib.idle_add(
+                        self.__main_win.on_page_img_rendering_error, renderer))
+        return job
 
 
 class JobImporter(Job):
@@ -847,8 +866,14 @@ class JobImporter(Job):
 
         def _ocr_next_page(self):
             try:
-                page = next(self._page_iterator)
-                logger.info("Examining page %s" % str(page))
+                while True:
+                    page = next(self._page_iterator)
+                    logger.info("Examining page %s" % str(page))
+                    if len(page.boxes) <= 0:
+                        break
+                    self._main_win.on_page_img_rendered(
+                        None, page.page_nb, page.doc.nb_pages
+                    )
             except StopIteration:
                 logger.info("OCR has been redone on all the target pages")
                 if len(self._docs_to_label_predict) > 0:
@@ -857,9 +882,11 @@ class JobImporter(Job):
                     self._update_index()
                 return
 
+            # found a page where we need to run the OCR
             renderer = self._main_win.job_factories['page_img_renderer']
             renderer = renderer.make(page)
-            renderer.connect("rendered", lambda _, img, boxes:
+            renderer.connect("rendered",
+                             lambda _, page_nb, nb_pages, img, boxes:
                              GLib.idle_add(self._ocr,
                                            page, img, boxes))
             self._main_win.schedulers['main'].schedule(renderer)
@@ -958,7 +985,7 @@ class JobImporter(Job):
             nb_pages = 1
         else:
             nb_docs = len(docs)
-            nb_pages = 0
+            nb_pages = sum([doc.nb_pages for doc in docs])
         logger.info("Importing %d docs and %d pages" % (nb_docs, nb_pages))
 
         self.__main_win.show_doc(docs[-1], force_refresh=True)
@@ -972,14 +999,13 @@ class JobImporter(Job):
                             must_add_labels).start()
             return
 
-        if len(docs) > 0:
+        if nb_pages > 0:
             pages = []
             for doc in docs:
                 new_pages = [p for p in doc.pages]
                 pages += new_pages
-            if len(pages) > 0:
-                self.IndexAdder(self.__main_win, iter(pages),
-                                must_add_labels).start()
+            self.IndexAdder(self.__main_win, iter(pages),
+                            must_add_labels).start()
 
 
 GObject.type_register(JobImporter)
@@ -2377,7 +2403,7 @@ class MainWindow(object):
             'label_predictor_on_new_doc': JobFactoryLabelPredictorOnNewDoc(
                 self
             ),
-            'page_img_renderer': JobFactoryPageImgRenderer(),
+            'page_img_renderer': JobFactoryPageImgRenderer(self),
             'page_img_loader': JobFactoryPageImgLoader(),
             'page_boxes_loader': JobFactoryPageBoxesLoader(),
         }
@@ -3570,6 +3596,19 @@ class MainWindow(object):
                 self.docsearch.add_label(doc, label, update_index=False)
         self.upd_index({doc}, new=True)
         self.refresh_label_list()
+
+    def on_page_img_rendered(self, renderer, page_nb, nb_pages):
+        if page_nb == nb_pages:
+            self.set_progression(None, 0.0, None)
+        else:
+            self.set_progression(None, float(page_nb) / nb_pages,
+                                 _("Examining imported file ..."))
+
+    def on_page_img_rendering_error(self, renderer):
+        # the only known problem is when we get MemoryError for some reason
+        # after some pages
+        # --> for now, just hide the problem hidden under the carpet
+        self.set_progression(None, 0.0, None)
 
     def upd_index(self, docs, new=False):
         new_docs = set()

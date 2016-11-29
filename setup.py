@@ -68,7 +68,7 @@ Main features are:
     ],
     license="GPLv3+",
     author="Jerome Flesch",
-    author_email="jflesch@gmail.com",
+    author_email="jflesch@openpaper.work",
     packages=[
         'paperwork',
         'paperwork.frontend',

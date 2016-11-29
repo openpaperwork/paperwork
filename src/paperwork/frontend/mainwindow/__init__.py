@@ -2066,7 +2066,7 @@ class ActionExport(BasicActionEndExport):
         job = self.main_win.job_factories['export'].make(
             self.main_win.export['exporter'], filepath
         )
-        self.main_win.schedulers['main'].schedule(job)
+        self.main_win.schedulers['export'].schedule(job)
         self.main_win.hide_export_dialog()
 
 
@@ -2765,6 +2765,7 @@ class MainWindow(object):
             'progress': JobScheduler("Progress"),
             'scan': JobScheduler("Scan"),
             'index': JobScheduler("Index search / update"),
+            'export': JobScheduler("Export"),
         }
 
     def __init_app_menu(self, config, app):

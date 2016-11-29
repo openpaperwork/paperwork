@@ -178,7 +178,6 @@ class Drawer(object):
 
     def redraw(self, extra_border=0):
         if not self.visible:
-            logger.warning("redraw() called on non-visible element")
             return
 
         if not self._is_visible():

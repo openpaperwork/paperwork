@@ -1545,7 +1545,8 @@ class ActionImport(SimpleAction):
         job_importer.connect('no-doc-imported',
                              lambda _: GLib.idle_add(self.__no_doc_imported))
         job_importer.connect('import-error',
-                             lambda _, msg: GLib.idle_add(self.__import_error, msg))
+                             lambda _, msg: GLib.idle_add(
+                                 self.__import_error, msg))
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 

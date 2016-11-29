@@ -164,16 +164,14 @@ class BasicPage(object):
         """
         Create the page's thumbnail
         """
-        img = self.img
-        (w, h) = img.size
+        (w, h) = self.size
         factor = max(
             (float(w) / width),
             (float(h) / height)
         )
         w /= factor
         h /= factor
-        img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
-        return img
+        return self.get_image((int(w), int(h)))
 
     def _get_thumb_path(self):
         return self._get_filepath(self.EXT_THUMB)

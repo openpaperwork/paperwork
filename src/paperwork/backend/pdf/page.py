@@ -37,9 +37,9 @@ def minmax_rects(rects):
     for rectangle in rects:
         ((x1, y1), (x2, y2)) = (
             (int(rectangle.x1 * PDF_RENDER_FACTOR),
-            int(rectangle.y2 * PDF_RENDER_FACTOR)),
+             int(rectangle.y2 * PDF_RENDER_FACTOR)),
             (int(rectangle.x2 * PDF_RENDER_FACTOR),
-            int(rectangle.y1 * PDF_RENDER_FACTOR))
+             int(rectangle.y1 * PDF_RENDER_FACTOR))
         )
         (x1, x2) = (min(x1, x2), max(x1, x2))
         (y1, y2) = (min(y1, y2), max(y1, y2))
@@ -67,9 +67,9 @@ def custom_split(input_str, input_rects, splitter):
     assert(len(input_str) == len(input_rects))
     input_el = zip(input_str, input_rects)
     for (is_split, group) in itertools.groupby(
-                input_el,
-                lambda x: splitter(x[0])
-            ):
+        input_el,
+        lambda x: splitter(x[0])
+    ):
         if is_split:
             continue
         letters = ""
@@ -186,12 +186,12 @@ class PdfPage(BasicPage):
         layout = layout[1]
 
         for (line, line_rects) in custom_split(
-                    txt, layout, lambda x: x == "\n"
-                ):
+            txt, layout, lambda x: x == "\n"
+        ):
             words = []
             for (word, word_rects) in custom_split(
-                        line, line_rects, lambda x: x.isspace()
-                    ):
+                line, line_rects, lambda x: x.isspace()
+            ):
                 word_box = PdfWordBox(word, word_rects)
                 words.append(word_box)
             line_box = PdfLineBox(words, line_rects)
@@ -215,14 +215,12 @@ class PdfPage(BasicPage):
         logger.debug('Building img from pdf: {}'.format(size))
         width = int(size[0])
         height = int(size[1])
-        factor = min(
-            width / self._size[0],
-            height / self._size[1]
-        )
+        factor_w = width / self._size[0]
+        factor_h = height / self._size[1]
 
         surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
         ctx = cairo.Context(surface)
-        ctx.scale(factor, factor)
+        ctx.scale(factor_w, factor_h)
         self.pdf_page.render(ctx)
         return surface2image(surface)
 
@@ -236,6 +234,14 @@ class PdfPage(BasicPage):
 
     def get_image(self, size):
         return self.__render_img(size)
+
+    def get_thumbnail(self, width, height):
+        # use only the on-disk cache if it's the page 0 (used in the document
+        # list)
+        # otherwise, it's either to just generate the image
+        if self.page_nb == 0:
+            return super().get_thumbnail(width, height)
+        return self.get_image((width, height))
 
     def __get_size(self):
         # default size

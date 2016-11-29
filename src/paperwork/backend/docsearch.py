@@ -320,27 +320,36 @@ class DocIndexUpdater(GObject.GObject):
         Apply the changes to the index
         """
         logger.info("Index: Commiting changes")
-        # HACK(Jflesch):
-        # we do the commits in the separate process to not block the Python
-        # interpreter (see Python's Global Lock)
         if index_update:
-            process = multiprocessing.Process(
-                target=self._commit_wrapper,
-                args=(self.index_writer,)
-            )
-            process.start()
-            process.join()
+            self._commit_wrapper(self.index_writer)
+            # HACK(Jflesch):
+            # we do the commits in the separate process to not block the Python
+            # interpreter (see Python's Global Lock)
+            # (.. doesn't work. Tends to lock up)
+            #
+            # process = multiprocessing.Process(
+            #     target=self._commit_wrapper,
+            #     args=(self.index_writer,)
+            # )
+            # process.start()
+            # process.join()
         else:
             self.index_writer.cancel()
         del self.index_writer
         self.docsearch.index.refresh()
         if label_guesser_update:
-            process = multiprocessing.Process(
-                target=self._commit_wrapper,
-                args=(self.label_guesser_updater,)
-            )
-            process.start()
-            process.join()
+            self._commit_wrapper(self.label_guesser_updater)
+            # HACK(Jflesch):
+            # we do the commits in the separate process to not block the Python
+            # interpreter (see Python's Global Lock)
+            # (.. doesn't work. Tends to lock up)
+            #
+            # process = multiprocessing.Process(
+            #     target=self._commit_wrapper,
+            #     args=(self.label_guesser_updater,)
+            # )
+            # process.start()
+            # process.join()
         if index_update:
             self.docsearch.reload_searcher()
 
@@ -740,7 +749,9 @@ class DocSearch(object):
                 keyword = keywords[keyword_idx]
                 if (len(keyword) <= MIN_KEYWORD_LEN):
                     continue
-                keyword_suggestions = label_corrector.suggest(keyword, limit=2)[:]
+                keyword_suggestions = label_corrector.suggest(
+                    keyword, limit=2
+                )[:]
                 keyword_suggestions += corrector.suggest(keyword, limit=5)[:]
                 for keyword_suggestion in keyword_suggestions:
                     new_suggestion = keywords[:]

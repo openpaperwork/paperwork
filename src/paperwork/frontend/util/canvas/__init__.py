@@ -388,7 +388,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
             if (position[0] > visible[0] or position[1] > visible[1] or
                     size[0] <= 0 or size[1] <= 0):
-                logger.warning("Ignore useless call to redraw()")
+                # logger.warning("Ignore useless call to redraw()")
                 return
 
             self.queue_draw_area(

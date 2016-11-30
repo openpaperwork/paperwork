@@ -871,11 +871,12 @@ class JobImporter(Job):
                     logger.info("Examining page %s" % str(page))
                     if len(page.boxes) <= 0:
                         break
+                    self._add_doc_to_checklists(page.doc)
                     self._main_win.on_page_img_rendered(
                         None, page.page_nb, page.doc.nb_pages
                     )
             except StopIteration:
-                logger.info("OCR has been redone on all the target pages")
+                logger.info("All the target pages have been examined")
                 if len(self._docs_to_label_predict) > 0:
                     self._predict_labels()
                 else:

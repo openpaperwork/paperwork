@@ -1,3 +1,10 @@
+- Diagnostic: Limit the number of lines kept in memory (avoid running out of
+  memory in case of endless loop)
+- Diagnostic: Log all the uncatched exceptions
+- PDF import: When importing a big PDF, clearly show the progression of the
+  import
+- Document list: Fix multiple selections behavior
+
 2016/11/22 - 1.0.5:
 - Setting the resolution on the scanner may not actually work. If it is not
   possible to set the resolution, fall back on the current one.

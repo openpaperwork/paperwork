@@ -244,6 +244,15 @@ class LogTracker(logging.Handler):
     def get_logs(self):
         return "\n".join(self.output)
 
+    def on_uncatched_exception_cb(self, exc_type, exc_value, exc_tb):
+        logger.error(
+            "=== UNCATCHED EXCEPTION ===",
+            exc_info=(exc_type, exc_value, exc_tb)
+        )
+        logger.error(
+            "==========================="
+        )
+
     @staticmethod
     def init():
         logger = logging.getLogger()
@@ -257,6 +266,7 @@ class LogTracker(logging.Handler):
             "WARNING": logging.WARNING,
             "ERROR": logging.ERROR,
         }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
+        sys.excepthook = g_log_tracker.on_uncatched_exception_cb
 
 
 g_log_tracker = LogTracker()

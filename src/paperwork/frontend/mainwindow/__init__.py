@@ -1545,9 +1545,10 @@ class ActionImport(SimpleAction):
         job_importer = job_importer.make(importer, file_uri)
         job_importer.connect('no-doc-imported',
                              lambda _: GLib.idle_add(self.__no_doc_imported))
-        job_importer.connect('import-error',
-                             lambda _, msg: GLib.idle_add(
-                                 self.__import_error, msg))
+        job_importer.connect(
+            'import-error',
+            lambda _, msg: GLib.idle_add(self.__import_error, msg)
+        )
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 
@@ -3445,15 +3446,10 @@ class MainWindow(object):
         elif event.keyval == Gdk.KEY_Page_Down:
             direction = 1
 
-        if (event.keyval == Gdk.KEY_Control_L or
-                event.keyval == Gdk.KEY_Control_R or
-                event.keyval == Gdk.KEY_Shift_L or
-                event.keyval == Gdk.KEY_Shift_R or
-                event.state & Gdk.ModifierType.MODIFIER_MASK):
-            self.allow_multiselect = True
-
         if direction != 0:
+            logger.info("Direction key pressed (page up / page down)")
             if not event.state & Gdk.ModifierType.CONTROL_MASK:
+                logger.info("Changing page (key PageUp/PageDown)")
                 doc = self.doc
                 if not self.page:
                     page_nb = doc.nb_pages - 1
@@ -3466,6 +3462,7 @@ class MainWindow(object):
                     page_nb = 0
                 self.show_page(doc.pages[page_nb])
             else:
+                logger.info("Changing document (keys Ctrl+PageUp/PageDown)")
                 self.doclist.select_doc(
                     doc=self.doc,
                     offset=direction, open_doc=True
@@ -3476,12 +3473,7 @@ class MainWindow(object):
         return False
 
     def __on_key_release_event_cb(self, widget, event):
-        if (event.keyval == Gdk.KEY_Control_L or
-                event.keyval == Gdk.KEY_Control_R or
-                event.keyval == Gdk.KEY_Shift_L or
-                event.keyval == Gdk.KEY_Shift_R or
-                event.state & Gdk.ModifierType.MODIFIER_MASK):
-            self.allow_multiselect = False
+        pass
 
     def get_doc_sorting(self):
         return ("scan_date", sort_documents_by_date)

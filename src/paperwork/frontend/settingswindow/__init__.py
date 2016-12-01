@@ -404,17 +404,21 @@ class JobCalibrationScan(Job):
             )
             logger.exception(exc)
             resolution = int(dev.options['resolution'].value)
-            logger.warning("Falling back to current resolution: {}".format(resolution))
+            logger.warning("Falling back to current resolution: {}".format(
+                resolution
+            ))
         try:
             pyinsane2.set_scanner_opt(dev, 'mode', ["Color"])
         except pyinsane2.PyinsaneException as exc:
-            logger.warning("Unable to set scanner mode ! May be 'Lineart': {}".format(exc))
+            logger.warning("Unable to set scanner mode !"
+                           " May be 'Lineart': {}".format(exc))
             logger.exception(exc)
 
         try:
             pyinsane2.maximize_scan_area(dev)
         except pyinsane2.PyinsaneException as exc:
-            logger.warning("Failed to maximize the scan area. May only scan part of the image: {}".format(exc))
+            logger.warning("Failed to maximize the scan area."
+                           " May only scan part of the image: {}".format(exc))
             logger.exception(exc)
 
         scan_session = dev.scan(multiple=False)

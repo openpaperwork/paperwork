@@ -1,3 +1,19 @@
+--- Unstable branch ---
+- Export: Display the progression of the export
+- Export: Don't lock the UI
+- Improve keyword highlighting: Highlight words identical to search keywords
+  (as before) and also words close enough (example: 'flesh' when 'flesch'
+  is being search)
+- Optim: Document list: Only display display the first 100 elements of the
+  list, and extend it only when required. Reduces GTK latency.
+- Optim: Improve PDF rendering speed: Let the libpoppler take care of the
+  rendering size
+- Optim: PDF: Only generate cached thumbnail of the first page. Other pages
+  can be quickly generated on-the-fly by libpoppler.
+- Optim: Reduce the number of useless calls to redraw()
+- Improve stability by configuring the Gdk library to be thread-safe
+-----------------------
+
 - Diagnostic: Limit the number of lines kept in memory (avoid running out of
   memory in case of endless loop)
 - Diagnostic: Log all the uncatched exceptions

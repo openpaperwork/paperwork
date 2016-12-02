@@ -811,6 +811,7 @@ class JobImporter(Job):
                     logger.info("Examining page %s" % str(page))
                     if len(page.boxes) <= 0:
                         break
+                    self._add_doc_to_checklists(page.doc)
                     self._main_win.on_page_img_rendered(
                         None, page.page_nb, page.doc.nb_pages
                     )

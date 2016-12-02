@@ -1868,7 +1868,7 @@ class MultipleExportTarget(object):
     def get_export_formats(self):
         return [_("Multiple PDF in a folder")]
 
-    def build_exporter(self, format):
+    def build_exporter(self, format, preview_page_nb=0):
         return docexport.MultipleDocExporter(self.doclist)
 
 

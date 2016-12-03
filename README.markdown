@@ -68,7 +68,7 @@ it first before installing the new version.
 * [GNU/Linux Ubuntu](doc/install.debian.markdown)
 * [Docker](doc/install.docker.markdown)
 * [GNU/Linux Development](doc/install.devel.markdown)
-* Windows: [Installation](https://openpaper.work/download) / [Development](doc/devel.windows.markdown)
+* Windows: [Installation](https://openpaper.work) / [Development](doc/devel.windows.markdown)
 
 
 ## Uninstall
@@ -107,7 +107,7 @@ Papers are organized into documents. Each document contains pages.
 It mainly uses:
 
 * [Sane](http://www.sane-project.org/)/[Pyinsane](https://github.com/jflesch/pyinsane/#readme): To scan the pages
-* [Tesseract](http://code.google.com/p/tesseract-ocr/)/[Pyocr](https://github.com/jflesch/pyocr/#readme): To extract the words from the pages (OCR)
+* [Tesseract](https://github.com/tesseract-ocr)/[Pyocr](https://github.com/jflesch/pyocr/#readme): To extract the words from the pages (OCR)
 * [GTK](http://www.gtk.org/): For the user interface
 * [Whoosh](https://pypi.python.org/pypi/Whoosh/): To index and search documents, and provide keyword suggestions
 * [Simplebayes](https://pypi.python.org/pypi/simplebayes/): To guess the labels
@@ -126,34 +126,6 @@ they are stored in a separate Git repository:
 ## Licence
 
 GPLv3 or later. See COPYING.
-
-
-## Archives
-
-Github can automatically provide .tar.gz and .zip files if required. However,
-they are not required to install Paperwork. They are indicated here as a
-convenience for package maintainers.
-
-* [Paperwork 1.0.4](https://github.com/jflesch/paperwork/archive/1.0.4.tar.gz)
-* [Paperwork 1.0.3](https://github.com/jflesch/paperwork/archive/1.0.3.tar.gz)
-* [Paperwork 1.0.2](https://github.com/jflesch/paperwork/archive/1.0.2.tar.gz)
-* [Paperwork 1.0.1](https://github.com/jflesch/paperwork/archive/1.0.1.tar.gz)
-* [Paperwork 1.0](https://github.com/jflesch/paperwork/archive/1.0.tar.gz)
-* [Paperwork 0.3.2](https://github.com/jflesch/paperwork/archive/0.3.2.tar.gz)
-* [Paperwork 0.3.1.1](https://github.com/jflesch/paperwork/archive/0.3.1.1.tar.gz)
-* [Paperwork 0.3.1](https://github.com/jflesch/paperwork/archive/0.3.1.tar.gz)
-* [Paperwork 0.3.0.1](https://github.com/jflesch/paperwork/archive/0.3.0.1.tar.gz)
-* [Paperwork 0.3.0](https://github.com/jflesch/paperwork/archive/0.3.0.tar.gz)
-* [Paperwork 0.2.5](https://github.com/jflesch/paperwork/archive/0.2.5.tar.gz)
-* [Paperwork 0.2.4](https://github.com/jflesch/paperwork/archive/0.2.4.tar.gz)
-* [Paperwork 0.2.3](https://github.com/jflesch/paperwork/archive/0.2.3.tar.gz)
-* [Paperwork 0.2.2](https://github.com/jflesch/paperwork/archive/0.2.2.tar.gz)
-* [Paperwork 0.2.1](https://github.com/jflesch/paperwork/archive/0.2.1.tar.gz)
-* [Paperwork 0.2](https://github.com/jflesch/paperwork/archive/0.2.tar.gz)
-* [Paperwork 0.1.3](https://github.com/jflesch/paperwork/archive/0.1.3.tar.gz)
-* [Paperwork 0.1.2](https://github.com/jflesch/paperwork/archive/0.1.2.tar.gz)
-* [Paperwork 0.1.1](https://github.com/jflesch/paperwork/archive/0.1.1.tar.gz)
-* [Paperwork 0.1](https://github.com/jflesch/paperwork/archive/0.1.tar.gz)
 
 
 ## Development

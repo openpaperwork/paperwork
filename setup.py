@@ -20,12 +20,11 @@ setup(
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * change it also in
     #   src/paperwork/frontend/mainwindow/__init__.py:__version__
-    # * update the archive list in the README
     # * update the dependency version on paperwork-backend
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.0.4",
+    version="1.0.5",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -69,7 +68,7 @@ Main features are:
     ],
     license="GPLv3+",
     author="Jerome Flesch",
-    author_email="jflesch@gmail.com",
+    author_email="jflesch@openpaper.work",
     packages=[
         'paperwork',
         'paperwork.frontend',
@@ -238,7 +237,7 @@ Main features are:
         "pyocr >= 0.3.0",
         "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend >= 1.0.4",
+        "paperwork-backend >= 1.0.5",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

@@ -653,6 +653,10 @@ class DocList(object):
             lambda v: GLib.idle_add(self._on_scrollbar_value_changed)
         )
 
+        self.gui['list'].add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+
+        self.gui['list'].connect("button-press-event", self._on_button_pressed)
+
         self.gui['list'].connect(
             "size-allocate",
             lambda w, s: GLib.idle_add(self._on_scrollbar_value_changed)
@@ -683,6 +687,12 @@ class DocList(object):
         ), color="#EEEEEE")
         img = add_img_border(img, 1)
         return image2pixbuf(img)
+
+    def _on_button_pressed(self, widget, event):
+        self.__main_win.allow_multiselect = bool(
+            event.state & Gdk.ModifierType.CONTROL_MASK or
+            event.state & Gdk.ModifierType.SHIFT_MASK
+        )
 
     def _on_scrollbar_value_changed(self):
         vadjustment = self.gui['scrollbars'].get_vadjustment()

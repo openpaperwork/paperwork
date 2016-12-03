@@ -224,6 +224,10 @@ class JobFactoryInfoGetter(JobFactory):
 
 
 class LogTracker(logging.Handler):
+    # Assuming 1KB per line, it makes about 50MB of RAM
+    # (+ memory allocator overhead)
+    MAX_LINES = 50 * 1000
+
     def __init__(self):
         super(LogTracker, self).__init__()
         self._formatter = logging.Formatter(
@@ -234,9 +238,20 @@ class LogTracker(logging.Handler):
     def emit(self, record):
         line = self._formatter.format(record)
         self.output.append(line)
+        if len(self.output) > self.MAX_LINES:
+            self.output.pop(0)
 
     def get_logs(self):
         return "\n".join(self.output)
+
+    def on_uncatched_exception_cb(self, exc_type, exc_value, exc_tb):
+        logger.error(
+            "=== UNCATCHED EXCEPTION ===",
+            exc_info=(exc_type, exc_value, exc_tb)
+        )
+        logger.error(
+            "==========================="
+        )
 
     @staticmethod
     def init():
@@ -251,6 +266,7 @@ class LogTracker(logging.Handler):
             "WARNING": logging.WARNING,
             "ERROR": logging.ERROR,
         }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
+        sys.excepthook = g_log_tracker.on_uncatched_exception_cb
 
 
 g_log_tracker = LogTracker()

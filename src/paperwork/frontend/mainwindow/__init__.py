@@ -79,7 +79,7 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must

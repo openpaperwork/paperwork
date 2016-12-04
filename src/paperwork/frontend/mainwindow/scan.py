@@ -363,11 +363,11 @@ class JobFactoryOCR(JobFactory):
     def make(self, img, nb_angles):
         angles = range(0, nb_angles * 90, 90)
 
+        ocr_tool = None
         ocr_tools = pyocr.get_available_tools()
-        if len(ocr_tools) == 0:
-            raise Exception("No OCR tool found")
-        ocr_tool = ocr_tools[0]
-        logger.info("Will use tool '%s'" % (ocr_tool.get_name()))
+        if len(ocr_tools) != 0:
+            ocr_tool = ocr_tools[0]
+            logger.info("Will use tool '%s'" % (ocr_tool.get_name()))
 
         job = JobOCR(self, next(self.id_generator), ocr_tool,
                      self.__config['langs'].value, angles, img)
@@ -907,7 +907,7 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         Listen for the signal ocr-done to get the result
         """
-        if not self.__config['ocr_enabled'].value:
+        if not self.__config['ocr_enabled'].value or len(pyocr.get_available_tools()) == 0:
             angles = 0
         elif angles is None:
             angles = 4

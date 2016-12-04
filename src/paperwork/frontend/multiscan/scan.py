@@ -71,7 +71,7 @@ class PageScan(GObject.GObject):
     def __on_error(self, exc):
         logger.error("Scan failed: %s" % str(exc))
         self.__main_win.remove_scan_workflow(self.scan_workflow)
-        self.__main_win.refresh_page_list()
+        self.__main_win.show_doc(self.__main_win.doc, force_refresh=True)
         self.__multiscan_win.on_scan_error_cb(self, exc)
 
     def __make_scan_workflow(self):

@@ -24,7 +24,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.0.5",
+    version="1.0.6",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -246,11 +246,11 @@ Main features are:
     ] + extra_deps
 )
 
-print ("============================================================")
-print ("============================================================")
-print ("||                       IMPORTANT                        ||")
-print ("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
-print ("||        and 'paperwork-shell chkdeps paperwork'         ||")
-print ("||        to find any missing dependency                  ||")
-print ("============================================================")
-print ("============================================================")
+print("============================================================")
+print("============================================================")
+print("||                       IMPORTANT                        ||")
+print("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
+print("||        and 'paperwork-shell chkdeps paperwork'         ||")
+print("||        to find any missing dependency                  ||")
+print("============================================================")
+print("============================================================")

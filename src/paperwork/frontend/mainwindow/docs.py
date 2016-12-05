@@ -1093,12 +1093,13 @@ class DocList(object):
                 row = self.gui['list'].get_row_at_index(row_index)
                 if not row:
                     return
+                docid = self.model['by_row'][row]
+                doc = self.__main_win.docsearch.get_doc_from_docid(
+                    docid, inst=True
+                )
+            self.gui['list'].unselect_all()
             self.gui['list'].select_row(row)
             if open_doc and doc:
-                # WORKAROUND(Jflesch): Gtk behavior has changed between
-                # debian stable (jessie) and sid (2016/11/08) ?!
-                # --> we switch document explicitly here but we shouldn't have
-                # to
                 self.__main_win.show_doc(doc)
         finally:
             self.enabled = True

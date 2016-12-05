@@ -201,7 +201,7 @@ class JobLabelCreator(Job):
 
     def do(self):
         self.emit('label-creation-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.create_label(self.__new_label, self.__doc,
                                           self.__progress_cb)
@@ -262,7 +262,7 @@ class JobLabelUpdater(Job):
 
     def do(self):
         self.emit('label-updating-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.update_label(self.__old_label, self.__new_label,
                                           self.__progress_cb)
@@ -322,7 +322,7 @@ class JobLabelDeleter(Job):
 
     def do(self):
         self.emit('label-deletion-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
@@ -1048,7 +1048,7 @@ class DocList(object):
         return (len(self.gui['list'].get_selected_rows()) > 1)
 
     def unselect_doc(self, doc):
-        if not doc.docid in self.model['by_id']:
+        if doc.docid not in self.model['by_id']:
             return
         row = self.model['by_id'][doc.docid]
         self.gui['list'].unselect_row(row)
@@ -1403,7 +1403,9 @@ class DocPropertiesPanel(object):
                 )
                 delete_button.set_relief(Gtk.ReliefStyle.NONE)
                 delete_button.connect("clicked", self.on_label_button_clicked)
-                ActionDeleteLabel(self.__main_win, self).connect([delete_button])
+                ActionDeleteLabel(self.__main_win, self).connect(
+                    [delete_button]
+                )
                 label_box.add(delete_button)
 
                 rowbox = Gtk.ListBoxRow()
@@ -1466,7 +1468,6 @@ class DocPropertiesPanel(object):
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
-        current_labels = sorted(self.labels.keys())
         self._clear_label_list()
         self._readd_label_widgets(all_labels)
         for label in self.labels:

@@ -3400,10 +3400,11 @@ class MainWindow(object):
                 self.show_page(doc.pages[page_nb])
             else:
                 logger.info("Changing document (keys Ctrl+PageUp/PageDown)")
-                self.doclist.select_doc(
+                row = self.doclist.select_doc(
                     doc=self.doc,
                     offset=direction, open_doc=True
                 )
+                self.doclist.scroll_to(row)
             return True
 
         # don't know what to do, don't care. Let someone else take care of it

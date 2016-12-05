@@ -750,7 +750,7 @@ class DocList(object):
             job = self.job_factories['doc_thumbnailer'].make(documents)
             self.__main_win.schedulers['main'].schedule(job)
 
-    def _scroll_to(self, row):
+    def scroll_to(self, row):
         adj = row.get_allocation().y
         adj -= (self.gui['scrollbars'].get_vadjustment().get_page_size() / 2)
         adj += (row.get_allocation().height / 2)
@@ -993,7 +993,7 @@ class DocList(object):
                 self.__main_win.doc.docid in self.model['by_id']):
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
-            GLib.idle_add(self._scroll_to, row)
+            GLib.idle_add(self.scroll_to, row)
 
         # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()
@@ -1101,6 +1101,7 @@ class DocList(object):
             self.gui['list'].select_row(row)
             if open_doc and doc:
                 self.__main_win.show_doc(doc)
+            return row
         finally:
             self.enabled = True
 

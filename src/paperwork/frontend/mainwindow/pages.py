@@ -1590,7 +1590,7 @@ class PageDropHandler(Drawer):
                 None
             )
         )
-        distances.sort()
+        distances.sort(key=lambda x: x[0])
 
         if len(distances) <= 0:
             self.target_previous_page_drawer = None

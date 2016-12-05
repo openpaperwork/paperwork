@@ -201,7 +201,7 @@ class JobLabelCreator(Job):
 
     def do(self):
         self.emit('label-creation-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.create_label(self.__new_label, self.__doc,
                                           self.__progress_cb)
@@ -262,7 +262,7 @@ class JobLabelUpdater(Job):
 
     def do(self):
         self.emit('label-updating-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.update_label(self.__old_label, self.__new_label,
                                           self.__progress_cb)
@@ -322,7 +322,7 @@ class JobLabelDeleter(Job):
 
     def do(self):
         self.emit('label-deletion-start')
-        self._wait(0.5) # give a little bit of time to Gtk to update
+        self._wait(0.5)  # give a little bit of time to Gtk to update
         try:
             self.__docsearch.destroy_label(self.__label, self.__progress_cb)
         finally:
@@ -760,7 +760,7 @@ class DocList(object):
             job = self.job_factories['doc_thumbnailer'].make(documents)
             self.__main_win.schedulers['main'].schedule(job)
 
-    def _scroll_to(self, row):
+    def scroll_to(self, row):
         adj = row.get_allocation().y
         adj -= (self.gui['scrollbars'].get_vadjustment().get_page_size() / 2)
         adj += (row.get_allocation().height / 2)
@@ -1020,7 +1020,7 @@ class DocList(object):
             self.make_doc_box_visible(self.__main_win.doc)
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
-            GLib.idle_add(self._scroll_to, row)
+            GLib.idle_add(self.scroll_to, row)
 
         # remove the spinner, put the list instead
         self.gui['loading'].remove_all_drawers()
@@ -1142,13 +1142,15 @@ class DocList(object):
                 row = self.gui['list'].get_row_at_index(row_index)
                 if not row:
                     return
+                docid = self.model['by_row'][row]
+                doc = self.__main_win.docsearch.get_doc_from_docid(
+                    docid, inst=True
+                )
+            self.gui['list'].unselect_all()
             self.gui['list'].select_row(row)
             if open_doc and doc:
-                # WORKAROUND(Jflesch): Gtk behavior has changed between
-                # debian stable (jessie) and sid (2016/11/08) ?!
-                # --> we switch document explicitly here but we shouldn't have
-                # to
                 self.__main_win.show_doc(doc)
+            return row
         finally:
             self.enabled = True
 
@@ -1451,7 +1453,9 @@ class DocPropertiesPanel(object):
                 )
                 delete_button.set_relief(Gtk.ReliefStyle.NONE)
                 delete_button.connect("clicked", self.on_label_button_clicked)
-                ActionDeleteLabel(self.__main_win, self).connect([delete_button])
+                ActionDeleteLabel(self.__main_win, self).connect(
+                    [delete_button]
+                )
                 label_box.add(delete_button)
 
                 rowbox = Gtk.ListBoxRow()
@@ -1514,7 +1518,6 @@ class DocPropertiesPanel(object):
 
     def refresh_label_list(self):
         all_labels = sorted(self.__main_win.docsearch.label_list)
-        current_labels = sorted(self.labels.keys())
         self._clear_label_list()
         self._readd_label_widgets(all_labels)
         for label in self.labels:

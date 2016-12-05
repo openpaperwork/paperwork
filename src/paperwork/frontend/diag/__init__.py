@@ -147,7 +147,7 @@ class JobInfoGetter(Job):
         devices = pyinsane2.get_devices()
         logger.info("{} scanners found".format(len(devices)))
 
-        for device in pyinsane2.get_devices():
+        for device in devices:
             logger.info("=== {} ===".format(str(device)))
 
             for opt in device.options.values():

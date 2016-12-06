@@ -11,16 +11,14 @@ Pillow may conflict with the package python-imaging (aka PIL).
 
 ## Build dependencies
 
-    # Note: Paperwork now uses Python 3, and this package list hasn't
-    # been updated yet. If you know the correct package names, please
-    # send a pull request
-    $ sudo dnf install python-pip python-setuptools python-devel
+    # Python3 dependencies
+    $ sudo dnf install python3-pip python3-setuptools python3-devel
 
-    # Pillow build dependencies :
+    # Pillow build dependencies
     $ sudo dnf install libjpeg-turbo-devel zlib-devel
 
-    # PyEnchant dependency
-    $ sudo dnf install enchant-devel
+    # PyEnchant dependencies
+    $ sudo dnf install python3-enchant enchant-devel
 
 Note that `yum` is deprecated since Fedora 22 and replaced by `dnf`. If
 you use an older Fedora, replace instances of `dnf` above by `yum`. The

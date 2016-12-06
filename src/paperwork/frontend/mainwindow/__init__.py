@@ -2226,6 +2226,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.ready = False
+
         self.version = __version__
 
         if g_must_init_app:
@@ -2906,6 +2908,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_index_loading_end_cb(self, src, docsearch):
+        self.ready = True
+
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")

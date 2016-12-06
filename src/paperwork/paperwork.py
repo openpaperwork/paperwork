@@ -122,7 +122,7 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def main(hook_func=None):
+def main(hook_func=None, skip_workdir_scan=False):
     """
     Where everything start.
     """
@@ -149,7 +149,8 @@ def main(hook_func=None):
         config.read()
 
         main_win = MainWindow(config)
-        ActionRefreshIndex(main_win, config).do()
+        ActionRefreshIndex(main_win, config,
+                           skip_examination=skip_workdir_scan).do()
 
         if hook_func:
             thread = threading.Thread(target=hook_func, args=(config, main_win))

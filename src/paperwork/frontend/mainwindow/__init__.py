@@ -2165,12 +2165,14 @@ class ActionRealQuit(SimpleAction):
 
 
 class ActionRefreshIndex(SimpleAction):
-    def __init__(self, main_window, config, force=False):
+    def __init__(self, main_window, config, force=False,
+                 skip_examination=False):
         SimpleAction.__init__(self, "Refresh index")
         self.__main_win = main_window
         self.__config = config
         self.__force = force
         self.__connect_handler_id = None
+        self.__skip_examination = skip_examination
 
     def do(self):
         SimpleAction.do(self)
@@ -2192,6 +2194,8 @@ class ActionRefreshIndex(SimpleAction):
 
     def __on_index_reload_end(self, job, docsearch):
         if docsearch is None:
+            return
+        if self.__skip_examination:
             return
         job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
         job.connect('doc-examination-end', lambda job: GLib.idle_add(

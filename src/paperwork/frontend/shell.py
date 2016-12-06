@@ -19,7 +19,7 @@ def scan():
     Start Paperwork and immediately scan a page.
     """
     from paperwork import paperwork
-    paperwork.main(hook_func=_hook_scan)
+    paperwork.main(hook_func=_hook_scan, skip_workdir_scan=True)
 
 
 COMMANDS = {

@@ -66,7 +66,7 @@ class JobScan(Job):
                           ()),
     }
 
-    can_stop = True
+    can_stop = False
     priority = 10
 
     def __init__(self, factory, id, scan_session):

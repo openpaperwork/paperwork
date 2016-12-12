@@ -2768,6 +2768,7 @@ class MainWindow(object):
     def __init_schedulers(self):
         return {
             'main': JobScheduler("Main"),
+            'search': JobScheduler('Search'),
             'ocr': JobScheduler("OCR"),
             'page_boxes_loader': JobScheduler("Page boxes loader"),
             'progress': JobScheduler("Progress"),

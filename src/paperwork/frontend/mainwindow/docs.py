@@ -1098,7 +1098,7 @@ class DocList(object):
             sort_func=self.__main_win.get_doc_sorting()[1],
             search_type='fuzzy',
             search=search)
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['search'].schedule(job)
 
     def has_multiselect(self):
         return (len(self.gui['list'].get_selected_rows()) > 1)

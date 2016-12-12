@@ -1088,7 +1088,7 @@ class DocList(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        self.__main_win.schedulers['main'].cancel_all(
+        self.__main_win.schedulers['search'].cancel_all(
             self.__main_win.job_factories['doc_searcher']
         )
         search = self.__main_win.search_field.get_text()

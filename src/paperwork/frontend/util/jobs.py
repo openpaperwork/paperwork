@@ -178,6 +178,9 @@ class JobScheduler(object):
             self._active_job.already_started_once = True
             try:
                 self._active_job.do()
+                logger.debug(
+                    "[Scheduler %s] %s done", self.name, self._active_job
+                )
             except Exception as exc:
                 logger.error("===> Job %s raised an exception: %s: %s"
                              % (str(self._active_job),
@@ -211,6 +214,10 @@ class JobScheduler(object):
 
             self._job_queue_cond.acquire()
             try:
+                logger.debug(
+                    "[Scheduler %s] %d job(s) queued",
+                    self.name, len(self._job_queue)
+                )
                 self._active_job = None
                 self._job_queue_cond.notify_all()
             finally:
@@ -275,6 +282,10 @@ class JobScheduler(object):
                                         active))
 
             self._job_queue_cond.notify_all()
+            logger.debug(
+                "[Scheduler %s] %d job(s) queued",
+                self.name, len(self._job_queue)
+            )
         finally:
             self._job_queue_cond.release()
 

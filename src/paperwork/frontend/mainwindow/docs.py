@@ -3,6 +3,7 @@ import datetime
 import gettext
 import logging
 import gc
+import time
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -61,9 +62,10 @@ class JobDocThumbnailer(Job):
     SMALL_THUMBNAIL_WIDTH = 64
     SMALL_THUMBNAIL_HEIGHT = 80
 
-    def __init__(self, factory, id, doclist):
+    def __init__(self, factory, id, doclist, already_loaded):
         Job.__init__(self, factory, id)
-        self.__doclist = doclist
+        self.doclist = doclist
+        self.__already_loaded = already_loaded
         self.__current_idx = -1
 
     def __resize(self, img):
@@ -86,19 +88,31 @@ class JobDocThumbnailer(Job):
 
     def do(self):
         self.can_run = True
-        if self.__current_idx >= len(self.__doclist):
+        if self.__current_idx >= len(self.doclist):
             return
         if not self.can_run:
+            logger.info(
+                "Thumbnailing [%s] interrupted (not even started yet)", self
+            )
             return
 
         if self.__current_idx < 0:
+            logger.info(
+                "Start thumbnailing %d documents (%s)",
+                len(self.doclist), self
+            )
             self.emit('doc-thumbnailing-start')
             self.__current_idx = 0
 
-        for idx in range(self.__current_idx, len(self.__doclist)):
-            doc = self.__doclist[idx]
+        for idx in range(self.__current_idx, len(self.doclist)):
+            doc = self.doclist[idx]
             if doc.nb_pages <= 0:
                 continue
+
+            if doc.docid in self.__already_loaded:
+                continue
+
+            start = time.time()
 
             # always request the same size, even for small thumbnails
             # so we don't invalidate cache + previous thumbnails
@@ -106,6 +120,7 @@ class JobDocThumbnailer(Job):
                                              BasicPage.DEFAULT_THUMB_HEIGHT)
             doc.drop_cache()
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (0)", self)
                 return
 
             (w, h) = img.size
@@ -117,23 +132,33 @@ class JobDocThumbnailer(Job):
             h /= factor
             img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (1)", self)
                 return
 
             img = self.__resize(img)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (2)", self)
                 return
 
             img = add_img_border(img, width=self.THUMB_BORDER)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (3)", self)
                 return
 
             pixbuf = image2pixbuf(img)
 
+            stop = time.time()
+
+            logger.info(
+                "[%s]: Got thumbnail for %s (%fs)",
+                self, doc.docid, stop - start
+            )
             self.emit('doc-thumbnailing-doc-done', pixbuf, doc,
-                      idx, len(self.__doclist))
+                      idx, len(self.doclist))
 
             self.__current_idx = idx
 
+        logger.info("End of thumbnailing [%s]", self)
         self.emit('doc-thumbnailing-end')
 
     def stop(self, will_resume=False):
@@ -151,13 +176,15 @@ class JobFactoryDocThumbnailer(JobFactory):
         JobFactory.__init__(self, "DocThumbnailer")
         self.__doclist = doclist
 
-    def make(self, doclist):
+    def make(self, doclist, already_loaded):
         """
         Arguments:
             doclist --- must be an array of (position, document), position
                         being the position of the document
         """
-        job = JobDocThumbnailer(self, next(self.id_generator), doclist)
+        job = JobDocThumbnailer(
+            self, next(self.id_generator), doclist, already_loaded
+        )
         job.connect(
             'doc-thumbnailing-start',
             lambda thumbnailer:
@@ -757,7 +784,9 @@ class DocList(object):
         if len(documents) > 0:
             logger.info("Will get thumbnails for %d documents [%d-%d]"
                         % (len(documents), start_idx, end_idx))
-            job = self.job_factories['doc_thumbnailer'].make(documents)
+            job = self.job_factories['doc_thumbnailer'].make(
+                documents, self.model['thumbnails']
+            )
             self.__main_win.schedulers['main'].schedule(job)
 
     def scroll_to(self, row):

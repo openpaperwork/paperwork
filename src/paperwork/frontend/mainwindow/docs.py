@@ -176,7 +176,7 @@ class JobFactoryDocThumbnailer(JobFactory):
         JobFactory.__init__(self, "DocThumbnailer")
         self.__doclist = doclist
 
-    def make(self, doclist, already_loaded):
+    def make(self, doclist, already_loaded=()):
         """
         Arguments:
             doclist --- must be an array of (position, document), position

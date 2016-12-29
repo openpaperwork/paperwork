@@ -12,10 +12,10 @@ Pillow may conflict with the package python-imaging (aka PIL).
 ## Build dependencies
 
     # Python3 dependencies
-    $ sudo dnf install python3-pip python3-setuptools python3-devel
+    $ sudo dnf install python3-pip python3-setuptools python3-devel 
 
     # Pillow build dependencies
-    $ sudo dnf install libjpeg-turbo-devel zlib-devel
+    $ sudo dnf install libjpeg-turbo-devel zlib-devel redhat-rpm-config
 
     # PyEnchant dependencies
     $ sudo dnf install python3-enchant enchant-devel

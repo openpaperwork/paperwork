@@ -725,11 +725,7 @@ class ProgressBarDrawer(Drawer):
         self.redraw()
 
     def redraw(self):
-        txt_h = self.__last_text_height
-        position = (0, self.canvas.size[1] - (txt_h + (2 * self.TXT_MARGIN)))
-        size = (self.canvas.size[0] + (2 * self.TXT_MARGIN),
-                (txt_h + 2 * self.TXT_MARGIN))
-        self.canvas.redraw((position, size))
+        self.canvas.redraw((self.position, self.size))
 
     def _get_position(self):
         if not self.canvas:
@@ -795,13 +791,17 @@ class ProgressBarDrawer(Drawer):
         finally:
             cairo_ctx.restore()
 
-        cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
-                                 self.text_color[2])
-        cairo_ctx.move_to(self.TXT_MARGIN,
-                          self.canvas.size[1] + self.canvas.offset[1] -
-                          self.TXT_MARGIN)
-        cairo_ctx.text_path(self.text)
-        cairo_ctx.fill()
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
+                                     self.text_color[2])
+            cairo_ctx.move_to(self.TXT_MARGIN,
+                              self.canvas.size[1] + self.canvas.offset[1] -
+                              self.TXT_MARGIN)
+            cairo_ctx.text_path(self.text)
+            cairo_ctx.fill()
+        finally:
+            cairo_ctx.restore()
 
 
 def fit(element_size, area_size, force=False):

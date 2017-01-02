@@ -253,6 +253,7 @@ class LabelGuesser(object):
         label_bytes = label_name.encode("utf-8")
         label_hash = hashlib.sha1(label_bytes).digest()
         label_hash = base64.encodebytes(label_hash).decode('utf-8').strip()
+        label_hash = label_hash.replace('/', '_')
         baye_dir = os.path.join(self._bayes_dir, label_hash)
         mkdir_p(baye_dir)
         if label_name not in self._bayes or force_reload:

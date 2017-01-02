@@ -18,7 +18,6 @@ import cairo
 import math
 import logging
 
-from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
@@ -128,6 +127,7 @@ class Drawer(object):
             return False
         return self.compute_visibility(self.canvas.offset, self.canvas.size,
                                        self.position, self.size)
+
     def draw(self, cairo_ctx):
         if not self._is_visible():
             # don't bother drawing if it's not visible

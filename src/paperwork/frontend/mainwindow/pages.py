@@ -525,13 +525,13 @@ class PageACEAction(PageEditAction):
         self.recompute_ace()
 
     def _ace(self, img):
-        return pillowfight.ace(img)
+        return pillowfight.ace(img, samples=200)
 
     def recompute_ace(self):
         if not hasattr(self.child_drawers[0], 'img'):
             # we may temporarily be assigned a drawer
             # that doesn't provide a PIL image.
-            # (before drawer priority is updated0
+            # (before drawer priority is updated)
             return
         img = self.child_drawers[0].img
         assert(img is not None)

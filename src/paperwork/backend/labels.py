@@ -26,7 +26,6 @@ from gi.repository import Gdk
 import simplebayes
 
 from .util import mkdir_p
-from .util import find_language
 from .util import strip_accents
 
 

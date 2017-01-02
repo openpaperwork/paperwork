@@ -74,13 +74,13 @@ Developement is strongly related to Paperwork-gui.
 
 * [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
 * [Extra documentation / FAQ / Tips / Wiki](https://github.com/jflesch/paperwork-backend/wiki)
-* [Bug trackers](https://github.com/jflesch/paperwork-backend/wiki/Contact#bug-trackers)
+* [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
 
 
 ## Contact
 
 * [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
-* [Bug tracker](https://github.com/jflesch/paperwork-backend/issues/)
+* [Bug tracker](https://github.com/jflesch/paperwork/issues/)
 
 
 ## Licence

@@ -308,43 +308,43 @@ def find_language(lang_str=None, allow_none=False):
 
     try:
         return pycountry.pycountry.languages.get(name=lang_str.title())
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(iso_639_3_code=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(iso639_3_code=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(iso639_2T_code=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(iso639_1_code=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(terminology=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(bibliographic=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(alpha_3=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(alpha_2=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     try:
         return pycountry.pycountry.languages.get(alpha2=lang_str)
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         pass
     if allow_none:
         logger.warning("Unknown language [{}]".format(lang_str))

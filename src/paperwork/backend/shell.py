@@ -27,9 +27,9 @@ def get_docsearch():
 
 def dump(docid):
     """
-    Arguments: <docid>
-    Dump the content of the specified document. See 'search' for the document
-    ids.
+    Arguments: <document id>
+    Dump the content of the specified document.
+    See 'search' for the document ids.
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
@@ -105,9 +105,52 @@ class RescanManager(object):
         if self.verbose:
             print ("Done")
 
+
 def rescan():
+    """
+    Rescan the work directory. Look for new, updated or deleted documents
+    and update the index accordingly.
+    """
     rm = RescanManager()
     rm.rescan()
+
+
+def _get_first_line(doc):
+    out = ""
+    for page in doc.pages:
+        lines = page.boxes
+        for line in lines:
+            for word in line.word_boxes:
+                out += (" " + word.content)
+            out = out.strip()
+            if out != "":
+                break
+        if out != "":
+            break
+    return out
+
+
+def show(docid):
+    """
+    Arguments: <doc_id>
+    Show document information (but not its content, see 'dump').
+    See 'search' for the document id.
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    print ("Type: {}".format(type(doc)))
+    print ("Number of pages: {}".format(doc.nb_pages))
+    for page in doc.pages:
+        nb_lines = 0
+        nb_words = 0
+        for line in page.boxes:
+            nb_lines += 1
+            nb_words += len(line.word_boxes)
+        print ("  page {}: {} lines, {} words".format(
+            page.page_nb, nb_lines, nb_words
+        ))
+    print ("Labels: {}".format(", ".join([l.name for l in doc.labels])))
+    print ("First line: {}".format(_get_first_line(doc)))
 
 
 def search(*args):
@@ -131,14 +174,8 @@ def search(*args):
         if not is_verbose():
             print (doc.docid)
         else:
-            sys.stdout.write("{} ({} pages)".format(doc.docid, doc.nb_pages))
-            lines = doc.pages[0].boxes
-            for line in lines:
-                if len(line.content.strip()) == 0:
-                    continue
-                for word in line.word_boxes:
-                    sys.stdout.write(" " + word.content)
-                break
+            sys.stdout.write("{} ({} pages) ".format(doc.docid, doc.nb_pages))
+            sys.stdout.write(", ".join([l.name for l in doc.labels]))
             sys.stdout.write("\n")
 
 
@@ -162,5 +199,6 @@ COMMANDS = {
     'dump': dump,
     'rescan': rescan,
     'search': search,
+    'show': show,
     'switch_workdir': switch_workdir,
 }

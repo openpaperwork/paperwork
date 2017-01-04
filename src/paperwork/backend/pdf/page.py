@@ -62,6 +62,11 @@ class PdfLineBox(object):
         self.word_boxes = word_boxes
         self.position = minmax_rects(position)
 
+    def _get_content(self):
+        return " ".join([w.content for w in self.word_boxes])
+
+    content = property(_get_content)
+
 
 def custom_split(input_str, input_rects, splitter):
     assert(len(input_str) == len(input_rects))

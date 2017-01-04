@@ -12,6 +12,11 @@ try:
     FRONTEND_COMMANDS = paperwork.frontend.shell.COMMANDS
 except:
     FRONTEND_COMMANDS = {}
+try:
+    import paperwork_backend.shell
+    BACKEND_COMMANDS = paperwork_backend.shell.COMMANDS
+except:
+    BACKEND_COMMANDS = {}
 
 
 PACKAGE_TOOLS = {
@@ -112,10 +117,9 @@ def _chkdeps(module_name, distribution):
 
 def chkdeps(*args):
     """
+    Arguments: <component1> [<component2> [...]]]
     Look for missing dependencies.
-    Arguments: list of paperwork components.
-    A paperwork component must be specified.
-    Ex: 'paperwork_backend' or 'paperwork'
+    Ex: 'paperwork_backend',  'paperwork', 'paperwork_backend paperwork'
     """
     module_names = args
     if len(module_names) <= 0:
@@ -134,7 +138,8 @@ def list_commands(*args):
     print("")
     for cmd_name in sorted(COMMANDS.keys()):
         cmd_func = COMMANDS[cmd_name]
-        print("\t{}: {}".format(cmd_name, cmd_func.__doc__.strip()))
+        print("\t{}:".format(cmd_name))
+        print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
         print("")
 
 
@@ -142,9 +147,8 @@ COMMANDS = {
     "chkdeps": chkdeps,
     "list_commands": list_commands,
 }
-if FRONTEND_COMMANDS:
-    COMMANDS.update(FRONTEND_COMMANDS)
-
+COMMANDS.update(FRONTEND_COMMANDS)
+COMMANDS.update(BACKEND_COMMANDS)
 
 if __name__ == "__main__":
     # TODO: Handle other commands
@@ -165,6 +169,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     verbose_enabled = args.verbose
     interactive = not args.batch
+
+    os.environ['PAPERWORK_VERBOSE'] = "True" if verbose_enabled else ""
+    os.environ['PAPERWORK_INTERACTIVE'] = "True" if interactive else ""
 
     if args.cmd not in COMMANDS:
         print("Unknown command {}".format(args.cmd))

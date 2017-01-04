@@ -74,7 +74,24 @@ def search(*args):
             sys.stdout.write("\n")
 
 
+def switch_workdir(new_workdir):
+    """
+    Arguments: <new work directory path>
+    Change current Paperwork's work directory.
+    Does *not* update the index.
+    You should run 'paperwork-shell rescan' after this command.
+    """
+    if not os.path.exists(new_workdir) or not os.path.isdir(new_workdir):
+        sys.stderr.write("New work directory must be an existing directory.")
+        return
+    pconfig = config.PaperworkConfig()
+    pconfig.read()
+    pconfig.settings['workdir'].value = new_workdir
+    pconfig.write()
+
+
 COMMANDS = {
     'dump': dump,
     'search': search,
+    'switch_workdir': switch_workdir,
 }

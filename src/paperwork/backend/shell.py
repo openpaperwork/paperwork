@@ -8,8 +8,38 @@ from . import docsearch
 def is_verbose():
     return os.environ['PAPERWORK_VERBOSE'] != ""
 
+
 def is_interactive():
     return os.environ['PAPERWORK_INTERACTIVE'] != ""
+
+
+def get_docsearch():
+    pconfig = config.PaperworkConfig()
+    pconfig.read()
+
+    if is_verbose():
+        print ("Searching in {}".format(pconfig.settings['workdir'].value))
+
+    dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
+    dsearch.reload_index()
+    return dsearch
+
+
+def dump(docid):
+    """
+    Arguments: <docid>
+    Dump the content of the specified document. See 'search' for the document
+    ids.
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    for page in doc.pages:
+        print ("=== Page {} ===".format(page.page_nb))
+        for line in page.boxes:
+            out = ""
+            for word in line.word_boxes:
+                out += word.content + " "
+            print (out.strip())
 
 
 def search(*args):
@@ -23,14 +53,7 @@ def search(*args):
         sys.stderr.write("paperwork-shell: Need keywords.\n")
         return
 
-    pconfig = config.PaperworkConfig()
-    pconfig.read()
-
-    if is_verbose():
-        print ("Searching in {}".format(pconfig.settings['workdir'].value))
-
-    dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
-    dsearch.reload_index()
+    dsearch = get_docsearch()
 
     if is_verbose():
         print ("Search: {}".format(" ".join(args)))
@@ -40,7 +63,7 @@ def search(*args):
         if not is_verbose():
             print (doc.docid)
         else:
-            sys.stdout.write(doc.docid)
+            sys.stdout.write("{} ({} pages)".format(doc.docid, doc.nb_pages))
             lines = doc.pages[0].boxes
             for line in lines:
                 if len(line.content.strip()) == 0:
@@ -52,5 +75,6 @@ def search(*args):
 
 
 COMMANDS = {
+    'dump': dump,
     'search': search,
 }

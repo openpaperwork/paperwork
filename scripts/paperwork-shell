@@ -157,8 +157,7 @@ COMMANDS.update(FRONTEND_COMMANDS)
 COMMANDS.update(BACKEND_COMMANDS)
 
 if __name__ == "__main__":
-    # TODO: Handle other commands
-    # TODO: Shell
+    # TODO: Interactive shell
     parser = argparse.ArgumentParser(description='Paperwork shell')
     parser.add_argument(
         'cmd', metavar="command", type=str,

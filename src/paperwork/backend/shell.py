@@ -18,7 +18,7 @@ def get_docsearch():
     pconfig.read()
 
     if is_verbose():
-        print ("Searching in {}".format(pconfig.settings['workdir'].value))
+        print ("Work directory: {}".format(pconfig.settings['workdir'].value))
 
     dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
     dsearch.reload_index()
@@ -40,6 +40,74 @@ def dump(docid):
             for word in line.word_boxes:
                 out += word.content + " "
             print (out.strip())
+
+
+class RescanManager(object):
+    def __init__(self):
+        self.dsearch = get_docsearch()
+        self.verbose = is_verbose()
+        self.dexaminer = self.dsearch.get_doc_examiner()
+        self.index_updater = self.dsearch.get_index_updater()
+
+    def _on_new_doc(self, doc):
+        self.index_updater.add_doc(doc)
+        if self.verbose:
+            print ("New document: {}".format(doc.docid))
+
+    def _on_upd_doc(self, doc):
+        self.index_updater.upd_doc(doc)
+        self.changes['upd'].add(doc)
+        if self.verbose:
+            print ("Updated document: {}".format(doc.docid))
+
+    def _on_del_doc(self, doc):
+        self.index_updater.del_doc(doc)
+        if self.verbose:
+            print ("Deleted document: {}".format(doc.docid))
+
+    def _on_doc_unchanged(self, doc):
+        pass
+
+    def _on_progress(self, progression, total, step=None, doc=None):
+        if not self.verbose:
+            return
+        if progression % 10 != 0:
+            return
+        progression /= total
+        current = ""
+        if doc:
+            current = "({})".format(doc.docid)
+        sys.stdout.write("\b" * 100)
+        sys.stdout.write(
+            "{}[{}{}] {}% {}".format(
+                "\b" * 100,
+                "=" * int(10 * progression),
+                " " * int(10 - (10 * progression)),
+                int(progression * 100),
+                current
+            )
+        )
+        sys.stdout.flush()
+
+    def rescan(self):
+        self.dexaminer.examine_rootdir(
+            self._on_new_doc,
+            self._on_upd_doc,
+            self._on_del_doc,
+            self._on_doc_unchanged,
+            self._on_progress
+        )
+        if self.verbose:
+            sys.stdout.write("\b" * 100 + " " * 100)
+            sys.stdout.write("\b" * 100)
+            print ("Rewriting index ...")
+        self.index_updater.commit()
+        if self.verbose:
+            print ("Done")
+
+def rescan():
+    rm = RescanManager()
+    rm.rescan()
 
 
 def search(*args):
@@ -92,6 +160,7 @@ def switch_workdir(new_workdir):
 
 COMMANDS = {
     'dump': dump,
+    'rescan': rescan,
     'search': search,
     'switch_workdir': switch_workdir,
 }

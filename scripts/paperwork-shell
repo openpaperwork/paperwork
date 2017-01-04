@@ -130,22 +130,28 @@ def chkdeps(*args):
         _chkdeps(module_name, distribution)
 
 
-def list_commands(*args):
+def cmd_help(*args):
     """
+    Arguments: [<command>]
     List available commands
     """
-    print("Possible commands are:")
-    print("")
-    for cmd_name in sorted(COMMANDS.keys()):
+    if len(args) == 0:
+        print("Possible commands are:")
+        print("")
+        for cmd_name in sorted(COMMANDS.keys()):
+            cmd_func = COMMANDS[cmd_name]
+            print("\t{}:".format(cmd_name))
+            print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
+            print("")
+    else:
+        cmd_name = args[0]
         cmd_func = COMMANDS[cmd_name]
         print("\t{}:".format(cmd_name))
         print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
-        print("")
-
 
 COMMANDS = {
     "chkdeps": chkdeps,
-    "list_commands": list_commands,
+    "help": cmd_help,
 }
 COMMANDS.update(FRONTEND_COMMANDS)
 COMMANDS.update(BACKEND_COMMANDS)

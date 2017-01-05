@@ -15,7 +15,7 @@ from . import docsearch
 
 
 def is_verbose():
-    return os.environ['PAPERWORK_VERBOSE'] != ""
+    return os.environ['PAPERWORK_SHELL_VERBOSE'] != ""
 
 
 def is_interactive():

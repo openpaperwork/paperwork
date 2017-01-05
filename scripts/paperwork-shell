@@ -31,6 +31,7 @@ PACKAGE_TOOLS = {
 
 isatty = os.isatty(sys.stdout.fileno())
 verbose_enabled = False
+
 interactive = True
 
 
@@ -175,12 +176,12 @@ if __name__ == "__main__":
     verbose_enabled = args.verbose
     interactive = not args.batch
 
-    os.environ['PAPERWORK_VERBOSE'] = "True" if verbose_enabled else ""
+    os.environ['PAPERWORK_SHELL_VERBOSE'] = "True" if verbose_enabled else ""
     os.environ['PAPERWORK_INTERACTIVE'] = "True" if interactive else ""
 
     if args.cmd not in COMMANDS:
         print("Unknown command {}".format(args.cmd))
-        list_commands()
+        cmd_help()
         sys.exit(1)
 
     sys.exit(COMMANDS[args.cmd](*args.cmd_args))

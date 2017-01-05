@@ -1363,11 +1363,11 @@ class ActionSingleScan(SimpleAction):
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
         self.__main_win.add_page(docid, img, line_boxes)
 
-    def do(self):
+    def do(self, call_at_end=None):
         self.__main_win.set_mouse_cursor("Busy")
-        GLib.idle_add(self._do)
+        GLib.idle_add(self._do, call_at_end)
 
-    def _do(self):
+    def _do(self, call_at_end=None):
         SimpleAction.do(self)
 
         try:
@@ -1406,11 +1406,18 @@ class ActionSingleScan(SimpleAction):
         scan_workflow.connect('process-done', lambda scan_workflow, img, boxes:
                               GLib.idle_add(self.__on_ocr_done, scan_workflow,
                                             img, boxes))
+        if call_at_end:
+            scan_workflow.connect(
+                'process-done',
+                lambda scan_workflow, img, boxes:
+                GLib.idle_add(call_on_end)
+            )
 
         drawer = self.__main_win.make_scan_workflow_drawer(
             scan_workflow, single_angle=False)
         self.__main_win.add_scan_workflow(self.__main_win.doc, drawer)
         scan_workflow.scan_and_ocr(resolution, scan_session)
+        return scan_workflow
 
 
 class ActionMultiScan(SimpleAction):

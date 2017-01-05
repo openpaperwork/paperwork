@@ -90,11 +90,14 @@ def _do_import(filepaths, dsearch, doc, guess_labels=True):
             print ("File {} already imported".format(filepath))
         else:
             for doc in docs:
-                print("File {} --> Document {}".format(filepath, doc.docid))
                 if is_new_doc and guess_labels:
                     labels = dsearch.guess_labels(doc)
                     for label in labels:
                         dsearch.add_label(doc, label, update_index=False)
+                print("File {} --> Document {} (labels: {})".format(
+                    filepath, doc.docid,
+                    ", ".join([label.name for label in doc.labels])
+                ))
                 if is_new_doc:
                     index_updater.add_doc(doc)
                 else:

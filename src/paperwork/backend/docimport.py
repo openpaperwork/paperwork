@@ -54,6 +54,12 @@ class SinglePdfImporter(object):
         """
         Import the specified PDF file
         """
+        f = Gio.File.parse_name(file_uri)
+        if docsearch.is_hash_in_index(PdfDoc.hash_file(f.get_path())):
+            logger.info("Document %s already found in the index. Skipped"
+                        % (f.get_path()))
+            return (None, None, False)
+
         doc = PdfDoc(docsearch.rootdir)
         logger.info("Importing doc '%s' ..." % file_uri)
         error = doc.import_pdf(file_uri)

@@ -34,21 +34,30 @@ def get_docsearch():
     return dsearch
 
 
-def cmd_dump(docid):
+def _dump_page(page):
+    for line in page.boxes:
+        out = ""
+        for word in line.word_boxes:
+            out += word.content + " "
+        print (out.strip())
+
+
+def cmd_dump(docid, page_nb=None):
     """
-    Arguments: <document id>
+    Arguments: <document id> [<page number>]
     Dump the content of the specified document.
+    Beware, page numbers start from 1.
     See 'search' for the document ids.
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
-    for page in doc.pages:
-        print ("=== Page {} ===".format(page.page_nb))
-        for line in page.boxes:
-            out = ""
-            for word in line.word_boxes:
-                out += word.content + " "
-            print (out.strip())
+    if page_nb:
+        page = doc.pages[int(page_nb) - 1]
+        _dump_page(page)
+    else:
+        for page in doc.pages:
+            print ("=== Page {} ===".format(page.page_nb + 1))
+            _dump_page(page)
 
 
 def _get_importer(filepath, doc):

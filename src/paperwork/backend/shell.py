@@ -269,10 +269,6 @@ def cmd_search(*args):
     than with the search field in Paperwork-gui.
     Example: 'label:contrat AND paperwork'
     """
-    if len(args) <= 0:
-        sys.stderr.write("paperwork-shell: Need keywords.\n")
-        return
-
     dsearch = get_docsearch()
 
     if is_verbose():

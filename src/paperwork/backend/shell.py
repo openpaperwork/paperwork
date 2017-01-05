@@ -1,7 +1,10 @@
 import os
 import sys
 
+from gi.repository import GLib
+
 from . import config
+from . import docimport
 from . import docsearch
 
 
@@ -25,7 +28,7 @@ def get_docsearch():
     return dsearch
 
 
-def dump(docid):
+def cmd_dump(docid):
     """
     Arguments: <document id>
     Dump the content of the specified document.
@@ -40,6 +43,94 @@ def dump(docid):
             for word in line.word_boxes:
                 out += word.content + " "
             print (out.strip())
+
+
+def _get_importer(filepath, doc):
+    fileuri = GLib.filename_to_uri(filepath)
+    importers = docimport.get_possible_importers(fileuri, current_doc=doc)
+
+    if len(importers) < 0:
+        raise Exception("Don't know how to import {}".format(filepath))
+    if len(importers) == 1:
+        return importers[0]
+    elif not is_interactive():
+        raise Exception(
+            "Many way to import {} and running in batch mode".format(
+                filepath
+            )
+        )
+    else:
+        print("Import of {}:")
+        for (idx, importer) in enumerate(importers):
+            print ("{} - {}".format(idx, importer))
+        idx = input("? ")
+        return importers[int(idx)]
+
+
+def _do_import(filepaths, dsearch, doc, guess_labels=True):
+    index_updater = dsearch.get_index_updater(optimize=False)
+
+    for filepath in filepaths:
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(filepath)  # NOQA (Python 3.x only)
+        fileuri = GLib.filename_to_uri(filepath)
+        importer = _get_importer(filepath, doc)
+        if is_verbose():
+            print ("File {}: Importer = {}".format(filepath, importer))
+        (docs, page, is_new_doc) = importer.import_doc(
+            fileuri, dsearch, current_doc=doc
+        )
+        if docs is None or len(docs) <= 0:
+            print ("File {} already imported".format(filepath))
+        else:
+            for doc in docs:
+                print("File {} --> Document {}".format(filepath, doc.docid))
+                if is_new_doc and guess_labels:
+                    labels = dsearch.guess_labels(doc)
+                    for label in labels:
+                        dsearch.add_label(doc, label, update_index=False)
+                if is_new_doc:
+                    index_updater.add_doc(doc)
+                else:
+                    index_updater.upd_doc(doc)
+
+    if is_verbose():
+        print ("Updating index ...")
+    index_updater.commit()
+    if is_verbose():
+        print ("Done")
+
+
+def cmd_import(*args):
+    """
+    Arguments: <file_or_folder> [--no_label_guessing] [--append <document_id>]
+    Import a file or a PDF folder.
+    """
+    guess_labels = True
+    docid = None
+    doc = None
+
+    if "--no_label_guessing" in args:
+        guess_labels = False
+        args.remove("--guess_labels")
+    if "--append" in args:
+        idx = args.index("--append")
+        docid = args[idx + 1]
+        args.remove("--append")
+        args.remove(docid)
+    if len(args) <= 0:
+        sys.stderr.write("Nothing to import.\n")
+        return
+
+    dsearch = get_docsearch()
+
+    if docid:
+        doc = dsearch.get(docid)
+        if doc is None:
+            sys.stderr.write("Document {} not found\n".format(docid))
+            return
+
+    return _do_import(args, dsearch, doc, guess_labels)
 
 
 class RescanManager(object):
@@ -106,7 +197,7 @@ class RescanManager(object):
             print ("Done")
 
 
-def rescan():
+def cmd_rescan():
     """
     Rescan the work directory. Look for new, updated or deleted documents
     and update the index accordingly.
@@ -130,7 +221,7 @@ def _get_first_line(doc):
     return out
 
 
-def show(docid):
+def cmd_show(docid):
     """
     Arguments: <doc_id>
     Show document information (but not its content, see 'dump').
@@ -153,7 +244,7 @@ def show(docid):
     print ("First line: {}".format(_get_first_line(doc)))
 
 
-def search(*args):
+def cmd_search(*args):
     """
     Arguments: <keyword1> [<keyword2> [<keyword3> [...]]]
     List the documents containing the keywords. Syntax is the same
@@ -179,7 +270,7 @@ def search(*args):
             sys.stdout.write("\n")
 
 
-def switch_workdir(new_workdir):
+def cmd_switch_workdir(new_workdir):
     """
     Arguments: <new work directory path>
     Change current Paperwork's work directory.
@@ -196,9 +287,10 @@ def switch_workdir(new_workdir):
 
 
 COMMANDS = {
-    'dump': dump,
-    'rescan': rescan,
-    'search': search,
-    'show': show,
-    'switch_workdir': switch_workdir,
+    'dump': cmd_dump,
+    'import': cmd_import,
+    'rescan': cmd_rescan,
+    'search': cmd_search,
+    'show': cmd_show,
+    'switch_workdir': cmd_switch_workdir,
 }

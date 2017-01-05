@@ -1,6 +1,12 @@
 import os
 import sys
 
+import gi
+
+gi.require_version('Gdk', '3.0')
+gi.require_version('PangoCairo', '1.0')
+gi.require_version('Poppler', '0.18')
+
 from gi.repository import GLib
 
 from . import config

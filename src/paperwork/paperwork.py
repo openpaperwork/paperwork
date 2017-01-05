@@ -20,7 +20,6 @@ Bootstrapping code
 
 import os
 import sys
-import threading
 
 import gettext
 import gi
@@ -153,8 +152,7 @@ def main(hook_func=None, skip_workdir_scan=False):
                            skip_examination=skip_workdir_scan).do()
 
         if hook_func:
-            thread = threading.Thread(target=hook_func, args=(config, main_win))
-            thread.start()
+            hook_func(config, main_win)
 
         Gtk.main()
 

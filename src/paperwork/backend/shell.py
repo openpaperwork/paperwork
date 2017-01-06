@@ -266,6 +266,34 @@ def cmd_import(*args):
     return _do_import(args, dsearch, doc, guess_labels)
 
 
+def cmd_remove_label(docid, label_name):
+    """
+    Arguments: <document_id> <label_name>
+    Remove a label from a document.
+    Note that if the document was the last one to use the label,
+    the label may disappear entirely from Paperwork.
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    if doc is None:
+        raise Exception(
+            "Document {} not found. Cannot remove label from it".format(
+                docid
+            )
+        )
+
+    label = None
+    for clabel in dsearch.label_list:
+        if clabel.name == label_name:
+            label = clabel
+            break
+    if label is None:
+        raise Exception("Unknown label {}".format(label_name))
+
+    dsearch.remove_label(doc, label)
+    print ("Label {} removed from document {}".format(label_name, docid))
+
+
 class RescanManager(object):
     def __init__(self):
         self.dsearch = get_docsearch()
@@ -422,6 +450,7 @@ COMMANDS = {
     'dump': cmd_dump,
     'guess_labels': cmd_guess_labels,
     'import': cmd_import,
+    'remove_label': cmd_remove_label,
     'rescan': cmd_rescan,
     'search': cmd_search,
     'show': cmd_show,

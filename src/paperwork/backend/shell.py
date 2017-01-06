@@ -42,6 +42,26 @@ def _dump_page(page):
         print (out.strip())
 
 
+def cmd_delete_doc(docid):
+    """
+    Arguments: <document_id>
+    Delete a document.
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    if doc is None:
+        raise Exception(
+            "Document {} not found. Cannot delete it".format(
+                docid
+            )
+        )
+    index_updater = dsearch.get_index_updater(optimize=False)
+    index_updater.del_doc(doc)
+    index_updater.commit()
+    doc.destroy()
+    print ("Document {} deleted".format(docid))
+
+
 def cmd_dump(docid, page_nb=None):
     """
     Arguments: <document id> [<page number>]
@@ -301,6 +321,7 @@ def cmd_switch_workdir(new_workdir):
 
 
 COMMANDS = {
+    'delete_doc': cmd_delete_doc,
     'dump': cmd_dump,
     'import': cmd_import,
     'rescan': cmd_rescan,

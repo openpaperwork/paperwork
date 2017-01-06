@@ -295,6 +295,7 @@ def cmd_search(*args):
         print ("Search: {}".format(" ".join(args)))
 
     docs = dsearch.find_documents(" ".join(args))
+    docs.sort(key=lambda doc: doc.docid)
     for doc in docs:
         if not is_verbose():
             print (doc.docid)

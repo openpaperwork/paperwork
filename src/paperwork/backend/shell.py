@@ -294,6 +294,38 @@ def cmd_remove_label(docid, label_name):
     print ("Label {} removed from document {}".format(label_name, docid))
 
 
+def cmd_rename(old_docid, new_docid):
+    """
+    Arguments: <current document_id> <new document_id>
+    Change the ID of a document.
+    Note that the document id are also their date.
+    Using an ID that is not a date may have side effects
+    (the main one being the document won't be sorted correctly).
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(old_docid)
+    if doc is None:
+        raise Exception(
+            "Document {} not found. Cannot remove label from it".format(
+                docid
+            )
+        )
+
+    index_updater = dsearch.get_index_updater(optimize=False)
+
+    # just clone the in-memory data, not the on-disk content
+    clone = doc.clone()
+
+    # so we can change the ID safely
+    doc.docid = new_docid
+
+    index_updater.del_doc(clone)
+    index_updater.add_doc(doc)
+    index_updater.commit()
+
+    print ("Document {} renamed into {}".format(old_docid, new_docid))
+
+
 class RescanManager(object):
     def __init__(self):
         self.dsearch = get_docsearch()
@@ -451,6 +483,7 @@ COMMANDS = {
     'guess_labels': cmd_guess_labels,
     'import': cmd_import,
     'remove_label': cmd_remove_label,
+    'rename': cmd_rename,
     'rescan': cmd_rescan,
     'search': cmd_search,
     'show': cmd_show,

@@ -80,6 +80,59 @@ def cmd_dump(docid, page_nb=None):
             _dump_page(page)
 
 
+def cmd_guess_labels(*args):
+    """
+    Arguments: <document id> [--apply]
+    Guess the labels that should be set on the document.
+    Example: paperwork-shell -v guess_labels -- 20161207_1144_00_8 --apply
+    """
+    args = list(args)
+
+    apply_labels = False
+    if "--apply" in args:
+        apply_labels = True
+        args.remove("--apply")
+    docid = args[0]
+
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    if doc is None:
+        raise Exception(
+            "Document {} not found. Cannot guess labels".format(
+                docid
+            )
+        )
+
+    print ("Current labels: {}".format(
+        ", ".join([label.name for label in doc.labels])
+    ))
+
+    guessed = dsearch.guess_labels(doc)
+
+    print ("Guessed labels: {}".format(
+        ", ".join([label.name for label in guessed])
+    ))
+
+    changed = False
+    if apply_labels:
+        for label in guessed:
+            if label not in doc.labels:
+                dsearch.add_label(doc, label, update_index=False)
+                changed = True
+        for label in doc.labels:
+            if label not in guessed:
+                dsearch.remove_label(doc, label, update_index=False)
+                changed = True
+
+    if changed:
+        index_updater = dsearch.get_index_updater(optimize=False)
+        index_updater.upd_doc(doc)
+        index_updater.commit()
+        print ("Document {} updated".format(docid))
+    elif apply_labels:
+        print ("Document {} unchanged".format(docid))
+
+
 def _get_importer(filepath, doc):
     fileuri = GLib.filename_to_uri(filepath)
     importers = docimport.get_possible_importers(fileuri, current_doc=doc)
@@ -143,10 +196,13 @@ def cmd_import(*args):
     """
     Arguments: <file_or_folder> [--no_label_guessing] [--append <document_id>]
     Import a file or a PDF folder.
+    Example: paperwork-shell -v import -- somefile.pdf --no_label_guessing
     """
     guess_labels = True
     docid = None
     doc = None
+
+    args = list(args)
 
     if "--no_label_guessing" in args:
         guess_labels = False
@@ -324,6 +380,7 @@ def cmd_switch_workdir(new_workdir):
 COMMANDS = {
     'delete_doc': cmd_delete_doc,
     'dump': cmd_dump,
+    'guess_labels': cmd_guess_labels,
     'import': cmd_import,
     'rescan': cmd_rescan,
     'search': cmd_search,

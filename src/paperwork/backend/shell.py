@@ -12,6 +12,7 @@ from gi.repository import GLib
 from . import config
 from . import docimport
 from . import docsearch
+from .labels import Label
 
 
 def is_verbose():
@@ -40,6 +41,44 @@ def _dump_page(page):
         for word in line.word_boxes:
             out += word.content + " "
         print (out.strip())
+
+
+def cmd_add_label(docid, label_name, color=None):
+    """
+    Arguments: <document_id> <label_name> [<label_color>]
+    Add a label on a document.
+    Color must be specified if the label doesn't exist yet.
+    Color will be ignored if the label already exists.
+    Color format must be given in hexadecimal format. Ex: #abcdef
+    """
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+    if doc is None:
+        raise Exception(
+            "Document {} not found. Cannot add label on it".format(
+                docid
+            )
+        )
+
+    label = None
+    for clabel in dsearch.label_list:
+        if clabel.name == label_name:
+            label = clabel
+            break
+    if not label and not color:
+        raise Exception(
+            "Label {} doesn't exist yet, and no color has been provided".format(
+                label_name
+            )
+        )
+    if not label:
+        label = Label(label_name, color)
+        dsearch.create_label(label)
+
+    dsearch.add_label(doc, label)
+    print ("Label {} added on document {}".format(
+        label_name, docid
+    ))
 
 
 def cmd_delete_doc(docid):
@@ -378,6 +417,7 @@ def cmd_switch_workdir(new_workdir):
 
 
 COMMANDS = {
+    'add_label': cmd_add_label,
     'delete_doc': cmd_delete_doc,
     'dump': cmd_dump,
     'guess_labels': cmd_guess_labels,

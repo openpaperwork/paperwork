@@ -1,3 +1,4 @@
+from pprint import pprint
 import os
 import sys
 
@@ -208,26 +209,28 @@ def _do_import(filepaths, dsearch, doc, guess_labels=True):
             fileuri, dsearch, current_doc=doc
         )
 
-        if not import_result.has_import:
-            print ("File {} already imported".format(filepath))
-        else:
-            for doc in import_result.new_docs:
-                if guess_labels:
-                    labels = dsearch.guess_labels(doc)
-                    for label in labels:
-                        dsearch.add_label(doc, label, update_index=False)
-                print("File {} --> Document {} (labels: {})".format(
-                    filepath, doc.docid,
-                    ", ".join([label.name for label in doc.labels])
-                ))
-                index_updater.add_doc(doc)
+        print("{}:".format(filepath))
+        pprint(import_result.stats)
 
-            for doc in import_result.upd_docs:
-                print("File {} --> Document {} (labels: {})".format(
+        for doc in import_result.new_docs:
+            if guess_labels:
+                labels = dsearch.guess_labels(doc)
+                for label in labels:
+                    dsearch.add_label(doc, label, update_index=False)
+            if is_verbose():
+                print("{} --> Document {} (labels: {})".format(
                     filepath, doc.docid,
                     ", ".join([label.name for label in doc.labels])
                 ))
-                index_updater.upd_doc(doc)
+            index_updater.add_doc(doc)
+
+        for doc in import_result.upd_docs:
+            if is_verbose():
+                print("{} --> Document {} (labels: {})".format(
+                    filepath, doc.docid,
+                    ", ".join([label.name for label in doc.labels])
+                ))
+            index_updater.upd_doc(doc)
 
     if is_verbose():
         print ("Updating index ...")

@@ -33,8 +33,17 @@ logger = logging.getLogger(__name__)
 
 
 class ImportResult(object):
+    BASE_STATS = {
+        _("PDF"): 0,
+        _("Document(s)"): 0,
+        _("Image file(s)"): 0,
+        _("Page(s)"): 0,
+    }
+
     def __init__(self, select_doc=None, select_page=None,
-                 new_docs=[], upd_docs=[]):
+                 new_docs=[], upd_docs=[],
+                 new_docs_pages=[], upd_docs_pages=[],
+                 stats={}):
         if select_doc is None and select_page is not None:
             select_doc = select_page.doc
 
@@ -46,6 +55,10 @@ class ImportResult(object):
         self.select_page = select_page
         self.new_docs = new_docs
         self.upd_docs = upd_docs
+        self.new_docs_pages = new_docs_pages
+        self.upd_docs_pages = upd_docs_pages
+        self.stats = self.BASE_STATS.copy()
+        self.stats.update(stats)
 
     @property
     def has_import(self):
@@ -84,7 +97,15 @@ class SinglePdfImporter(object):
         error = doc.import_pdf(file_uri)
         if error:
             raise Exception("Import of {} failed: {}".format(file_uri, error))
-        return ImportResult(select_doc=doc, new_docs=[doc])
+        return ImportResult(
+            select_doc=doc, new_docs=[doc],
+            new_docs_pages=[p for p in doc.pages],
+            stats={
+                _("PDF"): 1,
+                _("Document(s)"): 1,
+                _("Page(s)"): doc.nb_pages,
+            }
+        )
 
     def __str__(self):
         return _("Import PDF")
@@ -141,6 +162,7 @@ class MultiplePdfImporter(object):
         parent = Gio.File.parse_name(file_uri)
         doc = None
         docs = []
+        pages = []
 
         idx = 0
 
@@ -156,8 +178,17 @@ class MultiplePdfImporter(object):
             if error:
                 continue
             docs.append(doc)
+            pages.append([p for p in doc.pages])
             idx += 1
-        return ImportResult(select_doc=doc, new_docs=docs)
+        return ImportResult(
+            select_doc=doc, new_docs=docs,
+            new_docs_pages=pages,
+            stats={
+                _("PDF"): len(docs),
+                _("Document(s)"): len(docs),
+                _("Page(s)"): sum([d.nb_pages for d in docs]),
+            },
+        )
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
@@ -202,8 +233,24 @@ class SingleImageImporter(object):
         img = Image.open(file.get_path())
         page = current_doc.add_page(img, [])
 
-        return ImportResult(select_doc=current_doc, select_page=page,
-                            new_docs=new_docs, upd_docs=upd_docs)
+        if new_docs == []:
+            new_docs_pages = []
+            upd_docs_pages = [page]
+        else:
+            new_docs_pages = [page]
+            upd_docs_pages = []
+
+        return ImportResult(
+            select_doc=current_doc, select_page=page,
+            new_docs=new_docs, upd_docs=upd_docs,
+            new_docs_pages=new_docs_pages,
+            upd_docs_pages=upd_docs_pages,
+            stats={
+                _("Image file(s)"): 1,
+                _("Document(s)"): 0 if new_docs == [] else 1,
+                _("Page(s)"): 1
+            }
+        )
 
     def __str__(self):
         return _("Append the image to the current document")

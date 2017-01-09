@@ -204,14 +204,15 @@ def _do_import(filepaths, dsearch, doc, guess_labels=True):
         importer = _get_importer(filepath, doc)
         if is_verbose():
             print ("File {}: Importer = {}".format(filepath, importer))
-        (docs, page, is_new_doc) = importer.import_doc(
+        import_result = importer.import_doc(
             fileuri, dsearch, current_doc=doc
         )
-        if docs is None or len(docs) <= 0:
+
+        if not import_result.has_import:
             print ("File {} already imported".format(filepath))
         else:
-            for doc in docs:
-                if is_new_doc and guess_labels:
+            for doc in import_result.new_docs:
+                if guess_labels:
                     labels = dsearch.guess_labels(doc)
                     for label in labels:
                         dsearch.add_label(doc, label, update_index=False)
@@ -219,10 +220,14 @@ def _do_import(filepaths, dsearch, doc, guess_labels=True):
                     filepath, doc.docid,
                     ", ".join([label.name for label in doc.labels])
                 ))
-                if is_new_doc:
-                    index_updater.add_doc(doc)
-                else:
-                    index_updater.upd_doc(doc)
+                index_updater.add_doc(doc)
+
+            for doc in import_result.upd_docs:
+                print("File {} --> Document {} (labels: {})".format(
+                    filepath, doc.docid,
+                    ", ".join([label.name for label in doc.labels])
+                ))
+                index_updater.upd_doc(doc)
 
     if is_verbose():
         print ("Updating index ...")

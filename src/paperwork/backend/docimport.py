@@ -20,7 +20,6 @@ Document import (PDF, images, etc)
 
 import gettext
 import logging
-import urllib
 
 from gi.repository import GLib
 from gi.repository import Gio
@@ -31,6 +30,26 @@ from .img.doc import ImgDoc
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
+
+class ImportResult(object):
+    def __init__(self, select_doc=None, select_page=None,
+                 new_docs=[], upd_docs=[]):
+        if select_doc is None and select_page is not None:
+            select_doc = select_page.doc
+
+        if select_doc is not None and select_page is None:
+            if select_doc.nb_pages > 0:
+                select_page = select_doc.pages[0]
+
+        self.select_doc = select_doc
+        self.select_page = select_page
+        self.new_docs = new_docs
+        self.upd_docs = upd_docs
+
+    @property
+    def has_import(self):
+        return len(self.new_docs) > 0 or len(self.upd_docs) > 0
 
 
 class SinglePdfImporter(object):
@@ -58,14 +77,14 @@ class SinglePdfImporter(object):
         if docsearch.is_hash_in_index(PdfDoc.hash_file(f.get_path())):
             logger.info("Document %s already found in the index. Skipped"
                         % (f.get_path()))
-            return (None, None, False)
+            return ImportResult()
 
         doc = PdfDoc(docsearch.rootdir)
         logger.info("Importing doc '%s' ..." % file_uri)
         error = doc.import_pdf(file_uri)
         if error:
             raise Exception("Import of {} failed: {}".format(file_uri, error))
-        return ([doc], None, True)
+        return ImportResult(select_doc=doc, new_docs=[doc])
 
     def __str__(self):
         return _("Import PDF")
@@ -138,10 +157,7 @@ class MultiplePdfImporter(object):
                 continue
             docs.append(doc)
             idx += 1
-        if doc is None:
-            return (None, None, False)
-        else:
-            return (docs, None, True)
+        return ImportResult(select_doc=doc, new_docs=docs)
 
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
@@ -176,11 +192,18 @@ class SingleImageImporter(object):
         logger.info("Importing doc '%s'" % (file_uri))
         if current_doc is None:
             current_doc = ImgDoc(docsearch.rootdir)
-        new = current_doc.is_new
+            new_docs = [current_doc]
+            upd_docs = []
+        else:
+            new_docs = []
+            upd_docs = [current_doc]
+
         file = Gio.File.new_for_uri(file_uri)
         img = Image.open(file.get_path())
         page = current_doc.add_page(img, [])
-        return ([current_doc], page, new)
+
+        return ImportResult(select_doc=current_doc, select_page=page,
+                            new_docs=new_docs, upd_docs=upd_docs)
 
     def __str__(self):
         return _("Append the image to the current document")

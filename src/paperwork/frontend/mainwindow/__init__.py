@@ -967,7 +967,7 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Busy")
         try:
             try:
-                (docs, page, must_add_labels) = self.importer.import_doc(
+                import_result = self.importer.import_doc(
                     self.file_uri, self.__main_win.docsearch,
                     self.__main_win.doc
                 )
@@ -977,36 +977,52 @@ class JobImporter(Job):
             self.emit('import-error', str(exc))
             raise
 
-        if docs is None or len(docs) <= 0:
+        if not import_result.has_import:
             self.emit('no-doc-imported')
             return
 
-        if page is not None:
-            nb_docs = 0
+        nb_docs = len(import_result.new_docs) + len(import_result.upd_docs)
+        if import_result.select_page:
             nb_pages = 1
         else:
-            nb_docs = len(docs)
-            nb_pages = sum([doc.nb_pages for doc in docs])
-        logger.info("Importing %d docs and %d pages" % (nb_docs, nb_pages))
+            nb_pages += sum([doc.nb_pages for doc in import_result.new_docs])
+        logger.info("Imported %d docs and %d pages" % (nb_docs, nb_pages))
 
-        self.__main_win.show_doc(docs[-1], force_refresh=True)
+        if import_result.select_doc:
+            self.__main_win.show_doc(
+                import_result.select_doc,
+                force_refresh=True
+            )
 
-        if page is not None:
-            self.__main_win.show_page(page, force_refresh=True)
+        if import_result.select_page:
+            self.__main_win.show_page(
+                import_result.select_page,
+                force_refresh=True
+            )
+
         set_widget_state(self.__main_win.need_doc_widgets, True)
 
-        if page is not None:
-            self.IndexAdder(self.__main_win, iter([page]),
-                            must_add_labels).start()
-            return
+        new_doc_pages = []
+        for doc in import_result.new_docs:
+            new_doc_pages += [p for p in doc.pages]
+        upd_doc_pages = []
+        for doc in import_result.upd_docs:
+            upd_doc_pages += [p for p in doc.pages]
 
-        if nb_pages > 0:
-            pages = []
-            for doc in docs:
-                new_pages = [p for p in doc.pages]
-                pages += new_pages
-            self.IndexAdder(self.__main_win, iter(pages),
-                            must_add_labels).start()
+        if upd_doc_pages != []:
+            # TODO(JFlesch): Assumption:
+            # We assume here that only one page has been added to an existing
+            # document. This is an assumption true for now, but that may not
+            # be in the future.
+            self.IndexAdder(
+                self.__main_win, iter([import_result.select_page]),
+                must_add_labels=False
+            ).start()
+
+        if new_doc_pages != []:
+            self.IndexAdder(
+                self.__main_win, iter(new_doc_pages), must_add_labels=True
+            ).start()
 
 
 GObject.type_register(JobImporter)

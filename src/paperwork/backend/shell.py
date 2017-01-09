@@ -312,7 +312,7 @@ def cmd_rename(old_docid, new_docid):
     if doc is None:
         raise Exception(
             "Document {} not found. Cannot remove label from it".format(
-                docid
+                old_docid
             )
         )
 

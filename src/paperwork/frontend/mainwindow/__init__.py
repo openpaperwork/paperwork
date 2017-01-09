@@ -840,6 +840,8 @@ class JobImporter(Job):
         'import-error': (GObject.SignalFlags.RUN_LAST, None,
                          (GObject.TYPE_PYOBJECT, )),
         'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'import-ok': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT, )),
     }
 
     can_stop = False
@@ -1023,6 +1025,8 @@ class JobImporter(Job):
             self.IndexAdder(
                 self.__main_win, iter(new_doc_pages), must_add_labels=True
             ).start()
+
+        self.emit('import-ok', import_result.stats)
 
 
 GObject.type_register(JobImporter)
@@ -1544,6 +1548,20 @@ class ActionImport(SimpleAction):
                        GLib.idle_add(dialog.destroy))
         dialog.show_all()
 
+    def __import_ok(self, stats):
+        msg = _("Imported:\n")
+        for (k, v) in stats.items():
+            msg += ("- {}: {}\n".format(k, v))
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.INFO,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
+
     def do(self):
         SimpleAction.do(self)
         GLib.idle_add(self._do)
@@ -1571,6 +1589,10 @@ class ActionImport(SimpleAction):
         job_importer.connect(
             'import-error',
             lambda _, msg: GLib.idle_add(self.__import_error, msg)
+        )
+        job_importer.connect(
+            'import-ok',
+            lambda _, stats: GLib.idle_add(self.__import_ok, stats)
         )
         self.__main_win.schedulers['main'].schedule(job_importer)
 

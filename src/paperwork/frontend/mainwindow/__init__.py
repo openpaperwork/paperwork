@@ -1410,7 +1410,7 @@ class ActionSingleScan(SimpleAction):
             scan_workflow.connect(
                 'process-done',
                 lambda scan_workflow, img, boxes:
-                GLib.idle_add(call_on_end)
+                GLib.idle_add(call_at_end)
             )
 
         drawer = self.__main_win.make_scan_workflow_drawer(

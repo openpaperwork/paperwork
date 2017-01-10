@@ -19,7 +19,7 @@
   imported (return value of Importer.import_doc() has changed)
 
 1.0.6:
-- No change. Versions created only to match Paperwork-gui versions.
+- No change. Version created only to match Paperwork-gui version.
 
 1.0.5:
 - Doc deletion: Drop cache and file descripts *before* deleting document
@@ -32,7 +32,7 @@
 - Windows: Fix import/export
 
 1.0.2:
-- No change. Versions created only to match Paperwork-gui versions.
+- No change. Version created only to match Paperwork-gui version.
 
 1.0.1:
 - util/find_language(): fix pycountry db lookup

@@ -120,18 +120,13 @@ def cmd_dump(docid, page_nb=None):
             _dump_page(page)
 
 
-def cmd_export_doc(*args):
-    """
-    Arguments:
-        <document id> <output PDF file path>
-        [-- [--quality <0-100>] [--page_format <page_format>]]
-    Default quality is 50.
-    Default page format is A4.
-    """
+def _get_export_params(args):
     from gi.repository import Gtk
 
     quality = 50
     page_format = "A4"
+
+    args = list(args)
 
     if "--quality" in args:
         idx = args.index("--quality")
@@ -145,11 +140,9 @@ def cmd_export_doc(*args):
         args.pop(idx)
         args.pop(idx)
 
-    (docid, output_pdf) = args
-
     for paper_size in Gtk.PaperSize.get_paper_sizes(True):
         if (paper_size.get_display_name() == page_format or
-            paper_size.get_name() == page_format):
+                paper_size.get_name() == page_format):
             page_format = (
                 paper_size.get_width(Gtk.Unit.POINTS),
                 paper_size.get_height(Gtk.Unit.POINTS)
@@ -159,6 +152,51 @@ def cmd_export_doc(*args):
     if not isinstance(page_format, tuple):
         sys.stderr.write("Unknown page format: {}".format(page_format))
         return
+
+    return tuple(args) + (quality, page_format)
+
+
+def cmd_export_all(*args):
+    """
+    Arguments:
+        <output folder> [-- [--quality <0-100>] [--page_format <page_format>]]
+    Export all documents as PDF files.
+    Default quality is 50.
+    Default page format is A4.
+    """
+    (output_dir, quality, page_format) = _get_export_params(args)
+
+    dsearch = get_docsearch()
+
+    try:
+        os.mkdir(output_dir)
+    except FileExistsError:
+        pass
+
+    for doc in dsearch.docs:
+        output_pdf = os.path.join(output_dir, doc.docid + ".pdf")
+
+        exporter = doc.build_exporter(file_format="pdf")
+        if exporter.can_change_quality:
+            exporter.set_quality(quality)
+        if exporter.can_select_format:
+            exporter.set_page_format(page_format)
+        print ("Exporting {} --> {} ...".format(doc.docid, output_pdf))
+        exporter.save(output_pdf)
+
+    print ("Done")
+
+
+def cmd_export_doc(*args):
+    """
+    Arguments:
+        <document id> <output PDF file path>
+        [-- [--quality <0-100>] [--page_format <page_format>]]
+    Export one document as a PDF file.
+    Default quality is 50.
+    Default page format is A4.
+    """
+    (docid, output_pdf, quality, page_format) = _get_export_params(args)
 
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
@@ -542,6 +580,7 @@ COMMANDS = {
     'add_label': cmd_add_label,
     'delete_doc': cmd_delete_doc,
     'dump': cmd_dump,
+    'export_all': cmd_export_all,
     'export_doc': cmd_export_doc,
     'guess_labels': cmd_guess_labels,
     'import': cmd_import,

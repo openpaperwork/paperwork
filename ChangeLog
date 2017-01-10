@@ -1,18 +1,22 @@
---- Unstable branch ---
-- Export: Display the progression of the export
+xxxx/xx/xx - 1.1.0:
+- Import: Display how many image files, PDFs, documents and pages have been
+  imported.
+- Automatic Color Equalization: Reduce the 'circle side-effect' by increasing
+  the number of samples used.
+- paperwork-shell scan: Quit after scanning
+- Settings window: "Source" becomes "Default source" (cosmetic)
 - Export: Don't lock the UI
+- Export: Display the progression of the export
 - Improve keyword highlighting: Highlight words identical to search keywords
   (as before) and also words close enough (example: 'flesh' when 'flesch'
   is being search)
 - Optim: Document list: Only display display the first 100 elements of the
-  list, and extend it only when required. Reduces GTK latency.
+  list, and extend it only when required. Reduces GTK latency
+  (GtkListBox doesn't scale very well above 100 elements).
 - Optim: Improve PDF rendering speed: Let the libpoppler take care of the
-  rendering size
-- Optim: PDF: Only generate cached thumbnail of the first page. Other pages
-  can be quickly generated on-the-fly by libpoppler.
+  rendering size (see backend:page.get_image())
 - Optim: Reduce the number of useless calls to redraw()
 - Improve stability by configuring the Gdk library to be thread-safe
------------------------
 
 2016/12/04 - 1.0.6:
 - Diagnostic: Limit the number of lines kept in memory (avoid running out of

@@ -18,14 +18,14 @@ $ mkdir -p ~/git
 $ cd ~/git
 $ git clone https://github.com/jflesch/paperwork-backend.git
 $ cd paperwork-backend
-$ git checkout unstable
+$ git checkout unstable  # or 'testing'
 $ sudo python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork_backend
 
 $ cd ~/git
 $ git clone https://github.com/jflesch/paperwork.git
 $ cd paperwork
-$ git checkout unstable
+$ git checkout unstable  # or 'testing'
 $ sudo python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork
 ```
@@ -61,12 +61,14 @@ $ source bin/activate
 
 $ git clone https://github.com/jflesch/paperwork-backend.git
 $ cd paperwork-backend
+$ git checkout unstable  # or 'testing'
 $ python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork_backend
 
 $ cd ..
 $ git clone https://github.com/jflesch/paperwork.git
 $ cd paperwork
+$ git checkout unstable  # or 'testing'
 $ python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork
 ```

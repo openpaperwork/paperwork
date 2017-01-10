@@ -120,9 +120,62 @@ def cmd_dump(docid, page_nb=None):
             _dump_page(page)
 
 
+def cmd_export_doc(*args):
+    """
+    Arguments:
+        <document id> <output PDF file path>
+        [-- [--quality <0-100>] [--page_format <page_format>]]
+    Default quality is 50.
+    Default page format is A4.
+    """
+    from gi.repository import Gtk
+
+    quality = 50
+    page_format = "A4"
+
+    if "--quality" in args:
+        idx = args.index("--quality")
+        quality = args[idx + 1]
+        args.pop(idx)
+        args.pop(idx)
+        quality = int(quality)
+    if "--page_format" in args:
+        idx = args.index("--page_format")
+        page_format = args[idx + 1]
+        args.pop(idx)
+        args.pop(idx)
+
+    (docid, output_pdf) = args
+
+    for paper_size in Gtk.PaperSize.get_paper_sizes(True):
+        if (paper_size.get_display_name() == page_format or
+            paper_size.get_name() == page_format):
+            page_format = (
+                paper_size.get_width(Gtk.Unit.POINTS),
+                paper_size.get_height(Gtk.Unit.POINTS)
+            )
+            break
+
+    if not isinstance(page_format, tuple):
+        sys.stderr.write("Unknown page format: {}".format(page_format))
+        return
+
+    dsearch = get_docsearch()
+    doc = dsearch.get(docid)
+
+    exporter = doc.build_exporter(file_format="pdf")
+    if exporter.can_change_quality:
+        exporter.set_quality(quality)
+    if exporter.can_select_format:
+        exporter.set_page_format(page_format)
+    print ("Exporting {} --> {} ...".format(docid, output_pdf))
+    exporter.save(output_pdf)
+    print ("Done")
+
+
 def cmd_guess_labels(*args):
     """
-    Arguments: <document id> [--apply]
+    Arguments: <document id> [-- [--apply]]
     Guess the labels that should be set on the document.
     Example: paperwork-shell -v guess_labels -- 20161207_1144_00_8 --apply
     """
@@ -241,7 +294,8 @@ def _do_import(filepaths, dsearch, doc, guess_labels=True):
 
 def cmd_import(*args):
     """
-    Arguments: <file_or_folder> [--no_label_guessing] [--append <document_id>]
+    Arguments:
+        <file_or_folder> [-- [--no_label_guessing] [--append <document_id>]]
     Import a file or a PDF folder.
     Example: paperwork-shell -v import -- somefile.pdf --no_label_guessing
     """
@@ -253,12 +307,12 @@ def cmd_import(*args):
 
     if "--no_label_guessing" in args:
         guess_labels = False
-        args.remove("--guess_labels")
+        args.remove("--no_label_guessing")
     if "--append" in args:
         idx = args.index("--append")
         docid = args[idx + 1]
-        args.remove("--append")
-        args.remove(docid)
+        args.pop(idx)
+        args.pop(idx)
     if len(args) <= 0:
         sys.stderr.write("Nothing to import.\n")
         return
@@ -488,6 +542,7 @@ COMMANDS = {
     'add_label': cmd_add_label,
     'delete_doc': cmd_delete_doc,
     'dump': cmd_dump,
+    'export_doc': cmd_export_doc,
     'guess_labels': cmd_guess_labels,
     'import': cmd_import,
     'remove_label': cmd_remove_label,

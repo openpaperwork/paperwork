@@ -1,3 +1,23 @@
+1.1.0:
+- Optim: Search results and keywords suggestions are now found using another
+  process to avoid locking the Python's GIL (allow to keep the GTK GUI running)
+- Optim: Provides a method page.get_image() returning an already resized
+  Pillow image (PDF rendering optimisation)
+- Export: Report progression
+- Optim: PDF thumbnail rendering: Keep a cached version of the first page only.
+  The other pages can be rendered on the fly
+- Fix: Label directory name use base64 encoding, and this encoding can result
+  in strings containing '/'. Those characters must be replaced (by '_')
+- Fix: util/find_language(): If the system locale is not set properly, pycountry
+  may raise UnicodeDecodeError.
+- paperwork-shell: Add commands 'search', 'dump', 'switch_workdir', 'rescan',
+  'show', 'import', 'delete_doc', 'guess_labels', 'add_label', 'remove_label',
+  'rename'
+- Import: When importing a single PDF, don't import it if it was already
+  previously imported
+- Import: Provides detailed information and statistics regarding what has been
+  imported (return value of Importer.import_doc() has changed)
+
 1.0.6:
 - No change. Versions created only to match Paperwork-gui versions.
 

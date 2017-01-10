@@ -1,3 +1,4 @@
+import gc
 from pprint import pprint
 import os
 import sys
@@ -173,7 +174,9 @@ def cmd_export_all(*args):
     except FileExistsError:
         pass
 
-    for doc in dsearch.docs:
+    docs = [d for d in dsearch.docs]
+    docs.sort(key=lambda doc: doc.docid)
+    for (doc_idx, doc) in enumerate(docs):
         output_pdf = os.path.join(output_dir, doc.docid + ".pdf")
 
         exporter = doc.build_exporter(file_format="pdf")
@@ -181,8 +184,13 @@ def cmd_export_all(*args):
             exporter.set_quality(quality)
         if exporter.can_select_format:
             exporter.set_page_format(page_format)
-        print ("Exporting {} --> {} ...".format(doc.docid, output_pdf))
+        print (
+            "[{}/{}] Exporting {} --> {} ...".format(
+            doc_idx + 1, len(docs), doc.docid, output_pdf)
+        )
         exporter.save(output_pdf)
+        doc.drop_cache()
+        gc.collect()
 
     print ("Done")
 

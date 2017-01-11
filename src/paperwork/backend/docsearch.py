@@ -21,6 +21,7 @@ suggestions)
 
 import logging
 import multiprocessing
+import queue
 import copy
 import datetime
 import os.path
@@ -607,14 +608,20 @@ class DocSearch(object):
         # HACK(Jflesch):
         # we do the search in the separate process to not block the Python
         # interpreter (see Python's Global Lock)
-        queue = multiprocessing.Queue()
-        process = multiprocessing.Process(
-            target=self._search_wrapper,
-            args=(self.__searcher, query, None, None, queue)
-        )
-        process.start()
-        results = queue.get()
-        process.join()
+        if os.name == 'nt':
+            # Because Windows s....
+            out_queue = queue.Queue()
+            self._search_wrapper(self.__searcher, query, None, None, out_queue)
+            results = out_queue.get()
+        else:
+            out_queue = multiprocessing.Queue()
+            process = multiprocessing.Process(
+                target=self._search_wrapper,
+                args=(self.__searcher, query, None, None, out_queue)
+            )
+            process.start()
+            results = out_queue.get()
+            process.join()
 
         nb_results = len(results)
         progress = 0
@@ -707,14 +714,20 @@ class DocSearch(object):
             sortedby = None
             if must_sort and "sortedby" in query_parser:
                 sortedby = query_parser['sortedby']
-            queue = multiprocessing.Queue()
-            process = multiprocessing.Process(
-                target=self._search_wrapper,
-                args=(self.__searcher, query, limit, sortedby, queue)
-            )
-            process.start()
-            results = queue.get()
-            process.join()
+            if os.name == "nt":
+                out_queue = queue.Queue()
+                self._search_wrapper(self.__searcher, query, limit, sortedby,
+                                     out_queue)
+                results = out_queue.get()
+            else:
+                out_queue = multiprocessing.Queue()
+                process = multiprocessing.Process(
+                    target=self._search_wrapper,
+                    args=(self.__searcher, query, limit, sortedby, out_queue)
+                )
+                process.start()
+                results = out_queue.get()
+                process.join()
 
             result_list_list.append(results)
             total_results += len(results)
@@ -793,19 +806,28 @@ class DocSearch(object):
         # HACK(Jflesch):
         # we do the search in the separate process to not block the Python
         # interpreter (see Python's Global Lock)
-        queue = multiprocessing.Queue()
-        process = multiprocessing.Process(
-            target=self._suggestion_wrapper,
-            args=(
-                self.__searcher,
-                keywords,
+        if os.name == "nt":
+            out_queue = queue.Queue()
+            self._suggestion_wrapper(
+                self.__searcher, keywords,
                 self.search_param_list['strict'][0]['query_parser'],
-                queue
+                out_queue
             )
-        )
-        process.start()
-        results = queue.get()
-        process.join()
+            results = out_queue.get()
+        else:
+            out_queue = multiprocessing.Queue()
+            process = multiprocessing.Process(
+                target=self._suggestion_wrapper,
+                args=(
+                    self.__searcher,
+                    keywords,
+                    self.search_param_list['strict'][0]['query_parser'],
+                    out_queue
+                )
+            )
+            process.start()
+            results = out_queue.get()
+            process.join()
         return results
 
     def create_label(self, label, doc=None, callback=dummy_progress_cb):

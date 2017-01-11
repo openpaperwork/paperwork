@@ -164,7 +164,7 @@ class ImgPage(BasicPage):
         """
         ORIENTATION_PORTRAIT = 0
         ORIENTATION_LANDSCAPE = 1
-        SCALING = 2.0
+        scaling = 2.0
 
         img = self.img
         (width, height) = img.size
@@ -184,20 +184,20 @@ class ImgPage(BasicPage):
 
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
-        new_w = int(SCALING * (print_context.get_width()))
-        new_h = int(SCALING * (print_context.get_height()))
+        scaling = min(
+            print_context.get_width() / width,
+            print_context.get_height() / height
+        )
 
         logger.info("DPI: %fx%f" % (print_context.get_dpi_x(),
                                     print_context.get_dpi_y()))
-        logger.info("Scaling it down to %fx%f..." % (new_w, new_h))
-        img = img.resize((new_w, new_h), PIL.Image.ANTIALIAS)
 
         surface = image2surface(img)
         keep_refs['surface_cache_' + str(self.page_nb)] = surface
 
         # .. and print !
         cairo_context = print_context.get_cairo_context()
-        cairo_context.scale(1.0 / SCALING, 1.0 / SCALING)
+        cairo_context.scale(scaling, scaling)
         cairo_context.set_source_surface(surface, 0, 0)
         cairo_context.paint()
 

@@ -934,6 +934,13 @@ class DocSearch(object):
         Destroy the index. Don't use this DocSearch object anymore after this
         call. Next instantiation of a DocSearch will rebuild the whole index
         """
+        del self.index
+        self.index = None
+        del self.__searcher
+        self.__searcher = None
+        del self.label_guesser
+        self.label_guesser = None
+
         logger.info("Destroying the index ...")
         rm_rf(self.indexdir)
         rm_rf(self.label_guesser_dir)

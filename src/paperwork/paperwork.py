@@ -29,9 +29,7 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
-from gi.repository import Gdk
 from gi.repository import GLib
-from gi.repository import GObject
 from gi.repository import Gtk
 import locale
 import logging
@@ -128,10 +126,6 @@ def main(hook_func=None, skip_workdir_scan=False):
     LogTracker.init()
 
     set_locale()
-
-    GLib.threads_init()
-    GObject.threads_init()
-    Gdk.threads_init()
 
     if hasattr(GLib, 'set_application_name'):
         GLib.set_application_name("Paperwork")

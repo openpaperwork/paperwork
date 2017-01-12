@@ -2890,8 +2890,8 @@ class MainWindow(object):
                 for (txt, font_size) in [
                     (_("Trial period has expired"), 30),
                     (_("Everything will work as usual, except we've"), 24),
-                    (_("switched all the fonts to {}".format(
-                        self.default_font)), 24),
+                    (_("switched all the fonts to {}").format(
+                        self.default_font), 24),
                     (_("until you get an activation key"), 24),
                     # TODO(Jflesch): Make that a link
                     (_("Go to https://openpaper.work/activation/"), 24),

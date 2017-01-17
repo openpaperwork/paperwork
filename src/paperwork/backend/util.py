@@ -220,6 +220,7 @@ def rm_rf(path):
                 dirpath = os.path.join(root, dirname)
                 logger.info("Deleting dir %s" % dirpath)
                 os.rmdir(dirpath)
+        logger.info("Deleting dir %s", path)
         os.rmdir(path)
 
 

@@ -892,10 +892,13 @@ class DocSearch(object):
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
             doc.update_label(old_label, new_label)
             if must_reindex:
-                updater.upd_doc(doc)
+                updater.upd_doc(doc, label_guesser_update=False)
             current += 1
 
         updater.commit()
+
+        if old_label.name != new_label.name:
+            self.label_guesser.rename(old_label.name, new_label.name)
 
     def destroy_label(self, label, callback=dummy_progress_cb):
         """
@@ -913,9 +916,10 @@ class DocSearch(object):
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
             doc.remove_label(label)
             if must_reindex:
-                updater.upd_doc(doc)
+                updater.upd_doc(doc, label_guesser_update=False)
             current += 1
         updater.commit()
+        self.label_guesser.forget(label.name)
 
     def reload_searcher(self):
         """

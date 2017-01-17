@@ -557,6 +557,7 @@ class ActionDeleteLabel(SimpleAction):
         SimpleAction.__init__(self, "Deleting label")
         self.__main_win = main_window
         self.__doc_properties = doc_properties
+        self._label = None
 
     def do(self):
         SimpleAction.do(self)
@@ -570,14 +571,18 @@ class ActionDeleteLabel(SimpleAction):
         label_box = selected_row.get_children()[0]
         label_name = label_box.get_children()[2].get_text()
         label_color = label_box.get_children()[1].get_rgba().to_string()
-        label = Label(label_name, label_color)
+        self._label = Label(label_name, label_color)
 
-        if not ask_confirmation(self.__main_win.window):
+        if not ask_confirmation(self.__main_win.window, self._do_delete):
             return
 
-        logger.info("Label {} must be deleted. Applying changes".format(label))
+    def _do_delete(self):
+        logger.info("Label {} must be deleted. Applying changes".format(
+            self._label
+        ))
         job = self.__doc_properties.job_factories['label_deleter'].make(
-            self.__main_win.docsearch, label)
+            self.__main_win.docsearch, self._label
+        )
         self.__main_win.schedulers['main'].schedule(job)
         self.__doc_properties.refresh_label_list()
 

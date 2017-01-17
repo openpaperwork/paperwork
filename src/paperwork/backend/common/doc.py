@@ -228,7 +228,7 @@ class BasicDoc(object):
         """
         Update a label
 
-        Will go on each document, and replace 'old_label' by 'new_label'
+        Replace 'old_label' by 'new_label'
         """
         logger.info("%s : Updating label ([%s] -> [%s])"
                     % (str(self), old_label.name, new_label.name))

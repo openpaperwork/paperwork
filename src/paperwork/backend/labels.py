@@ -26,6 +26,7 @@ from gi.repository import Gdk
 import simplebayes
 
 from .util import mkdir_p
+from .util import rm_rf
 from .util import strip_accents
 
 
@@ -248,18 +249,45 @@ class LabelGuesser(object):
         # Not used yet
         pass
 
-    def load(self, label_name, force_reload=False):
+    def _get_baye_dir(self, label_name):
         label_bytes = label_name.encode("utf-8")
         label_hash = hashlib.sha1(label_bytes).digest()
         label_hash = base64.encodebytes(label_hash).decode('utf-8').strip()
         label_hash = label_hash.replace('/', '_')
-        baye_dir = os.path.join(self._bayes_dir, label_hash)
+        return os.path.join(self._bayes_dir, label_hash)
+
+    def load(self, label_name, force_reload=False):
+        baye_dir = self._get_baye_dir(label_name)
         mkdir_p(baye_dir)
         if label_name not in self._bayes or force_reload:
             self._bayes[label_name] = simplebayes.SimpleBayes(
                 cache_path=baye_dir
             )
             self._bayes[label_name].cache_train()
+
+    def forget(self, label_name):
+        """
+        Forget training for label 'label_name'
+        """
+        self._bayes.pop(label_name)
+        baye_dir = self._get_baye_dir(label_name)
+        logger.info("Deleting label training {} : {}".format(
+            label_name, baye_dir
+        ))
+        rm_rf(baye_dir)
+
+    def rename(self, old_label_name, new_label_name):
+        """
+        Take into account that a label has been renamed
+        """
+        assert(old_label_name != new_label_name)
+        self._bayes.pop(old_label_name)
+        old_baye_dir = self._get_baye_dir(old_label_name)
+        new_baye_dir = self._get_baye_dir(new_label_name)
+        logger.info("Renaming label training {} -> {} : {} -> {}".format(
+            old_label_name, new_label_name, old_baye_dir, new_baye_dir
+        ))
+        os.rename(old_baye_dir, new_baye_dir)
 
     def get_updater(self):
         return LabelGuessUpdater(self)
@@ -274,13 +302,11 @@ class LabelGuesser(object):
             yes = scores['yes'] if 'yes' in scores else 0.0
             no = scores['no'] if 'no' in scores else 0.0
             logger.info("Score for {}: Yes: {} ({})".format(
-                    label_name, yes, type(doc_txt)
-                )
-            )
+                label_name, yes, type(doc_txt)
+            ))
             logger.info("Score for {}: No: {} ({})".format(
-                    label_name, no, type(doc_txt)
-                )
-            )
+                label_name, no, type(doc_txt)
+            ))
             out[label_name] = {"yes": yes, "no": no}
         return out
 

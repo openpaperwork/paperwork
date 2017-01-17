@@ -109,19 +109,24 @@ class JobInfoGetter(Job):
             else:
                 doc_types[doc_type] += 1
 
-            max_pages = max(max_pages, doc.nb_pages)
-            for page in doc.pages:
-                if not self.can_run:
-                    return
-                nb_pages += 1
-                for line in page.boxes:
-                    for word in line.word_boxes:
-                        nb_words += 1
-                        max_word_len = max(max_word_len, len(word.content))
-                        total_word_len += len(word.content)
-                page.drop_cache()
-            doc.drop_cache()
-            doc_idx += 1
+            try:
+                max_pages = max(max_pages, doc.nb_pages)
+                for page in doc.pages:
+                    if not self.can_run:
+                        return
+                    nb_pages += 1
+                    for line in page.boxes:
+                        for word in line.word_boxes:
+                            nb_words += 1
+                            max_word_len = max(max_word_len, len(word.content))
+                            total_word_len += len(word.content)
+                    page.drop_cache()
+                doc.drop_cache()
+                doc_idx += 1
+            except:
+                logger.exception(
+                    "Exception while examining document {}".format(doc.docid)
+                )
 
         logger.info("Total number of documents: {}".format(nb_docs))
         logger.info("Document types: {}".format(str(doc_types)))

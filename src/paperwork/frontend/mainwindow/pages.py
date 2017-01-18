@@ -731,6 +731,7 @@ class SimplePageDrawer(Drawer):
 
     def update_selected_boxes(self):
         if not self.boxes['selection_start'] or not self.boxes['selection_end']:
+            logger.info("No box selected")
             self.boxes['selection_start'] = None
             self.boxes['selection_end'] = None
             self.boxes['selected'] = []
@@ -760,6 +761,7 @@ class SimplePageDrawer(Drawer):
                     break
             if box == box_end:
                 break
+        logger.info("Box selected ({})".format(len(selected)))
         self.boxes['selected'] = selected
 
     def _get_highlighted_boxes(self, sentence):
@@ -1011,6 +1013,8 @@ class SimplePageDrawer(Drawer):
                   event_y < position[1] + size[1])
         if not inside:
             if len(self.boxes['selected']) > 0:
+                logger.info("Mouse pressed outside the page"
+                            " --> selection purged")
                 self.boxes['selection_start'] = None
                 self.boxes['selection_end'] = None
                 self.boxes['selected'] = []
@@ -1032,12 +1036,7 @@ class SimplePageDrawer(Drawer):
 
         self.parent.set_drag_enabled(box is None)
 
-        if box is None and len(self.boxes['selected']) > 0:
-            self.boxes['selection_start'] = None
-            self.boxes['selection_end'] = None
-            self.boxes['selected'] = []
-            self.parent.redraw()
-        elif box is not None:
+        if box is not None:
             self.boxes['selection_start'] = (x, y)
             self.boxes['selection_end'] = (x, y)
             self.boxes['selected'] = [box]
@@ -1077,7 +1076,7 @@ class SimplePageDrawer(Drawer):
                 old_selected = self.boxes['selected']
                 self.boxes['selection_end'] = (x, y)
                 self.update_selected_boxes()
-                if len(old_selected) != len(self.boxes['selected']):
+                if old_selected != self.boxes['selected']:
                     must_redraw = True
 
             box = self._get_box_at(x, y)
@@ -1110,6 +1109,27 @@ class SimplePageDrawer(Drawer):
             self.parent.redraw()
             return
 
+    def copy_text_to_clipboard(self, clipboard):
+        boxes = self.boxes['selected']
+        if boxes is None or len(boxes) <= 0:
+            logger.info("No text to copy ? ({})".format(boxes))
+            return
+        boxes = set(boxes)
+
+        text = ""
+        for line in self.boxes['lines']:
+            for box in line.word_boxes:
+                if box in boxes:
+                    text += box.content
+                    text += " "
+            text += "\n"
+        text = text.strip()
+
+        clipboard.set_text(text, -1)
+
+        logger.info("Text copied ({})".format(len(text)))
+
+
     def __str__(self):
         return "Base page (size: {}|{})".format(self.size, self.max_size)
 
@@ -1133,6 +1153,7 @@ class PageDrawer(Drawer, GObject.GObject):
     ICON_EDIT_CANCEL = "edit-undo"
     ICON_EDIT_APPLY = "document-save"
     ICON_DELETE = "edit-delete"
+    ICON_COPY = "edit-copy"
 
     PAGE_DRAG_ID = 128
 
@@ -1182,6 +1203,17 @@ class PageDrawer(Drawer, GObject.GObject):
             previous_page_drawer
         )
         self.edit_chain = [self.simple_page_drawer]
+
+        first_editor_buttons.append(
+            # button 'copy text'
+            ((-10 - self.BUTTON_SIZE, first_editor_buttons_pos),
+                icon_theme.lookup_icon(
+                    self.ICON_COPY, self.BUTTON_SIZE,
+                    Gtk.IconLookupFlags.NO_SVG).load_icon(),
+                self._on_copy_text,
+                _("Copy selected text")),
+        )
+        first_editor_buttons_pos += 10 + self.BUTTON_SIZE
 
         if self.page.can_edit:
             first_editor_buttons.append(
@@ -1604,6 +1636,11 @@ class PageDrawer(Drawer, GObject.GObject):
 
         # let other handlers take care of it
         return True
+
+    def _on_copy_text(self):
+        self.simple_page_drawer.copy_text_to_clipboard(
+            self.canvas.get_clipboard(Gdk.SELECTION_CLIPBOARD)
+        )
 
     def _on_edit_start(self):
         logger.info("Starting page editing")

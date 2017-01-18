@@ -897,7 +897,9 @@ class SimplePageDrawer(Drawer):
             finally:
                 cairo_context.restore()
 
-    def draw_box_txt(self, cairo_context, boxes):
+    def draw_box_txt(self, cairo_context, boxes,
+                     fg_color=(0.0, 0.0, 0.0),
+                     bg_color=(1.0, 1.0, 1.0)):
         for box in boxes:
             if box.content.strip() == "":
                 continue
@@ -905,7 +907,9 @@ class SimplePageDrawer(Drawer):
 
             cairo_context.save()
             try:
-                cairo_context.set_source_rgb(1.0, 1.0, 1.0)
+                cairo_context.set_source_rgb(
+                    bg_color[0], bg_color[1], bg_color[2]
+                )
                 cairo_context.rectangle(a, b, w, h)
                 cairo_context.clip()
                 cairo_context.paint()
@@ -915,7 +919,9 @@ class SimplePageDrawer(Drawer):
             cairo_context.save()
             try:
                 cairo_context.translate(a, b)
-                cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+                cairo_context.set_source_rgb(
+                    fg_color[0], fg_color[1], fg_color[2]
+                )
 
                 layout = PangoCairo.create_layout(cairo_context)
                 layout.set_text(box.content, -1)
@@ -967,9 +973,8 @@ class SimplePageDrawer(Drawer):
                             self.boxes['all'], color=(0.0, 0.0, 0.5))
 
         if self.boxes['selected']:
-            self.draw_boxes(cairo_context, self.boxes['selected'],
-                            color=(0.47, 0.6, 1.0), line_width=2)
-            self.draw_box_txt(cairo_context, self.boxes['selected'])
+            self.draw_box_txt(cairo_context, self.boxes['selected'],
+                              bg_color=(0.75, 0.85, 0.97))
 
         if self.boxes["mouse_over"]:
             self.draw_boxes(cairo_context,

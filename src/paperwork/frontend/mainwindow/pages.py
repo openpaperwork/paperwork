@@ -219,7 +219,10 @@ class JobPageBoxesLoader(Job):
         'page-loading-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'page-loading-boxes': (GObject.SignalFlags.RUN_LAST, None,
                                (
-                                   GObject.TYPE_PYOBJECT,  # all boxes
+                                   # all boxe, non-ordered, filtered
+                                   GObject.TYPE_PYOBJECT,
+                                   # all boxes, ordered, by lines
+                                   GObject.TYPE_PYOBJECT,
                                )),
         'page-loading-done': (GObject.SignalFlags.RUN_LAST, None, ()),
     }
@@ -243,7 +246,7 @@ class JobPageBoxesLoader(Job):
             if not self.can_run:
                 self.emit('page-loading-done')
 
-            boxes = []
+            boxes = set()
             for line in line_boxes:
                 for word in line.word_boxes:
                     if word.content.strip() == "":
@@ -251,9 +254,9 @@ class JobPageBoxesLoader(Job):
                         # empty word boxes sometimes (just a single space
                         # inside). They often match images, but not always.
                         continue
-                    boxes.append(word)
+                    boxes.add(word)
 
-            self.emit('page-loading-boxes', boxes)
+            self.emit('page-loading-boxes', boxes, line_boxes)
         finally:
             self.emit('page-loading-done')
 
@@ -277,9 +280,9 @@ class JobFactoryPageBoxesLoader(JobFactory):
     def make(self, drawer, page):
         job = JobPageBoxesLoader(self, next(self.id_generator), page)
         job.connect('page-loading-boxes',
-                    lambda job, all_boxes:
+                    lambda job, all_boxes, all_lines:
                     GLib.idle_add(drawer.on_page_loading_boxes,
-                                  job.page, all_boxes))
+                                  job.page, all_boxes, all_lines))
         return job
 
 
@@ -595,7 +598,11 @@ class SimplePageDrawer(Drawer):
         self.visible = False
         self.boxes = {
             'all': set(),
+            'lines': [],
             'highlighted': set(),
+            'selected': set(),
+            'selection_start': None,
+            'selection_end': None,
             'mouse_over': None,
         }
         self.mouse_over = False
@@ -615,9 +622,16 @@ class SimplePageDrawer(Drawer):
     def set_canvas(self, canvas):
         super(SimplePageDrawer, self).set_canvas(canvas)
         self.spinner.set_canvas(canvas)
-        canvas.connect(self, "absolute-motion-notify-event",
-                       lambda canvas, event:
-                       GLib.idle_add(self._on_mouse_motion, event))
+        if self.show_boxes:
+            canvas.connect(self, "absolute-motion-notify-event",
+                           lambda canvas, event:
+                           GLib.idle_add(self._on_mouse_motion, event))
+            canvas.connect(self, "absolute-button-press-event",
+                           lambda canvas, event:
+                           GLib.idle_add(self._on_mouse_pressed, event))
+            canvas.connect(self, "absolute-button-release-event",
+                           lambda canvas, event:
+                           GLib.idle_add(self._on_mouse_released, event))
 
     def relocate(self):
         assert(self.canvas)
@@ -700,6 +714,54 @@ class SimplePageDrawer(Drawer):
         if self.visible and not self.surface:
             self.load_content()
 
+    def _find_closest_box(self, position):
+        closest = (-1, 9999999999999, None)  # (index, distance, box)
+        index = 0
+        for line in self.boxes['lines']:
+            for box in line.word_boxes:
+                w = box.position[1][0] - box.position[0][0]
+                h = box.position[1][1] - box.position[0][1]
+                dx = max(abs(position[0] - box.position[0][0]) - (w / 2), 0)
+                dy = max(abs(position[1] - box.position[0][1]) - (h / 2), 0)
+                d = (dx ** 2) + (dy ** 2)
+                if d < closest[1]:
+                    closest = (index, d, box)
+                index += 1
+        return (closest[0], closest[2])
+
+    def update_selected_boxes(self):
+        if not self.boxes['selection_start'] or not self.boxes['selection_end']:
+            self.boxes['selection_start'] = None
+            self.boxes['selection_end'] = None
+            self.boxes['selected'] = []
+            return
+
+        (index_start, box_start) = self._find_closest_box(
+            self.boxes['selection_start']
+        )
+        (index_end, box_end) = self._find_closest_box(
+            self.boxes['selection_end']
+        )
+        if not box_start or not box_end:
+            return
+
+        if (index_end < index_start):
+            (box_start, box_end) = (box_end, box_start)
+
+        in_list = False
+        selected = []
+        for line in self.boxes['lines']:
+            for box in line.word_boxes:
+                if box == box_start:
+                    in_list = True
+                if in_list:
+                    selected.append(box)
+                if box == box_end:
+                    break
+            if box == box_end:
+                break
+        self.boxes['selected'] = selected
+
     def _get_highlighted_boxes(self, sentence):
         """
         Get all the boxes corresponding the given sentence
@@ -739,11 +801,13 @@ class SimplePageDrawer(Drawer):
         )
         self.parent.redraw()
 
-    def on_page_loading_boxes(self, page, all_boxes):
+    def on_page_loading_boxes(self, page, all_boxes, all_lines):
         if not self.visible:
             return
         self.boxes['all'] = set(all_boxes)
+        self.boxes['lines'] = all_lines
         self.reload_boxes()
+        self.update_selected_boxes()
 
     def unload_content(self):
         if self.loading:
@@ -754,8 +818,12 @@ class SimplePageDrawer(Drawer):
             self.surface = None
         self.boxes = {
             'all': set(),
+            'lines': [],
             'highlighted': set(),
             'mouse_over': None,
+            'selected': set(),
+            'selection_start': None,
+            'selection_end': None,
         }
 
     def draw_border(self, cairo_context):
@@ -811,55 +879,64 @@ class SimplePageDrawer(Drawer):
 
         return (int(a), int(b), int(w), int(h))
 
-    def draw_boxes(self, cairo_context, boxes, color):
+    def draw_boxes(self, cairo_context, boxes, color,
+                   line_width=LINE_WIDTH):
         for box in boxes:
             (a, b, w, h) = self._get_real_box(box)
             cairo_context.save()
             try:
                 cairo_context.set_source_rgb(color[0], color[1], color[2])
-                cairo_context.set_line_width(self.LINE_WIDTH)
-                cairo_context.rectangle(a, b, w, h)
+                cairo_context.set_line_width(line_width)
+                cairo_context.rectangle(
+                    a - line_width,
+                    b - line_width,
+                    w + (2 * line_width),
+                    h + (2 * line_width)
+                )
                 cairo_context.stroke()
             finally:
                 cairo_context.restore()
 
-    def draw_box_txt(self, cairo_context, box):
-        (a, b, w, h) = self._get_real_box(box)
+    def draw_box_txt(self, cairo_context, boxes):
+        for box in boxes:
+            if box.content.strip() == "":
+                continue
+            (a, b, w, h) = self._get_real_box(box)
 
-        cairo_context.save()
-        try:
-            cairo_context.set_source_rgb(1.0, 1.0, 1.0)
-            cairo_context.rectangle(a, b, w, h)
-            cairo_context.clip()
-            cairo_context.paint()
-        finally:
-            cairo_context.restore()
+            cairo_context.save()
+            try:
+                cairo_context.set_source_rgb(1.0, 1.0, 1.0)
+                cairo_context.rectangle(a, b, w, h)
+                cairo_context.clip()
+                cairo_context.paint()
+            finally:
+                cairo_context.restore()
 
-        cairo_context.save()
-        try:
-            cairo_context.translate(a, b)
-            cairo_context.set_source_rgb(0.0, 0.0, 0.0)
+            cairo_context.save()
+            try:
+                cairo_context.translate(a, b)
+                cairo_context.set_source_rgb(0.0, 0.0, 0.0)
 
-            layout = PangoCairo.create_layout(cairo_context)
-            layout.set_text(box.content, -1)
+                layout = PangoCairo.create_layout(cairo_context)
+                layout.set_text(box.content, -1)
 
-            txt_size = layout.get_size()
-            if 0 in txt_size:
-                return
-            txt_factor = min(
-                float(w) / txt_size[0],
-                float(h) / txt_size[1],
-            )
-            if txt_factor <= 0.0:
-                return
-            cairo_context.scale(
-                txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
-            )
+                txt_size = layout.get_size()
+                if 0 in txt_size:
+                    continue
+                txt_factor = min(
+                    float(w) / txt_size[0],
+                    float(h) / txt_size[1],
+                )
+                if txt_factor <= 0.0:
+                    continue
+                cairo_context.scale(
+                    txt_factor * Pango.SCALE, txt_factor * Pango.SCALE
+                )
 
-            PangoCairo.update_layout(cairo_context, layout)
-            PangoCairo.show_layout(cairo_context, layout)
-        finally:
-            cairo_context.restore()
+                PangoCairo.update_layout(cairo_context, layout)
+                PangoCairo.show_layout(cairo_context, layout)
+            finally:
+                cairo_context.restore()
 
     def do_draw(self, cairo_context):
         should_be_visible = self.compute_visibility(
@@ -888,11 +965,16 @@ class SimplePageDrawer(Drawer):
         if self.show_all_boxes:
             self.draw_boxes(cairo_context,
                             self.boxes['all'], color=(0.0, 0.0, 0.5))
+
+        if self.boxes['selected']:
+            self.draw_boxes(cairo_context, self.boxes['selected'],
+                            color=(0.47, 0.6, 1.0), line_width=2)
+            self.draw_box_txt(cairo_context, self.boxes['selected'])
+
         if self.boxes["mouse_over"]:
             self.draw_boxes(cairo_context,
                             [self.boxes['mouse_over']], color=(0.0, 0.0, 1.0))
-            self.draw_box_txt(cairo_context,
-                              self.boxes['mouse_over'])
+            self.draw_box_txt(cairo_context, [self.boxes['mouse_over']])
         if self.show_boxes:
             self.draw_boxes(cairo_context,
                             self.boxes['highlighted'], color=(0.0, 0.85, 0.0))
@@ -910,6 +992,57 @@ class SimplePageDrawer(Drawer):
                     y <= box.position[1][1]):
                 return box
         return None
+
+    def _on_mouse_pressed(self, event):
+        position = self.position
+        size = self.size
+
+        event_x = event.x
+        event_y = event.y
+
+        inside = (event_x >= position[0] and
+                  event_x < position[0] + size[0] and
+                  event_y >= position[1] and
+                  event_y < position[1] + size[1])
+        if not inside:
+            if len(self.boxes['selected']) > 0:
+                self.boxes['selection_start'] = None
+                self.boxes['selection_end'] = None
+                self.boxes['selected'] = []
+                self.parent.redraw()
+
+        (x_factor, y_factor) = self.parent._get_factors()
+        # position on the whole page image (instead of relative to canvas)
+        (x, y) = (event_x - position[0], event_y - position[1])
+        (x, y) = (x / x_factor, y / y_factor)
+
+        box = self._get_box_at(x, y)  # strict matching only
+
+        if box:
+            logger.debug("Mouse button pressed -> Box: {}/{}".format(
+                str(box.position), box.content)
+            )
+        else:
+            logger.debug("Mouse button pressed -> No box --> draging")
+
+        self.parent.set_drag_enabled(box is None)
+
+        if box is None and len(self.boxes['selected']) > 0:
+            self.boxes['selection_start'] = None
+            self.boxes['selection_end'] = None
+            self.boxes['selected'] = []
+            self.parent.redraw()
+        elif box is not None:
+            self.boxes['selection_start'] = (x, y)
+            self.boxes['selection_end'] = (x, y)
+            self.boxes['selected'] = [box]
+            self.parent.redraw()
+
+    def _on_mouse_released(self, event):
+        logger.debug("Mouse button released")
+        self.boxes['selection_start'] = None
+        self.boxes['selection_end'] = None
+        self.parent.set_drag_enabled(True)
 
     def _on_mouse_motion(self, event):
         position = self.position
@@ -933,10 +1066,14 @@ class SimplePageDrawer(Drawer):
             (x_factor, y_factor) = self.parent._get_factors()
             # position on the whole page image
             (x, y) = (event_x - position[0], event_y - position[1])
-            (x, y) = (
-                x / x_factor,
-                y / y_factor,
-            )
+            (x, y) = (x / x_factor, y / y_factor)
+
+            if self.boxes['selection_start']:
+                old_selected = self.boxes['selected']
+                self.boxes['selection_end'] = (x, y)
+                self.update_selected_boxes()
+                if len(old_selected) != len(self.boxes['selected']):
+                    must_redraw = True
 
             box = self._get_box_at(x, y)
             if box != self.boxes["mouse_over"]:
@@ -973,6 +1110,11 @@ class SimplePageDrawer(Drawer):
 
 
 class PageDrawer(Drawer, GObject.GObject):
+    """
+    Global page drawer.
+    Use various drawer internally to draw the required layers
+    (pages, edited page preview, etc)
+    """
     layer = Drawer.BUTTON_LAYER
 
     BUTTON_SIZE = 32
@@ -1141,6 +1283,8 @@ class PageDrawer(Drawer, GObject.GObject):
         canvas.connect(self, "drag-data-get", self._on_drag_data_get)
         canvas.connect(self, "drag-end", self._on_drag_end)
         canvas.connect(self, "drag-failed", self._on_drag_failed)
+        # by default: dragging is enabled
+        self.set_drag_enabled(self.drag_enabled)
 
     def _on_drag_begin(self, canvas, drag_context):
         if not self.mouse_over:
@@ -1367,7 +1511,11 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.redraw((position, size))
 
     def set_drag_enabled(self, drag):
+        if not self.page.doc.can_edit:
+            drag = False
         self.drag_enabled = drag
+        if not self.canvas:
+            return
         if drag:
             self.canvas.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [],
                                         Gdk.DragAction.MOVE)
@@ -1391,9 +1539,7 @@ class PageDrawer(Drawer, GObject.GObject):
                   event_y < position[1] + size[1])
 
         if self.mouse_over != inside:
-            self.set_drag_enabled(
-                inside and self.page.doc.can_edit and self.drag_enabled
-            )
+            self.set_drag_enabled(inside and self.drag_enabled)
             must_redraw = True
             self.mouse_over = inside
 
@@ -1419,7 +1565,7 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _on_mouse_button_release(self, event):
         if event.button != 1:
-            return
+            return False
 
         position = self.position
         size = self.size
@@ -1430,7 +1576,7 @@ class PageDrawer(Drawer, GObject.GObject):
                   event.y < (position[1] + size[1]))
 
         if not inside:
-            return
+            return False
 
         click_x = event.x
         click_y = event.y
@@ -1445,13 +1591,14 @@ class PageDrawer(Drawer, GObject.GObject):
                         click_x <= button_x + self.BUTTON_SIZE and
                         click_y <= button_y + self.BUTTON_SIZE):
                     callback()
-                    return
+                    return False
 
         if self.editor_state == "before":
             self.emit('page-selected')
-            return
+            return False
 
-        return
+        # let other handlers take care of it
+        return True
 
     def _on_edit_start(self):
         logger.info("Starting page editing")

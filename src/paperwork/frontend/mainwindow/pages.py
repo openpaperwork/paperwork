@@ -1414,6 +1414,9 @@ class PageDrawer(Drawer, GObject.GObject):
         # keep the buttons visible
         if (y < b_position[1]):
             y = b_position[1]
+        if (position[1] < self.canvas.position[1]):
+            diff = self.canvas.position[1] - position[1]
+            y += diff
 
         return (x, y)
 

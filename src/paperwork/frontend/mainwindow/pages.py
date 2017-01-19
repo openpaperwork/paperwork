@@ -719,10 +719,12 @@ class SimplePageDrawer(Drawer):
         index = 0
         for line in self.boxes['lines']:
             for box in line.word_boxes:
+                rcx = (box.position[0][0] + box.position[1][0]) / 2
+                rcy = (box.position[0][1] + box.position[1][1]) / 2
                 w = box.position[1][0] - box.position[0][0]
                 h = box.position[1][1] - box.position[0][1]
-                dx = max(abs(position[0] - box.position[0][0]) - (w / 2), 0)
-                dy = max(abs(position[1] - box.position[0][1]) - (h / 2), 0)
+                dx = max(abs(position[0] - rcx) - (w / 2), 0)
+                dy = max(abs(position[1] - rcy) - (h / 2), 0)
                 d = (dx ** 2) + (dy ** 2)
                 if d < closest[1]:
                     closest = (index, d, box)
@@ -736,7 +738,6 @@ class SimplePageDrawer(Drawer):
             self.boxes['selection_end'] = None
             self.boxes['selected'] = []
             return
-
         (index_start, box_start) = self._find_closest_box(
             self.boxes['selection_start']
         )
@@ -761,7 +762,7 @@ class SimplePageDrawer(Drawer):
                     break
             if box == box_end:
                 break
-        logger.info("Box selected ({})".format(len(selected)))
+        logger.debug("Boxes selected ({})".format(len(selected)))
         self.boxes['selected'] = selected
 
     def _get_highlighted_boxes(self, sentence):
@@ -1037,6 +1038,7 @@ class SimplePageDrawer(Drawer):
         self.parent.set_drag_enabled(box is None)
 
         if box is not None:
+            logger.info("First box selected ({}, {})".format(x, y))
             self.boxes['selection_start'] = (x, y)
             self.boxes['selection_end'] = (x, y)
             self.boxes['selected'] = [box]
@@ -1046,6 +1048,10 @@ class SimplePageDrawer(Drawer):
         logger.debug("Mouse button released")
         self.boxes['selection_start'] = None
         self.boxes['selection_end'] = None
+        if len(self.boxes['selected']) > 0:
+            logger.info("End of selection: {} boxes".format(
+                len(self.boxes['selected']))
+            )
         self.parent.set_drag_enabled(True)
 
     def _on_mouse_motion(self, event):
@@ -1128,7 +1134,6 @@ class SimplePageDrawer(Drawer):
         clipboard.set_text(text, -1)
 
         logger.info("Text copied ({})".format(len(text)))
-
 
     def __str__(self):
         return "Base page (size: {}|{})".format(self.size, self.max_size)

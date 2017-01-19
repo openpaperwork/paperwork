@@ -576,7 +576,8 @@ class PageACEAction(PageEditAction):
 
 class SimplePageDrawer(Drawer):
     layer = Drawer.IMG_LAYER
-    LINE_WIDTH = 1.0
+    DEFAULT_LINE_WIDTH = 1.0
+    MAX_LINE_WIDTH = 5.0
     TMP_AREA = (0.85, 0.85, 0.85)
     BORDER_BASIC = (5, (0.85, 0.85, 0.85))
     MARGIN = 20
@@ -883,7 +884,7 @@ class SimplePageDrawer(Drawer):
         return (int(a), int(b), int(w), int(h))
 
     def draw_boxes(self, cairo_context, boxes, color,
-                   line_width=LINE_WIDTH):
+                   line_width=DEFAULT_LINE_WIDTH):
         for box in boxes:
             (a, b, w, h) = self._get_real_box(box)
             cairo_context.save()
@@ -1092,10 +1093,10 @@ class SimplePageDrawer(Drawer):
                     box_pos = self._get_real_box(self.boxes["mouse_over"])
                     GLib.idle_add(
                         self.canvas.redraw,
-                        ((box_pos[0] - self.LINE_WIDTH,
-                          box_pos[1] - self.LINE_WIDTH),
-                         (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
-                          box_pos[1] + box_pos[3] + (2 * self.LINE_WIDTH)))
+                        ((box_pos[0] - self.MAX_LINE_WIDTH,
+                          box_pos[1] - self.MAX_LINE_WIDTH),
+                         (box_pos[0] + box_pos[2] + (2 * self.MAX_LINE_WIDTH),
+                          box_pos[1] + box_pos[3] + (2 * self.MAX_LINE_WIDTH)))
                     )
 
                 self.boxes["mouse_over"] = box
@@ -1105,10 +1106,10 @@ class SimplePageDrawer(Drawer):
                     box_pos = self._get_real_box(box)
                     GLib.idle_add(
                         self.canvas.redraw,
-                        ((box_pos[0] - self.LINE_WIDTH,
-                          box_pos[1] - self.LINE_WIDTH),
-                         (box_pos[0] + box_pos[2] + (2 * self.LINE_WIDTH),
-                          box_pos[1] + box_pos[3] + (2 * self.LINE_WIDTH)))
+                        ((box_pos[0] - self.MAX_LINE_WIDTH,
+                          box_pos[1] - self.MAX_LINE_WIDTH),
+                         (box_pos[0] + box_pos[2] + (2 * self.MAX_LINE_WIDTH),
+                          box_pos[1] + box_pos[3] + (2 * self.MAX_LINE_WIDTH)))
                     )
 
         if must_redraw:

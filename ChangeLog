@@ -1,6 +1,4 @@
 1.1.0:
-- Optim: Search results and keywords suggestions are now found using another
-  process to avoid locking the Python's GIL (allow to keep the GTK GUI running)
 - Optim: Provides a method page.get_image() returning an already resized
   Pillow image (PDF rendering optimisation)
 - Export: Report progression

@@ -227,9 +227,11 @@ Main features are:
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/waiting.png']),
     ],
-    scripts=[
-        'scripts/paperwork',
-    ],
+    entry_points={
+        'gui_scripts': [
+            'paperwork = paperwork.paperwork:main',
+        ]
+    },
     install_requires=[
         "python-Levenshtein",
         "Pillow",

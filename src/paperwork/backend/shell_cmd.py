@@ -157,7 +157,7 @@ COMMANDS = {
 COMMANDS.update(FRONTEND_COMMANDS)
 COMMANDS.update(BACKEND_COMMANDS)
 
-if __name__ == "__main__":
+def main():
     # TODO: Interactive shell
     parser = argparse.ArgumentParser(description='Paperwork shell')
     parser.add_argument(
@@ -185,3 +185,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     sys.exit(COMMANDS[args.cmd](*args.cmd_args))
+
+if __name__ == "__main__":
+    main()

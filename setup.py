@@ -64,9 +64,11 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
         'paperwork_backend.pdf': 'src/paperwork/backend/pdf',
         'paperwork_backend.img': 'src/paperwork/backend/img',
     },
-    scripts=[
-        'scripts/paperwork-shell',
-    ],
+    entry_points={
+        'console_scripts': [
+            'paperwork-shell = paperwork_backend.shell_cmd:main',
+        ],
+    },
     install_requires=[
         "Pillow",
         "pycountry",

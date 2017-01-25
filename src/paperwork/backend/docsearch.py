@@ -143,6 +143,9 @@ class DummyDocSearch(object):
         """ Do nothing """
         return None
 
+    def set_language(self, language):
+        return
+
 
 class DocDirExaminer(GObject.GObject):
     """

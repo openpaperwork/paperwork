@@ -87,7 +87,6 @@ def custom_split(input_str, input_rects, splitter):
 
 class PdfPage(BasicPage):
     EXT_TXT = "txt"
-    EXT_BOX = "words"
 
     def __init__(self, doc, pdf, page_nb):
         BasicPage.__init__(self, doc, page_nb)

@@ -76,6 +76,9 @@ class BasicDoc(object):
         self._previous_labels = self.labels[:]
 
     def drop_cache(self):
+        logger.debug("Dropping cache of document {} ({})".format(
+            self.docid, self
+        ))
         self.__cache = {}
 
     def __str__(self):

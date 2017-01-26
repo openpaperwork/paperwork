@@ -646,6 +646,7 @@ class DocList(object):
             'list': widget_tree.get_object("listboxDocList"),
             'box': widget_tree.get_object("doclist_box"),
             'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
+            'last_scrollbar_value': -1,
             'spinner': SpinnerAnimation((0, 0)),
             'nb_boxes': 0,
         }
@@ -730,6 +731,11 @@ class DocList(object):
 
     def _on_scrollbar_value_changed(self):
         vadjustment = self.gui['scrollbars'].get_vadjustment()
+        if vadjustment.get_value() == self.gui['last_scrollbar_value']:
+            # avoid repeated requests due to adding documents to the
+            # GtkListBox (even if frozen ...)
+            return
+        self.gui['last_scrollbar_value'] = vadjustment.get_value()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )

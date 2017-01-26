@@ -41,8 +41,6 @@ class ImgPage(BasicPage):
     Represents a page. A page is a sub-element of ImgDoc.
     """
 
-    FILE_PREFIX = "paper."
-    EXT_BOX = "words"
     EXT_IMG = "jpg"
 
     KEYWORD_HIGHLIGHT = 3
@@ -299,3 +297,7 @@ class ImgPage(BasicPage):
     def drop_cache(self):
         super().drop_cache()
         self._img_cache = None
+
+    def has_ocr(self):
+        # always act as if images have OCR file attached
+        return True

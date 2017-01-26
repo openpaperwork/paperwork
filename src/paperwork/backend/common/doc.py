@@ -413,3 +413,11 @@ class BasicDoc(object):
 
     def clone(self):
         raise NotImplementedError()
+
+    def has_ocr(self):
+        """
+        Indicates if the OCR has be ran on this document.
+        """
+        if self.nb_pages <= 0:
+            return False
+        return self.pages[0].has_ocr()

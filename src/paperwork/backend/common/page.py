@@ -124,6 +124,7 @@ class BasicPage(object):
     DEFAULT_THUMB_HEIGHT = 212
 
     EXT_THUMB = "thumb.jpg"
+    EXT_BOX = "words"
     FILE_PREFIX = "paper."
 
     boxes = []
@@ -268,6 +269,9 @@ class BasicPage(object):
 
     keywords = property(__get_keywords)
 
+    def has_ocr(self):
+        return os.path.exists(self._get_filepath(self.EXT_BOX))
+
 
 class DummyPage(object):
     page_nb = -1
@@ -302,6 +306,9 @@ class DummyPage(object):
 
     def build_exporter(self, file_format='PNG'):
         raise NotImplementedError()
+
+    def has_ocr(self):
+        return False
 
     def __str__(self):
         return "Dummy page"

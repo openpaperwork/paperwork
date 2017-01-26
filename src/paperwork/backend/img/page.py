@@ -182,6 +182,8 @@ class ImgPage(BasicPage):
             logger.info("Rotating the page ...")
             img = img.rotate(90, expand=True)
 
+        (width, height) = img.size
+
         # scale the image down
         # XXX(Jflesch): beware that we get floats for the page size ...
         scaling = min(

@@ -1705,8 +1705,7 @@ class ActionRedoOCR(SimpleAction):
 class AllPagesIterator(object):
     def __init__(self, docsearch):
         self.__doc_iter = iter(docsearch.docs)
-        doc = next(self.__doc_iter)
-        self.__page_iter = iter(doc.pages)
+        self.__page_iter = None
 
     def __iter__(self):
         return self
@@ -1714,9 +1713,13 @@ class AllPagesIterator(object):
     def next(self):
         while True:
             try:
+                if self.__page_iter is None:
+                    raise StopIteration()
                 return next(self.__page_iter)
             except StopIteration:
-                doc = next(self.__doc_iter)
+                doc = None
+                while doc is None or not doc.has_ocr():
+                    doc = next(self.__doc_iter)
                 self.__page_iter = iter(doc.pages)
 
     def __next__(self):

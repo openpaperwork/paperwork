@@ -1066,6 +1066,7 @@ class DocList(object):
         self.gui['loading'].remove_all_drawers()
         self.gui['loading'].set_visible(False)
 
+        self.gui['last_scrollbar_value'] = -1  # force refresh of thumbnails
         GLib.idle_add(self._on_scrollbar_value_changed)
 
     def refresh_docs(self, docs, redo_thumbnails=True):

@@ -105,6 +105,9 @@ class PdfPages(object):
             del page
 
 
+NB_FDS = 0  # assumed number of file descriptors opened
+
+
 class PdfDoc(BasicDoc):
     can_edit = False
     doctype = u"PDF"
@@ -146,11 +149,15 @@ class PdfDoc(BasicDoc):
         return ("%s/%s" % (self.path, PDF_FILENAME))
 
     def _open_pdf(self):
+        global NB_FDS
         if self._pdf:
             return self._pdf
         dirpath = Gio.File.new_for_path(self.path)
         file = dirpath.resolve_relative_path(PDF_FILENAME)
         self._pdf = Poppler.Document.new_from_gfile(file, password=None)
+        NB_FDS += 1
+        logger.debug("(opening {}) Number of PDF file descriptors"
+                     " opened: {}".format(self, NB_FDS))
         return self._pdf
 
     pdf = property(_open_pdf)
@@ -214,12 +221,16 @@ class PdfDoc(BasicDoc):
         return PdfDocExporter(self, preview_page_nb)
 
     def drop_cache(self):
+        global NB_FDS
         BasicDoc.drop_cache(self)
         if self._pages:
             del self._pages
         self._pages = None
         if self._pdf:
+            NB_FDS -= 1
             del self._pdf
+            logger.debug("(closing {}) Number of PDF file descriptors"
+                         " still opened: {}".format(self, NB_FDS))
         self._pdf = None
 
     def get_docfilehash(self):

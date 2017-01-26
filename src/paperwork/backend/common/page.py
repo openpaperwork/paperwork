@@ -15,6 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 from copy import copy
+import logging
 import os
 import os.path
 import tempfile
@@ -24,6 +25,8 @@ import PIL.Image
 from ..common.doc import dummy_export_progress_cb
 from ..util import strip_accents
 from ..util import split_words
+
+logger = logging.getLogger(__name__)
 
 
 class PageExporter(object):
@@ -199,6 +202,9 @@ class BasicPage(object):
         return thumbnail
 
     def drop_cache(self):
+        logger.debug("Dropping cache of page {}".format(
+            self
+        ))
         self.__thumbnail_cache = (None, 0)
         self.__text_cache = None
 
@@ -222,7 +228,8 @@ class BasicPage(object):
     def build_exporter(self, file_format='PNG', preview_page_nb=0):
         """
         Arguments:
-            preview_page_nb: Juste here for consistency with doc.build_exporter()
+            preview_page_nb: Juste here for consistency with
+                doc.build_exporter()
         """
         return copy(self.__prototype_exporters[file_format.upper()])
 

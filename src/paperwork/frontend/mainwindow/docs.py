@@ -104,12 +104,12 @@ class JobDocThumbnailer(Job):
             self.emit('doc-thumbnailing-start')
             self.__current_idx = 0
 
-        for idx in range(self.__current_idx, len(self.doclist)):
-            doc = self.doclist[idx]
-            if doc.nb_pages <= 0:
+        for (idx, doc) in enumerate(self.doclist):
+            if doc.docid in self.__already_loaded:
                 continue
 
-            if doc.docid in self.__already_loaded:
+            if doc.nb_pages <= 0:
+                doc.drop_cache()  # even accessing 'nb_pages' may open a file
                 continue
 
             start = time.time()

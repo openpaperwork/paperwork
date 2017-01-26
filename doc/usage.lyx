@@ -1,0 +1,295 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part*
+Welcome to Paperwork
+\end_layout
+
+\begin_layout Paragraph
+They are going to turn you crazy: your phone operator, your bank, your girl's
+ school, your dog's veterinary, even your network provider, it seems like
+ all of them are trying to draw you under tons of paper you have to read,
+ classify and memorize just in case you may need it later.
+ Most of the time, you won't, which means you waste your energy for nothing.
+\end_layout
+
+\begin_layout Paragraph
+Paperwork will help you to get rid of tons of papers by turning them into
+ searchable documents.
+ It's simple: just scan and forget.
+ Looking for a specific paper? Just type in a few keywords and tada!
+\end_layout
+
+\begin_layout Section
+Basic concepts
+\end_layout
+
+\begin_layout Subsection
+Papers and pages
+\end_layout
+
+\begin_layout Paragraph
+Paperwork's interface is compound of two panels.
+ On the left, the list of all your papers sorted by the date they were imported.
+ On the right, the pages of the currently selected paper.
+\end_layout
+
+\begin_layout Paragraph
+You can add papers from several sources, depending on the devices connected
+ to your computer: scanner flatbed, scanner feeder, camera...
+ You have no scanner at home? You still can use the scanner you have at
+ work and send the results by e-mail, Paperwork is fine for importing pdf.
+\end_layout
+
+\begin_layout Subsection
+Find
+\end_layout
+
+\begin_layout Paragraph
+Find what you need, when you need it.
+ Type a few keywords in the searchbar and the list of papers will reduce
+ to keep only the matching content.
+ This is where the magic happens: Paperwork uses optical character recognition
+ (OCR) to convert your papers into simple text files, so it's easy to search
+ for text.
+\end_layout
+
+\begin_layout Paragraph
+For those who have hundreds of tons of papers or are looking for specific
+ periods, you can create and save advanced filters.
+ For example, these will allow you to find all your bills for the past 30
+ days.
+\end_layout
+
+\begin_layout Subsection
+Export
+\end_layout
+
+\begin_layout Paragraph
+Sometimes you may want to export a document to send it to someone else.
+ Multiple formats are supported: .pdf, .jpg, .txt...
+ And of course, paper (requires a printer, sold separately).
+\end_layout
+
+\begin_layout Subsection
+Labels and memos
+\end_layout
+
+\begin_layout Paragraph
+You answered an important mail and want to keep a track? Your girl made
+ a wishlist for Christmas and you would like to turn it into a shopping
+ list? The paper you scanned was so unreadable that Paperwork failed to
+ recognize some important keywords? Join a memo to your paper so you won't
+ miss anything! All the words you enter as memos will be searchable, as
+ if they were directly written on a page you scanned.
+\end_layout
+
+\begin_layout Paragraph
+If you precede a word with a # , it will turn into a #label , which is a
+ really helpful thing to organize your papers.
+ Do not hesitate to add a couple of labels to each of your paper, #Paperwork
+ provides a handy way to filter out your papers by labels, and tells you
+ how many documents match for each label.
+ Yes, we just created a #paperwork label.
+\end_layout
+
+\begin_layout Subsection
+Your first documents
+\end_layout
+
+\begin_layout Paragraph
+(...)
+\end_layout
+
+\begin_layout Paragraph
+That's all! You are now aware of the main features of Paperwork.
+ Let's start using it by adding your first own paper.
+ Click the + button.
+\end_layout
+
+\begin_layout Paragraph
+We hope that you'll enjoy this piece of software.
+ If you like it, please tell us, and if you don't, please tell us why! 
+\end_layout
+
+\begin_layout Section
+Scanning
+\end_layout
+
+\begin_layout Subsection
+Single scan
+\end_layout
+
+\begin_layout Subsection
+From feeder
+\end_layout
+
+\begin_layout Section
+How to import
+\end_layout
+
+\begin_layout Subsection
+Image(s)
+\end_layout
+
+\begin_layout Subsection
+PDF(s)
+\end_layout
+
+\begin_layout Section
+Managing labels
+\end_layout
+
+\begin_layout Section
+Searching
+\end_layout
+
+\begin_layout Subsection
+view pages as grid
+\end_layout
+
+\begin_layout Subsection
+view pages as list
+\end_layout
+
+\begin_layout Section
+Advanced search
+\end_layout
+
+\begin_layout Section
+Exporting
+\end_layout
+
+\begin_layout Subsection
+Document
+\end_layout
+
+\begin_layout Subsection
+Page
+\end_layout
+
+\begin_layout Section
+Printing
+\end_layout
+
+\begin_layout Section
+Copying text
+\end_layout
+
+\begin_layout Section
+Editing pages
+\end_layout
+
+\begin_layout Section
+Moving pages
+\end_layout
+
+\begin_layout Subsection
+inside a document
+\end_layout
+
+\begin_layout Subsection
+from a document to another
+\end_layout
+
+\begin_layout Section
+Advanced use
+\end_layout
+
+\begin_layout Subsection
+redo OCR
+\end_layout
+
+\begin_layout Subsection
+highlight all keywords
+\end_layout
+
+\begin_layout Subsection
+keyboard shortcuts
+\end_layout
+
+\begin_layout Section
+Getting support / reporting issues
+\end_layout
+
+\begin_layout Subsection
+Diagnostic dialog
+\end_layout
+
+\begin_layout Subsection
+Github issue tracker
+\end_layout
+
+\begin_layout Subsection
+Mailing-list
+\end_layout
+
+\end_body
+\end_document

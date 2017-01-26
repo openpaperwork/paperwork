@@ -104,12 +104,12 @@ class JobDocThumbnailer(Job):
             self.emit('doc-thumbnailing-start')
             self.__current_idx = 0
 
-        for idx in range(self.__current_idx, len(self.doclist)):
-            doc = self.doclist[idx]
-            if doc.nb_pages <= 0:
+        for (idx, doc) in enumerate(self.doclist):
+            if doc.docid in self.__already_loaded:
                 continue
 
-            if doc.docid in self.__already_loaded:
+            if doc.nb_pages <= 0:
+                doc.drop_cache()  # even accessing 'nb_pages' may open a file
                 continue
 
             start = time.time()
@@ -646,6 +646,7 @@ class DocList(object):
             'list': widget_tree.get_object("listboxDocList"),
             'box': widget_tree.get_object("doclist_box"),
             'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
+            'last_scrollbar_value': -1,
             'spinner': SpinnerAnimation((0, 0)),
             'nb_boxes': 0,
         }
@@ -730,6 +731,11 @@ class DocList(object):
 
     def _on_scrollbar_value_changed(self):
         vadjustment = self.gui['scrollbars'].get_vadjustment()
+        if vadjustment.get_value() == self.gui['last_scrollbar_value']:
+            # avoid repeated requests due to adding documents to the
+            # GtkListBox (even if frozen ...)
+            return
+        self.gui['last_scrollbar_value'] = vadjustment.get_value()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
@@ -1082,6 +1088,9 @@ class DocList(object):
                 return
 
         # and rethumbnail what must be
+        if redo_thumbnails:
+            for doc in docs:
+                self.model['thumbnails'].pop(doc.docid)
         docs = [x for x in docs]
         logger.info("Will redo thumbnails: %s" % str(docs))
         job = self.job_factories['doc_thumbnailer'].make(docs)

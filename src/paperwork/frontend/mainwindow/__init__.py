@@ -3209,7 +3209,7 @@ class MainWindow(object):
         if not self.allow_multiselect:
             self.doclist.select_doc(doc, open_doc=False)
 
-        if self.doc:
+        if self.doc and self.doc.docid != doc.docid:
             self.doc.drop_cache()
         gc.collect()
 

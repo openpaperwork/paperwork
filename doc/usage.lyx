@@ -2,7 +2,7 @@
 \lyxformat 474
 \begin_document
 \begin_header
-\textclass article
+\textclass paper
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -25,6 +25,7 @@
 \bibtex_command default
 \index_command default
 \paperfontsize default
+\spacing single
 \use_hyperref false
 \papersize default
 \use_geometry false
@@ -72,11 +73,25 @@
 Welcome to Paperwork
 \end_layout
 
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/paperwork_intro.png
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Basic concepts
+\end_layout
+
 \begin_layout Paragraph
-They are going to turn you crazy: your phone operator, your bank, your girl's
- school, your dog's veterinary, even your network provider, it seems like
- all of them are trying to draw you under tons of paper you have to read,
- classify and memorize just in case you may need it later.
+They are going to drive you crazy.
+ Your phone operator, your bank, your girl's school, your dog's veterinary,
+ even your network provider, it seems like all of them are trying to draw
+ you under tons of paper you have to read, classify and memorize just in
+ case you may need it later.
  Most of the time, you won't, which means you waste your energy for nothing.
 \end_layout
 
@@ -85,10 +100,6 @@ Paperwork will help you to get rid of tons of papers by turning them into
  searchable documents.
  It's simple: just scan and forget.
  Looking for a specific paper? Just type in a few keywords and tada!
-\end_layout
-
-\begin_layout Section
-Basic concepts
 \end_layout
 
 \begin_layout Subsection

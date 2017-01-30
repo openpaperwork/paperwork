@@ -1036,7 +1036,9 @@ class DocList(object):
         )
 
         self.clear()
+        GLib.idle_add(self._set_docs, documents, need_new_doc)
 
+    def _set_docs(self, documents, need_new_doc):
         self.model['docids'] = [doc.docid for doc in documents]
         for doc in documents:
             rowbox = Gtk.ListBoxRow()
@@ -1091,7 +1093,8 @@ class DocList(object):
         # and rethumbnail what must be
         if redo_thumbnails:
             for doc in docs:
-                self.model['thumbnails'].pop(doc.docid)
+                if doc.docid in self.model['thumbnails']:
+                    self.model['thumbnails'].pop(doc.docid)
         docs = [x for x in docs]
         logger.info("Will redo thumbnails: %s" % str(docs))
         job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -1103,6 +1106,9 @@ class DocList(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
+        GLib.idle_add(self._refresh)
+
+    def _refresh(self):
         self.__main_win.schedulers['search'].cancel_all(
             self.__main_win.job_factories['doc_searcher']
         )
@@ -1382,7 +1388,7 @@ class DocPropertiesPanel(object):
                 text=msg
             )
             dialog.connect("response", lambda dialog, response:
-                        GLib.idle_add(dialog.destroy))
+                           GLib.idle_add(dialog.destroy))
             dialog.show_all()
             raise
 

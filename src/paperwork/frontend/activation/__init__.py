@@ -131,6 +131,10 @@ def to_bool(txt):
 
 def is_activated(config):
     # Just add 'return True' here to disable this whole thingie.
+
+    # XXX(Jflesch): disabled for now
+    return True
+
     if get_os() != 'nt':
         return True
 

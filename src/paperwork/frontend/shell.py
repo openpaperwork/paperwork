@@ -2,13 +2,13 @@ from gi.repository import GLib
 
 
 def _do_quit(main_window):
-    GLib.idle_add(main_window.actions['quit'][1].do())
+    GLib.idle_add(main_window.actions['quit'][1].do)
     return False
 
 
 def _do_scan(config, main_window):
     scan_workflow = main_window.actions['single_scan'][1].do(
-        lambda: GLib.timeout_add(1000, _do_quit(main_window))
+        lambda: GLib.timeout_add(1000, _do_quit, main_window)
     )
     return False
 

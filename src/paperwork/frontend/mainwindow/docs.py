@@ -1091,7 +1091,8 @@ class DocList(object):
         # and rethumbnail what must be
         if redo_thumbnails:
             for doc in docs:
-                self.model['thumbnails'].pop(doc.docid)
+                if doc.docid in self.model['thumbnails']:
+                    self.model['thumbnails'].pop(doc.docid)
         docs = [x for x in docs]
         logger.info("Will redo thumbnails: %s" % str(docs))
         job = self.job_factories['doc_thumbnailer'].make(docs)

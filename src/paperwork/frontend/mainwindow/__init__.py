@@ -1384,11 +1384,8 @@ class ActionSingleScan(SimpleAction):
         self.__main_win.add_page(docid, img, line_boxes)
 
     def do(self, call_at_end=None):
-        self.__main_win.set_mouse_cursor("Busy")
-        GLib.idle_add(self._do, call_at_end)
-
-    def _do(self, call_at_end=None):
         SimpleAction.do(self)
+        self.__main_win.set_mouse_cursor("Busy")
 
         try:
             if not check_scanner(self.__main_win, self.__config):

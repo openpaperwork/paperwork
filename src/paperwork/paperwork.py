@@ -20,18 +20,17 @@ Bootstrapping code
 
 import os
 import sys
-import threading
 
 import gettext
 import gi
 
+gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
 gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
-from gi.repository import GObject
-from gi.repository import Gtk
 from gi.repository import GLib
+from gi.repository import Gtk
 import locale
 import logging
 import signal
@@ -120,7 +119,7 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def main(hook_func=None):
+def main(hook_func=None, skip_workdir_scan=False):
     """
     Where everything start.
     """
@@ -128,9 +127,8 @@ def main(hook_func=None):
 
     set_locale()
 
-    GLib.threads_init()
-    GObject.threads_init()
-
+    if hasattr(GLib, 'set_application_name'):
+        GLib.set_application_name("Paperwork")
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
                              Gtk.main_quit, None)
@@ -144,11 +142,11 @@ def main(hook_func=None):
         config.read()
 
         main_win = MainWindow(config)
-        ActionRefreshIndex(main_win, config).do()
+        ActionRefreshIndex(main_win, config,
+                           skip_examination=skip_workdir_scan).do()
 
         if hook_func:
-            thread = threading.Thread(target=hook_func, args=(config, main_win))
-            thread.start()
+            hook_func(config, main_win)
 
         Gtk.main()
 

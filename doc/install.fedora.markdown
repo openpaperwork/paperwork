@@ -27,10 +27,6 @@ rest of the commands are the same.
 ## System-wide installation
 
     $ sudo python3 -m pip install paperwork
-    # This command will install Paperwork and tell you if some extra
-    # dependencies are required.
-    # IMPORTANT: the extra dependencies list may be drown in the output. You
-    # may miss it.
 
 Some dependencies cannot be installed automatically. You can find all the
 missing dependencies by running 'paperwork-chkdeps'.

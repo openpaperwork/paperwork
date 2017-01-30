@@ -29,6 +29,7 @@ from gi.repository import Pango
 from gi.repository import PangoCairo
 import PIL.Image
 import pillowfight
+import Levenshtein
 
 from paperwork_backend.common.page import BasicPage
 from paperwork_backend.util import image2surface
@@ -82,7 +83,7 @@ class JobPageImgLoader(Job):
             if not self.can_run:
                 return
             if not use_thumbnail:
-                img = self.page.img
+                img = self.page.get_image(self.size)
             else:
                 img = self.page.get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                               BasicPage.DEFAULT_THUMB_HEIGHT)
@@ -246,7 +247,9 @@ class JobPageBoxesLoader(Job):
             for line in line_boxes:
                 for word in line.word_boxes:
                     if word.content.strip() == "":
-                        # Shouldn't happen ?!
+                        # XXX(Jflesch): Tesseract 3.03 (hOCR) returns big and
+                        # empty word boxes sometimes (just a single space
+                        # inside). They often match images, but not always.
                         continue
                     boxes.append(word)
 
@@ -524,13 +527,13 @@ class PageACEAction(PageEditAction):
         self.recompute_ace()
 
     def _ace(self, img):
-        return pillowfight.ace(img)
+        return pillowfight.ace(img, samples=200)
 
     def recompute_ace(self):
         if not hasattr(self.child_drawers[0], 'img'):
             # we may temporarily be assigned a drawer
             # that doesn't provide a PIL image.
-            # (before drawer priority is updated0
+            # (before drawer priority is updated)
             return
         img = self.child_drawers[0].img
         assert(img is not None)
@@ -562,7 +565,7 @@ class PageACEAction(PageEditAction):
         self.surface = surface
 
     def on_img_processing_done(self):
-        GLib.idle_add(self.parent.redraw)
+        self.parent.redraw()
 
     def __str__(self):
         return "Automatic Color Equalization"
@@ -688,6 +691,7 @@ class SimplePageDrawer(Drawer):
                 (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
             self.schedulers['page_boxes_loader'].schedule(job)
+        self.redraw()
 
     def on_page_loading_done(self, page):
         if self.loading:
@@ -714,13 +718,15 @@ class SimplePageDrawer(Drawer):
 
         output = set()
         for keyword in keywords:
+            keyword = keyword.strip().lower()
             for box in self.boxes["all"]:
-                if keyword in box.content:
+                box_txt = box.content.strip().lower()
+                threshold = int(min(len(keyword) / 2.5, len(box_txt) / 2.5))
+                if threshold <= 0 and box_txt == keyword:
                     output.add(box)
                     continue
-                # unfold generator output
-                words = [x for x in split_words(box.content)]
-                if keyword in words:
+                dist = Levenshtein.distance(box_txt, keyword)
+                if dist <= threshold:
                     output.add(box)
                     continue
         return output
@@ -731,7 +737,7 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
-        GLib.idle_add(self.parent.redraw)
+        self.parent.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes):
         if not self.visible:
@@ -959,7 +965,7 @@ class SimplePageDrawer(Drawer):
                     )
 
         if must_redraw:
-            GLib.idle_add(self.parent.redraw)
+            self.parent.redraw()
             return
 
     def __str__(self):
@@ -1341,6 +1347,9 @@ class PageDrawer(Drawer, GObject.GObject):
             self.draw_mask(cairo_context, (0.0, 0.0, 0.0, 0.15))
 
     def redraw(self, extra_border=0):
+        if not self._is_visible():
+            return
+
         border = self.simple_page_drawer.BORDER_BASIC
         if self.simple_page_drawer.boxes['highlighted']:
             border = self.simple_page_drawer.BORDER_HIGHLIGHTED
@@ -1355,7 +1364,7 @@ class PageDrawer(Drawer, GObject.GObject):
         size = (size[0] + (2 * border_width),
                 size[1] + (2 * border_width))
 
-        GLib.idle_add(self.canvas.redraw, (position, size))
+        self.canvas.redraw((position, size))
 
     def set_drag_enabled(self, drag):
         self.drag_enabled = drag
@@ -1404,7 +1413,7 @@ class PageDrawer(Drawer, GObject.GObject):
             must_redraw = True
 
         if must_redraw:
-            GLib.idle_add(self.redraw)
+            self.redraw()
 
         return self.mouse_over_button is not None
 
@@ -1449,7 +1458,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(False)
         self.editor_state = "during"
         self.mouse_over_button = self.editor_buttons['during'][0]
-        GLib.idle_add(self.redraw)
+        self.redraw()
 
     def print_chain(self):
         logger.info("Edit chain:")
@@ -1503,7 +1512,7 @@ class PageDrawer(Drawer, GObject.GObject):
         self.set_drag_enabled(True)
         self.editor_state = "before"
         self.hide()
-        GLib.idle_add(self.canvas.redraw)
+        self.canvas.redraw()
 
     def _on_edit_cancel(self):
         logger.info("Page edition canceled")
@@ -1598,7 +1607,7 @@ class PageDropHandler(Drawer):
             self.target_previous_page_drawer = distances[0][1]
 
         # issue a redraw order on our new position
-        GLib.idle_add(self.redraw)
+        self.redraw()
         return True
 
     def _on_drag_leave(self, canvas, drag_context, time):

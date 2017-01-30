@@ -3,6 +3,7 @@ import datetime
 import gettext
 import logging
 import gc
+import time
 
 from gi.repository import GLib
 from gi.repository import GObject
@@ -61,9 +62,10 @@ class JobDocThumbnailer(Job):
     SMALL_THUMBNAIL_WIDTH = 64
     SMALL_THUMBNAIL_HEIGHT = 80
 
-    def __init__(self, factory, id, doclist):
+    def __init__(self, factory, id, doclist, already_loaded):
         Job.__init__(self, factory, id)
-        self.__doclist = doclist
+        self.doclist = doclist
+        self.__already_loaded = already_loaded
         self.__current_idx = -1
 
     def __resize(self, img):
@@ -86,19 +88,31 @@ class JobDocThumbnailer(Job):
 
     def do(self):
         self.can_run = True
-        if self.__current_idx >= len(self.__doclist):
+        if self.__current_idx >= len(self.doclist):
             return
         if not self.can_run:
+            logger.info(
+                "Thumbnailing [%s] interrupted (not even started yet)", self
+            )
             return
 
         if self.__current_idx < 0:
+            logger.info(
+                "Start thumbnailing %d documents (%s)",
+                len(self.doclist), self
+            )
             self.emit('doc-thumbnailing-start')
             self.__current_idx = 0
 
-        for idx in range(self.__current_idx, len(self.__doclist)):
-            doc = self.__doclist[idx]
-            if doc.nb_pages <= 0:
+        for (idx, doc) in enumerate(self.doclist):
+            if doc.docid in self.__already_loaded:
                 continue
+
+            if doc.nb_pages <= 0:
+                doc.drop_cache()  # even accessing 'nb_pages' may open a file
+                continue
+
+            start = time.time()
 
             # always request the same size, even for small thumbnails
             # so we don't invalidate cache + previous thumbnails
@@ -106,6 +120,7 @@ class JobDocThumbnailer(Job):
                                              BasicPage.DEFAULT_THUMB_HEIGHT)
             doc.drop_cache()
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (0)", self)
                 return
 
             (w, h) = img.size
@@ -117,23 +132,33 @@ class JobDocThumbnailer(Job):
             h /= factor
             img = img.resize((int(w), int(h)), PIL.Image.ANTIALIAS)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (1)", self)
                 return
 
             img = self.__resize(img)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (2)", self)
                 return
 
             img = add_img_border(img, width=self.THUMB_BORDER)
             if not self.can_run:
+                logger.info("Thumbnailing [%s] interrupted (3)", self)
                 return
 
             pixbuf = image2pixbuf(img)
 
+            stop = time.time()
+
+            logger.info(
+                "[%s]: Got thumbnail for %s (%fs)",
+                self, doc.docid, stop - start
+            )
             self.emit('doc-thumbnailing-doc-done', pixbuf, doc,
-                      idx, len(self.__doclist))
+                      idx, len(self.doclist))
 
             self.__current_idx = idx
 
+        logger.info("End of thumbnailing [%s]", self)
         self.emit('doc-thumbnailing-end')
 
     def stop(self, will_resume=False):
@@ -151,13 +176,15 @@ class JobFactoryDocThumbnailer(JobFactory):
         JobFactory.__init__(self, "DocThumbnailer")
         self.__doclist = doclist
 
-    def make(self, doclist):
+    def make(self, doclist, already_loaded=()):
         """
         Arguments:
             doclist --- must be an array of (position, document), position
                         being the position of the document
         """
-        job = JobDocThumbnailer(self, next(self.id_generator), doclist)
+        job = JobDocThumbnailer(
+            self, next(self.id_generator), doclist, already_loaded
+        )
         job.connect(
             'doc-thumbnailing-start',
             lambda thumbnailer:
@@ -530,6 +557,7 @@ class ActionDeleteLabel(SimpleAction):
         SimpleAction.__init__(self, "Deleting label")
         self.__main_win = main_window
         self.__doc_properties = doc_properties
+        self._label = None
 
     def do(self):
         SimpleAction.do(self)
@@ -543,14 +571,18 @@ class ActionDeleteLabel(SimpleAction):
         label_box = selected_row.get_children()[0]
         label_name = label_box.get_children()[2].get_text()
         label_color = label_box.get_children()[1].get_rgba().to_string()
-        label = Label(label_name, label_color)
+        self._label = Label(label_name, label_color)
 
-        if not ask_confirmation(self.__main_win.window):
+        if not ask_confirmation(self.__main_win.window, self._do_delete):
             return
 
-        logger.info("Label {} must be deleted. Applying changes".format(label))
+    def _do_delete(self):
+        logger.info("Label {} must be deleted. Applying changes".format(
+            self._label
+        ))
         job = self.__doc_properties.job_factories['label_deleter'].make(
-            self.__main_win.docsearch, label)
+            self.__main_win.docsearch, self._label
+        )
         self.__main_win.schedulers['main'].schedule(job)
         self.__doc_properties.refresh_label_list()
 
@@ -566,9 +598,7 @@ class ActionDeleteDoc(SimpleAction):
         Ask for confirmation and then delete the document being viewed.
         """
         super().do()
-        if not ask_confirmation(self.__main_win.window):
-            return
-        GLib.idle_add(self._do)
+        ask_confirmation(self.__main_win.window, self._do)
 
     def _do(self):
         SimpleAction.do(self)
@@ -601,6 +631,8 @@ class ActionDeleteDoc(SimpleAction):
 
 
 class DocList(object):
+    LIST_CHUNK = 50
+
     def __init__(self, main_win, config, widget_tree):
         self.__main_win = main_win
         self.__config = config
@@ -614,7 +646,9 @@ class DocList(object):
             'list': widget_tree.get_object("listboxDocList"),
             'box': widget_tree.get_object("doclist_box"),
             'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
+            'last_scrollbar_value': -1,
             'spinner': SpinnerAnimation((0, 0)),
+            'nb_boxes': 0,
         }
         self.gui['loading'] = Canvas(self.gui['scrollbars'])
         self.gui['loading'].set_visible(False)
@@ -636,6 +670,7 @@ class DocList(object):
 
         self.model = {
             'has_new': False,
+            'docids': [],
             'by_row': {},  # Gtk.ListBoxRow: docid
             'by_id': {},  # docid: Gtk.ListBoxRow
             # keep the thumbnails in cache
@@ -696,6 +731,11 @@ class DocList(object):
 
     def _on_scrollbar_value_changed(self):
         vadjustment = self.gui['scrollbars'].get_vadjustment()
+        if vadjustment.get_value() == self.gui['last_scrollbar_value']:
+            # avoid repeated requests due to adding documents to the
+            # GtkListBox (even if frozen ...)
+            return
+        self.gui['last_scrollbar_value'] = vadjustment.get_value()
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
@@ -708,7 +748,15 @@ class DocList(object):
 
         # XXX(Jflesch): assumptions: values are in px
         value = vadjustment.get_value()
+        lower = vadjustment.get_lower()
+        upper = vadjustment.get_upper()
         page_size = vadjustment.get_page_size()
+
+        # if we are in the lower part (10%), add the next chunk of boxes
+        u = upper - lower
+        v = value - lower + page_size
+        if lower + page_size < upper and v >= u:
+            self._add_boxes()
 
         start_y = value
         end_y = value + page_size
@@ -747,7 +795,9 @@ class DocList(object):
         if len(documents) > 0:
             logger.info("Will get thumbnails for %d documents [%d-%d]"
                         % (len(documents), start_idx, end_idx))
-            job = self.job_factories['doc_thumbnailer'].make(documents)
+            job = self.job_factories['doc_thumbnailer'].make(
+                documents, self.model['thumbnails']
+            )
             self.__main_win.schedulers['main'].schedule(job)
 
     def scroll_to(self, row):
@@ -882,6 +932,7 @@ class DocList(object):
             self.model['by_row'] = {}
             self.model['by_id'] = {}
             self.model['has_new'] = False
+            self.gui['nb_boxes'] = 0
         finally:
             self.gui['list'].thaw_child_notify()
 
@@ -965,23 +1016,40 @@ class DocList(object):
     def show_loading(self):
         GLib.idle_add(self._show_loading)
 
+    def _add_boxes(self):
+        start = self.gui['nb_boxes']
+        stop = self.gui['nb_boxes'] + self.LIST_CHUNK
+        docs = self.model['docids'][start:stop]
+
+        logger.info("Will display documents {}:{} (actual number: {})".format(
+            start, stop, len(docs)
+        ))
+
+        for docid in docs:
+            rowbox = self.model['by_id'][docid]
+            self.gui['list'].add(rowbox)
+            self.gui['nb_boxes'] += 1
+
     def set_docs(self, documents, need_new_doc=True):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
 
         self.clear()
+        GLib.idle_add(self._set_docs, documents, need_new_doc)
+
+    def _set_docs(self, documents, need_new_doc):
+        self.model['docids'] = [doc.docid for doc in documents]
+        for doc in documents:
+            rowbox = Gtk.ListBoxRow()
+            selected = (doc.docid == self.__main_win.doc.docid)
+            self._make_listboxrow_doc_widget(doc, rowbox, selected)
+            self.model['by_row'][rowbox] = doc.docid
+            self.model['by_id'][doc.docid] = rowbox
 
         self.gui['list'].freeze_child_notify()
         try:
-            for doc in documents:
-                rowbox = Gtk.ListBoxRow()
-                selected = (doc.docid == self.__main_win.doc.docid)
-                self._make_listboxrow_doc_widget(doc, rowbox, selected)
-                self.model['by_row'][rowbox] = doc.docid
-                self.model['by_id'][doc.docid] = rowbox
-                self.gui['list'].add(rowbox)
-
+            self._add_boxes()
             if need_new_doc:
                 self.insert_new_doc()
 
@@ -991,6 +1059,7 @@ class DocList(object):
 
         if (self.__main_win.doc and
                 self.__main_win.doc.docid in self.model['by_id']):
+            self.make_doc_box_visible(self.__main_win.doc)
             row = self.model['by_id'][self.__main_win.doc.docid]
             self.gui['list'].select_row(row)
             GLib.idle_add(self.scroll_to, row)
@@ -999,6 +1068,7 @@ class DocList(object):
         self.gui['loading'].remove_all_drawers()
         self.gui['loading'].set_visible(False)
 
+        self.gui['last_scrollbar_value'] = -1  # force refresh of thumbnails
         GLib.idle_add(self._on_scrollbar_value_changed)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
@@ -1021,6 +1091,10 @@ class DocList(object):
                 return
 
         # and rethumbnail what must be
+        if redo_thumbnails:
+            for doc in docs:
+                if doc.docid in self.model['thumbnails']:
+                    self.model['thumbnails'].pop(doc.docid)
         docs = [x for x in docs]
         logger.info("Will redo thumbnails: %s" % str(docs))
         job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -1032,7 +1106,10 @@ class DocList(object):
         the keywords typed by the user in the search field.
         Warning: Will reset all the thumbnail to the default one
         """
-        self.__main_win.schedulers['main'].cancel_all(
+        GLib.idle_add(self._refresh)
+
+    def _refresh(self):
+        self.__main_win.schedulers['search'].cancel_all(
             self.__main_win.job_factories['doc_searcher']
         )
         search = self.__main_win.search_field.get_text()
@@ -1042,7 +1119,7 @@ class DocList(object):
             sort_func=self.__main_win.get_doc_sorting()[1],
             search_type='fuzzy',
             search=search)
-        self.__main_win.schedulers['main'].schedule(job)
+        self.__main_win.schedulers['search'].schedule(job)
 
     def has_multiselect(self):
         return (len(self.gui['list'].get_selected_rows()) > 1)
@@ -1068,9 +1145,31 @@ class DocList(object):
         docid = self.model['by_row'][best_row]
         return self.__main_win.docsearch.get_doc_from_docid(docid, inst=False)
 
+    def make_doc_box_visible(self, doc):
+        if doc.docid not in self.model['docids']:
+            return
+        doc_pos = self.model['docids'].index(doc.docid)
+        logger.info(
+            "Document position: {}"
+            " | Number of boxes currently displayed: {}".format(
+                doc_pos, self.gui['nb_boxes']
+            )
+        )
+        if doc_pos < self.gui['nb_boxes']:
+            return
+        self.gui['list'].freeze_child_notify()
+        try:
+            while doc_pos >= self.gui['nb_boxes']:
+                self._add_boxes()
+        finally:
+            self.gui['list'].thaw_child_notify()
+
     def select_doc(self, doc=None, offset=None, open_doc=True):
         self.enabled = open_doc
         try:
+            if doc:
+                self.make_doc_box_visible(doc)
+
             assert(doc is not None or offset is not None)
             if doc is not None:
                 if doc.docid not in self.model['by_id']:
@@ -1288,8 +1387,9 @@ class DocPropertiesPanel(object):
                 buttons=Gtk.ButtonsType.OK,
                 text=msg
             )
-            dialog.run()
-            dialog.destroy()
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(dialog.destroy))
+            dialog.show_all()
             raise
 
         # Labels

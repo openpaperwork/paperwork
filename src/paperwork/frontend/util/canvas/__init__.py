@@ -25,6 +25,7 @@ Here are the elements that must drawn on it:
 """
 
 import logging
+import os
 import threading
 
 from gi.repository import GLib
@@ -38,6 +39,15 @@ from .drawers import CursorDrawer
 
 
 logger = logging.getLogger(__name__)
+
+
+CANVAS_ERROR_ON_USELESS = bool(
+    int(os.getenv("PAPERWORK_CANVAS_ERROR_ON_USELESS", "0"))
+)
+
+
+class CanvasException(Exception):
+    pass
 
 
 class AbsoluteEvent(object):
@@ -97,6 +107,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
     def __init__(self, scrollbars):
         Gtk.DrawingArea.__init__(self)
+
+        self.redraw_queued = False
 
         hadj = scrollbars.get_hadjustment()
         vadj = scrollbars.get_vadjustment()
@@ -202,7 +214,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.visible_size = (size_allocate.width,
                              size_allocate.height)
         self.upd_adjustments(upd_scrollbar_values=False)
-        self.redraw()
+        self.redraw(checked=True)
 
     def recompute_size(self, upd_scrollbar_values=False):
         (full_x, full_y) = (1, 1)
@@ -280,6 +292,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             adj.set_value(int(vals[idx]))
 
     def __on_draw(self, _, cairo_ctx):
+        self.redraw_queued = False
         self.recompute_size(upd_scrollbar_values=False)
 
         for drawer in self.drawers:
@@ -309,7 +322,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         self.drawers.add(drawer.layer, drawer)
         drawer.show()
         self.recompute_size(upd_scrollbar_values=False)
-        self.redraw((drawer.relative_position, drawer.relative_size))
+        drawer.redraw()
 
     def get_drawer_at(self, position):
         (x, y) = position
@@ -352,15 +365,15 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         drawer.hide()
         self.drawers.remove(drawer)
         self.recompute_size(upd_scrollbar_values=False)
-        self.redraw()
+        self.redraw((drawer.position, drawer.size))
 
     def remove_drawers(self, drawers):
         for drawer in drawers:
             self.disconnect_drawer(drawer)
             drawer.hide()
             self.drawers.remove(drawer)
+            self.redraw((drawer.position, drawer.size))
         self.recompute_size(upd_scrollbar_values=False)
-        self.redraw()
 
     def remove_all_drawers(self):
         for drawer in self.drawers:
@@ -368,11 +381,17 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             drawer.hide()
         self.drawers.purge()
         self.recompute_size(upd_scrollbar_values=False)
-        self.redraw()
+        self.redraw(checked=True)
 
-    def redraw(self, area=None):
+    def redraw(self, area=None, checked=False):
+        if self.redraw_queued:
+            # a global redraw has already been asked
+            return
         if area is None:
+            if not checked and CANVAS_ERROR_ON_USELESS:
+                raise CanvasException("Unchecked global call to redraw()")
             self.queue_draw()
+            self.redraw_queued = True
         else:
             offset = self.offset
             visible = self.visible_size
@@ -388,7 +407,16 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
 
             if (position[0] > visible[0] or position[1] > visible[1] or
                     size[0] <= 0 or size[1] <= 0):
-                # logger.warning("Ignore useless call to redraw()")
+                if CANVAS_ERROR_ON_USELESS:
+                    if (visible <= (1, 1)):
+                        # Main window isn't visible yet
+                        return
+                    raise CanvasException(
+                        "Useless call to redraw():"
+                        " {} --> {} (visible: {})".format(
+                            area, (position, size), visible
+                        )
+                    )
                 return
 
             self.queue_draw_area(

@@ -24,7 +24,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.0.6.1",
+    version="1.1",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -231,13 +231,14 @@ Main features are:
         'scripts/paperwork',
     ],
     install_requires=[
+        "python-Levenshtein",
         "Pillow",
         "pycountry",
         "pyinsane2",
         "pyocr >= 0.3.0",
         "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend >= 1.0.5",
+        "paperwork-backend >= 1.1",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

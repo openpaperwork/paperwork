@@ -18,7 +18,6 @@ import cairo
 import math
 import logging
 
-from gi.repository import Gtk
 from gi.repository import Pango
 from gi.repository import PangoCairo
 
@@ -33,6 +32,7 @@ class Drawer(object):
     BACKGROUND_LAYER = 1000
     IMG_LAYER = 200
     BOX_LAYER = 50
+    SPINNER = 30
     PROGRESSION_INDICATOR_LAYER = 25
     BUTTON_LAYER = 20
     FADDING_EFFECT_LAYER = 10
@@ -122,15 +122,15 @@ class Drawer(object):
         """
         pass
 
+    def _is_visible(self):
+        if not self.canvas:
+            return False
+        return self.compute_visibility(self.canvas.offset, self.canvas.size,
+                                       self.position, self.size)
+
     def draw(self, cairo_ctx):
-        # don't bother drawing if it's not visible
-        if self.canvas.offset[0] + self.canvas.size[0] < self.position[0]:
-            return
-        if self.canvas.offset[1] + self.canvas.size[1] < self.position[1]:
-            return
-        if self.position[0] + self.size[0] < self.canvas.offset[0]:
-            return
-        if self.position[1] + self.size[1] < self.canvas.offset[1]:
+        if not self._is_visible():
+            # don't bother drawing if it's not visible
             return
         self.do_draw(cairo_ctx)
 
@@ -178,7 +178,11 @@ class Drawer(object):
 
     def redraw(self, extra_border=0):
         if not self.visible:
-            logger.warning("redraw() called on non-visible element")
+            return
+
+        if not self._is_visible():
+            # not in the visible part of the canvas. Requesting a redraw
+            # could have unwanted results with Cairo
             return
 
         position = self.relative_position
@@ -242,6 +246,10 @@ class Centerer(Drawer):
         )
 
     position = property(__get_position)
+
+    @property
+    def visible(self):
+        return self.child.visible
 
     def do_draw(self, cairo_ctx):
         cairo_ctx.save()
@@ -717,11 +725,7 @@ class ProgressBarDrawer(Drawer):
         self.redraw()
 
     def redraw(self):
-        txt_h = self.__last_text_height
-        position = (0, self.canvas.size[1] - (txt_h + (2 * self.TXT_MARGIN)))
-        size = (self.canvas.size[0] + (2 * self.TXT_MARGIN),
-                (txt_h + 2 * self.TXT_MARGIN))
-        self.canvas.redraw((position, size))
+        self.canvas.redraw((self.position, self.size))
 
     def _get_position(self):
         if not self.canvas:
@@ -787,13 +791,17 @@ class ProgressBarDrawer(Drawer):
         finally:
             cairo_ctx.restore()
 
-        cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
-                                 self.text_color[2])
-        cairo_ctx.move_to(self.TXT_MARGIN,
-                          self.canvas.size[1] + self.canvas.offset[1] -
-                          self.TXT_MARGIN)
-        cairo_ctx.text_path(self.text)
-        cairo_ctx.fill()
+        cairo_ctx.save()
+        try:
+            cairo_ctx.set_source_rgb(self.text_color[0], self.text_color[1],
+                                     self.text_color[2])
+            cairo_ctx.move_to(self.TXT_MARGIN,
+                              self.canvas.size[1] + self.canvas.offset[1] -
+                              self.TXT_MARGIN)
+            cairo_ctx.text_path(self.text)
+            cairo_ctx.fill()
+        finally:
+            cairo_ctx.restore()
 
 
 def fit(element_size, area_size, force=False):

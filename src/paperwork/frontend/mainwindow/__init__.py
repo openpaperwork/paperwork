@@ -79,7 +79,7 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-__version__ = '1.0.6'
+__version__ = '1.1-git'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must
@@ -701,6 +701,66 @@ class JobFactoryExportPreviewer(JobFactory):
         return job
 
 
+class JobExport(Job):
+    __gsignals__ = {
+        'export-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-progress': (GObject.SignalFlags.RUN_LAST, None,
+                            (GObject.TYPE_INT, GObject.TYPE_INT)),
+        'export-done': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-error': (GObject.SignalFlags.RUN_LAST, None,
+                         (GObject.TYPE_PYOBJECT, )),
+    }
+
+    can_stop = False
+    priority = 500
+
+    def __init__(self, factory, id, exporter, target_path):
+        Job.__init__(self, factory, id)
+        self._exporter = exporter
+        self._target_path = target_path
+
+    def _on_progress_cb(self, current, total):
+        self.emit('export-progress', current, total)
+
+    def do(self):
+        self.emit('export-start')
+
+        try:
+            self._exporter.save(self._target_path, self._on_progress_cb)
+        except Exception as exc:
+            logger.exception("Export failed")
+            self.emit('export-error', exc)
+            raise
+
+        self.emit('export-done')
+
+
+GObject.type_register(JobExport)
+
+
+class JobFactoryExport(JobFactory):
+    def __init__(self, main_win):
+        JobFactory.__init__(self, "Export")
+        self.__main_win = main_win
+
+    def make(self, exporter, target_path):
+        job = JobExport(self, next(self.id_generator), exporter, target_path)
+        job.connect('export-start',
+                    lambda job:
+                    GLib.idle_add(self.__main_win.on_export_start))
+        job.connect('export-progress',
+                    lambda job, current, total:
+                    GLib.idle_add(self.__main_win.on_export_progress,
+                                  current, total))
+        job.connect('export-error',
+                    lambda job, error:
+                    GLib.idle_add(self.__main_win.on_export_error, error))
+        job.connect('export-done',
+                    lambda job:
+                    GLib.idle_add(self.__main_win.on_export_done))
+        return job
+
+
 class JobPageEditor(Job):
     __gsignals__ = {
         'page-editing-img-edit': (GObject.SignalFlags.RUN_LAST, None,
@@ -780,6 +840,8 @@ class JobImporter(Job):
         'import-error': (GObject.SignalFlags.RUN_LAST, None,
                          (GObject.TYPE_PYOBJECT, )),
         'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'import-ok': (GObject.SignalFlags.RUN_LAST, None,
+                      (GObject.TYPE_PYOBJECT, )),
     }
 
     can_stop = False
@@ -816,7 +878,7 @@ class JobImporter(Job):
                         None, page.page_nb, page.doc.nb_pages
                     )
             except StopIteration:
-                logger.info("OCR has been redone on all the target pages")
+                logger.info("All the target pages have been examined")
                 if len(self._docs_to_label_predict) > 0:
                     self._predict_labels()
                 else:
@@ -907,7 +969,7 @@ class JobImporter(Job):
         self.__main_win.set_mouse_cursor("Busy")
         try:
             try:
-                (docs, page, must_add_labels) = self.importer.import_doc(
+                import_result = self.importer.import_doc(
                     self.file_uri, self.__main_win.docsearch,
                     self.__main_win.doc
                 )
@@ -917,36 +979,54 @@ class JobImporter(Job):
             self.emit('import-error', str(exc))
             raise
 
-        if docs is None or len(docs) <= 0:
+        if not import_result.has_import:
             self.emit('no-doc-imported')
             return
 
-        if page is not None:
-            nb_docs = 0
+        nb_docs = len(import_result.new_docs) + len(import_result.upd_docs)
+        if import_result.select_page:
             nb_pages = 1
         else:
-            nb_docs = len(docs)
-            nb_pages = sum([doc.nb_pages for doc in docs])
-        logger.info("Importing %d docs and %d pages" % (nb_docs, nb_pages))
+            nb_pages += sum([doc.nb_pages for doc in import_result.new_docs])
+        logger.info("Imported %d docs and %d pages" % (nb_docs, nb_pages))
 
-        self.__main_win.show_doc(docs[-1], force_refresh=True)
+        if import_result.select_doc:
+            self.__main_win.show_doc(
+                import_result.select_doc,
+                force_refresh=True
+            )
 
-        if page is not None:
-            self.__main_win.show_page(page, force_refresh=True)
+        if import_result.select_page:
+            self.__main_win.show_page(
+                import_result.select_page,
+                force_refresh=True
+            )
+
         set_widget_state(self.__main_win.need_doc_widgets, True)
 
-        if page is not None:
-            self.IndexAdder(self.__main_win, iter([page]),
-                            must_add_labels).start()
-            return
+        new_doc_pages = []
+        for doc in import_result.new_docs:
+            new_doc_pages += [p for p in doc.pages]
+        upd_doc_pages = []
+        for doc in import_result.upd_docs:
+            upd_doc_pages += [p for p in doc.pages]
 
-        if nb_pages > 0:
-            pages = []
-            for doc in docs:
-                new_pages = [p for p in doc.pages]
-                pages += new_pages
-            self.IndexAdder(self.__main_win, iter(pages),
-                            must_add_labels).start()
+        if upd_doc_pages != []:
+            # TODO(JFlesch): Assumption:
+            # We assume here that only one page has been added to an existing
+            # document. This is an assumption true for now, but that may not
+            # be in the future.
+            self.IndexAdder(
+                self.__main_win, iter([import_result.select_page]),
+                must_add_labels=False
+            ).start()
+
+        if new_doc_pages != []:
+            self.IndexAdder(
+                self.__main_win, iter(new_doc_pages), must_add_labels=True
+            ).start()
+
+        self.emit('import-ok', import_result.stats)
 
 
 GObject.type_register(JobImporter)
@@ -1134,7 +1214,7 @@ class ActionUpdPageSizes(SimpleAction):
         mw.zoom_level['auto'] = False
         mw.update_page_sizes()
         mw.img['canvas'].recompute_size(upd_scrollbar_values=True)
-        mw.img['canvas'].redraw()
+        mw.img['canvas'].redraw(checked=True)
 
 
 class ActionRefreshBoxes(SimpleAction):
@@ -1288,8 +1368,9 @@ class ActionSingleScan(SimpleAction):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
         if not scan_workflow:
             return
@@ -1302,12 +1383,9 @@ class ActionSingleScan(SimpleAction):
         docid = self.__main_win.remove_scan_workflow(scan_workflow)
         self.__main_win.add_page(docid, img, line_boxes)
 
-    def do(self):
-        self.__main_win.set_mouse_cursor("Busy")
-        GLib.idle_add(self._do)
-
-    def _do(self):
+    def do(self, call_at_end=None):
         SimpleAction.do(self)
+        self.__main_win.set_mouse_cursor("Busy")
 
         try:
             if not check_scanner(self.__main_win, self.__config):
@@ -1345,11 +1423,18 @@ class ActionSingleScan(SimpleAction):
         scan_workflow.connect('process-done', lambda scan_workflow, img, boxes:
                               GLib.idle_add(self.__on_ocr_done, scan_workflow,
                                             img, boxes))
+        if call_at_end:
+            scan_workflow.connect(
+                'process-done',
+                lambda scan_workflow, img, boxes:
+                GLib.idle_add(call_at_end)
+            )
 
         drawer = self.__main_win.make_scan_workflow_drawer(
             scan_workflow, single_angle=False)
         self.__main_win.add_scan_workflow(self.__main_win.doc, drawer)
         scan_workflow.scan_and_ocr(resolution, scan_session)
+        return scan_workflow
 
 
 class ActionMultiScan(SimpleAction):
@@ -1377,6 +1462,17 @@ class ActionImport(SimpleAction):
         SimpleAction.__init__(self, "Import file(s)")
         self.__main_win = main_window
         self.__config = config
+        self.__select_file_dialog = None
+
+    def __select_file_cb(self, dialog, response):
+        if response != 0:
+            logger.info("Import: Canceled by user")
+            dialog.destroy()
+            return None
+        file_uri = dialog.get_uri()
+        dialog.destroy()
+        logger.info("Import: %s" % file_uri)
+        GLib.idle_add(self._do_import, file_uri)
 
     def __select_file(self):
         widget_tree = load_uifile(
@@ -1386,15 +1482,10 @@ class ActionImport(SimpleAction):
         dialog.set_local_only(False)
         dialog.set_select_multiple(False)
 
-        response = dialog.run()
-        if response != 0:
-            logger.info("Import: Canceled by user")
-            dialog.destroy()
-            return None
-        file_uri = dialog.get_uri()
-        dialog.destroy()
-        logger.info("Import: %s" % file_uri)
-        return file_uri
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(self.__select_file_cb, dialog, response))
+
+        dialog.show_all()
 
     def __select_importer(self, importers):
         widget_tree = load_uifile(
@@ -1424,8 +1515,9 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.ERROR,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def __no_doc_imported(self):
         msg = _("No new document to import found")
@@ -1436,8 +1528,9 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def __import_error(self, msg):
         msg = _("Import failed: {}").format(msg)
@@ -1448,18 +1541,32 @@ class ActionImport(SimpleAction):
                                    message_type=Gtk.MessageType.WARNING,
                                    buttons=Gtk.ButtonsType.OK,
                                    text=msg)
-        dialog.run()
-        dialog.destroy()
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
+
+    def __import_ok(self, stats):
+        msg = _("Imported:\n")
+        for (k, v) in stats.items():
+            msg += ("- {}: {}\n".format(k, v))
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.INFO,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()
 
     def do(self):
         SimpleAction.do(self)
         GLib.idle_add(self._do)
 
     def _do(self):
-        file_uri = self.__select_file()
-        if file_uri is None:
-            return
+        self.__select_file()
 
+    def _do_import(self, file_uri):
         importers = docimport.get_possible_importers(
             file_uri, self.__main_win.doc)
         if len(importers) <= 0:
@@ -1480,6 +1587,10 @@ class ActionImport(SimpleAction):
             'import-error',
             lambda _, msg: GLib.idle_add(self.__import_error, msg)
         )
+        job_importer.connect(
+            'import-ok',
+            lambda _, stats: GLib.idle_add(self.__import_ok, stats)
+        )
         self.__main_win.schedulers['main'].schedule(job_importer)
 
 
@@ -1487,13 +1598,17 @@ class ActionDeletePage(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Delete page")
         self.__main_win = main_window
+        self.page = None
 
     def do(self, page=None):
         """
         Ask for confirmation and then delete the page being viewed.
         """
-        if not ask_confirmation(self.__main_win.window):
-            return
+        self.page = page
+        ask_confirmation(self.__main_win.window, self._do)
+
+    def _do(self):
+        page = self.page
 
         if page is None:
             page = self.__main_win.page
@@ -1527,6 +1642,7 @@ class ActionRedoOCR(SimpleAction):
         SimpleAction.__init__(self, name)
         self._main_win = main_window
         self.ask_confirmation = ask_confirmation
+        self._iterator = None
 
     def _do_next_page(self, page_iterator, docs_done=None):
         try:
@@ -1572,19 +1688,21 @@ class ActionRedoOCR(SimpleAction):
                 self._main_win.docsearch, upd_docs=docs_done, optimize=False)
             self._main_win.schedulers['index'].schedule(job)
 
-    def do(self, pages_iterator):
-        if (self.ask_confirmation and
-                not ask_confirmation(self._main_win.window)):
-            return
+    def _do(self):
         SimpleAction.do(self)
-        self._do_next_page(pages_iterator)
+        self._do_next_page(self._iterator)
+
+    def do(self, pages_iterator):
+        self._iterator = pages_iterator
+        if not self.ask_confirmation:
+            return self._do()
+        ask_confirmation(self._main_win.window, self._do)
 
 
 class AllPagesIterator(object):
     def __init__(self, docsearch):
         self.__doc_iter = iter(docsearch.docs)
-        doc = next(self.__doc_iter)
-        self.__page_iter = iter(doc.pages)
+        self.__page_iter = None
 
     def __iter__(self):
         return self
@@ -1592,9 +1710,13 @@ class AllPagesIterator(object):
     def next(self):
         while True:
             try:
+                if self.__page_iter is None:
+                    raise StopIteration()
                 return next(self.__page_iter)
             except StopIteration:
-                doc = next(self.__doc_iter)
+                doc = None
+                while doc is None or not doc.has_ocr():
+                    doc = next(self.__doc_iter)
                 self.__page_iter = iter(doc.pages)
 
     def __next__(self):
@@ -1791,7 +1913,7 @@ class MultipleExportTarget(object):
     def get_export_formats(self):
         return [_("Multiple PDF in a folder")]
 
-    def build_exporter(self, format):
+    def build_exporter(self, format, preview_page_nb=0):
         return docexport.MultipleDocExporter(self.doclist)
 
 
@@ -1852,7 +1974,9 @@ class ActionSelectExportFormat(SimpleAction):
         imgformat = file_format_model[format_idx][0]
 
         target = self.__main_win.export['to_export']
-        exporter = target.build_exporter(imgformat)
+        exporter = target.build_exporter(
+            imgformat, self.__main_win.page.page_nb
+        )
         self.__main_win.export['exporter'] = exporter
 
         logger.info("[Export] Format: %s" % (exporter))
@@ -1977,36 +2101,20 @@ class BasicActionEndExport(SimpleAction):
         super().__init__(name)
         self.main_win = main_win
 
-    def hide_dialog(self):
-        if self.main_win.export['dialog']:
-            self.main_win.global_page_box.remove(self.main_win.export['dialog'])
-            self.main_win.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
-
-        self.main_win.export['exporter'] = None
-        for button in self.main_win.actions['open_view_settings'][0]:
-            button.set_sensitive(True)
-        # force refresh of the current page
-        self.main_win.show_page(self.main_win.page, force_refresh=True)
-
 
 class ActionExport(BasicActionEndExport):
     def __init__(self, main_window):
         super().__init__(main_window, "Export")
         self.main_win = main_window
 
-    def _do(self):
-        filepath = self.main_win.export['export_path'].get_text()
-        self.main_win.export['exporter'].save(filepath)
-        self.hide_dialog()
-
     def do(self):
         super().do()
-        self.main_win.set_mouse_cursor("Busy")
-        try:
-            GLib.idle_add(self._do)
-        finally:
-            self.main_win.set_mouse_cursor("Normal")
+        filepath = self.main_win.export['export_path'].get_text()
+        job = self.main_win.job_factories['export'].make(
+            self.main_win.export['exporter'], filepath
+        )
+        self.main_win.schedulers['export'].schedule(job)
+        self.main_win.hide_export_dialog()
 
 
 class ActionCancelExport(BasicActionEndExport):
@@ -2015,7 +2123,7 @@ class ActionCancelExport(BasicActionEndExport):
 
     def do(self):
         super().do()
-        GLib.idle_add(self.hide_dialog)
+        GLib.idle_add(self.main_win.hide_export_dialog)
 
 
 class ActionOptimizeIndex(SimpleAction):
@@ -2102,12 +2210,14 @@ class ActionRealQuit(SimpleAction):
 
 
 class ActionRefreshIndex(SimpleAction):
-    def __init__(self, main_window, config, force=False):
+    def __init__(self, main_window, config, force=False,
+                 skip_examination=False):
         SimpleAction.__init__(self, "Refresh index")
         self.__main_win = main_window
         self.__config = config
         self.__force = force
         self.__connect_handler_id = None
+        self.__skip_examination = skip_examination
 
     def do(self):
         SimpleAction.do(self)
@@ -2129,6 +2239,8 @@ class ActionRefreshIndex(SimpleAction):
 
     def __on_index_reload_end(self, job, docsearch):
         if docsearch is None:
+            return
+        if self.__skip_examination:
             return
         job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
         job.connect('doc-examination-end', lambda job: GLib.idle_add(
@@ -2163,6 +2275,8 @@ class ActionRefreshIndex(SimpleAction):
 
 class MainWindow(object):
     def __init__(self, config):
+        self.ready = False
+
         self.version = __version__
 
         if g_must_init_app:
@@ -2334,6 +2448,7 @@ class MainWindow(object):
         self.job_factories = {
             'doc_examiner': JobFactoryDocExaminer(self, config),
             'doc_searcher': JobFactoryDocSearcher(self, config),
+            'export': JobFactoryExport(self),
             'export_previewer': JobFactoryExportPreviewer(self),
             'img_processer': JobFactoryImgProcesser(self),
             'importer': JobFactoryImporter(self, config),
@@ -2698,11 +2813,13 @@ class MainWindow(object):
     def __init_schedulers(self):
         return {
             'main': JobScheduler("Main"),
+            'search': JobScheduler('Search'),
             'ocr': JobScheduler("OCR"),
             'page_boxes_loader': JobScheduler("Page boxes loader"),
             'progress': JobScheduler("Progress"),
             'scan': JobScheduler("Scan"),
             'index': JobScheduler("Index search / update"),
+            'export': JobScheduler("Export"),
         }
 
     def __init_app_menu(self, config, app):
@@ -2773,8 +2890,8 @@ class MainWindow(object):
                 for (txt, font_size) in [
                     (_("Trial period has expired"), 30),
                     (_("Everything will work as usual, except we've"), 24),
-                    (_("switched all the fonts to {}".format(
-                        self.default_font)), 24),
+                    (_("switched all the fonts to {}").format(
+                        self.default_font), 24),
                     (_("until you get an activation key"), 24),
                     # TODO(Jflesch): Make that a link
                     (_("Go to https://openpaper.work/activation/"), 24),
@@ -2821,7 +2938,7 @@ class MainWindow(object):
             self.progressbar.set_progression(100 * progression, text)
         else:
             self.progressbar.visible = False
-            self.progressbar.redraw()
+        self.progressbar.redraw()
 
     def new_doc(self):
         self.actions['new_doc'][1].do()
@@ -2841,6 +2958,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_index_loading_end_cb(self, src, docsearch):
+        self.ready = True
+
         self.set_progression(src, 0.0, None)
         self.set_search_availability(True)
         self.set_mouse_cursor("Normal")
@@ -3090,7 +3209,7 @@ class MainWindow(object):
         if not self.allow_multiselect:
             self.doclist.select_doc(doc, open_doc=False)
 
-        if self.doc:
+        if self.doc and self.doc.docid != doc.docid:
             self.doc.drop_cache()
         gc.collect()
 
@@ -3163,9 +3282,7 @@ class MainWindow(object):
             self._show_doc_internal(page.doc, force_refresh)
 
         if self.export['dialog']:
-            self.global_page_box.remove(self.export['dialog'])
-            self.export['dialog'].set_visible(False)
-            self.main_win.export['dialog'] = None
+            self.hide_export_dialog()
 
         drawer = None
         for d in self.page_drawers:
@@ -3342,7 +3459,7 @@ class MainWindow(object):
 
         self.update_page_sizes()
         self.img['canvas'].recompute_size(upd_scrollbar_values=True)
-        self.img['canvas'].redraw()
+        self.img['canvas'].redraw(checked=True)
 
     def __on_doc_lines_shown(self, docs):
         job = self.job_factories['doc_thumbnailer'].make(docs)
@@ -3425,6 +3542,7 @@ class MainWindow(object):
     show_all_boxes = property(__get_show_all_boxes, __set_show_all_boxes)
 
     def __select_page(self, page):
+        self.page = page
         set_widget_state(self.need_page_widgets, self.layout == 'paged')
         if page:
             new_text = "%d" % (page.page_nb + 1)
@@ -3561,3 +3679,37 @@ class MainWindow(object):
             self.docsearch, new_docs=new_docs, upd_docs=upd_docs,
             del_docs=del_docs, optimize=False, reload_list=False)
         self.schedulers['index'].schedule(job)
+
+    def hide_export_dialog(self):
+        # force refresh of the current page
+        self.global_page_box.remove(self.export['dialog'])
+        self.export['dialog'].set_visible(False)
+        self.export['dialog'] = None
+        self.export['exporter'] = None
+        for button in self.actions['open_view_settings'][0]:
+            button.set_sensitive(True)
+        self.show_page(self.page, force_refresh=True)
+
+    def on_export_start(self):
+        self.set_mouse_cursor("Busy")
+        self.set_progression(None, 0.0, _("Exporting ..."))
+
+    def on_export_progress(self, current, total):
+        self.set_progression(None, current / total, _("Exporting ..."))
+
+    def on_export_done(self):
+        self.set_mouse_cursor("Normal")
+        self.set_progression(None, 0.0, None)
+
+    def on_export_error(self, error):
+        self._on_export_done()
+        msg = _("Export failed: {}").format(str(error))
+        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
+        dialog = Gtk.MessageDialog(transient_for=self.window,
+                                   flags=flags,
+                                   message_type=Gtk.MessageType.ERROR,
+                                   buttons=Gtk.ButtonsType.OK,
+                                   text=msg)
+        dialog.connect("response", lambda dialog, response:
+                       GLib.idle_add(dialog.destroy))
+        dialog.show_all()

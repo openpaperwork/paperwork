@@ -223,7 +223,7 @@
                                 <property name="xalign">1</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Source</property>
+                                <property name="label" translatable="yes">Default source</property>
                               </object>
                               <packing>
                                 <property name="left_attach">0</property>

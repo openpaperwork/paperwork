@@ -72,7 +72,7 @@ def check_activation_key(activation_key, email):
     # smart enough to build your own version of Paperwork for Windows.
 
     public_key = \
-        b"gAN9cQAoWAEAAAB5cQFKbZDQClgBAAAAZ3ECSq6eZXtYAQAAAHBxA4oFj0ovuQB1Lg"
+        b"gAN9cQAoWAEAAAB5cQFKHOxVIFgBAAAAZ3ECSuiU9CBYAQAAAHBxA4oFgwNinQB1Lg"
     public_key = unserialize_elgamal_key(public_key)
     activation_key = activation_key.encode("utf-8")
     email = b"" if email is None else email.encode("utf-8")
@@ -131,6 +131,10 @@ def to_bool(txt):
 
 def is_activated(config):
     # Just add 'return True' here to disable this whole thingie.
+
+    # XXX(Jflesch): disabled for now
+    return True
+
     if get_os() != 'nt':
         return True
 
@@ -282,11 +286,11 @@ class ActivationDialog(object):
                 message_type=Gtk.MessageType.INFO,
                 buttons=Gtk.ButtonsType.OK,
                 text=msg)
-            dialog.run()
-            dialog.destroy()
-            self.dialog.set_visible(False)
-            self.dialog.destroy()
-            self.dialog = None
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(dialog.destroy))
+            dialog.connect("response", lambda dialog, response:
+                           GLib.idle_add(self.dialog.destroy))
+            dialog.show_all()
             return True
         logger.info("Invalid key: {}".format(error))
         self.label_error.set_text(error)

@@ -20,7 +20,6 @@
 - Optim: Improve PDF rendering speed: Let the libpoppler take care of the
   rendering size (see backend:page.get_image())
 - Optim: Reduce the number of useless calls to redraw()
-- Improve stability by configuring the Gdk library to be thread-safe
 
 2016/12/04 - 1.0.6:
 - Diagnostic: Limit the number of lines kept in memory (avoid running out of

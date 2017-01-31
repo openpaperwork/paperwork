@@ -85,6 +85,7 @@ Note that it will only work if packaged with Pyinstaller.
 
 ## Disabling the cruel and unusual DRM
 
+<del>
 Paperwork for Windows includes a trial period and an activation key mechanism.
 When working on Paperwork, they can be annoying. However, they can be disabled
 easily:
@@ -92,3 +93,6 @@ easily:
 * Either patch src/paperwork/frontend/activation/__init__.py:is_activated(). Just add
   ```return True```.
 * Or set the environment variable ```PAPERWORK_ACTIVATED``` to ```"true"```
+</del>
+
+update: DRM is disabled for now.

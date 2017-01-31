@@ -1,4 +1,9 @@
-1.1.0:
+2017/01/30 - 1.1.0:
+- Add methods doc.has_ocr() and page.has_ocr() indicating if OCR has already
+  been run on a given doc/page or not yet.
+  Used in GUI for the option "Redo OCR on all documents" as it must act only
+  on documents where OCR has already been done in the past (ie not PDF with
+  text included)
 - Optim: Provides a method page.get_image() returning an already resized
   Pillow image (PDF rendering optimisation)
 - Export: Report progression

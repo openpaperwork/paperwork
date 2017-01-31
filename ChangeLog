@@ -1,4 +1,8 @@
-xxxx/xx/xx - 1.1.0:
+2017/01/30 - 1.1.0:
+- Windows: Activation mechanism has been disabled for now
+- Workarounds for Gtk-3.20.x / GLib 2.50 (Ubuntu):
+  - Work around weird behavior of GLib.idle_add (multiple calls)
+  - Work around lack of refresh of document list
 - Import: Display how many image files, PDFs, documents and pages have been
   imported.
 - Automatic Color Equalization: Reduce the 'circle side-effect' by increasing
@@ -16,7 +20,6 @@ xxxx/xx/xx - 1.1.0:
 - Optim: Improve PDF rendering speed: Let the libpoppler take care of the
   rendering size (see backend:page.get_image())
 - Optim: Reduce the number of useless calls to redraw()
-- Improve stability by configuring the Gdk library to be thread-safe
 
 2016/12/04 - 1.0.6:
 - Diagnostic: Limit the number of lines kept in memory (avoid running out of

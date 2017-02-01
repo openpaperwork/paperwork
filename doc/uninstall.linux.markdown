@@ -18,6 +18,16 @@ So in case you had many versions you may have to run it many times.
 
 ## Uninstalling Paperwork
 
+Libraries most likely only used by Paperwork:
+
+```sh
+sudo pip3 uninstall pyocr # run it as many times as required
+sudo pip3 uninstall pyinsane2 # run it as many times as required
+sudo pip3 uninstall pypillowfight # run it as many times as required
+```
+
+Paperwork itself:
+
 ```sh
 sudo pip3 uninstall paperwork-backend  # run it as many times as required
 sudo pip3 uninstall paperwork  # run it as many times as required

@@ -88,8 +88,8 @@ If you installed it manually (for development), you can follow the same process 
 
 ## Donate
 
-<a href="https://flattr.com/submit/auto?fid=0ywr1d&url=https%3A%2F%2Fopenpaper.work">
-<img src="https://button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
+<a href="https://www.patreon.com/openpaper">
+<img src="https://openpaper.work/static/Patreon-banner.png">
 </a>
 
 

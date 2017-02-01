@@ -13,6 +13,12 @@ Currently, there is no official Debian or Ubuntu package for Paperwork.
     # PyEnchant dependency
     $ sudo apt-get install libenchant-dev
 
+	# Glade UI dependency
+	$ sudo apt-get install gir1.2-gladeui-2.0
+
+	# Poppler dependency
+	$ sudo apt-get install gir1.2-poppler-0.18
+
 
 ## System-wide installation
 

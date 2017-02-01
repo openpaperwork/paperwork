@@ -35,7 +35,7 @@ running 'paperwork-chkdeps'
 If you're reluctant to install system wide python libraries through pip,
 you can also use debian packages generated on the fly by [python-stdeb](https://pypi.python.org/pypi/stdeb)
 
-However, Debian doesn't provide yet the command ```pip-install``` for Python 3.
+However, Debian doesn't provide yet the command ```pypi-install``` for Python 3.
 Therefore it has fiest to be installed .. manually.
 
     $ sudo apt-get install python3-all-dev python3-pip

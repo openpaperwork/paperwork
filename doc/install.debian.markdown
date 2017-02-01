@@ -32,10 +32,17 @@ running 'paperwork-chkdeps'
 
 If you're reluctant to install system wide python libraries through pip, you can also use debian packages generated on the fly by [python-stdeb](https://pypi.python.org/pypi/stdeb) (install build dependencies above first):
 
-    $ sudo apt-get install python3-stdeb
+    $ sudo apt-get install python3-stdeb python3-all-dev
     $ sudo pypi-install pyocr
-    $ sudo pypi-install pyinsane
+    $ sudo pypi-install pyinsane2
+    $ sudo pypi-install pypillowfight
+    $ sudo pypi-install paperwork-backend
     $ sudo pypi-install paperwork
+
+You then have to run the following commands to check some extra dependencies:
+
+    $ paperwork-shell chkdeps paperwork_backend
+    $ paperwork-shell chkdeps paperwork
 
 
 ## Running Paperwork

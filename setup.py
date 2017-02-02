@@ -16,6 +16,7 @@ setup(
     name="paperwork",
     # if you change the version, don't forget to
     # * update the ChangeLog file
+    # * update AUTHORS
     # * change it also in
     #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
     # * change it also in

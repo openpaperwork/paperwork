@@ -692,31 +692,41 @@ Public License instead of this License.  But first, please read
     <!-- git shortlog -se -->
     <property name="authors">
 Bignaux Ronan &lt;ronan@aimao.org&gt; (1)
-Christophe 'RTDaemons' GERARDIN &lt;cgerardin@elitemail.org&gt; (1)
 Christophe Chauvet &lt;christophe.chauvet@gmail.com&gt; (1)
-Daniel Hahler &lt;git@thequod.de&gt; (1)
-Dominique Hazael-Massieux &lt;dom@w3.org&gt;(1)
-François Schmidts &lt;francois.schmidts@gmail.com&gt;(7)
-Glandos &lt;bugs-github@antipoul.fr&gt;(1)
-Jerome Flesch &lt;jflesch@gmail.com&gt;(1688)
+Dominique Hazael-Massieux &lt;dom@w3.org&gt;
+François Schmidts &lt;francois.schmidts@gmail.com&gt; (7)
+Glandos &lt;bugs-github@antipoul.fr&gt;
+Hannes &lt;&gt;
+Jerome Flesch &lt;jflesch@openpaper.work&gt; (2585)
 Josselin Jacquard &lt;josselin.jacquard@gmail.com&gt; (35)
-Krap &lt;Krap@users.noreply.github.com&gt; (1)
-Mathieu Jourdan &lt;mathieu.jourdan@gresille.org&gt; (31)
-Paul Liétar &lt;paul@lietar.net&gt; (6)
+Krap &lt;&gt;
+Matthias Mailänder &lt;&gt; (2)
+Mathieu Jourdan &lt;mathieu.jourdan@gresille.org&gt; (31) (code + UI design)
+Patrick Scheid &lt;p.scheid92@gmail.com&gt; (2)
+Paul Liétar &lt;paul@lietar.net&gt; (5)
+pingtux &lt;&gt; (2)
 RyDroid &lt;rydroid_dev@yahoo.com&gt; (7)
-Samuel Dorsaz &lt;ajira86@hotmail.com&gt; (1)
-Stefan Pokorny &lt;stefan@stefanpokorny.de&gt; (1)
-Sébastien Maccagnoni-Munch &lt;sebastien@smm-informatique.fr&gt; (4)
-arthurlutz &lt;arthur.lutz@gmail.com&gt; (1)
-lb1a &lt;github@lb1a.de&gt; (2)
-swap38 &lt;swap38@no-log.org&gt; (1)
+Stefan Pokorny &lt;stefan@stefanpokorny.de&gt;
+Sébastien Maccagnoni-Munch &lt;sebastien@smm-informatique.fr&gt; (6)
+Sebastian Spaeth &lt;Sebastian@SSpaeth.de&gt; (2)
     </property>
     <property name="translator_credits">
-Jerome Flesch &lt;jflesch@gmail.com&gt; (French)
+Jerome Flesch &lt;jflesch@openpaper.work&gt; (French)
 Tristan Kohl &lt;blobbyjj@ymail.com&gt; (German)
     </property>
     <property name="documenters">
-ludo &lt;ludo@zyrianes.net&gt;
+Alain &lt;github@STudio26.no-ip.biz&gt; (1)
+arthurlutz &lt;arthur.lutz@gmail.com&gt; (1)
+Christophe Delaere &lt;christophe.delaere@cern.ch&gt;
+Christophe GERARDIN (RTDaemons) &lt;cgerardin@elitemail.org&gt; (1)
+Daniel Hahler &lt;git@thequod.de&gt; (2)
+Davidbrcz &lt;Davidbrcz@users.noreply.github.com&gt; (2)
+Jehan &lt;jehan@girinstud.io&gt; (1)
+lb1a &lt;github@lb1a.de&gt; (2)
+Ludo &lt;ludo@zyrianes.net&gt; (1)
+Samuel Dorsaz &lt;ajira86@hotmail.com&gt; (1)
+Santiago Castro &lt;bryant@montevideo.com.uy&gt; (1)
+swap38 &lt;swap38@no-log.org&gt; (1)
     </property>
     <property name="logo">paperwork</property>
     <property name="license_type">gpl-3-0</property>

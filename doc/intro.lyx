@@ -175,10 +175,6 @@ Search field
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
@@ -233,7 +229,7 @@ status open
 
 \end_inset
 
-
+ 
 \end_layout
 
 \end_inset
@@ -323,17 +319,62 @@ Labels and memos
 \end_layout
 
 \begin_layout Standard
-\begin_inset Wrap figure
-lines 0
-placement o
-overhang 0col%
-width "50col%"
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/paperwork_goto_labels_and_memo.png
+	scale 33
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
 status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename img/paperwork_label_and_memo.png
-	scale 50
+	scale 33
+
+\end_inset
+
+
+\end_layout
 
 \end_inset
 

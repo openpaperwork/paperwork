@@ -2,7 +2,7 @@
 \lyxformat 474
 \begin_document
 \begin_header
-\textclass paper
+\textclass article
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -45,7 +45,7 @@
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
-\suppress_date false
+\suppress_date true
 \justification true
 \use_refstyle 1
 \index Index
@@ -73,28 +73,700 @@
 Paperwork manual
 \end_layout
 
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Scanning
+\end_layout
+
+\begin_layout Subsection
+Default source
+\end_layout
+
+\begin_layout Paragraph
+Some scanners have many sources/input.
+ Basic scanners have only one source : Flatbed.
+ Some others have a feeder, allowing them to scan many pages at one.
+\end_layout
+
+\begin_layout Paragraph
+The settings here is the source to use for single scan.
+\end_layout
+
+\begin_layout Paragraph
+If you select "Flatbed" here and use the multi-scan dialog (see 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sub:From-feeder"
+
+\end_inset
+
+), Paperwork will automatically switch to the feeder (if one is found ;
+ otherwise the default source is used too).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/adf_settings.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Selecting the default source for scanning
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="2">
+<features rotate="0" tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Flatbed only
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/flatbed.jpeg
+	scale 25
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Flatbed and feeder
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/flatbed_feeder.jpeg
+	scale 25
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Flatbeds and feeders
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Scanner calibration
+\end_layout
+
+\begin_layout Paragraph
+Scanners tend to provide images actually bigger than the scanned pages.
+ Since most of the time, you will always scan pages having the same size
+ (A4/Letter usually), Paperwork provides an option called "scanner calibration".
+ Scanner calibration in Paperwork is simply a pre-cropping of the images
+ coming from the scanner.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement h
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/paperwork_settings_calibration.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Scanner calibration
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Scan resolution
+\end_layout
+
+\begin_layout Paragraph
+Scanner resolution defines how detailed the images coming from your scanner
+ must be.
+\end_layout
+
+\begin_layout Paragraph
+Higher resolutions mean
+\end_layout
+
+\begin_layout Itemize
+longer scans,
+\end_layout
+
+\begin_layout Itemize
+longer OCR,
+\end_layout
+
+\begin_layout Itemize
+more time to display,
+\end_layout
+
+\begin_layout Itemize
+more space used on disk,
+\end_layout
+
+\begin_layout Itemize
+but also better OCR.
+\end_layout
+
+\begin_layout Paragraph
+Lower resolutions mean
+\end_layout
+
+\begin_layout Itemize
+shorter scans,
+\end_layout
+
+\begin_layout Itemize
+shorter OCR,
+\end_layout
+
+\begin_layout Itemize
+less time to display,
+\end_layout
+
+\begin_layout Itemize
+less space used on disk,
+\end_layout
+
+\begin_layout Itemize
+but also inferior OCR,
+\end_layout
+
+\begin_layout Itemize
+and possibly unreadable image (even by a human).
+\end_layout
+
+\begin_layout Paragraph
+300 dpi is considered a good trade-off.
+ You may want to reduce it to 200 dpi on slow computers.
 \end_layout
 
 \begin_layout Subsection
 Single scan
 \end_layout
 
+\begin_layout Paragraph
+Pages are appended to the current document.
+\end_layout
+
 \begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:From-feeder"
+
+\end_inset
+
 From feeder
 \end_layout
 
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/adf_access.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Opening the dialog to scan from the feeder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+The option "scan from feeder" is enabled only if Paperwork has detected
+ a feeder on your scanner.
+\end_layout
+
+\begin_layout Paragraph
+You have to tell Paperwork how many pages go in each document.
+ If you just want Paperwork to scan pages until none are left, you can just
+ specify a huge number of pages (99 for example).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/adf_multiscan.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Scanning multiple documents from the feeder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+OCR languages
+\end_layout
+
+\begin_layout Paragraph
+By default, Paperwork uses Tesseract
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO link
+\end_layout
+
+\end_inset
+
+ for the OCR
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO link
+\end_layout
+
+\end_inset
+
+.
+ If unavailable, it falls back on Cuneiform
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO link
+\end_layout
+
+\end_inset
+
+.
+ On Windows, Tesseract is provided with Paperwork.
+\end_layout
+
+\begin_layout Paragraph
+To get better results, OCR tools need to know the language used in the document(
+s).
+\end_layout
+
+\begin_layout Paragraph
+The language available in the settings dialog of Paperwork are those understood
+ by the automatically-selected OCR tool (Tesseract or Cuneiform).
+ If your language is not in the list, it means the OCR tool doesn't have
+ the data required to read your language.
+\end_layout
+
+\begin_layout Subsubsection
+Windows
+\end_layout
+
+\begin_layout Paragraph
+Tesseract and all its data files are provided with Paperwork.
+ If a language is not available, it either means it hasn't been packaged
+ (in which case you can request it), or there is no data file available
+ yet for this language.
+\end_layout
+
+\begin_layout Subsubsection
+Debian
+\end_layout
+
+\begin_layout Verbatim
+# OCR (Tesseract)
+\end_layout
+
+\begin_layout Verbatim
+$ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>
+\end_layout
+
+\begin_layout Subsubsection
+Fedora
+\end_layout
+
+\begin_layout Verbatim
+# OCR (Tesseract)
+\end_layout
+
+\begin_layout Verbatim
+$ sudo yum install tesseract tesseract-langpack-<lang>
+\end_layout
+
+\begin_layout Subsubsection
+Ubuntu
+\end_layout
+
+\begin_layout Verbatim
+# OCR (Tesseract)
+\end_layout
+
+\begin_layout Verbatim
+$ sudo apt-get install tesseract-ocr tesseract-ocr-<lang> 
+\end_layout
+
+\begin_layout Subsection
+OCR enabled / disabled
+\end_layout
+
+\begin_layout Paragraph
+When you scan a page using Paperwork, Paperwork will immediately run the
+ OCR on it.
+ This process may take a while for each page.
+\end_layout
+
+\begin_layout Paragraph
+In case you want to scan a lot of pages quickly (for instance, the first
+ time you use Paperwork), OCR can be temporarily disabled.
+\end_layout
+
+\begin_layout Paragraph
+Screenshot of the OCR settings
+\end_layout
+
+\begin_layout Paragraph
+OCR can then be run on all the documents managed by Paperwork in one shot
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO screenshots
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
-How to import
+Importing
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/import_pdf_en_0001.png
+	scale 50
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/import_pdf_en_0002.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Import option
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/import_pdf_en_0003.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Select a file or a folder
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
-Image(s)
+Images
+\end_layout
+
+\begin_layout Paragraph
+Paperwork supports a lot of file formats.
+ It supports JPEG, PNG, GIF, BMP, TIFF, etc.
+\end_layout
+
+\begin_layout Paragraph
+Each image is considered as a page.
+ Currently, you can only import one file at a time.
+\end_layout
+
+\begin_layout Paragraph
+Images are always appended to the document currently opened.
+ Simply select an empty document ("New document") to create a new document
+ while importing.
+\end_layout
+
+\begin_layout Paragraph
+OCR is always run on imported images.
+ If the imported image is the first page of a new document, Paperwork will
+ automatically apply documents labels.
+\end_layout
+
+\begin_layout Paragraph
+Note that Paperwork is a document manager.
+ While it can, it is not designed to handle images with only very little
+ text or photos.
+ Automatic labeling will not work correctly on such documents.
+\end_layout
+
+\begin_layout Paragraph
+The OCR (Tesseract) works very well with black text on white background.
+ Automatic labeling uses recognized text and requires as many keywords on
+ the first page as possible.
 \end_layout
 
 \begin_layout Subsection
-PDF(s)
+PDF
+\end_layout
+
+\begin_layout Paragraph
+Each PDF is always considered as a whole document.
+ They are never appended to existing document.
+ They are copied as is in the work directory and are never modified by Paperwork
+ (just moved and renamed).
+\end_layout
+
+\begin_layout Paragraph
+Paperwork will look for pages with no text attached.
+ On those pages, it will automatically run OCR.
+ Once all the pages have been examined, it will automatically apply document
+ labels.
+ Note that this process may take a few minutes for big PDFs files.
+\end_layout
+
+\begin_layout Subsection
+Many PDFs in one shot
+\end_layout
+
+\begin_layout Paragraph
+If you import a folder, Paperwork will browse this folder and look for PDFs
+ to import.
+ Already-imported PDFs are simply ignored.
+ Folder is browsed recursively (all the folders inside the folder are also
+ examined).
 \end_layout
 
 \begin_layout Section
@@ -158,19 +830,1121 @@ from a document to another
 \end_layout
 
 \begin_layout Section
-Advanced use
+Switching to another work directory
+\end_layout
+
+\begin_layout Paragraph
+Before copying or moving the work directory of Paperwork, please close Paperwork.
+\end_layout
+
+\begin_layout Paragraph
+When Paperwork starts, on of the first things it does is to look for any
+ change in its current work directory.
+ Therefore, if you moved your work directory, when you will restart Paperwork,
+ since it won't find anything, the document list will be empty.
+\end_layout
+
+\begin_layout Paragraph
+You must then go in the settings and change the work directory location
+ to the new one.
+\end_layout
+
+\begin_layout Paragraph
+In the following example, we are switching to a work directory contained
+ in a DropBox's folder :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0002.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Application menu
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Note that, on GNU/Linux, the application menu may be at the top of the screen.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0003.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Settings
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0004.png
+	scale 50
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0005.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0008.png
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Work directory selection
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/change_workdir_en_0010.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Apply new settings
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Paperwork will automatically scan the newly selected work directory, and
+ update its index according to its content.
+\end_layout
+
+\begin_layout Section
+Backup
+\end_layout
+
+\begin_layout Section
+Synchronisation
+\end_layout
+
+\begin_layout Paragraph
+While Paperwork is a personal document manager, it is not a file synchronization
+ application.
+ However, it is designed to be used with file synchronization applications
+ (Dropbox, OneDrive, Owncloud, SparkleShare, etc).
+\end_layout
+
+\begin_layout Paragraph
+When you start Paperwork, one of the first things it does is check the content
+ of the work directory.
+ It looks for any changes and updates its document list and index accordingly,
+ automatically.
 \end_layout
 
 \begin_layout Subsection
-redo OCR
+USB key / USB drive
+\end_layout
+
+\begin_layout Paragraph
+This is the simplest way to share documents.
+ Simply copy your work directory to an USB key, tell Paperwork to use it,
+ and you're done.
+\end_layout
+
+\begin_layout Paragraph
+Beware: You should backup your USB key from time to time on another one.
 \end_layout
 
 \begin_layout Subsection
-highlight all keywords
+File Synchronization application
+\end_layout
+
+\begin_layout Paragraph
+Those applications synchronize a local directory with a remote server (or
+ cloud).
+ All the changes you do in your folder are applied on the server.
+ All the changes applied on the servers are applied to the computers that
+ connect to it.
+ The server can belong to you or to someone else (usually a company).
+\end_layout
+
+\begin_layout Paragraph
+Beware: If you choose to host your documents on someone else server (DropBox,
+ OneDrive, etc), they can access all your documents.
+ Paperwork does not cipher them.
+\end_layout
+
+\begin_layout Paragraph
+Paperwork is tested daily with SparkleShare.
+ While this is not the easiest one to use, Sparkleshare let you host your
+ files yourself.
+ Using DropBox or OneDrive can make sense if you're sharing not-so-confidential
+ documents with others (associations, etc).
+\end_layout
+
+\begin_layout Subsubsection
+DropBox
+\end_layout
+
+\begin_layout Paragraph
+Here we are detailing the process to use DropBox, but it is similar for
+ other file synchronization applications.
+\end_layout
+
+\begin_layout Paragraph
+First, you must copy or move your work directory inside the DropBox folder
+ (please stop Paperwork before):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_dropbox_en_0001.png
+	scale 50
+
+\end_inset
+
+ 
+\begin_inset Graphics
+	filename img/sharing_dropbox_en_0002.png
+	scale 50
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Cut and paste paperwork work directory into the shared directory
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Then you must tell Paperwork to use this new work directory.
+\end_layout
+
+\begin_layout Subsubsection
+Shared folder
+\end_layout
+
+\begin_layout Paragraph
+If all your computers are on the same network, you can share your work directory.
+ However, be really careful regarding permissions.
+ Being too permissive could let a pirate access all your personal documents
+ ! And setting them correctly is tricky.
+\end_layout
+
+\begin_layout Paragraph
+Beware: While file synchronization applications usually maintain an historic,
+ shared folders do not.
+ You should do backups from time to time.
+\end_layout
+
+\begin_layout Paragraph
+Here are the instructions for Microsoft Windows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0001.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Go to the properties of the work directory
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0002.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Go to the tab 
+\begin_inset Quotes eld
+\end_inset
+
+Sharing
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0003.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Go to 
+\begin_inset Quotes eld
+\end_inset
+
+Advanced Sharing
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0004.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Check 
+\begin_inset Quotes eld
+\end_inset
+
+Share this folder
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0005.png
+	scale 50
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Go to the permissions
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0006.png
+	scale 50
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Set the permissions as you wish
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+On the client side, you must map the shared folder to a drive.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0007.png
+	scale 50
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+You must map a network drive
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/sharing_network_folder_en_0008.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Network drive setup
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Encryption
 \end_layout
 
 \begin_layout Subsection
-keyboard shortcuts
+Windows
+\end_layout
+
+\begin_layout Subsection
+GNU/Linux
+\end_layout
+
+\begin_layout Paragraph
+GNU/Linux distributions include many tools to encrypt whole directories.
+\end_layout
+
+\begin_layout Paragraph
+With Paperwork, there are 2 directories that should be encrypted to protect
+ your privacy:
+\end_layout
+
+\begin_layout Itemize
+Your work directory (by default ~/papers, can be changed in the settings)
+\end_layout
+
+\begin_layout Itemize
+The cache directory (~/.local/share/paperwork, cannot be changed) (it contains
+ index files from which the content of your documents could be partially
+ recovered)
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Will be changed to ~/.cache/paperwork
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Ecryptfs
+\end_layout
+
+\begin_layout Paragraph
+On GNU/Linux Debian and Ubuntu, you can easily create a directory Private
+ in your home directory.
+ This directory will be encrypted using the password you use to connect
+ when you start your computer.
+ Just type ecryptfs-setup-private in a terminal to create it.
+ You have to logout/login agan.
+ You can then put the work directory of Paperwork in it.
+\end_layout
+
+\begin_layout Paragraph
+Once the directory has been created, you can also store Paperwork cache
+ in it:
+\end_layout
+
+\begin_layout Verbatim
+
+$ mv ~/.local/share/paperwork ~/Private/paperwork_cache
+\end_layout
+
+\begin_layout Verbatim
+
+$ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
+\end_layout
+
+\begin_layout Subsubsection
+Encfs
+\end_layout
+
+\begin_layout Paragraph
+Encfs can also be used to create encrypted directories easily.
+ However, Encfs seems to have some security weaknesses.
+ 
+\end_layout
+
+\begin_layout Verbatim
+
+$ enfs ~/.papers ~/papers
+\end_layout
+
+\begin_layout Section
+Advanced use and information
+\end_layout
+
+\begin_layout Subsection
+Redo OCR
+\end_layout
+
+\begin_layout Subsection
+Highlight all keywords
+\end_layout
+
+\begin_layout Subsection
+Keyboard shortcuts
+\end_layout
+
+\begin_layout Subsection
+Paperwork's files locations
+\end_layout
+
+\begin_layout Paragraph
+By default:
+\end_layout
+
+\begin_layout Itemize
+Configuration : ~/.config/paperwork.conf
+\end_layout
+
+\begin_layout Itemize
+Index : ~/.local/share/paperwork
+\end_layout
+
+\begin_layout Itemize
+Documents : ~/papers
+\end_layout
+
+\begin_layout Paragraph
+(same paths are used on Windows ; ~ = C:
+\backslash
+Users[login] ; folders are hidden)
+\end_layout
+
+\begin_layout Paragraph
+The index is always updated according based on the documents in the work
+ directory.
+ When Paperwork starts, the modification time of each file is used to detect
+ changes on the documents.
+\end_layout
+
+\begin_layout Subsection
+Work directory layout
+\end_layout
+
+\begin_layout Paragraph
+workdir|rootdir = ~/papers (by default)
+\end_layout
+
+\begin_layout Subsubsection
+Global organisation
+\end_layout
+
+\begin_layout Paragraph
+In the work directory, you have folders, one per document.
+\end_layout
+
+\begin_layout Paragraph
+The folder names are (usually) the scan/import date of the document: YYYYMMDD_hh
+mm_ss[_<idx>].
+ The suffix 'idx' is optional and is just a number added in case of name
+ collision.
+\end_layout
+
+\begin_layout Paragraph
+In every folder you have:
+\end_layout
+
+\begin_layout Itemize
+For image documents:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+paper.<X>.jpg : A page in JPG format (X starts at 1)
+\end_layout
+
+\begin_layout Itemize
+paper.<X>.words (optional) : A hOCR file, containing all the words found on
+ the page using the OCR (optional, but required for indexing ; can be regenerate
+d with the options "Redo OCR (...)").
+\end_layout
+
+\begin_layout Itemize
+paper.<X>.thumb.jpg (optional, generated automatically) : A thumbnail version
+ of the page (faster to load) labels (optional) : a text file containing
+ the labels applied on this document 
+\end_layout
+
+\begin_layout Itemize
+extra.txt (optional) : extra keywords added by the user
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+For PDF documents:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+doc.pdf : the document labels (optional) : a text file containing the labels
+ applied on this document
+\end_layout
+
+\begin_layout Itemize
+extra.txt (optional) : extra keywords added by the user
+\end_layout
+
+\begin_layout Itemize
+paper.<X>.words (optional) : A hOCR file, containing all the words found on
+ the page using the OCR.
+ Some PDF contains crap instead of the real text, so running the OCR on
+ them can sometimes be useful.
+\end_layout
+
+\end_deeper
+\begin_layout Paragraph
+Here is an example a work directory organisation:
+\end_layout
+
+\begin_layout Verbatim
+
+$ find ~/papers
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.1.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.1.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.2.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.2.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.3.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/paper.3.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130505_1518_00/labels
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.1.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.1.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.2.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/paper.2.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20110726_0000_01/extra.txt
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44/doc.pdf
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44/paper.1.words
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44/paper.2.words 
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44/labels
+\end_layout
+
+\begin_layout Verbatim
+
+/home/jflesch/papers/20130106_1309_44/extra.txt
+\end_layout
+
+\begin_layout Subsubsection
+hOCR files
+\end_layout
+
+\begin_layout Paragraph
+With Tesseract, the hOCR file can be obtained with following command:
+\end_layout
+
+\begin_layout Verbatim
+
+tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
+\end_layout
+
+\begin_layout Paragraph
+For example:
+\end_layout
+
+\begin_layout Verbatim
+
+tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
+\end_layout
+
+\begin_layout Subsubsection
+Label files
+\end_layout
+
+\begin_layout Paragraph
+Here is an example of content of a label file:
+\end_layout
+
+\begin_layout Verbatim
+
+facture,#0000b1588c61 logement,#f6b6ffff0000
+\end_layout
+
+\begin_layout Paragraph
+It's always [label],[color].
+ For a same label, the color should always be the same.
+ 
+\end_layout
+
+\begin_layout Subsection
+Statistics
+\end_layout
+
+\begin_layout Paragraph
+You can get various statistics regarding your documents.
+ Just have a look at the diagnostic output
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: Screenshots
+\end_layout
+
+\end_inset
+
+.
+ Statistics are close to the end of the output.
 \end_layout
 
 \begin_layout Section
@@ -187,6 +1961,61 @@ Github issue tracker
 
 \begin_layout Subsection
 Mailing-list
+\end_layout
+
+\begin_layout Section
+Uninstalling
+\end_layout
+
+\begin_layout Paragraph
+Paperwork can be uninstalled.
+ Uninstalling Paperwork 
+\emph on
+won't
+\emph default
+ remove your work directory or documents.
+\end_layout
+
+\begin_layout Subsection
+Windows
+\end_layout
+
+\begin_layout Subsection
+GNU/Linux
+\end_layout
+
+\begin_layout Paragraph
+If you installed Paperwork manually:
+\end_layout
+
+\begin_layout Verbatim
+
+sudo pip uninstall paperwork
+\end_layout
+
+\begin_layout Verbatim
+
+sudo pip uninstall pyocr
+\end_layout
+
+\begin_layout Verbatim
+
+sudo pip uninstall pyinsane
+\end_layout
+
+\begin_layout Paragraph
+(it's python-pip on some systems)
+\end_layout
+
+\begin_layout Paragraph
+If you installed many versions of these packages, you may have to run these
+ commands many times.
+\end_layout
+
+\begin_layout Paragraph
+Note that there are other dependencies installed with Paperwork.
+ However, python-pip can't detect and remove automatically unused dependencies.
+ This is why you should use your distribution package(s) if possible.
 \end_layout
 
 \end_body

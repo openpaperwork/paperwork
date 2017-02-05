@@ -514,9 +514,45 @@ That's all! You are now aware of the main features of Paperwork.
  Click the + button.
 \end_layout
 
+\begin_layout Section
+Need more help ?
+\end_layout
+
+\begin_layout Paragraph
+In case you need more help, there is more complete manual integrated in
+ Paperwork.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Paragraph
+(TODO: Illustration showing Application menu -> Help -> Manual)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Paragraph
 We hope that you'll enjoy this piece of software.
- If you like it, please tell us, and if you don't, please tell us why!
+ If you like it, 
+\begin_inset CommandInset href
+LatexCommand href
+name "please tell us"
+target "https://github.com/jflesch/paperwork/wiki/Contact#mailing-list"
+
+\end_inset
+
+, and if you don't, please 
+\begin_inset CommandInset href
+LatexCommand href
+name "tell us why"
+target "https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers"
+
+\end_inset
+
+!
 \end_layout
 
 \begin_layout Paragraph

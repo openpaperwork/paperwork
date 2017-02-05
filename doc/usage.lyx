@@ -253,7 +253,7 @@ Scanners tend to provide images actually bigger than the scanned pages.
 
 \begin_layout Standard
 \begin_inset Float figure
-placement h
+placement H
 wide false
 sideways false
 status open
@@ -1599,12 +1599,10 @@ Once the directory has been created, you can also store Paperwork cache
 \end_layout
 
 \begin_layout Verbatim
-
 $ mv ~/.local/share/paperwork ~/Private/paperwork_cache
 \end_layout
 
 \begin_layout Verbatim
-
 $ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
 \end_layout
 
@@ -1619,7 +1617,6 @@ Encfs can also be used to create encrypted directories easily.
 \end_layout
 
 \begin_layout Verbatim
-
 $ enfs ~/.papers ~/papers
 \end_layout
 
@@ -1752,137 +1749,110 @@ Here is an example a work directory organisation:
 \end_layout
 
 \begin_layout Verbatim
-
 $ find ~/papers
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/labels
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/extra.txt
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/doc.pdf
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/paper.2.words 
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/labels
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/extra.txt
 \end_layout
 
@@ -1895,7 +1865,6 @@ With Tesseract, the hOCR file can be obtained with following command:
 \end_layout
 
 \begin_layout Verbatim
-
 tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
 \end_layout
 
@@ -1904,7 +1873,6 @@ For example:
 \end_layout
 
 \begin_layout Verbatim
-
 tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 \end_layout
 
@@ -1917,7 +1885,6 @@ Here is an example of content of a label file:
 \end_layout
 
 \begin_layout Verbatim
-
 facture,#0000b1588c61 logement,#f6b6ffff0000
 \end_layout
 
@@ -1989,17 +1956,14 @@ If you installed Paperwork manually:
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall paperwork
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall pyocr
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall pyinsane
 \end_layout
 

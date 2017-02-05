@@ -3009,6 +3009,8 @@ class MainWindow(object):
         for (name, revealers) in self.left_revealers.items():
             visible = (to == name)
             for revealer in revealers:
+                if visible:
+                    revealer.set_visible(visible)
                 revealer.set_reveal_child(visible)
 
     def on_search_results_cb(self, search, documents):

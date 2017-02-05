@@ -15,6 +15,7 @@ if os.name == "nt":
 setup(
     name="paperwork",
     # if you change the version, don't forget to
+    # * update the download_url in this file
     # * update the ChangeLog file
     # * update AUTHORS
     # * change it also in
@@ -25,7 +26,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.1",
+    version="1.1.1",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -51,7 +52,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/jflesch/paperwork",
     download_url=("https://github.com/jflesch/paperwork"
-                  "/archive/unstable.tar.gz"),
+                  "/archive/1.1.1.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",

@@ -1,3 +1,6 @@
+2017/02/05 - 1.1.1:
+- Fix document list refresh problem (mostly visible on Ubuntu)
+
 2017/01/30 - 1.1.0:
 - Windows: Activation mechanism has been disabled for now
 - Workarounds for Gtk-3.20.x / GLib 2.50 (Ubuntu):

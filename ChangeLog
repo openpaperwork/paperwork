@@ -1,3 +1,6 @@
+2017/02/05 - 1.1.1:
+- No change. Version created only to match Paperwork-gui version.
+
 2017/01/30 - 1.1.0:
 - Add methods doc.has_ocr() and page.has_ocr() indicating if OCR has already
   been run on a given doc/page or not yet.

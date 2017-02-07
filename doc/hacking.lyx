@@ -1,0 +1,192 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass paper
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Paperwork Hacking Guide
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+This is not the document you're looking for
+\end_layout
+
+\begin_layout Standard
+\begin_inset Wrap figure
+lines 0
+placement o
+overhang 0in
+width "25col%"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/droid.png
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+This is an entirely technical document.
+ If you're not looking to contribute to Paperwork's code, this is not the
+ document you're looking for.
+\end_layout
+
+\begin_layout Paragraph
+This document assumes you're already familiar with Git, Python 3, and GitHub.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Please ask before doing
+\end_layout
+
+\begin_layout Section
+Git branches
+\end_layout
+
+\begin_layout Section
+Paperwork-backend / Paperwork-gui
+\end_layout
+
+\begin_layout Section
+Dependencies and constraints
+\end_layout
+
+\begin_layout Subsection
+GLib / GObject / GTK
+\end_layout
+
+\begin_layout Subsection
+Pillow
+\end_layout
+
+\begin_layout Subsection
+Whoosh
+\end_layout
+
+\begin_layout Subsection
+PyOCR
+\end_layout
+
+\begin_layout Subsection
+Pyinsane2, libsane, and scanner drivers
+\end_layout
+
+\begin_layout Subsection
+Libpillowfight / pypillowfight
+\end_layout
+
+\begin_layout Section
+Jobs / Schedulers
+\end_layout
+
+\begin_layout Section
+Scan process
+\end_layout
+
+\begin_layout Section
+Windows build
+\end_layout
+
+\begin_layout Section
+Documentation
+\end_layout
+
+\end_body
+\end_document

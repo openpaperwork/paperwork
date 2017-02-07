@@ -140,44 +140,506 @@ Please ask before doing
 Git branches
 \end_layout
 
+\begin_layout Paragraph
+In the repository, there are usually the following branches:
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+stable
+\emph default
+ : Matches the latest release version.
+ May also include some bug fixes that will be included in the next update
+ (x.y.z ; ex: 1.2.2).
+ No new features allowed.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+unstable
+\emph default
+ : Will become the next version (x.y.0 ; ex: 1.3.0) of Paperwork.
+ New features go here.
+ This branch hasn't been tested yet and things may be broken.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+testing
+\emph default
+ : When the unstable branch contains all the wanted features, the branch
+ 
+\emph on
+testing
+\emph default
+ is created from the branch 
+\emph on
+unstable
+\emph default
+.
+ Only bug fixes, translations updates and documentation updates are allowed
+ in this branch.
+ This branch is temporary and usually lives for about 1 month.
+ After 1 month, the version is released, and this branch is merged in the
+ branch 
+\emph on
+stable
+\emph default
+.
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+wip-<XXX>
+\emph default
+ : Branches for work in progress.
+ They are temporary.
+ There are no specific rules for those branches.
+\end_layout
+
 \begin_layout Section
-Paperwork-backend / Paperwork-gui
+Coding rules
+\end_layout
+
+\begin_layout Subsection
+PEP8
+\end_layout
+
+\begin_layout Paragraph
+Stick to the PEP8 as much as possible.
+ Pull requests that does not respect the PEP8 will be rejected.
+\end_layout
+
+\begin_layout Itemize
+Lines are at most 80 characters long (not kidding.)
+\end_layout
+
+\begin_layout Itemize
+Indentation is done using 4 spaces
+\end_layout
+
+\begin_layout Paragraph
+If you see code that does not respect the PEP8, feel free to fix it.
+ However, please make a dedicated commit.
+\end_layout
+
+\begin_layout Paragraph
+If the content of a file does not respect the PEP8 and you want to modify
+ it, please 
+\emph on
+stick to the PEP8
+\emph default
+.
+ Do not use the style of the file.
+\end_layout
+
+\begin_layout Subsection
+Commits
+\end_layout
+
+\begin_layout Paragraph
+One commit = one change.
+\end_layout
+
+\begin_layout Paragraph
+Try to make your commit message clear but concise.
+\end_layout
+
+\begin_layout Paragraph
+When writing your commit message, please keep in mind the Git history is
+ about the whole repository.
+ Therefore, please give some context and indicate which part of Paperwork
+ has been touched by your commit.
+\end_layout
+
+\begin_layout Subsection
+Comments
+\end_layout
+
+\begin_layout Paragraph
+There are no rules regarding comments.
+ Please just use your common sense.
+\end_layout
+
+\begin_layout Paragraph
+If your code is complex and not commented enough, it will be unmaintainable
+ and will be 
+\emph on
+removed
+\emph default
+.
+ It already happened !
+\end_layout
+
+\begin_layout Section
+Paperwork itself
+\end_layout
+
+\begin_layout Paragraph
+The code is split in two pieces:
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+backen
+\emph default
+d : Everything related to document and work directory management.
+ May depend on various things but 
+\emph on
+not
+\emph default
+ GTK+
+\end_layout
+
+\begin_layout Itemize
+
+\emph on
+frontend
+\emph default
+ (aka 
+\emph on
+paperwork-gui
+\emph default
+ or ..
+ 
+\emph on
+Paperwork
+\emph default
+): The GUI.
+ Entirely dependent on GTK+
+\end_layout
+
+\begin_layout Subsection
+Paperwork-backend
+\end_layout
+
+\begin_layout Paragraph
+See the user manual (section 
+\begin_inset Quotes eld
+\end_inset
+
+advanced use
+\begin_inset Quotes erd
+\end_inset
+
+) for a description of the work directory organization.
+\end_layout
+
+\begin_layout Subsection
+Paperwork-gui
+\end_layout
+
+\begin_layout Section
+Development tips
+\end_layout
+
+\begin_layout Subsection
+Configuration file for development only
+\end_layout
+
+\begin_layout Paragraph
+Paperwork looks for a '
+\emph on
+paperwork.conf
+\emph default
+' in the current work directory before looking for a '
+\emph on
+~/.config/.paperwork.conf
+\emph default
+' in your home directory.
+ So if you want to use a different configuration file and/or a different
+ set of documents for development than for your real-life work, just copy
+ your '
+\emph on
+~/.config/paperwork.conf
+\emph default
+' to '
+\emph on
+./paperwork.conf
+\emph default
+'.
+ Note that the settings dialog will also take care of updating '
+\emph on
+./paperwork.conf
+\emph default
+' instead of '
+\emph on
+~/.config/paperwork.conf
+\emph default
+'.
+\end_layout
+
+\begin_layout Subsubsection
+Verbose
+\end_layout
+
+\begin_layout Paragraph
+You can use the environment variable '
+\emph on
+PAPERWORK_VERBOSE
+\emph default
+' to increase or decrease the logging level.
+ The accepted values are: 
+\emph on
+DEBUG
+\emph default
+, 
+\emph on
+INFO
+\emph default
+, 
+\emph on
+WARNING
+\emph default
+, 
+\emph on
+ERROR
+\emph default
+.
+\end_layout
+
+\begin_layout Subsubsection
+PEP8 and Pylint
+\end_layout
+
+\begin_layout Paragraph
+There is a tool called '
+\emph on
+pep8
+\emph default
+' (
+\emph on
+apt install pep8
+\emph default
+).
+ Use it.
+\end_layout
+
+\begin_layout Paragraph
+Another tool is 'pylint'.
+ A pylintrc is provided for Paperwork:
+\end_layout
+
+\begin_layout Verbatim
+$ cd src ; pylint --rcfile=../pylintrc *
 \end_layout
 
 \begin_layout Section
 Dependencies and constraints
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Add illustration here
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 GLib / GObject / GTK
+\end_layout
+
+\begin_layout Paragraph
+GTK+ is not thread-safe.
 \end_layout
 
 \begin_layout Subsection
 Pillow
 \end_layout
 
+\begin_layout Paragraph
+Thread-safe.
+\end_layout
+
 \begin_layout Subsection
 Whoosh
+\end_layout
+
+\begin_layout Paragraph
+Thread-safe.
+ Lock the GIL.
+\end_layout
+
+\begin_layout Subsection
+Poppler
+\end_layout
+
+\begin_layout Paragraph
+Not thread-safe.
 \end_layout
 
 \begin_layout Subsection
 PyOCR
 \end_layout
 
+\begin_layout Paragraph
+Thread-safe.
+\end_layout
+
 \begin_layout Subsection
 Pyinsane2, libsane, and scanner drivers
+\end_layout
+
+\begin_layout Paragraph
+Not thread-safe.
 \end_layout
 
 \begin_layout Subsection
 Libpillowfight / pypillowfight
 \end_layout
 
-\begin_layout Section
-Jobs / Schedulers
+\begin_layout Paragraph
+Thread-safe.
 \end_layout
 
 \begin_layout Section
+Threads safety
+\end_layout
+
+\begin_layout Paragraph
+Thread safety is a major issue in Paperwork.
+ We need threads to keep the GUI smooth, but unfortunately, a lot of Paperwork
+ dependencies are not thread-safe.
+\end_layout
+
+\begin_layout Paragraph
+A job scheduling mechanism has been implemented (see 
+\emph on
+src/paperwork/frontend/util/jobs.py
+\emph default
+).
+ The idea here is to run most of the jobs in the same thread (whenever possible).
+\end_layout
+
+\begin_layout Paragraph
+Each Job object represents a task to do.
+ Some jobs can be stopped and resumed later (for instance JobDocThumbnailer).
+ Each Job instance is used once and only once.
+\end_layout
+
+\begin_layout Paragraph
+JobFactories instanciate Jobs.
+ They are also used to keep the job recognizable.
+\end_layout
+
+\begin_layout Paragraph
+Jobs are passed to JobSchedulers.
+ Each JobScheduler represents a thread.
+ They accept jobs using the method 
+\emph on
+schedule()
+\emph default
+.
+ The job with the higher priority is run first.
+ If the job added to the scheduler has an higher priority than the active
+ one, the scheduler will try to stop the active one and run it back later.
+\end_layout
+
+\begin_layout Paragraph
+Jobs can be cancelled (assuming they are stoppable or not active yet).
+ A single job can be canceled, or all the jobs from a given factory.
+\end_layout
+
+\begin_layout Paragraph
+There is one main scheduler (called 
+\emph on
+main
+\emph default
+).
+ The main scheduler is the one used to access all the documents contents
+ and the index.
+\end_layout
+
+\begin_layout Paragraph
+Note that there are other threads running.
+ For instance, there are the thread of PyInsane and the GTK+/GLib main loop.
+\end_layout
+
+\begin_layout Section
+Most complex pieces
+\end_layout
+
+\begin_layout Subsection
 Scan process
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO illustration
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+OCR process
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO illustration
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Index updates
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO illustration
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Searching
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO illustration
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Tests
 \end_layout
 
 \begin_layout Section
@@ -185,7 +647,51 @@ Windows build
 \end_layout
 
 \begin_layout Section
+Versioning
+\end_layout
+
+\begin_layout Paragraph
+Version have the following syntax: <M>[.<m>[.<U>[<i>][-<extra>]]]
+\end_layout
+
+\begin_layout Itemize
+M = Major version : Major changes made / product completed.
+\end_layout
+
+\begin_layout Itemize
+m = minor version : Minor changes made.
+\end_layout
+
+\begin_layout Itemize
+U = update version : Only bug fixes
+\end_layout
+
+\begin_layout Itemize
+i = installer revision : Only the installer has been changed (Windows only)
+\end_layout
+
+\begin_layout Itemize
+Extra : (Git tags only) May match a Git tag done before a big change (for
+ instance: before switching from Gtk 2 to Gtk 3).
+ If extra == "git", indicates a version directly taken from the git repository.
+ 
+\end_layout
+
+\begin_layout Section
 Documentation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Lyx for the win !
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_body

@@ -2320,6 +2320,8 @@ class MainWindow(object):
 
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
+        # self.widget_tree is for tests/screenshots ONLY
+        self.widget_tree = widget_tree
 
         self.__init_headerbars(widget_tree)
 
@@ -2837,7 +2839,7 @@ class MainWindow(object):
                                                            None),
             'open_help_manual': Gio.SimpleAction.new("help.manual", None),
             'open_help_translating': Gio.SimpleAction.new("help.translating",
-                                                           None),
+                                                          None),
             'open_help_hacking': Gio.SimpleAction.new("help.hacking", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
             'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),

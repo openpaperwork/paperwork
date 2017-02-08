@@ -667,6 +667,8 @@ class SettingsWindow(GObject.GObject):
 
         widget_tree = load_uifile(
             os.path.join("settingswindow", "settingswindow.glade"))
+        # self.widget_tree is for tests/screenshots ONLY
+        self.widget_tree = widget_tree
 
         distrib = platform.dist()
         if distrib:

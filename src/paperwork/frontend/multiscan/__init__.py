@@ -277,6 +277,8 @@ class MultiscanDialog(GObject.GObject):
 
         widget_tree = load_uifile(
             os.path.join("multiscan", "multiscan.glade"))
+        # self.widget_tree is for tests/screenshots ONLY
+        self.widget_tree = widget_tree
 
         self.window = widget_tree.get_object("dialogMultiscan")
 

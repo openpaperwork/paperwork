@@ -302,7 +302,7 @@ class MultiscanDialog(GObject.GObject):
         self.removeDocButton = widget_tree.get_object("buttonRemoveDoc")
         self.removeDocButton.set_sensitive(False)
 
-        actions = {
+        self.actions = {
             'add_doc': (
                 [widget_tree.get_object("buttonAddDoc")],
                 ActionAddDoc(self, config),
@@ -337,13 +337,13 @@ class MultiscanDialog(GObject.GObject):
         for action in ['add_doc', 'select_doc', 'start_edit_doc',
                        'end_edit_doc', 'del_doc',
                        'scan', 'cancel']:
-            actions[action][1].connect(actions[action][0])
+            self.actions[action][1].connect(self.actions[action][0])
 
         self.to_disable_on_scan = [
-            actions['add_doc'][0][0],
-            actions['start_edit_doc'][0][0],
-            actions['del_doc'][0][0],
-            actions['scan'][0][0],
+            self.actions['add_doc'][0][0],
+            self.actions['start_edit_doc'][0][0],
+            self.actions['del_doc'][0][0],
+            self.actions['scan'][0][0],
         ]
 
         self.lists['docs']['model'].clear()
@@ -359,7 +359,7 @@ class MultiscanDialog(GObject.GObject):
             self.lists['docs']['include_current_doc'] = True
         else:
             # add a first document to the list (the user will need one anyway)
-            actions['add_doc'][1].do()
+            self.actions['add_doc'][1].do()
 
         self.dialog = widget_tree.get_object("dialogMultiscan")
         self.dialog.connect("destroy", self.__on_destroy)

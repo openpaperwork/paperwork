@@ -1444,15 +1444,17 @@ class ActionMultiScan(SimpleAction):
         SimpleAction.__init__(self, "Scan multiples pages")
         self.__main_win = main_window
         self.__config = config
+        # for tests/screenshots only
+        self.dialog = None
 
     def do(self):
         SimpleAction.do(self)
         if not check_scanner(self.__main_win, self.__config):
             return
-        ms = MultiscanDialog(self.__main_win, self.__config)
-        ms.connect("need-show-page",
-                   lambda ms_dialog, page:
-                   GLib.idle_add(self.__show_page, page))
+        self.dialog = MultiscanDialog(self.__main_win, self.__config)
+        self.dialog.connect("need-show-page",
+                            lambda ms_dialog, page:
+                            GLib.idle_add(self.__show_page, page))
 
     def __show_page(self, page):
         self.__main_win.refresh_doc_list()

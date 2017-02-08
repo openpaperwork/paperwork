@@ -5,7 +5,7 @@
 \textclass article
 \use_default_options true
 \maintain_unincluded_children false
-\language english
+\language french
 \language_package default
 \inputencoding auto
 \fontencoding global
@@ -56,7 +56,7 @@
 \tocdepth 3
 \paragraph_separation indent
 \paragraph_indentation default
-\quotes_language english
+\quotes_language french
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -70,27 +70,30 @@
 \begin_body
 
 \begin_layout Title
-Welcome to Paperwork!
+Bienvenue sur Paperwork!
 \end_layout
 
 \begin_layout Paragraph
-They are going to drive you crazy.
- Your phone operator, your bank, your girl's school, your dog's veterinary,
- even your Internet provider, it seems like all of them are trying to draw
- you under tons of paper you have to read, classify and memorize just in
- case you may need it later.
- Most of the time, you won't, which means you waste your energy for nothing.
+Ils vont vous rendre fou.
+ Votre opérateur téléphonique, votre banque, l'école de votre fille, votre
+ vétérinaire, votre FAI, etc.
+ Ils semblent tous essayer de vous noyer sous des tonnes de papiers que
+ vous devez lire, classer et mémoriser, juste au cas où vous en auriez besoin
+ plus tard.
+ La plupart du temps, ce ne sera pas le cas, ce qui signifie que vous avez
+ gâché votre énergie pour rien.
 \end_layout
 
 \begin_layout Paragraph
-Paperwork will help you to get rid of tons of papers by turning them into
- searchable documents.
- It's simple: just scan and forget.
- Looking for a specific paper? Just type in a few keywords and tada!
+Paperwork va vous aider à vous débarrasser de ces tonnes de papiers en les
+ transformant en documents cherchables.
+ C'est simple: scanner et oublier.
+ Vous cherchez un papier spécifique ? Tapez juste quelques mots-clés, et
+ tada !
 \end_layout
 
 \begin_layout Section
-Documents and pages
+Les documents et les pages
 \end_layout
 
 \begin_layout Standard
@@ -114,7 +117,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Main window
+La fenêtre principale
 \end_layout
 
 \end_inset
@@ -128,21 +131,29 @@ Main window
 \end_layout
 
 \begin_layout Paragraph
-Paperwork's interface is compound of two panels.
- On the left (green), the list of all your documents sorted by the date
- they were imported.
- On the right (blue), the pages of the currently selected paper.
+L'interface de Paperwork est composé de 2 panneaux.
+ Sur la gauche (en vert), la liste de tout vos documents, triés par date
+ d'import.
+ Sur la droite (en blue), les pages du document actuellement sélectionné.
+\end_layout
+
+\begin_layout Paragraph
+Vous pouvez ajouter des papiers de plusieurs sources, dépendamment des périphéri
+ques connectés à votre ordinateur: scanner simple, scanner à bac d'alimentation,
+ camera, ...
+ 
 \end_layout
 
 \begin_layout Paragraph
 You can add papers from several sources, depending on the devices connected
- to your computer: scanner flatbed, scanner feeder, camera, ...
- You have no scanner at home? You still can use the scanner you have at
- work and send the results by e-mail, Paperwork is fine for importing pdf.
+ to your computer: scanner flatbed, scanner feeder, camera...
+ Vous n'avez pas de scanner à la maison ? Vous pouvez utiliser celui de
+ votre travail et envoyer les résultats par email.
+ Paperwork peut importer des PDFs sans problème.
 \end_layout
 
 \begin_layout Section
-Find
+Trouver
 \end_layout
 
 \begin_layout Standard
@@ -167,7 +178,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Search field
+Barre de recherche
 \end_layout
 
 \end_inset
@@ -181,40 +192,12 @@ Search field
 \end_layout
 
 \begin_layout Paragraph
-Find what you need, when you need it.
- Type a few keywords in the search bar and the list of papers will reduce
- to keep only the matching content.
- This is where the magic happens: Paperwork uses optical character recognition
- (OCR) to convert your papers into simple text files, so it's easy to search
- for text.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-TODO(Jflesch): Will come later:
-\end_layout
-
-\begin_layout Plain Layout
----
-\end_layout
-
-\begin_layout Plain Layout
-For those who have hundreds of tons of papers or are looking for specific
- periods, you can create and save advanced filters.
- For example, these will allow you to find all your bills for the past 30
- days.
-\end_layout
-
-\begin_layout Plain Layout
----
-\end_layout
-
-\end_inset
-
-
+Trouvez ce dont vous avez besoin, quand vous en avez besoin.
+ Tapez quelques mots-clés dans la barre de recherche et la liste des documents
+ se réduira à ceux contenant votre recherche.
+ C'est là que la magie s'opère : Paperwork utilise la reconnaissance optique
+ de caractères (ROC) pour convertir vos papiers en simple fichiers textes
+ pour qu'il soit facile d'y chercher des mots.
 \end_layout
 
 \begin_layout Section
@@ -330,13 +313,14 @@ Export settings
 \end_layout
 
 \begin_layout Paragraph
-Sometimes you may want to export a document to send it to someone else.
- Multiple formats are supported: .pdf, .jpg, .txt, ...
- And of course, paper (requires a printer, sold separately).
+Parfois, vous pouvez vouloir exporter un document pour l'envoyer à quelqu'un
+ d'autre.
+ Plusieurs formats sont supportés : .pdf, .jpeg, .txt, ...
+ et bien entendu, le format papier (nécessite une imprimante, vendue séparément).
 \end_layout
 
 \begin_layout Section
-Labels and memos
+Labels et mémos
 \end_layout
 
 \begin_layout Standard
@@ -364,7 +348,7 @@ status open
 \align right
 \begin_inset Graphics
 	filename img/paperwork_goto_labels_and_memo.png
-	width 90col%
+	scale 33
 
 \end_inset
 
@@ -390,7 +374,7 @@ status open
 \begin_layout Plain Layout
 \begin_inset Graphics
 	filename img/paperwork_label_and_memo.png
-	width 90col%
+	scale 33
 
 \end_inset
 
@@ -406,7 +390,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Labels and memos
+Labels et mémos
 \end_layout
 
 \end_inset
@@ -420,26 +404,27 @@ Labels and memos
 \end_layout
 
 \begin_layout Paragraph
-You answered an important mail and want to keep track of it? Your girl made
- a wishlist for Christmas and you would like to turn it into a shopping
- list? The paper you scanned was so unreadable that Paperwork failed to
- recognize some important keywords? Join a memo to your paper so you won't
- miss anything! All the words you enter as memos will be searchable, as
- if they were directly written on a page you scanned.
+Vous avez répondu à un important email and vous souhaitez en garder une
+ trace? Votre fille a fait une liste de souhaits pour Noël et vous voulez
+ la transformer en liste de courses ? Le papier que vous avez scanné était
+ si illisible que Paperwork n'a pas pu le relire ? Ajouter un mémo à vos
+ papiers pour que vous ne les perdiez pas! Tout les mots que vous entrerez
+ seront cherchables, comme si ils avaient été directement écrits dans une
+ des pages que vous avez scannée.
 \end_layout
 
 \begin_layout Paragraph
-You would like to sort a little bit your documents ? You can also add labels
- on your documents.
- Each label has its own color.
- With time, Paperwork will learn which labels go on which documents and
- it will automatically apply them on new documents
+Vous souhaitez trier un peu vos documents ? Vous pouvez aussi ajouter des
+ labels sur vos documents.
+ Chaque label a une couleur pour plus de lisibilité.
+ Avec le temps, Paperwork va apprendre quels labels vont sur quels documents,
+ et il les placera automatiquement pour vous à chaque nouveau document
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-Automatic label application uses the text in the documents.
- This feature won't work if there is no text in the document (photos, etc)
+L'application automatique de labels utilise le texte contenu dans les documents.
+ Cette fonctionnalité ne marche pas si il n'y a pas de texte (photos, etc).
 \end_layout
 
 \end_inset
@@ -447,41 +432,13 @@ Automatic label application uses the text in the documents.
 .
 \end_layout
 
-\begin_layout Standard
-\begin_inset Note Comment
-status open
-
-\begin_layout Plain Layout
-XXX(JFlesch): What are we talking about here ?
-\end_layout
-
-\begin_layout Plain Layout
----
-\end_layout
-
-\begin_layout Plain Layout
-If you precede a word with a # , it will turn into a #label , which is a
- really helpful thing to organize your papers.
- Do not hesitate to add a couple of labels to each of your paper, #Paperwork
- provides a handy way to filter out your papers by labels, and tells you
- how many documents match for each label.
- Yes, we just created a #paperwork label.
-\end_layout
-
-\begin_layout Plain Layout
----
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Section
-Your first documents
+Vos premiers documents
 \end_layout
 
 \begin_layout Standard
+
+\lang english
 \begin_inset Float figure
 placement H
 wide false
@@ -489,6 +446,8 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+
+\lang english
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -503,6 +462,8 @@ height_special "totalheight"
 status open
 
 \begin_layout Plain Layout
+
+\lang english
 \begin_inset Graphics
 	filename img/new_doc.png
 	scale 45
@@ -530,6 +491,8 @@ status open
 
 \begin_layout Plain Layout
 \align center
+
+\lang english
 \begin_inset Graphics
 	filename img/paperwork_scan.png
 	scale 45
@@ -557,6 +520,8 @@ status open
 
 \begin_layout Plain Layout
 \align right
+
+\lang english
 \begin_inset Graphics
 	filename img/paperwork_import.png
 	scale 45
@@ -572,10 +537,12 @@ status open
 \end_layout
 
 \begin_layout Plain Layout
+
+\lang english
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-New document, scan and import
+Nouveau document, scanner et importer
 \end_layout
 
 \end_inset
@@ -585,26 +552,22 @@ New document, scan and import
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 
 \end_layout
 
 \begin_layout Paragraph
-That's all! You are now aware of the main features of Paperwork.
- You can start using it by adding your first own paper.
- Click the + button.
+Et c'est tout ! Vous connaissez désormais les principales fonctionnalités
+ de Paperwork.
+ Vous pouvez commencer à l'utiliser en ajouter vos premier documents.
 \end_layout
 
 \begin_layout Section
-Need more help ?
+Besoin d'aide ?
 \end_layout
 
 \begin_layout Paragraph
-In case you need more help, there is more complete manual integrated in
- Paperwork.
+Si vous avez besoin de plus d'aide, il y a un manuel plus complet intégré
+ dans Paperwork.
  
 \begin_inset Note Note
 status open
@@ -619,19 +582,19 @@ status open
 \end_layout
 
 \begin_layout Paragraph
-We hope that you'll enjoy this piece of software.
- If you like it, 
+Nous espérons que vous apprécierez ce logiciel.
+ Si tel est le cas, 
 \begin_inset CommandInset href
 LatexCommand href
-name "please tell us"
+name "dites-le nous"
 target "https://github.com/jflesch/paperwork/wiki/Contact#mailing-list"
 
 \end_inset
 
-, and if you don't, please 
+, et sinon, dites-nous 
 \begin_inset CommandInset href
 LatexCommand href
-name "tell us why"
+name "comment l'améliorer"
 target "https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers"
 
 \end_inset

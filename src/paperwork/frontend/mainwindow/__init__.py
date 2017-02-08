@@ -1466,7 +1466,7 @@ class ActionImport(SimpleAction):
         SimpleAction.__init__(self, "Import file(s)")
         self.__main_win = main_window
         self.__config = config
-        self.__select_file_dialog = None
+        self._select_file_dialog = None
 
     def __select_file_cb(self, dialog, response):
         if response != 0:
@@ -1489,6 +1489,7 @@ class ActionImport(SimpleAction):
         dialog.connect("response", lambda dialog, response:
                        GLib.idle_add(self.__select_file_cb, dialog, response))
 
+        self._select_file_dialog = dialog
         dialog.show_all()
 
     def __select_importer(self, importers):

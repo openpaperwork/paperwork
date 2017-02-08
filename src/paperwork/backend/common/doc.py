@@ -347,7 +347,7 @@ class BasicDoc(object):
     def __get_docid(self):
         return self.__docid
 
-    def __set_docid(self, new_base_docid):
+    def _set_docid(self, new_base_docid):
         workdir = os.path.dirname(self.path)
         new_docid = new_base_docid
         new_docpath = os.path.join(workdir, new_docid)
@@ -364,7 +364,7 @@ class BasicDoc(object):
             os.rename(self.path, new_docpath)
             self.path = new_docpath
 
-    docid = property(__get_docid, __set_docid)
+    docid = property(__get_docid, _set_docid)
 
     def __get_date(self):
         try:
@@ -416,7 +416,7 @@ class BasicDoc(object):
 
     def has_ocr(self):
         """
-        Indicates if the OCR has be ran on this document.
+        Indicates if the OCR has been ran on this document.
         """
         if self.nb_pages <= 0:
             return False

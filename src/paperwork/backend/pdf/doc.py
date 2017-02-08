@@ -108,53 +108,34 @@ class PdfPages(object):
 NB_FDS = 0  # assumed number of file descriptors opened
 
 
-class PdfDoc(BasicDoc):
-    can_edit = False
-    doctype = u"PDF"
-
-    def __init__(self, docpath, docid=None):
-        BasicDoc.__init__(self, docpath, docid)
+class _CommonPdfDoc(BasicDoc):
+    def __init__(self, pdfpath, docpath, docid=None):
+        super().__init__(docpath, docid)
+        self.pdfpath = pdfpath
         self._pages = None
         self._pdf = None
 
     def clone(self):
-        return PdfDoc(self.path, self.docid)
+        assert()
 
-    def __get_last_mod(self):
-        pdfpath = os.path.join(self.path, PDF_FILENAME)
-        last_mod = os.stat(pdfpath).st_mtime
+    def _get_last_mod(self):
+        last_mod = os.stat(self.pdfpath).st_mtime
         for page in self.pages:
             if page.last_mod > last_mod:
                 last_mod = page.last_mod
-        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
-        try:
-            file_last_mod = os.stat(labels_path).st_mtime
-            if file_last_mod > last_mod:
-                last_mod = file_last_mod
-        except OSError:
-            pass
-        extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
-        try:
-            file_last_mod = os.stat(extra_txt_path).st_mtime
-            if file_last_mod > last_mod:
-                last_mod = file_last_mod
-        except OSError:
-            pass
-
         return last_mod
 
-    last_mod = property(__get_last_mod)
+    last_mod = property(_get_last_mod)
 
     def get_pdf_file_path(self):
-        return ("%s/%s" % (self.path, PDF_FILENAME))
+        return self.pdfpath
 
     def _open_pdf(self):
         global NB_FDS
         if self._pdf:
             return self._pdf
-        dirpath = Gio.File.new_for_path(self.path)
-        file = dirpath.resolve_relative_path(PDF_FILENAME)
-        self._pdf = Poppler.Document.new_from_gfile(file, password=None)
+        filepath = Gio.File.new_for_path(self.pdfpath)
+        self._pdf = Poppler.Document.new_from_gfile(filepath, password=None)
         NB_FDS += 1
         logger.debug("(opening {}) Number of PDF file descriptors"
                      " opened: {}".format(self, NB_FDS))
@@ -185,6 +166,71 @@ class PdfDoc(BasicDoc):
                                           keep_refs=keep_refs)
 
     def import_pdf(self, file_uri):
+        assert()
+
+    @staticmethod
+    def get_export_formats():
+        return ['PDF']
+
+    def build_exporter(self, file_format='pdf', preview_page_nb=0):
+        assert(file_format.lower() == 'pdf')
+        return PdfDocExporter(self, preview_page_nb)
+
+    def drop_cache(self):
+        global NB_FDS
+        super().drop_cache()
+        if self._pages:
+            del self._pages
+        self._pages = None
+        if self._pdf:
+            NB_FDS -= 1
+            del self._pdf
+            logger.debug("(closing {}) Number of PDF file descriptors"
+                         " still opened: {}".format(self, NB_FDS))
+        self._pdf = None
+
+    def get_docfilehash(self):
+        return super().hash_file("%s/%s" % (self.path, PDF_FILENAME))
+
+
+class PdfDoc(_CommonPdfDoc):
+    """
+    PDF document inside the work directory
+    (by opposition to OutsidePdfDoc that can be located anywhere)
+    """
+    can_edit = False
+    doctype = u"PDF"
+
+    def __init__(self, docpath, docid=None):
+        super().__init__(
+            os.path.join(docpath, PDF_FILENAME),
+            docpath, docid
+        )
+        self._pages = None
+        self._pdf = None
+
+    def clone(self):
+        return PdfDoc(self.path, self.docid)
+
+    def _get_last_mod(self):
+        last_mod = super()._get_last_mod()
+        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        try:
+            file_last_mod = os.stat(labels_path).st_mtime
+            if file_last_mod > last_mod:
+                last_mod = file_last_mod
+        except OSError:
+            pass
+        extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
+        try:
+            file_last_mod = os.stat(extra_txt_path).st_mtime
+            if file_last_mod > last_mod:
+                last_mod = file_last_mod
+        except OSError:
+            pass
+        return last_mod
+
+    def import_pdf(self, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
         try:
             # try opening it to make sure it's valid
@@ -212,29 +258,50 @@ class PdfDoc(BasicDoc):
                None, None, None)
         return None
 
-    @staticmethod
-    def get_export_formats():
-        return ['PDF']
 
-    def build_exporter(self, file_format='pdf', preview_page_nb=0):
-        assert(file_format.lower() == 'pdf')
-        return PdfDocExporter(self, preview_page_nb)
+class ExternalPdfDoc(_CommonPdfDoc):
+    """
+    PDF document outside of the work directory.
+    For instance, it can be a help document describing how to use the software.
+    --> You do not want to add this document to the work directory
+    --> You do not want to create thumbnail files, etc
+    --> You do not want a label file
+    """
+    can_edit = False
+    doctype = "PDF"
+    labels = []
+    is_new = False
+    extra_text = ""
+    has_ocr = False
 
-    def drop_cache(self):
-        global NB_FDS
-        BasicDoc.drop_cache(self)
-        if self._pages:
-            del self._pages
+    def __init__(self, filepath):
+        super().__init__(
+            filepath,
+            os.path.dirname(filepath), os.path.basename(filepath)
+        )
+        self.filepath = filepath
         self._pages = None
-        if self._pdf:
-            NB_FDS -= 1
-            del self._pdf
-            logger.debug("(closing {}) Number of PDF file descriptors"
-                         " still opened: {}".format(self, NB_FDS))
         self._pdf = None
 
-    def get_docfilehash(self):
-        return BasicDoc.hash_file("%s/%s" % (self.path, PDF_FILENAME))
+    # disable all the methods to handle the document
+
+    def clone(self):
+        assert()
+
+    def destroy(self):
+        assert()
+
+    def add_label(self, *args, **kwargs):
+        assert()
+
+    def remove_label(self, *args, **kwargs):
+        assert()
+
+    def update_label(self, *args, **kwargs):
+        assert()
+
+    def _set_docid(self, *args, **kwargs):
+        assert()
 
 
 def is_pdf_doc(docpath):

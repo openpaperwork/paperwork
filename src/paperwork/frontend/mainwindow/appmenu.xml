@@ -30,6 +30,27 @@
 					</item>
 				</submenu>
 			</section>
+			<section>
+				<submenu id="help">
+					<attribute name="label" translatable="yes">_Help</attribute>
+					<item>
+						<attribute name="label" translatable="yes">_Introduction</attribute>
+						<attribute name="action">app.help.introduction</attribute>
+					</item>
+					<item>
+						<attribute name="label" translatable="yes">User Manual</attribute>
+						<attribute name="action">app.help.manual</attribute>
+					</item>
+					<item>
+						<attribute name="label" translatable="yes">Translator Guide</attribute>
+						<attribute name="action">app.help.translating</attribute>
+					</item>
+					<item>
+						<attribute name="label" translatable="yes">Developer Guide</attribute>
+						<attribute name="action">app.help.hacking</attribute>
+					</item>
+				</submenu>
+			</section>
 			<section id="menu_end">
 				<item>
 					<!--

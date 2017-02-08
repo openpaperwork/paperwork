@@ -36,6 +36,7 @@ from paperwork_backend.common.page import BasicPage
 from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
+from paperwork_backend.pdf.doc import ExternalPdfDoc
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend import activation
 from paperwork.frontend.diag import DiagDialog
@@ -55,6 +56,7 @@ from paperwork.frontend.multiscan import MultiscanDialog
 from paperwork.frontend.searchdialog import SearchDialog
 from paperwork.frontend.settingswindow import SettingsWindow
 from paperwork.frontend.util import connect_actions
+from paperwork.frontend.util import get_documentation
 from paperwork.frontend.util import load_cssfile
 from paperwork.frontend.util import load_image
 from paperwork.frontend.util import load_uifile
@@ -2273,6 +2275,19 @@ class ActionRefreshIndex(SimpleAction):
         self.__main_win.schedulers['index'].schedule(job)
 
 
+class ActionOpenHelp(SimpleAction):
+    def __init__(self, main_window, help_name):
+        super().__init__("Open Help {}".format(help_name))
+        self.__main_win = main_window
+        self.help_name = help_name
+
+    def do(self):
+        super().do()
+        docpath = get_documentation(self.help_name)
+        doc = ExternalPdfDoc(docpath)
+        self.__main_win.show_page(doc.pages[0], force_refresh=True)
+
+
 class MainWindow(object):
     def __init__(self, config):
         self.ready = False
@@ -2528,6 +2543,30 @@ class MainWindow(object):
                     gactions['open_settings'],
                 ],
                 ActionOpenSettings(self, config)
+            ),
+            'open_help_introduction': (
+                [
+                    gactions['open_help_introduction'],
+                ],
+                ActionOpenHelp(self, "intro")
+            ),
+            'open_help_manual': (
+                [
+                    gactions['open_help_manual'],
+                ],
+                ActionOpenHelp(self, "usage")
+            ),
+            'open_help_translating': (
+                [
+                    gactions['open_help_translating'],
+                ],
+                ActionOpenHelp(self, "translating")
+            ),
+            'open_help_hacking': (
+                [
+                    gactions['open_help_hacking'],
+                ],
+                ActionOpenHelp(self, "hacking")
             ),
             'quit': (
                 [
@@ -2794,6 +2833,12 @@ class MainWindow(object):
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
             'import': Gio.SimpleAction.new("import", None),
+            'open_help_introduction': Gio.SimpleAction.new("help.introduction",
+                                                           None),
+            'open_help_manual': Gio.SimpleAction.new("help.manual", None),
+            'open_help_translating': Gio.SimpleAction.new("help.translating",
+                                                           None),
+            'open_help_hacking': Gio.SimpleAction.new("help.hacking", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
             'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
             'optimize_index': Gio.SimpleAction.new("optimize_index", None),
@@ -3281,6 +3326,7 @@ class MainWindow(object):
         self.page = page
 
         if (page.doc != self.doc or force_refresh):
+            self.set_layout('paged', force_refresh=False)
             self._show_doc_internal(page.doc, force_refresh)
 
         if self.export['dialog']:

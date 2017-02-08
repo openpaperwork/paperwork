@@ -16,6 +16,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import glob
+import locale
 import logging
 import os
 import sys
@@ -40,10 +41,10 @@ logger = logging.getLogger(__name__)
 
 PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 
-UI_FILES_DIRS = []
+DATA_FILES_DIRS = []
 if getattr(sys, 'frozen', False):
-    UI_FILES_DIRS += [os.path.join(sys._MEIPASS, "data")]
-UI_FILES_DIRS += [
+    DATA_FILES_DIRS += [os.path.join(sys._MEIPASS, "data")]
+DATA_FILES_DIRS += [
     ".",
     "src/paperwork/frontend",
     "data",
@@ -119,7 +120,7 @@ def load_uifile(filename):
     """
     widget_tree = Gtk.Builder()
     has_ui_file = False
-    for ui_glob_dir in UI_FILES_DIRS:
+    for ui_glob_dir in DATA_FILES_DIRS:
         for ui_dir in glob.glob(ui_glob_dir):
             ui_file = os.path.join(ui_dir, filename)
             if os.access(ui_file, os.R_OK):
@@ -158,7 +159,7 @@ def load_cssfile(filename):
     """
     css_provider = Gtk.CssProvider()
     has_css_file = False
-    for css_glob_dir in UI_FILES_DIRS:
+    for css_glob_dir in DATA_FILES_DIRS:
         for css_dir in glob.glob(css_glob_dir):
             css_file = os.path.join(css_dir, filename)
             if os.access(css_file, os.R_OK):
@@ -179,10 +180,10 @@ def load_cssfile(filename):
 
 _SIZEOF_FMT_STRINGS = [
     _('%3.1f bytes'),
-    _('%3.1f KB'),
-    _('%3.1f MB'),
-    _('%3.1f GB'),
-    _('%3.1f TB'),
+    _('%3.1f KiB'),
+    _('%3.1f MiB'),
+    _('%3.1f GiB'),
+    _('%3.1f TiB'),
 ]
 
 
@@ -190,12 +191,44 @@ def load_image(filename):
     """
     Load an image from Paperwork data
     """
-    for img_directory in UI_FILES_DIRS:
+    for img_directory in DATA_FILES_DIRS:
         for img_dir in glob.glob(img_directory):
             img = os.path.join(img_dir, filename)
             if os.path.exists(img):
                 return PIL.Image.open(img)
     raise Exception("Can't find image '{}' !".format(filename))
+
+
+def get_documentation(doc_name):
+    """
+    Return the path to a documentation PDF.
+    Try to match the user language.
+    """
+    DOC_SUBDIR = "doc"
+
+    lang = "en"
+    try:
+        lang = locale.getdefaultlocale()[0][:2]
+    except:
+        logger.exception(
+            "get_documentation(): Failed to figure out locale. Will default"
+            " to English"
+        )
+        pass
+
+    default_doc_file = doc_name + ".pdf"
+    localized_doc_file = "{}_{}.pdf".format(doc_name, lang)
+
+    for data_dirs in DATA_FILES_DIRS:
+        for data_dir in glob.glob(data_dirs):
+            doc_dir = os.path.join(data_dir, DOC_SUBDIR)
+            if not os.path.exists(doc_dir):
+                continue
+            for filename in [localized_doc_file, default_doc_file]:
+                doc_path = os.path.join(doc_dir, filename)
+                if os.path.exists(doc_path):
+                    return doc_path
+    raise FileNotFoundError("Documentation {} not found !".format(doc_name))
 
 
 def sizeof_fmt(num):

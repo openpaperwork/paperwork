@@ -124,7 +124,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/adf_settings.png
+	filename img/generated/adf_settings.png
 	scale 50
 
 \end_inset
@@ -377,7 +377,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/adf_access.png
+	filename img/generated/adf_access.png
 	scale 50
 
 \end_inset
@@ -422,7 +422,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/adf_multiscan.png
+	filename img/generated/adf_multiscan.png
 	width 100col%
 
 \end_inset
@@ -607,7 +607,7 @@ status open
 \begin_layout Plain Layout
 \align right
 \begin_inset Graphics
-	filename img/import_pdf_en_0001.png
+	filename img/generated/import_pdf_en_0001.png
 	scale 50
 
 \end_inset
@@ -633,7 +633,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/import_pdf_en_0002.png
+	filename img/generated/import_pdf_en_0002.png
 	scale 50
 
 \end_inset
@@ -669,7 +669,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/import_pdf_en_0003.png
+	filename img/generated/import_pdf_en_0003.png
 	width 100col%
 
 \end_inset

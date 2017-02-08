@@ -598,9 +598,9 @@ class ActionDeleteDoc(SimpleAction):
         Ask for confirmation and then delete the document being viewed.
         """
         super().do()
-        ask_confirmation(self.__main_win.window, self._do)
+        ask_confirmation(self.__main_win.window, self._do_delete)
 
-    def _do(self):
+    def _do_delete(self):
         SimpleAction.do(self)
         if self.__doc is None:
             doc = self.__main_win.doc

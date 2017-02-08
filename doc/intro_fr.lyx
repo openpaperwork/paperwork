@@ -166,7 +166,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/paperwork_search.png
+	filename img/generated/paperwork_search.png
 	scale 40
 
 \end_inset
@@ -228,7 +228,7 @@ status open
 \begin_layout Plain Layout
 \align right
 \begin_inset Graphics
-	filename img/paperwork_export_0001.png
+	filename img/generated/paperwork_export_0001.png
 	scale 50
 
 \end_inset
@@ -287,7 +287,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/paperwork_export_0003.png
+	filename img/generated/paperwork_export_0003.png
 	width 100col%
 
 \end_inset
@@ -347,7 +347,7 @@ status open
 \begin_layout Plain Layout
 \align right
 \begin_inset Graphics
-	filename img/paperwork_goto_labels_and_memo.png
+	filename img/generated/paperwork_goto_labels_and_memo.png
 	scale 33
 
 \end_inset
@@ -373,7 +373,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename img/paperwork_label_and_memo.png
+	filename img/generated/paperwork_label_and_memo.png
 	scale 33
 
 \end_inset
@@ -465,7 +465,7 @@ status open
 
 \lang english
 \begin_inset Graphics
-	filename img/new_doc.png
+	filename img/generated/new_doc.png
 	scale 45
 
 \end_inset
@@ -494,7 +494,7 @@ status open
 
 \lang english
 \begin_inset Graphics
-	filename img/paperwork_scan.png
+	filename img/generated/paperwork_scan.png
 	scale 45
 
 \end_inset
@@ -523,7 +523,7 @@ status open
 
 \lang english
 \begin_inset Graphics
-	filename img/paperwork_import.png
+	filename img/generated/paperwork_import.png
 	scale 45
 
 \end_inset

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import glob
 import os
 import sys
 
@@ -52,7 +53,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/jflesch/paperwork",
     download_url=("https://github.com/jflesch/paperwork"
-                  "/archive/1.1.1.tar.gz"),
+                  "/archive/1.2.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
@@ -117,6 +118,7 @@ Main features are:
                 'src/paperwork/frontend/application.css',
             ]
         ),
+
         # glade files
         (
             os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
@@ -180,10 +182,18 @@ Main features are:
                 'src/paperwork/frontend/multiscan/multiscan.glade',
             ]
         ),
+
+        # translations
         (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
         (os.path.join(sys.prefix, 'share/locale/de/LC_MESSAGES'),
          ['locale/de/LC_MESSAGES/paperwork.mo']),
+
+        # documentation
+        (os.path.join(sys.prefix, 'share/paperwork/doc'),
+         glob.glob('doc/*.pdf')),
+
+        # pics
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/bad.png']),
         (os.path.join(sys.prefix, 'share/applications'),
@@ -221,7 +231,6 @@ Main features are:
          ['data/256/paperwork.png']),
         (os.path.join(sys.prefix, 'share/icons/hicolor/512x512/apps'),
          ['data/512/paperwork.png']),
-
         (os.path.join(sys.prefix, 'share/paperwork'),
          ['data/paperwork_100.png']),
         (os.path.join(sys.prefix, 'share/paperwork'),

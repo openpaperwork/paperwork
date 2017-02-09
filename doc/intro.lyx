@@ -1,7 +1,9 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass article
 \use_default_options true
 \maintain_unincluded_children false
@@ -9,16 +11,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
-\font_sans default
-\font_typewriter default
-\font_math auto
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -76,7 +78,7 @@ Welcome to Paperwork!
 \begin_layout Paragraph
 They are going to drive you crazy.
  Your phone operator, your bank, your girl's school, your dog's veterinary,
- even your Internet provider, it seems like all of them are trying to draw
+ even your Internet provider, it seems like all of them are trying to drown
  you under tons of paper you have to read, classify and memorize just in
  case you may need it later.
  Most of the time, you won't, which means you waste your energy for nothing.
@@ -198,7 +200,7 @@ TODO(Jflesch): Will come later:
 \end_layout
 
 \begin_layout Plain Layout
----
+—
 \end_layout
 
 \begin_layout Plain Layout
@@ -209,7 +211,7 @@ For those who have hundreds of tons of papers or are looking for specific
 \end_layout
 
 \begin_layout Plain Layout
----
+—
 \end_layout
 
 \end_inset
@@ -240,6 +242,11 @@ width "45col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -267,6 +274,11 @@ width "45col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -358,6 +370,11 @@ width "45col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -385,6 +402,11 @@ width "45col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -456,7 +478,7 @@ XXX(JFlesch): What are we talking about here ?
 \end_layout
 
 \begin_layout Plain Layout
----
+—
 \end_layout
 
 \begin_layout Plain Layout
@@ -469,7 +491,7 @@ If you precede a word with a # , it will turn into a #label , which is a
 \end_layout
 
 \begin_layout Plain Layout
----
+—
 \end_layout
 
 \end_inset
@@ -500,6 +522,11 @@ width "30col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -526,6 +553,11 @@ width "30col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
@@ -553,6 +585,11 @@ width "30col%"
 special "none"
 height "1in"
 height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout

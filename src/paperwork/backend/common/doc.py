@@ -348,6 +348,9 @@ class BasicDoc(object):
         return self.__docid
 
     def __set_docid(self, new_base_docid):
+        # XXX(JFlesch): On Windows, we must be sure that all the file descriptors are closed
+        self.drop_cache()
+
         workdir = os.path.dirname(self.path)
         new_docid = new_base_docid
         new_docpath = os.path.join(workdir, new_docid)
@@ -360,7 +363,7 @@ class BasicDoc(object):
 
         self.__docid = new_docid
         if self.path != new_docpath:
-            logger.info("Changing docid: %s -> %s" % (self.path, new_docpath))
+            logger.info("Changing docid: %s -> %s", self.path, new_docpath)
             os.rename(self.path, new_docpath)
             self.path = new_docpath
 

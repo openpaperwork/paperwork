@@ -1424,7 +1424,13 @@ class DocPropertiesPanel(object):
             if has_changed:
                 self.__main_win.upd_index({self.doc})
         else:
-            old_doc = self.doc.clone()
+            self.doc.drop_cache()
+            old_doc = self.doc
+
+            # Switch to "New document" for now to make sure we lose
+            # all references to the document and pages in the UI/Canvas
+            self.__main_win.actions['new_doc'][1].do()
+
             # this case is more tricky --> del + new
             job = self.__main_win.job_factories['index_updater'].make(
                 self.__main_win.docsearch,
@@ -1439,12 +1445,15 @@ class DocPropertiesPanel(object):
             )
             self.new_doc_date = None
             self.__main_win.schedulers['main'].schedule(job)
-
-        self.__main_win.refresh_header_bar()
+        # XXX(JFlesch)
+        # at this point, be *really* careful to not trigger any operation
+        # that would recreate the document cache : we may be about
+        # to rename the document --> It means deleting it first
+        # --> no file descriptor must be opened on it
 
     def __rename_doc(self, old_doc, new_doc_date):
-        old_doc.date = new_doc_date
         old_doc.drop_cache()
+        old_doc.date = new_doc_date
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch,
             new_docs={old_doc},
@@ -1452,7 +1461,7 @@ class DocPropertiesPanel(object):
             reload_list=True
         )
         self.__main_win.schedulers['main'].schedule(job)
-        self.__main_win.show_doc(old_doc, force_refresh=True)
+        self.__main_win.show_doc(old_doc)
 
     def _clear_label_list(self):
         self.widgets['labels'].freeze_child_notify()

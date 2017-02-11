@@ -28,7 +28,16 @@
 \index_command default
 \paperfontsize default
 \spacing single
-\use_hyperref false
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
 \papersize default
 \use_geometry false
 \use_package amsmath 1
@@ -73,6 +82,16 @@
 
 \begin_layout Title
 Welcome to Paperwork!
+\end_layout
+
+\begin_layout Paragraph
+\begin_inset Graphics
+	filename img/intro.png
+	width 100col%
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Paragraph

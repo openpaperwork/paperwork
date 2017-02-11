@@ -162,12 +162,6 @@ L'interface de Paperwork est composé de 2 panneaux.
 Vous pouvez ajouter des papiers de plusieurs sources, dépendamment des périphéri
 ques connectés à votre ordinateur: scanner simple, scanner à bac d'alimentation,
  camera, ...
- 
-\end_layout
-
-\begin_layout Paragraph
-You can add papers from several sources, depending on the devices connected
- to your computer: scanner flatbed, scanner feeder, camera...
  Vous n'avez pas de scanner à la maison ? Vous pouvez utiliser celui de
  votre travail et envoyer les résultats par email.
  Paperwork peut importer des PDFs sans problème.
@@ -457,7 +451,7 @@ Vous avez répondu à un important email and vous souhaitez en garder une
 \begin_layout Paragraph
 Vous souhaitez trier un peu vos documents ? Vous pouvez aussi ajouter des
  labels sur vos documents.
- Chaque label a une couleur pour plus de lisibilité.
+ Pour plus de lisibilité, chaque label a une couleur.
  Avec le temps, Paperwork va apprendre quels labels vont sur quels documents,
  et il les placera automatiquement pour vous à chaque nouveau document
 \begin_inset Foot
@@ -612,8 +606,7 @@ Nouveau document, scanner et importer
 \end_layout
 
 \begin_layout Paragraph
-Et c'est tout ! Vous connaissez désormais les principales fonctionnalités
- de Paperwork.
+Vous connaissez désormais les principales fonctionnalités de Paperwork.
  Vous pouvez commencer à l'utiliser en ajouter vos premier documents.
 \end_layout
 

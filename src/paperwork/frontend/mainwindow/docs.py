@@ -499,13 +499,14 @@ class ActionCreateLabel(SimpleAction):
         SimpleAction.__init__(self, "Creating label")
         self.__main_win = main_window
         self.__doc_properties = doc_properties
+        self._dialog = None  # for tests / automated screenshots only
 
     def do(self):
         SimpleAction.do(self)
-        labeleditor = LabelEditor()
+        self._dialog = labeleditor = LabelEditor()
         if labeleditor.edit(self.__main_win.window) == "ok":
-            logger.info("Adding label %s to doc %s"
-                        % (labeleditor.label.name, self.__main_win.doc))
+            logger.info("Adding label %s to doc %s",
+                        labeleditor.label.name, self.__main_win.doc)
             job = self.__doc_properties.job_factories['label_creator'].make(
                 self.__main_win.docsearch, labeleditor.label,
                 self.__main_win.doc)
@@ -521,6 +522,7 @@ class ActionEditLabel(SimpleAction):
         SimpleAction.__init__(self, "Editing label")
         self.__main_win = main_window
         self.__doc_properties = doc_properties
+        self._dialog = None  # for tests / automated screenshots only
 
     def do(self):
         SimpleAction.do(self)
@@ -537,7 +539,7 @@ class ActionEditLabel(SimpleAction):
         label = Label(label_name, label_color)
 
         new_label = copy(label)
-        editor = LabelEditor(new_label)
+        self._dialog = editor = LabelEditor(new_label)
         reply = editor.edit(self.__main_win.window)
         if reply != "ok":
             logger.warning("Label edition cancelled")

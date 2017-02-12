@@ -26,6 +26,7 @@
 \output_sync 0
 \bibtex_command default
 \index_command default
+\float_placement H
 \paperfontsize default
 \spacing single
 \use_hyperref true
@@ -39,7 +40,7 @@
 \pdf_backref false
 \pdf_pdfusetitle true
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 1
 \use_package amssymb 1
 \use_package cancel 1
@@ -63,6 +64,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 3cm
+\topmargin 3cm
+\rightmargin 3cm
+\bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent

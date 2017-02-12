@@ -26,6 +26,7 @@
 \output_sync 0
 \bibtex_command default
 \index_command default
+\float_placement H
 \paperfontsize default
 \spacing single
 \use_hyperref true
@@ -39,7 +40,7 @@
 \pdf_backref false
 \pdf_pdfusetitle true
 \papersize default
-\use_geometry false
+\use_geometry true
 \use_package amsmath 1
 \use_package amssymb 1
 \use_package cancel 1
@@ -63,6 +64,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 3cm
+\topmargin 3cm
+\rightmargin 3cm
+\bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -496,15 +501,15 @@ TODO link
 \end_layout
 
 \begin_layout Paragraph
-To get better results, OCR tools need to know the language used in the document(
-s).
+To get better results, OCR tool need to know the language used in the document(s
+).
 \end_layout
 
 \begin_layout Paragraph
 The language available in the settings dialog of Paperwork are those understood
- by the automatically-selected OCR tool (Tesseract or Cuneiform).
+ by the OCR tool.
  If your language is not in the list, it means the OCR tool doesn't have
- the data required to read your language.
+ the data required to read your language and you must install them.
 \end_layout
 
 \begin_layout Subsubsection
@@ -512,10 +517,10 @@ Windows
 \end_layout
 
 \begin_layout Paragraph
-Tesseract and all its data files are provided with Paperwork.
- If a language is not available, it either means it hasn't been packaged
- (in which case you can request it), or there is no data file available
- yet for this language.
+Tesseract and all its data files are provided by Paperwork's installer.
+ If a language is not available in the installer, it either means it hasn't
+ been packaged (in which case you can request it), or there is no data file
+ available yet for this language.
 \end_layout
 
 \begin_layout Subsubsection
@@ -523,10 +528,12 @@ Debian
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>
 \end_layout
 
@@ -535,10 +542,12 @@ Fedora
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo yum install tesseract tesseract-langpack-<lang>
 \end_layout
 
@@ -547,10 +556,12 @@ Ubuntu
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang> 
 \end_layout
 
@@ -569,17 +580,183 @@ In case you want to scan a lot of pages quickly (for instance, the first
  time you use Paperwork), OCR can be temporarily disabled.
 \end_layout
 
-\begin_layout Paragraph
-Screenshot of the OCR settings
-\end_layout
-
-\begin_layout Paragraph
-OCR can then be run on all the documents managed by Paperwork in one shot
-\begin_inset Note Note
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
 status open
 
 \begin_layout Plain Layout
-TODO screenshots
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/menu_settings.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/generated/settings_disable_ocr.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Disabling the OCR
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+OCR can then be run on all the documents managed by Paperwork in one shot.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/menu_advanced.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/menu_advanced_redo_ocr_all.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Redo OCR on all the documents
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -774,6 +951,11 @@ Paperwork will look for pages with no text attached.
  Note that this process may take a few minutes for big PDFs files.
 \end_layout
 
+\begin_layout Paragraph
+If the PDF is already part of your documents, Paperwork will simply ignore
+ it.
+\end_layout
+
 \begin_layout Subsection
 Many PDFs in one shot
 \end_layout
@@ -787,11 +969,421 @@ If you import a folder, Paperwork will browse this folder and look for PDFs
 \end_layout
 
 \begin_layout Section
-Managing labels
+Labels
+\end_layout
+
+\begin_layout Subsection
+Creating new labels
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\paragraph_spacing double
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/generated/paperwork_goto_labels_and_memo.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/generated/add_label.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename img/label_editor.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Creating a new label
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Setting labels on documents
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\paragraph_spacing double
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/generated/paperwork_goto_labels_and_memo.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/generated/label_select.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Selecting a label
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Modifying a label
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\paragraph_spacing double
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/generated/paperwork_goto_labels_and_memo.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/generated/label_goto_edit.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename img/label_editor.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Modifying a label
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Deleting a label
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\paragraph_spacing double
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\align right
+\begin_inset Graphics
+	filename img/generated/paperwork_goto_labels_and_memo.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "45col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename img/label_delete.png
+	scale 30
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Deleting a label
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Searching
+\end_layout
+
+\begin_layout Subsection
+Simple search
+\end_layout
+
+\begin_layout Subsection
+Advanced search
 \end_layout
 
 \begin_layout Section
@@ -799,15 +1391,11 @@ Viewing
 \end_layout
 
 \begin_layout Subsection
-view pages as grid
+View pages as grid
 \end_layout
 
 \begin_layout Subsection
-view pages as list
-\end_layout
-
-\begin_layout Section
-Advanced search
+View pages as list
 \end_layout
 
 \begin_layout Section
@@ -1636,10 +2224,12 @@ Once the directory has been created, you can also store Paperwork cache
 \end_layout
 
 \begin_layout Verbatim
+
 $ mv ~/.local/share/paperwork ~/Private/paperwork_cache
 \end_layout
 
 \begin_layout Verbatim
+
 $ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
 \end_layout
 
@@ -1654,6 +2244,7 @@ Encfs can also be used to create encrypted directories easily.
 \end_layout
 
 \begin_layout Verbatim
+
 $ enfs ~/.papers ~/papers
 \end_layout
 
@@ -1794,110 +2385,137 @@ Here is an example a work directory organisation:
 \end_layout
 
 \begin_layout Verbatim
+
 $ find ~/papers
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/labels
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/extra.txt
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/doc.pdf
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/paper.2.words 
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/labels
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/extra.txt
 \end_layout
 
@@ -1910,6 +2528,7 @@ With Tesseract, the hOCR file can be obtained with following command:
 \end_layout
 
 \begin_layout Verbatim
+
 tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
 \end_layout
 
@@ -1918,6 +2537,7 @@ For example:
 \end_layout
 
 \begin_layout Verbatim
+
 tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 \end_layout
 
@@ -1930,6 +2550,7 @@ Here is an example of content of a label file:
 \end_layout
 
 \begin_layout Verbatim
+
 facture,#0000b1588c61 logement,#f6b6ffff0000
 \end_layout
 
@@ -2001,14 +2622,17 @@ If you installed Paperwork manually:
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall paperwork
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall pyocr
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall pyinsane
 \end_layout
 

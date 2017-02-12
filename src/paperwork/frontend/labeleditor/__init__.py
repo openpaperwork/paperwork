@@ -25,7 +25,6 @@ from gi.repository import Gtk
 from paperwork_backend.labels import Label
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util.actions import SimpleAction
-from paperwork.frontend.util.dialog import ask_confirmation
 
 
 logger = logging.getLogger(__name__)
@@ -201,7 +200,7 @@ class PickColorAction(SimpleAction):
         finally:
             self.__pointer_device.ungrab(self.__grab_time)
             Gtk.device_grab_remove(self.__dropper_grab_widget,
-                                    self.__pointer_device)
+                                   self.__pointer_device)
             self.__has_grab = False
             self.__pointer_device = None
 
@@ -228,8 +227,8 @@ class LabelEditor(object):
         dialog = widget_tree.get_object("dialogLabelEditor")
         dialog.set_transient_for(main_window)
 
-        # don't force the window to be centered. Otherwise, user can't use the picker to pick colors
-        # from the current document
+        # don't force the window to be centered. Otherwise, user can't use the
+        # picker to pick colors from the current document
         dialog.set_position(Gtk.WindowPosition.NONE)
 
         self.__ok_button = widget_tree.get_object("buttonOk")
@@ -245,8 +244,8 @@ class LabelEditor(object):
 
         response = dialog.run()
 
-        if (response == Gtk.ResponseType.OK
-                and name_entry.get_text().strip() == ""):
+        if (response == Gtk.ResponseType.OK and
+                name_entry.get_text().strip() == ""):
             response = Gtk.ResponseType.CANCEL
 
         if (response == Gtk.ResponseType.OK):

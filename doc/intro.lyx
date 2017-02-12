@@ -63,6 +63,10 @@
 \shortcut idx
 \color #008000
 \end_index
+\leftmargin 5cm
+\topmargin 5cm
+\rightmargin 5cm
+\bottommargin 5cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -761,6 +765,8 @@ If you need more help, there is a more complete manual integrated in Paperwork.
 \begin_layout Paragraph
 We hope that you'll enjoy this piece of software.
  If you like it, 
+\color blue
+
 \begin_inset CommandInset href
 LatexCommand href
 name "please tell us"
@@ -768,7 +774,11 @@ target "https://github.com/jflesch/paperwork/wiki/Contact#mailing-list"
 
 \end_inset
 
+
+\color inherit
 , and if you don't, please 
+\color blue
+
 \begin_inset CommandInset href
 LatexCommand href
 name "tell us why"
@@ -776,6 +786,8 @@ target "https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers"
 
 \end_inset
 
+
+\color inherit
 !
 \end_layout
 

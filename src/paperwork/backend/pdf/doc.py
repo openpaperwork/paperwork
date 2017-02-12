@@ -82,16 +82,18 @@ class PdfPagesIterator(object):
 
 
 class PdfPages(object):
-    def __init__(self, pdfdoc, pdf):
+    def __init__(self, pdfdoc, pdf, on_disk_cache=False):
         self.pdfdoc = pdfdoc
         self.pdf = pdf
         self.page = {}
+        self.on_disk_cache = on_disk_cache
 
     def __getitem__(self, idx):
         if idx < 0:
             idx = self.pdf.get_n_pages() + idx
         if idx not in self.page:
-            self.page[idx] = PdfPage(self.pdfdoc, self.pdf, idx)
+            self.page[idx] = PdfPage(self.pdfdoc, self.pdf, idx,
+                                     self.on_disk_cache)
         return self.page[idx]
 
     def __len__(self):
@@ -109,11 +111,12 @@ NB_FDS = 0  # assumed number of file descriptors opened
 
 
 class _CommonPdfDoc(BasicDoc):
-    def __init__(self, pdfpath, docpath, docid=None):
+    def __init__(self, pdfpath, docpath, docid=None, on_disk_cache=False):
         super().__init__(docpath, docid)
         self.pdfpath = pdfpath
         self._pages = None
         self._pdf = None
+        self._on_disk_cache = on_disk_cache
 
     def clone(self):
         assert()
@@ -146,7 +149,7 @@ class _CommonPdfDoc(BasicDoc):
     def __get_pages(self):
         if self._pages:
             return self._pages
-        self._pages = PdfPages(self, self.pdf)
+        self._pages = PdfPages(self, self.pdf, self._on_disk_cache)
         return self._pages
 
     pages = property(__get_pages)
@@ -204,7 +207,8 @@ class PdfDoc(_CommonPdfDoc):
     def __init__(self, docpath, docid=None):
         super().__init__(
             os.path.join(docpath, PDF_FILENAME),
-            docpath, docid
+            docpath, docid,
+            on_disk_cache=True
         )
         self._pages = None
         self._pdf = None
@@ -277,7 +281,8 @@ class ExternalPdfDoc(_CommonPdfDoc):
     def __init__(self, filepath):
         super().__init__(
             filepath,
-            os.path.dirname(filepath), os.path.basename(filepath)
+            os.path.dirname(filepath), os.path.basename(filepath),
+            on_disk_cache=False
         )
         self.filepath = filepath
         self._pages = None

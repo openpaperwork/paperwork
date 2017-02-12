@@ -88,7 +88,7 @@ def custom_split(input_str, input_rects, splitter):
 class PdfPage(BasicPage):
     EXT_TXT = "txt"
 
-    def __init__(self, doc, pdf, page_nb):
+    def __init__(self, doc, pdf, page_nb, on_disk_cache=True):
         BasicPage.__init__(self, doc, page_nb)
         self.pdf_page = pdf.get_page(page_nb)
         assert(self.pdf_page is not None)
@@ -96,6 +96,7 @@ class PdfPage(BasicPage):
         self._size = (int(size[0]), int(size[1]))
         self.__boxes = None
         self.__img_cache = {}
+        self._on_disk_cache = on_disk_cache
 
     def get_doc_file_path(self):
         """
@@ -243,7 +244,7 @@ class PdfPage(BasicPage):
         # use only the on-disk cache if it's the page 0 (used in the document
         # list)
         # otherwise, it's either to just generate the image
-        if self.page_nb == 0:
+        if self.page_nb == 0 and self._on_disk_cache:
             return super().get_thumbnail(width, height)
         return self.get_image((width, height))
 

@@ -794,7 +794,6 @@ class SettingsWindow(GObject.GObject):
             ocr_langs = ocr_tools[0].get_available_languages()
         ocr_langs = self.__get_short_to_long_langs(ocr_langs)
         ocr_langs.sort(key=lambda lang: lang[1])
-        ocr_langs.insert(0, (None, _("Disable OCR")))
 
         self.ocr_settings['lang']['store'].clear()
         for (short_lang, long_lang) in ocr_langs:

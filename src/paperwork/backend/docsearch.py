@@ -310,6 +310,7 @@ class DocIndexUpdater(GObject.GObject):
             # annoying case : we can't know which labels were on it
             # so we can't roll back the label guesser training ...
             self._delete_doc_from_index(self.index_writer, doc)
+            doc.drop_cache()
             return
         self._delete_doc_from_index(self.index_writer, doc.docid)
         self.label_guesser_updater.del_doc(doc)

@@ -102,15 +102,18 @@ class PdfPages(object):
     def __iter__(self):
         return PdfPagesIterator(self.pdfdoc)
 
-    def __del__(self):
+    def drop_cache(self):
         for page in self.page.values():
-            del page
+            page.drop_cache()
 
 
 NB_FDS = 0  # assumed number of file descriptors opened
 
 
 class _CommonPdfDoc(BasicDoc):
+    can_edit = False
+    doctype = u"PDF"
+
     def __init__(self, pdfpath, docpath, docid=None, on_disk_cache=False):
         super().__init__(docpath, docid)
         self.pdfpath = pdfpath
@@ -140,8 +143,9 @@ class _CommonPdfDoc(BasicDoc):
         filepath = Gio.File.new_for_path(self.pdfpath)
         self._pdf = Poppler.Document.new_from_gfile(filepath, password=None)
         NB_FDS += 1
-        logger.debug("(opening {}) Number of PDF file descriptors"
-                     " opened: {}".format(self, NB_FDS))
+        logger.debug("(opening {} | {}) Number of PDF file descriptors"
+                     " opened: {}".format(self, id(self), NB_FDS)
+                     )
         return self._pdf
 
     pdf = property(_open_pdf)
@@ -183,13 +187,19 @@ class _CommonPdfDoc(BasicDoc):
         global NB_FDS
         super().drop_cache()
         if self._pages:
+            self._pages.drop_cache()
             del self._pages
         self._pages = None
         if self._pdf:
             NB_FDS -= 1
             del self._pdf
-            logger.debug("(closing {}) Number of PDF file descriptors"
-                         " still opened: {}".format(self, NB_FDS))
+            logger.debug("(closing {} | {}) Number of PDF file descriptors"
+                         " still opened: {}".format(self, id(self), NB_FDS))
+        else:
+            logger.debug("(closing {} | {})"
+                         " Already closed (remaining: {})".format(
+                             self, id(self), NB_FDS
+                         ))
         self._pdf = None
 
     def get_docfilehash(self):
@@ -218,14 +228,14 @@ class PdfDoc(_CommonPdfDoc):
 
     def _get_last_mod(self):
         last_mod = super()._get_last_mod()
-        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        labels_path = os.path.join(self.path, self.LABEL_FILE)
         try:
             file_last_mod = os.stat(labels_path).st_mtime
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
         except OSError:
             pass
-        extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
+        extra_txt_path = os.path.join(self.path, self.EXTRA_TEXT_FILE)
         try:
             file_last_mod = os.stat(extra_txt_path).st_mtime
             if file_last_mod > last_mod:

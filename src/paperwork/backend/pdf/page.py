@@ -89,14 +89,26 @@ class PdfPage(BasicPage):
     EXT_TXT = "txt"
 
     def __init__(self, doc, pdf, page_nb, on_disk_cache=True):
-        BasicPage.__init__(self, doc, page_nb)
-        self.pdf_page = pdf.get_page(page_nb)
-        assert(self.pdf_page is not None)
+        super().__init__(doc, page_nb)
+        self._pdf_page = None
         size = self.pdf_page.get_size()
         self._size = (int(size[0]), int(size[1]))
         self.__boxes = None
         self.__img_cache = {}
         self._on_disk_cache = on_disk_cache
+
+    @property
+    def pdf_page(self):
+        if self._pdf_page:
+            return self._pdf_page
+        self._pdf_page = self.doc.pdf.get_page(self.page_nb)
+        return self._pdf_page
+
+    def drop_cache(self):
+        super().drop_cache()
+        if self._pdf_page:
+            del self._pdf_page
+        self._pdf_page = None
 
     def get_doc_file_path(self):
         """

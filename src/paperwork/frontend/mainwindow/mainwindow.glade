@@ -717,7 +717,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label">Additional keywords</property>
+                                <property name="label" translatable="yes">Additional keywords</property>
                                 <property name="halign">start</property>
                                 <attributes>
                                   <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
@@ -987,7 +987,7 @@
   </object>
 
   <object class="GtkTextBuffer" id="extrakeywords_default_textbuffer">
-    <property name="text">If by any chance character recognition doesn't work, type in a few keywords so you'll be able to search for them.</property>
+    <property name="text" translatable="yes">If by any chance character recognition doesn't work, type in a few keywords so you'll be able to search for them.</property>
   </object>
 
 </interface>

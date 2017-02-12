@@ -98,17 +98,17 @@ Bienvenue sur Paperwork!
 Ils vont vous rendre fou.
  Votre opérateur téléphonique, votre banque, l'école de votre fille, votre
  vétérinaire, votre FAI, etc.
- Ils semblent tous essayer de vous noyer sous des tonnes de papiers que
- vous devez lire, classer et mémoriser, juste au cas où vous en auriez besoin
- plus tard.
+ Ils semblent tous essayer de vous noyer sous des tonnes de papiers.
+ Papiers que vous devez lire, classer et mémoriser, juste au cas où vous
+ en auriez besoin plus tard.
  La plupart du temps, ce ne sera pas le cas, ce qui signifie que vous avez
  gâché votre énergie pour rien.
 \end_layout
 
 \begin_layout Paragraph
-Paperwork va vous aider à vous débarrasser de ces tonnes de papiers en les
- transformant en documents cherchables.
- C'est simple: scanner et oublier.
+Paperwork va vous aider à vous débarrasser de tout ces papiers en les transforma
+nt en documents cherchables.
+ C'est simple: scannez et oubliez.
  Vous cherchez un papier spécifique ? Tapez juste quelques mots-clés, et
  tada !
 \end_layout
@@ -155,16 +155,16 @@ La fenêtre principale
 L'interface de Paperwork est composé de 2 panneaux.
  Sur la gauche (en vert), la liste de tout vos documents, triés par date
  d'import.
- Sur la droite (en blue), les pages du document actuellement sélectionné.
+ Sur la droite (en bleu), les pages du document actuellement sélectionné.
 \end_layout
 
 \begin_layout Paragraph
-Vous pouvez ajouter des papiers de plusieurs sources, dépendamment des périphéri
-ques connectés à votre ordinateur: scanner simple, scanner à bac d'alimentation,
- camera, ...
+Vous pouvez ajouter des papiers depuis plusieurs sources, en fonction des
+ périphériques connectés à votre ordinateur : scanner simple, scanner à
+ bac d'alimentation, caméra, ...
  Vous n'avez pas de scanner à la maison ? Vous pouvez utiliser celui de
- votre travail et envoyer les résultats par email.
- Paperwork peut importer des PDFs sans problème.
+ votre travail.
+ Paperwork peut importer des PDFs et des fichiers images sans problème.
 \end_layout
 
 \begin_layout Section
@@ -208,15 +208,15 @@ Barre de recherche
 
 \begin_layout Paragraph
 Trouvez ce dont vous avez besoin, quand vous en avez besoin.
- Tapez quelques mots-clés dans la barre de recherche et la liste des documents
- se réduira à ceux contenant votre recherche.
+ Tapez quelques mots-clés et la liste des documents se réduira à ce que
+ vous cherchez.
  C'est là que la magie s'opère : Paperwork utilise la reconnaissance optique
- de caractères (ROC) pour convertir vos papiers en simple fichiers textes
+ de caractères (ROC) pour convertir vos papiers en simples fichiers textes
  pour qu'il soit facile d'y chercher des mots.
 \end_layout
 
 \begin_layout Section
-Export
+Exporter
 \end_layout
 
 \begin_layout Standard
@@ -293,7 +293,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Export menu
+Menu d'export
 \end_layout
 
 \end_inset
@@ -324,7 +324,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Export settings
+Réglages de l'export
 \end_layout
 
 \end_inset
@@ -338,14 +338,14 @@ Export settings
 \end_layout
 
 \begin_layout Paragraph
-Parfois, vous pouvez vouloir exporter un document pour l'envoyer à quelqu'un
+Parfois, vous allez vouloir exporter un document pour l'envoyer à quelqu'un
  d'autre.
  Plusieurs formats sont supportés : .pdf, .jpeg, .txt, ...
  et bien entendu, le format papier (nécessite une imprimante, vendue séparément).
 \end_layout
 
 \begin_layout Section
-Labels et mémos
+Labels et mot-clés additionels
 \end_layout
 
 \begin_layout Standard
@@ -439,21 +439,31 @@ Labels et mémos
 \end_layout
 
 \begin_layout Paragraph
-Vous avez répondu à un important email and vous souhaitez en garder une
- trace? Votre fille a fait une liste de souhaits pour Noël et vous voulez
- la transformer en liste de courses ? Le papier que vous avez scanné était
- si illisible que Paperwork n'a pas pu le relire ? Ajouter un mémo à vos
- papiers pour que vous ne les perdiez pas! Tout les mots que vous entrerez
- seront cherchables, comme si ils avaient été directement écrits dans une
- des pages que vous avez scannée.
+Vous avez répondu à un email important et vous souhaitez en garder une trace?
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+??? Votre fille a fait une liste de souhaits pour Noël et vous voulez la
+ transformer en liste de courses ?
+\end_layout
+
+\end_inset
+
+ Le papier que vous avez scanné était si illisible que Paperwork n'a pas
+ pu le relire ? Ajoutez vous-même des mots-clés à vos papiers pour que vous
+ puissiez les retrouver ! Tous les mots que vous ajouterez pourrons être
+ retrouvés, comme si ils avaient été écrits dans les pages que vous avez
+ scannées.
 \end_layout
 
 \begin_layout Paragraph
-Vous souhaitez trier un peu vos documents ? Vous pouvez aussi ajouter des
- labels sur vos documents.
- Pour plus de lisibilité, chaque label a une couleur.
+Vous souhaitez trier un peu vos documents ? Vous pouvez aussi leur ajouter
+ des labels.
+ Pour plus de lisibilité, chaque label a sa propre couleur.
  Avec le temps, Paperwork va apprendre quels labels vont sur quels documents,
- et il les placera automatiquement pour vous à chaque nouveau document
+ et il les placera automatiquement pour vous sur chaque nouveau document
 \begin_inset Foot
 status open
 
@@ -472,8 +482,6 @@ Vos premiers documents
 \end_layout
 
 \begin_layout Standard
-
-\lang english
 \begin_inset Float figure
 placement H
 wide false
@@ -481,8 +489,6 @@ sideways false
 status open
 
 \begin_layout Plain Layout
-
-\lang english
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -502,8 +508,6 @@ backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
-
-\lang english
 \begin_inset Graphics
 	filename img/generated/new_doc.png
 	scale 45
@@ -536,8 +540,6 @@ status open
 
 \begin_layout Plain Layout
 \align center
-
-\lang english
 \begin_inset Graphics
 	filename img/generated/paperwork_scan.png
 	scale 45
@@ -570,8 +572,6 @@ status open
 
 \begin_layout Plain Layout
 \align right
-
-\lang english
 \begin_inset Graphics
 	filename img/generated/paperwork_import.png
 	scale 45
@@ -587,8 +587,6 @@ status open
 \end_layout
 
 \begin_layout Plain Layout
-
-\lang english
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
@@ -606,8 +604,17 @@ Nouveau document, scanner et importer
 \end_layout
 
 \begin_layout Paragraph
-Vous connaissez désormais les principales fonctionnalités de Paperwork.
- Vous pouvez commencer à l'utiliser en ajouter vos premier documents.
+Cliquez sur le bouton +, cliquer sur le bouton 
+\begin_inset Quotes fld
+\end_inset
+
+scanner
+\begin_inset Quotes frd
+\end_inset
+
+, et c'est tout ! Vous connaissez désormais les principales fonctionnalités
+ de Paperwork.
+ Vous pouvez maintenant commencer à l'utiliser en ajoutant vos premier documents.
 \end_layout
 
 \begin_layout Section

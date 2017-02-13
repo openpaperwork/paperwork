@@ -677,6 +677,10 @@ class DocSearch(object):
 
     docs = property(__get_all_docs)
 
+    @property
+    def nb_docs(self):
+        return len(self._docs_by_id)
+
     def get(self, obj_id):
         """
         Get a document or a page using its ID

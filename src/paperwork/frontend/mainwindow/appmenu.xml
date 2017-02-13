@@ -49,6 +49,10 @@
 						<attribute name="label" translatable="yes">Developer Guide</attribute>
 						<attribute name="action">app.help.hacking</attribute>
 					</item>
+					<item>
+						<attribute name="label" translatable="yes">_About</attribute>
+						<attribute name="action">app.about</attribute>
+					</item>
 				</submenu>
 			</section>
 			<section id="menu_end">
@@ -59,10 +63,6 @@
 					-->
 					<attribute name="label" translatable="yes">A_ctivate</attribute>
 					<attribute name="action">app.activate</attribute>
-				</item>
-				<item>
-					<attribute name="label" translatable="yes">_About</attribute>
-					<attribute name="action">app.about</attribute>
 				</item>
 				<item>
 					<attribute name="label" translatable="yes">_Quit</attribute>

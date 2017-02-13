@@ -2295,6 +2295,7 @@ class ActionOpenHelp(SimpleAction):
         docpath = get_documentation(self.help_name)
         doc = ExternalPdfDoc(docpath)
         self.__main_win.show_page(doc.pages[0], force_refresh=True)
+        self.__main_win.doclist.unselect_all()
 
 
 class MainWindow(object):

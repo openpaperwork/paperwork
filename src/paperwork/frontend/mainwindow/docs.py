@@ -922,6 +922,9 @@ class DocList(object):
         doc = self.get_new_doc()
         self.__main_win.show_doc(doc)
 
+    def unselect_all(self):
+        self.gui['list'].unselect_all()
+
     def clear(self):
         self.gui['list'].freeze_child_notify()
         try:

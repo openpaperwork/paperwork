@@ -227,7 +227,7 @@ def get_documentation(doc_name):
             for filename in [localized_doc_file, default_doc_file]:
                 doc_path = os.path.join(doc_dir, filename)
                 if os.path.exists(doc_path):
-                    return doc_path
+                    return os.path.abspath(doc_path)
     raise FileNotFoundError("Documentation {} not found !".format(doc_name))
 
 

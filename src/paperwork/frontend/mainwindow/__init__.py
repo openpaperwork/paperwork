@@ -36,6 +36,7 @@ from paperwork_backend.common.page import BasicPage
 from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
+from paperwork_backend.labels import Label
 from paperwork_backend.pdf.doc import ExternalPdfDoc
 from paperwork.frontend.aboutdialog import AboutDialog
 from paperwork.frontend import activation
@@ -229,8 +230,9 @@ class JobDocExaminer(Job):
     can_stop = False
     priority = 50
 
-    def __init__(self, factory, id, config, docsearch):
+    def __init__(self, factory, id, main_win, config, docsearch):
         Job.__init__(self, factory, id)
+        self.__main_win = main_win
         self.__config = config
         self.docsearch = docsearch
         self.done = False
@@ -281,6 +283,7 @@ class JobDocExaminer(Job):
             self.done = True
         except StopIteration:
             logger.info("Document examination interrupted")
+            return
 
     def stop(self, will_resume=False):
         self.can_run = False
@@ -313,6 +316,7 @@ class JobFactoryDocExaminer(JobFactory):
 
     def make(self, docsearch):
         job = JobDocExaminer(self, next(self.id_generator),
+                             self.__main_win,
                              self.__config, docsearch)
         job.connect(
             'doc-examination-start',
@@ -843,7 +847,9 @@ class JobImporter(Job):
                          (GObject.TYPE_PYOBJECT, )),
         'no-doc-imported': (GObject.SignalFlags.RUN_LAST, None, ()),
         'import-ok': (GObject.SignalFlags.RUN_LAST, None,
-                      (GObject.TYPE_PYOBJECT, )),
+                      (GObject.TYPE_PYOBJECT,
+                       GObject.TYPE_PYOBJECT,
+                       )),
     }
 
     can_stop = False
@@ -1028,7 +1034,7 @@ class JobImporter(Job):
                 self.__main_win, iter(new_doc_pages), must_add_labels=True
             ).start()
 
-        self.emit('import-ok', import_result.stats)
+        self.emit('import-ok', import_result.stats, import_result.select_doc)
 
 
 GObject.type_register(JobImporter)
@@ -1594,7 +1600,7 @@ class ActionImport(SimpleAction):
         )
         job_importer.connect(
             'import-ok',
-            lambda _, stats: GLib.idle_add(self.__import_ok, stats)
+            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats)
         )
         self.__main_win.schedulers['main'].schedule(job_importer)
 
@@ -3020,6 +3026,33 @@ class MainWindow(object):
         self.docsearch = docsearch
         self.refresh_doc_list()
         self.refresh_label_list()
+
+        GLib.timeout_add(1000, self._check_new_workdir)
+
+    def _check_new_workdir(self):
+        if self.docsearch.nb_docs > 0:
+            return
+
+        def set_labels(doc, labels):
+            doc.labels = labels
+            self.upd_index({doc})
+            GLib.idle_add(self.doclist.select_doc, doc)
+
+        # no document --> add the introduction document
+        docpath = get_documentation('intro')
+        docuri = GLib.filename_to_uri(docpath)
+        importers = docimport.get_possible_importers(docuri, self.doc)
+        job_importer = self.job_factories['importer']
+        job_importer = job_importer.make(importers[0], docuri)
+
+        label = Label(name=_("Documentation"), color="#ffffffffffff")
+        job_importer.connect(
+            'import-ok',
+            lambda _, stats, doc: GLib.idle_add(
+                set_labels, doc, [label]
+            )
+        )
+        self.schedulers['main'].schedule(job_importer)
 
     def on_doc_examination_start_cb(self, src):
         self.set_progression(src, 0.0, None)

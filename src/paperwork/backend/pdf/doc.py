@@ -270,6 +270,7 @@ class PdfDoc(_CommonPdfDoc):
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
+        self.pdfpath = dest.get_path()
         return None
 
 

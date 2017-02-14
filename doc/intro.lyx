@@ -100,12 +100,12 @@ Welcome to Paperwork!
 
 \begin_layout Paragraph
 They are going to drive you crazy.
- Your phone operator, your bank, your daughter's school, your dog's veterinary,
- even your ISP, it seems like all of them are trying to drown you under
+ Your phone operator, your bank, your daughter's school, your dog's veterinarian
+, even your ISP; it seems like all of them are trying to drown you under
  tons of papers.
- Papers you have to read, classify and memorize just in case you may need
+ Papers you have to read, classify, and memorize just in case you may need
  them later.
- Most of the time, you won't, which means you waste your energy for nothing.
+ Most of the time you won't, which means you waste your energy for nothing.
 \end_layout
 
 \begin_layout Paragraph
@@ -121,12 +121,13 @@ Documents and pages
 
 \begin_layout Standard
 \begin_inset Float figure
-placement h
+placement H
 wide false
 sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename img/paperwork_main_window_split.png
 	width 100text%
@@ -140,7 +141,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Main window
+Home screen
 \end_layout
 
 \end_inset
@@ -155,14 +156,14 @@ Main window
 
 \begin_layout Paragraph
 Paperwork's interface is composed of two panels.
- On the left (green), the list of all your documents sorted by the date
+ On the left (green) is the list of all your documents sorted by the date
  they were imported.
- On the right (blue), the pages of the currently selected paper.
+ On the right (blue) are the pages of the currently selected paper.
 \end_layout
 
 \begin_layout Paragraph
 You can add papers from several sources, depending on the devices connected
- to your computer: scanner flatbed, scanner feeder, camera...
+ to your computer: scanner flatbed, scanner feeder, camera, etc.
  You have no scanner at home? You can still use the scanner you have at
  work.
  Paperwork will easily import PDF and image files.
@@ -181,6 +182,7 @@ width "50col%"
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
 	filename img/generated/paperwork_search.png
 	scale 40
@@ -210,7 +212,7 @@ Search field
 \begin_layout Paragraph
 Find what you need, when you need it.
  Type a few keywords in the search bar and the list of papers will shrink
- to only the matching content.
+ to only the relevant content.
  This is where the magic happens: Paperwork uses optical character recognition
  (OCR) to convert your papers into simple text files, so it's easy to search
  for text.
@@ -333,42 +335,11 @@ Export menu
 \end_inset
 
 
-\begin_inset Float figure
-placement H
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\begin_inset Graphics
-	filename img/generated/paperwork_export_0003.png
-	width 100col%
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Plain Layout
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-Export settings
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Paragraph
 Sometimes you may want to export a document to send it to someone else.
- Multiple formats are supported: .pdf, .jpg, .txt, ...
+ Multiple formats are supported: .pdf, .jpg, .txt, etc.
  And of course, paper (requires a printer, sold separately).
 \end_layout
 
@@ -384,6 +355,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -453,7 +425,7 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Labels and memos
+Labels and additional keywords
 \end_layout
 
 \end_inset
@@ -479,16 +451,17 @@ TODO(Jflesch): Hu ? — Your girl made a wishlist for Christmas and you would
 \end_inset
 
 The paper you scanned was so unreadable that Paperwork failed to recognize
- some important keywords? Join additional keywords to your paper so you
- won't miss anything! All the keywords you add will be searchable, as if
- they were directly written on the paper you scanned.
+ some important keywords? Add keywords to your paper so you won't miss anything!
+ All the keywords you add will be searchable, as if they were directly written
+ on the paper you scanned.
 \end_layout
 
 \begin_layout Paragraph
-You would like to sort a little bit your documents ? You can also add labels.
+You would like to organize your documents a bit more? You can also add labels
+ to your documents.
  Each label has its own color.
  With time, Paperwork will learn which labels go on which documents and
- it will automatically apply them on new documents
+ will automatically apply them on new documents
 \begin_inset Foot
 status open
 
@@ -507,7 +480,7 @@ Automatic label application uses the text in the documents.
 status open
 
 \begin_layout Plain Layout
-XXX(JFlesch): What are we talking about here ?
+XXX(JFlesch): What are we talking about here?
 \end_layout
 
 \begin_layout Plain Layout
@@ -544,6 +517,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -563,6 +537,7 @@ backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
+\align right
 \begin_inset Graphics
 	filename img/generated/new_doc.png
 	scale 45
@@ -626,7 +601,7 @@ backgroundcolor "none"
 status open
 
 \begin_layout Plain Layout
-\align right
+\align left
 \begin_inset Graphics
 	filename img/generated/paperwork_import.png
 	scale 45
@@ -665,7 +640,7 @@ Click the + button, the scan button, and that's all folks! You are now aware
 \end_layout
 
 \begin_layout Section
-Need more help ?
+Need more help?
 \end_layout
 
 \begin_layout Standard
@@ -676,6 +651,7 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -759,12 +735,13 @@ Paperwork user manual
 \end_layout
 
 \begin_layout Paragraph
-If you need more help, there is a more complete manual integrated in Paperwork.
+If you need more help, there is a comprehensive manual you can find in the
+ help section of Paperwork.
 \end_layout
 
 \begin_layout Paragraph
 We hope that you'll enjoy this piece of software.
- If you like it, 
+ If you like it 
 \color blue
 
 \begin_inset CommandInset href
@@ -776,7 +753,7 @@ target "https://github.com/jflesch/paperwork/wiki/Contact#mailing-list"
 
 
 \color inherit
-, and if you don't, please 
+, and if you don't please 
 \color blue
 
 \begin_inset CommandInset href

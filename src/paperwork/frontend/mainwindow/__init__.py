@@ -2780,7 +2780,12 @@ class MainWindow(object):
             if "minimize" in default_layout:
                 right = "minimize," + right
 
-            settings.set_property("gtk-decoration-layout", left + ":" + right)
+            # disable global setting for decoration
+            settings.set_property("gtk-decoration-layout", None)
+
+            # and use local ones only
+            widget_tree.get_object("doclist_headerbar_left").set_decoration_layout(left + ":")
+            widget_tree.get_object("headerbar_right").set_decoration_layout(":" + right)
         except TypeError as exc:
             # gtk-decoration-layout only appeared in Gtk >= 3.12
             # Some distribution still have Gtk-3.10 at this time

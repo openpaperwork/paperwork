@@ -226,7 +226,8 @@
                     <property name="visible">True</property>
                     <property name="title" translatable="yes">Documents</property>
                     <property name="subtitle"></property>
-                    <property name="show_close_button">False</property>
+                    <property name="show_close_button">True</property>
+                    <property name="decoration_layout">menu:</property>
                     <style>
                       <class name="left-header-bar"/>
                       <class name="titlebar"/>
@@ -313,6 +314,7 @@
             <property name="visible">True</property>
             <property name="title"></property>
             <property name="show_close_button">True</property>
+            <property name="decoration_layout">close:</property>
 
             <!-- start -->
 

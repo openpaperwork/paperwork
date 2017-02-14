@@ -69,8 +69,8 @@
 \bottommargin 5cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation indent
-\paragraph_indentation default
+\paragraph_separation skip
+\defskip medskip
 \quotes_language english
 \papercolumns 1
 \papersides 1
@@ -98,7 +98,7 @@ Welcome to Paperwork!
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 They are going to drive you crazy.
  Your phone operator, your bank, your daughter's school, your dog's veterinarian
 , even your ISP; it seems like all of them are trying to drown you under
@@ -108,7 +108,7 @@ They are going to drive you crazy.
  Most of the time you won't, which means you waste your energy for nothing.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork will help you get rid of all those papers by turning them into
  searchable documents.
  It's simple: just scan and forget.
@@ -154,14 +154,14 @@ Home screen
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork's interface is composed of two panels.
  On the left (green) is the list of all your documents sorted by the date
  they were imported.
  On the right (blue) are the pages of the currently selected paper.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You can add papers from several sources, depending on the devices connected
  to your computer: scanner flatbed, scanner feeder, camera, etc.
  You have no scanner at home? You can still use the scanner you have at
@@ -209,7 +209,7 @@ Search field
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Find what you need, when you need it.
  Type a few keywords in the search bar and the list of papers will shrink
  to only the relevant content.
@@ -337,7 +337,7 @@ Export menu
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Sometimes you may want to export a document to send it to someone else.
  Multiple formats are supported: .pdf, .jpg, .txt, etc.
  And of course, paper (requires a printer, sold separately).
@@ -438,7 +438,7 @@ Labels and additional keywords
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You answered an important email and you want to keep track of it? 
 \begin_inset Note Note
 status open
@@ -456,7 +456,7 @@ The paper you scanned was so unreadable that Paperwork failed to recognize
  on the paper you scanned.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You would like to organize your documents a bit more? You can also add labels
  to your documents.
  Each label has its own color.
@@ -633,7 +633,7 @@ New document, scan and import
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Click the + button, the scan button, and that's all folks! You are now aware
  of the main features of Paperwork.
  You can start using it by adding your first own paper.
@@ -734,12 +734,12 @@ Paperwork user manual
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you need more help, there is a comprehensive manual you can find in the
  help section of Paperwork.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 We hope that you'll enjoy this piece of software.
  If you like it 
 \color blue

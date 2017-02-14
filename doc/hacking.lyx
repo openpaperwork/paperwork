@@ -70,8 +70,8 @@
 \bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation indent
-\paragraph_indentation default
+\paragraph_separation skip
+\defskip medskip
 \quotes_language english
 \papercolumns 1
 \papersides 1
@@ -131,13 +131,13 @@ status open
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 This is an entirely technical document.
  If you're not looking to contribute to Paperwork's code, this is not the
  document you're looking for.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 This document assumes you're already familiar with Git, Python 3, and GitHub.
 \end_layout
 
@@ -156,7 +156,7 @@ Please ask before doing
 Git branches
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In the repository, there are usually the following branches:
 \end_layout
 
@@ -225,7 +225,7 @@ Coding rules
 PEP8
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Stick to the PEP8 as much as possible.
  Pull requests that does not respect the PEP8 will be rejected.
 \end_layout
@@ -238,12 +238,12 @@ Lines are at most 80 characters long (not kidding.)
 Indentation is done using 4 spaces
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you see code that does not respect the PEP8, feel free to fix it.
  However, please make a dedicated commit.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If the content of a file does not respect the PEP8 and you want to modify
  it, please 
 \emph on
@@ -257,15 +257,15 @@ stick to the PEP8
 Commits
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 One commit = one change.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Try to make your commit message clear but concise.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 When writing your commit message, please keep in mind the Git history is
  about the whole repository.
  Therefore, please give some context and indicate which part of Paperwork
@@ -276,12 +276,12 @@ When writing your commit message, please keep in mind the Git history is
 Comments
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 There are no rules regarding comments.
  Please just use your common sense.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If your code is complex and not commented enough, it will be unmaintainable
  and will be 
 \emph on
@@ -295,7 +295,7 @@ removed
 Paperwork itself
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The code is split in two pieces:
 \end_layout
 
@@ -334,7 +334,7 @@ Paperwork
 Paperwork-backend
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 See the user manual (section 
 \begin_inset Quotes eld
 \end_inset
@@ -358,7 +358,7 @@ Development tips
 Configuration file for development only
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork looks for a '
 \emph on
 paperwork.conf
@@ -394,7 +394,7 @@ paperwork.conf
 Verbose
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You can use the environment variable '
 \emph on
 PAPERWORK_VERBOSE
@@ -423,7 +423,7 @@ ERROR
 PEP8 and Pylint
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 There is a tool called '
 \emph on
 pep8
@@ -436,7 +436,7 @@ apt install pep8
  Use it.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Another tool is 'pylint'.
  A pylintrc is provided for Paperwork:
 \end_layout
@@ -466,7 +466,7 @@ Add illustration here
 GLib / GObject / GTK
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 GTK+ is not thread-safe.
 \end_layout
 
@@ -474,7 +474,7 @@ GTK+ is not thread-safe.
 Pillow
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Thread-safe.
 \end_layout
 
@@ -482,7 +482,7 @@ Thread-safe.
 Whoosh
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Thread-safe.
  Lock the GIL.
 \end_layout
@@ -491,7 +491,7 @@ Thread-safe.
 Poppler
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Not thread-safe.
 \end_layout
 
@@ -499,7 +499,7 @@ Not thread-safe.
 PyOCR
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Thread-safe.
 \end_layout
 
@@ -507,7 +507,7 @@ Thread-safe.
 Pyinsane2, libsane, and scanner drivers
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Not thread-safe.
 \end_layout
 
@@ -515,7 +515,7 @@ Not thread-safe.
 Libpillowfight / pypillowfight
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Thread-safe.
 \end_layout
 
@@ -523,13 +523,13 @@ Thread-safe.
 Threads safety
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Thread safety is a major issue in Paperwork.
  We need threads to keep the GUI smooth, but unfortunately, a lot of Paperwork
  dependencies are not thread-safe.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 A job scheduling mechanism has been implemented (see 
 \emph on
 src/paperwork/frontend/util/jobs.py
@@ -538,18 +538,18 @@ src/paperwork/frontend/util/jobs.py
  The idea here is to run most of the jobs in the same thread (whenever possible).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Each Job object represents a task to do.
  Some jobs can be stopped and resumed later (for instance JobDocThumbnailer).
  Each Job instance is used once and only once.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 JobFactories instanciate Jobs.
  They are also used to keep the job recognizable.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Jobs are passed to JobSchedulers.
  Each JobScheduler represents a thread.
  They accept jobs using the method 
@@ -562,12 +562,12 @@ schedule()
  one, the scheduler will try to stop the active one and run it back later.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Jobs can be cancelled (assuming they are stoppable or not active yet).
  A single job can be canceled, or all the jobs from a given factory.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 There is one main scheduler (called 
 \emph on
 main
@@ -577,7 +577,7 @@ main
  and the index.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Note that there are other threads running.
  For instance, there are the thread of PyInsane and the GTK+/GLib main loop.
 \end_layout
@@ -666,7 +666,7 @@ Windows build
 Versioning
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Version have the following syntax: <M>[.<m>[.<U>[<i>][-<extra>]]]
 \end_layout
 

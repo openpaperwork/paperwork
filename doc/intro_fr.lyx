@@ -69,8 +69,8 @@
 \bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation indent
-\paragraph_indentation default
+\paragraph_separation skip
+\defskip medskip
 \quotes_language french
 \papercolumns 1
 \papersides 1
@@ -98,7 +98,7 @@ Bienvenue sur Paperwork!
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Ils vont vous rendre fou.
  Votre opérateur téléphonique, votre banque, l'école de votre fille, votre
  vétérinaire, votre FAI, etc.
@@ -109,7 +109,7 @@ Ils vont vous rendre fou.
  gâché votre énergie pour rien.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork va vous aider à vous débarrasser de tout ces papiers en les transforma
 nt en documents cherchables.
  C'est simple: scannez et oubliez.
@@ -155,14 +155,14 @@ La fenêtre principale
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 L'interface de Paperwork est composé de 2 panneaux.
  Sur la gauche (en vert), la liste de tout vos documents, triés par date
  d'import.
  Sur la droite (en bleu), les pages du document actuellement sélectionné.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Vous pouvez ajouter des papiers depuis plusieurs sources, en fonction des
  périphériques connectés à votre ordinateur : scanner simple, scanner à
  bac d'alimentation, caméra, ...
@@ -210,7 +210,7 @@ Barre de recherche
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Trouvez ce dont vous avez besoin, quand vous en avez besoin.
  Tapez quelques mots-clés et la liste des documents se réduira à ce que
  vous cherchez.
@@ -341,7 +341,7 @@ Réglages de l'export
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Parfois, vous allez vouloir exporter un document pour l'envoyer à quelqu'un
  d'autre.
  Plusieurs formats sont supportés : .pdf, .jpeg, .txt, ...
@@ -442,7 +442,7 @@ Labels et mémos
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Vous avez répondu à un email important et vous souhaitez en garder une trace?
  
 \begin_inset Note Note
@@ -462,7 +462,7 @@ status open
  scannées.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Vous souhaitez trier un peu vos documents ? Vous pouvez aussi leur ajouter
  des labels.
  Pour plus de lisibilité, chaque label a sa propre couleur.
@@ -607,7 +607,7 @@ Nouveau document, scanner et importer
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Cliquez sur le bouton +, cliquer sur le bouton 
 \begin_inset Quotes fld
 \end_inset
@@ -717,12 +717,12 @@ Paperwork user manual
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Si vous avez besoin de plus d'aide, il y a un manuel plus complet intégré
  dans Paperwork.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Nous espérons que vous apprécierez ce logiciel.
  Si tel est le cas, 
 \color blue

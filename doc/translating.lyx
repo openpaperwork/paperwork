@@ -73,8 +73,8 @@
 \bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation indent
-\paragraph_indentation default
+\paragraph_separation skip
+\defskip medskip
 \quotes_language english
 \papercolumns 1
 \papersides 1
@@ -135,7 +135,7 @@ status open
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 This document describes how to translate the user interface of Paperwork
  in other languages.
  Unless this is what you want to do, this is not the document you're looking
@@ -262,7 +262,7 @@ Forking Paperwork on GitHub
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The repository 
 \emph on
 Paperwork
@@ -277,7 +277,7 @@ Paperwork
 Downloading
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You must have configured GitHub SSH access for these commands to work.
 \end_layout
 
@@ -293,7 +293,7 @@ $ git clone git@github.com:[your login]/paperwork.git
 $ cd paperwork
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you already have a copy of Paperwork repository, you can simply update
  it.
  You have to update first the copy stored on your Github account.
@@ -312,7 +312,7 @@ $ git pull
 Selecting the branch
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In the repository, there are usually the following branches:
 \end_layout
 
@@ -363,7 +363,7 @@ stable
 .
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Translations updates are allowed on any branches.
  However, it is recommended to make translations on the branch 
 \emph on
@@ -402,7 +402,7 @@ Translating
 Extracting the strings to translate
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Strings to translate are in the program itself.
  They have to be extracted for translation.
  A script has been included in Paperwork repository for this purpose.
@@ -412,7 +412,7 @@ Strings to translate are in the program itself.
 $ ./localize.sh upd-po
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Strings to translate and their translations (if they already have one) are
  stored in the 
 \emph on
@@ -460,7 +460,7 @@ Example of .po file
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Here are the steps to follow:
 \end_layout
 
@@ -525,11 +525,11 @@ msgstr
  translations.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Strings and translations can be multi-lines.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Some strings can contain python format elements (
 \begin_inset Quotes eld
 \end_inset
@@ -576,7 +576,7 @@ cannot
  the elements.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Mixes of singular and plural are hard to handled.
  If one them is too tricky for you to handle, please open a ticket on GitHub.
  Workarounds can be found.
@@ -586,7 +586,7 @@ Mixes of singular and plural are hard to handled.
 Compiling the translations
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Translations must be compiled.
  It allows Paperwork (via gettext) to fetch them quickly at runtime.
 \end_layout
@@ -595,7 +595,7 @@ Translations must be compiled.
 $ ./localize.sh gen-mo
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 It will regenerated the .mo files in 
 \emph on
 locales/
@@ -607,7 +607,7 @@ locales/
 Testing the translations
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You can run Paperwork from your Git repository using the following command:
 \end_layout
 
@@ -615,7 +615,7 @@ You can run Paperwork from your Git repository using the following command:
 python3 src/launcher.py
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork looks at the system settings to know which language must be used.
  If you want to try other ones, simply set the LANG environment variable.
 \end_layout
@@ -636,7 +636,7 @@ $ LANG=de_DE python3 src/launcher.py  # German
 Adding a new language
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 To add a new language to Paperwork, only the script 
 \emph on
 localize.sh
@@ -692,7 +692,7 @@ git gui
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You must first create a Git commit containing your translations.
  Beware that 
 \emph on
@@ -712,11 +712,11 @@ git gui
  It will clearly show you what you're adding to your commit.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Both .po and .mo files must be commited at the same time.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The commit message must indicate this is about updating the translations.
  Other than that, there are no specific rules.
 \end_layout
@@ -725,7 +725,7 @@ The commit message must indicate this is about updating the translations.
 Pushing
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You can then push your new commit to your repository on GitHub.
  Either click 
 \begin_inset Quotes eld
@@ -762,7 +762,7 @@ git push
 Pull request
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Go to 
 \begin_inset CommandInset href
 LatexCommand href

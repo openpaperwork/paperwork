@@ -70,8 +70,8 @@
 \bottommargin 3cm
 \secnumdepth 3
 \tocdepth 3
-\paragraph_separation indent
-\paragraph_indentation default
+\paragraph_separation skip
+\defskip medskip
 \quotes_language english
 \papercolumns 1
 \papersides 1
@@ -113,17 +113,17 @@ Scanning
 Default source
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Some scanners have many sources/input.
  Basic scanners have only one source : Flatbed.
  Some others have a feeder, allowing them to scan many pages at one.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The settings here is the source to use for single scan.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you select "Flatbed" here and use the multi-scan dialog (see 
 \begin_inset CommandInset ref
 LatexCommand vref
@@ -264,7 +264,7 @@ Flatbeds and feeders
 Scanner calibration
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Scanners tend to provide images actually bigger than the scanned pages.
  Since most of the time, you will always scan pages having the same size
  (A4/Letter usually), Paperwork provides an option called "scanner calibration".
@@ -311,12 +311,12 @@ Scanner calibration
 Scan resolution
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Scanner resolution defines how detailed the images coming from your scanner
  must be.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Higher resolutions mean
 \end_layout
 
@@ -340,7 +340,7 @@ more space used on disk,
 but also better OCR.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Lower resolutions mean
 \end_layout
 
@@ -368,7 +368,7 @@ but also inferior OCR,
 and possibly unreadable image (even by a human).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 300 dpi is considered a good trade-off.
  You may want to reduce it to 200 dpi on slow computers.
 \end_layout
@@ -411,7 +411,7 @@ Scanning a single page
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 \begin_inset Note Note
 status open
 
@@ -424,7 +424,7 @@ TODO(Jflesch): Need more
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Pages are appended to the current document.
 \end_layout
 
@@ -473,12 +473,12 @@ Opening the dialog to scan from the feeder
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The option "scan from feeder" is enabled only if Paperwork has detected
  a feeder on your scanner.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You have to tell Paperwork how many pages go in each document.
  If you just want Paperwork to scan pages until none are left, you can just
  specify a huge number of pages (99 for example).
@@ -523,7 +523,7 @@ Scanning multiple documents from the feeder
 OCR languages
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 By default, Paperwork uses Tesseract
 \begin_inset Note Note
 status open
@@ -559,12 +559,12 @@ TODO link
  On Windows, Tesseract is provided with Paperwork.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 To get better results, OCR tool need to know the language used in the document(s
 ).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The language available in the settings dialog of Paperwork are those understood
  by the OCR tool.
  If your language is not in the list, it means the OCR tool doesn't have
@@ -575,7 +575,7 @@ The language available in the settings dialog of Paperwork are those understood
 Windows
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Tesseract and all its data files are provided by Paperwork's installer.
  If a language is not available in the installer, it either means it hasn't
  been packaged (in which case you can request it), or there is no data file
@@ -587,12 +587,10 @@ Debian
 \end_layout
 
 \begin_layout Verbatim
-
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
-
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>
 \end_layout
 
@@ -601,12 +599,10 @@ Fedora
 \end_layout
 
 \begin_layout Verbatim
-
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
-
 $ sudo yum install tesseract tesseract-langpack-<lang>
 \end_layout
 
@@ -615,12 +611,10 @@ Ubuntu
 \end_layout
 
 \begin_layout Verbatim
-
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
-
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang> 
 \end_layout
 
@@ -628,13 +622,13 @@ $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>
 OCR enabled / disabled
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 When you scan a page using Paperwork, Paperwork will immediately run the
  OCR on it.
  This process may take a while for each page.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In case you want to scan a lot of pages quickly (for instance, the first
  time you use Paperwork), OCR can be temporarily disabled.
 \end_layout
@@ -729,7 +723,7 @@ Disabling the OCR
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 OCR can then be run on all the documents managed by Paperwork in one shot.
 \end_layout
 
@@ -957,36 +951,36 @@ Select a file or a folder
 Images
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork supports a lot of file formats.
  It supports JPEG, PNG, GIF, BMP, TIFF, etc.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Each image is considered as a page.
  Currently, you can only import one file at a time.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Images are always appended to the document currently opened.
  Simply select an empty document ("New document") to create a new document
  while importing.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 OCR is always run on imported images.
  If the imported image is the first page of a new document, Paperwork will
  automatically apply documents labels.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Note that Paperwork is a document manager.
  While it can, it is not designed to handle images with only very little
  text or photos.
  Automatic labeling will not work correctly on such documents.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The OCR (Tesseract) works very well with black text on white background.
  Automatic labeling uses recognized text and requires as many keywords on
  the first page as possible.
@@ -996,14 +990,14 @@ The OCR (Tesseract) works very well with black text on white background.
 PDF
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Each PDF is always considered as a whole document.
  They are never appended to existing document.
  They are copied as is in the work directory and are never modified by Paperwork
  (just moved and renamed).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork will look for pages with no text attached.
  On those pages, it will automatically run OCR.
  Once all the pages have been examined, it will automatically apply document
@@ -1011,7 +1005,7 @@ Paperwork will look for pages with no text attached.
  Note that this process may take a few minutes for big PDFs files.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If the PDF is already part of your documents, Paperwork will simply ignore
  it.
 \end_layout
@@ -1020,7 +1014,7 @@ If the PDF is already part of your documents, Paperwork will simply ignore
 Many PDFs in one shot
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you import a folder, Paperwork will browse this folder and look for PDFs
  to import.
  Already-imported PDFs are simply ignored.
@@ -1812,23 +1806,23 @@ from a document to another
 Switching to another work directory
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Before copying or moving the work directory of Paperwork, please close Paperwork.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 When Paperwork starts, on of the first things it does is to look for any
  change in its current work directory.
  Therefore, if you moved your work directory, when you will restart Paperwork,
  since it won't find anything, the document list will be empty.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You must then go in the settings and change the work directory location
  to the new one.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In the following example, we are switching to a work directory contained
  in a DropBox's folder :
 \end_layout
@@ -1868,7 +1862,7 @@ Application menu
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Note that, on GNU/Linux, the application menu may be at the top of the screen.
 \end_layout
 
@@ -2097,7 +2091,7 @@ Apply new settings
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork will automatically scan the newly selected work directory, and
  update its index according to its content.
 \end_layout
@@ -2110,14 +2104,14 @@ Backup
 Synchronisation
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 While Paperwork is a personal document manager, it is not a file synchronization
  application.
  However, it is designed to be used with file synchronization applications
  (Dropbox, OneDrive, Owncloud, SparkleShare, etc).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 When you start Paperwork, one of the first things it does is check the content
  of the work directory.
  It looks for any changes and updates its document list and index accordingly,
@@ -2128,21 +2122,21 @@ When you start Paperwork, one of the first things it does is check the content
 USB key / USB drive
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 This is the simplest way to share documents.
  Simply copy your work directory to an USB key, tell Paperwork to use it,
  and you're done.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Beware: You should backup your USB key from time to time on another one.
 \end_layout
 
 \begin_layout Subsection
-File Synchronization application
+File Synchronization applications
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Those applications synchronize a local directory with a remote server (or
  cloud).
  All the changes you do in your folder are applied on the server.
@@ -2151,13 +2145,13 @@ Those applications synchronize a local directory with a remote server (or
  The server can belong to you or to someone else (usually a company).
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Beware: If you choose to host your documents on someone else server (DropBox,
  OneDrive, etc), they can access all your documents.
  Paperwork does not cipher them.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork is tested daily with SparkleShare.
  While this is not the easiest one to use, Sparkleshare let you host your
  files yourself.
@@ -2169,12 +2163,12 @@ Paperwork is tested daily with SparkleShare.
 DropBox
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Here we are detailing the process to use DropBox, but it is similar for
  other file synchronization applications.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 First, you must copy or move your work directory inside the DropBox folder
  (please stop Paperwork before):
 \end_layout
@@ -2218,7 +2212,7 @@ Cut and paste paperwork work directory into the shared directory
 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Then you must tell Paperwork to use this new work directory.
 \end_layout
 
@@ -2226,14 +2220,14 @@ Then you must tell Paperwork to use this new work directory.
 Shared folder
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If all your computers are on the same network, you can share your work directory.
  However, be really careful regarding permissions.
  Being too permissive could let a pirate access all your personal documents
  ! And setting them correctly is tricky.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Beware: While file synchronization applications usually maintain an historic,
  shared folders do not.
  You should do backups from time to time.
@@ -2578,11 +2572,11 @@ TODO
 GNU/Linux
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 GNU/Linux distributions include many tools to encrypt whole directories.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 With Paperwork, there are 2 directories that should be encrypted to protect
  your privacy:
 \end_layout
@@ -2611,7 +2605,7 @@ Will be changed to ~/.cache/paperwork
 Ecryptfs
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 On GNU/Linux Debian and Ubuntu, you can easily create a directory Private
  in your home directory.
  This directory will be encrypted using the password you use to connect
@@ -2621,18 +2615,16 @@ On GNU/Linux Debian and Ubuntu, you can easily create a directory Private
  You can then put the work directory of Paperwork in it.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Once the directory has been created, you can also store Paperwork cache
  in it:
 \end_layout
 
 \begin_layout Verbatim
-
 $ mv ~/.local/share/paperwork ~/Private/paperwork_cache
 \end_layout
 
 \begin_layout Verbatim
-
 $ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
 \end_layout
 
@@ -2640,14 +2632,13 @@ $ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
 Encfs
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Encfs can also be used to create encrypted directories easily.
- However, Encfs seems to have some security weaknesses.
+ However, beware that Encfs seems to have some security weaknesses.
  
 \end_layout
 
 \begin_layout Verbatim
-
 $ enfs ~/.papers ~/papers
 \end_layout
 
@@ -2821,7 +2812,7 @@ Shift+MouseLeftButton on a document
 Paperwork's files locations
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 By default:
 \end_layout
 
@@ -2837,13 +2828,13 @@ Index : ~/.local/share/paperwork
 Documents : ~/papers
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 (same paths are used on Windows ; ~ = C:
 \backslash
 Users[login] ; folders are hidden)
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The index is always updated according based on the documents in the work
  directory.
  When Paperwork starts, the modification time of each file is used to detect
@@ -2854,7 +2845,7 @@ The index is always updated according based on the documents in the work
 Work directory layout
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 workdir|rootdir = ~/papers (by default)
 \end_layout
 
@@ -2862,18 +2853,18 @@ workdir|rootdir = ~/papers (by default)
 Global organisation
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In the work directory, you have folders, one per document.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 The folder names are (usually) the scan/import date of the document: YYYYMMDD_hh
 mm_ss[_<idx>].
  The suffix 'idx' is optional and is just a number added in case of name
  collision.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 In every folder you have:
 \end_layout
 
@@ -2933,142 +2924,115 @@ paper.<X>.words (optional) : A hOCR file, containing all the words found on
 \end_layout
 
 \end_deeper
-\begin_layout Paragraph
+\begin_layout Standard
 Here is an example a work directory organisation:
 \end_layout
 
 \begin_layout Verbatim
-
 $ find ~/papers
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/paper.3.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130505_1518_00/labels
 \end_layout
 
 \begin_layout Verbatim
-
-/home/jflesch/papers/20110726_0000_01
+/home/jflesch/papers/20110726_0000_01f
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20110726_0000_01/extra.txt
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/doc.pdf
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/paper.2.words 
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/labels
 \end_layout
 
 \begin_layout Verbatim
-
 /home/jflesch/papers/20130106_1309_44/extra.txt
 \end_layout
 
@@ -3076,21 +3040,19 @@ $ find ~/papers
 hOCR files
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 With Tesseract, the hOCR file can be obtained with following command:
 \end_layout
 
 \begin_layout Verbatim
-
 tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 For example:
 \end_layout
 
 \begin_layout Verbatim
-
 tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 \end_layout
 
@@ -3098,16 +3060,15 @@ tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 Label files
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Here is an example of content of a label file:
 \end_layout
 
 \begin_layout Verbatim
-
 facture,#0000b1588c61 logement,#f6b6ffff0000
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 It's always [label],[color].
  For a same label, the color should always be the same.
  
@@ -3117,7 +3078,7 @@ It's always [label],[color].
 Statistics
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 You can get various statistics regarding your documents.
  Just have a look at the diagnostic output
 \begin_inset Note Note
@@ -3153,7 +3114,7 @@ Mailing-list
 Uninstalling
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Paperwork can be uninstalled.
  Uninstalling Paperwork 
 \emph on
@@ -3170,35 +3131,32 @@ Windows
 GNU/Linux
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you installed Paperwork manually:
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall paperwork
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall pyocr
 \end_layout
 
 \begin_layout Verbatim
-
 sudo pip uninstall pyinsane
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 (it's python-pip on some systems)
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 If you installed many versions of these packages, you may have to run these
  commands many times.
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Standard
 Note that there are other dependencies installed with Paperwork.
  However, python-pip can't detect and remove automatically unused dependencies.
  This is why you should use your distribution package(s) if possible.

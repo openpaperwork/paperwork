@@ -1771,13 +1771,25 @@ class BasicActionOpenExportDialog(SimpleAction):
 
         self.simplifications = [
             (_("No simplification"), self._noop,),
+            # in order of destructiveness
+            (_("Grayscale"), self._grayscale,),
             (_("Soft"), self._unpaper,),
+            (_("Grayscale + soft"), self._unpaper_grayscale,),
+            (_("Black and white"), self._bw),
             (_("Hard"), self._swt_soft,),
             (_("Extreme"), self._swt_hard,),
         ]
 
     def _noop(self, pil_img):
         return pil_img
+
+    def _bw(self, pil_img):
+        pil_img = pil_img.convert("L")  # to grayscale
+        pil_img = pil_img.point(lambda x: 0 if x < 128 else 255, '1')
+        return pil_img
+
+    def _grayscale(self, pil_img):
+        return pil_img.convert("L")
 
     def _unpaper(self, pil_img):
         # unpaper order
@@ -1790,12 +1802,19 @@ class BasicActionOpenExportDialog(SimpleAction):
         out_img = pillowfight.unpaper_border(out_img)
         return out_img
 
+    def _unpaper_grayscale(self, pil_img):
+        pil_img = self._grayscale(pil_img)
+        pil_img = self._unpaper(pil_img)
+        return pil_img
+
     def _swt_soft(self, pil_img):
+        pil_img = pil_img.convert("L")
         return pillowfight.swt(
             pil_img, output_type=pillowfight.SWT_OUTPUT_ORIGINAL_BOXES
         )
 
     def _swt_hard(self, pil_img):
+        pil_img = pil_img.convert("L")
         return pillowfight.swt(
             pil_img, output_type=pillowfight.SWT_OUTPUT_BW_TEXT
         )
@@ -2781,11 +2800,15 @@ class MainWindow(object):
                 right = "minimize," + right
 
             # disable global setting for decoration
-            settings.set_property("gtk-decoration-layout", None)
+            settings.set_property("gtk-decoration-layout", ":close")
 
             # and use local ones only
-            widget_tree.get_object("doclist_headerbar_left").set_decoration_layout(left + ":")
-            widget_tree.get_object("headerbar_right").set_decoration_layout(":" + right)
+            widget_tree.get_object(
+                "doclist_headerbar_left"
+            ).set_decoration_layout(left + ":")
+            widget_tree.get_object(
+                "headerbar_right"
+            ).set_decoration_layout(":" + right)
         except TypeError as exc:
             # gtk-decoration-layout only appeared in Gtk >= 3.12
             # Some distribution still have Gtk-3.10 at this time

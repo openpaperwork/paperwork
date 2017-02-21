@@ -27,7 +27,6 @@ from paperwork.frontend.util import load_uifile
 
 
 class AboutDialog(object):
-
     """
     Dialog that appears when you click Help->About.
 
@@ -54,6 +53,6 @@ class AboutDialog(object):
 
     def show(self):
         """
-        Make the about dialog appears
+        Make the about dialog appear
         """
         self.__dialog.set_visible(True)

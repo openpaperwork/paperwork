@@ -2,7 +2,7 @@
 
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if os.name == "nt":
     extra_deps = []
@@ -52,18 +52,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     license="GPLv3+",
     author="Jerome Flesch",
     author_email="jflesch@openpaper.work",
-    packages=[
-        'paperwork_backend',
-        'paperwork_backend.common',
-        'paperwork_backend.pdf',
-        'paperwork_backend.img',
-    ],
-    package_dir={
-        'paperwork_backend': 'src/paperwork/backend',
-        'paperwork_backend.common': 'src/paperwork/backend/common',
-        'paperwork_backend.pdf': 'src/paperwork/backend/pdf',
-        'paperwork_backend.img': 'src/paperwork/backend/img',
-    },
+    packages=find_packages(),
     entry_points={
         'console_scripts': [
             'paperwork-shell = paperwork_backend.shell_cmd:main',

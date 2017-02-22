@@ -3,12 +3,9 @@
 ## Dependencies
 
 Depending on which [branch](https://github.com/jflesch/paperwork/wiki/Branches) you
-are using, the build and runtime dependencies may not be the same. Setuptools will
-take care of most of them, but not all. Please have a look at
-[the wiki](https://github.com/jflesch/paperwork/wiki/Update) to know what
-build dependencies must installed before proceeding. Setuptools will also
-indicate extra dependencies to install, so watch carefully the ouput of
-./setup.py.
+are working, the build and runtime dependencies may not be the same.
+Setuptools and ```paperwork-shell chkdeps``` should take care of all of them,
+except ```paperwork-backend```.
 
 
 ## System-wide installation
@@ -31,6 +28,7 @@ $ paperwork-shell chkdeps paperwork
 ```
 
 (see [the wiki as to why you probably want to work on the branch 'unstable'](https://github.com/jflesch/paperwork/wiki/Branches))
+
 
 ## Paperwork in a Python Virtualenv
 

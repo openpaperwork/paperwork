@@ -687,15 +687,16 @@ class DocList(object):
             "value-changed",
             lambda v: GLib.idle_add(self._on_scrollbar_value_changed)
         )
+        self.gui['scrollbars'].connect(
+            "size-allocate",
+            lambda w, s: GLib.idle_add(
+                self._on_scrollbar_value_changed, True
+            )
+        )
 
         self.gui['list'].add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
 
         self.gui['list'].connect("button-press-event", self._on_button_pressed)
-
-        self.gui['list'].connect(
-            "size-allocate",
-            lambda w, s: GLib.idle_add(self._on_scrollbar_value_changed)
-        )
 
         self.gui['list'].connect("drag-motion", self._on_drag_motion)
         self.gui['list'].connect("drag-leave", self._on_drag_leave)
@@ -729,9 +730,15 @@ class DocList(object):
             event.state & Gdk.ModifierType.SHIFT_MASK
         )
 
-    def _on_scrollbar_value_changed(self):
+    def _on_scrollbar_value_changed(self, force=False):
+        logger.debug("[thumbnailing] scrollbar values changed")
         vadjustment = self.gui['scrollbars'].get_vadjustment()
-        if vadjustment.get_value() == self.gui['last_scrollbar_value']:
+        if (not force and
+                vadjustment.get_value() ==
+                self.gui['last_scrollbar_value']):
+            logger.debug(
+                "[thumbnailing] scrollbar position unchanged --> ignored"
+            )
             # avoid repeated requests due to adding documents to the
             # GtkListBox (even if frozen ...)
             return
@@ -741,9 +748,10 @@ class DocList(object):
         )
 
         # because we use GLib.idle_add() before calling this function
-        # the scrollbar may have disappear (--> application close)
+        # the scrollbar may have disappeared (application being closed)
         # before we are called
         if vadjustment is None:
+            logger.debug("[thumbnailing] no scrollbar.vadjustment")
             return
 
         # XXX(Jflesch): assumptions: values are in px
@@ -772,6 +780,7 @@ class DocList(object):
             end_idx = end_row.get_index()
         if start_row == end_row:
             return
+        logger.debug("Thumbnailing: {} - {}".format(start_idx, end_idx))
         if end_idx < start_idx:
             logger.warn("Thumbnailing: End_idx (%d) < start_idx (%d) !?"
                         % (end_idx, start_idx))
@@ -1069,7 +1078,7 @@ class DocList(object):
         self.gui['loading'].set_visible(False)
 
         self.gui['last_scrollbar_value'] = -1  # force refresh of thumbnails
-        GLib.idle_add(self._on_scrollbar_value_changed)
+        GLib.idle_add(self._on_scrollbar_value_changed, True)
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """

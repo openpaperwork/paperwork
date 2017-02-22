@@ -20,11 +20,11 @@ except:
 
 
 PACKAGE_TOOLS = {
-    'debian': 'apt-get install',
+    'debian': 'apt install',
     'fedora': 'yum install',
     'gentoo': 'emerge',
-    'linuxmint': 'apt-get install',
-    'ubuntu': 'apt-get install',
+    'linuxmint': 'apt install',
+    'ubuntu': 'apt install',
     'suse': 'zypper in',
 }
 
@@ -150,12 +150,14 @@ def cmd_help(*args):
         print("\t{}:".format(cmd_name))
         print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
 
+
 COMMANDS = {
     "chkdeps": chkdeps,
     "help": cmd_help,
 }
 COMMANDS.update(FRONTEND_COMMANDS)
 COMMANDS.update(BACKEND_COMMANDS)
+
 
 def main():
     # TODO: Interactive shell

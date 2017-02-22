@@ -220,7 +220,7 @@ def _check_cairo():
         window.set_visible(False)
         while Gtk.events_pending():
             Gtk.main_iteration()
-    except Exception as exc:
+    except Exception:
         pass
 
     return check.test_successful
@@ -244,6 +244,27 @@ def check_cairo():
             )
         )
 
+    return missing
+
+
+def check_sane():
+    import pyinsane2
+    missing = []
+    try:
+        pyinsane2.init()
+        pyinsane2.exit()
+    except:
+        missing.append(
+            (
+                'libsane', '(none)',
+                {
+                    'debian': 'libsane',
+                    'fedora': 'sane-backends',
+                    'linuxmint': 'libsane',
+                    'ubuntu': 'libsane',
+                },
+            )
+        )
     return missing
 
 
@@ -271,5 +292,5 @@ def find_missing_dependencies():
     missing += find_missing_dict(lang)
     missing += find_missing_data_files()
     missing += check_cairo()
-    # TODO(Jflesch): check for sane ?
+    missing += check_sane()
     return missing

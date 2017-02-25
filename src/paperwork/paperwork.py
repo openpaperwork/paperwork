@@ -107,8 +107,7 @@ def set_locale():
         try:
             set_locale_windows(locales_path)
         except Exception as exc:
-            logger.warning("Failed to set windows locale: {}".format(exc))
-            logger.exception(exc)
+            logger.exception("Failed to set windows locale: {}".format(exc))
             raise
 
     logger.info("Using locales in '%s'" % locales_path)

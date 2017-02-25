@@ -28,6 +28,7 @@ from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 import logging
+import pycountry
 import pyinsane2
 import pyocr
 
@@ -787,12 +788,39 @@ class SettingsWindow(GObject.GObject):
             "progress_updater": JobFactoryProgressUpdater(self.progressbar),
         }
 
+        try:
+            translations = gettext.translation(
+                'iso639-3', pycountry.LOCALES_DIR
+            )
+            logger.info("Language name translations loaded")
+        except Exception:
+            logger.exception("Unable to load languages translations")
+            translations = None
+
         ocr_tools = pyocr.get_available_tools()
+
         if len(ocr_tools) == 0:
-            ocr_langs = []
+            short_ocr_langs = []
         else:
-            ocr_langs = ocr_tools[0].get_available_languages()
-        ocr_langs = self.__get_short_to_long_langs(ocr_langs)
+            short_ocr_langs = ocr_tools[0].get_available_languages()
+        ocr_langs = []
+        for short in short_ocr_langs:
+            if short in ['equ', 'osd']:
+                # ignore some (equ = equation ; osd = orientation detection)
+                continue
+            llang = self.__get_short_to_long_langs(short)
+            if llang:
+                if not translations:
+                    tlang = llang
+                else:
+                    tlang = translations.gettext(llang)
+                logger.info("Translation: {} | {}".format(llang, tlang))
+            if not tlang:
+                logger.error("Warning: Long name not found for language "
+                             "'%s'." % short)
+                logger.warning("  Will use short name as long name.")
+                tlang = short
+            ocr_langs.append((short, tlang))
         ocr_langs.sort(key=lambda lang: lang[1])
 
         self.ocr_settings['lang']['store'].clear()
@@ -815,7 +843,7 @@ class SettingsWindow(GObject.GObject):
         self.schedulers['main'].schedule(job)
 
     @staticmethod
-    def __get_short_to_long_langs(short_langs):
+    def __get_short_to_long_langs(short_lang):
         """
         For each short language name, figures out its long name.
 
@@ -827,26 +855,20 @@ class SettingsWindow(GObject.GObject):
         Returns:
             Tuples: (short name, long name)
         """
-        langs = []
-        for short_lang in short_langs:
-            try:
-                extra = short_lang[3:]
-                short_lang = short_lang[:3]
-                long_lang = short_lang
-                if extra != "" and (extra[0] == "-" or extra[0] == "_"):
-                    extra = extra[1:]
-                lang = find_language(short_lang, allow_none=True)
-                if lang:
-                    long_lang = lang.name
-                if extra != "":
-                    long_lang += " (%s)" % (extra)
-                langs.append((short_lang, long_lang))
-            except KeyError:
-                logger.error("Warning: Long name not found for language "
-                             "'%s'." % short_lang)
-                logger.warning("  Will use short name as long name.")
-                langs.append((short_lang, short_lang))
-        return langs
+        try:
+            extra = short_lang[3:]
+            short_lang = short_lang[:3]
+            long_lang = short_lang
+            if extra != "" and (extra[0] == "-" or extra[0] == "_"):
+                extra = extra[1:]
+            lang = find_language(short_lang, allow_none=True)
+            if lang:
+                long_lang = lang.name
+            if extra != "":
+                long_lang += " (%s)" % (extra)
+            return long_lang
+        except KeyError:
+            return None
 
     def on_finding_start_cb(self, settings):
         settings['gui'].set_sensitive(False)

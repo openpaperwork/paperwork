@@ -198,6 +198,7 @@ target "http://rogerdudler.github.io/git-guide/"
 
 \begin_deeper
 \begin_layout Verbatim
+
 apt install git git-gui # Ubuntu/Debian
 \end_layout
 
@@ -212,6 +213,7 @@ Intltool
 
 \begin_deeper
 \begin_layout Verbatim
+
 apt install intltool  # Ubuntu/Debian
 \end_layout
 
@@ -266,11 +268,36 @@ Forking Paperwork on GitHub
 The repository 
 \emph on
 Paperwork
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+
+\emph on
+https://github.com/jflesch/paperwork
+\end_layout
+
+\end_inset
+
+
 \emph default
  contains the GTK+ user interface.
- This is the only part that requires translations.
  You will need a copy of this repository on your Github account in order
  to submit a pull request later.
+\end_layout
+
+\begin_layout Standard
+There are also strings in the backend
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+https://github.com/jflesch/paperwork-backend
+\end_layout
+
+\end_inset
+
+ that must be translated.
 \end_layout
 
 \begin_layout Subsection
@@ -279,18 +306,27 @@ Downloading
 
 \begin_layout Standard
 You must have configured GitHub SSH access for these commands to work.
+ You need the frontend and the backend.
 \end_layout
 
 \begin_layout Verbatim
+
 # download a copy of Paperwork repository
 \end_layout
 
 \begin_layout Verbatim
+
 $ git clone git@github.com:[your login]/paperwork.git
 \end_layout
 
 \begin_layout Verbatim
-$ cd paperwork
+
+# download a copy of Paperwork's backend repository
+\end_layout
+
+\begin_layout Verbatim
+
+$ git clone git@github.com:[your login]/paperwork-backend.git
 \end_layout
 
 \begin_layout Standard
@@ -301,10 +337,22 @@ If you already have a copy of Paperwork repository, you can simply update
 \end_layout
 
 \begin_layout Verbatim
+
 $ cd paperwork
 \end_layout
 
 \begin_layout Verbatim
+
+$ git pull
+\end_layout
+
+\begin_layout Verbatim
+
+$ cd ../paperwork-backend
+\end_layout
+
+\begin_layout Verbatim
+
 $ git pull
 \end_layout
 
@@ -391,6 +439,22 @@ unstable
 \end_layout
 
 \begin_layout Verbatim
+
+$ cd paperwork
+\end_layout
+
+\begin_layout Verbatim
+
+$ git checkout [branch]  # switch the wanted branch
+\end_layout
+
+\begin_layout Verbatim
+
+$ cd ../paperwork-backend
+\end_layout
+
+\begin_layout Verbatim
+
 $ git checkout [branch]  # switch the wanted branch
 \end_layout
 
@@ -408,7 +472,29 @@ Strings to translate are in the program itself.
  A script has been included in Paperwork repository for this purpose.
 \end_layout
 
+\begin_layout Standard
+It will look for strings to translate in 2 packages:
+\end_layout
+
+\begin_layout Itemize
+'paperwork' (frontend): It will look in the current directory for .py, and
+ .glade files and extract strings from these files.
+\end_layout
+
+\begin_layout Itemize
+'paperwork_backend': It will look for the source files (.py) of 'paperwork-backen
+d' where the environment variable BACKEND_DIRECTORY points to.
+ If this variable is not set, it will look for the source files where paperwork_
+backend has been installed.
+\end_layout
+
 \begin_layout Verbatim
+
+$ export BACKEND_DIRECTORY=../paperwork-backend
+\end_layout
+
+\begin_layout Verbatim
+
 $ ./localize.sh upd-po
 \end_layout
 
@@ -420,6 +506,8 @@ locale/[language].po
 \emph default
 .
  You can use any file editor to modify this file (GEdit, Vim, etc).
+ If there is no file for the language you want, please open a ticket on
+ GitHub.
 \end_layout
 
 \begin_layout Subsection
@@ -592,11 +680,12 @@ Translations must be compiled.
 \end_layout
 
 \begin_layout Verbatim
+
 $ ./localize.sh gen-mo
 \end_layout
 
 \begin_layout Standard
-It will regenerated the .mo files in 
+It will regenerate the .mo files in 
 \emph on
 locales/
 \emph default
@@ -612,6 +701,7 @@ You can run Paperwork from your Git repository using the following command:
 \end_layout
 
 \begin_layout Verbatim
+
 python3 src/launcher.py
 \end_layout
 
@@ -621,14 +711,17 @@ Paperwork looks at the system settings to know which language must be used.
 \end_layout
 
 \begin_layout Verbatim
+
 $ LANG=C python3 src/launcher.py  # Original strings (English)
 \end_layout
 
 \begin_layout Verbatim
+
 $ LANG=fr_FR python3 src/launcher.py  # French
 \end_layout
 
 \begin_layout Verbatim
+
 $ LANG=de_DE python3 src/launcher.py  # German
 \end_layout
 

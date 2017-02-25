@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # List of langs supported by Paperwork. Langs are separated by spaces.
 # For each language, the most common system locale and its short writing
@@ -22,6 +22,11 @@ usage()
 	exit 1
 }
 
+if [ -z "${BACKEND_DIRECTORY}" ] ; then
+	BACKEND_DIRECTORY=$(python3 -c "import paperwork_backend; print(paperwork_backend.__file__)")
+	BACKEND_DIRECTORY=$(dirname "${BACKEND_DIRECTORY}")
+fi
+
 if ! [ -d src ]
 then
 	echo "$0: Must be run from the root of the paperwork source tree" >&2
@@ -34,6 +39,24 @@ then
 	exit 0
 elif [ "$1" = "upd-po" ]
 then
+	tmpdir=""
+
+	echo "[paperwork-backend] Will look for backend sources in ${BACKEND_DIRECTORY}"
+	echo "[paperwork-backend] Please set BACKEND_DIRECTORY if not correct"
+
+	if [[ $(dirname "${BACKEND_DIRECTORY}") == *egg ]]; then
+		echo "[paperwork-backend] Egg file detected. Extracting ..."
+		tmpdir="$(mktemp -d)"
+		unzip $(dirname "${BACKEND_DIRECTORY}") -d "${tmpdir}" > /dev/null
+		BACKEND_DIRECTORY="${tmpdir}/$(basename ${BACKEND_DIRECTORY})"
+		echo "[paperwork-backend] Extraction done."
+	fi
+
+	if [ ! -e "${BACKEND_DIRECTORY}/__init__.py" ] ; then
+		echo "[paperwork-backend] paperwork backend sources not found !"
+		exit 1
+	fi
+
 	mkdir -p locale
 
 	rm -f locale/messages.pot
@@ -50,6 +73,7 @@ then
 	echo "*.py + *.glade.h --> locale/messages.pot"
 	xgettext -k_ -kN_ -o locale/messages.pot \
 		$(find src/paperwork -name \*.py ! -path src/paperwork/frontend/labeleditor/__init__.py) \
+		$(find "${BACKEND_DIRECTORY}" -name \*.py) \
 		$(find src/paperwork/frontend -name \*.glade.h) \
 		$(find src/paperwork/frontend -name \*.xml.h) \
 		> /dev/null
@@ -78,6 +102,11 @@ then
 			exit 4
 		fi
 	done
+
+	if [ -n "${tmpdir}" ]; then
+		echo "[paperwork-backend] Deleting temporary directory ..."
+		rm -rf "${tmpdir}"
+	fi
 
 	echo "Done"
 	exit 0

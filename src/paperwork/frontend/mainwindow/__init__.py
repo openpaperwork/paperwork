@@ -855,12 +855,12 @@ class JobImporter(Job):
     can_stop = False
     priority = 150
 
-    def __init__(self, factory, id, main_win, config, importer, file_uri):
+    def __init__(self, factory, id, main_win, config, importer, file_uris):
         Job.__init__(self, factory, id)
         self.__main_win = main_win
         self.__config = config
         self.importer = importer
-        self.file_uri = file_uri
+        self.file_uris = file_uris
 
     class IndexAdder(object):
         def __init__(self, main_win, page_iterator, must_add_labels=False):
@@ -978,7 +978,7 @@ class JobImporter(Job):
         try:
             try:
                 import_result = self.importer.import_doc(
-                    self.file_uri, self.__main_win.docsearch,
+                    self.file_uris, self.__main_win.docsearch,
                     self.__main_win.doc
                 )
             finally:
@@ -1012,24 +1012,18 @@ class JobImporter(Job):
 
         set_widget_state(self.__main_win.need_doc_widgets, True)
 
-        new_doc_pages = []
-        for doc in import_result.new_docs:
-            new_doc_pages += [p for p in doc.pages]
-        upd_doc_pages = []
-        for doc in import_result.upd_docs:
-            upd_doc_pages += [p for p in doc.pages]
+        new_doc_pages = import_result.new_docs_pages
+        upd_doc_pages = import_result.upd_docs_pages
 
         if upd_doc_pages != []:
-            # TODO(JFlesch): Assumption:
-            # We assume here that only one page has been added to an existing
-            # document. This is an assumption true for now, but that may not
-            # be in the future.
+            logger.info("Adding %d pages to index (auto labels=False)",
+                        len(upd_doc_pages))
             self.IndexAdder(
-                self.__main_win, iter([import_result.select_page]),
-                must_add_labels=False
+                self.__main_win, iter(upd_doc_pages), must_add_labels=False
             ).start()
-
         if new_doc_pages != []:
+            logger.info("Adding %d pages to index (auto labels=True)",
+                        len(new_doc_pages))
             self.IndexAdder(
                 self.__main_win, iter(new_doc_pages), must_add_labels=True
             ).start()
@@ -1046,10 +1040,10 @@ class JobFactoryImporter(JobFactory):
         self._main_win = main_win
         self._config = config
 
-    def make(self, importer, file_uri):
+    def make(self, importer, file_uris):
         return JobImporter(self, next(self.id_generator),
                            self._main_win, self._config,
-                           importer, file_uri)
+                           importer, file_uris)
 
 
 class ActionNewDocument(SimpleAction):
@@ -1479,10 +1473,10 @@ class ActionImport(SimpleAction):
             logger.info("Import: Canceled by user")
             dialog.destroy()
             return None
-        file_uri = dialog.get_uri()
+        file_uris = dialog.get_uris()
         dialog.destroy()
-        logger.info("Import: %s" % file_uri)
-        GLib.idle_add(self._do_import, file_uri)
+        logger.info("Import: %s", file_uris)
+        GLib.idle_add(self._do_import, file_uris)
 
     def __select_file(self):
         widget_tree = load_uifile(
@@ -1490,7 +1484,7 @@ class ActionImport(SimpleAction):
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_transient_for(self.__main_win.window)
         dialog.set_local_only(False)
-        dialog.set_select_multiple(False)
+        dialog.set_select_multiple(True)
 
         dialog.connect("response", lambda dialog, response:
                        GLib.idle_add(self.__select_file_cb, dialog, response))
@@ -1516,9 +1510,9 @@ class ActionImport(SimpleAction):
         active_idx = combobox.get_active()
         return importer_list[active_idx][1]
 
-    def __no_importer(self, file_uri):
+    def __no_importer(self, file_uris):
         msg = (_("Don't know how to import '%s'. Sorry.") %
-               (os.path.basename(file_uri)))
+               (file_uris))
         flags = (Gtk.DialogFlags.MODAL |
                  Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
@@ -1577,21 +1571,36 @@ class ActionImport(SimpleAction):
     def _do(self):
         self.__select_file()
 
-    def _do_import(self, file_uri):
+    def _do_import(self, file_uris):
+        for file_uri in file_uris:
+            gfile = Gio.File.new_for_uri(file_uri)
+            file_type = gfile.query_file_type(Gio.FileQueryInfoFlags.NONE)
+            if file_type == Gio.FileType.DIRECTORY or not gfile.has_parent():
+                # If the user imported a directory, assume they will again
+                # import the same directory later (useful for people just
+                # keeping adding PDF files in the same directory)
+                logger.info("Adding %s to recently used files", file_uri)
+                Gtk.RecentManager().add_item(file_uri)
+            else:
+                # If the user imported a file, assume they won't import it twice
+                # But they may import again other files from the same directory
+                parent = gfile.get_parent()
+                logger.info("Adding %s to recently used files",
+                            parent.get_uri())
+                Gtk.RecentManager().add_item(parent.get_uri())
+
         importers = docimport.get_possible_importers(
-            file_uri, self.__main_win.doc)
+            file_uris, self.__main_win.doc)
         if len(importers) <= 0:
-            self.__no_importer(file_uri)
+            self.__no_importer(file_uris)
             return
         elif len(importers) > 1:
             importer = self.__select_importers(importers)
         else:
             importer = importers[0]
 
-        Gtk.RecentManager().add_item(file_uri)
-
         job_importer = self.__main_win.job_factories['importer']
-        job_importer = job_importer.make(importer, file_uri)
+        job_importer = job_importer.make(importer, file_uris)
         job_importer.connect('no-doc-imported',
                              lambda _: GLib.idle_add(self.__no_doc_imported))
         job_importer.connect(
@@ -3070,9 +3079,9 @@ class MainWindow(object):
         # no document --> add the introduction document
         docpath = get_documentation('intro')
         docuri = GLib.filename_to_uri(docpath)
-        importers = docimport.get_possible_importers(docuri, self.doc)
+        importers = docimport.get_possible_importers([docuri], self.doc)
         job_importer = self.job_factories['importer']
-        job_importer = job_importer.make(importers[0], docuri)
+        job_importer = job_importer.make(importers[0], [docuri])
 
         label = Label(name=_("Documentation"), color="#ffffffffffff")
         job_importer.connect(
@@ -3767,7 +3776,7 @@ class MainWindow(object):
             self.set_progression(None, 0.0, None)
         else:
             self.set_progression(None, float(page_nb) / nb_pages,
-                                 _("Examining imported file ..."))
+                                 _("Examining imported file(s) ..."))
 
     def on_page_img_rendering_error(self, renderer):
         # the only known problem is when we get MemoryError for some reason

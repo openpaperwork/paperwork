@@ -65,8 +65,7 @@ class ImportResult(object):
         return len(self.new_docs) > 0 or len(self.upd_docs) > 0
 
 
-class SinglePdfImporter(object):
-
+class PdfImporter(object):
     """
     Import a single PDF file as a document
     """
@@ -75,35 +74,50 @@ class SinglePdfImporter(object):
         pass
 
     @staticmethod
-    def can_import(file_uri, current_doc=None):
+    def can_import(file_uris, current_doc=None):
         """
         Check that the specified file looks like a PDF
         """
-        return file_uri.lower().endswith(".pdf")
+        if len(file_uris) <= 0:
+            return False
+        for uri in file_uris:
+            if not uri.lower().endswith(".pdf"):
+                return False
+        return True
 
     @staticmethod
-    def import_doc(file_uri, docsearch, current_doc=None):
+    def import_doc(file_uris, docsearch, current_doc=None):
         """
         Import the specified PDF file
         """
-        f = Gio.File.parse_name(file_uri)
-        if docsearch.is_hash_in_index(PdfDoc.hash_file(f.get_path())):
-            logger.info("Document %s already found in the index. Skipped"
-                        % (f.get_path()))
-            return ImportResult()
+        doc = None
+        docs = []
+        pages = []
 
-        doc = PdfDoc(docsearch.rootdir)
-        logger.info("Importing doc '%s' ..." % file_uri)
-        error = doc.import_pdf(file_uri)
-        if error:
-            raise Exception("Import of {} failed: {}".format(file_uri, error))
+        for file_uri in file_uris:
+            f = Gio.File.parse_name(file_uri)
+            if docsearch.is_hash_in_index(PdfDoc.hash_file(f.get_path())):
+                logger.info("Document %s already found in the index. Skipped"
+                            % (f.get_path()))
+                return ImportResult()
+
+            doc = PdfDoc(docsearch.rootdir)
+            logger.info("Importing doc '%s' ..." % file_uri)
+            error = doc.import_pdf(file_uri)
+            if error:
+                raise Exception("Import of {} failed: {}".format(
+                    file_uri, error
+                ))
+            docs.append(doc)
+            pages += [p for p in doc.pages]
+
         return ImportResult(
-            select_doc=doc, new_docs=[doc],
-            new_docs_pages=[p for p in doc.pages],
+            select_doc=doc, new_docs=docs,
+            new_docs_pages=pages,
             stats={
-                _("PDF"): 1,
-                _("Document(s)"): 1,
-                _("Page(s)"): doc.nb_pages,
+                _("PDF"): len(file_uris),
+                _("Document(s)"): len(file_uris),
+                _("Page(s)"): len(pages),
             }
         )
 
@@ -111,8 +125,7 @@ class SinglePdfImporter(object):
         return _("Import PDF")
 
 
-class MultiplePdfImporter(object):
-
+class PdfDirectoryImporter(object):
     """
     Import many PDF files as many documents
     """
@@ -133,53 +146,62 @@ class MultiplePdfImporter(object):
             name = child.get_name()
             child = parent.get_child(name)
             try:
-                for child in MultiplePdfImporter.__get_all_children(child):
+                for child in PdfDirectoryImporter.__get_all_children(child):
                     yield child
             except GLib.GError:
                 yield child
 
     @staticmethod
-    def can_import(file_uri, current_doc=None):
+    def can_import(file_uris, current_doc=None):
         """
         Check that the specified file looks like a directory containing many
         pdf files
         """
+        if len(file_uris) <= 0:
+            return False
         try:
-            parent = Gio.File.parse_name(file_uri)
-            for child in MultiplePdfImporter.__get_all_children(parent):
-                if child.get_basename().lower().endswith(".pdf"):
-                    return True
+            for file_uri in file_uris:
+                parent = Gio.File.parse_name(file_uri)
+                for child in PdfDirectoryImporter.__get_all_children(parent):
+                    if child.get_basename().lower().endswith(".pdf"):
+                        return True
         except GLib.GError:
             pass
         return False
 
     @staticmethod
-    def import_doc(file_uri, docsearch, current_doc=None):
+    def import_doc(file_uris, docsearch, current_doc=None):
         """
         Import the specified PDF files
         """
-        logger.info("Importing PDF from '%s'" % (file_uri))
-        parent = Gio.File.parse_name(file_uri)
+
         doc = None
         docs = []
         pages = []
 
-        idx = 0
+        for file_uri in file_uris:
+            logger.info("Importing PDF from '%s'" % (file_uri))
+            parent = Gio.File.parse_name(file_uri)
+            idx = 0
 
-        for child in MultiplePdfImporter.__get_all_children(parent):
-            if not child.get_basename().lower().endswith(".pdf"):
-                continue
-            if docsearch.is_hash_in_index(PdfDoc.hash_file(child.get_path())):
-                logger.info("Document %s already found in the index. Skipped"
-                            % (child.get_path()))
-                continue
-            doc = PdfDoc(docsearch.rootdir)
-            error = doc.import_pdf(child.get_uri())
-            if error:
-                continue
-            docs.append(doc)
-            pages.append([p for p in doc.pages])
-            idx += 1
+            for child in PdfDirectoryImporter.__get_all_children(parent):
+                if not child.get_basename().lower().endswith(".pdf"):
+                    continue
+                if docsearch.is_hash_in_index(
+                            PdfDoc.hash_file(child.get_path())
+                        ):
+                    logger.info(
+                        "Document %s already found in the index. Skipped",
+                        (child.get_path())
+                    )
+                    continue
+                doc = PdfDoc(docsearch.rootdir)
+                error = doc.import_pdf(child.get_uri())
+                if error:
+                    continue
+                docs.append(doc)
+                pages.append([p for p in doc.pages])
+                idx += 1
         return ImportResult(
             select_doc=doc, new_docs=docs,
             new_docs_pages=pages,
@@ -194,8 +216,7 @@ class MultiplePdfImporter(object):
         return _("Import each PDF in the folder as a new document")
 
 
-class SingleImageImporter(object):
-
+class ImageImporter(object):
     """
     Import a single image file (in a format supported by PIL). It is either
     added to a document (if one is specified) or as a new document (--> with a
@@ -206,39 +227,50 @@ class SingleImageImporter(object):
         pass
 
     @staticmethod
-    def can_import(file_uri, current_doc=None):
+    def can_import(file_uris, current_doc=None):
         """
         Check that the specified file looks like an image supported by PIL
         """
-        for ext in ImgDoc.IMPORT_IMG_EXTENSIONS:
-            if file_uri.lower().endswith(ext):
-                return True
-        return False
+        if len(file_uris) <= 0:
+            return False
+        for file_uri in file_uris:
+            valid = False
+            for ext in ImgDoc.IMPORT_IMG_EXTENSIONS:
+                if file_uri.lower().endswith(ext):
+                    valid = True
+                    break
+            if not valid:
+                return False
+        return True
 
     @staticmethod
-    def import_doc(file_uri, docsearch, current_doc=None):
+    def import_doc(file_uris, docsearch, current_doc=None):
         """
-        Import the specified image
+        Import the specified images
         """
-        logger.info("Importing doc '%s'" % (file_uri))
-        if current_doc is None:
-            current_doc = ImgDoc(docsearch.rootdir)
+        if current_doc is None or current_doc.is_new:
+            if not current_doc:
+                current_doc = ImgDoc(docsearch.rootdir)
             new_docs = [current_doc]
             upd_docs = []
         else:
             new_docs = []
             upd_docs = [current_doc]
+        new_docs_pages = []
+        upd_docs_pages = []
+        page = None
 
-        file = Gio.File.new_for_uri(file_uri)
-        img = Image.open(file.get_path())
-        page = current_doc.add_page(img, [])
+        for file_uri in file_uris:
+            logger.info("Importing doc '%s'" % (file_uri))
 
-        if new_docs == []:
-            new_docs_pages = []
-            upd_docs_pages = [page]
-        else:
-            new_docs_pages = [page]
-            upd_docs_pages = []
+            file = Gio.File.new_for_uri(file_uri)
+            img = Image.open(file.get_path())
+            page = current_doc.add_page(img, [])
+
+            if new_docs == []:
+                upd_docs_pages.append(page)
+            else:
+                new_docs_pages.append(page)
 
         return ImportResult(
             select_doc=current_doc, select_page=page,
@@ -246,9 +278,9 @@ class SingleImageImporter(object):
             new_docs_pages=new_docs_pages,
             upd_docs_pages=upd_docs_pages,
             stats={
-                _("Image file(s)"): 1,
+                _("Image file(s)"): len(file_uris),
                 _("Document(s)"): 0 if new_docs == [] else 1,
-                _("Page(s)"): 1
+                _("Page(s)"): len(new_docs_pages) + len(upd_docs_pages),
             }
         )
 
@@ -257,13 +289,13 @@ class SingleImageImporter(object):
 
 
 IMPORTERS = [
-    SinglePdfImporter(),
-    SingleImageImporter(),
-    MultiplePdfImporter(),
+    PdfDirectoryImporter(),
+    PdfImporter(),
+    ImageImporter(),
 ]
 
 
-def get_possible_importers(file_uri, current_doc=None):
+def get_possible_importers(file_uris, current_doc=None):
     """
     Return all the importer objects that can handle the specified file.
 
@@ -271,6 +303,6 @@ def get_possible_importers(file_uri, current_doc=None):
     """
     importers = []
     for importer in IMPORTERS:
-        if importer.can_import(file_uri, current_doc):
+        if importer.can_import(file_uris, current_doc):
             importers.append(importer)
     return importers

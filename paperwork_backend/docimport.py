@@ -121,6 +121,11 @@ class PdfImporter(object):
             }
         )
 
+    def get_mimetypes(self):
+        return [
+            ("PDF", "application/pdf"),
+        ]
+
     def __str__(self):
         return _("Import PDF")
 
@@ -212,6 +217,11 @@ class PdfDirectoryImporter(object):
             },
         )
 
+    def get_mimetypes(self):
+        return [
+            (_("PDF folder"), "inode/directory"),
+        ]
+
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
 
@@ -283,6 +293,15 @@ class ImageImporter(object):
                 _("Page(s)"): len(new_docs_pages) + len(upd_docs_pages),
             }
         )
+
+    def get_mimetypes(self):
+        return [
+            ("BMP", "image/x-ms-bmp"),
+            ("GIF", "image/gif"),
+            ("JPEG", "image/jpeg"),
+            ("PNG", "image/png"),
+            ("TIFF", "image/tiff"),
+        ]
 
     def __str__(self):
         return _("Append the image to the current document")

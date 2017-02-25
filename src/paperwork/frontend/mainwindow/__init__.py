@@ -1478,6 +1478,33 @@ class ActionImport(SimpleAction):
         logger.info("Import: %s", file_uris)
         GLib.idle_add(self._do_import, file_uris)
 
+    def __add_filters(self, dialog):
+        all_mimes = []
+
+        filters = []
+        for importer in docimport.IMPORTERS:
+            mimes = importer.get_mimetypes()
+            for (name, mime) in mimes:
+                all_mimes.append(mime)
+                ffilter = Gtk.FileFilter()
+                ffilter.add_mime_type(mime)
+                ffilter.set_name(name)
+                filters.append(ffilter)
+
+        filter_all = Gtk.FileFilter()
+        filter_all.set_name(_("All supported file formats"))
+        for mime in all_mimes:
+            filter_all.add_mime_type(mime)
+        filter_any = Gtk.FileFilter()
+        filter_any.set_name(_("Any file"))
+        filter_any.add_pattern("*.*")
+
+        dialog.add_filter(filter_any)
+        dialog.add_filter(filter_all)
+        for ffilter in filters:
+            dialog.add_filter(ffilter)
+        dialog.set_filter(filter_all)
+
     def __select_file(self):
         widget_tree = load_uifile(
             os.path.join("import", "importfileselector.glade"))
@@ -1485,6 +1512,7 @@ class ActionImport(SimpleAction):
         dialog.set_transient_for(self.__main_win.window)
         dialog.set_local_only(False)
         dialog.set_select_multiple(True)
+        self.__add_filters(dialog)
 
         dialog.connect("response", lambda dialog, response:
                        GLib.idle_add(self.__select_file_cb, dialog, response))

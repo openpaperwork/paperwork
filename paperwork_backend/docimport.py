@@ -65,23 +65,51 @@ class ImportResult(object):
         return len(self.new_docs) > 0 or len(self.upd_docs) > 0
 
 
-class PdfImporter(object):
+class BaseImporter(object):
+    def __init__(self, file_extensions):
+        self.file_extensions = file_extensions
+
+    @staticmethod
+    def can_import(file_uris, current_doc=None):
+        assert()
+
+    @staticmethod
+    def import_doc(file_uris, docsearch, current_doc=None):
+        assert()
+
+    @staticmethod
+    def get_mimetypes():
+        return []
+
+    def check_file_type(self, file_uri):
+        lfile_uri = file_uri.lower()
+        for extension in self.file_extensions:
+            if lfile_uri.endswith(extension):
+                return True
+        gfile = Gio.File.new_for_uri(file_uri)
+        info = gfile.query_info(
+            "standard::content-type", Gio.FileQueryInfoFlags.NONE
+        )
+        mime = info.get_content_type()
+        return mime in [m[1] for m in self.get_mimetypes()]
+
+
+class PdfImporter(BaseImporter):
     """
     Import a single PDF file as a document
     """
 
     def __init__(self):
-        pass
+        super().__init__([".pdf"])
 
-    @staticmethod
-    def can_import(file_uris, current_doc=None):
+    def can_import(self, file_uris, current_doc=None):
         """
         Check that the specified file looks like a PDF
         """
         if len(file_uris) <= 0:
             return False
         for uri in file_uris:
-            if not uri.lower().endswith(".pdf"):
+            if not self.check_file_type(uri):
                 return False
         return True
 
@@ -121,7 +149,8 @@ class PdfImporter(object):
             }
         )
 
-    def get_mimetypes(self):
+    @staticmethod
+    def get_mimetypes():
         return [
             ("PDF", "application/pdf"),
         ]
@@ -130,13 +159,13 @@ class PdfImporter(object):
         return _("Import PDF")
 
 
-class PdfDirectoryImporter(object):
+class PdfDirectoryImporter(BaseImporter):
     """
     Import many PDF files as many documents
     """
 
     def __init__(self):
-        pass
+        super().__init__([".pdf"])
 
     @staticmethod
     def __get_all_children(parent):
@@ -156,8 +185,7 @@ class PdfDirectoryImporter(object):
             except GLib.GError:
                 yield child
 
-    @staticmethod
-    def can_import(file_uris, current_doc=None):
+    def can_import(self, file_uris, current_doc=None):
         """
         Check that the specified file looks like a directory containing many
         pdf files
@@ -168,14 +196,13 @@ class PdfDirectoryImporter(object):
             for file_uri in file_uris:
                 parent = Gio.File.parse_name(file_uri)
                 for child in PdfDirectoryImporter.__get_all_children(parent):
-                    if child.get_basename().lower().endswith(".pdf"):
+                    if self.check_file_type(child.get_uri()):
                         return True
         except GLib.GError:
             pass
         return False
 
-    @staticmethod
-    def import_doc(file_uris, docsearch, current_doc=None):
+    def import_doc(self, file_uris, docsearch, current_doc=None):
         """
         Import the specified PDF files
         """
@@ -190,7 +217,7 @@ class PdfDirectoryImporter(object):
             idx = 0
 
             for child in PdfDirectoryImporter.__get_all_children(parent):
-                if not child.get_basename().lower().endswith(".pdf"):
+                if not self.check_file_type(child.get_uri()):
                     continue
                 if docsearch.is_hash_in_index(
                             PdfDoc.hash_file(child.get_path())
@@ -217,7 +244,8 @@ class PdfDirectoryImporter(object):
             },
         )
 
-    def get_mimetypes(self):
+    @staticmethod
+    def get_mimetypes():
         return [
             (_("PDF folder"), "inode/directory"),
         ]
@@ -226,7 +254,7 @@ class PdfDirectoryImporter(object):
         return _("Import each PDF in the folder as a new document")
 
 
-class ImageImporter(object):
+class ImageImporter(BaseImporter):
     """
     Import a single image file (in a format supported by PIL). It is either
     added to a document (if one is specified) or as a new document (--> with a
@@ -234,27 +262,20 @@ class ImageImporter(object):
     """
 
     def __init__(self):
-        pass
+        super().__init__(ImgDoc.IMPORT_IMG_EXTENSIONS)
 
-    @staticmethod
-    def can_import(file_uris, current_doc=None):
+    def can_import(self, file_uris, current_doc=None):
         """
         Check that the specified file looks like an image supported by PIL
         """
         if len(file_uris) <= 0:
             return False
         for file_uri in file_uris:
-            valid = False
-            for ext in ImgDoc.IMPORT_IMG_EXTENSIONS:
-                if file_uri.lower().endswith(ext):
-                    valid = True
-                    break
-            if not valid:
+            if not self.check_file_type(file_uri):
                 return False
         return True
 
-    @staticmethod
-    def import_doc(file_uris, docsearch, current_doc=None):
+    def import_doc(self, file_uris, docsearch, current_doc=None):
         """
         Import the specified images
         """
@@ -271,10 +292,10 @@ class ImageImporter(object):
         page = None
 
         for file_uri in file_uris:
-            logger.info("Importing doc '%s'" % (file_uri))
+            logger.info("Importing image '%s'" % (file_uri))
 
-            file = Gio.File.new_for_uri(file_uri)
-            img = Image.open(file.get_path())
+            gfile = Gio.File.new_for_uri(file_uri)
+            img = Image.open(gfile.get_path())
             page = current_doc.add_page(img, [])
 
             if new_docs == []:
@@ -294,7 +315,8 @@ class ImageImporter(object):
             }
         )
 
-    def get_mimetypes(self):
+    @staticmethod
+    def get_mimetypes():
         return [
             ("BMP", "image/x-ms-bmp"),
             ("GIF", "image/gif"),

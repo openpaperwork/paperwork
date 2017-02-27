@@ -81,7 +81,6 @@ class ActionSelectDoc(SimpleAction):
 
 
 class ActionRemoveDoc(SimpleAction):
-
     def __init__(self, multiscan_dialog):
         SimpleAction.__init__(self, "Add doc to the multi-scan list")
         self.__dialog = multiscan_dialog
@@ -94,8 +93,7 @@ class ActionRemoveDoc(SimpleAction):
             logger.warning("No doc selected")
             return
         model.remove(selection_iter)
-        for line_idx in range(0, len(self.__dialog.lists['docs']['model'])):
-            line = self.__dialog.lists['docs']['model'][line_idx]
+        for (line_idx, line) in enumerate(self.__dialog.lists['docs']['model']):
             if not self.__dialog.lists['docs']['include_current_doc']:
                 line[0] = _("Document %d") % (line_idx + 1)
             elif line_idx != 0:

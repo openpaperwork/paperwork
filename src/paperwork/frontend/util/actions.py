@@ -115,9 +115,8 @@ class SimpleAction(object):
         for button in buttons:
             assert(button is not None)
             handled = False
-            for handler_idx in range(0, len(self.__signal_handlers)):
-                (obj_class, signal, handler, handler_id) = \
-                    self.__signal_handlers[handler_idx]
+            for (handler_idx, (obj_class, signal, handler, handler_id)) \
+                    in enumerate(self.__signal_handlers):
                 if isinstance(button, obj_class):
                     handler_id = button.connect(signal, handler)
                     handled = True

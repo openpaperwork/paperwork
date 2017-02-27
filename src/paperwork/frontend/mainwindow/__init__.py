@@ -3750,9 +3750,7 @@ class MainWindow(object):
         if doc.docid not in self.scan_drawers:
             self.scan_drawers[doc.docid] = {}
         if page_nb < 0:
-            page_nb = 0
-            while page_nb in range(0, doc.nb_pages):
-                page_nb += 1
+            page_nb = doc.nb_pages
             while page_nb in self.scan_drawers[doc.docid]:
                 page_nb += 1
         self.scan_drawers[doc.docid][page_nb] = scan_workflow_drawer

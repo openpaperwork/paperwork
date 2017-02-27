@@ -762,8 +762,7 @@ class DocSearch(object):
             final_suggestions = []
             corrector = searcher.corrector("content")
             label_corrector = searcher.corrector("label")
-            for keyword_idx in range(0, len(keywords)):
-                keyword = keywords[keyword_idx]
+            for (keyword_idx, keyword) in enumerate(keywords):
                 if (len(keyword) <= MIN_KEYWORD_LEN):
                     continue
                 keyword_suggestions = label_corrector.suggest(

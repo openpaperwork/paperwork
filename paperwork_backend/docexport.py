@@ -17,7 +17,7 @@ class MultipleDocExporter(object):
         for doc in self.doclist:
             self.nb_pages += doc.nb_pages
 
-        for idx in range(0, len(self.exporters)):
+        for (idx, exporter) in enumerate(self.exporters):
             exporter = self.exporters[idx]
             doc = self.doclist[idx]
 

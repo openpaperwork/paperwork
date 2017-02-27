@@ -157,36 +157,27 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         for drawer in self.drawers:
             drawer.on_tick()
         self.__apply_scrolling()
-        self.tick_counter_lock.acquire()
-        try:
+        with self.tick_counter_lock:
             if self.need_stop_ticks > 0:
                 self.need_stop_ticks -= 1
                 assert(self.need_ticks >= 0)
                 return False
             return (self.need_ticks > 0)
-        finally:
-            self.tick_counter_lock.release()
 
     def start_ticks(self):
-        self.tick_counter_lock.acquire()
-        try:
+        with self.tick_counter_lock:
             self.need_ticks += 1
             if self.need_ticks == 1:
                 GLib.timeout_add(self.TICK_INTERVAL, self._tick)
             logger.info("Animators: %d" % self.need_ticks)
-        finally:
-            self.tick_counter_lock.release()
 
     def stop_ticks(self):
-        self.tick_counter_lock.acquire()
-        try:
+        with self.tick_counter_lock:
             self.need_ticks -= 1
             logger.info("Animators: %d" % self.need_ticks)
             if self.need_ticks <= 0:
                 self.need_stop_ticks += 1
             assert(self.need_ticks >= 0)
-        finally:
-            self.tick_counter_lock.release()
 
     def get_hadjustment(self):
         return self.hadjustment

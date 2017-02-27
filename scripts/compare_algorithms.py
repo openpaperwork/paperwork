@@ -94,14 +94,16 @@ ALGORITHMS = [
     (
         "ace",
         [
-            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
+            # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),
         ],
         copy(STATS),
     ),
     (
         "ace + unpaper",
         [
-            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
+            # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),
             (pillowfight.unpaper_blackfilter, {}),
             (pillowfight.unpaper_noisefilter, {}),
             (pillowfight.unpaper_blurfilter, {}),
@@ -114,7 +116,8 @@ ALGORITHMS = [
     (
         "ace + swt",
         [
-            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
+            # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),
             # Stroke Width Transformation
             (
                 pillowfight.swt,
@@ -126,7 +129,8 @@ ALGORITHMS = [
     (
         "ace + unpaper + swt",
         [
-            (pillowfight.ace, {'seed': 0xDEADBEE}),  # automatic color equalization
+            # automatic color equalization
+            (pillowfight.ace, {'seed': 0xDEADBEE}),
 
             (pillowfight.unpaper_blackfilter, {}),
             (pillowfight.unpaper_noisefilter, {}),
@@ -208,20 +212,16 @@ class JobImageProcessing(Job):
         print ("-" * 40)
 
     def do(self):
-        LOCK.acquire()
-        try:
+        with LOCK:
             img = self.page_in.img
             img.load()
-        finally:
-            LOCK.release()
 
         for (algo, kwargs) in self.algos[1]:
             img = algo(img, **kwargs)
 
         txt = OCR_TOOL.image_to_string(img)
 
-        LOCK.acquire()
-        try:
+        with LOCK:
             self._add_score(txt, self.algos[2])
 
             stats = self.algos[2]
@@ -244,8 +244,6 @@ class JobImageProcessing(Job):
             self._print_stats()
 
             gc.collect()
-        finally:
-            LOCK.release()
 
 GObject.type_register(JobImageProcessing)
 

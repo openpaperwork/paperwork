@@ -100,8 +100,7 @@ def fix_labels(stats, dst_dsearch, src_doc, dst_doc):
     else:
         stats['perfect'] += 1
 
-    g_lock.acquire()
-    try:
+    with g_lock:
         print("Document [{}|{}]".format(
             dst_dsearch.label_guesser.min_yes,
             src_doc.docid
@@ -116,8 +115,6 @@ def fix_labels(stats, dst_dsearch, src_doc, dst_doc):
             out += " / MISSING: {}".format(missing)
         if wrong:
             out += " / WRONG: {}".format(wrong)
-    finally:
-        g_lock.release()
 
     print(out)
 
@@ -132,8 +129,7 @@ def print_stats(stats):
     if nb_documents == 0:
         nb_documents += 1
 
-    g_lock.acquire()
-    try:
+    with g_lock:
         print("---")
         print("Success/total:            {}/{} = {}%".format(
             stats['perfect'], nb_documents,
@@ -151,8 +147,6 @@ def print_stats(stats):
             stats['wrong_guess'], stats['nb_dst_labels'],
             int(stats['wrong_guess'] * 100 / stats['nb_dst_labels'])
         ))
-    finally:
-        g_lock.release()
 
 
 def run_simulation(
@@ -222,14 +216,11 @@ def run_simulation(
 
                 current_doc = docs[0]
     finally:
-        g_lock.acquire()
-        try:
+        with g_lock:
             csvwriter.writerow([
                 min_yes,
                 stats['nb_documents'], stats['perfect'],
             ])
-        finally:
-            g_lock.release()
         rm_rf(dst_doc_dir)
         rm_rf(dst_index_dir)
         print_stats(stats)

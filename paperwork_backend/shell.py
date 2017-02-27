@@ -390,12 +390,10 @@ def cmd_remove_label(docid, label_name):
             )
         )
 
-    label = None
     for clabel in dsearch.label_list:
         if clabel.name == label_name:
             label = clabel
-            break
-    if label is None:
+    else:
         raise Exception("Unknown label {}".format(label_name))
 
     dsearch.remove_label(doc, label)

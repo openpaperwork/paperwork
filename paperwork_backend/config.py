@@ -89,13 +89,10 @@ class PaperworkConfig(object):
                           os.path.expanduser("~/.config"))))
         ]
 
-        configfile_found = False
         for self.__configfile in configfiles:
             if os.access(self.__configfile, os.R_OK):
-                configfile_found = True
                 logger.info("Config file found: %s" % self.__configfile)
-                break
-        if not configfile_found:
+        else:
             logger.info("Config file not found. Will use '%s'"
                         % self.__configfile)
         util.mkdir_p(os.path.dirname(self.__configfile))

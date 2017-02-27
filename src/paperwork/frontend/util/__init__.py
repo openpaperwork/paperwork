@@ -289,7 +289,7 @@ class PriorityQueue(object):
             if element[2] == target:
                 to_remove = element
                 break
-        if to_remove is None:
+        else:
             raise ValueError()
         self.elements.remove(to_remove)
         heapq.heapify(self.elements)

@@ -2151,12 +2151,10 @@ class ActionSelectExportPath(SimpleAction):
 
         valid_exts = self.__main_win.export['exporter'].get_file_extensions()
         if valid_exts:
-            has_valid_ext = False
             for valid_ext in valid_exts:
                 if filepath.lower().endswith(valid_ext.lower()):
-                    has_valid_ext = True
                     break
-            if not has_valid_ext:
+            else:
                 filepath += ".%s" % valid_exts[0]
 
         self.__main_win.export['export_path'].set_text(filepath)

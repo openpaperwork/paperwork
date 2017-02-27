@@ -159,12 +159,10 @@ class ImgGripRectangle(Drawer):
     position = property(__get_position, __set_position)
 
     def do_draw(self, cairo_ctx):
-        visible = False
         for grip in self.grips:
             if grip.visible:
-                visible = True
                 break
-        if not visible:
+        else:
             return
 
         (a_x, a_y) = self.grips[0].position

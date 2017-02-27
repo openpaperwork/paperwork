@@ -83,7 +83,6 @@ def set_locale():
         logger.warning("Failed to set LC_ALL, disabling localization")
         return
 
-    got_locales = False
     locales_path = None
 
     for locale_base in LOCALE_PATHS:
@@ -96,10 +95,8 @@ def set_locale():
         if not os.access(mo_file, os.R_OK):
             logger.debug("No read permission for locale '%s'" % locales_path)
             continue
-        got_locales = True
         break
-
-    if not got_locales:
+    else:
         logger.warning("No suitable localization file found.")
         return
 

@@ -271,12 +271,10 @@ def check_sane():
 def find_missing_data_files():
     missings = []
     for (user_name, file_paths, packages) in DATA_FILES:
-        missing = True
         for file_path in file_paths:
             if os.path.exists(file_path):
-                missing = False
                 break
-        if missing:
+        else:
             missings.append((user_name, "(none)", packages))
     return missings
 

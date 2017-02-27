@@ -1109,7 +1109,7 @@ class DocList(object):
             for doc in docs:
                 if doc.docid in self.model['thumbnails']:
                     self.model['thumbnails'].pop(doc.docid)
-        docs = [x for x in docs]
+        docs = list(docs)
         logger.info("Will redo thumbnails: %s" % str(docs))
         job = self.job_factories['doc_thumbnailer'].make(docs)
         self.__main_win.schedulers['main'].schedule(job)

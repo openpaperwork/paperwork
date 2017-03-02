@@ -92,6 +92,7 @@ class PaperworkConfig(object):
         for self.__configfile in configfiles:
             if os.access(self.__configfile, os.R_OK):
                 logger.info("Config file found: %s" % self.__configfile)
+                break
         else:
             logger.info("Config file not found. Will use '%s'"
                         % self.__configfile)

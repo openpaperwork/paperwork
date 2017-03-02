@@ -992,11 +992,15 @@ class JobImporter(Job):
             return
 
         nb_docs = len(import_result.new_docs) + len(import_result.upd_docs)
-        if import_result.select_page:
-            nb_pages = 1
-        else:
-            nb_pages += sum([doc.nb_pages for doc in import_result.new_docs])
+        nb_pages = (
+            len(import_result.new_docs_pages) +
+            len(import_result.upd_docs_pages)
+        )
         logger.info("Imported %d docs and %d pages" % (nb_docs, nb_pages))
+        logger.info("- New docs: {}".format(import_result.new_docs))
+        logger.info("- Upd docs: {}".format(import_result.upd_docs))
+        logger.info("- New pages: {}".format(import_result.new_docs_pages))
+        logger.info("- Upd pages: {}".format(import_result.upd_docs_pages))
 
         if import_result.select_doc:
             self.__main_win.show_doc(

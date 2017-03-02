@@ -232,7 +232,7 @@ class PdfDirectoryImporter(BaseImporter):
                 if error:
                     continue
                 docs.append(doc)
-                pages.append([p for p in doc.pages])
+                pages += [p for p in doc.pages]
                 idx += 1
         return ImportResult(
             select_doc=doc, new_docs=docs,

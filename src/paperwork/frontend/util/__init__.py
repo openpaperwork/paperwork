@@ -40,27 +40,6 @@ from .actions import SimpleAction
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
-PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
-
-UI_FILES_DIRS = []
-if getattr(sys, 'frozen', False):
-    UI_FILES_DIRS += [os.path.join(sys._MEIPASS, "data")]
-UI_FILES_DIRS += [
-    ".",
-    "src/paperwork/frontend",
-    "data",
-    PREFIX + "/local/share/paperwork",
-    PREFIX + "/share/paperwork",
-
-    # XXX(Jflesch): The following locations are unexpected
-    # but it seems those are the locations used by Pip
-    # (sys.prefix in setup.py ?)
-    PREFIX + "/local/lib/python*/dist-packages/usr/share/paperwork",
-    PREFIX + "/local/lib/python*/dist-packages/usr/local/share/paperwork",
-    PREFIX + "/lib/python*/dist-packages/usr/share/paperwork",
-    PREFIX + "/lib/python*/dist-packages/usr/local/share/paperwork",
-]
-
 
 def translate_xml(xml_str):
     root = ElementTree.fromstring(xml_str)
@@ -105,6 +84,33 @@ def fix_widgets(widget_tree):
             )
 
 
+def _get_resource_path(filename):
+    """
+    Gets the absolute location of a datafile located within the package (paperwork.frontend).
+    This function throws if the file is not found, but the error depends on the way the package was
+    installed.
+
+    Arguments:
+        filename -- the relative filename of the file to load.
+
+    Returns:
+        the full path of the file.
+
+    Throws:
+        Exception -- if the file is not found.
+
+    """
+    path = resource_filename('paperwork.frontend', filename)
+
+    if not os.access(path, os.R_OK):
+        logger.error("Can't find resource file '%s'. Aborting" % filename)
+        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+
+    logger.info("For filename '%s' got file '%s'", filename, path)
+
+    return path
+
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
@@ -120,9 +126,8 @@ def load_uifile(filename):
     """
     widget_tree = Gtk.Builder()
 
-    ui_file = resource_filename('paperwork.frontend', filename)
+    ui_file = _get_resource_path(filename)
 
-    logger.info("UI file used: " + ui_file)
     if os.name == "nt":
         # WORKAROUND(Jflesch):
         # for some reason, add_from_file() doesn't translate
@@ -134,6 +139,7 @@ def load_uifile(filename):
             fix_widgets(widget_tree)
     else:
         widget_tree.add_from_file(ui_file)
+
     return widget_tree
 
 
@@ -149,15 +155,9 @@ def load_cssfile(filename):
     """
     css_provider = Gtk.CssProvider()
 
-    css_file = resource_filename('paperwork.frontend', filename)
-    if os.access(css_file, os.R_OK):
-        logger.info("CSS file used: " + css_file)
-        css_provider.load_from_path(css_file)
-        has_css_file = True
+    css_file = _get_resource_path(filename)
+    css_provider.load_from_path(css_file)
 
-    if not has_css_file:
-        logger.error("Can't find resource file '%s'. Aborting" % filename)
-        raise Exception("Can't find resource file '%s'. Aborting" % filename)
     Gtk.StyleContext.add_provider_for_screen(
         Gdk.Screen.get_default(),
         css_provider,
@@ -177,7 +177,7 @@ def load_image(filename):
     """
     Load an image from Paperwork data
     """
-    img = resource_filename('paperwork.frontend', filename)
+    img = _get_resource_path(filename)
     return PIL.Image.open(img)
 
 

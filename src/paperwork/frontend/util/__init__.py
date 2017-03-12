@@ -106,6 +106,33 @@ def fix_widgets(widget_tree):
             )
 
 
+def _get_resource_path(filename):
+    """
+    Gets the absolute location of a datafile located within the package (paperwork.frontend).
+    This function throws if the file is not found, but the error depends on the way the package was
+    installed.
+
+    Arguments:
+        filename -- the relative filename of the file to load.
+
+    Returns:
+        the full path of the file.
+
+    Throws:
+        Exception -- if the file is not found.
+
+    """
+    path = resource_filename('paperwork.frontend', filename)
+
+    if not os.access(path, os.R_OK):
+        logger.error("Can't find resource file '%s'. Aborting" % filename)
+        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+
+    logger.debug("For filename '%s' got file '%s'", filename, path)
+
+    return path
+
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
@@ -121,9 +148,8 @@ def load_uifile(filename):
     """
     widget_tree = Gtk.Builder()
 
-    ui_file = resource_filename('paperwork.frontend', filename)
+    ui_file = _get_resource_path(filename)
 
-    logger.info("UI file used: " + ui_file)
     if os.name == "nt":
         # WORKAROUND(Jflesch):
         # for some reason, add_from_file() doesn't translate
@@ -151,7 +177,8 @@ def load_cssfile(filename):
     """
     css_provider = Gtk.CssProvider()
 
-    css_file = resource_filename('paperwork.frontend', filename)
+    css_file = _get_resource_path(filename)
+    css_provider.load_from_path(css_file)
 
     Gtk.StyleContext.add_provider_for_screen(
         Gdk.Screen.get_default(),
@@ -172,7 +199,7 @@ def load_image(filename):
     """
     Load an image from Paperwork data
     """
-    img = resource_filename('paperwork.frontend', filename)
+    img = _get_resource_path(filename)
     return PIL.Image.open(img)
 
 

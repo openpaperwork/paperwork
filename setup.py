@@ -2,9 +2,8 @@
 
 import glob
 import os
-import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 extra_deps = []
 
@@ -12,6 +11,16 @@ if os.name == "nt":
     extra_deps = [
         "pycrypto"  # used to check the activation keys
     ]
+
+data_files = []
+
+# include icons
+for icon_dirpath in glob.glob('data/[0-9][0-9]*'):
+    icon_path = os.path.join(icon_dirpath, 'paperwork.png')
+    if os.path.exists(icon_path):
+        size = os.path.basename(icon_dirpath)
+        data_files.append(('share/icons/hicolor/{}/apps'.format(size), [icon_path]))
+data_files.append(('share/icons/hicolor/scalable/apps', ['data/paperwork.svg', 'data/paperwork_halo.svg']))
 
 setup(
     name="paperwork",
@@ -72,172 +81,22 @@ Main features are:
     license="GPLv3+",
     author="Jerome Flesch",
     author_email="jflesch@openpaper.work",
-    packages=[
-        'paperwork',
-        'paperwork.frontend',
-        'paperwork.frontend.aboutdialog',
-        'paperwork.frontend.activation',
-        'paperwork.frontend.diag',
-        'paperwork.frontend.import',
-        'paperwork.frontend.labeleditor',
-        'paperwork.frontend.mainwindow',
-        'paperwork.frontend.multiscan',
-        'paperwork.frontend.searchdialog',
-        'paperwork.frontend.settingswindow',
-        'paperwork.frontend.util',
-        'paperwork.frontend.util.canvas',
-        'paperwork.frontend.widgets',
-    ],
-    package_dir={
-        'paperwork': 'src/paperwork',
-        'paperwork.frontend': 'src/paperwork/frontend',
-        'paperwork.frontend.aboutdialog':
-        'src/paperwork/frontend/aboutdialog',
-        'paperwork.frontend.activation':
-        'src/paperwork/frontend/activation',
-        'paperwork.frontend.diag': 'src/paperwork/frontend/diag',
-        'paperwork.frontend.import': 'src/paperwork/frontend/import',
-        'paperwork.frontend.labeleditor':
-        'src/paperwork/frontend/labeleditor',
-        'paperwork.frontend.mainwindow': 'src/paperwork/frontend/mainwindow',
-        'paperwork.frontend.multiscan': 'src/paperwork/frontend/multiscan',
-        'paperwork.frontend.settingswindow':
-        'src/paperwork/frontend/settingswindow',
-        'paperwork.frontend.searchdialog':
-        'src/paperwork/frontend/searchdialog',
-        'paperwork.frontend.util': 'src/paperwork/frontend/util',
-        'paperwork.frontend.util.canvas':
-        'src/paperwork/frontend/util/canvas',
-        'paperwork.frontend.widgets': 'src/paperwork/frontend/widgets',
-    },
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
     data_files=[
-        # css file
-        (
-            os.path.join(sys.prefix, 'share/paperwork'),
-            [
-                'src/paperwork/frontend/application.css',
-            ]
-        ),
-
-        # glade files
-        (
-            os.path.join(sys.prefix, 'share/paperwork/aboutdialog'),
-            [
-                'src/paperwork/frontend/aboutdialog/aboutdialog.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/activation'),
-            [
-                'src/paperwork/frontend/activation/activationdialog.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/diag'),
-            [
-                'src/paperwork/frontend/diag/diagdialog.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/searchdialog'),
-            [
-                'src/paperwork/frontend/searchdialog/searchdialog.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/settingswindow'),
-            [
-                'src/paperwork/frontend/settingswindow/settingswindow.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/import'),
-            [
-                'src/paperwork/frontend/import/importaction.glade',
-                'src/paperwork/frontend/import/importfileselector.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/labeleditor'),
-            [
-                'src/paperwork/frontend/labeleditor/labeleditor.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
-            [
-                'src/paperwork/frontend/mainwindow/appmenu.xml',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/mainwindow'),
-            [
-                'src/paperwork/frontend/mainwindow/export.glade',
-                'src/paperwork/frontend/mainwindow/mainwindow.glade',
-            ]
-        ),
-        (
-            os.path.join(sys.prefix, 'share/paperwork/multiscan'),
-            [
-                'src/paperwork/frontend/multiscan/multiscan.glade',
-            ]
-        ),
-
-        # translations
-        (os.path.join(sys.prefix, 'share/locale/fr/LC_MESSAGES'),
+        ('share/locale/fr/LC_MESSAGES',
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
-        (os.path.join(sys.prefix, 'share/locale/de/LC_MESSAGES'),
+        ('share/locale/de/LC_MESSAGES',
          ['locale/de/LC_MESSAGES/paperwork.mo']),
 
         # documentation
-        (os.path.join(sys.prefix, 'share/paperwork/doc'),
+        ('share/paperwork/doc',
          glob.glob('doc/*.pdf')),
 
-        # pics
-        (os.path.join(sys.prefix, 'share/paperwork'),
-         ['data/bad.png']),
-        (os.path.join(sys.prefix, 'share/applications'),
+        ('share/applications',
          ['data/paperwork.desktop']),
-
-        (os.path.join(sys.prefix, 'share/icons/hicolor/scalable/apps'),
-         ['data/paperwork.svg', 'data/paperwork_halo.svg']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/16x16/apps'),
-         ['data/16/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/22x22/apps'),
-         ['data/22/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/24x24/apps'),
-         ['data/24/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/32x32/apps'),
-         ['data/32/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/36x36/apps'),
-         ['data/36/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/42x42/apps'),
-         ['data/42/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/48x48/apps'),
-         ['data/48/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/64x64/apps'),
-         ['data/64/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/72x72/apps'),
-         ['data/72/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/96x96/apps'),
-         ['data/96/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/128x128/apps'),
-         ['data/128/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/160x160/apps'),
-         ['data/160/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/192x192/apps'),
-         ['data/192/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/256x256/apps'),
-         ['data/256/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/icons/hicolor/512x512/apps'),
-         ['data/512/paperwork.png']),
-        (os.path.join(sys.prefix, 'share/paperwork'),
-         ['data/paperwork_100.png']),
-        (os.path.join(sys.prefix, 'share/paperwork'),
-         ['data/magic_colors.png']),
-        (os.path.join(sys.prefix, 'share/paperwork'),
-         ['data/waiting.png']),
-    ],
+    ] + data_files,
     entry_points={
         'gui_scripts': [
             'paperwork = paperwork.paperwork:main',

@@ -43,14 +43,15 @@ from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
 
+PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 
 LOCALE_PATHS = []
 if getattr(sys, 'frozen', False):
     LOCALE_PATHS += [os.path.join(sys._MEIPASS, "share")]
 LOCALE_PATHS += [
-    ('.'),
-    ('/usr/local/share/'),
-    ('/usr/share/'),
+    '.',
+    PREFIX + '/local/share/',
+    PREFIX + '/share/',
 ]
 
 

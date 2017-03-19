@@ -49,33 +49,38 @@ def popup_no_scanner_found(parent, error_msg=None):
     dialog.show_all()
 
 
-def _ask_confirmation_goto_next(dialog, response, next_func):
+def _ask_confirmation_goto_next(dialog, response, next_func, *args):
     dialog.destroy()
     if response != Gtk.ResponseType.YES:
         logger.info("User cancelled")
         return
     logger.info("User validated")
-    next_func()
+    next_func(*args)
 
 
-def ask_confirmation(parent, next_func):
+def ask_confirmation(parent, next_func, *args, msg=None):
     """
-    Ask the user "Are you sure ?"
+    Display a message asking the user to confirm something (yes or no buttons).
+
+    If ``msg`` is ``None``, the default  message is "Are you sure ?"
 
     Returns:
-        True --- if they are
-        False --- if they aren't
+        True --- if the user confirms
+        False --- if the user does not confirm
     """
+    if msg is None:
+        msg = _('Are you sure ?')
+
     logger.info("Asking user confirmation")
     confirm = Gtk.MessageDialog(parent=parent,
                                 flags=Gtk.DialogFlags.MODAL
                                 | Gtk.DialogFlags.DESTROY_WITH_PARENT,
                                 message_type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
-                                text=_('Are you sure ?'))
+                                text=msg)
     confirm.connect("response",
                     lambda dialog, response: GLib.idle_add(
-                        _ask_confirmation_goto_next, dialog, response, next_func
+                        _ask_confirmation_goto_next, dialog, response, next_func, *args
                     )
                 )
     confirm.show_all()

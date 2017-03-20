@@ -149,7 +149,43 @@ This document assumes you're already familiar with Git, Python 3, and GitHub.
 \end_layout
 
 \begin_layout Section
-Please ask before doing
+Please discuss before doing
+\end_layout
+
+\begin_layout Standard
+You should always discuss what you want to do before doing it.
+ Main reasons are:
+\end_layout
+
+\begin_layout Itemize
+If someone else is already working on it, work will be done twice.
+ And someone's work will have to be thrown away.
+\end_layout
+
+\begin_layout Itemize
+You can get confirmation that what you want to do is in line with Paperwork's
+ goals (easy to use, ergonomic, etc).
+\end_layout
+
+\begin_layout Itemize
+You can get suggestions.
+ It can strongly reduce the risk of your first pull request being rejected.
+\end_layout
+
+\begin_layout Standard
+The easiest way is to open a ticket on GitHub
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+https://github.com/jflesch/paperwork/issues
+\end_layout
+
+\end_inset
+
+.
+ Just indicate you intend to work on it, and the ticket will be assigned
+ to you.
 \end_layout
 
 \begin_layout Section
@@ -277,17 +313,19 @@ Comments
 \end_layout
 
 \begin_layout Standard
-There are no rules regarding comments.
+Too much is better than not enough.
+ Other than that, there are no rules regarding comments.
  Please just use your common sense.
 \end_layout
 
 \begin_layout Standard
 If your code is complex and not commented enough, it will be unmaintainable
- and will be 
+ by others.
+ It will then be 
 \emph on
 removed
 \emph default
-.
+ as soon as you stop maintaining it.
  It already happened !
 \end_layout
 
@@ -330,6 +368,15 @@ Paperwork
  Entirely dependent on GTK+
 \end_layout
 
+\begin_layout Standard
+The following describes the code organization.
+ It is 
+\emph on
+not
+\emph default
+ an API documentation.
+\end_layout
+
 \begin_layout Subsection
 Paperwork-backend
 \end_layout
@@ -346,8 +393,243 @@ advanced use
 ) for a description of the work directory organization.
 \end_layout
 
+\begin_layout Standard
+Paperwork-backend source code is available on GitHub
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+https://github.com/jflesch/paperwork-backend
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+docsearch.py
+\end_layout
+
+\begin_layout Standard
+Contains two classes: DummyDocSearch and DocSearch.
+ DummyDocSearch can just be used as temporary placeholder for DocSearch.
+ DocSearch is the root class of the backend.
+\end_layout
+
+\begin_layout Standard
+DocSearch manages everything related to the index.
+ DocSearch provides:
+\end_layout
+
+\begin_layout Itemize
+Access to the known documents in the index (methods get(), get_doc_from_docid(),
+ find_documents()).
+ All documents are instances of sub-classes of common/doc.py:BasicDoc.
+\end_layout
+
+\begin_layout Itemize
+A way to guess labels on a document (method guess_labels())
+\end_layout
+
+\begin_layout Itemize
+A way to get keyword suggestions (method find_suggestions())
+\end_layout
+
+\begin_layout Itemize
+a DocDirExaminer instance.
+ This object allows to scan a work directory to find the differences with
+ what is known in the index.
+\end_layout
+
+\begin_layout Itemize
+a DocIndexUpdater instance.
+ This object allows to update the content of the index.
+\end_layout
+
+\begin_layout Itemize
+Shortcuts for label management (methods create_label(), add_label(), remove_labe
+l(), update_label(), destroy_label())
+\end_layout
+
+\begin_layout Standard
+When Paperwork starts, it uses the DocDirExaminer to find what has been
+ changed.
+ It keeps track of the changes.
+ Once the scan is done, it transfer the list of documents to the DocIndexUpdater.
+\end_layout
+
+\begin_layout Standard
+When a document is modified (labels, OCR re-done, etc), Paperwork uses the
+ DocIndexUpdater to update the index.
+\end_layout
+
+\begin_layout Subsubsection
+Common to all documents
+\end_layout
+
+\begin_layout Paragraph
+Files and directories structure
+\end_layout
+
+\begin_layout Standard
+Each document has its own folder.
+\end_layout
+
+\begin_layout Standard
+In each of these folders, there is a file called (
+\begin_inset Quotes eld
+\end_inset
+
+labels
+\begin_inset Quotes erd
+\end_inset
+
+), containing the list of labels (and their color) applied to this document.
+ Files 
+\begin_inset Quotes eld
+\end_inset
+
+labels
+\begin_inset Quotes erd
+\end_inset
+
+ are CSV files.
+\end_layout
+
+\begin_layout Standard
+Folder names are arbitrary but by convention, they are dates with the following
+ format: YYYYMMDD_hhmm_ss[_nn].
+\end_layout
+
+\begin_layout Standard
+There may optionally be thumbnails for caching purpose : paper.<page_nb>.thumb.jpg.
+\end_layout
+
+\begin_layout Standard
+
+\emph on
+Important:
+\emph default
+ Files and directories structures may change in the future to solve various
+ issues (atomic changes on labels, etc).
+\end_layout
+
+\begin_layout Paragraph
+Programming
+\end_layout
+
+\begin_layout Standard
+All documents are instances of sub-classes of common/doc.py:BasicDoc.
+\end_layout
+
+\begin_layout Standard
+All pages are instances of sub-classes of common/page.py:BasicPage.
+\end_layout
+
+\begin_layout Subsubsection
+Image documents
+\end_layout
+
+\begin_layout Standard
+Image documents are usually created using a scanner.
+ They can also be created by importing images (JPEG, PNG, etc).
+\end_layout
+
+\begin_layout Standard
+Each image document is a folder.
+ In this folder, there are image files (JPEG), one for each page.
+\end_layout
+
+\begin_layout Itemize
+paper.<page_nb>.jpg : the scanned page
+\end_layout
+
+\begin_layout Itemize
+paper.<page_nb>.words : the result of the OCR, in hOCR (HTML derivated) format
+ (see the limitations of PyOCR for details)
+\end_layout
+
+\begin_layout Subsubsection
+PDF documents
+\end_layout
+
+\begin_layout Standard
+Paperwork takes care of never modifying PDF documents.
+ Modifying them could mean losing metadata (signatures, etc).
+ So, when they are imported, they are simply copied.
+\end_layout
+
+\begin_layout Standard
+Only one file is specific to PDF documents: doc.pdf.
+\end_layout
+
+\begin_layout Subsubsection
+docimport.py
+\end_layout
+
+\begin_layout Standard
+Contains most of the code relative to document import.
+ Provides various importers for various situations.
+\end_layout
+
+\begin_layout Standard
+See docimport.IMPORTERS and docimport.get_possible_importers().
+\end_layout
+
+\begin_layout Subsubsection
+Export
+\end_layout
+
+\begin_layout Standard
+Each document and each page provides methods for export:
+\end_layout
+
+\begin_layout Itemize
+get_export_formats(): returns the possible formats in which the document/page
+ can be exported
+\end_layout
+
+\begin_layout Itemize
+build_exporter(): returns an exporter object: provides various export settings
+ and preview
+\end_layout
+
+\begin_layout Standard
+Additional exporter(s) is/are available in docexport.py.
+ They are mostly used when exporting many documents in one shot.
+\end_layout
+
+\begin_layout Subsection
+Paperwork-shell
+\end_layout
+
+\begin_layout Standard
+Paperwork-backend provides a command line utility: paperwork-shell.
+\end_layout
+
+\begin_layout Standard
+Paperwork-shell provides various commands.
+ Some are directly available with only paperwork-shell, some are coming
+ from paperwork-gui.
+\end_layout
+
 \begin_layout Subsection
 Paperwork-gui
+\end_layout
+
+\begin_layout Standard
+Paperwork-gui source code is available on GitHub
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+https://github.com/jflesch/paperwork
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -442,6 +724,7 @@ Another tool is 'pylint'.
 \end_layout
 
 \begin_layout Verbatim
+
 $ cd src ; pylint --rcfile=../pylintrc *
 \end_layout
 
@@ -509,6 +792,11 @@ Pyinsane2, libsane, and scanner drivers
 
 \begin_layout Standard
 Not thread-safe.
+\end_layout
+
+\begin_layout Standard
+Previous versions of libsane + HP drivers were so sensitive that you had
+ to run call their functions always from the very same thread.
 \end_layout
 
 \begin_layout Subsection
@@ -698,16 +986,58 @@ Documentation
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
+Everything related to documentation is in the directory doc/.
+\end_layout
+
+\begin_layout Subsection
+Installation
+\end_layout
+
+\begin_layout Standard
+Documentation regarding the installation process is written using Markdown.
+ This allows to show the documentation on GitHub
+\end_layout
+
+\begin_layout Subsection
+Other
+\end_layout
+
+\begin_layout Standard
+Other part of the documentations are redacted using Lyx
+\begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-Lyx for the win !
+https://www.lyx.org/
 \end_layout
 
 \end_inset
 
+.
+ Lyx is a document processor with various advantages:
+\end_layout
 
+\begin_layout Itemize
+Clearly structured documents
+\end_layout
+
+\begin_layout Itemize
+.lyx files are ASCII files (can be versioned with Git easily)
+\end_layout
+
+\begin_layout Itemize
+can be exported to PDF easily
+\end_layout
+
+\begin_layout Standard
+Those documents are then packaged with Paperwork in PDF format.
+ Paperwork can display them easily.
+\end_layout
+
+\begin_layout Standard
+The document doc/intro_<lang>.lyx (fallback on intro.lyx if required) is the
+ one automatically added and shown when there is no document in the work
+ directory.
 \end_layout
 
 \end_body

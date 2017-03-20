@@ -27,6 +27,8 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
 
+from pkg_resources import resource_filename
+
 if os.name == "nt":
     import webbrowser
     from xml.etree import ElementTree
@@ -104,13 +106,39 @@ def fix_widgets(widget_tree):
             )
 
 
+def _get_resource_path(filename):
+    """
+    Gets the absolute location of a datafile located within the package (paperwork.frontend).
+    This function throws if the file is not found, but the error depends on the way the package was
+    installed.
+
+    Arguments:
+        filename -- the relative filename of the file to load.
+
+    Returns:
+        the full path of the file.
+
+    Throws:
+        Exception -- if the file is not found.
+
+    """
+    path = resource_filename('paperwork.frontend', filename)
+
+    if not os.access(path, os.R_OK):
+        logger.error("Can't find resource file '%s'. Aborting" % filename)
+        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+
+    logger.debug("For filename '%s' got file '%s'", filename, path)
+
+    return path
+
+
 def load_uifile(filename):
     """
     Load a .glade file and return the corresponding widget tree
 
     Arguments:
         filename -- glade filename to load.
-            This function will (try to) figure out from where it must be loaded.
 
     Returns:
         GTK Widget tree
@@ -119,30 +147,21 @@ def load_uifile(filename):
         Exception -- If the file cannot be found
     """
     widget_tree = Gtk.Builder()
-    has_ui_file = False
-    for ui_glob_dir in DATA_FILES_DIRS:
-        for ui_dir in glob.glob(ui_glob_dir):
-            ui_file = os.path.join(ui_dir, filename)
-            if os.access(ui_file, os.R_OK):
-                logger.info("UI file used: " + ui_file)
-                if os.name == "nt":
-                    # WORKAROUND(Jflesch):
-                    # for some reason, add_from_file() doesn't translate
-                    # on Windows
-                    with open(ui_file, "r", encoding='utf-8') as file_desc:
-                        content = file_desc.read()
-                        xml_string = translate_xml(content)
-                        widget_tree.add_from_string(xml_string)
-                        fix_widgets(widget_tree)
-                else:
-                    widget_tree.add_from_file(ui_file)
-                has_ui_file = True
-                break
-        if has_ui_file:
-            break
-    if not has_ui_file:
-        logger.error("Can't find resource file '%s'. Aborting" % filename)
-        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+
+    ui_file = _get_resource_path(filename)
+
+    if os.name == "nt":
+        # WORKAROUND(Jflesch):
+        # for some reason, add_from_file() doesn't translate
+        # on Windows
+        with open(ui_file, "r", encoding='utf-8') as file_desc:
+            content = file_desc.read()
+            xml_string = translate_xml(content)
+            widget_tree.add_from_string(xml_string)
+            fix_widgets(widget_tree)
+    else:
+        widget_tree.add_from_file(ui_file)
+
     return widget_tree
 
 
@@ -152,26 +171,15 @@ def load_cssfile(filename):
 
     Arguments:
         filename -- css filename to load.
-            This function will (try to) figure out from where it must be loaded.
 
     Throws:
         Exception -- If the file cannot be found
     """
     css_provider = Gtk.CssProvider()
-    has_css_file = False
-    for css_glob_dir in DATA_FILES_DIRS:
-        for css_dir in glob.glob(css_glob_dir):
-            css_file = os.path.join(css_dir, filename)
-            if os.access(css_file, os.R_OK):
-                logger.info("CSS file used: " + css_file)
-                css_provider.load_from_path(css_file)
-                has_css_file = True
-                break
-        if has_css_file:
-            break
-    if not has_css_file:
-        logger.error("Can't find resource file '%s'. Aborting" % filename)
-        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+
+    css_file = _get_resource_path(filename)
+    css_provider.load_from_path(css_file)
+
     Gtk.StyleContext.add_provider_for_screen(
         Gdk.Screen.get_default(),
         css_provider,
@@ -191,12 +199,8 @@ def load_image(filename):
     """
     Load an image from Paperwork data
     """
-    for img_directory in DATA_FILES_DIRS:
-        for img_dir in glob.glob(img_directory):
-            img = os.path.join(img_dir, filename)
-            if os.path.exists(img):
-                return PIL.Image.open(img)
-    raise Exception("Can't find image '{}' !".format(filename))
+    img = _get_resource_path(filename)
+    return PIL.Image.open(img)
 
 
 def get_documentation(doc_name):

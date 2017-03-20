@@ -20,11 +20,10 @@
 import os
 import sys
 
-sys.path += ['src']
-
-from paperwork.paperwork import main
-
 if __name__ == "__main__":
+    sys.path += ['src']
+    from paperwork.paperwork import main
+
     os.chdir(
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)),

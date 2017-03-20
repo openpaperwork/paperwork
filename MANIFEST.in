@@ -1,4 +1,4 @@
-recursive-include src *.py *.glade *.xml *.css
+recursive-include src *.py *.glade *.xml *.css *.svg *.png
 recursive-include data *.desktop *.svg *.png
 recursive-include locale *.mo *.po
 recursive-include doc *.pdf

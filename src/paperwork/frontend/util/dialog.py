@@ -49,16 +49,16 @@ def popup_no_scanner_found(parent, error_msg=None):
     dialog.show_all()
 
 
-def _ask_confirmation_goto_next(dialog, response, next_func, *args):
+def _ask_confirmation_goto_next(dialog, response, next_func, kwargs):
     dialog.destroy()
     if response != Gtk.ResponseType.YES:
         logger.info("User cancelled")
         return
     logger.info("User validated")
-    next_func(*args)
+    next_func(**kwargs)
 
 
-def ask_confirmation(parent, next_func, *args, msg=None):
+def ask_confirmation(parent, next_func, msg=None, **kwargs):
     """
     Display a message asking the user to confirm something (yes or no buttons).
 
@@ -80,7 +80,7 @@ def ask_confirmation(parent, next_func, *args, msg=None):
                                 text=msg)
     confirm.connect("response",
                     lambda dialog, response: GLib.idle_add(
-                        _ask_confirmation_goto_next, dialog, response, next_func, *args
+                        _ask_confirmation_goto_next, dialog, response, next_func, kwargs
                     )
                 )
     confirm.show_all()

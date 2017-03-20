@@ -1589,9 +1589,9 @@ class ActionImport(SimpleAction):
         msg += "\n"
         msg += _("Would you like to move the original files to trash?\n")
 
-        ask_confirmation(self.__main_win.window, self.__delete_files, file_uris, msg=msg)
+        ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg, file_uris=file_uris)
 
-    def __delete_files(self, file_uris):
+    def __delete_files(self, file_uris=[]):
         for file_uri in file_uris:
             gfile = Gio.File.new_for_uri(file_uri)
             gfile.trash()

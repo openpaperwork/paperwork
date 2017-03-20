@@ -1582,19 +1582,19 @@ class ActionImport(SimpleAction):
                        GLib.idle_add(dialog.destroy))
         dialog.show_all()
 
-    def __import_ok(self, stats):
+    def __import_ok(self, stats, file_uris):
         msg = _("Imported:\n")
         for (k, v) in stats.items():
             msg += ("- {}: {}\n".format(k, v))
-        flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
-        dialog = Gtk.MessageDialog(transient_for=self.__main_win.window,
-                                   flags=flags,
-                                   message_type=Gtk.MessageType.INFO,
-                                   buttons=Gtk.ButtonsType.OK,
-                                   text=msg)
-        dialog.connect("response", lambda dialog, response:
-                       GLib.idle_add(dialog.destroy))
-        dialog.show_all()
+        msg += "\n"
+        msg += _("Would you like to move the original files to trash?\n")
+
+        ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg, file_uris=file_uris)
+
+    def __delete_files(self, file_uris=[]):
+        for file_uri in file_uris:
+            gfile = Gio.File.new_for_uri(file_uri)
+            gfile.trash()
 
     def do(self):
         SimpleAction.do(self)
@@ -1641,7 +1641,7 @@ class ActionImport(SimpleAction):
         )
         job_importer.connect(
             'import-ok',
-            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats)
+            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats, file_uris)
         )
         self.__main_win.schedulers['main'].schedule(job_importer)
 

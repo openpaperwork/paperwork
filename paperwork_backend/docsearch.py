@@ -407,36 +407,48 @@ class DocSearch(object):
             )
             indexdir = os.path.join(base_data_dir, "paperwork")
         self.indexdir = os.path.join(indexdir, "index")
-        mkdir_p(self.indexdir)
         self.label_guesser_dir = os.path.join(indexdir, "label_guessing")
-        mkdir_p(self.label_guesser_dir)
 
         self._docs_by_id = {}  # docid --> doc
         self.labels = {}  # label name --> label
 
+        self.index = None
+        self.__searcher = None
+        self.label_guesser = None
+
         need_index_rewrite = True
-        try:
-            logger.info("Opening index dir '%s' ..." % self.indexdir)
-            self.index = whoosh.index.open_dir(self.indexdir)
-            # check that the schema is up-to-date
-            # We use the string representation of the schemas, because previous
-            # versions of whoosh don't always implement __eq__
-            if str(self.index.schema) == str(self.WHOOSH_SCHEMA):
+        while need_index_rewrite:
+            try:
+                logger.info("Opening index dir '%s' ..." % self.indexdir)
+                self.index = whoosh.index.open_dir(self.indexdir)
+                # check that the schema is up-to-date
+                # We use the string representation of the schemas, because
+                # previous versions of whoosh don't always implement __eq__
+                if str(self.index.schema) != str(self.WHOOSH_SCHEMA):
+                    raise Exception("Index version mismatch")
+                self.__searcher = self.index.searcher()
                 need_index_rewrite = False
-        except (whoosh.index.EmptyIndexError, ValueError) as exc:
-            logger.warning("Failed to open index '%s'" % self.indexdir)
-            logger.warning("Exception was: %s" % str(exc))
+            except Exception as exc:
+                logger.warning(
+                    "Failed to open index '%s'."
+                    " Will rebuild index from scratch", self.indexdir,
+                    exc_info=exc
+                )
 
-        if need_index_rewrite:
-            logger.info("Creating a new index")
-            self.index = whoosh.index.create_in(self.indexdir,
-                                                self.WHOOSH_SCHEMA)
-            logger.info("Index '%s' created" % self.indexdir)
-            if localdir in base_data_dir:
-                # windows support
-                hide_file(localdir)
-
-        self.__searcher = self.index.searcher()
+            if need_index_rewrite:
+                logger.info("Creating a new index")
+                self.destroy_index()
+                mkdir_p(self.indexdir)
+                mkdir_p(self.label_guesser_dir)
+                new_index = whoosh.index.create_in(
+                    self.indexdir,
+                    self.WHOOSH_SCHEMA
+                )
+                new_index.close()
+                logger.info("Index '%s' created" % self.indexdir)
+                if localdir in base_data_dir:
+                    # windows support
+                    hide_file(localdir)
 
         class CustomFuzzy(whoosh.qparser.query.FuzzyTerm):
             def __init__(self, fieldname, text, boost=1.0, maxdist=1,
@@ -940,11 +952,15 @@ class DocSearch(object):
         Destroy the index. Don't use this DocSearch object anymore after this
         call. Next instantiation of a DocSearch will rebuild the whole index
         """
-        del self.index
+        if self.index:
+            self.index.close()
+            del self.index
         self.index = None
-        del self.__searcher
+        if self.__searcher:
+            del self.__searcher
         self.__searcher = None
-        del self.label_guesser
+        if self.label_guesser:
+            del self.label_guesser
         self.label_guesser = None
 
         logger.info("Destroying the index ...")

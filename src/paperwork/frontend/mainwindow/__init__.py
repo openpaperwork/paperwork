@@ -2272,6 +2272,7 @@ class ActionRealQuit(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.docsearch.close()
         Gtk.main_quit()
 
     def on_window_close_cb(self, window):

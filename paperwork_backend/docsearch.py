@@ -947,11 +947,7 @@ class DocSearch(object):
         self.__searcher = self.index.searcher()
         del(searcher)
 
-    def destroy_index(self):
-        """
-        Destroy the index. Don't use this DocSearch object anymore after this
-        call. Next instantiation of a DocSearch will rebuild the whole index
-        """
+    def close(self):
         if self.index:
             self.index.close()
             del self.index
@@ -963,6 +959,12 @@ class DocSearch(object):
             del self.label_guesser
         self.label_guesser = None
 
+    def destroy_index(self):
+        """
+        Destroy the index. Don't use this DocSearch object anymore after this
+        call. Next instantiation of a DocSearch will rebuild the whole index
+        """
+        self.close()
         logger.info("Destroying the index ...")
         rm_rf(self.indexdir)
         rm_rf(self.label_guesser_dir)

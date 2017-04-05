@@ -146,6 +146,11 @@ class DummyDocSearch(object):
     def set_language(self, language):
         return
 
+    @staticmethod
+    def close(*args, **kwargs):
+        """ Do nothing """
+        return
+
 
 class DocDirExaminer(GObject.GObject):
     """
@@ -948,13 +953,14 @@ class DocSearch(object):
         del(searcher)
 
     def close(self):
+        if self.__searcher:
+            self.__searcher.close()
+            del self.__searcher
+        self.__searcher = None
         if self.index:
             self.index.close()
             del self.index
         self.index = None
-        if self.__searcher:
-            del self.__searcher
-        self.__searcher = None
         if self.label_guesser:
             del self.label_guesser
         self.label_guesser = None

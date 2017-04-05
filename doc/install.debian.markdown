@@ -14,6 +14,9 @@ Currently, there is no official Debian or Ubuntu package for Paperwork.
     # PyEnchant dependency
     $ sudo apt install libenchant-dev
 
+    # Not a build dependency, but recommended anyway
+    $ sudo apt install python3-whoosh
+
 
 ## System-wide installation
 

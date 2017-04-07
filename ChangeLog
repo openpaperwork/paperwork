@@ -1,5 +1,5 @@
 2017/02/09 - 1.1.2:
-- Doc date changing: Fix for Windows: Don't display the document will
+- Doc date changing: Fix for Windows: Don't display the document while
   renaming its folder --> it keeps a file descriptor opened to its PDF
   file and prevent the renaming
 

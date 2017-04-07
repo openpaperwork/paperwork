@@ -53,7 +53,7 @@ class SearchElementText(SearchElement):
     def get_search_string(self):
         txt = self.widget.get_text()
         txt = txt.replace('"', '\\"')
-        return '"%s"'% txt
+        return '"%s"' % txt
 
     @staticmethod
     def get_from_search(dialog, text):
@@ -87,7 +87,7 @@ class SearchElementLabel(SearchElement):
         model = self.get_widget().get_model()
         txt = model[active_idx][0]
         txt = txt.replace('"', '\\"')
-        return 'label:"%s"'% txt
+        return 'label:"%s"' % txt
 
     @staticmethod
     def get_from_search(dialog, text):
@@ -137,7 +137,9 @@ class SearchElementDate(SearchElement):
         box.add(self.end_date)
         super(SearchElementDate, self).__init__(dialog, box)
 
-        self.calendar_popover = dialog.widget_tree.get_object("calendar_popover")
+        self.calendar_popover = dialog.widget_tree.get_object(
+            "calendar_popover"
+        )
         self.calendar = dialog.widget_tree.get_object("calendar_calendar")
 
         self.current_entry = None
@@ -255,11 +257,11 @@ class SearchLine(object):
         SearchElementText,
     ]
 
-    def __init__(self, dialog, has_operator):
+    def __init__(self, dialog, has_operator, has_remove_button):
         logger.info("Search line instantiated")
 
         self.dialog = dialog
-        self.line = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 10)
+        self.line = []
 
         if has_operator:
             model = Gtk.ListStore.new([
@@ -272,12 +274,12 @@ class SearchLine(object):
             self.combobox_operator.set_model(model)
             self.combobox_operator.set_size_request(75, -1)
             self.combobox_operator.set_active(0)
-            self.line.add(self.combobox_operator)
+            self.line.append(self.combobox_operator)
         else:
             self.combobox_operator = None
             placeholder = Gtk.Label.new("")
             placeholder.set_size_request(75, -1)
-            self.line.add(placeholder)
+            self.line.append(placeholder)
 
         model = Gtk.ListStore.new([
             GObject.TYPE_STRING,
@@ -289,7 +291,7 @@ class SearchLine(object):
         self.combobox_not.set_model(model)
         self.combobox_not.set_size_request(75, -1)
         self.combobox_not.set_active(0)
-        self.line.add(self.combobox_not)
+        self.line.append(self.combobox_not)
 
         model = Gtk.ListStore.new([
             GObject.TYPE_STRING,
@@ -310,9 +312,12 @@ class SearchLine(object):
         self.element = None
         self.remove_button = Gtk.Button.new_with_label(_("Remove"))
 
-        self.line.add(self.combobox_type)
-        self.line.add(self.placeholder)
-        self.line.add(self.remove_button)
+        self.line.append(self.combobox_type)
+        self.line.append(self.placeholder)
+        if has_remove_button:
+            self.line.append(self.remove_button)
+        else:
+            self.line.append(Gtk.Label.new(""))
 
         self.combobox_type.set_active(0)
 
@@ -370,11 +375,11 @@ class SearchLine(object):
         if self.element:
             self.line.remove(self.element.get_widget())
             self.element = None
-        self.line.add(element.get_widget())
-        self.line.reorder_child(element.get_widget(), 3)
+        self.line.insert(3, element.get_widget())
         self.element = element
+        self.dialog.rebuild()
 
-    def get_widget(self):
+    def get_widgets(self):
         return self.line
 
     @staticmethod
@@ -404,7 +409,11 @@ class SearchLine(object):
             se = se_class.get_from_search(dialog, search_txt)
             if not se:
                 continue
-            sl = SearchLine(dialog, next_operator is not None)
+            sl = SearchLine(
+                dialog,
+                next_operator is not None,
+                next_operator is not None
+            )
             if next_operator:
                 sl.select_operator(next_operator)
             sl.select_element_type(se_class)
@@ -431,7 +440,9 @@ class SearchDialog(object):
 
         keywords = self.__main_win.search_field.get_text()
         keywords = keywords.strip()
-        keywords = re.findall(r'(?:\[.*\]|(?:[^\s"]|"(?:\\.|[^"])*"))+', keywords)
+        keywords = re.findall(
+            r'(?:\[.*\]|(?:[^\s"]|"(?:\\.|[^"])*"))+', keywords
+        )
 
         self.search_element_box = self.widget_tree.get_object(
             "boxSearchElements"
@@ -462,7 +473,8 @@ class SearchDialog(object):
                     continue
 
                 logger.info("Instantiating line for [%s]" % keyword)
-                sl = SearchLine.get_from_search(self, next_operator, not_value, keyword)
+                sl = SearchLine.get_from_search(self, next_operator,
+                                                not_value, keyword)
                 self.add_element(sl)
 
                 next_operator = u"AND"
@@ -476,17 +488,33 @@ class SearchDialog(object):
 
     def add_element(self, sl=None):
         if sl is None:
-            sl = SearchLine(self, len(self.search_elements) > 0)
-            sl.get_widget().show_all()
+            sl = SearchLine(
+                self,
+                len(self.search_elements) > 0,
+                len(self.search_elements) > 0
+            )
             sl.connect_signals()
-        else:
-            sl.get_widget().show_all()
-        self.search_element_box.add(sl.get_widget())
         self.search_elements.append(sl)
+        self.rebuild()
+
+    def rebuild(self):
+        # purge
+        for child in self.search_element_box.get_children():
+            self.search_element_box.remove(child)
+
+        # rebuild
+        for (line, sl) in enumerate(self.search_elements):
+            for (pos, widget) in enumerate(sl.get_widgets()):
+                self.search_element_box.attach(
+                    widget,
+                    pos, line,
+                    1, 1
+                )
+        self.search_element_box.show_all()
 
     def remove_element(self, sl):
-        self.search_element_box.remove(sl.get_widget())
         self.search_elements.remove(sl)
+        self.rebuild()
 
     def __get_search_string(self):
         """concat all our search terms into a single string"""

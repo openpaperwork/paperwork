@@ -2895,7 +2895,8 @@ class MainWindow(object):
                 logger.exception(exc)
 
     def __init_app(self):
-        GLib.set_application_name(_("Paperwork"))
+        if hasattr(GLib, 'set_application_name'):
+            GLib.set_application_name(_("Paperwork"))
         GLib.set_prgname("paperwork")
 
         app = Gtk.Application(

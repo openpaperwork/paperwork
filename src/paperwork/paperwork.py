@@ -124,8 +124,6 @@ def main(hook_func=None, skip_workdir_scan=False):
 
     set_locale()
 
-    if hasattr(GLib, 'set_application_name'):
-        GLib.set_application_name("Paperwork")
     if hasattr(GLib, "unix_signal_add"):
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
                              Gtk.main_quit, None)

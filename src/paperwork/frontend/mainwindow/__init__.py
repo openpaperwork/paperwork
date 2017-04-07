@@ -2293,7 +2293,7 @@ class ActionRefreshIndex(SimpleAction):
         SimpleAction.do(self)
         self.__main_win.schedulers['main'].cancel_all(
             self.__main_win.job_factories['index_reloader'])
-        self.__main_win.schedulers['main'].cancel_all(
+        self.__main_win.schedulers['search'].cancel_all(
             self.__main_win.job_factories['doc_examiner'])
         self.__main_win.schedulers['index'].cancel_all(
             self.__main_win.job_factories['index_updater'])
@@ -2315,7 +2315,8 @@ class ActionRefreshIndex(SimpleAction):
         job = self.__main_win.job_factories['doc_examiner'].make(docsearch)
         job.connect('doc-examination-end', lambda job: GLib.idle_add(
             self.__on_doc_exam_end, job))
-        self.__main_win.schedulers['main'].schedule(job)
+        # XXX(Jflesch): Don't lock the main scheduler here
+        self.__main_win.schedulers['index'].schedule(job)
 
     def __on_doc_exam_end(self, examiner):
         logger.info("Document examen finished. Updating index ...")

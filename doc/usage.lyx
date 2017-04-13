@@ -90,6 +90,10 @@ Paperwork manual
 \end_layout
 
 \begin_layout Standard
+WORK IN PROGRESS
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset toc
 LatexCommand tableofcontents
 
@@ -106,11 +110,97 @@ LatexCommand tableofcontents
 \end_layout
 
 \begin_layout Section
-Scanning
+Settings
 \end_layout
 
 \begin_layout Subsection
-Default source
+Accessing the settings
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename img/diagnostic_output_en_001.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Application menu
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that, on GNU/Linux, the application menu may be at the top of the screen.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename img/change_workdir_en_0003.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Settings
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Work directory
+\end_layout
+
+\begin_layout Subsection
+Scanner
+\end_layout
+
+\begin_layout Subsubsection
+Default scan source
 \end_layout
 
 \begin_layout Standard
@@ -260,14 +350,15 @@ Flatbeds and feeders
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 Scanner calibration
 \end_layout
 
 \begin_layout Standard
 Scanners tend to provide images actually bigger than the scanned pages.
  Since most of the time, you will always scan pages having the same size
- (A4/Letter usually), Paperwork provides an option called "scanner calibration".
+ (A4 or Letter usually), Paperwork provides an option called "scanner calibratio
+n".
  Scanner calibration in Paperwork is simply a pre-cropping of the images
  coming from the scanner.
 \end_layout
@@ -307,7 +398,20 @@ Scanner calibration
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO(Jflesch): Explain how to use the handles
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
 Scan resolution
 \end_layout
 
@@ -373,6 +477,10 @@ and possibly unreadable image (even by a human).
  You may want to reduce it to 200 dpi on slow computers.
 \end_layout
 
+\begin_layout Section
+Scanning
+\end_layout
+
 \begin_layout Subsection
 Single scan
 \end_layout
@@ -416,7 +524,7 @@ Scanning a single page
 status open
 
 \begin_layout Plain Layout
-TODO(Jflesch): Need more
+TODO(Jflesch): Need more doc
 \end_layout
 
 \end_inset
@@ -587,10 +695,12 @@ Debian
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>
 \end_layout
 
@@ -599,10 +709,12 @@ Fedora
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo yum install tesseract tesseract-langpack-<lang>
 \end_layout
 
@@ -611,10 +723,12 @@ Ubuntu
 \end_layout
 
 \begin_layout Verbatim
+
 # OCR (Tesseract)
 \end_layout
 
 \begin_layout Verbatim
+
 $ sudo apt-get install tesseract-ocr tesseract-ocr-<lang> 
 \end_layout
 
@@ -2621,10 +2735,12 @@ Once the directory has been created, you can also store Paperwork cache
 \end_layout
 
 \begin_layout Verbatim
+
 $ mv ~/.local/share/paperwork ~/Private/paperwork_cache
 \end_layout
 
 \begin_layout Verbatim
+
 $ ln -s ~/Private/paperwork_cache ~/.local/share/paperwork
 \end_layout
 
@@ -2639,6 +2755,7 @@ Encfs can also be used to create encrypted directories easily.
 \end_layout
 
 \begin_layout Verbatim
+
 $ enfs ~/.papers ~/papers
 \end_layout
 
@@ -2929,110 +3046,137 @@ Here is an example a work directory organisation:
 \end_layout
 
 \begin_layout Verbatim
+
 $ find ~/papers
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/paper.3.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130505_1518_00/labels
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01f
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.thumb.jpg
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/paper.2.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20110726_0000_01/extra.txt
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/doc.pdf
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/paper.1.words
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/paper.2.words 
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/labels
 \end_layout
 
 \begin_layout Verbatim
+
 /home/jflesch/papers/20130106_1309_44/extra.txt
 \end_layout
 
@@ -3045,6 +3189,7 @@ With Tesseract, the hOCR file can be obtained with following command:
 \end_layout
 
 \begin_layout Verbatim
+
 tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words
 \end_layout
 
@@ -3053,6 +3198,7 @@ For example:
 \end_layout
 
 \begin_layout Verbatim
+
 tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words
 \end_layout
 
@@ -3065,6 +3211,7 @@ Here is an example of content of a label file:
 \end_layout
 
 \begin_layout Verbatim
+
 facture,#0000b1588c61 logement,#f6b6ffff0000
 \end_layout
 
@@ -3102,12 +3249,144 @@ Getting support / reporting issues
 Diagnostic dialog
 \end_layout
 
+\begin_layout Standard
+When querying support about bugs or lack of scanner support, we may ask
+ you the diagnostic output.
+ This output is basically a lot of informations regarding what happened
+ when you used Paperwork, your scanner(s) and various usage statistics.
+\end_layout
+
+\begin_layout Standard
+Before trying to get this output, you must reproduce the issue you're having.
+ For instance, if you have an error when scanning, you must try scanning
+ before getting the diagnostic output.
+ Do not restart Paperwork between both operations (output would be reset
+ back to zero).
+\end_layout
+
+\begin_layout Standard
+To get this output:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/diagnostic_output_en_001.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/diagnostic_output_en_002.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/diagnostic_output_en_003.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/diagnostic_output_en_004.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename img/diagnostic_output_en_005.png
+	scale 33
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+You can then save the output to a file, and send this file to support (either
+ on a ticket you opened, or by email).
+\end_layout
+
 \begin_layout Subsection
 Github issue tracker
 \end_layout
 
+\begin_layout Standard
+For bugs and feature requests: 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/jflesch/paperwork/issues
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO(Jflesch)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Mailing-list
+\end_layout
+
+\begin_layout Standard
+For general discussions: 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/jflesch/paperwork/wiki/Contact#mailing-list
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Be careful however: By default, Google groups set your subscription to "no
+ email"
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+https://productforums.google.com/forum/#!topic/apps/3OUlPmzKCi8
+\end_layout
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Section
@@ -3136,14 +3415,17 @@ If you installed Paperwork manually:
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall paperwork
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall pyocr
 \end_layout
 
 \begin_layout Verbatim
+
 sudo pip uninstall pyinsane
 \end_layout
 

@@ -623,10 +623,10 @@ class SimplePageDrawer(Drawer):
     def set_canvas(self, canvas):
         super(SimplePageDrawer, self).set_canvas(canvas)
         self.spinner.set_canvas(canvas)
+        canvas.connect(self, "absolute-motion-notify-event",
+                        lambda canvas, event:
+                        GLib.idle_add(self._on_mouse_motion, event))
         if self.show_boxes:
-            canvas.connect(self, "absolute-motion-notify-event",
-                           lambda canvas, event:
-                           GLib.idle_add(self._on_mouse_motion, event))
             canvas.connect(self, "absolute-button-press-event",
                            lambda canvas, event:
                            GLib.idle_add(self._on_mouse_pressed, event))
@@ -1311,7 +1311,8 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def set_canvas(self, canvas):
         super(PageDrawer, self).set_canvas(canvas)
-        # self.simple_page_drawer.set_canvas(canvas)
+        for link in self.edit_chain:
+            link.set_canvas(canvas)
         canvas.add_drawer(self.simple_page_drawer)
         self.relocate()
         canvas.connect(self, "absolute-motion-notify-event",

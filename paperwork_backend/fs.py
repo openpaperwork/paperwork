@@ -11,9 +11,6 @@ from gi.repository import GLib
 class GioFileAdapter(io.RawIOBase):
     def __init__(self, gfile, mode='r'):
         super().__init__()
-        if mode == 'w':
-            mode = 'rw'
-
         self.gfile = gfile
         self.mode = mode
 
@@ -26,9 +23,9 @@ class GioFileAdapter(io.RawIOBase):
         self.gin = None
         self.gout = None
 
-        if mode == 'r':
+        if 'r' in mode:
             self.gin = self.gfd = gfile.read()
-        elif mode == 'rw':
+        elif 'w' in mode:
             if gfile.query_exists():
                 self.gfd = gfile.open_readwrite()
             else:
@@ -110,6 +107,77 @@ class GioFileAdapter(io.RawIOBase):
         self.close()
 
 
+class GioUTF8FileAdapter(io.RawIOBase):
+    def __init__(self, raw):
+        super().__init__()
+        self.raw = raw
+
+    def readable(self):
+        return self.raw.readable()
+
+    def writable(self):
+        return self.raw.writable()
+
+    def read(self, *args, **kwargs):
+        r = self.raw.read(*args, **kwargs)
+        return r.decode("utf-8")
+
+    def readall(self, *args, **kwargs):
+        r = self.raw.readall(*args, **kwargs)
+        return r.decode("utf-8")
+
+    def readinto(self, *args, **kwargs):
+        r = self.raw.readinto(*args, **kwargs)
+        return r.decode("utf-8")
+
+    def seek(self, *args, **kwargs):
+        return self.raw.seek(*args, **kwargs)
+
+    def seekable(self, seekable):
+        return self.raw.seekable()
+
+    @property
+    def closed(self):
+        return self.raw.closed
+
+    def tell(self):
+        # XXX(Jflesch): wrong ...
+        return self.raw.tell()
+
+    def flush(self):
+        return self.raw.flush()
+
+    def truncate(self, *args, **kwargs):
+        # XXX(Jflesch): wrong ...
+        return self.raw.truncate(*args, **kwargs)
+
+    def fileno(self):
+        return self.raw.fileno()
+
+    def isatty(self):
+        return self.raw.isatty()
+
+    def write(self, b):
+        b = b.encode("utf-8")
+        return self.raw.write(b)
+
+    def writelines(self, lines):
+        lines = [
+            line.encode("utf-8")
+            for line in lines
+        ]
+        return self.raw.writelines(lines)
+
+    def close(self):
+        self.raw.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+
 class GioFileSystem(object):
     def __init__(self):
         pass
@@ -120,8 +188,11 @@ class GioFileSystem(object):
             uri = "file://" + urllib.parse.quote(uri)
         return uri
 
-    def open(self, uri, mode='r'):
-        return GioFileAdapter(Gio.File.new_for_uri(uri), mode)
+    def open(self, uri, mode='rb'):
+        raw = GioFileAdapter(Gio.File.new_for_uri(uri), mode)
+        if 'b' in mode:
+            return raw
+        return GioUTF8FileAdapter(raw)
 
     def join(self, base, url):
         if not base.endswith("/"):

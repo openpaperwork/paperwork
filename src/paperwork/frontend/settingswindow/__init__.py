@@ -999,7 +999,7 @@ class SettingsWindow(GObject.GObject):
         self.calibration["scan_button"].set_sensitive(True)
 
     def display_config(self, config):
-        self.workdir_chooser.set_current_folder(config['workdir'].value)
+        self.workdir_chooser.set_current_folder_uri(config['workdir'].value)
 
         ocr_enabled = config['ocr_enabled'].value
         if config['ocr_lang'].value is None:

@@ -89,6 +89,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="hexpand">True</property>
+                                <property name="local_only">False</property>
                                 <property name="action">select-folder</property>
                                 <property name="title" translatable="yes">Select a folder</property>
                               </object>

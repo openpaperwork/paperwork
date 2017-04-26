@@ -1284,7 +1284,7 @@ class ActionOpenDocDir(SimpleAction):
             return
         Gtk.show_uri(
             self.__main_win.window.get_window().get_screen(),
-            GLib.filename_to_uri(self.__main_win.doc.path),
+            self.__main_win.doc.path,
             Gdk.CURRENT_TIME
         )
 
@@ -1589,7 +1589,8 @@ class ActionImport(SimpleAction):
         msg += "\n"
         msg += _("Would you like to move the original files to trash?\n")
 
-        ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg, file_uris=file_uris)
+        ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg,
+                         file_uris=file_uris)
 
     def __delete_files(self, file_uris=[]):
         for file_uri in file_uris:
@@ -1641,7 +1642,8 @@ class ActionImport(SimpleAction):
         )
         job_importer.connect(
             'import-ok',
-            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats, file_uris)
+            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats,
+                                                file_uris)
         )
         self.__main_win.schedulers['main'].schedule(job_importer)
 
@@ -2147,7 +2149,7 @@ class ActionSelectExportPath(SimpleAction):
                             Gtk.STOCK_SAVE,
                             Gtk.ResponseType.OK)
         response = chooser.run()
-        filepath = chooser.get_filename()
+        filepath = chooser.get_uri()
         chooser.destroy()
         if response != Gtk.ResponseType.OK:
             logger.warning("File path for export canceled")
@@ -2361,6 +2363,7 @@ class ActionOpenHelp(SimpleAction):
 class MainWindow(object):
     def __init__(self, config):
         self.ready = False
+        self.docsearch = DummyDocSearch()
 
         self.version = __version__
 
@@ -2402,8 +2405,6 @@ class MainWindow(object):
         self.__config = config
         self.__scan_start = 0.0
         self.__scan_progress_job = None
-
-        self.docsearch = DummyDocSearch()
 
         # All the pages are displayed on the canvas,
         # however, only one is the "active one"

@@ -567,7 +567,7 @@ class ActionApplySettings(SimpleAction):
 
     def do(self):
         need_reindex = False
-        workdir = self.__settings_win.workdir_chooser.get_filename()
+        workdir = self.__settings_win.workdir_chooser.get_uri()
         if workdir != self.__config['workdir'].value:
             self.__config['workdir'].value = workdir
             need_reindex = True

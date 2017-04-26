@@ -678,7 +678,8 @@ class DocList(object):
             # keep the thumbnails in cache
             'thumbnails': {}  # docid: pixbuf
         }
-        self.new_doc = ImgDoc(config['workdir'].value)
+        self.new_doc = ImgDoc(self.__main_win.docsearch.fs,
+                              config['workdir'].value)
 
         self.job_factories = {
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),

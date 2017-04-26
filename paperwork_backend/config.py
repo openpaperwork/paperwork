@@ -22,9 +22,11 @@ import logging
 import os
 
 from . import util
+from . import fs
 
 
 logger = logging.getLogger(__name__)
+FS = fs.GioFileSystem()
 
 
 def paperwork_cfg_boolean(string):
@@ -34,7 +36,6 @@ def paperwork_cfg_boolean(string):
 
 
 class PaperworkSetting(object):
-
     def __init__(self, section, token, default_value_func=lambda: None,
                  constructor=str):
         self.section = section
@@ -60,8 +61,33 @@ class PaperworkSetting(object):
         config.set(self.section, self.token, str(self.value))
 
 
-class PaperworkConfig(object):
+class PaperworkURI(object):
+    def __init__(self, section, token, default_value_func=lambda: None,
+                 constructor=str):
+        self.section = section
+        self.token = token
+        self.default_value_func = default_value_func
+        self.constructor = constructor
+        self.value = None
 
+    def load(self, config):
+        try:
+            value = config.get(self.section, self.token)
+            if value != "None":
+                value = self.constructor(value)
+            else:
+                value = None
+            self.value = FS.safe(value)
+            return
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            pass
+        self.value = self.default_value_func()
+
+    def update(self, config):
+        config.set(self.section, self.token, FS.safe(str(self.value)))
+
+
+class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is
     used.
@@ -70,7 +96,7 @@ class PaperworkConfig(object):
 
     def __init__(self):
         self.settings = {
-            'workdir': PaperworkSetting(
+            'workdir': PaperworkURI(
                 "Global", "WorkDirectory",
                 lambda: os.path.expanduser("~/papers")),
             'index_version': PaperworkSetting(

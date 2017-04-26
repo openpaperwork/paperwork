@@ -19,10 +19,7 @@
 Code relative to page handling.
 """
 
-import codecs
 import PIL.Image
-import os
-import os.path
 
 import logging
 import pyocr
@@ -78,7 +75,7 @@ class ImgPage(BasicPage):
 
     def __get_last_mod(self):
         try:
-            return os.stat(self.__get_box_path()).st_mtime
+            return self.fs.getmtime(self.__get_box_path())
         except OSError:
             return 0.0
 
@@ -105,7 +102,7 @@ class ImgPage(BasicPage):
 
         try:
             box_builder = pyocr.builders.LineBoxBuilder()
-            with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
+            with self.fs.open(boxfile, 'r') as file_desc:
                 boxes = box_builder.read_file(file_desc)
             if boxes != []:
                 return boxes
@@ -114,7 +111,7 @@ class ImgPage(BasicPage):
             logger.warning("WARNING: Doc %s uses old box format" %
                            (str(self.doc)))
             box_builder = pyocr.builders.WordBoxBuilder()
-            with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
+            with self.fs.open(boxfile, 'r') as file_desc:
                 boxes = box_builder.read_file(file_desc)
             if len(boxes) <= 0:
                 return []
@@ -126,7 +123,7 @@ class ImgPage(BasicPage):
 
     def __set_boxes(self, boxes):
         boxfile = self.__box_path
-        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
+        with self.fs.open(boxfile, 'w') as file_desc:
             pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
         self.drop_cache()
         self.doc.drop_cache()
@@ -138,11 +135,14 @@ class ImgPage(BasicPage):
         Returns an image object corresponding to the page
         """
         if not self._img_cache:
-            self._img_cache = PIL.Image.open(self.__img_path)
+            with self.fs.open(self.__img_path, 'rb') as fd:
+                self._img_cache = PIL.Image.open(fd)
+                self._img_cache.load()
         return self._img_cache
 
     def __set_img(self, img):
-        img.save(self.__img_path)
+        with self.fs.open(self.__img_path, 'wb') as fd:
+            img.save(self.__img_path, format="JPEG")
         self.drop_cache()
 
     img = property(__get_img, __set_img)
@@ -228,11 +228,11 @@ class ImgPage(BasicPage):
         dst["thumb"] = self._get_thumb_path()
 
         for key in src.keys():
-            if os.access(src[key], os.F_OK):
-                if os.access(dst[key], os.F_OK):
+            if self.fs.exists(src[key]):
+                if self.fs.exists(dst[key]):
                     logger.error("Error: file already exists: %s" % dst[key])
                     assert(0)
-                os.rename(src[key], dst[key])
+                self.fs.rename(src[key], dst[key])
 
     def destroy(self):
         """
@@ -251,8 +251,8 @@ class ImgPage(BasicPage):
             self._get_thumb_path(),
         ]
         for path in paths:
-            if os.access(path, os.F_OK):
-                os.unlink(path)
+            if self.fs.exists(path):
+                self.fs.unlink(path)
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = doc_pages[page_nb]
             page.change_index(offset=-1)
@@ -275,12 +275,12 @@ class ImgPage(BasicPage):
         ]
         for (src, dst) in to_move:
             # sanity check
-            if os.access(dst, os.F_OK):
+            if self.fs.exists(dst):
                 logger.error("Error, file already exists: %s" % dst)
                 assert(0)
         for (src, dst) in to_move:
             logger.info("%s --> %s" % (src, dst))
-            os.rename(src, dst)
+            self.fs.rename(src, dst)
 
         if (other_doc_nb_pages <= 1):
             other_doc.destroy()
@@ -292,7 +292,7 @@ class ImgPage(BasicPage):
         self.drop_cache()
 
     def get_docfilehash(self):
-        return self.doc.hash_file(self.__get_img_path())
+        return self.doc.hash_file(self.fs, self.__get_img_path())
 
     def drop_cache(self):
         super().drop_cache()

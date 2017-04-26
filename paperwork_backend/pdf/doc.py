@@ -15,8 +15,6 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import os
-import shutil
 
 from gi.repository import GLib
 from gi.repository import Gio
@@ -46,13 +44,14 @@ class PdfDocExporter(object):
         return ['pdf']
 
     def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        target_path = self.fs.safe(target_path)
         progress_cb(0, 1)
-        shutil.copy(self.pdfpath, target_path)
+        self.doc.fs.copy(self.pdfpath, target_path)
         progress_cb(1, 1)
         return target_path
 
     def estimate_size(self):
-        return os.path.getsize(self.pdfpath)
+        return self.doc.fs.getsize(self.pdfpath)
 
     def get_img(self):
         return self.page.img
@@ -114,8 +113,8 @@ class _CommonPdfDoc(BasicDoc):
     can_edit = False
     doctype = u"PDF"
 
-    def __init__(self, pdfpath, docpath, docid=None, on_disk_cache=False):
-        super().__init__(docpath, docid)
+    def __init__(self, fs, pdfpath, docpath, docid=None, on_disk_cache=False):
+        super().__init__(fs, docpath, docid)
         self.pdfpath = pdfpath
         self._pages = None
         self._pdf = None
@@ -125,7 +124,7 @@ class _CommonPdfDoc(BasicDoc):
         assert()
 
     def _get_last_mod(self):
-        last_mod = os.stat(self.pdfpath).st_mtime
+        last_mod = self.fs.getmtime(self.pdfpath)
         for page in self.pages:
             if page.last_mod > last_mod:
                 last_mod = page.last_mod
@@ -140,7 +139,7 @@ class _CommonPdfDoc(BasicDoc):
         global NB_FDS
         if self._pdf:
             return self._pdf
-        filepath = Gio.File.new_for_path(self.pdfpath)
+        filepath = Gio.File.new_for_uri(self.pdfpath)
         self._pdf = Poppler.Document.new_from_gfile(filepath, password=None)
         NB_FDS += 1
         logger.debug("(opening {} | {}) Number of PDF file descriptors"
@@ -203,7 +202,7 @@ class _CommonPdfDoc(BasicDoc):
         self._pdf = None
 
     def get_docfilehash(self):
-        return super().hash_file("%s/%s" % (self.path, PDF_FILENAME))
+        return super().hash_file(self.fs, "%s/%s" % (self.path, PDF_FILENAME))
 
 
 class PdfDoc(_CommonPdfDoc):
@@ -214,9 +213,10 @@ class PdfDoc(_CommonPdfDoc):
     can_edit = False
     doctype = u"PDF"
 
-    def __init__(self, docpath, docid=None):
+    def __init__(self, fs, docpath, docid=None):
         super().__init__(
-            os.path.join(docpath, PDF_FILENAME),
+            fs,
+            fs.join(docpath, PDF_FILENAME),
             docpath, docid,
             on_disk_cache=True
         )
@@ -224,20 +224,20 @@ class PdfDoc(_CommonPdfDoc):
         self._pdf = None
 
     def clone(self):
-        return PdfDoc(self.path, self.docid)
+        return PdfDoc(self.fs, self.path, self.docid)
 
     def _get_last_mod(self):
         last_mod = super()._get_last_mod()
-        labels_path = os.path.join(self.path, self.LABEL_FILE)
+        labels_path = self.fs.join(self.path, self.LABEL_FILE)
         try:
-            file_last_mod = os.stat(labels_path).st_mtime
+            file_last_mod = self.fs.getmtime(labels_path)
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
         except OSError:
             pass
-        extra_txt_path = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+        extra_txt_path = self.fs.join(self.path, self.EXTRA_TEXT_FILE)
         try:
-            file_last_mod = os.stat(extra_txt_path).st_mtime
+            file_last_mod = self.fs.getmtime(extra_txt_path)
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
         except OSError:
@@ -289,10 +289,11 @@ class ExternalPdfDoc(_CommonPdfDoc):
     extra_text = ""
     has_ocr = False
 
-    def __init__(self, filepath):
+    def __init__(self, fs, filepath):
         super().__init__(
+            fs,
             filepath,
-            os.path.dirname(filepath), os.path.basename(filepath),
+            fs.dirname(filepath), fs.basename(filepath),
             on_disk_cache=False
         )
         self.filepath = filepath
@@ -320,11 +321,12 @@ class ExternalPdfDoc(_CommonPdfDoc):
         assert()
 
 
-def is_pdf_doc(docpath):
-    if not os.path.isdir(docpath):
+def is_pdf_doc(fs, docpath):
+    if not fs.isdir(docpath):
         return False
     try:
-        filelist = os.listdir(docpath)
+        filelist = fs.listdir(docpath)
+        filelist = [fs.basename(filepath) for filepath in filelist]
     except OSError as exc:
         logger.exception("Warning: Failed to list files in %s: %s"
                          % (docpath, str(exc)))

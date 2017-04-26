@@ -48,6 +48,8 @@ from .util import mkdir_p
 from .util import rm_rf
 from .util import strip_accents
 
+from . import fs
+
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
 
@@ -71,7 +73,7 @@ class DummyDocSearch(object):
     label_list = []
 
     def __init__(self):
-        pass
+        self.fs = fs.GioFileSystem()
 
     @staticmethod
     def get_doc_examiner():
@@ -186,9 +188,11 @@ class DocDirExaminer(GObject.GObject):
         old_doc_list = set(old_doc_list)
 
         # and compare it to the current directory content
-        docdirs = os.listdir(self.docsearch.rootdir)
+        docdirs = self.docsearch.fs.listdir(self.docsearch.rootdir)
+        docdirs = [x for x in docdirs]
         progress = 0
-        for docdir in docdirs:
+        for docpath in docdirs:
+            docdir = self.docsearch.fs.basename(docpath)
             old_infos = old_doc_infos.get(docdir)
             doctype = None
             if old_infos is not None:
@@ -214,7 +218,7 @@ class DocDirExaminer(GObject.GObject):
         # remove all documents from the index that don't exist anymore
         for old_doc in old_doc_list:
             # Will be a document with 0 pages
-            docpath = os.path.join(self.docsearch.rootdir, old_doc)
+            docpath = self.docsearch.fs.join(self.docsearch.rootdir, old_doc)
             on_doc_deleted(ImgDoc(docpath, old_doc))
 
         progress_cb(1, 1, DocSearch.INDEX_STEP_CHECKING)
@@ -403,7 +407,8 @@ class DocSearch(object):
         """
         Index files in rootdir (see constructor)
         """
-        self.rootdir = rootdir
+        self.fs = fs.GioFileSystem()
+        self.rootdir = self.fs.safe(rootdir)
         localdir = os.path.expanduser("~/.local")
         if indexdir is None:
             base_data_dir = os.getenv(
@@ -508,7 +513,8 @@ class DocSearch(object):
         Check that the current work dir (see config.PaperworkConfig) exists. If
         not, open the settings dialog.
         """
-        mkdir_p(self.rootdir)
+        # TODO(Jflesch): GIO
+        # mkdir_p(self.rootdir)
 
     def get_doc_examiner(self):
         """
@@ -547,14 +553,14 @@ class DocSearch(object):
         The information are taken from the whoosh index.
         """
         doc = None
-        docpath = os.path.join(self.rootdir, docid)
-        if not os.path.exists(docpath):
+        docpath = self.fs.join(self.rootdir, docid)
+        if not self.fs.exists(docpath):
             return None
         if doc_type_name is not None:
             # if we already know the doc type name
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
                 if doc_type_name_b == doc_type_name:
-                    doc = doc_type(docpath, docid)
+                    doc = doc_type(self.fs, docpath, docid)
             if not doc:
                 logger.warning(
                     ("Warning: unknown doc type found in the index: %s") %
@@ -563,8 +569,8 @@ class DocSearch(object):
         # otherwise we guess the doc type
         if not doc:
             for (is_doc_type, doc_type_name, doc_type) in DOC_TYPE_LIST:
-                if is_doc_type(docpath):
-                    doc = doc_type(docpath, docid)
+                if is_doc_type(self.fs, docpath):
+                    doc = doc_type(self.fs, docpath, docid)
                     break
         if not doc:
             logger.warning("Warning: unknown doc type for doc '%s'" % docid)

@@ -27,6 +27,7 @@ from PIL import Image
 
 from .pdf.doc import PdfDoc
 from .img.doc import ImgDoc
+from . import fs
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
@@ -66,7 +67,8 @@ class ImportResult(object):
 
 
 class BaseImporter(object):
-    def __init__(self, file_extensions):
+    def __init__(self, fs, file_extensions):
+        self.fs = fs
         self.file_extensions = file_extensions
 
     @staticmethod
@@ -99,8 +101,8 @@ class PdfImporter(BaseImporter):
     Import a single PDF file as a document
     """
 
-    def __init__(self):
-        super().__init__([".pdf"])
+    def __init__(self, fs):
+        super().__init__(fs, [".pdf"])
 
     def can_import(self, file_uris, current_doc=None):
         """
@@ -109,12 +111,12 @@ class PdfImporter(BaseImporter):
         if len(file_uris) <= 0:
             return False
         for uri in file_uris:
+            uri = self.fs.safe(uri)
             if not self.check_file_type(uri):
                 return False
         return True
 
-    @staticmethod
-    def import_doc(file_uris, docsearch, current_doc=None):
+    def import_doc(self, file_uris, docsearch, current_doc=None):
         """
         Import the specified PDF file
         """
@@ -123,10 +125,10 @@ class PdfImporter(BaseImporter):
         pages = []
 
         for file_uri in file_uris:
-            f = Gio.File.parse_name(file_uri)
-            if docsearch.is_hash_in_index(PdfDoc.hash_file(f.get_path())):
+            file_uri = self.fs.safe(file_uri)
+            if docsearch.is_hash_in_index(PdfDoc.hash_file(self.fs, file_uri)):
                 logger.info("Document %s already found in the index. Skipped"
-                            % (f.get_path()))
+                            % (file_uri))
                 return ImportResult()
 
             doc = PdfDoc(docsearch.rootdir)
@@ -164,8 +166,8 @@ class PdfDirectoryImporter(BaseImporter):
     Import many PDF files as many documents
     """
 
-    def __init__(self):
-        super().__init__([".pdf"])
+    def __init__(self, fs):
+        super().__init__(fs, [".pdf"])
 
     @staticmethod
     def __get_all_children(parent):
@@ -194,6 +196,7 @@ class PdfDirectoryImporter(BaseImporter):
             return False
         try:
             for file_uri in file_uris:
+                file_uri = self.fs.safe(file_uri)
                 parent = Gio.File.parse_name(file_uri)
                 for child in PdfDirectoryImporter.__get_all_children(parent):
                     if self.check_file_type(child.get_uri()):
@@ -212,6 +215,7 @@ class PdfDirectoryImporter(BaseImporter):
         pages = []
 
         for file_uri in file_uris:
+            file_uri = self.fs.safe(file_uri)
             logger.info("Importing PDF from '%s'" % (file_uri))
             parent = Gio.File.parse_name(file_uri)
             idx = 0
@@ -219,9 +223,8 @@ class PdfDirectoryImporter(BaseImporter):
             for child in PdfDirectoryImporter.__get_all_children(parent):
                 if not self.check_file_type(child.get_uri()):
                     continue
-                if docsearch.is_hash_in_index(
-                            PdfDoc.hash_file(child.get_path())
-                        ):
+                h = PdfDoc.hash_file(self.fs, child.get_uri())
+                if docsearch.is_hash_in_index(h):
                     logger.info(
                         "Document %s already found in the index. Skipped",
                         (child.get_path())
@@ -261,8 +264,8 @@ class ImageImporter(BaseImporter):
     single page)
     """
 
-    def __init__(self):
-        super().__init__(ImgDoc.IMPORT_IMG_EXTENSIONS)
+    def __init__(self, fs):
+        super().__init__(fs, ImgDoc.IMPORT_IMG_EXTENSIONS)
 
     def can_import(self, file_uris, current_doc=None):
         """
@@ -271,6 +274,7 @@ class ImageImporter(BaseImporter):
         if len(file_uris) <= 0:
             return False
         for file_uri in file_uris:
+            file_uri = self.fs.safe(file_uri)
             if not self.check_file_type(file_uri):
                 return False
         return True
@@ -292,10 +296,12 @@ class ImageImporter(BaseImporter):
         page = None
 
         for file_uri in file_uris:
+            file_uri = self.fs.safe(file_uri)
             logger.info("Importing image '%s'" % (file_uri))
 
-            gfile = Gio.File.new_for_uri(file_uri)
-            img = Image.open(gfile.get_path())
+            with self.fs.open(file_uri, "r") as fd:
+                img = Image.open(fd)
+                img.load()
             page = current_doc.add_page(img, [])
 
             if new_docs == []:
@@ -329,10 +335,11 @@ class ImageImporter(BaseImporter):
         return _("Append the image to the current document")
 
 
+FS = fs.GioFileSystem()
 IMPORTERS = [
-    PdfDirectoryImporter(),
-    PdfImporter(),
-    ImageImporter(),
+    PdfDirectoryImporter(FS),
+    PdfImporter(FS),
+    ImageImporter(FS),
 ]
 
 

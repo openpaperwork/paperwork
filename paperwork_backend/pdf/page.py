@@ -15,9 +15,7 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import cairo
-import codecs
 import itertools
-import os
 import logging
 import pyocr
 import pyocr.builders
@@ -124,7 +122,7 @@ class PdfPage(BasicPage):
 
     def __get_last_mod(self):
         try:
-            return os.stat(self.__get_box_path()).st_mtime
+            return self.fs.getmtime(self.__get_box_path())
         except OSError:
             return 0.0
 
@@ -133,12 +131,10 @@ class PdfPage(BasicPage):
     def _get_text(self):
         txtfile = self.__get_txt_path()
 
-        try:
-            os.stat(txtfile)
-
+        if self.fs.exists(txtfile):
             txt = []
             try:
-                with codecs.open(txtfile, 'r', encoding='utf-8') as file_desc:
+                with self.fs.open(txtfile, 'r') as file_desc:
                     for line in file_desc.readlines():
                         line = line.strip()
                         txt.append(line)
@@ -146,13 +142,8 @@ class PdfPage(BasicPage):
                 logger.error("Unable to read [%s]: %s" % (txtfile, str(exc)))
             return txt
 
-        except OSError as exc:  # os.stat() failed
-            pass
-
         boxfile = self.__get_box_path()
-        try:
-            os.stat(boxfile)
-
+        if self.fs.exists(boxfile):
             # reassemble text based on boxes
             boxes = self.boxes
             txt = []
@@ -162,7 +153,7 @@ class PdfPage(BasicPage):
                     txt_line += u" " + box.content
                 txt.append(txt_line)
             return txt
-        except OSError as exc:
+        else:
             txt = self.pdf_page.get_text()
             return txt.split(u"\n")
 
@@ -175,21 +166,17 @@ class PdfPage(BasicPage):
 
         # Check first if there is an OCR file available
         boxfile = self.__get_box_path()
-        try:
-            os.stat(boxfile)
-
+        if self.fs.exists(boxfile):
             box_builder = pyocr.builders.LineBoxBuilder()
 
             try:
-                with codecs.open(boxfile, 'r', encoding='utf-8') as file_desc:
+                with self.fs.open(boxfile, 'r') as file_desc:
                     self.__boxes = box_builder.read_file(file_desc)
                 return self.__boxes
             except IOError as exc:
                 logger.error("Unable to get boxes for '%s': %s"
                              % (self.doc.docid, exc))
                 # will fall back on pdf boxes
-        except OSError as exc:  # os.stat() failed
-            pass
 
         # fall back on what libpoppler tells us
 
@@ -217,7 +204,7 @@ class PdfPage(BasicPage):
 
     def __set_boxes(self, boxes):
         boxfile = self.__get_box_path()
-        with codecs.open(boxfile, 'w', encoding='utf-8') as file_desc:
+        with self.fs.open(boxfile, 'w') as file_desc:
             pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
         self.drop_cache()
         self.doc.drop_cache()

@@ -14,11 +14,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import codecs
 import datetime
 import gettext
 import logging
-import os.path
 import time
 import hashlib
 
@@ -42,7 +40,7 @@ class BasicDoc(object):
     pages = []
     can_edit = False
 
-    def __init__(self, docpath, docid=None):
+    def __init__(self, fs, docpath, docid=None):
         """
         Basic init of common parts of doc.
 
@@ -50,17 +48,18 @@ class BasicDoc(object):
         content in __init__(). It would reduce in a huge performance loose
         and thread-safety issues. Load the content on-the-fly when requested.
         """
+        self.fs = fs
         if docid is None:
             # new empty doc
             # we must make sure we use an unused id
             basic_docid = time.strftime(self.DOCNAME_FORMAT)
             extra = 0
             docid = basic_docid
-            path = os.path.join(docpath, docid)
-            while os.access(path, os.F_OK):
+            path = self.fs.join(docpath, docid)
+            while self.fs.exists(path):
                 extra += 1
                 docid = "%s_%d" % (basic_docid, extra)
-                path = os.path.join(docpath, docid)
+                path = fs.join(docpath, docid)
 
             self.__docid = docid
             self.path = path
@@ -143,8 +142,8 @@ class BasicDoc(object):
         """
         if label in self.labels:
             return
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'a',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'a') \
+                as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
         self.drop_cache()
 
@@ -156,8 +155,8 @@ class BasicDoc(object):
             return
         labels = self.labels
         labels.remove(to_remove)
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -173,8 +172,8 @@ class BasicDoc(object):
         if 'labels' not in self.__cache:
             labels = []
             try:
-                with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'r',
-                                 encoding='utf-8') as file_desc:
+                with self.fs.open(self.fs.join(self.path, self.LABEL_FILE),
+                                  'r') as file_desc:
                     for line in file_desc.readlines():
                         line = line.strip()
                         (label_name, label_color) = line.split(",", 1)
@@ -189,8 +188,8 @@ class BasicDoc(object):
         """
         Add a label on the document.
         """
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -245,8 +244,8 @@ class BasicDoc(object):
         logger.info("%s : Updating label ([%s] -> [%s])"
                     % (str(self), old_label.name, new_label.name))
         labels.append(new_label)
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
@@ -311,7 +310,7 @@ class BasicDoc(object):
     def __is_new(self):
         if 'new' in self.__cache:
             return self.__cache['new']
-        self.__cache['new'] = not os.access(self.path, os.F_OK)
+        self.__cache['new'] = not self.fs.exists(self.path)
         return self.__cache['new']
 
     is_new = property(__is_new)
@@ -348,23 +347,24 @@ class BasicDoc(object):
         return self.__docid
 
     def _set_docid(self, new_base_docid):
-        # XXX(JFlesch): On Windows, we must be sure that all the file descriptors are closed
+        # XXX(JFlesch): On Windows, we must be sure that all the file
+        # descriptors are closed
         self.drop_cache()
 
-        workdir = os.path.dirname(self.path)
+        workdir = self.fs.dirname(self.path)
         new_docid = new_base_docid
-        new_docpath = os.path.join(workdir, new_docid)
+        new_docpath = self.fs.join(workdir, new_docid)
         idx = 0
 
-        while os.path.exists(new_docpath):
+        while self.fs.exists(new_docpath):
             idx += 1
             new_docid = new_base_docid + ("_%02d" % idx)
-            new_docpath = os.path.join(workdir, new_docid)
+            new_docpath = self.fs.join(workdir, new_docid)
 
         self.__docid = new_docid
         if self.path != new_docpath:
             logger.info("Changing docid: %s -> %s", self.path, new_docpath)
-            os.rename(self.path, new_docpath)
+            self.fs.rename(self.path, new_docpath)
             self.path = new_docpath
 
     docid = property(__get_docid, _set_docid)
@@ -389,29 +389,30 @@ class BasicDoc(object):
     date = property(__get_date, __set_date)
 
     def __get_extra_text(self):
-        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
-        if not os.access(extra_txt_file, os.R_OK):
+        extra_txt_file = self.fs.join(self.path, self.EXTRA_TEXT_FILE)
+        if not self.fs.exists(extra_txt_file):
             return u""
-        with codecs.open(extra_txt_file, 'r', encoding='utf-8') as file_desc:
+        with self.fs.open(extra_txt_file, 'r') as file_desc:
             text = file_desc.read()
             return text
 
     def __set_extra_text(self, txt):
-        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+        extra_txt_file = self.fs.join(self.path, self.EXTRA_TEXT_FILE)
 
         txt = txt.strip()
         if txt == u"":
-            os.unlink(extra_txt_file)
+            self.fs.unlink(extra_txt_file)
         else:
-            with codecs.open(extra_txt_file, 'w',
-                             encoding='utf-8') as file_desc:
+            with self.fs.open(extra_txt_file, 'w') as file_desc:
                 file_desc.write(txt)
 
     extra_text = property(__get_extra_text, __set_extra_text)
 
     @staticmethod
-    def hash_file(path):
-        dochash = hashlib.sha256(open(path, 'rb').read()).hexdigest()
+    def hash_file(fs, path):
+        with fs.open(path, 'rb') as fd:
+            content = fd.read()
+            dochash = hashlib.sha256(content).hexdigest()
         return int(dochash, 16)
 
     def clone(self):

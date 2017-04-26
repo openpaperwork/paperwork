@@ -19,9 +19,8 @@ Code for managing documents (not page individually ! see page.py for that)
 """
 
 import errno
-import os
-import os.path
 import logging
+import os
 import tempfile
 
 import cairo
@@ -136,6 +135,11 @@ class ImgToPdfDocExporter(object):
             pdf_context.restore()
 
     def __save(self, target_path, pages, progress_cb=dummy_export_progress_cb):
+        # XXX(Jflesch): This is a problem. It will fails if someone tries
+        # to export to a non-local directory. We should use
+        # cairo_pdf_surface_create_for_stream()
+        target_path = self.doc.fs.unsafe(target_path)
+
         pdf_surface = cairo.PDFSurface(target_path,
                                        self.__page_format[0],
                                        self.__page_format[1])
@@ -161,7 +165,7 @@ class ImgToPdfDocExporter(object):
             logger.info("Page {} ready".format(page))
 
         progress_cb(len(pages), len(pages))
-        return target_path
+        return self.doc.fs.safe(target_path)
 
     def save(self, target_path, progress_cb=dummy_export_progress_cb):
         return self.__save(target_path, (0, self.doc.nb_pages), progress_cb)
@@ -179,7 +183,7 @@ class ImgToPdfDocExporter(object):
 
         # reload the preview
 
-        file = Gio.File.new_for_path(path)
+        file = Gio.File.new_for_uri(path)
         pdfdoc = Poppler.Document.new_from_gfile(file, password=None)
         assert(pdfdoc.get_n_pages() > 0)
 
@@ -210,7 +214,7 @@ class ImgToPdfDocExporter(object):
     def estimate_size(self):
         if self.__preview is None:
             self.refresh()
-        return os.path.getsize(self.__preview[0]) * self.doc.nb_pages
+        return self.doc.fs.getsize(self.__preview[0]) * self.doc.nb_pages
 
     def get_img(self):
         if self.__preview is None:
@@ -293,14 +297,14 @@ class ImgDoc(BasicDoc):
     can_edit = True
     doctype = u"Img"
 
-    def __init__(self, docpath, docid=None):
+    def __init__(self, fs, docpath, docid=None):
         """
         Arguments:
             docpath --- For an existing document, the path to its folder. For
                 a new one, the rootdir of all documents
             docid --- Document Id (ie folder name). Use None for a new document
         """
-        BasicDoc.__init__(self, docpath, docid)
+        BasicDoc.__init__(self, fs, docpath, docid)
         self.__pages = None
 
     def clone(self):
@@ -311,16 +315,16 @@ class ImgDoc(BasicDoc):
         for page in self.pages:
             if last_mod < page.last_mod:
                 last_mod = page.last_mod
-        labels_path = os.path.join(self.path, BasicDoc.LABEL_FILE)
+        labels_path = self.fs.join(self.path, BasicDoc.LABEL_FILE)
         try:
-            file_last_mod = os.stat(labels_path).st_mtime
+            file_last_mod = self.fs.getmtime(labels_path)
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
         except OSError:
             pass
-        extra_txt_path = os.path.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
+        extra_txt_path = self.fs.join(self.path, BasicDoc.EXTRA_TEXT_FILE)
         try:
-            file_last_mod = os.stat(extra_txt_path).st_mtime
+            file_last_mod = self.fs.getmtime(extra_txt_path)
             if file_last_mod > last_mod:
                 last_mod = file_last_mod
         except OSError:
@@ -342,9 +346,10 @@ class ImgDoc(BasicDoc):
         how many JPG files there are in the document.
         """
         try:
-            filelist = os.listdir(self.path)
+            filelist = self.fs.listdir(self.path)
             count = 0
-            for filename in filelist:
+            for filepath in filelist:
+                filename = self.fs.basename(filepath)
                 if (filename[-4:].lower() != "." + ImgPage.EXT_IMG or
                     (filename[-10:].lower() == "." + ImgPage.EXT_THUMB) or
                     (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
@@ -352,10 +357,14 @@ class ImgDoc(BasicDoc):
                     continue
                 count += 1
             return count
+        except IOError as exc:
+            logger.debug("Exception while trying to get the number of"
+                         " pages of '%s': %s", self.docid, exc)
+            return 0
         except OSError as exc:
             if exc.errno != errno.ENOENT:
                 logger.error("Exception while trying to get the number of"
-                             " pages of '%s': %s" % (self.docid, exc))
+                             " pages of '%s': %s", self.docid, exc)
                 raise
             return 0
 
@@ -434,17 +443,17 @@ class ImgDoc(BasicDoc):
         return self.pages[page_nb]
 
 
-def is_img_doc(docpath):
-    if not os.path.isdir(docpath):
+def is_img_doc(fs, docpath):
+    if not fs.isdir(docpath):
         return False
     try:
-        filelist = os.listdir(docpath)
+        filelist = fs.listdir(docpath)
     except OSError as exc:
         logger.warn("Warning: Failed to list files in %s: %s"
                     % (docpath, str(exc)))
         return False
-    for filename in filelist:
-        if (filename.lower().endswith(ImgPage.EXT_IMG) and
-                not filename.lower().endswith(ImgPage.EXT_THUMB)):
+    for filepath in filelist:
+        if (filepath.lower().endswith(ImgPage.EXT_IMG) and
+                not filepath.lower().endswith(ImgPage.EXT_THUMB)):
             return True
     return False

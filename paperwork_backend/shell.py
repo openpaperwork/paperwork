@@ -15,6 +15,10 @@ from . import config
 from . import docimport
 from . import docsearch
 from .labels import Label
+from . import fs
+
+
+FS = fs.GioFileSystem()
 
 
 def is_verbose():
@@ -186,9 +190,10 @@ def cmd_export_all(*args):
             exporter.set_page_format(page_format)
         print (
             "[{}/{}] Exporting {} --> {} ...".format(
-            doc_idx + 1, len(docs), doc.docid, output_pdf)
+                doc_idx + 1, len(docs), doc.docid, output_pdf
+            )
         )
-        exporter.save(output_pdf)
+        exporter.save(FS.safe(output_pdf))
         doc.drop_cache()
         gc.collect()
 
@@ -215,7 +220,7 @@ def cmd_export_doc(*args):
     if exporter.can_select_format:
         exporter.set_page_format(page_format)
     print ("Exporting {} --> {} ...".format(docid, output_pdf))
-    exporter.save(output_pdf)
+    exporter.save(FS.save(output_pdf))
     print ("Done")
 
 

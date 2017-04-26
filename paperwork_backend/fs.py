@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 import io
+import logging
 import os
 import urllib
 
 from gi.repository import Gio
 from gi.repository import GLib
+
+logger = logging.getLogger(__name__)
 
 
 class GioFileAdapter(io.RawIOBase):
@@ -14,10 +17,17 @@ class GioFileAdapter(io.RawIOBase):
         self.gfile = gfile
         self.mode = mode
 
-        fi = gfile.query_info(
-            Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE
-        )
-        self.size = fi.get_size()
+        if 'w' in mode:
+            self.size = 0
+        else:
+            try:
+                fi = gfile.query_info(
+                    Gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                    Gio.FileQueryInfoFlags.NONE
+                )
+                self.size = fi.get_size()
+            except GLib.GError as exc:
+                raise IOError(exc)
 
         self.gfd = None
         self.gin = None
@@ -25,13 +35,16 @@ class GioFileAdapter(io.RawIOBase):
 
         if 'r' in mode:
             self.gin = self.gfd = gfile.read()
-        elif 'w' in mode:
+        elif 'w' in mode or 'a' in mode:
             if gfile.query_exists():
                 self.gfd = gfile.open_readwrite()
             else:
                 self.gfd = gfile.create_readwrite()
             self.gin = self.gfd.get_input_stream()
             self.gout = self.gfd.get_output_stream()
+
+        if 'a' in mode:
+            self.seek(0, whence=os.SEEK_END)
 
     def readable(self):
         return True
@@ -56,10 +69,15 @@ class GioFileAdapter(io.RawIOBase):
         raise OSError("readline() not supported on Gio.File objects")
 
     def readlines(self, hint=-1):
-        raise OSError("readlines() not supported on Gio.File objects")
+        return [(x + b"\n") for x in self.readall().split(b"\n")]
 
     def seek(self, offset, whence=os.SEEK_SET):
-        self.gfd.seek(offset, GLib.SeekType.SET)
+        whence = {
+            os.SEEK_CUR: GLib.SeekType.CUR,
+            os.SEEK_END: GLib.SeekType.END,
+            os.SEEK_SET: GLib.SeekType.SET,
+        }[whence]
+        self.gfd.seek(offset, whence)
 
     def seekable(self):
         return True
@@ -76,16 +94,18 @@ class GioFileAdapter(io.RawIOBase):
         self.gfd.truncate(size)
 
     def fileno(self):
-        raise OSError("fileno() called on Gio.File object")
+        raise io.UnsupportedOperation("fileno() called on Gio.File object")
 
     def isatty(self):
         return False
 
     def write(self, b):
-        (res, count) = self.gout.write_all(b)
-        if not res:
-            raise OSError("write_all() failed")
-        return count
+        res = self.gout.write_all(b)
+        if not res[0]:
+            raise OSError("write_all() failed on {}: {}".format(
+                self.gfile.get_uri(), res)
+            )
+        return res[1]
 
     def writelines(self, lines):
         self.write(b"".join(lines))
@@ -130,6 +150,15 @@ class GioUTF8FileAdapter(io.RawIOBase):
         r = self.raw.readinto(*args, **kwargs)
         return r.decode("utf-8")
 
+    def readlines(self, hint=-1):
+        lines = [(x + "\n") for x in self.readall().split(os.linesep)]
+        if lines[-1] == "\n":
+            return lines[:-1]
+        return lines
+
+    def readline(self, hint=-1):
+        raise OSError("readline() not supported on Gio.File objects")
+
     def seek(self, *args, **kwargs):
         return self.raw.seek(*args, **kwargs)
 
@@ -163,7 +192,7 @@ class GioUTF8FileAdapter(io.RawIOBase):
 
     def writelines(self, lines):
         lines = [
-            line.encode("utf-8")
+            (line + os.linesep).encode("utf-8")
             for line in lines
         ]
         return self.raw.writelines(lines)
@@ -188,11 +217,23 @@ class GioFileSystem(object):
             uri = "file://" + urllib.parse.quote(uri)
         return uri
 
+    def unsafe(self, uri):
+        if "://" not in uri:
+            return uri
+        if not uri.startswith("file://"):
+            raise Exception("TARGET URI SHOULD BE A LOCAL FILE")
+        uri = uri[len("file://"):]
+        uri = urllib.parse.unquote(uri)
+        return uri
+
     def open(self, uri, mode='rb'):
-        raw = GioFileAdapter(Gio.File.new_for_uri(uri), mode)
-        if 'b' in mode:
-            return raw
-        return GioUTF8FileAdapter(raw)
+        try:
+            raw = GioFileAdapter(Gio.File.new_for_uri(uri), mode)
+            if 'b' in mode:
+                return raw
+            return GioUTF8FileAdapter(raw)
+        except GLib.GError as exc:
+            raise IOError(exc)
 
     def join(self, base, url):
         if not base.endswith("/"):
@@ -208,3 +249,77 @@ class GioFileSystem(object):
     def dirname(self, url):
         # dir name should not be unquoted. It could mess up the URI
         return os.path.dirname(url)
+
+    def exists(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            return f.query_exists()
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def listdir(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            children = f.enumerate_children(
+                Gio.FILE_ATTRIBUTE_STANDARD_NAME, Gio.FileQueryInfoFlags.NONE,
+                None
+            )
+            for child in children:
+                child = f.get_child(child.get_name())
+                yield child.get_uri()
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def rename(self, old_url, new_url):
+        try:
+            old = Gio.File.new_for_uri(old_url)
+            new = Gio.File.new_for_uri(new_url)
+            assert(not old.equal(new))
+            old.move(new, Gio.FileCopyFlags.NONE)
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def unlink(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            f.delete()
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def getmtime(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            fi = f.query_info(
+                Gio.FILE_ATTRIBUTE_TIME_CHANGED, Gio.FileQueryInfoFlags.NONE
+            )
+            return fi.get_attribute_uint64(Gio.FILE_ATTRIBUTE_TIME_CHANGED)
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def getsize(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            fi = f.query_info(
+                Gio.FILE_ATTRIBUTE_STANDARD_SIZE, Gio.FileQueryInfoFlags.NONE
+            )
+            return fi.get_attribute_uint64(Gio.FILE_ATTRIBUTE_STANDARD_SIZE)
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def isdir(self, url):
+        try:
+            f = Gio.File.new_for_uri(url)
+            fi = f.query_info(
+                Gio.FILE_ATTRIBUTE_STANDARD_TYPE, Gio.FileQueryInfoFlags.NONE
+            )
+            return fi.get_file_type() == Gio.FileType.DIRECTORY
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def copy(self, old_url, new_url):
+        try:
+            old = Gio.File.new_for_uri(url)
+            new = Gio.File.new_for_uri(url)
+            old.copy(new, Gio.FileCopyFlags.ALL_METADATA)
+        except GLib.GError as exc:
+            raise IOError(exc)

@@ -50,6 +50,8 @@ class PageExporter(object):
         return self.valid_exts
 
     def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        target_path = self.page.fs.safe(target_path)
+
         progress_cb(0, 4)
 
         # the user gives us a quality between 0 and 100
@@ -71,7 +73,8 @@ class PageExporter(object):
             img = self.__postprocess_func(img)
             progress_cb(3, 4)
 
-        img.save(target_path, self.img_format, quality=quality)
+        with self.page.fs.open(target_path, 'wb') as fd:
+            img.save(fd, self.img_format, quality=quality)
         progress_cb(4, 4)
 
         return target_path
@@ -84,8 +87,9 @@ class PageExporter(object):
         os.close(tmpfd)
 
         path = self.save(tmppath)
-        img = PIL.Image.open(path)
-        img.load()
+        with self.page.fs.open(path, 'rb') as fd:
+            img = PIL.Image.open(fd)
+            img.load()
 
         self.__img = (path, img)
 
@@ -100,7 +104,7 @@ class PageExporter(object):
     def estimate_size(self):
         if self.__img is None:
             self.refresh()
-        return os.path.getsize(self.__img[0])
+        return self.page.fs.getsize(self.__img[0])
 
     def get_img(self):
         if self.__img is None:
@@ -139,6 +143,7 @@ class BasicPage(object):
         """
         Don't create directly. Please use ImgDoc.get_page()
         """
+        self.fs = doc.fs
         self.doc = doc
         self.page_nb = page_nb
 
@@ -162,7 +167,7 @@ class BasicPage(object):
         Returns a file path relative to this page
         """
         filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
-        return os.path.join(self.doc.path, filename)
+        return self.fs.join(self.doc.path, filename)
 
     def __make_thumbnail(self, width, height):
         """
@@ -189,15 +194,19 @@ class BasicPage(object):
 
         # get from the file
         try:
-            if (os.path.getmtime(self.get_doc_file_path()) <
-                    os.path.getmtime(self._get_thumb_path())):
-                thumbnail = PIL.Image.open(self._get_thumb_path())
+            if (self.fs.getmtime(self.get_doc_file_path()) <
+                    self.fs.getmtime(self._get_thumb_path())):
+                with self.fs.open(self._get_thumb_path(), 'rb') as fd:
+                    thumbnail = PIL.Image.open(fd)
+                    thumbnail.load()
             else:
                 thumbnail = self.__make_thumbnail(width, height)
-                thumbnail.save(self._get_thumb_path())
+                with self.fs.open(self._get_thumb_path(), 'wb') as fd:
+                    thumbnail.save(fd, format="JPEG")
         except:
             thumbnail = self.__make_thumbnail(width, height)
-            thumbnail.save(self._get_thumb_path())
+            with self.fs.open(self._get_thumb_path(), 'wb') as fd:
+                thumbnail.save(fd, format="JPEG")
 
         self.__thumbnail_cache = (thumbnail, (width, height))
         return thumbnail
@@ -270,7 +279,7 @@ class BasicPage(object):
     keywords = property(__get_keywords)
 
     def has_ocr(self):
-        return os.path.exists(self._get_filepath(self.EXT_BOX))
+        return self.fs.exists(self._get_filepath(self.EXT_BOX))
 
 
 class DummyPage(object):

@@ -20,7 +20,6 @@ suggestions)
 """
 
 import logging
-# import multiprocessing
 import queue
 import copy
 import datetime
@@ -325,45 +324,19 @@ class DocIndexUpdater(GObject.GObject):
         self.label_guesser_updater.del_doc(doc)
         doc.drop_cache()
 
-    @staticmethod
-    def _commit_wrapper(to_commit):
-        to_commit.commit()
-
     def commit(self, index_update=True, label_guesser_update=True):
         """
         Apply the changes to the index
         """
         logger.info("Index: Commiting changes")
         if index_update:
-            self._commit_wrapper(self.index_writer)
-            # HACK(Jflesch):
-            # we do the commits in the separate process to not block the Python
-            # interpreter (see Python's Global Lock)
-            # (.. doesn't work. Tends to lock up)
-            #
-            # process = multiprocessing.Process(
-            #     target=self._commit_wrapper,
-            #     args=(self.index_writer,)
-            # )
-            # process.start()
-            # process.join()
+            self.index_writer.commit()
         else:
             self.index_writer.cancel()
         del self.index_writer
         self.docsearch.index.refresh()
         if label_guesser_update:
-            self._commit_wrapper(self.label_guesser_updater)
-            # HACK(Jflesch):
-            # we do the commits in the separate process to not block the Python
-            # interpreter (see Python's Global Lock)
-            # (.. doesn't work. Tends to lock up)
-            #
-            # process = multiprocessing.Process(
-            #     target=self._commit_wrapper,
-            #     args=(self.label_guesser_updater,)
-            # )
-            # process.start()
-            # process.join()
+            self.label_guesser_updater.commit()
         if index_update:
             self.docsearch.reload_searcher()
 
@@ -632,18 +605,6 @@ class DocSearch(object):
 
         query = whoosh.query.Every()
 
-        # HACK(Jflesch):
-        # we do the search in the separate process to not block the Python
-        # interpreter (see Python's Global Lock)
-        #
-        # out_queue = multiprocessing.Queue()
-        # process = multiprocessing.Process(
-        #    target=self._search_wrapper,
-        #    args=(self.__searcher, query, None, None, out_queue)
-        # )
-        # process.start()
-        # results = out_queue.get()
-        # process.join()
         out_queue = queue.Queue()
         self._search_wrapper(self.__searcher, query, None, None, out_queue)
         results = out_queue.get()
@@ -737,20 +698,9 @@ class DocSearch(object):
         for query_parser in self.search_param_list[search_type]:
             query = query_parser["query_parser"].parse(sentence)
 
-            # HACK(Jflesch):
-            # we do the search in the separate process to not block the Python
-            # interpreter (see Python's Global Lock)
             sortedby = None
             if must_sort and "sortedby" in query_parser:
                 sortedby = query_parser['sortedby']
-            # out_queue = multiprocessing.Queue()
-            # process = multiprocessing.Process(
-            #     target=self._search_wrapper,
-            #     args=(self.__searcher, query, limit, sortedby, out_queue)
-            # )
-            # process.start()
-            # results = out_queue.get()
-            # process.join()
             out_queue = queue.Queue()
             self._search_wrapper(self.__searcher, query, limit, sortedby,
                                  out_queue)
@@ -829,23 +779,6 @@ class DocSearch(object):
 
         keywords = sentence.split(" ")
 
-        # HACK(Jflesch):
-        # we do the search in the separate process to not block the Python
-        # interpreter (see Python's Global Lock)
-        #
-        # out_queue = multiprocessing.Queue()
-        # process = multiprocessing.Process(
-        #     target=self._suggestion_wrapper,
-        #     args=(
-        #         self.__searcher,
-        #         keywords,
-        #         self.search_param_list['strict'][0]['query_parser'],
-        #         out_queue
-        #     )
-        # )
-        # process.start()
-        # results = out_queue.get()
-        # process.join()
         out_queue = queue.Queue()
         self._suggestion_wrapper(
             self.__searcher, keywords,

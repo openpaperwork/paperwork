@@ -1514,7 +1514,6 @@ class ActionImport(SimpleAction):
             os.path.join("import", "importfileselector.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_transient_for(self.__main_win.window)
-        dialog.set_local_only(False)
         dialog.set_select_multiple(True)
         self.__add_filters(dialog)
 
@@ -2148,6 +2147,7 @@ class ActionSelectExportPath(SimpleAction):
                             Gtk.ResponseType.CANCEL,
                             Gtk.STOCK_SAVE,
                             Gtk.ResponseType.OK)
+        chooser.set_local_only(False)
         response = chooser.run()
         filepath = chooser.get_uri()
         chooser.destroy()

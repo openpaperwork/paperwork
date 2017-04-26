@@ -6,6 +6,7 @@
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Select a file or a directory to import</property>
     <property name="type_hint">dialog</property>
+    <property name="local_only">False</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="filechooserdialog-vbox1">
         <property name="can_focus">False</property>

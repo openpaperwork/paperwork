@@ -318,8 +318,13 @@ class GioFileSystem(object):
 
     def copy(self, old_url, new_url):
         try:
-            old = Gio.File.new_for_uri(url)
-            new = Gio.File.new_for_uri(url)
+            old = Gio.File.new_for_uri(old_url)
+            new = Gio.File.new_for_uri(new_url)
             old.copy(new, Gio.FileCopyFlags.ALL_METADATA)
         except GLib.GError as exc:
             raise IOError(exc)
+
+    def mkdir_p(self, url):
+        f = Gio.File.new_for_uri(url)
+        if not f.query_exists():
+            f.make_directory_with_parents()

@@ -49,8 +49,13 @@ class Label(object):
             self.name = name
         else:
             self.name = str(name)
-        self.color = Gdk.RGBA()
-        self.color.parse(color)
+        self._color = color
+
+    @property
+    def color(self):
+        color = Gdk.RGBA()
+        color.parse(self._color)
+        return color
 
     def __copy__(self):
         return Label(self.name, self.get_color_str())
@@ -103,9 +108,9 @@ class Label(object):
         """
         get a string representing the color, using HTML notation
         """
+        color = self.color
         return ("#%02x%02x%02x" % (
-            int(self.color.red), int(self.color.green),
-            int(self.color.blue)
+            int(color.red), int(color.green), int(color.blue)
         ))
 
     def get_color_str(self):
@@ -132,7 +137,8 @@ class Label(object):
             return (1.0, 1.0, 1.0)  # white
 
     def get_rgb_bg(self):
-        return (self.color.red, self.color.green, self.color.blue)
+        color = self.color
+        return (color.red, color.green, color.blue)
 
     def __str__(self):
         return ("Color: %s ; Text: %s"

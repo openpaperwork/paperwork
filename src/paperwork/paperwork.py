@@ -38,7 +38,9 @@ import signal
 import pyinsane2
 
 from .frontend.diag import LogTracker
-from .frontend.mainwindow import ActionRefreshIndex, MainWindow
+from .frontend.mainwindow import ActionRealQuit
+from .frontend.mainwindow import ActionRefreshIndex
+from .frontend.mainwindow import MainWindow
 from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
@@ -116,41 +118,59 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def main(hook_func=None, skip_workdir_scan=False):
-    """
-    Where everything start.
-    """
-    LogTracker.init()
+class Main(object):
+    def __init__(self):
+        self.main_win = None
+        self.config = None
 
-    set_locale()
+    def quit_nicely(self, *args, **kwargs):
+        a = ActionRealQuit(self.main_win, self.config)
+        a.do()
 
-    if hasattr(GLib, "unix_signal_add"):
-        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
-                             Gtk.main_quit, None)
-        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
-                             Gtk.main_quit, None)
+    def main(self, hook_func=None, skip_workdir_scan=False):
+        """
+        Where everything start.
+        """
+        LogTracker.init()
 
-    try:
+        set_locale()
+
+        if hasattr(GLib, "unix_signal_add"):
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT,
+                                 self.quit_nicely, None)
+            GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
+                                 self.quit_nicely, None)
+
+        logger.info("Initializing pyinsane ...")
         pyinsane2.init()
+        try:
+            self.config = load_config()
+            self.config.read()
 
-        config = load_config()
-        config.read()
+            self.main_win = MainWindow(self.config)
+            ActionRefreshIndex(self.main_win, self.config,
+                               skip_examination=skip_workdir_scan).do()
 
-        main_win = MainWindow(config)
-        ActionRefreshIndex(main_win, config,
-                           skip_examination=skip_workdir_scan).do()
+            if hook_func:
+                hook_func(self.config, self.main_win)
 
-        if hook_func:
-            hook_func(config, main_win)
+            Gtk.main()
 
-        Gtk.main()
+            logger.info("Stopping schedulers ...")
+            for scheduler in self.main_win.schedulers.values():
+                scheduler.stop()
 
-        for scheduler in main_win.schedulers.values():
-            scheduler.stop()
-
-        config.write()
-    finally:
+            logger.info("Writing configuration ...")
+            self.config.write()
+        finally:
+            logger.info("Stopping Pyinsane ...")
+            pyinsane2.exit()
         logger.info("Good bye")
+
+
+def main(hook_func=None, skip_workdir_scan=False):
+    m = Main()
+    m.main(hook_func, skip_workdir_scan)
 
 
 if __name__ == "__main__":

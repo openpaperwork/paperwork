@@ -2274,8 +2274,14 @@ class ActionRealQuit(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        GLib.idle_add(self.__actual_quit)
+
+    def __actual_quit(self):
+        logger.info("Stopping index client ...")
         self.__main_win.docsearch.stop()
+        logger.info("Gtk.main_quit() ...")
         Gtk.main_quit()
+        logger.info("Gtk main_loop() interrupted")
 
     def on_window_close_cb(self, window):
         self.do()

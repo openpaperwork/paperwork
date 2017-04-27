@@ -2363,7 +2363,8 @@ class ActionOpenHelp(SimpleAction):
     def do(self):
         super().do()
         docpath = get_documentation(self.help_name)
-        doc = ExternalPdfDoc(docpath)
+        docpath = self.__main_win.docsearch.fs.safe(docpath)
+        doc = ExternalPdfDoc(self.__main_win.docsearch.fs, docpath)
         self.__main_win.show_page(doc.pages[0], force_refresh=True)
         self.__main_win.doclist.unselect_all()
 

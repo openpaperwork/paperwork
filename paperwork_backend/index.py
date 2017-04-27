@@ -92,7 +92,7 @@ class PaperworkIndex(object):
                 func = getattr(self, command.func)
                 ret = func(*command.args, **command.kwargs)
                 self.pipe_server.send(RESULT(exc=None, ret=ret))
-            except Exception as exc:
+            except BaseException as exc:
                 logger.exception("Exception while calling '%s'", command.func)
                 self.pipe_server.send(RESULT(exc=exc, ret=ret))
 

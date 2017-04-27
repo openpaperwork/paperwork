@@ -55,7 +55,7 @@
             </child>
             <child>
               <object class="GtkButton" id="buttonOk">
-                <property name="label" translatable="yes" context="action button that will start a multi scan">Scan</property>
+                <property name="label" translatable="yes">Scan</property>
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>

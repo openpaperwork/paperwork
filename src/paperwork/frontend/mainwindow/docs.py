@@ -678,8 +678,10 @@ class DocList(object):
             # keep the thumbnails in cache
             'thumbnails': {}  # docid: pixbuf
         }
-        self.new_doc = ImgDoc(self.__main_win.docsearch.fs,
-                              config['workdir'].value)
+        workdir = self.__main_win.docsearch.fs.safe(
+            config['workdir'].value
+        )
+        self.new_doc = ImgDoc(self.__main_win.docsearch.fs, workdir)
 
         self.job_factories = {
             'doc_thumbnailer': JobFactoryDocThumbnailer(self),
@@ -909,7 +911,10 @@ class DocList(object):
     def get_new_doc(self):
         if self.new_doc.is_new:
             return self.new_doc
-        self.new_doc = ImgDoc(self.__config['workdir'].value)
+        workdir = self.__main_win.docsearch.fs.safe(
+            self.__config['workdir'].value
+        )
+        self.new_doc = ImgDoc(self.__main_win.docsearch.fs, workdir)
         return self.new_doc
 
     def insert_new_doc(self):

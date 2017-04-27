@@ -245,6 +245,7 @@ class PaperworkIndex(object):
         self._docs_by_id[result['docid']] = doc
         for label in doc.labels:
             self.reload_index_data['labels'].add(label)
+        doc.drop_cache()
 
         return True
 
@@ -375,6 +376,8 @@ class PaperworkIndex(object):
             date=doc.date,
             last_read=last_mod
         )
+
+        doc.drop_cache()
         return True
 
     @staticmethod
@@ -482,6 +485,7 @@ class PaperworkIndex(object):
         return a prediction of label names
         """
         if doc.nb_pages <= 0:
+            doc.drop_cache()
             return set()
         self.label_guesser.total_nb_documents = len(self._docs_by_id.keys())
         label_names = self.label_guesser.guess(doc)
@@ -489,6 +493,7 @@ class PaperworkIndex(object):
         for label_name in label_names:
             label = self.labels[label_name]
             labels.add(label)
+        doc.drop_cache()
         return labels
 
     def get_all_docs(self):
@@ -633,6 +638,7 @@ class PaperworkIndex(object):
             updater = self.get_index_updater(optimize=False)
             updater.upd_doc(doc)
             updater.commit()
+        doc.drop_cache()
 
     def add_label(self, doc, label, update_index=True):
         """
@@ -649,6 +655,7 @@ class PaperworkIndex(object):
             updater = self.get_index_updater(optimize=False)
             updater.upd_doc(doc)
             updater.commit()
+        doc.drop_cache()
 
     def remove_label(self, doc, label, update_index=True):
         """
@@ -659,6 +666,7 @@ class PaperworkIndex(object):
             updater = self.get_index_updater(optimize=False)
             updater.upd_doc(doc)
             updater.commit()
+        doc.drop_cache()
 
     def start_update_label(self, old_label, new_label):
         assert(old_label)
@@ -683,6 +691,7 @@ class PaperworkIndex(object):
         doc.update_label(old_label, new_label)
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
+        doc.drop_cache()
         return ('updated', doc)
 
     def end_update_label(self):
@@ -711,6 +720,7 @@ class PaperworkIndex(object):
         doc.remove_label(label)
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
+        doc.drop_cache()
 
     def end_destroy_label(self):
         label = self.destroy_label_data['label']

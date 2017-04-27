@@ -17,7 +17,7 @@ class GioFileAdapter(io.RawIOBase):
         self.gfile = gfile
         self.mode = mode
 
-        if 'w' in mode:
+        if 'w' in mode and 'r' not in mode:
             self.size = 0
         else:
             try:
@@ -25,7 +25,9 @@ class GioFileAdapter(io.RawIOBase):
                     Gio.FILE_ATTRIBUTE_STANDARD_SIZE,
                     Gio.FileQueryInfoFlags.NONE
                 )
-                self.size = fi.get_size()
+                self.size = fi.get_attribute_uint64(
+                    Gio.FILE_ATTRIBUTE_STANDARD_SIZE
+                )
             except GLib.GError as exc:
                 raise IOError(exc)
 
@@ -55,8 +57,11 @@ class GioFileAdapter(io.RawIOBase):
     def read(self, size=-1):
         if not self.readable():
             raise OSError("File is not readable")
-        if size < 0:
+        if size <= 0:
             size = self.size
+            if size <= 0:
+                return b""
+        assert(size > 0)
         return self.gin.read_bytes(size).get_data()
 
     def readall(self):
@@ -227,8 +232,11 @@ class GioFileSystem(object):
         return uri
 
     def open(self, uri, mode='rb'):
+        f = Gio.File.new_for_uri(uri)
+        if 'w' not in mode and not f.query_exists():
+            raise IOError("File does not exist")
         try:
-            raw = GioFileAdapter(Gio.File.new_for_uri(uri), mode)
+            raw = GioFileAdapter(f, mode)
             if 'b' in mode:
                 return raw
             return GioUTF8FileAdapter(raw)

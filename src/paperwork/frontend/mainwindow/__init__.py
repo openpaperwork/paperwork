@@ -2274,7 +2274,7 @@ class ActionRealQuit(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.__main_win.docsearch.close()
+        self.__main_win.docsearch.stop()
         Gtk.main_quit()
 
     def on_window_close_cb(self, window):
@@ -2302,7 +2302,9 @@ class ActionRefreshIndex(SimpleAction):
         docsearch = self.__main_win.docsearch
         self.__main_win.docsearch = DummyDocSearch()
         self.__main_win.doclist.clear()
-        if self.__force:
+        if not self.__force:
+            docsearch.close()
+        else:
             docsearch.destroy_index()
 
         job = self.__main_win.job_factories['index_reloader'].make()

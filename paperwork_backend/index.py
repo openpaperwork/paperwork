@@ -70,7 +70,8 @@ class PaperworkIndex(object):
         self.search_param_list = {}
         self.label_guesser = None
         self.rootdir = None
-        self.opened = True
+        self.opened = False
+        self.running = True
 
         self.reload_index_data = {}
         self.examine_rootdir_data = {}
@@ -85,7 +86,7 @@ class PaperworkIndex(object):
         self.process.start()
 
     def run(self):
-        while self.opened:
+        while self.running:
             command = self.pipe_server.recv()
             try:
                 func = getattr(self, command.func)
@@ -179,6 +180,7 @@ class PaperworkIndex(object):
         self.label_guesser.set_language(language)
 
         self.fs.mkdir_p(self.rootdir)
+        self.opened = True
 
     def set_language(self, language):
         self.label_guesser.set_language(language)
@@ -729,6 +731,10 @@ class PaperworkIndex(object):
         if self.label_guesser:
             del self.label_guesser
         self.label_guesser = None
+
+    def stop(self):
+        self.close()
+        self.running = False
 
     def destroy_index(self):
         """

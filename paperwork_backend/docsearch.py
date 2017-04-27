@@ -35,6 +35,9 @@ gi.require_version('Poppler', '0.18')
 logger = logging.getLogger(__name__)
 
 
+DEFAULT_INDEX_CLIENT = PaperworkIndexClient()
+
+
 class DummyDocSearch(object):
     """
     Dummy doc search object.
@@ -124,6 +127,11 @@ class DummyDocSearch(object):
 
     @staticmethod
     def close(*args, **kwargs):
+        """ Do nothing """
+        return
+
+    @staticmethod
+    def stop(*args, **kwargs):
         """ Do nothing """
         return
 
@@ -240,11 +248,15 @@ class DocSearch(object):
     LABEL_STEP_UPDATING = "label updating"
     LABEL_STEP_DESTROYING = "label deletion"
 
-    def __init__(self, rootdir, indexdir=None, language=None):
+    def __init__(self, rootdir, indexdir=None, language=None,
+                 use_default_index_client=True):
         """
         Index files in rootdir (see constructor)
         """
-        self.index = PaperworkIndexClient()
+        if use_default_index_client:
+            self.index = DEFAULT_INDEX_CLIENT
+        else:
+            self.index = PaperworkIndexClient()
 
         self.fs = fs.GioFileSystem()
         self.rootdir = self.fs.safe(rootdir)
@@ -416,6 +428,9 @@ class DocSearch(object):
 
     def close(self):
         self.index.close()
+
+    def stop(self):
+        self.index.stop()
 
     def destroy_index(self):
         """

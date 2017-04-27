@@ -1885,11 +1885,7 @@ class BasicActionOpenExportDialog(SimpleAction):
         }
         self.main_win.export['estimated_size'] = \
             widget_tree.get_object("labelEstimatedExportSize")
-        self.main_win.export['export_path'] = \
-            widget_tree.get_object("entryExportPath")
         self.main_win.export['buttons'] = {
-            'select_path':
-            widget_tree.get_object("buttonSelectExportPath"),
             'ok': widget_tree.get_object("buttonExport"),
             'cancel': widget_tree.get_object("buttonCancelExport"),
         }
@@ -1913,10 +1909,6 @@ class BasicActionOpenExportDialog(SimpleAction):
                 ],
                 ActionChangeExportProperty(self.main_win),
             ),
-            'select_export_path': (
-                [widget_tree.get_object("buttonSelectExportPath")],
-                ActionSelectExportPath(self.main_win),
-            ),
             'export': (
                 [widget_tree.get_object("buttonExport")],
                 ActionExport(self.main_win),
@@ -1934,11 +1926,9 @@ class BasicActionOpenExportDialog(SimpleAction):
         for out_format in to_export.get_export_formats():
             self.main_win.export['fileFormat']['model'].append([out_format])
             nb_export_formats += 1
-        self.main_win.export['buttons']['select_path'].set_sensitive(
+        self.main_win.export['buttons']['ok'].set_sensitive(
             nb_export_formats >= 1)
         self.main_win.export['fileFormat']['widget'].set_active(0)
-        self.main_win.export['buttons']['ok'].set_sensitive(False)
-        self.main_win.export['export_path'].set_text("")
         for button in self.main_win.actions['open_view_settings'][0]:
             button.set_sensitive(False)
         self.main_win.drop_boxes()
@@ -2117,29 +2107,34 @@ class ActionChangeExportProperty(SimpleAction):
         self.__main_win.refresh_export_preview()
 
 
-class ActionSelectExportPath(SimpleAction):
+class BasicActionEndExport(SimpleAction):
+    def __init__(self, main_win, name):
+        super().__init__(name)
+        self.main_win = main_win
+
+
+class ActionExport(BasicActionEndExport):
     def __init__(self, main_window):
-        SimpleAction.__init__(self, "Select export path")
-        self.__main_win = main_window
+        super().__init__(main_window, "Export")
+        self.main_win = main_window
 
-    def do(self):
-        SimpleAction.do(self)
-
-        mime = self.__main_win.export['exporter'].get_mime_type()
+    def get_path(self):
+        mime = self.main_win.export['exporter'].get_mime_type()
+        mime = self.main_win.export['exporter'].get_mime_type()
         if mime:
             chooser = Gtk.FileChooserDialog(
                 title=_("Save as"),
-                transient_for=self.__main_win.window,
+                transient_for=self.main_win.window,
                 action=Gtk.FileChooserAction.SAVE
             )
             file_filter = Gtk.FileFilter()
-            file_filter.set_name(str(self.__main_win.export['exporter']))
+            file_filter.set_name(str(self.main_win.export['exporter']))
             file_filter.add_mime_type(mime)
             chooser.add_filter(file_filter)
         else:  # directory
             chooser = Gtk.FileChooserDialog(
                 title=_("Save in"),
-                transient_for=self.__main_win.window,
+                transient_for=self.main_win.window,
                 action=Gtk.FileChooserAction.SELECT_FOLDER
             )
 
@@ -2155,32 +2150,18 @@ class ActionSelectExportPath(SimpleAction):
             logger.warning("File path for export canceled")
             return
 
-        valid_exts = self.__main_win.export['exporter'].get_file_extensions()
+        valid_exts = self.main_win.export['exporter'].get_file_extensions()
         if valid_exts:
             for valid_ext in valid_exts:
                 if filepath.lower().endswith(valid_ext.lower()):
                     break
             else:
                 filepath += ".%s" % valid_exts[0]
-
-        self.__main_win.export['export_path'].set_text(filepath)
-        self.__main_win.export['buttons']['ok'].set_sensitive(True)
-
-
-class BasicActionEndExport(SimpleAction):
-    def __init__(self, main_win, name):
-        super().__init__(name)
-        self.main_win = main_win
-
-
-class ActionExport(BasicActionEndExport):
-    def __init__(self, main_window):
-        super().__init__(main_window, "Export")
-        self.main_win = main_window
+        return filepath
 
     def do(self):
         super().do()
-        filepath = self.main_win.export['export_path'].get_text()
+        filepath = self.get_path()
         job = self.main_win.job_factories['export'].make(
             self.main_win.export['exporter'], filepath
         )

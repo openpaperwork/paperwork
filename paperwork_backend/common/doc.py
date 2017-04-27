@@ -21,7 +21,6 @@ import time
 import hashlib
 
 from ..labels import Label
-from ..util import rm_rf
 
 
 _ = gettext.gettext
@@ -49,6 +48,7 @@ class BasicDoc(object):
         and thread-safety issues. Load the content on-the-fly when requested.
         """
         self.fs = fs
+        docpath = fs.safe(docpath)
         if docid is None:
             # new empty doc
             # we must make sure we use an unused id
@@ -59,7 +59,7 @@ class BasicDoc(object):
             while self.fs.exists(path):
                 extra += 1
                 docid = "%s_%d" % (basic_docid, extra)
-                path = fs.join(docpath, docid)
+                path = self.fs.join(docpath, docid)
 
             self.__docid = docid
             self.path = path
@@ -133,7 +133,7 @@ class BasicDoc(object):
         """
         self.drop_cache()
         logger.info("Destroying doc: %s" % self.path)
-        rm_rf(self.path)
+        self.fs.rm_rf(self.path)
         logger.info("Done")
 
     def add_label(self, label):

@@ -98,7 +98,7 @@ class PaperworkIndex(object):
 
     def open(self, localdir, base_data_dir, index_path, label_guesser_path,
              rootdir, language=None):
-        self.rootdir = rootdir
+        self.rootdir = self.fs.safe(rootdir)
         self.indexdir = index_path
         self.label_guesser_dir = label_guesser_path
 

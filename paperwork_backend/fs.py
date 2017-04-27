@@ -19,6 +19,8 @@ class GioFileAdapter(io.RawIOBase):
 
         if 'w' in mode and 'r' not in mode:
             self.size = 0
+        elif ('w' in mode or 'a' in mode) and not gfile.query_exists():
+            self.size = 0
         else:
             try:
                 fi = gfile.query_info(
@@ -41,7 +43,7 @@ class GioFileAdapter(io.RawIOBase):
             if gfile.query_exists():
                 self.gfd = gfile.open_readwrite()
             else:
-                self.gfd = gfile.create_readwrite()
+                self.gfd = gfile.create_readwrite(Gio.FileCreateFlags.NONE)
             self.gin = self.gfd.get_input_stream()
             self.gout = self.gfd.get_output_stream()
 
@@ -52,7 +54,7 @@ class GioFileAdapter(io.RawIOBase):
         return True
 
     def writable(self):
-        return 'w' in self.mode
+        return 'w' in self.mode or 'a' in self.mode
 
     def read(self, size=-1):
         if not self.readable():
@@ -233,7 +235,7 @@ class GioFileSystem(object):
 
     def open(self, uri, mode='rb'):
         f = Gio.File.new_for_uri(uri)
-        if 'w' not in mode and not f.query_exists():
+        if ('w' not in mode and 'a' not in mode) and not f.query_exists():
             raise IOError("File does not exist")
         try:
             raw = GioFileAdapter(f, mode)
@@ -289,8 +291,19 @@ class GioFileSystem(object):
 
     def unlink(self, url):
         try:
+            logger.info("Deleting %s ...", url)
             f = Gio.File.new_for_uri(url)
-            f.delete()
+            if not f.delete():
+                raise IOError("Failed to delete %s" % url)
+        except GLib.GError as exc:
+            raise IOError(exc)
+
+    def rm_rf(self, url):
+        try:
+            logger.info("Deleting %s ...", url)
+            f = Gio.File.new_for_uri(url)
+            if not f.trash():
+                raise IOError("Failed to delete %s" % url)
         except GLib.GError as exc:
             raise IOError(exc)
 

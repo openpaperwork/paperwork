@@ -35,7 +35,7 @@ class PdfDocExporter(object):
     def __init__(self, doc, page_nb):
         self.doc = doc
         self.page = doc.pages[page_nb]
-        self.pdfpath = ("%s/%s" % (doc.path, PDF_FILENAME))
+        self.pdfpath = doc.fs.join(doc.path, PDF_FILENAME)
 
     def get_mime_type(self):
         return 'application/pdf'

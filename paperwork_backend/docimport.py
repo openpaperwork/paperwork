@@ -131,7 +131,7 @@ class PdfImporter(BaseImporter):
                             % (file_uri))
                 return ImportResult()
 
-            doc = PdfDoc(docsearch.rootdir)
+            doc = PdfDoc(self.fs, docsearch.rootdir)
             logger.info("Importing doc '%s' ..." % file_uri)
             error = doc.import_pdf(file_uri)
             if error:
@@ -230,7 +230,7 @@ class PdfDirectoryImporter(BaseImporter):
                         (child.get_path())
                     )
                     continue
-                doc = PdfDoc(docsearch.rootdir)
+                doc = PdfDoc(self.fs, docsearch.rootdir)
                 error = doc.import_pdf(child.get_uri())
                 if error:
                     continue
@@ -285,7 +285,7 @@ class ImageImporter(BaseImporter):
         """
         if current_doc is None or current_doc.is_new:
             if not current_doc:
-                current_doc = ImgDoc(docsearch.rootdir)
+                current_doc = ImgDoc(self.fs, docsearch.rootdir)
             new_docs = [current_doc]
             upd_docs = []
         else:

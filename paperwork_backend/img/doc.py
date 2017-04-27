@@ -308,7 +308,7 @@ class ImgDoc(BasicDoc):
         self.__pages = None
 
     def clone(self):
-        return ImgDoc(self.path, self.docid)
+        return ImgDoc(self.fs, self.path, self.docid)
 
     def __get_last_mod(self):
         last_mod = 0.0
@@ -389,7 +389,7 @@ class ImgDoc(BasicDoc):
         """
         if page.doc == self:
             return
-        mkdir_p(self.path)
+        self.fs.mkdir_p(self.path)
 
         new_page = ImgPage(self, self.nb_pages)
         logger.info("%s --> %s" % (str(page), str(new_page)))
@@ -413,8 +413,9 @@ class ImgDoc(BasicDoc):
         return dochash
 
     def add_page(self, img, boxes):
-        mkdir_p(self.path)
-        logger.info("Adding page %d to %s" % (self.nb_pages, str(self)))
+        self.fs.mkdir_p(self.path)
+        logger.info("Adding page %d to %s (%s)",
+                    self.nb_pages, str(self), self.path)
         page = ImgPage(self, self.nb_pages)
         page.img = img
         page.boxes = boxes
@@ -422,7 +423,7 @@ class ImgDoc(BasicDoc):
         return self.pages[-1]
 
     def insert_page(self, img, boxes, page_nb):
-        mkdir_p(self.path)
+        self.fs.mkdir_p(self.path)
 
         logger.info("Inserting page %d to %s" % (page_nb, str(self)))
 

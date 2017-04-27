@@ -44,6 +44,9 @@ class GioFileAdapter(io.RawIOBase):
                 self.gfd = gfile.open_readwrite()
             else:
                 self.gfd = gfile.create_readwrite(Gio.FileCreateFlags.NONE)
+            if 'w' in mode:
+                self.gfd.seek(0, GLib.SeekType.SET)
+                self.gfd.truncate(0)
             self.gin = self.gfd.get_input_stream()
             self.gout = self.gfd.get_output_stream()
 

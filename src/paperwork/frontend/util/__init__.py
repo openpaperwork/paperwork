@@ -19,7 +19,6 @@ import glob
 import locale
 import logging
 import os
-import sys
 
 import heapq
 import gettext
@@ -42,25 +41,6 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
-
-DATA_FILES_DIRS = []
-if getattr(sys, 'frozen', False):
-    DATA_FILES_DIRS += [os.path.join(sys._MEIPASS, "data")]
-DATA_FILES_DIRS += [
-    ".",
-    "src/paperwork/frontend",
-    "data",
-    PREFIX + "/local/share/paperwork",
-    PREFIX + "/share/paperwork",
-
-    # XXX(Jflesch): The following locations are unexpected
-    # but it seems those are the locations used by Pip
-    # (sys.prefix in setup.py ?)
-    PREFIX + "/local/lib/python*/dist-packages/usr/share/paperwork",
-    PREFIX + "/local/lib/python*/dist-packages/usr/local/share/paperwork",
-    PREFIX + "/lib/python*/dist-packages/usr/share/paperwork",
-    PREFIX + "/lib/python*/dist-packages/usr/local/share/paperwork",
-]
 
 
 def translate_xml(xml_str):
@@ -108,9 +88,10 @@ def fix_widgets(widget_tree):
 
 def _get_resource_path(filename):
     """
-    Gets the absolute location of a datafile located within the package (paperwork.frontend).
-    This function throws if the file is not found, but the error depends on the way the package was
-    installed.
+    Gets the absolute location of a datafile located within the package
+    (paperwork.frontend).
+    This function throws if the file is not found, but the error depends on the
+    way the package was installed.
 
     Arguments:
         filename -- the relative filename of the file to load.
@@ -125,8 +106,9 @@ def _get_resource_path(filename):
     path = resource_filename('paperwork.frontend', filename)
 
     if not os.access(path, os.R_OK):
-        logger.error("Can't find resource file '%s'. Aborting" % filename)
-        raise Exception("Can't find resource file '%s'. Aborting" % filename)
+        raise FileNotFoundEroor(
+            "Can't find resource file '%s'. Aborting" % filename
+        )
 
     logger.debug("For filename '%s' got file '%s'", filename, path)
 
@@ -220,18 +202,24 @@ def get_documentation(doc_name):
         )
         pass
 
-    default_doc_file = doc_name + ".pdf"
-    localized_doc_file = "{}_{}.pdf".format(doc_name, lang)
+    default = os.path.join(DOC_SUBDIR, doc_name + ".pdf")
+    localized = os.path.join(DOC_SUBDIR,
+                             "{}_{}.pdf".format(doc_name, lang))
+    try:
+        return _get_resource_path(localized)
+    except:
+        pass
 
-    for data_dirs in DATA_FILES_DIRS:
-        for data_dir in glob.glob(data_dirs):
-            doc_dir = os.path.join(data_dir, DOC_SUBDIR)
-            if not os.path.exists(doc_dir):
-                continue
-            for filename in [localized_doc_file, default_doc_file]:
-                doc_path = os.path.join(doc_dir, filename)
-                if os.path.exists(doc_path):
-                    return os.path.abspath(doc_path)
+    try:
+        return _get_resource_path(default)
+    except:
+        pass
+
+    if os.path.exists(localized):
+        return localized
+    if os.path.exists(default):
+        return default
+
     raise FileNotFoundError("Documentation {} not found !".format(doc_name))
 
 

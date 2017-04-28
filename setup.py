@@ -19,8 +19,9 @@ for icon_dirpath in glob.glob('data/[0-9][0-9]*'):
     icon_path = os.path.join(icon_dirpath, 'paperwork.png')
     if os.path.exists(icon_path):
         size = os.path.basename(icon_dirpath)
-        data_files.append(('share/icons/hicolor/{}/apps'.format(size), [icon_path]))
-data_files.append(('share/icons/hicolor/scalable/apps', ['data/paperwork.svg', 'data/paperwork_halo.svg']))
+        data_files.append(
+            ('share/icons/hicolor/{}/apps'.format(size), [icon_path])
+        )
 
 setup(
     name="paperwork",
@@ -85,17 +86,17 @@ Main features are:
     package_dir={'': 'src'},
     include_package_data=True,
     data_files=[
+        ('share/icons/hicolor/scalable/apps',
+         ['data/paperwork.svg', 'data/paperwork_halo.svg']),
         ('share/locale/fr/LC_MESSAGES',
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
         ('share/locale/de/LC_MESSAGES',
          ['locale/de/LC_MESSAGES/paperwork.mo']),
 
         # documentation
-        ('share/paperwork/doc',
-         glob.glob('doc/*.pdf')),
+        ('paperwork/frontend/doc', glob.glob('doc/*.pdf')),
 
-        ('share/applications',
-         ['data/paperwork.desktop']),
+        ('share/applications', ['data/paperwork.desktop']),
     ] + data_files,
     entry_points={
         'gui_scripts': [

@@ -1475,6 +1475,7 @@ class ActionImport(SimpleAction):
         self.__main_win = main_window
         self.__config = config
         self._select_file_dialog = None
+        self.notification = None
 
     def __select_file_cb(self, dialog, response):
         if response != 0:
@@ -1589,16 +1590,45 @@ class ActionImport(SimpleAction):
         msg = _("Imported:\n")
         for (k, v) in stats.items():
             msg += ("- {}: {}\n".format(k, v))
-        msg += "\n"
-        msg += _("Would you like to move the original files to trash?\n")
+        msg = msg.strip()
 
-        ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg,
-                         file_uris=file_uris)
+        if "actions" in Notify.get_server_caps():
+            notification = Notify.Notification.new(
+                _("Import successful"),
+                msg,
+                "document-new"
+            )
+            notification.add_action(
+                "delete",
+                _("Delete imported files"),
+                self._delete_files, file_uris
+            )
+            notification.show()
+            self.notification = notification  # keep a ref on the notif
+        else:
+            # fall back on classical ugly popup
+            msg += "\n"
+            msg += _("Would you like to move the original file(s) to trash?\n")
+            ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg,
+                             file_uris=file_uris)
+
+    def _delete_files(self, notification, action, file_uris=[],
+                      *args, **kwargs):
+        self.notification = None
+        logger.info("Moving importing file(s) to trash ...")
+        GLib.idle_add(self.__delete_files, file_uris)
 
     def __delete_files(self, file_uris=[]):
         for file_uri in file_uris:
+            logger.info("Moving {} to trash ...".format(file_uri))
             gfile = Gio.File.new_for_uri(file_uri)
             gfile.trash()
+        notification = Notify.Notification.new(
+            _("Imported file(s) deleted"),
+            None,
+            "edit-delete"
+        )
+        notification.show()
 
     def do(self):
         SimpleAction.do(self)
@@ -3854,7 +3884,8 @@ class MainWindow(object):
             _("Export finished"),
             _("Export of {} as {} finished").format(
                 str(exporter.obj), str(exporter.export_format)
-            )
+            ),
+            "document-save"
         )
         notification.show()
 

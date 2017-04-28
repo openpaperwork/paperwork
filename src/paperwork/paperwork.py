@@ -124,9 +124,10 @@ class Main(object):
     def __init__(self):
         self.main_win = None
         self.config = None
+        self.main_loop = GLib.MainLoop()
 
     def quit_nicely(self, *args, **kwargs):
-        a = ActionRealQuit(self.main_win, self.config)
+        a = ActionRealQuit(self.main_win, self.config, self.main_loop)
         a.do()
 
     def main(self, hook_func=None, skip_workdir_scan=False):
@@ -152,14 +153,14 @@ class Main(object):
             self.config = load_config()
             self.config.read()
 
-            self.main_win = MainWindow(self.config)
+            self.main_win = MainWindow(self.config, self.main_loop)
             ActionRefreshIndex(self.main_win, self.config,
                                skip_examination=skip_workdir_scan).do()
 
             if hook_func:
                 hook_func(self.config, self.main_win)
 
-            Gtk.main()
+            self.main_loop.run()
 
             logger.info("Stopping schedulers ...")
             for scheduler in self.main_win.schedulers.values():

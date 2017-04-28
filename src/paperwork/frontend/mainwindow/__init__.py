@@ -2282,10 +2282,11 @@ class ActionRealQuit(SimpleAction):
     """
     Quit
     """
-    def __init__(self, main_window, config):
+    def __init__(self, main_window, config, main_loop):
         SimpleAction.__init__(self, "Quit (real)")
         self.__main_win = main_window
         self.__config = config
+        self.__main_loop = main_loop
 
     def do(self):
         SimpleAction.do(self)
@@ -2295,7 +2296,7 @@ class ActionRealQuit(SimpleAction):
         logger.info("Stopping index client ...")
         self.__main_win.docsearch.stop()
         logger.info("Gtk.main_quit() ...")
-        Gtk.main_quit()
+        self.__main_loop.quit()
         logger.info("Gtk main_loop() interrupted")
 
     def on_window_close_cb(self, window):
@@ -2385,7 +2386,7 @@ class ActionOpenHelp(SimpleAction):
 
 
 class MainWindow(object):
-    def __init__(self, config):
+    def __init__(self, config, main_loop):
         self.ready = False
         self.docsearch = DummyDocSearch()
 
@@ -2803,8 +2804,10 @@ class MainWindow(object):
             popup_menu[0].connect("button-press-event", self.__popup_menu_cb,
                                   popup_menu[0], popup_menu[1])
 
-        self.window.connect("destroy",
-                            ActionRealQuit(self, config).on_window_close_cb)
+        self.window.connect(
+            "destroy",
+            ActionRealQuit(self, config, main_loop).on_window_close_cb
+        )
 
         self.img['scrollbar'].connect("size-allocate",
                                       self.__on_img_area_resize_cb)

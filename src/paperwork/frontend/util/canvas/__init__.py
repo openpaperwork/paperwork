@@ -521,6 +521,9 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         return self.__scroll((scroll_x, scroll_y))
 
     def __get_position(self):
+        if self.hadjustment is None or self.vadjustment is None:
+            # May happen when Paperwork is closing
+            return (0, 0)
         return (int(self.hadjustment.get_value()),
                 int(self.vadjustment.get_value()))
 

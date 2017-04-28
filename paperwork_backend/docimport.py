@@ -299,7 +299,7 @@ class ImageImporter(BaseImporter):
             file_uri = self.fs.safe(file_uri)
             logger.info("Importing image '%s'" % (file_uri))
 
-            with self.fs.open(file_uri, "r") as fd:
+            with self.fs.open(file_uri, "rb") as fd:
                 img = Image.open(fd)
                 img.load()
             page = current_doc.add_page(img, [])

@@ -10,6 +10,7 @@ try:
     gi.require_version('Gtk', '3.0')
     gi.require_version('Poppler', '0.18')
     gi.require_version('PangoCairo', '1.0')
+    gi.require_version('Notify', '0.7')
 except:
     pass
 
@@ -53,7 +54,7 @@ DEFAULT_LANG = {
 
 MODULES = [
     (
-        'Gtk', 'gi.repository.Gtk',
+        'Gtk (GObject introspection bindings)', 'gi.repository.Gtk',
         {
             'debian': 'gir1.2-gtk-3.0',
             'fedora': 'gtk3',
@@ -62,6 +63,13 @@ MODULES = [
             'ubuntu': 'gir1.2-gtk-3.0',
             'suse': 'python-gtk',
         },
+    ),
+    (
+        'Notify (GObject introspection bindings)', 'gi.repository.Notify',
+        {
+            'debian': 'gir1.2-notify-0.7',
+            'ubuntu': 'gir1.2-notify-0.7',
+        }
     ),
 ]
 

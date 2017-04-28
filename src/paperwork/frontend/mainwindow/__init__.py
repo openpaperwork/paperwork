@@ -28,6 +28,7 @@ from gi.repository import GLib
 from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import Gtk
+from gi.repository import Notify
 import pillowfight
 
 from paperwork_backend import docexport
@@ -712,9 +713,11 @@ class JobExport(Job):
         'export-start': (GObject.SignalFlags.RUN_LAST, None, ()),
         'export-progress': (GObject.SignalFlags.RUN_LAST, None,
                             (GObject.TYPE_INT, GObject.TYPE_INT)),
-        'export-done': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'export-done': (GObject.SignalFlags.RUN_LAST, None,
+                        (GObject.TYPE_PYOBJECT, )),  # exporter
         'export-error': (GObject.SignalFlags.RUN_LAST, None,
-                         (GObject.TYPE_PYOBJECT, )),
+                         (GObject.TYPE_PYOBJECT,  # exporter
+                          GObject.TYPE_PYOBJECT)),  # exception
     }
 
     can_stop = False
@@ -735,10 +738,10 @@ class JobExport(Job):
             self._exporter.save(self._target_path, self._on_progress_cb)
         except Exception as exc:
             logger.exception("Export failed")
-            self.emit('export-error', exc)
+            self.emit('export-error', self._exporter, exc)
             raise
 
-        self.emit('export-done')
+        self.emit('export-done', self._exporter)
 
 
 GObject.type_register(JobExport)
@@ -759,11 +762,12 @@ class JobFactoryExport(JobFactory):
                     GLib.idle_add(self.__main_win.on_export_progress,
                                   current, total))
         job.connect('export-error',
-                    lambda job, error:
-                    GLib.idle_add(self.__main_win.on_export_error, error))
+                    lambda job, exporter, error:
+                    GLib.idle_add(self.__main_win.on_export_error,
+                                  exporter, error))
         job.connect('export-done',
-                    lambda job:
-                    GLib.idle_add(self.__main_win.on_export_done))
+                    lambda job, exporter:
+                    GLib.idle_add(self.__main_win.on_export_done, exporter))
         return job
 
 
@@ -3843,12 +3847,20 @@ class MainWindow(object):
     def on_export_progress(self, current, total):
         self.set_progression(None, current / total, _("Exporting ..."))
 
-    def on_export_done(self):
+    def on_export_done(self, exporter):
         self.set_mouse_cursor("Normal")
         self.set_progression(None, 0.0, None)
+        notification = Notify.Notification.new(
+            _("Export finished"),
+            _("Export of {} as {} finished").format(
+                str(exporter.obj), str(exporter.export_format)
+            )
+        )
+        notification.show()
 
-    def on_export_error(self, error):
-        self._on_export_done()
+    def on_export_error(self, exporter, error):
+        self.set_mouse_cursor("Normal")
+        self.set_progression(None, 0.0, None)
         msg = _("Export failed: {}").format(str(error))
         flags = (Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         dialog = Gtk.MessageDialog(transient_for=self.window,

@@ -26,11 +26,13 @@ import gi
 
 gi.require_version('Gdk', '3.0')
 gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
 gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
 from gi.repository import GLib
 from gi.repository import Gtk
+from gi.repository import Notify
 import locale
 import logging
 import signal
@@ -144,6 +146,9 @@ class Main(object):
         logger.info("Initializing pyinsane ...")
         pyinsane2.init()
         try:
+            logger.info("Initializing libnotify ...")
+            Notify.init("Paperwork")
+
             self.config = load_config()
             self.config.read()
 
@@ -162,6 +167,9 @@ class Main(object):
 
             logger.info("Writing configuration ...")
             self.config.write()
+
+            logger.info("Stopping libnotify ...")
+            Notify.uninit()
         finally:
             logger.info("Stopping Pyinsane ...")
             pyinsane2.exit()

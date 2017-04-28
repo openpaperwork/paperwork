@@ -140,6 +140,7 @@ class _CommonPdfDoc(BasicDoc):
         global NB_FDS
         if self._pdf:
             return self._pdf
+        logger.info("PDF: Opening {}".format(self.pdfpath))
         filepath = Gio.File.new_for_uri(self.pdfpath)
         self._pdf = Poppler.Document.new_from_gfile(filepath, password=None)
         NB_FDS += 1
@@ -247,9 +248,10 @@ class PdfDoc(_CommonPdfDoc):
 
     def import_pdf(self, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))
+        gfile = Gio.File.new_for_uri(file_uri)
         try:
             # try opening it to make sure it's valid
-            pdf = Poppler.Document.new_from_file(file_uri)
+            pdf = Poppler.Document.new_from_gfile(gfile)
             pdf.get_n_pages()
         except GLib.GError as exc:
             logger.error(
@@ -260,7 +262,7 @@ class PdfDoc(_CommonPdfDoc):
             return str(exc)
 
         try:
-            dest = Gio.File.new_for_path(self.path)
+            dest = Gio.File.new_for_uri(self.path)
             dest.make_directory(None)
         except GLib.GError as exc:
             logger.error("Warning: Error while trying to create '%s': %s"
@@ -271,7 +273,7 @@ class PdfDoc(_CommonPdfDoc):
         f.copy(dest,
                0,  # TODO(Jflesch): Missing flags: don't keep attributes
                None, None, None)
-        self.pdfpath = dest.get_path()
+        self.pdfpath = dest.get_uri()
         return None
 
 

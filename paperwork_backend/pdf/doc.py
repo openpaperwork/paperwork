@@ -116,7 +116,7 @@ class _CommonPdfDoc(BasicDoc):
 
     def __init__(self, fs, pdfpath, docpath, docid=None, on_disk_cache=False):
         super().__init__(fs, docpath, docid)
-        self.pdfpath = pdfpath
+        self.pdfpath = fs.safe(pdfpath)
         self._pages = None
         self._pdf = None
         self._on_disk_cache = on_disk_cache
@@ -245,6 +245,8 @@ class PdfDoc(_CommonPdfDoc):
         except OSError:
             pass
         return last_mod
+
+    last_mod = property(_get_last_mod)
 
     def import_pdf(self, file_uri):
         logger.info("PDF: Importing '%s'" % (file_uri))

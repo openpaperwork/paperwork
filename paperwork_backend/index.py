@@ -319,11 +319,11 @@ class PaperworkIndex(object):
             last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
             doc.drop_cache()
             if old_infos[1] != last_mod:
-                return ('modified', doc)
+                return ('modified', doc.clone())
             else:
-                return ('unchanged', doc)
+                return ('unchanged', doc.clone())
         else:
-            return ('new', doc)
+            return ('new', doc.clone())
 
     def continue_examine_rootdir2(self):
         old_doc = None
@@ -661,10 +661,11 @@ class PaperworkIndex(object):
         """
         Remove a label from a doc. Takes care of updating the index
         """
+        doc = self._docs_by_id[docid]
         doc.remove_label(label)
         if update_index:
             updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(doc)
+            updater.upd_doc(docid)
             updater.commit()
         doc.drop_cache()
 
@@ -692,7 +693,7 @@ class PaperworkIndex(object):
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
         doc.drop_cache()
-        return ('updated', doc)
+        return ('updated', doc.clone())
 
     def end_update_label(self):
         self.commit()
@@ -764,7 +765,7 @@ class PaperworkIndex(object):
         filehash = (u"%X" % filehash)
         results = self.__searcher.search(
             whoosh.query.Term('docfilehash', filehash))
-        return results
+        return bool(results)
 
     def get_label_list(self):
         labels = [label for label in self.labels.values()]

@@ -199,6 +199,7 @@ class DocIndexUpdater(GObject.GObject):
         Add a document to the index
         """
         logger.info("Indexing new doc: %s" % doc)
+        doc = doc.clone()  # make sure it can be serialized safely
         self.docsearch.index.add_doc(doc, index_update=index_update,
                                      label_guesser_update=label_guesser_update)
 
@@ -207,6 +208,7 @@ class DocIndexUpdater(GObject.GObject):
         Update a document in the index
         """
         logger.info("Updating modified doc: %s" % doc)
+        doc = doc.clone()  # make sure it can be serialized safely
         self.docsearch.index.upd_doc(doc, index_update=index_update,
                                      label_guesser_update=label_guesser_update)
 
@@ -215,6 +217,7 @@ class DocIndexUpdater(GObject.GObject):
         Delete a document
         """
         logger.info("Removing doc from the index: %s" % doc)
+        doc = doc.clone()  # make sure it can be serialized safely
         self.docsearch.index.del_doc(doc)
 
     def commit(self, index_update=True, label_guesser_update=True):
@@ -298,6 +301,7 @@ class DocSearch(object):
         """
         return a prediction of label names
         """
+        doc = doc.clone()  # make sure it can be serialized safely
         return self.index.guess_labels(doc)
 
     def reload_index(self, progress_cb=dummy_progress_cb):
@@ -372,6 +376,8 @@ class DocSearch(object):
             doc --- first document on which the label must be added (required
                     for now)
         """
+        doc.drop_cache()
+        doc = doc.clone()  # make sure it's serializable
         return self.index.create_label(label, doc=doc)
 
     def add_label(self, doc, label, update_index=True):
@@ -382,17 +388,15 @@ class DocSearch(object):
             label --- The new label (see labels.Label)
             doc --- The first document on which this label has been added
         """
+        doc = doc.clone()  # make sure it's serializable
         return self.index.add_label(doc, label, update_index=update_index)
 
     def remove_label(self, doc, label, update_index=True):
         """
         Remove a label from a doc. Takes care of updating the index
         """
-        doc.remove_label(label)
-        if update_index:
-            updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(doc)
-            updater.commit()
+        doc = doc.clone()  # make sure it's serializable
+        return self.index.remove_label(doc, label, update_index=update_index)
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """

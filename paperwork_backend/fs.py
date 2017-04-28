@@ -31,7 +31,7 @@ class GioFileAdapter(io.RawIOBase):
                     Gio.FILE_ATTRIBUTE_STANDARD_SIZE
                 )
             except GLib.GError as exc:
-                raise IOError(exc)
+                raise IOError(str(exc))
 
         self.gfd = None
         self.gin = None
@@ -246,7 +246,7 @@ class GioFileSystem(object):
                 return raw
             return GioUTF8FileAdapter(raw)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def join(self, base, url):
         if not base.endswith("/"):
@@ -268,7 +268,7 @@ class GioFileSystem(object):
             f = Gio.File.new_for_uri(url)
             return f.query_exists()
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def listdir(self, url):
         try:
@@ -281,7 +281,7 @@ class GioFileSystem(object):
                 child = f.get_child(child.get_name())
                 yield child.get_uri()
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def rename(self, old_url, new_url):
         try:
@@ -290,7 +290,7 @@ class GioFileSystem(object):
             assert(not old.equal(new))
             old.move(new, Gio.FileCopyFlags.NONE)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def unlink(self, url):
         try:
@@ -299,7 +299,7 @@ class GioFileSystem(object):
             if not f.delete():
                 raise IOError("Failed to delete %s" % url)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def rm_rf(self, url):
         try:
@@ -308,7 +308,7 @@ class GioFileSystem(object):
             if not f.trash():
                 raise IOError("Failed to delete %s" % url)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def getmtime(self, url):
         try:
@@ -318,7 +318,7 @@ class GioFileSystem(object):
             )
             return fi.get_attribute_uint64(Gio.FILE_ATTRIBUTE_TIME_CHANGED)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def getsize(self, url):
         try:
@@ -328,7 +328,7 @@ class GioFileSystem(object):
             )
             return fi.get_attribute_uint64(Gio.FILE_ATTRIBUTE_STANDARD_SIZE)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def isdir(self, url):
         try:
@@ -338,7 +338,7 @@ class GioFileSystem(object):
             )
             return fi.get_file_type() == Gio.FileType.DIRECTORY
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def copy(self, old_url, new_url):
         try:
@@ -348,9 +348,12 @@ class GioFileSystem(object):
                 old.delete()
             old.copy(new, Gio.FileCopyFlags.ALL_METADATA)
         except GLib.GError as exc:
-            raise IOError(exc)
+            raise IOError(str(exc))
 
     def mkdir_p(self, url):
-        f = Gio.File.new_for_uri(url)
-        if not f.query_exists():
-            f.make_directory_with_parents()
+        try:
+            f = Gio.File.new_for_uri(url)
+            if not f.query_exists():
+                f.make_directory_with_parents()
+        except GLib.GError as exc:
+            raise IOError(str(exc))

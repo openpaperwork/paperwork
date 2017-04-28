@@ -213,7 +213,7 @@ class PaperworkIndex(object):
         if doc_type_name is not None:
             # if we already know the doc type name
             for (is_doc_type, doc_type_name_b, doc_type) in DOC_TYPE_LIST:
-                if doc_type_name_b == doc_type_name:
+                if (doc_type_name_b == doc_type_name):
                     doc = doc_type(self.fs, docpath, docid)
             if not doc:
                 logger.warning(
@@ -635,9 +635,8 @@ class PaperworkIndex(object):
         # TODO(Jflesch): Should train with previous documents
         if doc:
             doc.add_label(label)
-            updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(doc)
-            updater.commit()
+            self.upd_doc(doc)
+            self.commit()
         doc.drop_cache()
 
     def add_label(self, doc, label, update_index=True):
@@ -652,21 +651,18 @@ class PaperworkIndex(object):
         assert(label in self.labels.values())
         doc.add_label(label)
         if update_index:
-            updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(doc)
-            updater.commit()
+            self.upd_doc(doc)
+            self.commit()
         doc.drop_cache()
 
     def remove_label(self, doc, label, update_index=True):
         """
         Remove a label from a doc. Takes care of updating the index
         """
-        doc = self._docs_by_id[docid]
         doc.remove_label(label)
         if update_index:
-            updater = self.get_index_updater(optimize=False)
-            updater.upd_doc(docid)
-            updater.commit()
+            self.upd_doc(doc)
+            self.commit()
         doc.drop_cache()
 
     def start_update_label(self, old_label, new_label):

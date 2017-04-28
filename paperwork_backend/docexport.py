@@ -1,15 +1,17 @@
-from .common.doc import dummy_export_progress_cb
+from .common.export import Exporter
+from .common.export import dummy_export_progress_cb
 from . import fs
 
 
 FS = fs.GioFileSystem()
 
 
-class MultipleDocExporter(object):
+class MultipleDocExporter(Exporter):
     can_select_format = False
     can_change_quality = False
 
     def __init__(self, doclist):
+        super().__init__(doclist, 'PDF')
         global FS
         self.fs = FS
         self.doclist = doclist

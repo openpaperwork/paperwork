@@ -27,10 +27,6 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-def dummy_export_progress_cb(*args, **kwargs):
-    pass
-
-
 class BasicDoc(object):
     LABEL_FILE = "labels"
     DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
@@ -259,6 +255,8 @@ class BasicDoc(object):
         """
         Returns:
             Returned object must implement the following methods/attributes:
+            .obj
+            .export_format
             .can_change_quality = (True|False)
             .set_quality(quality_pourcent)  # if can_change_quality
             .set_postprocess_func(func)  # if can_change_quality

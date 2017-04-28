@@ -344,6 +344,8 @@ class GioFileSystem(object):
         try:
             old = Gio.File.new_for_uri(old_url)
             new = Gio.File.new_for_uri(new_url)
+            if old.query_exists():
+                old.delete()
             old.copy(new, Gio.FileCopyFlags.ALL_METADATA)
         except GLib.GError as exc:
             raise IOError(exc)

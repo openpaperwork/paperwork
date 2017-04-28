@@ -22,19 +22,20 @@ import tempfile
 
 import PIL.Image
 
-from ..common.doc import dummy_export_progress_cb
+from ..common.export import Exporter
+from ..common.export import dummy_export_progress_cb
 from ..util import strip_accents
 from ..util import split_words
 
 logger = logging.getLogger(__name__)
 
 
-class PageExporter(object):
-    can_select_format = False
-    can_change_quality = True
-
+class PageExporter(Exporter):
     def __init__(self, page, img_format='PNG', mime='image/png',
                  valid_exts=['png']):
+        super().__init__(page, img_format)
+        self.can_change_quality = True
+        self.can_select_format = False
         self.page = page
         self.img_format = img_format
         self.mime = mime

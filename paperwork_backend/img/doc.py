@@ -35,7 +35,8 @@ from gi.repository import Gio
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
-from ..common.doc import dummy_export_progress_cb
+from ..common.export import dummy_export_progress_cb
+from ..common.export import Exporter
 from ..img.page import ImgPage
 from ..util import image2surface
 from ..util import surface2image
@@ -44,12 +45,12 @@ from ..util import mkdir_p
 logger = logging.getLogger(__name__)
 
 
-class ImgToPdfDocExporter(object):
-    can_change_quality = True
-    can_select_format = True
-    valid_exts = ['pdf']
-
+class ImgToPdfDocExporter(Exporter):
     def __init__(self, doc, page_nb):
+        super().__init__(doc, 'PDF')
+        self.can_change_quality = True
+        self.can_select_format = True
+        self.valid_exts = ['pdf']
         self.doc = doc
         self.page_nb = page_nb
         self.__quality = 50

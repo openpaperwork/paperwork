@@ -21,18 +21,19 @@ from gi.repository import Gio
 from gi.repository import Poppler
 
 from ..common.doc import BasicDoc
-from ..common.doc import dummy_export_progress_cb
+from ..common.export import Exporter
+from ..common.export import dummy_export_progress_cb
 from ..pdf.page import PdfPage
 
 PDF_FILENAME = "doc.pdf"
 logger = logging.getLogger(__name__)
 
 
-class PdfDocExporter(object):
-    can_select_format = False
-    can_change_quality = False
-
+class PdfDocExporter(Exporter):
     def __init__(self, doc, page_nb):
+        super().__init__(doc, 'PDF')
+        self.can_select_format = False
+        self.can_change_quality = False
         self.doc = doc
         self.page = doc.pages[page_nb]
         self.pdfpath = doc.fs.join(doc.path, PDF_FILENAME)
@@ -44,7 +45,7 @@ class PdfDocExporter(object):
         return ['pdf']
 
     def save(self, target_path, progress_cb=dummy_export_progress_cb):
-        target_path = self.fs.safe(target_path)
+        target_path = self.doc.fs.safe(target_path)
         progress_cb(0, 1)
         self.doc.fs.copy(self.pdfpath, target_path)
         progress_cb(1, 1)

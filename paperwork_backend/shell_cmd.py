@@ -87,12 +87,12 @@ def _chkdeps(module_name, distribution):
     pkgs = []
     for dep in missing:
         if distribution in dep[2]:
-            print("  - %s (python module: %s ; %s package : %s)"
+            print("  - %s (python module: %s ; %s package: %s)"
                   % (dep[0], dep[1], distribution, dep[2][distribution]))
             pkgs.append(dep[2][distribution])
         else:
-            print("  - %s (python module: %s)"
-                  % (dep[0], dep[1]))
+            print("  - %s (python module: %s ; Debian package: %s)"
+                  % (dep[0], dep[1], dep[2]['debian']))
 
     if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
         command = "sudo %s %s" % (

@@ -39,44 +39,45 @@ from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork_backend.labels import Label
 from paperwork_backend.pdf.doc import ExternalPdfDoc
-from paperwork.frontend.aboutdialog import AboutDialog
-from paperwork.frontend import activation
-from paperwork.frontend.diag import DiagDialog
-from paperwork.frontend.mainwindow.docs import DocList
-from paperwork.frontend.mainwindow.docs import DocPropertiesPanel
-from paperwork.frontend.mainwindow.docs import sort_documents_by_date
-from paperwork.frontend.mainwindow.pages import PageDrawer
-from paperwork.frontend.mainwindow.pages import PageDropHandler
-from paperwork.frontend.mainwindow.pages import JobFactoryImgProcesser
-from paperwork.frontend.mainwindow.pages import JobFactoryPageBoxesLoader
-from paperwork.frontend.mainwindow.pages import JobFactoryPageImgLoader
-from paperwork.frontend.mainwindow.pages import SimplePageDrawer
-from paperwork.frontend.mainwindow.scan import ScanWorkflow
-from paperwork.frontend.mainwindow.scan import MultiAnglesScanWorkflowDrawer
-from paperwork.frontend.mainwindow.scan import SingleAngleScanWorkflowDrawer
-from paperwork.frontend.multiscan import MultiscanDialog
-from paperwork.frontend.searchdialog import SearchDialog
-from paperwork.frontend.settingswindow import SettingsWindow
-from paperwork.frontend.util import connect_actions
-from paperwork.frontend.util import get_documentation
-from paperwork.frontend.util import load_cssfile
-from paperwork.frontend.util import load_image
-from paperwork.frontend.util import load_uifile
-from paperwork.frontend.util import sizeof_fmt
-from paperwork.frontend.util.actions import SimpleAction
-from paperwork.frontend.util.config import get_scanner
-from paperwork.frontend.util.dialog import ask_confirmation
-from paperwork.frontend.util.dialog import popup_no_scanner_found
-from paperwork.frontend.util.canvas import Canvas
-from paperwork.frontend.util.canvas.animations import SpinnerAnimation
-from paperwork.frontend.util.canvas.drawers import Centerer
-from paperwork.frontend.util.canvas.drawers import PillowImageDrawer
-from paperwork.frontend.util.canvas.drawers import ProgressBarDrawer
-from paperwork.frontend.util.canvas.drawers import TextDrawer
-from paperwork.frontend.util.jobs import Job
-from paperwork.frontend.util.jobs import JobFactory
-from paperwork.frontend.util.jobs import JobScheduler
-from paperwork.frontend.util import renderer
+from ..aboutdialog import AboutDialog
+from ..import activation
+from ..import beacon
+from ..diag import DiagDialog
+from ..mainwindow.docs import DocList
+from ..mainwindow.docs import DocPropertiesPanel
+from ..mainwindow.docs import sort_documents_by_date
+from ..mainwindow.pages import PageDrawer
+from ..mainwindow.pages import PageDropHandler
+from ..mainwindow.pages import JobFactoryImgProcesser
+from ..mainwindow.pages import JobFactoryPageBoxesLoader
+from ..mainwindow.pages import JobFactoryPageImgLoader
+from ..mainwindow.pages import SimplePageDrawer
+from ..mainwindow.scan import ScanWorkflow
+from ..mainwindow.scan import MultiAnglesScanWorkflowDrawer
+from ..mainwindow.scan import SingleAngleScanWorkflowDrawer
+from ..multiscan import MultiscanDialog
+from ..searchdialog import SearchDialog
+from ..settingswindow import SettingsWindow
+from ..util import connect_actions
+from ..util import get_documentation
+from ..util import load_cssfile
+from ..util import load_image
+from ..util import load_uifile
+from ..util import sizeof_fmt
+from ..util.actions import SimpleAction
+from ..util.config import get_scanner
+from ..util.dialog import ask_confirmation
+from ..util.dialog import popup_no_scanner_found
+from ..util.canvas import Canvas
+from ..util.canvas.animations import SpinnerAnimation
+from ..util.canvas.drawers import Centerer
+from ..util.canvas.drawers import PillowImageDrawer
+from ..util.canvas.drawers import ProgressBarDrawer
+from ..util.canvas.drawers import TextDrawer
+from ..util.jobs import Job
+from ..util.jobs import JobFactory
+from ..util.jobs import JobScheduler
+from ..util import renderer
 
 
 _ = gettext.gettext
@@ -1609,8 +1610,8 @@ class ActionImport(SimpleAction):
             # fall back on classical ugly popup
             msg += "\n"
             msg += _("Would you like to move the original file(s) to trash?\n")
-            ask_confirmation(self.__main_win.window, self.__delete_files, msg=msg,
-                             file_uris=file_uris)
+            ask_confirmation(self.__main_win.window, self.__delete_files,
+                             msg=msg, file_uris=file_uris)
 
     def _delete_files(self, notification, action, file_uris=[],
                       *args, **kwargs):
@@ -2829,6 +2830,8 @@ class MainWindow(object):
         GLib.idle_add(self.__init_canvas, config)
         GLib.idle_add(self.window.set_visible, True)
 
+        beacon.start(config)
+
     def __init_cruel_and_unusual_drm(self, config):
         activated = activation.is_activated(config)
         expired = activation.has_expired(config)
@@ -3029,44 +3032,43 @@ class MainWindow(object):
             logger.warning("Failed to display logo: {}".format(exc))
             raise
 
-        if __version__ != "1.0":
-            txt = "Paperwork {}".format(__version__)
-        else:
-            # "Paperwork 1.0" looks ugly... :p
-            txt = "Paperwork"
-        txt_drawer = TextDrawer((0, (logo_size[1] / 2)), txt, height=24)
-        txt_drawer.font = self.default_font
-        txt_drawer = Centerer(txt_drawer)
-        self.img['canvas'].add_drawer(txt_drawer)
+        update = config['last_update_found'].value
 
+        lines = [
+            ("Paperwork {}".format(__version__), 28),
+        ]
         if not activated:
             if expired:
-                pos = logo_size[1] / 2 + 30
-                for (txt, font_size) in [
+                lines += [
                     (_("Trial period has expired"), 30),
                     (_("Everything will work as usual, except we've"), 24),
                     (_("switched all the fonts to {}").format(
                         self.default_font), 24),
                     (_("until you get an activation key"), 24),
                     # TODO(Jflesch): Make that a link
-                    (_("Go to https://openpaper.work/activation/"), 24),
+                    (_("You can go to https://openpaper.work/activation/"), 24),
                     (_("to get an activation key"), 24),
-                ]:
-                    txt_drawer = TextDrawer((0, pos), txt, height=font_size)
-                    txt_drawer.font = self.default_font
-                    txt_drawer = Centerer(txt_drawer)
-                    self.img['canvas'].add_drawer(txt_drawer)
-                    pos += font_size + 5
+                ]
             else:
                 remaining = activation.get_remaining_days(config)
-                txt = _("Trial period: {} days remaining").format(remaining)
-                txt_drawer = TextDrawer(
-                    (0, (logo_size[1] / 2) + 30),
-                    txt, height=20
-                )
-                txt_drawer.font = self.default_font
-                txt_drawer = Centerer(txt_drawer)
-                self.img['canvas'].add_drawer(txt_drawer)
+                lines += [
+                    _("Trial period: {} days remaining").format(remaining), 20
+                ]
+        elif update and update != self.version:
+            lines += [
+                (_("A new version is available:"), 20),
+                (_("Paperwork {}").format(update), 20),
+                # TODO(Jflesch): Make that a link
+                ("https://openpaper.work/download/", 20),
+            ]
+
+        pos = logo_size[1] / 2
+        for (txt, font_size) in lines:
+            txt_drawer = TextDrawer((0, pos), txt, height=font_size)
+            txt_drawer.font = self.default_font
+            txt_drawer = Centerer(txt_drawer)
+            self.img['canvas'].add_drawer(txt_drawer)
+            pos += font_size + 5
 
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)

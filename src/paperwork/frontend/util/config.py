@@ -80,7 +80,6 @@ class _ScanTimes(object):
 
 
 class _PaperworkScannerCalibration(object):
-
     def __init__(self, section):
         self.section = section
         self.value = None
@@ -132,31 +131,33 @@ class _PaperworkScannerCalibration(object):
 
 
 class _PaperworkDate(object):
-    def __init__(self, section, token):
+    def __init__(self, section, token,
+                 default_value_func=lambda: datetime.datetime.today()):
         self.section = section
         self.setting = PaperworkSetting(section, token)
-        self.value = datetime.date.today()  # default
+        self.default_value_func = default_value_func
+        self.value = default_value_func()
+        self.date_format = "%Y-%m-%d"
 
     def load(self, config):
         self.setting.load(config)
         value = self.setting.value
         if value is None:
-            self.value = None
+            self.value = self.default_value_func()
             return
-        dt = datetime.datetime.strptime(value, "%Y-%m-%d")
-        self.value = dt.date()
+        dt = datetime.datetime.strptime(value, self.date_format)
+        self.value = dt
 
     def update(self, config):
         if self.value is None:
             value = None
         else:
-            value = self.value.isoformat()
+            value = self.value.strftime(self.date_format)
         self.setting.value = value
         self.setting.update(config)
 
 
 class _PaperworkLangs(object):
-
     """
     Convenience setting. Gives all the languages used as one dictionary
     """
@@ -187,7 +188,6 @@ class _PaperworkLangs(object):
 
 
 class _PaperworkSize(object):
-
     def __init__(self, section, base_token,
                  default_size=(1024, 768),
                  min_size=(400, 300)):
@@ -292,10 +292,21 @@ def load_config():
         # update detection
         'check_for_update': PaperworkSetting("Update", "check", lambda: False,
                                              paperwork_cfg_boolean),
+        'last_update_check': _PaperworkDate(
+            "Update", "last_check",
+            lambda: datetime.datetime(year=1970, month=1, day=1)
+        ),
+        'last_update_found': PaperworkSetting(
+            "Update", "last_update_found", lambda: None, str
+        ),
 
         # statistics
         'send_statistics': PaperworkSetting("Statistics", "send", lambda: False,
                                             paperwork_cfg_boolean),
+        'last_statistics_post': _PaperworkDate(
+            "Update", "last_check",
+            lambda: datetime.datetime(year=1970, month=1, day=1)
+        ),
     }
     ocr_lang = _PaperworkFrontendConfigUtil.get_default_spellcheck_lang
     settings['spelling_lang'] = (

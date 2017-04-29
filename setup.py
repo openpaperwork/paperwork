@@ -104,6 +104,7 @@ Main features are:
         ]
     },
     install_requires=[
+        "python-dateutil",
         "python-Levenshtein",
         "Pillow",
         "pycountry",

@@ -287,7 +287,15 @@ def load_config():
         'activation_key': PaperworkSetting(
             "Activation", "key", lambda: None, str
         ),
-        'first_start': _PaperworkDate("Activation", "first_start")
+        'first_start': _PaperworkDate("Activation", "first_start"),
+
+        # update detection
+        'check_for_update': PaperworkSetting("Update", "check", lambda: False,
+                                             paperwork_cfg_boolean),
+
+        # statistics
+        'send_statistics': PaperworkSetting("Statistics", "send", lambda: False,
+                                            paperwork_cfg_boolean),
     }
     ocr_lang = _PaperworkFrontendConfigUtil.get_default_spellcheck_lang
     settings['spelling_lang'] = (
@@ -362,12 +370,15 @@ def get_scanner(config, preferred_sources=None):
         try:
             # we didn't find the scanner at the given ID
             # but maybe there is only one, so we can guess the scanner to use
-            devices = [x for x in pyinsane2.get_devices() if x.name[:4] != "v4l:"]
+            devices = [
+                x for x in pyinsane2.get_devices()
+                if x.name[:4] != "v4l:"
+            ]
             if len(devices) != 1:
                 raise
             logger.info("Will try another scanner id: %s" % devices[0].name)
             return _get_scanner(config, devices[0].name, preferred_sources)
         except pyinsane2.PyinsaneException:
-            # this is a fallback mechanism, but what interrest us is the first exception,
-            # not the one from the fallback
+            # this is a fallback mechanism, but what interest us is the first
+            # exception, not the one from the fallback
             raise exc

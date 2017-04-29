@@ -606,6 +606,12 @@ class ActionApplySettings(SimpleAction):
             lang = setting['store'][idx][1]
             self.__config['ocr_lang'].value = lang
 
+        update = self.__settings_win.network_settings['update'].get_active()
+        self.__config['check_for_update'].value = update
+
+        stats = self.__settings_win.network_settings['statistics'].get_active()
+        self.__config['send_statistics'].value = stats
+
         if self.__settings_win.grips is not None:
             coords = self.__settings_win.grips.get_coords()
             self.__config['scanner_calibration'].value = (
@@ -687,6 +693,11 @@ class SettingsWindow(GObject.GObject):
         self.__config = config
 
         self.workdir_chooser = widget_tree.get_object("filechooserbutton")
+
+        self.network_settings = {
+            "update": widget_tree.get_object("checkUpdate"),
+            "statistics": widget_tree.get_object("checkStatistics")
+        }
 
         self.ocr_settings = {
             "enabled": {
@@ -1013,6 +1024,13 @@ class SettingsWindow(GObject.GObject):
                 self.ocr_settings['lang']['gui'].set_active(idx)
             idx += 1
         self.set_ocr_opts_state()
+
+        self.network_settings['update'].set_active(
+            config['check_for_update'].value
+        )
+        self.network_settings['statistics'].set_active(
+            config['send_statistics'].value
+        )
 
     def set_ocr_opts_state(self):
         ocr_enabled = self.ocr_settings['enabled']['gui'].get_active()

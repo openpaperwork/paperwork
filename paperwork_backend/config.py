@@ -17,6 +17,7 @@
 Paperwork configuration management code
 """
 
+import base64
 import configparser
 import logging
 import os
@@ -74,17 +75,26 @@ class PaperworkURI(object):
         try:
             value = config.get(self.section, self.token)
             if value != "None":
+                try:
+                    value = base64.decodebytes(value.encode("utf-8")).decode('utf-8')
+                except Exception as exc:
+                    logger.warning("Failed to decode work dir path ({})".format(value), exc_info=exc)
                 value = self.constructor(value)
+                self.value = FS.safe(value)
             else:
                 value = None
-            self.value = FS.safe(value)
             return
         except (configparser.NoOptionError, configparser.NoSectionError):
             pass
         self.value = self.default_value_func()
 
     def update(self, config):
-        config.set(self.section, self.token, FS.safe(str(self.value)))
+        value = FS.safe(str(self.value))
+        try:
+            value = base64.encodebytes(value.encode('utf-8')).decode('utf-8')
+        except Exception as exc:
+            logger.warning("Failed to encode work dir path ({})".format(value), exc_info=exc)
+        config.set(self.section, self.token, value)
 
 
 class PaperworkConfig(object):

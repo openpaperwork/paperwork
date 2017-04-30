@@ -224,7 +224,10 @@ class GioFileSystem(object):
     def safe(self, uri):
         if "://" not in uri:
             # assume local path
-            uri = "file://" + urllib.parse.quote(uri)
+            if os.name == "nt":
+                url = "file://" + uri  # for some reason, it makes things worst
+            else:
+                uri = "file://" + urllib.parse.quote(uri)
         return uri
 
     def unsafe(self, uri):

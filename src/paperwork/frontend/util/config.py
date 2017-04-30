@@ -17,6 +17,7 @@
 import configparser
 import datetime
 import logging
+import uuid
 
 import pyocr
 import pyinsane2
@@ -218,7 +219,6 @@ class _PaperworkSize(object):
 
 
 class _PaperworkFrontendConfigUtil(object):
-
     @staticmethod
     def get_default_ocr_lang():
         # Try to guess based on the system locale what would be
@@ -304,9 +304,12 @@ def load_config():
         'send_statistics': PaperworkSetting("Statistics", "send", lambda: False,
                                             paperwork_cfg_boolean),
         'last_statistics_post': _PaperworkDate(
-            "Update", "last_check",
+            "Statistics", "last_post",
             lambda: datetime.datetime(year=1970, month=1, day=1)
         ),
+        'uuid': PaperworkSetting(
+            "Statistics", "uuid", lambda: uuid.getnode(), int
+        )
     }
     ocr_lang = _PaperworkFrontendConfigUtil.get_default_spellcheck_lang
     settings['spelling_lang'] = (

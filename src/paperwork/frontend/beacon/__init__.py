@@ -1,15 +1,20 @@
 import datetime
 import dateutil.parser
+import http
 import http.client
 import json
 import logging
+import multiprocessing
 import os
+import platform
 import threading
+import urllib
+
 
 logger = logging.getLogger(__name__)
 
 
-class Beacon(threading.Thread):
+class Beacon(object):
     USER_AGENT = "Paperwork"
 
     UPDATE_CHECK_INTERVAL = datetime.timedelta(days=7)
@@ -68,12 +73,16 @@ class Beacon(threading.Thread):
         return r['paperwork'][os.name]
 
     def check_update(self):
+        if not self.config['check_for_update'].value:
+            logger.info("Update checking is disabled")
+            return
+
         now = datetime.datetime.now()
         last_check = self.config['last_update_check'].value
 
         logger.info("Updates were last checked: {}".format(last_check))
-        if (last_check is not None
-                and last_check + self.UPDATE_CHECK_INTERVAL >= now):
+        if (last_check is not None and
+                last_check + self.UPDATE_CHECK_INTERVAL >= now):
             logger.info("No need to check for new updates yet")
             return
 
@@ -103,19 +112,75 @@ class Beacon(threading.Thread):
         self.config['last_update_check'].value = now
         self.config.write()
 
-    def send_statistics(self):
+    def get_statistics(self, version, docsearch):
+        distribution = platform.linux_distribution()
+        if distribution[0] == '':
+            distribution = platform.win32_ver()
+        return {
+            'uuid': int(self.config['uuid'].value),
+            'paperwork_version': str(version),
+            'nb_documents': int(docsearch.nb_docs),
+            'os_name': str(os.name),
+            'platform_architecture': str(platform.architecture()),
+            'platform_processor': str(platform.processor()),
+            'platform_distribution': str(distribution),
+            'cpu_count': int(multiprocessing.cpu_count()),
+        }
+
+    def send_statistics(self, version, docsearch):
+        if not self.config['send_statistics'].value:
+            logger.info("Anonymous statistics are disabled")
+            return
+
+        now = datetime.datetime.now()
+        last_post = self.config['last_statistics_post'].value
+
+        logger.info("Statistics were last posted: {}".format(last_post))
+        if (last_post is not None and
+                last_post + self.POST_STATISTICS_INTERVAL >= now):
+            logger.info("No need to post statistics")
+            return
+
         logger.info("Sending anonymous statistics ...")
+        stats = self.get_statistics(version, docsearch)
+        logger.info("Statistics: {}".format(stats))
 
-    def run(self):
-        if self.config['check_for_update'].value:
-            self.check_update()
+        logger.info("Posting statistics on openpaper.work ...")
+        h = http.client.HTTPSConnection(
+            host=self.OPENPAPERWORK_STATS['host'],
+        )
+        h.request('POST', url=self.OPENPAPERWORK_STATS['path'], headers={
+            "Content-type": "application/x-www-form-urlencoded",
+            "Accept": "text/plain",
+            'User-Agent': self.USER_AGENT,
+        }, body=urllib.parse.urlencode({
+            'statistics': json.dumps(stats),
+        }))
+        r = h.getresponse()
+        logger.info("Getting reply from openpaper.work ({})".format(r.status))
+        reply = r.read().decode('utf-8')
+        if r.status == http.HTTPStatus.OK:
+            logger.info("Openpaper.work replied: {} | {}".format(
+                r.status, r.reason
+            ))
         else:
-            logger.info("Update checking is disabled")
-        if self.config['send_statistics'].value:
-            self.send_statistics()
-        else:
-            logger.info("Anonymous statistics disabled")
+            logger.warning("Openpaper.work replied: {} | {}".format(
+                r.status, r.reason
+            ))
+            logger.warning("Openpaper.work: {}".format(reply))
+
+        self.config['last_statistics_post'].value = now
+        self.config.write()
 
 
-def start(config):
-    Beacon(config).start()
+def check_update(beacon):
+    thread = threading.Thread(target=beacon.check_update)
+    thread.start()
+
+
+def send_statistics(beacon, version, docsearch):
+    thread = threading.Thread(target=beacon.send_statistics, kwargs={
+        'version': version,
+        'docsearch': docsearch,
+    })
+    thread.start()

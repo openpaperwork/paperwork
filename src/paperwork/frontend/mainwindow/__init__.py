@@ -2830,7 +2830,8 @@ class MainWindow(object):
         GLib.idle_add(self.__init_canvas, config)
         GLib.idle_add(self.window.set_visible, True)
 
-        beacon.start(config)
+        self.beacon = beacon.Beacon(config)
+        beacon.check_update(self.beacon)
 
     def __init_cruel_and_unusual_drm(self, config):
         activated = activation.is_activated(config)
@@ -3115,6 +3116,8 @@ class MainWindow(object):
         self.set_mouse_cursor("Busy")
 
     def on_index_loading_end_cb(self, src, docsearch):
+        logger.info("Index loaded")
+
         self.ready = True
 
         self.set_progression(src, 0.0, None)
@@ -3123,6 +3126,8 @@ class MainWindow(object):
 
         if docsearch is None:
             return
+
+        beacon.send_statistics(self.beacon, self.version, docsearch)
 
         self.docsearch = docsearch
         self.refresh_doc_list()

@@ -1,6 +1,6 @@
 import logging
-import os
 import multiprocessing
+import os
 import platform
 import sys
 

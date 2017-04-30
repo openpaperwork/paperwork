@@ -94,7 +94,7 @@ class PaperworkIndex(object):
                 self.pipe_server.send(RESULT(exc=None, ret=ret))
             except BaseException as exc:
                 logger.exception("Exception while calling '%s'", command.func)
-                self.pipe_server.send(RESULT(exc=exc, ret=ret))
+                self.pipe_server.send(RESULT(exc=exc, ret=None))
 
     def open(self, localdir, base_data_dir, index_path, label_guesser_path,
              rootdir, language=None):

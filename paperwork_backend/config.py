@@ -63,12 +63,10 @@ class PaperworkSetting(object):
 
 
 class PaperworkURI(object):
-    def __init__(self, section, token, default_value_func=lambda: None,
-                 constructor=str):
+    def __init__(self, section, token, default_value_func=lambda: None):
         self.section = section
         self.token = token
         self.default_value_func = default_value_func
-        self.constructor = constructor
         self.value = None
 
     def load(self, config):
@@ -76,13 +74,17 @@ class PaperworkURI(object):
             value = config.get(self.section, self.token)
             if value != "None":
                 try:
-                    value = base64.decodebytes(value.encode("utf-8")).decode('utf-8')
+                    value = base64.decodebytes(value.encode("utf-8")).decode(
+                        'utf-8')
                 except Exception as exc:
-                    logger.warning("Failed to decode work dir path ({})".format(value), exc_info=exc)
-                value = self.constructor(value)
-                self.value = FS.safe(value)
+                    logger.warning(
+                        "Failed to decode work dir path ({})".format(value),
+                        exc_info=exc
+                    )
+                value = FS.safe(value)
             else:
                 value = None
+            self.value = value
             return
         except (configparser.NoOptionError, configparser.NoSectionError):
             pass
@@ -93,7 +95,8 @@ class PaperworkURI(object):
         try:
             value = base64.encodebytes(value.encode('utf-8')).decode('utf-8')
         except Exception as exc:
-            logger.warning("Failed to encode work dir path ({})".format(value), exc_info=exc)
+            logger.warning("Failed to encode work dir path ({})".format(value),
+                           exc_info=exc)
         config.set(self.section, self.token, value)
 
 

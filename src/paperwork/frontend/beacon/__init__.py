@@ -116,13 +116,16 @@ class Beacon(object):
         distribution = platform.linux_distribution()
         if distribution[0] == '':
             distribution = platform.win32_ver()
+        processor = ""
+        if os.name != 'nt':  # contains too much infos on Windows
+            processor = platform.processor()
         return {
             'uuid': int(self.config['uuid'].value),
             'paperwork_version': str(version),
             'nb_documents': int(docsearch.nb_docs),
             'os_name': str(os.name),
             'platform_architecture': str(platform.architecture()),
-            'platform_processor': str(platform.processor()),
+            'platform_processor': str(processor),
             'platform_distribution': str(distribution),
             'cpu_count': int(multiprocessing.cpu_count()),
         }

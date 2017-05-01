@@ -33,6 +33,7 @@ import pillowfight
 
 from paperwork_backend import docexport
 from paperwork_backend import docimport
+from paperwork_backend import fs
 from paperwork_backend.common.page import BasicPage
 from paperwork_backend.common.page import DummyPage
 from paperwork_backend.docsearch import DocSearch
@@ -1520,6 +1521,7 @@ class ActionImport(SimpleAction):
             os.path.join("import", "importfileselector.glade"))
         dialog = widget_tree.get_object("filechooserdialog")
         dialog.set_transient_for(self.__main_win.window)
+        dialog.set_local_only(False)
         dialog.set_select_multiple(True)
         self.__add_filters(dialog)
 
@@ -3146,7 +3148,7 @@ class MainWindow(object):
 
         # no document --> add the introduction document
         docpath = get_documentation('intro')
-        docuri = GLib.filename_to_uri(docpath)
+        docuri = fs.GioFileSystem().safe(docpath)
         importers = docimport.get_possible_importers([docuri], self.doc)
         job_importer = self.job_factories['importer']
         job_importer = job_importer.make(importers[0], [docuri])

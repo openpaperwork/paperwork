@@ -162,7 +162,7 @@ class Beacon(object):
         r = h.getresponse()
         logger.info("Getting reply from openpaper.work ({})".format(r.status))
         reply = r.read().decode('utf-8')
-        if r.status == http.HTTPStatus.OK:
+        if r.status == http.client.OK:
             logger.info("Openpaper.work replied: {} | {}".format(
                 r.status, r.reason
             ))

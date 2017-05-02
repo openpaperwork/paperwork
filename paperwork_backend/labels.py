@@ -51,11 +51,15 @@ class Label(object):
             self.name = str(name)
         self._color = color
 
-    @property
-    def color(self):
+    def _get_color(self):
         color = Gdk.RGBA()
         color.parse(self._color)
         return color
+
+    def _set_color(self, color):
+        self._color = color.to_string()
+
+    color = property(_get_color, _set_color)
 
     def __copy__(self):
         return Label(self.name, self.get_color_str())

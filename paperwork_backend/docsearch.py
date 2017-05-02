@@ -376,9 +376,13 @@ class DocSearch(object):
             doc --- first document on which the label must be added (required
                     for now)
         """
-        doc.drop_cache()
-        doc = doc.clone()  # make sure it's serializable
-        return self.index.create_label(label, doc=doc)
+        if doc:
+            doc.drop_cache()
+            doc = doc.clone()  # make sure it's serializable
+        r = self.index.create_label(label, doc=doc)
+        if doc:
+            doc.drop_cache()
+        return r
 
     def add_label(self, doc, label, update_index=True):
         """
@@ -389,14 +393,18 @@ class DocSearch(object):
             doc --- The first document on which this label has been added
         """
         doc = doc.clone()  # make sure it's serializable
-        return self.index.add_label(doc, label, update_index=update_index)
+        r = self.index.add_label(doc, label, update_index=update_index)
+        doc.drop_cache()
+        return r
 
     def remove_label(self, doc, label, update_index=True):
         """
         Remove a label from a doc. Takes care of updating the index
         """
         doc = doc.clone()  # make sure it's serializable
-        return self.index.remove_label(doc, label, update_index=update_index)
+        r = self.index.remove_label(doc, label, update_index=update_index)
+        doc.drop_cache()
+        return r
 
     def update_label(self, old_label, new_label, callback=dummy_progress_cb):
         """
@@ -411,6 +419,7 @@ class DocSearch(object):
             if op == 'end':
                 break
             callback(current, total, self.LABEL_STEP_UPDATING, doc)
+            doc.drop_cache()
             current += 1
         self.index.end_update_label()
 
@@ -427,6 +436,7 @@ class DocSearch(object):
             if op == 'end':
                 break
             callback(current, total, self.LABEL_STEP_DESTROYING, doc)
+            doc.drop_cache()
             current += 1
         self.index.end_destroy_label()
 

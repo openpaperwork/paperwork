@@ -224,7 +224,7 @@
                 <child>
                   <object class="GtkHeaderBar" id="doclist_headerbar_left">
                     <property name="visible">True</property>
-                    <property name="title" translatable="yes">Documents</property>
+                    <property name="title"></property>
                     <property name="subtitle"></property>
                     <property name="show_close_button">True</property>
                     <property name="decoration_layout">menu:</property>
@@ -252,6 +252,21 @@
                         <property name="pack_type">end</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkLabel" id="searchGlobalNbResults">
+                        <property name="visible">False</property>
+                        <property name="can_focus">False</property>
+                        <property name="margin_right">30</property>
+                        <property name="label"></property>
+                        <attributes>
+                          <attribute name="background" value="#72729f9fcfcf"/>
+                        </attributes>
+                      </object>
+                      <packing>
+                        <property name="pack_type">end</property>
+                      </packing>
+                    </child>
+
                   </object>
                 </child>
               </object>

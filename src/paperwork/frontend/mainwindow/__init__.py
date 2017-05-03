@@ -3208,7 +3208,7 @@ class MainWindow(object):
         logger.info("Got {} documents".format(len(documents)))
         self.doclist.set_docs(
             documents,
-            need_new_doc=(search.strip() == u"")
+            all_docs=(search.strip() == u"")
         )
 
     def on_search_suggestions_cb(self, suggestions):

@@ -645,6 +645,8 @@ class DocList(object):
             JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
 
         self.gui = {
+            'headerbar': widget_tree.get_object("doclist_headerbar_left"),
+            'nb_results': widget_tree.get_object("searchGlobalNbResults"),
             'list': widget_tree.get_object("listboxDocList"),
             'box': widget_tree.get_object("doclist_box"),
             'scrollbars': widget_tree.get_object("scrolledwindowDocList"),
@@ -1050,15 +1052,25 @@ class DocList(object):
             self.gui['list'].add(rowbox)
             self.gui['nb_boxes'] += 1
 
-    def set_docs(self, documents, need_new_doc=True):
+    def set_docs(self, documents, all_docs=True):
         self.__main_win.schedulers['main'].cancel_all(
             self.job_factories['doc_thumbnailer']
         )
 
         self.clear()
-        GLib.idle_add(self._set_docs, documents, need_new_doc)
+        GLib.idle_add(self._set_docs, documents, all_docs)
 
-    def _set_docs(self, documents, need_new_doc):
+    def _set_docs(self, documents, all_docs=True):
+        need_new_doc = all_docs
+        display_count = not all_docs
+
+        title = _("Documents") if all_docs else _("Matching papers")
+        self.gui['headerbar'].set_title(title)
+
+        self.gui['nb_results'].set_visible(display_count)
+        if display_count:
+            self.gui['nb_results'].set_text(str(len(documents)))
+
         self.model['docids'] = [doc.docid for doc in documents]
         for doc in documents:
             rowbox = Gtk.ListBoxRow()

@@ -109,9 +109,6 @@
             <property name="can_focus">False</property>
             <property name="margin_left">10</property>
             <property name="margin_right">10</property>
-            <attributes>
-              <attribute name="foreground" value="#2e2e34343636"/>
-            </attributes>
           </object>
           <packing>
             <property name="expand">False</property>

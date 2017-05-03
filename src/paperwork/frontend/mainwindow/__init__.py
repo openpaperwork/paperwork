@@ -500,9 +500,9 @@ class JobDocSearcher(Job):
     """
     __gsignals__ = {
         'search-start': (GObject.SignalFlags.RUN_LAST, None,
-            # XXX(Jflesch): TYPE_STRING would turn the Unicode
-            # object into a string object
-            (GObject.TYPE_PYOBJECT, )),
+                         # XXX(Jflesch): TYPE_STRING would turn the Unicode
+                         # object into a string object
+                         (GObject.TYPE_PYOBJECT, )),
         # user made a typo
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
@@ -2391,6 +2391,74 @@ class ActionOpenHelp(SimpleAction):
         self.__main_win.doclist.unselect_all()
 
 
+class SearchBar(object):
+    def __init__(self):
+        self.boxes = {}
+        self.widget = None
+        self.label = None
+        self.doc = None
+        self.current = None
+        self.sorted_boxes = []
+
+    def set_visible(self, visible):
+        self.boxes = {}
+
+        if (self.widget is not None) == visible:
+            return
+
+        if not visible:
+            self.widget = None
+            self.label = None
+            self.current = None
+            self.boxes = set()
+            self.sorted_boxes = []
+            return
+
+        widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
+
+        self.widget = widget_tree.get_object("searchbar")
+        self.label = widget_tree.get_object("labelNbSearchResults")
+        # previous_doc = widget_tree.get_object("buttonPreviousDocument")
+        # first_occ = widget_tree.get_object("buttonFirstOcc")
+        # previous_occ = widget_tree.get_object("buttonPreviousOcc")
+        # next_doc = widget_tree.get_object("buttonNextDocument")
+        # last_occ = widget_tree.get_object("buttonLastOcc")
+        # previous_occ = widget_tree.get_object("buttonPreviousOcc")
+        self.widget.show_all()
+        return
+
+    def is_visible(self):
+        return self.widget is not None
+
+    def get_widget(self):
+        return self.widget
+
+    def update_boxes(self, page, boxes):
+        if self.widget is None:
+            return
+
+        if (self.doc != page.doc):
+            # we have switched to another document --> reset known boxes
+            self.boxes = {}
+        self.doc = page.doc
+
+        for (position, box) in boxes:
+            self.boxes[(page.page_nb, position)] = (page.page_nb, position, box)
+
+        self.sorted_boxes = sorted(
+            self.boxes.values(),
+            key=lambda b: (b[0], b[1])  # do not sort on the box ref
+        )
+
+        if len(self.sorted_boxes) > 0:
+            first_box = self.sorted_boxes[0]
+            self.current = first_box
+
+        self.label.set_text(_("{} of {}").format(
+            1, len(self.boxes)
+        ))
+
+
 class MainWindow(object):
     def __init__(self, config, main_loop):
         self.ready = False
@@ -2554,7 +2622,7 @@ class MainWindow(object):
             'actions': {},
         }
 
-        self.searchbar = {}
+        self.searchbar = SearchBar()
 
         self.layouts = {
             'settings_button': widget_tree.get_object("viewSettingsButton"),
@@ -3194,7 +3262,7 @@ class MainWindow(object):
             Gtk.StateFlags.NORMAL,
             Gdk.RGBA(red=0.50, green=0.50, blue=0.50, alpha=1.0)
         )
-        self._set_searchbar_visible(search != u"")
+        self.set_searchbar_visible(search != u"")
 
     def on_search_invalid_cb(self):
         self.schedulers['main'].cancel_all(
@@ -3372,64 +3440,19 @@ class MainWindow(object):
             self.export['dialog'].set_visible(False)
             self.export['dialog'] = None
 
-    def _set_searchbar_visible(self, visible):
-        if (len(self.searchbar) != 0) == visible:
+    def set_searchbar_visible(self, visible):
+        if self.searchbar.is_visible() == visible:
             return
-
-        if 'boxes' in self.searchbar:
-            self.searchbar['boxes'] = []
 
         if not visible:
-            self.global_page_box.remove(self.searchbar['global'])
-            self.searchbar['global'].set_visible(False)
-            self.searchbar['global'] = {}
-            return
+            if self.searchbar.get_widget():
+                self.global_page_box.remove(self.searchbar.get_widget())
 
-        widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
-        self.searchbar['global'] = widget_tree.get_object("searchbar")
-        self.searchbar['label'] = widget_tree.get_object("labelNbSearchResults")
-        previous_doc = widget_tree.get_object("buttonPreviousDocument")
-        first_occ = widget_tree.get_object("buttonFirstOcc")
-        previous_occ = widget_tree.get_object("buttonPreviousOcc")
-        next_doc = widget_tree.get_object("buttonNextDocument")
-        last_occ = widget_tree.get_object("buttonLastOcc")
-        previous_occ = widget_tree.get_object("buttonPreviousOcc")
+        self.searchbar.set_visible(visible)
 
-        self.searchbar['global'].show_all()
-        self.global_page_box.add(self.searchbar['global'])
-        self.global_page_box.reorder_child(self.searchbar['global'], 0)
-
-    def _update_searchbar(self, page, boxes):
-        if len(self.searchbar) == 0:
-            return
-
-        if not 'boxes' in self.searchbar:
-            self.searchbar['boxes'] = set()
-
-        if ('doc' in self.searchbar and self.searchbar['doc'] and
-            self.searchbar['doc'] != page.doc):
-            # we have switched to another document --> reset known boxes
-            self.searchbar['boxes'] = set()
-
-        self.searchbar['doc'] = page.doc
-
-        boxes = [(page.page_nb, position, box) for (position, box) in boxes]
-        for box in boxes:
-            self.searchbar['boxes'].add(box)
-
-        self.searchbar['sorted_boxes'] = sorted(
-            self.searchbar['boxes'],
-            key=lambda b: (b[0], b[1])  # do not sort on the box ref
-        )
-
-        if len(self.searchbar['sorted_boxes']) > 0:
-            first_box = self.searchbar['sorted_boxes'][0]
-            if not 'current' in self.searchbar:
-                self.searchbar['current'] = first_box
-
-        self.searchbar['label'].set_text(_("{} of {}").format(
-            1, len(self.searchbar['boxes'])
-        ))
+        if visible:
+            self.global_page_box.add(self.searchbar.get_widget())
+            self.global_page_box.reorder_child(self.searchbar.get_widget(), 0)
 
     def _update_selection_in_doclist(self, doc, force_refresh):
         if self.allow_multiselect:
@@ -3530,7 +3553,6 @@ class MainWindow(object):
         self.doclist.set_selected_doc(self.doc)
         self.doc_properties_panel.set_doc(self.doc)
 
-
     def _show_doc_hook(self, doc, force_refresh=False):
         try:
             self._show_doc_internal(doc, force_refresh)
@@ -3629,7 +3651,7 @@ class MainWindow(object):
 
     def _on_page_matching_boxes(self, page_drawer, boxes):
         page = page_drawer.page
-        self._update_searchbar(page, boxes)
+        self.searchbar.update_boxes(page, boxes)
 
     def refresh_label_list(self):
         # make sure the correct doc is taken into account

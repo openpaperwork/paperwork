@@ -1146,6 +1146,7 @@ class DocList(object):
         )
         search = self.__main_win.search_field.get_text()
         self.show_loading()
+        self.__main_win.set_searchbar_visible(search != "")
         job = self.__main_win.job_factories['doc_searcher'].make(
             docsearch=self.__main_win.docsearch,
             sort_func=self.__main_win.get_doc_sorting()[1],

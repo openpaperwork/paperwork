@@ -869,7 +869,7 @@ class SimplePageDrawer(Drawer):
         finally:
             cairo_context.restore()
 
-    def _get_real_box(self, box):
+    def get_real_box_position(self, box):
         (x_factor, y_factor) = self.parent._get_factors()
 
         ((a, b), (c, d)) = box.position
@@ -888,7 +888,7 @@ class SimplePageDrawer(Drawer):
     def draw_boxes(self, cairo_context, boxes, color,
                    line_width=DEFAULT_LINE_WIDTH):
         for box in boxes:
-            (a, b, w, h) = self._get_real_box(box)
+            (a, b, w, h) = self.get_real_box_position(box)
             cairo_context.save()
             try:
                 cairo_context.set_source_rgb(color[0], color[1], color[2])
@@ -909,7 +909,7 @@ class SimplePageDrawer(Drawer):
         for box in boxes:
             if box.content.strip() == "":
                 continue
-            (a, b, w, h) = self._get_real_box(box)
+            (a, b, w, h) = self.get_real_box_position(box)
 
             cairo_context.save()
             try:
@@ -1092,7 +1092,9 @@ class SimplePageDrawer(Drawer):
             if box != self.boxes["mouse_over"]:
                 # redraw previous box to make the border disappear
                 if not must_redraw and self.boxes["mouse_over"]:
-                    box_pos = self._get_real_box(self.boxes["mouse_over"])
+                    box_pos = self.get_real_box_position(
+                        self.boxes["mouse_over"]
+                    )
                     GLib.idle_add(
                         self.canvas.redraw,
                         ((box_pos[0] - self.MAX_LINE_WIDTH,
@@ -1105,7 +1107,7 @@ class SimplePageDrawer(Drawer):
 
                 # draw new one to make the border appear
                 if not must_redraw and box:
-                    box_pos = self._get_real_box(box)
+                    box_pos = self.get_real_box_position(box)
                     GLib.idle_add(
                         self.canvas.redraw,
                         ((box_pos[0] - self.MAX_LINE_WIDTH,
@@ -1747,6 +1749,9 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def highlight_box(self, box):
         self.simple_page_drawer.highlight_box(box)
+
+    def get_real_box_position(self, box):
+        return self.simple_page_drawer.get_real_box_position(box)
 
 
 GObject.type_register(PageDrawer)

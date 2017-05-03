@@ -2391,14 +2391,67 @@ class ActionOpenHelp(SimpleAction):
         self.__main_win.doclist.unselect_all()
 
 
+class ActionNextDocument(SimpleAction):
+    def __init__(self, main_window, offset=1):
+        super().__init__("Goto next document ({})".format(offset))
+        self.__main_win = main_window
+        self.offset = offset
+
+    def do(self):
+        super().do()
+        row = self.__main_win.doclist.select_doc(
+            doc=self.__main_win.doc,
+            offset=self.offset,
+            open_doc=True
+        )
+        if row is None:
+            return
+        self.__main_win.doclist.scroll_to(row)
+
+
+class ActionGotoBox(SimpleAction):
+    def __init__(self, main_window, target_page_drawer=None, target_box=None):
+        super().__init__("Goto box")
+        self.__main_win = main_window
+        self.page_drawer = target_page_drawer
+        self.box = target_box
+
+    def set_target(self, page_drawer, box):
+        self.page_drawer = page_drawer
+        self.box = box
+
+    def do(self):
+        super().do()
+
+        if self.box is None:
+            logger.info("No target box")
+            return
+
+        logger.info("Going to p{} box {}".format(
+            self.page_drawer, self.box.position
+        ))
+
+        self.page_drawer.highlight_box(self.box)
+
+        position = self.page_drawer.get_real_box_position(self.box)[1]
+        position -= self.__main_win.img['canvas'].visible_size[1] / 2
+        if position < 0:
+            position = 0
+        logger.info("Position: {}".format(position))
+        self.__main_win.img['canvas'].get_vadjustment().set_value(position)
+        self.__main_win.searchbar.set_current_box(self.box)
+
+
 class SearchBar(object):
-    def __init__(self):
+    def __init__(self, main_win):
+        self.__main_win = main_win
         self.boxes = {}
+        self.current = None
         self.widget = None
         self.label = None
         self.doc = None
-        self.current = None
         self.sorted_boxes = []
+        self.actions = {}
 
     def set_visible(self, visible):
         self.boxes = {}
@@ -2409,21 +2462,36 @@ class SearchBar(object):
         if not visible:
             self.widget = None
             self.label = None
-            self.current = None
             self.boxes = set()
+            self.current = None
             self.sorted_boxes = []
+            self.actions = {}
             return
 
         widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
 
         self.widget = widget_tree.get_object("searchbar")
         self.label = widget_tree.get_object("labelNbSearchResults")
-        # previous_doc = widget_tree.get_object("buttonPreviousDocument")
-        # first_occ = widget_tree.get_object("buttonFirstOcc")
-        # previous_occ = widget_tree.get_object("buttonPreviousOcc")
-        # next_doc = widget_tree.get_object("buttonNextDocument")
-        # last_occ = widget_tree.get_object("buttonLastOcc")
-        # previous_occ = widget_tree.get_object("buttonPreviousOcc")
+
+        previous_doc = widget_tree.get_object("buttonPreviousDocument")
+        next_doc = widget_tree.get_object("buttonNextDocument")
+        first_occ = widget_tree.get_object("buttonFirstOcc")
+        last_occ = widget_tree.get_object("buttonLastOcc")
+        previous_occ = widget_tree.get_object("buttonPreviousOcc")
+        next_occ = widget_tree.get_object("buttonNextOcc")
+
+        self.actions = {
+            'next_document':
+                ([next_doc], ActionNextDocument(self.__main_win, 1)),
+            'previous_document':
+                ([previous_doc], ActionNextDocument(self.__main_win, -1)),
+            'first_occ': ([first_occ], ActionGotoBox(self.__main_win)),
+            'last_occ': ([last_occ], ActionGotoBox(self.__main_win)),
+            'previous_occ': ([previous_occ], ActionGotoBox(self.__main_win)),
+            'next_occ': ([next_occ], ActionGotoBox(self.__main_win)),
+        }
+        connect_actions(self.actions)
+
         self.widget.show_all()
         return
 
@@ -2433,30 +2501,90 @@ class SearchBar(object):
     def get_widget(self):
         return self.widget
 
-    def update_boxes(self, page, boxes):
+    def update_boxes(self, page_drawer, boxes):
         if self.widget is None:
             return
 
-        if (self.doc != page.doc):
+        if (self.doc != page_drawer.page.doc):
             # we have switched to another document --> reset known boxes
             self.boxes = {}
-        self.doc = page.doc
+            self.current = None
+        self.doc = page_drawer.page.doc
 
         for (position, box) in boxes:
-            self.boxes[(page.page_nb, position)] = (page.page_nb, position, box)
+            self.boxes[(page_drawer.page.page_nb, position)] = (
+                page_drawer.page.page_nb,
+                page_drawer.get_real_box_position(box),
+                position,
+                page_drawer, box
+            )
 
         self.sorted_boxes = sorted(
             self.boxes.values(),
-            key=lambda b: (b[0], b[1])  # do not sort on the box ref
+            key=lambda b: (b[0], b[1][1], b[1][0])  # do not sort on the box ref
         )
 
-        if len(self.sorted_boxes) > 0:
-            first_box = self.sorted_boxes[0]
-            self.current = first_box
+        if len(self.sorted_boxes) <= 0:
+            logger.info("No matching boxes in the current document")
+            return
+
+        self.set_current_box(self.current)  # update prev/next
+        self.actions['first_occ'][1].set_target(
+            self.sorted_boxes[0][3], self.sorted_boxes[0][4]
+        )
+        self.actions['last_occ'][1].set_target(
+            self.sorted_boxes[-1][3], self.sorted_boxes[-1][4]
+        )
+
+    def set_current_box(self, box):
+        if self.widget is None:
+            return
+
+        self.current = box
+        boxes = [
+            b
+            for (page_nb, real_position, position, page_d, b)
+            in self.sorted_boxes
+        ]
+        if box is not None and box not in boxes:
+            logger.warning("Searchbar: target box is unknown ?!")
+            return
+
+        # default
+        self.actions['previous_occ'][1].set_target(None, None)
+        self.actions['next_occ'][1].set_target(None, None)
+
+        if box is None:
+            index = -1
+        else:
+            index = boxes.index(box)
+
+        if index - 1 >= 0:
+            self.actions['previous_occ'][1].set_target(
+                self.sorted_boxes[index - 1][3],
+                self.sorted_boxes[index - 1][4]
+            )
+        if index + 1 < len(boxes):
+            self.actions['next_occ'][1].set_target(
+                self.sorted_boxes[index + 1][3],
+                self.sorted_boxes[index + 1][4]
+            )
+
+        if index >= 0 and len(self.boxes) > 0:
+            index += 1  # human readable
+        elif len(self.boxes) > 0:
+            index = 1  # human readable
+        else:
+            index = 0
 
         self.label.set_text(_("{} of {}").format(
-            1, len(self.boxes)
+            index, len(self.boxes)
         ))
+
+    def purge(self):
+        self.boxes = {}
+        self.sorted_boxes = {}
+        self.set_current_box(None)
 
 
 class MainWindow(object):
@@ -2622,7 +2750,7 @@ class MainWindow(object):
             'actions': {},
         }
 
-        self.searchbar = SearchBar()
+        self.searchbar = SearchBar(self)
 
         self.layouts = {
             'settings_button': widget_tree.get_object("viewSettingsButton"),
@@ -3525,6 +3653,7 @@ class MainWindow(object):
             button.set_sensitive(True)
 
         self._hide_export_dialog()
+        self.searchbar.purge()
 
         (changed, force_refresh) = self._update_selection_in_doclist(
             doc, force_refresh
@@ -3650,8 +3779,7 @@ class MainWindow(object):
         ActionDeletePage(self).do(page_drawer.page)
 
     def _on_page_matching_boxes(self, page_drawer, boxes):
-        page = page_drawer.page
-        self.searchbar.update_boxes(page, boxes)
+        self.searchbar.update_boxes(page_drawer, boxes)
 
     def refresh_label_list(self):
         # make sure the correct doc is taken into account

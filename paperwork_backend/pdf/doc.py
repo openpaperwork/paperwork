@@ -194,14 +194,17 @@ class _CommonPdfDoc(BasicDoc):
         if self._pdf:
             NB_FDS -= 1
             del self._pdf
-            logger.debug("(closing {} | {}) Number of PDF file descriptors"
-                         " still opened: {}".format(self, id(self), NB_FDS))
+            logger.info("(closing {} | {}) Number of PDF file descriptors"
+                        " still opened: {}".format(self, id(self), NB_FDS))
         else:
             logger.debug("(closing {} | {})"
                          " Already closed (remaining: {})".format(
                              self, id(self), NB_FDS
                          ))
         self._pdf = None
+
+    def __del__(self):
+        self.drop_cache()
 
     def get_docfilehash(self):
         return super().hash_file(self.fs, "%s/%s" % (self.path, PDF_FILENAME))

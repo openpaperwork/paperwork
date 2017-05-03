@@ -4,7 +4,8 @@
 # For each language, the most common system locale and its short writing
 # must be specified (separated by ':')
 LANGS="fr_FR.UTF-8:fr
-de_DE.UTF-8:de"
+de_DE.UTF-8:de
+uk_UA.UTF-8:uk"
 
 usage()
 {
@@ -23,7 +24,7 @@ usage()
 }
 
 if [ -z "${BACKEND_DIRECTORY}" ] ; then
-	BACKEND_DIRECTORY=$(python3 -c "import paperwork_backend; print(paperwork_backend.__file__)")
+	BACKEND_DIRECTORY=$(python -c "import paperwork_backend; print(paperwork_backend.__file__)")
 	BACKEND_DIRECTORY=$(dirname "${BACKEND_DIRECTORY}")
 fi
 
@@ -52,10 +53,10 @@ then
 		echo "[paperwork-backend] Extraction done."
 	fi
 
-	if [ ! -e "${BACKEND_DIRECTORY}/__init__.py" ] ; then
-		echo "[paperwork-backend] paperwork backend sources not found !"
-		exit 1
-	fi
+	#if [ ! -e "${BACKEND_DIRECTORY}/__init__.py" ] ; then
+	#	echo "[paperwork-backend] paperwork backend sources not found !"
+	#	exit 1
+	#fi
 
 	mkdir -p locale
 

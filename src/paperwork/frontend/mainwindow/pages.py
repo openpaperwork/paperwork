@@ -624,8 +624,8 @@ class SimplePageDrawer(Drawer):
         super(SimplePageDrawer, self).set_canvas(canvas)
         self.spinner.set_canvas(canvas)
         canvas.connect(self, "absolute-motion-notify-event",
-                        lambda canvas, event:
-                        GLib.idle_add(self._on_mouse_motion, event))
+                       lambda canvas, event:
+                       GLib.idle_add(self._on_mouse_motion, event))
         if self.show_boxes:
             canvas.connect(self, "absolute-button-press-event",
                            lambda canvas, event:
@@ -803,6 +803,8 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
+        self.notify_matching_boxes(self.boxes["highlighted"])
+
         self.parent.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes, all_lines):
@@ -1136,6 +1138,13 @@ class SimplePageDrawer(Drawer):
 
         logger.info("Text copied ({})".format(len(text)))
 
+    def notify_matching_boxes(self, boxes):
+        self.parent.notify_matching_boxes(boxes)
+
+    def highlight_box(self, box):
+        # TODO
+        pass
+
     def __str__(self):
         return "Base page (size: {}|{})".format(self.size, self.max_size)
 
@@ -1171,6 +1180,12 @@ class PageDrawer(Drawer, GObject.GObject):
                             GObject.TYPE_PYOBJECT,  # List of PageEditAction
                         )),
         'page-deleted': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'page-matching-boxes': (GObject.SignalFlags.RUN_LAST, None,
+                                (
+                                    # List of boxes matching the search
+                                    # (position, box)
+                                    GObject.TYPE_PYOBJECT,
+                                )),
     }
 
     def __init__(self, page,
@@ -1724,6 +1739,14 @@ class PageDrawer(Drawer, GObject.GObject):
 
     def _on_delete(self):
         self.emit("page-deleted")
+
+    def notify_matching_boxes(self, boxes):
+        boxes = [(box.position, box) for box in boxes]
+        logger.info("%d boxes found", len(boxes))
+        self.emit('page-matching-boxes', boxes)
+
+    def highlight_box(self, box):
+        self.simple_page_drawer.highlight_box(box)
 
 
 GObject.type_register(PageDrawer)

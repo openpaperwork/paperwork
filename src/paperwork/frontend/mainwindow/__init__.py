@@ -499,7 +499,10 @@ class JobDocSearcher(Job):
     Search the documents
     """
     __gsignals__ = {
-        'search-start': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'search-start': (GObject.SignalFlags.RUN_LAST, None,
+            # XXX(Jflesch): TYPE_STRING would turn the Unicode
+            # object into a string object
+            (GObject.TYPE_PYOBJECT, )),
         # user made a typo
         'search-invalid': (GObject.SignalFlags.RUN_LAST, None, ()),
         # array of documents
@@ -532,7 +535,7 @@ class JobDocSearcher(Job):
         if not self.can_run:
             return
 
-        self.emit('search-start')
+        self.emit('search-start', self.search)
 
         try:
             logger.info("Searching: [%s]" % self.search)
@@ -579,8 +582,8 @@ class JobFactoryDocSearcher(JobFactory):
     def make(self, docsearch, sort_func, search_type, search):
         job = JobDocSearcher(self, next(self.id_generator), self.__config,
                              docsearch, sort_func, search_type, search)
-        job.connect('search-start', lambda searcher:
-                    GLib.idle_add(self.__main_win.on_search_start_cb))
+        job.connect('search-start', lambda searcher, search:
+                    GLib.idle_add(self.__main_win.on_search_start_cb, search))
         job.connect('search-results',
                     lambda searcher, search, documents:
                     GLib.idle_add(self.__main_win.on_search_results_cb,
@@ -2551,6 +2554,8 @@ class MainWindow(object):
             'actions': {},
         }
 
+        self.searchbar = {}
+
         self.layouts = {
             'settings_button': widget_tree.get_object("viewSettingsButton"),
             'grid': {
@@ -3184,8 +3189,12 @@ class MainWindow(object):
         gc.collect()
         self.doclist.refresh()
 
-    def on_search_start_cb(self):
-        self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
+    def on_search_start_cb(self, search):
+        self.search_field.override_color(
+            Gtk.StateFlags.NORMAL,
+            Gdk.RGBA(red=0.50, green=0.50, blue=0.50, alpha=1.0)
+        )
+        self._set_searchbar_visible(search != u"")
 
     def on_search_invalid_cb(self):
         self.schedulers['main'].cancel_all(
@@ -3206,6 +3215,7 @@ class MainWindow(object):
 
     def on_search_results_cb(self, search, documents):
         logger.info("Got {} documents".format(len(documents)))
+        self.search_field.override_color(Gtk.StateFlags.NORMAL, None)
         self.doclist.set_docs(
             documents,
             all_docs=(search.strip() == u"")
@@ -3335,6 +3345,8 @@ class MainWindow(object):
                 drawer.connect("may-need-resize",
                                self._on_page_drawer_need_resize)
                 drawer.connect("page-deleted", self._on_page_drawer_deleted)
+                drawer.connect("page-matching-boxes",
+                               self._on_page_matching_boxes)
             previous_drawer = drawer
             self.page_drawers.append(drawer)
             self.img['canvas'].add_drawer(drawer)
@@ -3354,6 +3366,127 @@ class MainWindow(object):
 
         return first_scan_drawer
 
+    def _hide_export_dialog(self):
+        if self.export['dialog']:
+            self.global_page_box.remove(self.export['dialog'])
+            self.export['dialog'].set_visible(False)
+            self.export['dialog'] = None
+
+    def _set_searchbar_visible(self, visible):
+        if (len(self.searchbar) != 0) == visible:
+            return
+
+        if 'boxes' in self.searchbar:
+            self.searchbar['boxes'] = []
+
+        if not visible:
+            self.global_page_box.remove(self.searchbar['global'])
+            self.searchbar['global'].set_visible(False)
+            self.searchbar['global'] = {}
+            return
+
+        widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
+        self.searchbar['global'] = widget_tree.get_object("searchbar")
+        self.searchbar['label'] = widget_tree.get_object("labelNbSearchResults")
+        previous_doc = widget_tree.get_object("buttonPreviousDocument")
+        first_occ = widget_tree.get_object("buttonFirstOcc")
+        previous_occ = widget_tree.get_object("buttonPreviousOcc")
+        next_doc = widget_tree.get_object("buttonNextDocument")
+        last_occ = widget_tree.get_object("buttonLastOcc")
+        previous_occ = widget_tree.get_object("buttonPreviousOcc")
+
+        self.searchbar['global'].show_all()
+        self.global_page_box.add(self.searchbar['global'])
+        self.global_page_box.reorder_child(self.searchbar['global'], 0)
+
+    def _update_searchbar(self, page, boxes):
+        if len(self.searchbar) == 0:
+            return
+
+        if not 'boxes' in self.searchbar:
+            self.searchbar['boxes'] = set()
+
+        if ('doc' in self.searchbar and self.searchbar['doc'] and
+            self.searchbar['doc'] != page.doc):
+            # we have switched to another document --> reset known boxes
+            self.searchbar['boxes'] = set()
+
+        self.searchbar['doc'] = page.doc
+
+        boxes = [(page.page_nb, position, box) for (position, box) in boxes]
+        for box in boxes:
+            self.searchbar['boxes'].add(box)
+
+        self.searchbar['sorted_boxes'] = sorted(
+            self.searchbar['boxes'],
+            key=lambda b: (b[0], b[1])  # do not sort on the box ref
+        )
+
+        if len(self.searchbar['sorted_boxes']) > 0:
+            first_box = self.searchbar['sorted_boxes'][0]
+            if not 'current' in self.searchbar:
+                self.searchbar['current'] = first_box
+
+        self.searchbar['label'].set_text(_("{} of {}").format(
+            1, len(self.searchbar['boxes'])
+        ))
+
+    def _update_selection_in_doclist(self, doc, force_refresh):
+        if self.allow_multiselect:
+            if doc.is_new:
+                logger.info("Selecting \"New document\" with other documents"
+                            " isn't allowed")
+                self.doclist.unselect_doc(doc)
+                return (False, force_refresh)
+            if self.doc is not None and self.doc == doc:
+                logger.info("Unselecting {}".format(doc))
+                self.doclist.unselect_doc(doc)
+                doc = self.doclist.get_closest_selected_doc(doc)
+                if not doc:
+                    return (False, force_refresh)
+            # Make sure the new document is not selected
+            self.doclist.unselect_doc(self.doclist.new_doc)
+        elif self.doclist.has_multiselect():
+            # current selection isn't valid anymore
+            force_refresh = True
+
+        if not self.allow_multiselect:
+            self.doclist.select_doc(doc, open_doc=False)
+
+        if (self.doc is not None and
+                self.doc == doc and
+                not force_refresh):
+            logger.info("Doc is already shown")
+            return (True, force_refresh)
+
+        return (True, force_refresh)
+
+    def _show_pages(self, doc):
+        if not self.page or self.page.doc.docid != doc.docid:
+            if doc.nb_pages > 0:
+                self.page = self.doc.pages[0]
+            else:
+                self.page = None
+
+        first_scan_drawer = self.__reset_page_drawers(doc)
+
+        # reset zoom level
+        self.set_zoom_level(1.0, auto=True)
+        self.update_page_sizes()
+        self.img['canvas'].recompute_size(upd_scrollbar_values=False)
+
+        if first_scan_drawer:
+            # focus on the activity
+            self.img['canvas'].get_vadjustment().set_value(
+                first_scan_drawer.position[1]
+            )
+        else:
+            self.img['canvas'].get_vadjustment().set_value(0)
+
+        if self.doc.can_edit:
+            self.img['canvas'].add_drawer(self.page_drop_handler)
+        self.page_drop_handler.set_enabled(self.doc.can_edit)
+
     def _show_doc_internal(self, doc, force_refresh=False):
         # Make sure we display the same instance of the document than the
         # one in the backend. Not a copy (unless there is no instance in the
@@ -3368,57 +3501,23 @@ class MainWindow(object):
         for button in self.actions['open_view_settings'][0]:
             button.set_sensitive(True)
 
-        if self.export['dialog']:
-            self.global_page_box.remove(self.export['dialog'])
-            self.export['dialog'].set_visible(False)
-            self.export['dialog'] = None
+        self._hide_export_dialog()
 
-        if self.allow_multiselect:
-            if doc.is_new:
-                logger.info("Selecting \"New document\" with other documents"
-                            " isn't allowed")
-                self.doclist.unselect_doc(doc)
-                return
-            if self.doc is not None and self.doc == doc:
-                logger.info("Unselecting {}".format(doc))
-                self.doclist.unselect_doc(doc)
-                doc = self.doclist.get_closest_selected_doc(doc)
-                if not doc:
-                    return
-            # Make sure the new document is not selected
-            self.doclist.unselect_doc(self.doclist.new_doc)
-        elif self.doclist.has_multiselect():
-            # current selection isn't valid anymore
-            force_refresh = True
-
-        if (self.doc is not None and
-                self.doc == doc and
-                not force_refresh):
-            logger.info("Doc is already shown")
+        (changed, force_refresh) = self._update_selection_in_doclist(
+            doc, force_refresh
+        )
+        if not changed:
             return
 
         logger.info("Showing document {}".format(doc))
-
-        if not self.allow_multiselect:
-            self.doclist.select_doc(doc, open_doc=False)
 
         if self.doc and self.doc.docid != doc.docid:
             self.doc.drop_cache()
         gc.collect()
 
         self.doc = doc
-        if not self.page or self.page.doc.docid != doc.docid:
-            if doc.nb_pages > 0:
-                self.page = self.doc.pages[0]
-            else:
-                self.page = None
-
-        first_scan_drawer = self.__reset_page_drawers(doc)
-
-        # reset zoom level
-        self.set_zoom_level(1.0, auto=True)
-        self.update_page_sizes()
-        self.img['canvas'].recompute_size(upd_scrollbar_values=False)
+        self.refresh_header_bar()
+        self._show_pages(doc)
 
         is_new = doc.is_new
         can_edit = doc.can_edit
@@ -3428,22 +3527,9 @@ class MainWindow(object):
                          not is_new and self.layout == 'paged')
         set_widget_state(self.actions['single_scan'][0], can_edit)
 
-        self.refresh_header_bar()
-
         self.doclist.set_selected_doc(self.doc)
         self.doc_properties_panel.set_doc(self.doc)
 
-        if first_scan_drawer:
-            # focus on the activity
-            self.img['canvas'].get_vadjustment().set_value(
-                first_scan_drawer.position[1]
-            )
-        else:
-            self.img['canvas'].get_vadjustment().set_value(0)
-
-        if self.doc.can_edit:
-            self.img['canvas'].add_drawer(self.page_drop_handler)
-        self.page_drop_handler.set_enabled(self.doc.can_edit)
 
     def _show_doc_hook(self, doc, force_refresh=False):
         try:
@@ -3540,6 +3626,10 @@ class MainWindow(object):
 
     def _on_page_drawer_deleted(self, page_drawer):
         ActionDeletePage(self).do(page_drawer.page)
+
+    def _on_page_matching_boxes(self, page_drawer, boxes):
+        page = page_drawer.page
+        self._update_searchbar(page, boxes)
 
     def refresh_label_list(self):
         # make sure the correct doc is taken into account

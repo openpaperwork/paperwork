@@ -1087,6 +1087,7 @@ class ActionUpdateSearchResults(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
+        self.__main_win.searchbar.reset()
         self.__main_win.refresh_doc_list()
 
         if self.__refresh_pages:
@@ -2592,7 +2593,7 @@ class SearchBar(object):
             index, len(self.boxes)
         ))
 
-    def purge(self):
+    def reset(self):
         self.boxes = {}
         self.sorted_boxes = {}
         self.set_current_box(None)
@@ -3664,7 +3665,7 @@ class MainWindow(object):
             button.set_sensitive(True)
 
         self._hide_export_dialog()
-        self.searchbar.purge()
+        self.searchbar.reset()
 
         (changed, force_refresh) = self._update_selection_in_doclist(
             doc, force_refresh

@@ -2492,6 +2492,17 @@ class SearchBar(object):
         }
         connect_actions(self.actions)
 
+        accelerators = [
+            ('F3', 'clicked', next_occ),
+            ('<Primary>F3', 'clicked', previous_occ),
+        ]
+        accel_group = Gtk.AccelGroup()
+        for (shortcut, signame, widget) in accelerators:
+            (key, mod) = Gtk.accelerator_parse(shortcut)
+            widget.add_accelerator(signame, accel_group, key, mod,
+                                   Gtk.AccelFlags.VISIBLE)
+        self.__main_win.window.add_accel_group(accel_group)
+
         self.widget.show_all()
         return
 

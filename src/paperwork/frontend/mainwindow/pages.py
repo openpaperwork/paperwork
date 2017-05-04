@@ -620,6 +620,7 @@ class SimplePageDrawer(Drawer):
         self._position = (0, 0)
         self.spinner = SpinnerAnimation((0, 0))
         self.upd_spinner_position()
+        self.load_boxes()
 
     def set_canvas(self, canvas):
         super(SimplePageDrawer, self).set_canvas(canvas)
@@ -703,6 +704,8 @@ class SimplePageDrawer(Drawer):
             return
         self.surface = surface
         self.img = img
+
+    def load_boxes(self):
         if (len(self.boxes['all']) <= 0 and
                 (self.show_boxes or self.show_border)):
             job = self.factories['page_boxes_loader'].make(self, self.page)
@@ -715,6 +718,7 @@ class SimplePageDrawer(Drawer):
             self.loading = False
         if self.visible and not self.surface:
             self.load_content()
+        self.parent.redraw()
 
     def _find_closest_box(self, position):
         closest = (-1, 9999999999999, None)  # (index, distance, box)
@@ -804,17 +808,18 @@ class SimplePageDrawer(Drawer):
         self.boxes["highlighted"] = self._get_highlighted_boxes(
             self.search_sentence
         )
+        logger.info("[page] found %d boxes to highlight",
+                    len(self.boxes['highlighted']))
         self.notify_matching_boxes(self.boxes["highlighted"])
 
-        self.parent.redraw()
+        if self.visible:
+            self.parent.redraw()
 
     def on_page_loading_boxes(self, page, all_boxes, all_lines):
-        if not self.visible:
-            return
         self.boxes['all'] = set(all_boxes)
         self.boxes['lines'] = all_lines
-        self.reload_boxes()
         self.update_selected_boxes()
+        self.reload_boxes()
 
     def unload_content(self):
         if self.loading:
@@ -823,15 +828,6 @@ class SimplePageDrawer(Drawer):
         if self.surface is not None:
             del(self.surface)
             self.surface = None
-        self.boxes = {
-            'all': set(),
-            'lines': [],
-            'highlighted': set(),
-            'mouse_over': None,
-            'selected': set(),
-            'selection_start': None,
-            'selection_end': None,
-        }
 
     def draw_border(self, cairo_context):
         border = self.BORDER_BASIC

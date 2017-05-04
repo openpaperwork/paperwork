@@ -2431,7 +2431,7 @@ class ActionGotoBox(SimpleAction):
             self.page_drawer, self.box.position
         ))
 
-        self.page_drawer.highlight_box(self.box)
+        self.page_drawer.select_boxes([self.box])
 
         position = self.page_drawer.get_real_box_position(self.box)[1]
         position -= self.__main_win.img['canvas'].visible_size[1] / 2

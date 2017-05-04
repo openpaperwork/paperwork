@@ -601,6 +601,7 @@ class SimplePageDrawer(Drawer):
             'all': set(),
             'lines': [],
             'highlighted': set(),
+            'highlighted_search': None,
             'selected': set(),
             'selection_start': None,
             'selection_end': None,
@@ -1057,6 +1058,16 @@ class SimplePageDrawer(Drawer):
             )
         self.parent.set_drag_enabled(True)
 
+    def redraw_box(self, box):
+        box_pos = self.get_real_box_position(box)
+        GLib.idle_add(
+            self.canvas.redraw,
+            ((box_pos[0] - self.MAX_LINE_WIDTH,
+              box_pos[1] - self.MAX_LINE_WIDTH),
+             (box_pos[0] + box_pos[2] + (2 * self.MAX_LINE_WIDTH),
+              box_pos[1] + box_pos[3] + (2 * self.MAX_LINE_WIDTH)))
+        )
+
     def _on_mouse_motion(self, event):
         position = self.position
         size = self.size
@@ -1092,29 +1103,13 @@ class SimplePageDrawer(Drawer):
             if box != self.boxes["mouse_over"]:
                 # redraw previous box to make the border disappear
                 if not must_redraw and self.boxes["mouse_over"]:
-                    box_pos = self.get_real_box_position(
-                        self.boxes["mouse_over"]
-                    )
-                    GLib.idle_add(
-                        self.canvas.redraw,
-                        ((box_pos[0] - self.MAX_LINE_WIDTH,
-                          box_pos[1] - self.MAX_LINE_WIDTH),
-                         (box_pos[0] + box_pos[2] + (2 * self.MAX_LINE_WIDTH),
-                          box_pos[1] + box_pos[3] + (2 * self.MAX_LINE_WIDTH)))
-                    )
+                    self.redraw_box(self.boxes["mouse_over"])
 
                 self.boxes["mouse_over"] = box
 
                 # draw new one to make the border appear
                 if not must_redraw and box:
-                    box_pos = self.get_real_box_position(box)
-                    GLib.idle_add(
-                        self.canvas.redraw,
-                        ((box_pos[0] - self.MAX_LINE_WIDTH,
-                          box_pos[1] - self.MAX_LINE_WIDTH),
-                         (box_pos[0] + box_pos[2] + (2 * self.MAX_LINE_WIDTH),
-                          box_pos[1] + box_pos[3] + (2 * self.MAX_LINE_WIDTH)))
-                    )
+                    self.redraw_box(box)
 
         if must_redraw:
             self.parent.redraw()
@@ -1143,9 +1138,11 @@ class SimplePageDrawer(Drawer):
     def notify_matching_boxes(self, boxes):
         self.parent.notify_matching_boxes(boxes)
 
-    def highlight_box(self, box):
-        # TODO
-        pass
+    def select_boxes(self, boxes):
+        self.boxes['selection_start'] = None
+        self.boxes['selection_end'] = None
+        self.boxes['selected'] = set(boxes)
+        self.redraw()
 
     def __str__(self):
         return "Base page (size: {}|{})".format(self.size, self.max_size)
@@ -1747,8 +1744,8 @@ class PageDrawer(Drawer, GObject.GObject):
         logger.info("%d boxes found", len(boxes))
         self.emit('page-matching-boxes', boxes)
 
-    def highlight_box(self, box):
-        self.simple_page_drawer.highlight_box(box)
+    def select_boxes(self, boxes):
+        self.simple_page_drawer.select_boxes(boxes)
 
     def get_real_box_position(self, box):
         return self.simple_page_drawer.get_real_box_position(box)

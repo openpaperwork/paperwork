@@ -59,6 +59,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
         ],
     },
     install_requires=[
+        "natsort",
         "Pillow",
         "pycountry",
         "termcolor",  # used by paperwork-chkdeps

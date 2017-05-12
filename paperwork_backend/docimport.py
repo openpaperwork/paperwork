@@ -23,6 +23,7 @@ import logging
 
 from gi.repository import GLib
 from gi.repository import Gio
+from natsort import natsorted
 from PIL import Image
 
 from .pdf.doc import PdfDoc
@@ -31,6 +32,14 @@ from . import fs
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
+IMG_MIME_TYPES = [
+    ("BMP", "image/x-ms-bmp"),
+    ("GIF", "image/gif"),
+    ("JPEG", "image/jpeg"),
+    ("PNG", "image/png"),
+    ("TIFF", "image/tiff"),
+]
 
 
 class ImportResult(object):
@@ -41,7 +50,9 @@ class ImportResult(object):
         _("Page(s)"): 0,
     }
 
-    def __init__(self, select_doc=None, select_page=None,
+    def __init__(self,
+                 imported_file_uris=[],
+                 select_doc=None, select_page=None,
                  new_docs=[], upd_docs=[],
                  new_docs_pages=[], upd_docs_pages=[],
                  stats={}):
@@ -52,6 +63,7 @@ class ImportResult(object):
             if select_doc.nb_pages > 0:
                 select_page = select_doc.pages[0]
 
+        self.imported_file_uris = imported_file_uris
         self.select_doc = select_doc
         self.select_page = select_page
         self.new_docs = new_docs
@@ -64,6 +76,22 @@ class ImportResult(object):
     @property
     def has_import(self):
         return len(self.new_docs) > 0 or len(self.upd_docs) > 0
+
+
+def recurse(parent):
+    children = parent.enumerate_children(
+        Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+        Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
+        None
+    )
+    for child in children:
+        name = child.get_name()
+        child = parent.get_child(name)
+        try:
+            for child in recurse(child):
+                yield child
+        except GLib.GError:
+            yield child
 
 
 class BaseImporter(object):
@@ -80,7 +108,11 @@ class BaseImporter(object):
         assert()
 
     @staticmethod
-    def get_mimetypes():
+    def get_select_mime_types():
+        return []
+
+    @staticmethod
+    def get_mime_types():
         return []
 
     def check_file_type(self, file_uri):
@@ -93,7 +125,7 @@ class BaseImporter(object):
             "standard::content-type", Gio.FileQueryInfoFlags.NONE
         )
         mime = info.get_content_type()
-        return mime in [m[1] for m in self.get_mimetypes()]
+        return mime in [m[1] for m in self.get_mime_types()]
 
 
 class PdfImporter(BaseImporter):
@@ -124,12 +156,13 @@ class PdfImporter(BaseImporter):
         docs = []
         pages = []
 
+        file_uris = [self.fs.safe(uri) for uri in file_uris]
+        imported = []
         for file_uri in file_uris:
-            file_uri = self.fs.safe(file_uri)
             if docsearch.is_hash_in_index(PdfDoc.hash_file(self.fs, file_uri)):
                 logger.info("Document %s already found in the index. Skipped"
                             % (file_uri))
-                return ImportResult()
+                continue
 
             doc = PdfDoc(self.fs, docsearch.rootdir)
             logger.info("Importing doc '%s' ..." % file_uri)
@@ -138,10 +171,12 @@ class PdfImporter(BaseImporter):
                 raise Exception("Import of {} failed: {}".format(
                     file_uri, error
                 ))
+            imported.append(file_uri)
             docs.append(doc)
             pages += [p for p in doc.pages]
 
         return ImportResult(
+            imported_file_uris=imported,
             select_doc=doc, new_docs=docs,
             new_docs_pages=pages,
             stats={
@@ -152,7 +187,13 @@ class PdfImporter(BaseImporter):
         )
 
     @staticmethod
-    def get_mimetypes():
+    def get_select_mime_types():
+        return [
+            ("PDF", "application/pdf"),
+        ]
+
+    @staticmethod
+    def get_mime_types():
         return [
             ("PDF", "application/pdf"),
         ]
@@ -169,24 +210,6 @@ class PdfDirectoryImporter(BaseImporter):
     def __init__(self, fs):
         super().__init__(fs, [".pdf"])
 
-    @staticmethod
-    def __get_all_children(parent):
-        """
-        Find all the children files from parent
-        """
-        children = parent.enumerate_children(
-            Gio.FILE_ATTRIBUTE_STANDARD_NAME,
-            Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-            None)
-        for child in children:
-            name = child.get_name()
-            child = parent.get_child(name)
-            try:
-                for child in PdfDirectoryImporter.__get_all_children(child):
-                    yield child
-            except GLib.GError:
-                yield child
-
     def can_import(self, file_uris, current_doc=None):
         """
         Check that the specified file looks like a directory containing many
@@ -198,7 +221,7 @@ class PdfDirectoryImporter(BaseImporter):
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
                 parent = Gio.File.parse_name(file_uri)
-                for child in PdfDirectoryImporter.__get_all_children(parent):
+                for child in recurse(parent):
                     if self.check_file_type(child.get_uri()):
                         return True
         except GLib.GError:
@@ -214,13 +237,14 @@ class PdfDirectoryImporter(BaseImporter):
         docs = []
         pages = []
 
+        file_uris = [self.fs.safe(uri) for uri in file_uris]
+        imported = []
         for file_uri in file_uris:
-            file_uri = self.fs.safe(file_uri)
             logger.info("Importing PDF from '%s'" % (file_uri))
             parent = Gio.File.parse_name(file_uri)
             idx = 0
 
-            for child in PdfDirectoryImporter.__get_all_children(parent):
+            for child in recurse(parent):
                 if not self.check_file_type(child.get_uri()):
                     continue
                 h = PdfDoc.hash_file(self.fs, child.get_uri())
@@ -230,6 +254,7 @@ class PdfDirectoryImporter(BaseImporter):
                         (child.get_path())
                     )
                     continue
+                imported.append(child.get_uri())
                 doc = PdfDoc(self.fs, docsearch.rootdir)
                 error = doc.import_pdf(child.get_uri())
                 if error:
@@ -238,6 +263,7 @@ class PdfDirectoryImporter(BaseImporter):
                 pages += [p for p in doc.pages]
                 idx += 1
         return ImportResult(
+            imported_file_uris=imported,
             select_doc=doc, new_docs=docs,
             new_docs_pages=pages,
             stats={
@@ -248,13 +274,113 @@ class PdfDirectoryImporter(BaseImporter):
         )
 
     @staticmethod
-    def get_mimetypes():
+    def get_select_mime_types():
         return [
             (_("PDF folder"), "inode/directory"),
         ]
 
+    @staticmethod
+    def get_mime_types():
+        return [
+            ("PDF", "application/pdf"),
+        ]
+
     def __str__(self):
         return _("Import each PDF in the folder as a new document")
+
+
+class ImageDirectoryImporter(BaseImporter):
+    """
+    Import many PDF files as many documents
+    """
+
+    def __init__(self, fs):
+        super().__init__(fs, ImgDoc.IMPORT_IMG_EXTENSIONS)
+
+    def can_import(self, file_uris, current_doc=None):
+        """
+        Check that the specified file looks like a directory containing many
+        pdf files
+        """
+        if len(file_uris) <= 0:
+            return False
+        try:
+            for file_uri in file_uris:
+                file_uri = self.fs.safe(file_uri)
+                parent = Gio.File.parse_name(file_uri)
+                for child in recurse(parent):
+                    if self.check_file_type(child.get_uri()):
+                        return True
+        except GLib.GError:
+            pass
+        return False
+
+    def import_doc(self, file_uris, docsearch, current_doc=None):
+        """
+        Import the specified PDF files
+        """
+        if current_doc is None or current_doc.is_new:
+            if not current_doc:
+                current_doc = ImgDoc(self.fs, docsearch.rootdir)
+            new_docs = [current_doc]
+            upd_docs = []
+        else:
+            new_docs = []
+            upd_docs = [current_doc]
+        new_docs_pages = []
+        upd_docs_pages = []
+        page = None
+
+        file_uris = natsorted(file_uris)
+        imported = []
+
+        for file_uri in file_uris:
+            file_uri = self.fs.safe(file_uri)
+            logger.info("Importing images from '%s'" % (file_uri))
+            parent = Gio.File.parse_name(file_uri)
+
+            for child in recurse(parent):
+                if ".thumb." in child.get_uri():
+                    # We are re-importing an old document --> ignore thumbnails
+                    logger.info("{} ignored".format(child.get_uri()))
+                    continue
+                if not self.check_file_type(child.get_uri()):
+                    continue
+                imported.append(child.get_uri())
+                with self.fs.open(child.get_uri(), "rb") as fd:
+                    img = Image.open(fd)
+                    img.load()
+                page = current_doc.add_page(img, [])
+                if new_docs == []:
+                    upd_docs_pages.append(page)
+                else:
+                    new_docs_pages.append(page)
+
+        return ImportResult(
+            imported_file_uris=imported,
+            select_doc=current_doc, select_page=page,
+            new_docs=new_docs, upd_docs=upd_docs,
+            new_docs_pages=new_docs_pages,
+            upd_docs_pages=upd_docs_pages,
+            stats={
+                _("Image file(s)"): len(file_uris),
+                _("Document(s)"): 0 if new_docs == [] else 1,
+                _("Page(s)"): len(new_docs_pages) + len(upd_docs_pages),
+            }
+        )
+
+    @staticmethod
+    def get_mime_types():
+        return IMG_MIME_TYPES
+
+    @staticmethod
+    def get_select_mime_types():
+        return [
+            (_("Image folder"), "inode/directory"),
+        ]
+
+    def __str__(self):
+        return _("Import all image files in the folder in the current document")
 
 
 class ImageImporter(BaseImporter):
@@ -295,8 +421,8 @@ class ImageImporter(BaseImporter):
         upd_docs_pages = []
         page = None
 
+        file_uris = [self.fs.safe(uri) for uri in file_uris]
         for file_uri in file_uris:
-            file_uri = self.fs.safe(file_uri)
             logger.info("Importing image '%s'" % (file_uri))
 
             with self.fs.open(file_uri, "rb") as fd:
@@ -310,6 +436,7 @@ class ImageImporter(BaseImporter):
                 new_docs_pages.append(page)
 
         return ImportResult(
+            imported_file_uris=file_uris,
             select_doc=current_doc, select_page=page,
             new_docs=new_docs, upd_docs=upd_docs,
             new_docs_pages=new_docs_pages,
@@ -322,14 +449,12 @@ class ImageImporter(BaseImporter):
         )
 
     @staticmethod
-    def get_mimetypes():
-        return [
-            ("BMP", "image/x-ms-bmp"),
-            ("GIF", "image/gif"),
-            ("JPEG", "image/jpeg"),
-            ("PNG", "image/png"),
-            ("TIFF", "image/tiff"),
-        ]
+    def get_select_mime_types():
+        return IMG_MIME_TYPES
+
+    @staticmethod
+    def get_mime_types():
+        return IMG_MIME_TYPES
 
     def __str__(self):
         return _("Append the image to the current document")
@@ -339,6 +464,7 @@ FS = fs.GioFileSystem()
 IMPORTERS = [
     PdfDirectoryImporter(FS),
     PdfImporter(FS),
+    ImageDirectoryImporter(FS),
     ImageImporter(FS),
 ]
 

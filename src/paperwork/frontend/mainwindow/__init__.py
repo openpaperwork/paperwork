@@ -858,6 +858,7 @@ class JobImporter(Job):
         'import-ok': (GObject.SignalFlags.RUN_LAST, None,
                       (GObject.TYPE_PYOBJECT,
                        GObject.TYPE_PYOBJECT,
+                       GObject.TYPE_PYOBJECT,
                        )),
     }
 
@@ -1041,7 +1042,11 @@ class JobImporter(Job):
                 self.__main_win, iter(new_doc_pages), must_add_labels=True
             ).start()
 
-        self.emit('import-ok', import_result.stats, import_result.select_doc)
+        self.emit(
+            'import-ok',
+            import_result.stats, import_result.select_doc,
+            import_result.imported_file_uris
+        )
 
 
 GObject.type_register(JobImporter)
@@ -1624,7 +1629,7 @@ class ActionImport(SimpleAction):
     def _delete_files(self, notification, action, file_uris=[],
                       *args, **kwargs):
         self.notification = None
-        logger.info("Moving importing file(s) to trash ...")
+        logger.info("Moving imported file(s) to trash ...")
         GLib.idle_add(self.__delete_files, file_uris)
 
     def __delete_files(self, file_uris=[]):
@@ -1670,7 +1675,7 @@ class ActionImport(SimpleAction):
             self.__no_importer(file_uris)
             return
         elif len(importers) > 1:
-            importer = self.__select_importers(importers)
+            importer = self.__select_importer(importers)
         else:
             importer = importers[0]
 
@@ -1684,8 +1689,8 @@ class ActionImport(SimpleAction):
         )
         job_importer.connect(
             'import-ok',
-            lambda _, stats, doc: GLib.idle_add(self.__import_ok, stats,
-                                                file_uris)
+            lambda _, stats, doc, uris: GLib.idle_add(self.__import_ok, stats,
+                                                      uris)
         )
         self.__main_win.schedulers['main'].schedule(job_importer)
 
@@ -3371,7 +3376,7 @@ class MainWindow(object):
         label = Label(name=_("Documentation"), color="#ffffffffffff")
         job_importer.connect(
             'import-ok',
-            lambda _, stats, doc: GLib.idle_add(
+            lambda _, stats, doc, uris: GLib.idle_add(
                 set_labels, doc, [label]
             )
         )

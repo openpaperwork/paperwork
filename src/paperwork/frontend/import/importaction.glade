@@ -110,7 +110,7 @@
     </child>
     <action-widgets>
       <action-widget response="0">buttonCancel</action-widget>
-      <action-widget response="0">buttonOk</action-widget>
+      <action-widget response="1">buttonOk</action-widget>
     </action-widgets>
   </object>
 </interface>

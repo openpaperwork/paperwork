@@ -460,7 +460,7 @@ msgstr "Importer un PDF"
 
 #: /tmp/tmp.jFtYtU07T4/paperwork_backend/docimport.py:194
 msgid "Import each PDF in the folder as a new document"
-msgstr "Import chaque PDF dans le dossier comme un nouveau document"
+msgstr "Importer chaque PDF dans le dossier comme un nouveau document"
 
 #: /tmp/tmp.jFtYtU07T4/paperwork_backend/docimport.py:256
 msgid "Append the image to the current document"

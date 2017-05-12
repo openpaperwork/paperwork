@@ -1498,7 +1498,7 @@ class ActionImport(SimpleAction):
 
         filters = []
         for importer in docimport.IMPORTERS:
-            mimes = importer.get_mimetypes()
+            mimes = importer.get_select_mime_types()
             for (name, mime) in mimes:
                 all_mimes.append(mime)
                 ffilter = Gtk.FileFilter()
@@ -1547,10 +1547,12 @@ class ActionImport(SimpleAction):
             importer_list.append([str(importer), importer])
 
         response = dialog.run()
-        if not response:
+        active_idx = combobox.get_active()
+
+        dialog.destroy()
+        if response <= 0:
             raise Exception("Import cancelled by user")
 
-        active_idx = combobox.get_active()
         return importer_list[active_idx][1]
 
     def __no_importer(self, file_uris):

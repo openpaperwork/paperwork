@@ -281,7 +281,7 @@ msgstr "Вилучити імпортовані файли"
 
 #: src/paperwork/frontend/mainwindow/__init__.py:1614
 msgid "Would you like to move the original file(s) to trash?\n"
-msgstr "Бажаєте перенести первинні файли в смітник?"
+msgstr "Бажаєте перенести первинні файли в смітник?\n"
 
 #: src/paperwork/frontend/mainwindow/__init__.py:1630
 msgid "Imported file(s) deleted"

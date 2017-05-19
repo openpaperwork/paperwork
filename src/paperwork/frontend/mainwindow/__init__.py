@@ -1719,7 +1719,6 @@ class ActionDeletePage(SimpleAction):
         logger.info("Deleting ...")
         page.destroy()
         logger.info("Deleted")
-        doc.drop_cache()
         self.__main_win.page = None
         set_widget_state(self.__main_win.need_page_widgets, False)
         if len(doc.pages) > 0:
@@ -3682,8 +3681,6 @@ class MainWindow(object):
 
         logger.info("Showing document {}".format(doc))
 
-        if self.doc and self.doc.docid != doc.docid:
-            self.doc.drop_cache()
         gc.collect()
 
         self.doc = doc
@@ -3803,7 +3800,6 @@ class MainWindow(object):
     def refresh_label_list(self):
         # make sure the correct doc is taken into account
         self.doc_properties_panel.set_doc(self.doc)
-        self.doc_properties_panel.refresh_label_list()
 
     def on_export_preview_start(self):
         visible = self.img['canvas'].visible_size
@@ -4075,8 +4071,6 @@ class MainWindow(object):
                 doc = self.doclist.get_new_doc()
 
         doc.add_page(img, line_boxes)
-        doc.drop_cache()
-        self.doc.drop_cache()
 
         if self.doc.docid == doc.docid:
             self.show_page(self.doc.pages[-1], force_refresh=True)

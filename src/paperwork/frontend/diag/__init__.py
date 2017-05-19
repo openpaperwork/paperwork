@@ -120,8 +120,6 @@ class JobInfoGetter(Job):
                             nb_words += 1
                             max_word_len = max(max_word_len, len(word.content))
                             total_word_len += len(word.content)
-                    page.drop_cache()
-                doc.drop_cache()
                 doc_idx += 1
             except:
                 logger.exception(

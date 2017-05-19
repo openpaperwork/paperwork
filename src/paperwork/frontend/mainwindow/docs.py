@@ -109,7 +109,6 @@ class JobDocThumbnailer(Job):
                 continue
 
             if doc.nb_pages <= 0:
-                doc.drop_cache()  # even accessing 'nb_pages' may open a file
                 continue
 
             start = time.time()
@@ -118,7 +117,6 @@ class JobDocThumbnailer(Job):
             # so we don't invalidate cache + previous thumbnails
             img = doc.pages[0].get_thumbnail(BasicPage.DEFAULT_THUMB_WIDTH,
                                              BasicPage.DEFAULT_THUMB_HEIGHT)
-            doc.drop_cache()
             if not self.can_run:
                 logger.info("Thumbnailing [%s] interrupted (0)", self)
                 return
@@ -887,7 +885,6 @@ class DocList(object):
 
         target_doc.add_page(src_page.img, src_page.boxes)
         src_page.destroy()
-        src_page.doc.drop_cache()
         if src_page.doc.nb_pages <= 0:
             src_page.doc.destroy()
         drag_context.finish(True, True, time)  # success = True
@@ -1457,7 +1454,6 @@ class DocPropertiesPanel(object):
             if has_changed:
                 self.__main_win.upd_index({self.doc})
         else:
-            self.doc.drop_cache()
             old_doc = self.doc
 
             # Switch to "New document" for now to make sure we lose
@@ -1485,7 +1481,6 @@ class DocPropertiesPanel(object):
         # --> no file descriptor must be opened on it
 
     def __rename_doc(self, old_doc, new_doc_date):
-        old_doc.drop_cache()
         old_doc.date = new_doc_date
         job = self.__main_win.job_factories['index_updater'].make(
             self.__main_win.docsearch,

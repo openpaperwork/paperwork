@@ -84,6 +84,7 @@ class PaperworkIndex(object):
 
         (self.pipe_client, self.pipe_server) = multiprocessing.Pipe()
         self.process = multiprocessing.Process(target=self.run)
+        self.process.daemon = True
         self.process.start()
 
     def run(self):

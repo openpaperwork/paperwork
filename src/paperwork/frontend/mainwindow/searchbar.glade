@@ -6,37 +6,37 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-goto-first</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="imageEndOfDoc">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-goto-last</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="imageNextDoc">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-next</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="imageNextOcc">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-go-forward</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="imagePreviousDoc">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-media-previous</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkImage" id="imagePreviousOcc">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="stock">gtk-go-back</property>
-    <property name="icon_size">3</property>
+    <property name="icon_size">1</property>
   </object>
   <object class="GtkBox" id="searchbar">
     <property name="can_focus">False</property>

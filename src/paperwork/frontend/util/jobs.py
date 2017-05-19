@@ -230,8 +230,8 @@ class JobScheduler(object):
         active_job = self._active_job
 
         if active_job.can_stop:
-            logger.debug("[Scheduler %s] Job %s marked for stopping"
-                         % (self.name, str(active_job)))
+            logger.info("[Scheduler %s] Job %s marked for stopping",
+                        self.name, str(active_job))
             active_job.stop(will_resume=will_resume)
         elif self.warnings:
             logger.warning(

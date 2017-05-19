@@ -31,7 +31,6 @@ gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
 from gi.repository import GLib
-from gi.repository import Gtk
 from gi.repository import Notify
 import locale
 import logging
@@ -161,10 +160,6 @@ class Main(object):
                 hook_func(self.config, self.main_win)
 
             self.main_loop.run()
-
-            logger.info("Stopping schedulers ...")
-            for scheduler in self.main_win.schedulers.values():
-                scheduler.stop()
 
             logger.info("Writing configuration ...")
             self.config.write()

@@ -387,7 +387,7 @@ class JobIndexUpdater(Job):
         # update is finished
         self.__condition.acquire()
         GLib.idle_add(self.__wakeup)
-        self.__condition.wait()
+        self.__condition.wait(3.0)
         self.__condition.release()
 
     def do(self):
@@ -406,6 +406,7 @@ class JobIndexUpdater(Job):
                 optimize=self.optimize)
 
         if not self.can_run:
+            logger.warning("Index update interrupted")
             self.emit('index-update-interrupted')
             return
 
@@ -422,6 +423,7 @@ class JobIndexUpdater(Job):
             try:
                 while True:
                     if not self.can_run:
+                        logger.warning("Index update interrupted")
                         self.emit('index-update-interrupted')
                         return
                     doc = doc_bunch.pop()
@@ -2306,6 +2308,12 @@ class ActionRealQuit(SimpleAction):
         GLib.idle_add(self.__actual_quit)
 
     def __actual_quit(self):
+        # We must stop the schedulers before anything else because jobs
+        # may need the Gtk loop or other services to stop correctly
+        logger.info("Stopping schedulers ...")
+        for scheduler in self.__main_win.schedulers.values():
+            scheduler.stop()
+
         logger.info("Stopping index client ...")
         self.__main_win.docsearch.stop()
         logger.info("Gtk.main_quit() ...")

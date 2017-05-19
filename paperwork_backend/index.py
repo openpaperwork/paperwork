@@ -3,6 +3,7 @@
 import collections
 import copy
 import datetime
+import gc
 import logging
 import multiprocessing
 import threading
@@ -758,6 +759,9 @@ class PaperworkIndex(object):
         self.labels = labels
 
     label_list = property(get_label_list, set_label_list)
+
+    def gc(self):
+        gc.collect()
 
 
 class MethodProxy(object):

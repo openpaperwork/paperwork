@@ -84,16 +84,13 @@ class PdfPagesIterator(object):
 class PdfPages(object):
     def __init__(self, pdfdoc, on_disk_cache=False):
         self.pdfdoc = pdfdoc
-        self.page = {}
         self.on_disk_cache = on_disk_cache
 
     def __getitem__(self, idx):
         if idx < 0:
             idx = self.pdf.get_n_pages() + idx
-        if idx not in self.page:
-            self.page[idx] = PdfPage(self.pdfdoc, idx,
-                                     self.on_disk_cache)
-        return self.page[idx]
+        return PdfPage(self.pdfdoc, idx,
+                       self.on_disk_cache)
 
     def __len__(self):
         return self.pdf.get_n_pages()

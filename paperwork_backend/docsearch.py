@@ -19,6 +19,7 @@ Also everything related to indexation and searching in the documents (+
 suggestions)
 """
 
+import gc
 import logging
 import os.path
 
@@ -439,11 +440,16 @@ class DocSearch(object):
     def stop(self):
         self.index.stop()
 
+    def gc(self):
+        gc.collect()
+        self.index.gc()
+
     def destroy_index(self):
         """
         Destroy the index. Don't use this DocSearch object anymore after this
         call. Index will have to be rebuilt from scratch
         """
+        self.gc()
         self.index.destroy_index()
 
     def is_hash_in_index(self, filehash):

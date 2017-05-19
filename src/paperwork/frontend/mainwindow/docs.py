@@ -626,6 +626,8 @@ class ActionDeleteDoc(SimpleAction):
         self.__main_win.schedulers['main'].schedule(job)
 
     def _on_doc_deleted_from_index(self, doc):
+        # Windows: all file descriptors to the document must be closed
+        self.__main_win.docsearch.gc()
         doc.destroy()
         self.__main_win.refresh_doc_list()
 

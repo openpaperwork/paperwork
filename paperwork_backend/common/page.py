@@ -148,9 +148,6 @@ class BasicPage(object):
         self.doc = doc
         self.page_nb = page_nb
 
-        self.__thumbnail_cache = (None, 0)
-        self.__text_cache = None
-
         assert(self.page_nb >= 0)
         self.__prototype_exporters = {
             'PNG': PageExporter(self, 'PNG', 'image/png', ["png"]),
@@ -190,9 +187,6 @@ class BasicPage(object):
         """
         thumbnail with a memory cache
         """
-        if ((width, height) == self.__thumbnail_cache[1]):
-            return self.__thumbnail_cache[0]
-
         # get from the file
         try:
             if (self.fs.getmtime(self.get_doc_file_path()) <
@@ -209,21 +203,10 @@ class BasicPage(object):
             with self.fs.open(self._get_thumb_path(), 'wb') as fd:
                 thumbnail.save(fd, format="JPEG")
 
-        self.__thumbnail_cache = (thumbnail, (width, height))
         return thumbnail
 
-    def drop_cache(self):
-        logger.debug("Dropping cache of page {}".format(
-            self
-        ))
-        self.__thumbnail_cache = (None, 0)
-        self.__text_cache = None
-
     def __get_text(self):
-        if self.__text_cache is not None:
-            return self.__text_cache
-        self.__text_cache = self._get_text()
-        return self.__text_cache
+        return self._get_text()
 
     text = property(__get_text)
 

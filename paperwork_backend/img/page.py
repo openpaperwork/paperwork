@@ -48,8 +48,6 @@ class ImgPage(BasicPage):
         if page_nb is None:
             page_nb = doc.nb_pages
         BasicPage.__init__(self, doc, page_nb)
-        self._img_cache = None
-        self.surface_cache = None
 
     def __get_box_path(self):
         """
@@ -125,8 +123,6 @@ class ImgPage(BasicPage):
         boxfile = self.__box_path
         with self.fs.open(boxfile, 'w') as file_desc:
             pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
-        self.drop_cache()
-        self.doc.drop_cache()
 
     boxes = property(__get_boxes, __set_boxes)
 
@@ -134,16 +130,14 @@ class ImgPage(BasicPage):
         """
         Returns an image object corresponding to the page
         """
-        if not self._img_cache:
-            with self.fs.open(self.__img_path, 'rb') as fd:
-                self._img_cache = PIL.Image.open(fd)
-                self._img_cache.load()
-        return self._img_cache
+        with self.fs.open(self.__img_path, 'rb') as fd:
+            _img_cache = PIL.Image.open(fd)
+            _img_cache.load()
+            return _img_cache
 
     def __set_img(self, img):
         with self.fs.open(self.__img_path, 'wb') as fd:
             img.save(fd, format="JPEG")
-        self.drop_cache()
 
     img = property(__get_img, __set_img)
 
@@ -256,8 +250,6 @@ class ImgPage(BasicPage):
         for page_nb in range(self.page_nb + 1, current_doc_nb_pages):
             page = doc_pages[page_nb]
             page.change_index(offset=-1)
-        self.drop_cache()
-        self.doc.drop_cache()
 
     def _steal_content(self, other_page):
         """
@@ -289,14 +281,8 @@ class ImgPage(BasicPage):
                 page = other_doc_pages[page_nb]
                 page.change_index(offset=-1)
 
-        self.drop_cache()
-
     def get_docfilehash(self):
         return self.doc.hash_file(self.fs, self.__get_img_path())
-
-    def drop_cache(self):
-        super().drop_cache()
-        self._img_cache = None
 
     def has_ocr(self):
         # always act as if images have OCR file attached

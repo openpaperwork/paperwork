@@ -40,7 +40,6 @@ from ..common.export import Exporter
 from ..img.page import ImgPage
 from ..util import image2surface
 from ..util import surface2image
-from ..util import mkdir_p
 
 logger = logging.getLogger(__name__)
 
@@ -261,15 +260,17 @@ class _ImgPages(object):
 
     def __init__(self, doc):
         self.doc = doc
-
-        nb_pages = self.doc.nb_pages
-        self.__pages = [ImgPage(doc, idx) for idx in range(0, nb_pages)]
+        self.__pages = None
 
     def add(self, page):
         self.__pages.append(page)
-        self.doc.drop_cache()
 
     def __getitem__(self, idx):
+        if not self.__pages:
+            nb_pages = self.doc.nb_pages
+            self.__pages = [
+                ImgPage(self.doc, i) for i in range(0, nb_pages)
+            ]
         return self.__pages[idx]
 
     def __len__(self):
@@ -306,7 +307,6 @@ class ImgDoc(BasicDoc):
             docid --- Document Id (ie folder name). Use None for a new document
         """
         BasicDoc.__init__(self, fs, docpath, docid)
-        self.__pages = None
 
     def clone(self):
         return ImgDoc(self.fs, self.path, self.docid)
@@ -334,12 +334,9 @@ class ImgDoc(BasicDoc):
 
     last_mod = property(__get_last_mod)
 
-    def __get_pages(self):
-        if self.__pages is None:
-            self.__pages = _ImgPages(self)
-        return self.__pages
-
-    pages = property(__get_pages)
+    @property
+    def pages(self):
+        return _ImgPages(self)
 
     def _get_nb_pages(self):
         """
@@ -395,13 +392,6 @@ class ImgDoc(BasicDoc):
         new_page = ImgPage(self, self.nb_pages)
         logger.info("%s --> %s" % (str(page), str(new_page)))
         new_page._steal_content(page)
-        page.doc.drop_cache()
-        self.drop_cache()
-
-    def drop_cache(self):
-        BasicDoc.drop_cache(self)
-        del(self.__pages)
-        self.__pages = None
 
     def get_docfilehash(self):
         if self._get_nb_pages() == 0:
@@ -420,7 +410,6 @@ class ImgDoc(BasicDoc):
         page = ImgPage(self, self.nb_pages)
         page.img = img
         page.boxes = boxes
-        self.drop_cache()
         return self.pages[-1]
 
     def insert_page(self, img, boxes, page_nb):
@@ -441,7 +430,6 @@ class ImgDoc(BasicDoc):
         page = ImgPage(self, page_nb)
         page.img = img
         page.boxes = boxes
-        self.drop_cache()
         return self.pages[page_nb]
 
 

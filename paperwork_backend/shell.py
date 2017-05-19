@@ -194,7 +194,6 @@ def cmd_export_all(*args):
             )
         )
         exporter.save(FS.safe(output_pdf))
-        doc.drop_cache()
         gc.collect()
 
     print ("Done")

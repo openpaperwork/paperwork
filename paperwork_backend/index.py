@@ -188,8 +188,6 @@ class PaperworkIndex(object):
     def start_reload_index(self):
         docs_by_id = self._docs_by_id
         self._docs_by_id = {}
-        for doc in docs_by_id.values():
-            doc.drop_cache()
         del docs_by_id
 
         results = self.__searcher.search(
@@ -245,7 +243,6 @@ class PaperworkIndex(object):
         self._docs_by_id[result['docid']] = doc
         for label in doc.labels:
             self.reload_index_data['labels'].add(label)
-        doc.drop_cache()
 
         return True
 
@@ -317,7 +314,6 @@ class PaperworkIndex(object):
             old_doc_list.remove(docdir)
             assert(old_infos is not None)
             last_mod = datetime.datetime.fromtimestamp(doc.last_mod)
-            doc.drop_cache()
             if old_infos[1] != last_mod:
                 return ('modified', doc.clone())
             else:
@@ -376,8 +372,6 @@ class PaperworkIndex(object):
             date=doc.date,
             last_read=last_mod
         )
-
-        doc.drop_cache()
         return True
 
     @staticmethod
@@ -403,7 +397,6 @@ class PaperworkIndex(object):
             self.label_guesser_updater.add_doc(doc)
         if doc.docid not in self._docs_by_id:
             self._docs_by_id[doc.docid] = doc
-        doc.drop_cache()
 
     def upd_doc(self, doc, index_update=True, label_guesser_update=True):
         """
@@ -418,7 +411,6 @@ class PaperworkIndex(object):
             self._update_doc_in_index(self.index_writer, doc)
         if label_guesser_update:
             self.label_guesser_updater.upd_doc(doc)
-        doc.drop_cache()
 
     def del_doc(self, doc):
         """
@@ -435,11 +427,9 @@ class PaperworkIndex(object):
             # annoying case : we can't know which labels were on it
             # so we can't roll back the label guesser training ...
             self._delete_doc_from_index(self.index_writer, doc)
-            doc.drop_cache()
             return
         self._delete_doc_from_index(self.index_writer, doc.docid)
         self.label_guesser_updater.del_doc(doc)
-        doc.drop_cache()
 
     def commit(self, index_update=True, label_guesser_update=True):
         """
@@ -485,7 +475,6 @@ class PaperworkIndex(object):
         return a prediction of label names
         """
         if doc.nb_pages <= 0:
-            doc.drop_cache()
             return set()
         self.label_guesser.total_nb_documents = len(self._docs_by_id.keys())
         label_names = self.label_guesser.guess(doc)
@@ -493,7 +482,6 @@ class PaperworkIndex(object):
         for label_name in label_names:
             label = self.labels[label_name]
             labels.add(label)
-        doc.drop_cache()
         return labels
 
     def get_all_docs(self):
@@ -637,7 +625,6 @@ class PaperworkIndex(object):
             doc.add_label(label)
             self.upd_doc(doc)
             self.commit()
-        doc.drop_cache()
 
     def add_label(self, doc, label, update_index=True):
         """
@@ -653,7 +640,6 @@ class PaperworkIndex(object):
         if update_index:
             self.upd_doc(doc)
             self.commit()
-        doc.drop_cache()
 
     def remove_label(self, doc, label, update_index=True):
         """
@@ -663,7 +649,6 @@ class PaperworkIndex(object):
         if update_index:
             self.upd_doc(doc)
             self.commit()
-        doc.drop_cache()
 
     def start_update_label(self, old_label, new_label):
         assert(old_label)
@@ -688,7 +673,6 @@ class PaperworkIndex(object):
         doc.update_label(old_label, new_label)
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
-        doc.drop_cache()
         return ('updated', doc.clone())
 
     def end_update_label(self):
@@ -717,7 +701,6 @@ class PaperworkIndex(object):
         doc.remove_label(label)
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
-        doc.drop_cache()
 
     def end_destroy_label(self):
         label = self.destroy_label_data['label']

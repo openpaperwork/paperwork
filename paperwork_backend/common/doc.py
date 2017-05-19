@@ -62,19 +62,12 @@ class BasicDoc(object):
         else:
             self.__docid = docid
             self.path = docpath
-        self.__cache = {}
 
         # We need to keep track of the labels:
         # When updating bayesian filters for label guessing,
         # we need to know the new label list, but also the *previous* label
         # list
         self._previous_labels = self.labels[:]
-
-    def drop_cache(self):
-        logger.debug("Dropping cache of document {} ({})".format(
-            self.docid, self
-        ))
-        self.__cache = {}
 
     def __str__(self):
         return self.__docid
@@ -90,9 +83,7 @@ class BasicDoc(object):
     last_mod = property(__get_last_mod)
 
     def __get_nb_pages(self):
-        if 'nb_pages' not in self.__cache:
-            self.__cache['nb_pages'] = self._get_nb_pages()
-        return self.__cache['nb_pages']
+        return self._get_nb_pages()
 
     nb_pages = property(__get_nb_pages)
 
@@ -127,7 +118,6 @@ class BasicDoc(object):
         """
         Delete the document. The *whole* document. There will be no survivors.
         """
-        self.drop_cache()
         logger.info("Destroying doc: %s" % self.path)
         self.fs.rm_rf(self.path)
         logger.info("Done")
@@ -141,7 +131,6 @@ class BasicDoc(object):
         with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'a') \
                 as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
-        self.drop_cache()
 
     def remove_label(self, to_remove):
         """
@@ -156,7 +145,6 @@ class BasicDoc(object):
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.drop_cache()
 
     def __get_labels(self):
         """
@@ -165,20 +153,18 @@ class BasicDoc(object):
         Returns:
             An array of labels.Label objects
         """
-        if 'labels' not in self.__cache:
-            labels = []
-            try:
-                with self.fs.open(self.fs.join(self.path, self.LABEL_FILE),
-                                  'r') as file_desc:
-                    for line in file_desc.readlines():
-                        line = line.strip()
-                        (label_name, label_color) = line.split(",", 1)
-                        labels.append(Label(name=label_name,
-                                            color=label_color))
-            except IOError:
-                pass
-            self.__cache['labels'] = labels
-        return self.__cache['labels']
+        labels = []
+        try:
+            with self.fs.open(self.fs.join(self.path, self.LABEL_FILE),
+                                'r') as file_desc:
+                for line in file_desc.readlines():
+                    line = line.strip()
+                    (label_name, label_color) = line.split(",", 1)
+                    labels.append(Label(name=label_name,
+                                        color=label_color))
+        except IOError:
+            pass
+        return labels
 
     def __set_labels(self, labels):
         """
@@ -189,7 +175,6 @@ class BasicDoc(object):
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.__cache['labels'] = labels
 
     labels = property(__get_labels, __set_labels)
 
@@ -245,7 +230,6 @@ class BasicDoc(object):
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.drop_cache()
 
     @staticmethod
     def get_export_formats():
@@ -306,10 +290,7 @@ class BasicDoc(object):
         return hash(self.__docid)
 
     def __is_new(self):
-        if 'new' in self.__cache:
-            return self.__cache['new']
-        self.__cache['new'] = not self.fs.exists(self.path)
-        return self.__cache['new']
+        return not self.fs.exists(self.path)
 
     is_new = property(__is_new)
 
@@ -345,10 +326,6 @@ class BasicDoc(object):
         return self.__docid
 
     def _set_docid(self, new_base_docid):
-        # XXX(JFlesch): On Windows, we must be sure that all the file
-        # descriptors are closed
-        self.drop_cache()
-
         workdir = self.fs.dirname(self.path)
         new_docid = new_base_docid
         new_docpath = self.fs.join(workdir, new_docid)

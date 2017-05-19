@@ -82,9 +82,8 @@ class PdfPagesIterator(object):
 
 
 class PdfPages(object):
-    def __init__(self, pdfdoc, pdf, on_disk_cache=False):
+    def __init__(self, pdfdoc, on_disk_cache=False):
         self.pdfdoc = pdfdoc
-        self.pdf = pdf
         self.page = {}
         self.on_disk_cache = on_disk_cache
 
@@ -92,7 +91,7 @@ class PdfPages(object):
         if idx < 0:
             idx = self.pdf.get_n_pages() + idx
         if idx not in self.page:
-            self.page[idx] = PdfPage(self.pdfdoc, self.pdf, idx,
+            self.page[idx] = PdfPage(self.pdfdoc, idx,
                                      self.on_disk_cache)
         return self.page[idx]
 
@@ -102,13 +101,6 @@ class PdfPages(object):
     def __iter__(self):
         return PdfPagesIterator(self.pdfdoc)
 
-    def drop_cache(self):
-        for page in self.page.values():
-            page.drop_cache()
-
-
-NB_FDS = 0  # assumed number of file descriptors opened
-
 
 class _CommonPdfDoc(BasicDoc):
     can_edit = False
@@ -117,9 +109,9 @@ class _CommonPdfDoc(BasicDoc):
     def __init__(self, fs, pdfpath, docpath, docid=None, on_disk_cache=False):
         super().__init__(fs, docpath, docid)
         self.pdfpath = fs.safe(pdfpath)
-        self._pages = None
-        self._pdf = None
         self._on_disk_cache = on_disk_cache
+        # number of pages never change --> we can keep it in memory safely
+        self._nb_pages = -1
 
     def clone(self):
         assert()
@@ -136,35 +128,24 @@ class _CommonPdfDoc(BasicDoc):
     def get_pdf_file_path(self):
         return self.pdfpath
 
-    def _open_pdf(self):
-        global NB_FDS
-        if self._pdf:
-            return self._pdf
+    def get_pdf(self):
         logger.info("PDF: Opening {}".format(self.pdfpath))
         filepath = Gio.File.new_for_uri(self.pdfpath)
-        self._pdf = Poppler.Document.new_from_gfile(filepath, password=None)
-        NB_FDS += 1
-        logger.debug("(opening {} | {}) Number of PDF file descriptors"
-                     " opened: {}".format(self, id(self), NB_FDS)
-                     )
-        return self._pdf
-
-    pdf = property(_open_pdf)
+        return Poppler.Document.new_from_gfile(filepath, password=None)
 
     def __get_pages(self):
-        if self._pages:
-            return self._pages
-        self._pages = PdfPages(self, self.pdf, self._on_disk_cache)
-        return self._pages
+        return PdfPages(self, self._on_disk_cache)
 
     pages = property(__get_pages)
 
     def _get_nb_pages(self):
+        if self._nb_pages >= 0:
+            return self._nb_pages
         if self.is_new:
             # happens when a doc was recently deleted
             return 0
-        nb_pages = self.pdf.get_n_pages()
-        return nb_pages
+        self._nb_pages = self.get_pdf().get_n_pages()
+        return self._nb_pages
 
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):
         """
@@ -183,28 +164,6 @@ class _CommonPdfDoc(BasicDoc):
     def build_exporter(self, file_format='pdf', preview_page_nb=0):
         assert(file_format.lower() == 'pdf')
         return PdfDocExporter(self, preview_page_nb)
-
-    def drop_cache(self):
-        global NB_FDS
-        super().drop_cache()
-        if self._pages:
-            self._pages.drop_cache()
-            del self._pages
-        self._pages = None
-        if self._pdf:
-            NB_FDS -= 1
-            del self._pdf
-            logger.info("(closing {} | {}) Number of PDF file descriptors"
-                        " still opened: {}".format(self, id(self), NB_FDS))
-        else:
-            logger.debug("(closing {} | {})"
-                         " Already closed (remaining: {})".format(
-                             self, id(self), NB_FDS
-                         ))
-        self._pdf = None
-
-    def __del__(self):
-        self.drop_cache()
 
     def get_docfilehash(self):
         return super().hash_file(self.fs, "%s/%s" % (self.path, PDF_FILENAME))
@@ -225,8 +184,6 @@ class PdfDoc(_CommonPdfDoc):
             docpath, docid,
             on_disk_cache=True
         )
-        self._pages = None
-        self._pdf = None
 
     def clone(self):
         return PdfDoc(self.fs, self.path, self.docid)
@@ -305,8 +262,6 @@ class ExternalPdfDoc(_CommonPdfDoc):
             on_disk_cache=False
         )
         self.filepath = filepath
-        self._pages = None
-        self._pdf = None
 
     # disable all the methods to handle the document
 

@@ -2509,7 +2509,7 @@ class SearchBar(object):
 
         accelerators = [
             ('F3', 'clicked', next_occ),
-            ('<Primary>F3', 'clicked', previous_occ),
+            ('<Shift>F3', 'clicked', previous_occ),
         ]
         accel_group = Gtk.AccelGroup()
         for (shortcut, signame, widget) in accelerators:

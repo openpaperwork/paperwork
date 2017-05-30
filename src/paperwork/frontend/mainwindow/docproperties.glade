@@ -1,0 +1,278 @@
+<interface>
+  <requires lib="gtk+" version="3.14"/>
+  <object class="GtkRevealer" id="box_headerbar_left_docproperties_revealer">
+    <property name="visible">True</property>
+    <property name="reveal_child">False</property>
+    <property name="transition_duration">333</property>
+    <property name="transition_type">slide-right</property>
+    <child>
+      <object class="GtkHeaderBar" id="docproperties_headerbar_left">
+        <property name="visible">True</property>
+        <property name="title">Properties</property>
+        <property name="subtitle"></property>
+        <property name="show_close_button">False</property>
+        <style>
+          <class name="left-header-bar"/>
+          <class name="titlebar"/>
+        </style>
+        <child>
+          <object class="GtkButton" id="toolbuttonValidateDocProperties">
+            <property name="use_action_appearance">False</property>
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="use_action_appearance">False</property>
+            <property name="use_underline">True</property>
+            <child>
+              <object class="GtkImage">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="icon_name">go-previous-symbolic</property>
+                <property name="icon_size">1</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack_type">start</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+
+  <object class="GtkRevealer" id="box_left_docproperties_revealer">
+    <property name="visible">False</property>
+    <property name="reveal_child">False</property>
+    <property name="transition_duration">333</property>
+    <property name="transition_type">slide-right</property>
+    <child>
+      <object class="GtkScrolledWindow" id="box_left_docproperties">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">automatic</property>
+        <property name="vscrollbar_policy">automatic</property>
+        <child>
+
+          <object class="GtkBox">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <property name="margin">10</property>
+
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="margin">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label">Date</property>
+                    <property name="halign">start</property>
+                    <attributes>
+                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="docname_entry">
+                    <property name="visible">True</property>
+                    <property name="sensitive">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="editable">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="text"> </property>
+                    <property name="secondary_icon_name">x-office-calendar-symbolic</property>
+                    <property name="secondary_icon_sensitive">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="margin">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label">Labels</property>
+                    <property name="halign">start</property>
+                    <attributes>
+                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">never</property>
+                    <child>
+                      <object class="GtkListBox" id="listboxLabels">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <child>
+                          <object class="GtkListBoxRow" id="rowAddLabel">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="height_request">30</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <object class="GtkButton" id="buttonAddLabel">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="relief">GTK_RELIEF_NONE</property>
+                                    <property name="width_request">250</property>
+                                    <child>
+                                      <object class="GtkImage" id="image_button_new_label">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="icon_name">list-add-symbolic</property>
+                                        <property name="icon_size">1</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label"></property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                            <style>
+                              <class name="list-row-last"/>
+                            </style>
+                          </object>
+                        </child>
+                        <style>
+                          <class name="box-labels"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="margin">10</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Additional keywords</property>
+                    <property name="halign">start</property>
+                    <attributes>
+                      <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+                    </attributes>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="height_request">100</property>
+                    <child>
+                      <object class="GtkTextView" id="extrakeywords_textview">
+                        <property name="visible">True</property>
+                        <property name="sensitive">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="accepts-tab">False</property>
+                        <property name="editable">True</property>
+                        <property name="wrap-mode">GTK_WRAP_WORD</property>
+                        <style>
+                          <class name="extra-hint"/>
+                          <class name="extra-words"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+
+      </object>
+    </child>
+  </object>
+</interface>

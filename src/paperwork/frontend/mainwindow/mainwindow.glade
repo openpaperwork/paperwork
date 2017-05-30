@@ -582,7 +582,7 @@
 
             <child>
               <object class="GtkRevealer" id="box_left_docproperties_revealer">
-                <property name="visible">False</property>
+                <property name="visible">True</property>
                 <property name="reveal_child">False</property>
                 <property name="transition_duration">333</property>
                 <property name="transition_type">slide-right</property>

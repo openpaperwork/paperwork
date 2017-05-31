@@ -55,7 +55,7 @@ def check_python_version():
     if python_ver < (3, 0):
         raise Exception(
             "Expected python >= 3.0 !"
-            "Got python {}".format(".".join(python_ver))
+            "Got python {}".format(sys.version)
         )
     return []
 

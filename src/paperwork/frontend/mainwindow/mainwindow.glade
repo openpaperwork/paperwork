@@ -216,34 +216,9 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkRevealer" id="box_left_headerbar_loading_revealer">
-                <property name="visible">True</property>
-                <property name="reveal_child">True</property>
-                <property name="transition_duration">0</property>
-                <property name="transition_type">none</property>
-                <child>
-                  <object class="GtkHeaderBar" id="loading_headerbar_left">
-                    <property name="visible">True</property>
-                    <property name="title">Loading ...</property>
-                    <property name="subtitle"></property>
-                    <property name="show_close_button">False</property>
-                    <style>
-                      <class name="left-header-bar"/>
-                      <class name="titlebar"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkRevealer" id="box_headerbar_left_doclist_revealer">
                 <property name="visible">True</property>
-                <property name="reveal_child">False</property>
+                <property name="reveal_child">True</property>
                 <property name="transition_duration">0</property>
                 <property name="transition_type">none</property>
                 <child>
@@ -507,31 +482,9 @@
             </style>
 
             <child>
-              <object class="GtkRevealer" id="box_left_loading_revealer">
-                <property name="visible">True</property>
-                <property name="reveal_child">True</property>
-                <property name="transition_duration">333</property>
-                <property name="transition_type">slide-left</property>
-                <child>
-                  <object class="GtkScrolledWindow" id="scrolledwindowLoading">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="shadow_type">in</property>
-                    <property name="kinetic_scrolling">False</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-
-            <child>
               <object class="GtkRevealer" id="box_left_doclist_revealer">
                 <property name="visible">True</property>
-                <property name="reveal_child">False</property>
+                <property name="reveal_child">True</property>
                 <property name="transition_duration">333</property>
                 <property name="transition_type">slide-left</property>
                 <child>
@@ -619,6 +572,21 @@
                         <property name="position">2</property>
                       </packing>
                     </child>
+
+                    <child>
+                      <object class="GtkScrolledWindow" id="scrolledwindowLoading">
+                        <property name="visible">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="shadow_type">in</property>
+                        <property name="kinetic_scrolling">False</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+
                   </object>
                 </child>
               </object>
@@ -923,11 +891,9 @@
     <widgets>
       <widget name="box_left_doclist"/>
       <widget name="box_left_docproperties"/>
-      <widget name="scrolledwindowLoading"/>
 
       <widget name="doclist_headerbar_left"/>
       <widget name="docproperties_headerbar_left"/>
-      <widget name="loading_headerbar_left"/>
     </widgets>
   </object>
 

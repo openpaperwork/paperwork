@@ -2758,12 +2758,6 @@ class MainWindow(object):
         }
 
         self.left_revealers = {
-            'loading': [
-                (True, 0,
-                 widget_tree.get_object("box_left_loading_revealer")),
-                (False, 0,
-                 widget_tree.get_object("box_left_headerbar_loading_revealer")),
-            ],
             'doc_list': [
                 (True, 1,
                  widget_tree.get_object("box_left_doclist_revealer")),

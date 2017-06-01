@@ -92,6 +92,10 @@ Main features are:
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
         ('share/locale/de/LC_MESSAGES',
          ['locale/de/LC_MESSAGES/paperwork.mo']),
+        ('paperwork/frontend/mainwindow',
+         ['data/paperwork_halo.svg']),
+        ('paperwork/frontend/aboutdialog',
+         ['data/paperwork.svg']),
 
         # documentation
         ('paperwork/frontend/doc', glob.glob('doc/*.pdf')),

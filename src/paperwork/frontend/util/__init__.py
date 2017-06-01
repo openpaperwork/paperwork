@@ -185,6 +185,14 @@ def load_image(filename):
     return PIL.Image.open(img)
 
 
+def preload_file(filename):
+    """
+    Just make sure Python make the file available to other elements (Gtk
+    for instance)
+    """
+    _get_resource_path(filename)
+
+
 def get_documentation(doc_name):
     """
     Return the path to a documentation PDF.

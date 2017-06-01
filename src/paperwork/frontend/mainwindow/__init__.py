@@ -64,6 +64,7 @@ from ..util import get_documentation
 from ..util import load_cssfile
 from ..util import load_image
 from ..util import load_uifile
+from ..util import preload_file
 from ..util import sizeof_fmt
 from ..util.actions import SimpleAction
 from ..util.config import get_scanner
@@ -2644,6 +2645,10 @@ class MainWindow(object):
         # can load it after the cruel and unusual DRM
         load_cssfile("application.css")
 
+        # before loading the main window, load the icon, so Gtk can access
+        # it too
+        preload_file(os.path.join("mainwindow", "paperwork_halo.svg"))
+
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
         # self.widget_tree is for tests/screenshots ONLY
@@ -2752,13 +2757,17 @@ class MainWindow(object):
             'right': widget_tree.get_object("headerbar_right"),
         }
 
+        doclist = widget_tree.get_object("box_left_doclist_revealer")
+        docproperties = widget_tree.get_object(
+            "box_left_docproperties_revealer"
+        )
         self.left_revealers = {
             'doc_list': [
-                widget_tree.get_object("box_left_doclist_revealer"),
+                doclist,
                 widget_tree.get_object("box_headerbar_left_doclist_revealer"),
             ],
             'doc_properties': [
-                widget_tree.get_object("box_left_docproperties_revealer"),
+                docproperties,
                 widget_tree.get_object(
                     "box_headerbar_left_docproperties_revealer"),
             ],

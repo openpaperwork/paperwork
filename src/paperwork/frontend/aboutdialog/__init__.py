@@ -24,6 +24,7 @@ import sys
 from gi.repository import GdkPixbuf
 
 from paperwork.frontend.util import load_uifile
+from paperwork.frontend.util import preload_file
 
 
 class AboutDialog(object):
@@ -36,6 +37,7 @@ class AboutDialog(object):
     """
 
     def __init__(self, main_window):
+        preload_file(os.path.join("aboutdialog", "paperwork.svg"))
         self.__widget_tree = load_uifile(
             os.path.join("aboutdialog", "aboutdialog.glade"))
 

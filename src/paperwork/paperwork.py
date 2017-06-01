@@ -137,12 +137,13 @@ class Main(object):
         parser = argparse.ArgumentParser(
             description='Manages scanned documents and PDFs'
         )
-        parser.add_argument('--version', action='version', version="%s" % (__version__))
+        parser.add_argument('--version', action='version',
+                            version=str(__version__))
         parser.add_argument(
             "--debug", "-d", default=os.getenv("PAPERWORK_VERBOSE", "INFO"),
             choices=LogTracker.LOG_LEVELS.keys(),
-            help="Set verbosity level. Can also be set via env PAPERWORK_VERBOSE"
-            "(e.g. export PAPERWORK_VERBOSE=INFO)"
+            help="Set verbosity level. Can also be set via env"
+            " PAPERWORK_VERBOSE (e.g. export PAPERWORK_VERBOSE=INFO)"
         )
         args, unknown_args = parser.parse_known_args(sys.argv[1:])
 

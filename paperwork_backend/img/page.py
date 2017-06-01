@@ -131,9 +131,9 @@ class ImgPage(BasicPage):
         Returns an image object corresponding to the page
         """
         with self.fs.open(self.__img_path, 'rb') as fd:
-            _img_cache = PIL.Image.open(fd)
-            _img_cache.load()
-            return _img_cache
+            img = PIL.Image.open(fd)
+            img.load()
+            return img
 
     def __set_img(self, img):
         with self.fs.open(self.__img_path, 'wb') as fd:
@@ -146,7 +146,9 @@ class ImgPage(BasicPage):
         return img.resize(size, PIL.Image.ANTIALIAS)
 
     def __get_size(self):
-        return self.img.size
+        with self.fs.open(self.__img_path, 'rb') as fd:
+            img = PIL.Image.open(fd)
+            return img.size
 
     size = property(__get_size)
 

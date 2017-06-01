@@ -35,11 +35,12 @@ from gi.repository import Notify
 import locale
 import logging
 import signal
+import argparse
 
 import pyinsane2
 
 from .frontend.diag import LogTracker
-from .frontend.mainwindow import ActionRealQuit
+from .frontend.mainwindow import ActionRealQuit, __version__
 from .frontend.mainwindow import ActionRefreshIndex
 from .frontend.mainwindow import MainWindow
 from .frontend.util.config import load_config
@@ -133,7 +134,20 @@ class Main(object):
         """
         Where everything start.
         """
+        parser = argparse.ArgumentParser(
+            description='Manages scanned documents and PDFs'
+        )
+        parser.add_argument('--version', action='version', version="%s" % (__version__))
+        parser.add_argument(
+            "--debug", "-d", default=os.getenv("PAPERWORK_VERBOSE", "INFO"),
+            choices=LogTracker.LOG_LEVELS.keys(),
+            help="Set verbosity level. Can also be set via env PAPERWORK_VERBOSE"
+            "(e.g. export PAPERWORK_VERBOSE=INFO)"
+        )
+        args, unknown_args = parser.parse_known_args(sys.argv[1:])
+
         LogTracker.init()
+        logger.setLevel(LogTracker.LOG_LEVELS.get(args.debug))
 
         set_locale()
 

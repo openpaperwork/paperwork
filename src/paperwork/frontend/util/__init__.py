@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import glob
 import locale
 import logging
 import os
@@ -28,14 +27,13 @@ from gi.repository import Gtk
 
 from pkg_resources import resource_filename
 
-if os.name == "nt":
-    import webbrowser
-    from xml.etree import ElementTree
-
 import PIL.Image
 
 from .actions import SimpleAction
 
+if os.name == "nt":
+    import webbrowser
+    from xml.etree import ElementTree
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)

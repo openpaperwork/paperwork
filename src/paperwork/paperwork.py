@@ -147,7 +147,7 @@ class Main(object):
         args, unknown_args = parser.parse_known_args(sys.argv[1:])
 
         LogTracker.init()
-        logger.setLevel(LogTracker.LOG_LEVELS.get(args.debug))
+        logging.getLogger().setLevel(LogTracker.LOG_LEVELS.get(args.debug))
 
         set_locale()
 

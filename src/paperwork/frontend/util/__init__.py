@@ -104,7 +104,7 @@ def _get_resource_path(filename):
     path = resource_filename('paperwork.frontend', filename)
 
     if not os.access(path, os.R_OK):
-        raise FileNotFoundEroor(
+        raise FileNotFoundError(
             "Can't find resource file '%s'. Aborting" % filename
         )
 

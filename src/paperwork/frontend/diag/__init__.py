@@ -230,6 +230,12 @@ class LogTracker(logging.Handler):
     # Assuming 1KB per line, it makes about 50MB of RAM
     # (+ memory allocator overhead)
     MAX_LINES = 50 * 1000
+    LOG_LEVELS = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+    }
 
     def __init__(self):
         super(LogTracker, self).__init__()
@@ -263,12 +269,6 @@ class LogTracker(logging.Handler):
         handler.setFormatter(g_log_tracker._formatter)
         logger.addHandler(handler)
         logger.addHandler(g_log_tracker)
-        logger.setLevel({
-            "DEBUG": logging.DEBUG,
-            "INFO": logging.INFO,
-            "WARNING": logging.WARNING,
-            "ERROR": logging.ERROR,
-        }[os.getenv("PAPERWORK_VERBOSE", "INFO")])
         sys.excepthook = g_log_tracker.on_uncatched_exception_cb
 
 

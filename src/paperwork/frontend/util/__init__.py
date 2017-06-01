@@ -188,7 +188,10 @@ def preload_file(filename):
     Just make sure Python make the file available to other elements (Gtk
     for instance)
     """
-    _get_resource_path(filename)
+    try:
+        _get_resource_path(filename)
+    except FileNotFoundError:
+        logger.warning("Failed to preload '%s' !", filename)
 
 
 def get_documentation(doc_name):

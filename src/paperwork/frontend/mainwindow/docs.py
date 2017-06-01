@@ -654,9 +654,10 @@ class DocList(object):
             'spinner': SpinnerAnimation((0, 0)),
             'nb_boxes': 0,
         }
-        self.gui['loading'] = Canvas(self.gui['scrollbars'])
-        self.gui['loading'].set_visible(False)
-        self.gui['box'].add(self.gui['loading'])
+        loading_box = widget_tree.get_object("scrolledwindowLoading")
+        self.gui['loading'] = Canvas(loading_box)
+        self.gui['loading'].set_visible(True)
+        loading_box.add(self.gui['loading'])
         self.gui['scrollbars'].connect(
             "size-allocate",
             lambda x, s: GLib.idle_add(self._on_size_allocate)
@@ -1030,8 +1031,7 @@ class DocList(object):
         # remove the list, put the canvas+spinner instead
         self.gui['loading'].remove_all_drawers()
         self.gui['loading'].add_drawer(self.gui['spinner'])
-        self.gui['list'].set_visible(False)
-        self.gui['loading'].set_visible(True)
+        self.__main_win.switch_leftpane('loading')
         self._on_size_allocate()
 
     def show_loading(self):
@@ -1095,12 +1095,11 @@ class DocList(object):
             self.gui['list'].select_row(row)
             GLib.idle_add(self.scroll_to, row)
 
-        # remove the spinner, put the list instead
-        self.gui['loading'].remove_all_drawers()
-        self.gui['loading'].set_visible(False)
-
         self.gui['last_scrollbar_value'] = -1  # force refresh of thumbnails
         GLib.idle_add(self._on_scrollbar_value_changed, True)
+
+        # remove the spinner, put the list instead
+        self.__main_win.switch_leftpane("doc_list")
 
     def refresh_docs(self, docs, redo_thumbnails=True):
         """

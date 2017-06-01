@@ -2757,21 +2757,31 @@ class MainWindow(object):
             'right': widget_tree.get_object("headerbar_right"),
         }
 
-        doclist = widget_tree.get_object("box_left_doclist_revealer")
-        docproperties = widget_tree.get_object(
-            "box_left_docproperties_revealer"
-        )
         self.left_revealers = {
+            'loading': [
+                (True, 0,
+                 widget_tree.get_object("box_left_loading_revealer")),
+                (False, 0,
+                 widget_tree.get_object("box_left_headerbar_loading_revealer")),
+            ],
             'doc_list': [
-                doclist,
-                widget_tree.get_object("box_headerbar_left_doclist_revealer"),
+                (True, 1,
+                 widget_tree.get_object("box_left_doclist_revealer")),
+                (False, 1,
+                 widget_tree.get_object("box_headerbar_left_doclist_revealer")),
             ],
             'doc_properties': [
-                docproperties,
-                widget_tree.get_object(
-                    "box_headerbar_left_docproperties_revealer"),
+                (True, 2, widget_tree.get_object(
+                    "box_left_docproperties_revealer"
+                )),
+                (False, 2, widget_tree.get_object(
+                    "box_headerbar_left_docproperties_revealer"
+                )),
             ],
         }
+        self.left_revealers_parent = (
+            widget_tree.get_object("box_left_global")
+        )
 
         self.page_nb = {
             'current': widget_tree.get_object("entryPageNb"),
@@ -3439,9 +3449,27 @@ class MainWindow(object):
     def switch_leftpane(self, to):
         for (name, revealers) in self.left_revealers.items():
             visible = (to == name)
-            for revealer in revealers:
-                if visible:
-                    revealer.set_visible(visible)
+            for (must_add_remove, position, revealer) in revealers:
+                is_visible = (
+                    revealer in self.left_revealers_parent.get_children()
+                )
+                if must_add_remove:
+                    if visible and not is_visible:
+                        self.left_revealers_parent.add(revealer)
+                    elif not visible and is_visible:
+                        # WORKAROUND(Jflesch):
+                        # We remove the GtkRevealers. It reduces the amount
+                        # of warnings of Gtk about GtkRevealers size
+                        # and it forces a redraw avoiding some other issues.
+                        # Remove only after transition
+                        GLib.timeout_add(
+                            500,
+                            self.left_revealers_parent.remove, revealer
+                        )
+                    if visible:
+                        self.left_revealers_parent.reorder_child(
+                            revealer, position
+                        )
                 revealer.set_reveal_child(visible)
 
     def on_search_results_cb(self, search, documents):

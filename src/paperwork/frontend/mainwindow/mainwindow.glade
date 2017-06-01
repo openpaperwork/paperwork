@@ -216,11 +216,36 @@
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
-              <object class="GtkRevealer" id="box_headerbar_left_doclist_revealer">
+              <object class="GtkRevealer" id="box_left_headerbar_loading_revealer">
                 <property name="visible">True</property>
                 <property name="reveal_child">True</property>
-                <property name="transition_duration">333</property>
-                <property name="transition_type">slide-left</property>
+                <property name="transition_duration">0</property>
+                <property name="transition_type">none</property>
+                <child>
+                  <object class="GtkHeaderBar" id="loading_headerbar_left">
+                    <property name="visible">True</property>
+                    <property name="title">Loading ...</property>
+                    <property name="subtitle"></property>
+                    <property name="show_close_button">False</property>
+                    <style>
+                      <class name="left-header-bar"/>
+                      <class name="titlebar"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkRevealer" id="box_headerbar_left_doclist_revealer">
+                <property name="visible">True</property>
+                <property name="reveal_child">False</property>
+                <property name="transition_duration">0</property>
+                <property name="transition_type">none</property>
                 <child>
                   <object class="GtkHeaderBar" id="doclist_headerbar_left">
                     <property name="visible">True</property>
@@ -273,14 +298,15 @@
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
               <object class="GtkRevealer" id="box_headerbar_left_docproperties_revealer">
                 <property name="visible">True</property>
                 <property name="reveal_child">False</property>
-                <property name="transition_duration">333</property>
-                <property name="transition_type">slide-right</property>
+                <property name="transition_duration">0</property>
+                <property name="transition_type">none</property>
                 <child>
                   <object class="GtkHeaderBar" id="docproperties_headerbar_left">
                     <property name="visible">True</property>
@@ -317,6 +343,7 @@
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
@@ -478,11 +505,33 @@
             <style>
               <class name="box-left"/>
             </style>
-            <child>
 
-              <object class="GtkRevealer" id="box_left_doclist_revealer">
+            <child>
+              <object class="GtkRevealer" id="box_left_loading_revealer">
                 <property name="visible">True</property>
                 <property name="reveal_child">True</property>
+                <property name="transition_duration">333</property>
+                <property name="transition_type">slide-left</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="scrolledwindowLoading">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="shadow_type">in</property>
+                    <property name="kinetic_scrolling">False</property>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+
+            <child>
+              <object class="GtkRevealer" id="box_left_doclist_revealer">
+                <property name="visible">True</property>
+                <property name="reveal_child">False</property>
                 <property name="transition_duration">333</property>
                 <property name="transition_type">slide-left</property>
                 <child>
@@ -553,7 +602,7 @@
                             <property name="orientation">vertical</property>
                             <child>
                               <object class="GtkListBox" id="listboxDocList">
-                                <property name="visible">False</property>
+                                <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="selection_mode">multiple</property>
                                 <style>
@@ -576,13 +625,13 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
               </packing>
             </child>
 
             <child>
               <object class="GtkRevealer" id="box_left_docproperties_revealer">
-                <property name="visible">False</property>
+                <property name="visible">True</property>
                 <property name="reveal_child">False</property>
                 <property name="transition_duration">333</property>
                 <property name="transition_type">slide-right</property>
@@ -610,7 +659,7 @@
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label">Date</property>
+                                <property name="label" translatable="yes">Date</property>
                                 <property name="halign">start</property>
                                 <attributes>
                                   <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
@@ -810,7 +859,7 @@
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
 
@@ -874,8 +923,11 @@
     <widgets>
       <widget name="box_left_doclist"/>
       <widget name="box_left_docproperties"/>
+      <widget name="scrolledwindowLoading"/>
+
       <widget name="doclist_headerbar_left"/>
       <widget name="docproperties_headerbar_left"/>
+      <widget name="loading_headerbar_left"/>
     </widgets>
   </object>
 

@@ -658,7 +658,7 @@ class DocList(object):
         self.gui['loading'] = Canvas(loading_box)
         self.gui['loading'].set_visible(True)
         loading_box.add(self.gui['loading'])
-        self.gui['scrollbars'].connect(
+        loading_box.connect(
             "size-allocate",
             lambda x, s: GLib.idle_add(self._on_size_allocate)
         )
@@ -1236,7 +1236,7 @@ class DocList(object):
             self.enabled = True
 
     def _on_size_allocate(self):
-        visible = self.gui['scrollbars'].get_allocation()
+        visible = self.gui['loading'].get_allocation()
         visible = (visible.width, visible.height)
         self.gui['spinner'].position = (
             (visible[0] - SpinnerAnimation.ICON_SIZE) / 2,

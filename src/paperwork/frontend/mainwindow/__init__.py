@@ -2757,6 +2757,8 @@ class MainWindow(object):
             'right': widget_tree.get_object("headerbar_right"),
         }
 
+        self.search_box = widget_tree.get_object("box_search")
+
         self.left_revealers = {
             'loading': [
                 (True, 0,
@@ -2780,7 +2782,7 @@ class MainWindow(object):
             ],
         }
         self.left_revealers_parent = (
-            widget_tree.get_object("box_left_global")
+            widget_tree.get_object("box_left_revealers")
         )
 
         self.page_nb = {
@@ -3471,6 +3473,7 @@ class MainWindow(object):
                             revealer, position
                         )
                 revealer.set_reveal_child(visible)
+        self.search_box.set_visible(to != 'doc_properties')
 
     def on_search_results_cb(self, search, documents):
         logger.info("Got {} documents".format(len(documents)))

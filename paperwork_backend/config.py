@@ -97,7 +97,7 @@ class PaperworkURI(object):
         except Exception as exc:
             logger.warning("Failed to encode work dir path ({})".format(value),
                            exc_info=exc)
-        config.set(self.section, self.token, value)
+        config.set(self.section, self.token, value.strip())
 
 
 class PaperworkConfig(object):

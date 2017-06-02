@@ -76,10 +76,26 @@ class ImportResult(object):
     def get(self):
         return {
             "imported_file_uris": self.imported_file_uris,
-            "new_docs": [doc.docid for doc in self.new_docs],
-            "upd_docs": [doc.docid for doc in self.upd_docs],
-            "new_docs_pages": [page.pageid for page in self.new_docs_pages],
-            "upd_docs_pages": [page.pageid for page in self.upd_docs_pages],
+            "new_docs": [
+                {
+                    "docid": doc.docid,
+                    "labels": [l.name for l in doc.labels],
+                }
+                for doc in self.new_docs
+            ],
+            "upd_docs": [
+                {
+                    "docid": doc.docid,
+                    "labels": [l.name for l in doc.labels],
+                }
+                for doc in self.upd_docs
+            ],
+            "new_docs_pages": [
+                page.pageid for page in self.new_docs_pages
+            ],
+            "upd_docs_pages": [
+                page.pageid for page in self.upd_docs_pages
+            ],
             "stats": self.stats,
         }
 

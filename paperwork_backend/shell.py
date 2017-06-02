@@ -429,14 +429,22 @@ def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
     )
 
     verbose("{}:".format(fileuris))
-    r = {"imports": import_result.get()}
+    r = {
+        "imports": import_result.get(),
+        "guessed_labels": [],
+    }
 
     # TODO(Jflesch): OCR if no text / image !
 
     for doc in import_result.new_docs:
         if guess_labels:
             labels = dsearch.guess_labels(doc)
-            r['guessed_labels'] = [label.name for label in labels]
+            r['guessed_labels'].append(
+                {
+                    "docid": doc.docid,
+                    "labels": [label.name for label in labels],
+                }
+            )
             for label in labels:
                 dsearch.add_label(doc, label, update_index=False)
         verbose("{} --> Document {} (labels: {})".format(
@@ -481,8 +489,39 @@ def cmd_import(*args):
         {
             "status": "ok",
             "imports": {
-                (stats + infos ...)
+                # beware this section is filled in *before* label guessing
+                "imported_file_uris": [
+                    "file:///home/jflesch/tmp/pouet.pdf"
+                ],
+                "new_docs": [
+                    {
+                        "docid": "20170602_1513_12",
+                        "labels": []
+                    }
+                ],
+                "new_docs_pages": [
+                    "20170602_1513_12|0",
+                    "20170602_1513_12|1"
+                ],
+                "stats": {
+                    # ~Human readable statistics
+                    # exact content of this section is not guaranteed
+                    "Document(s)": 1,
+                    "Image file(s)": 0,
+                    "PDF": 1,
+                    "Page(s)": 2
+                },
+                "upd_docs": [],
+                "upd_docs_pages": []
             }
+            "guessed_labels": [
+                {
+                    "docid": "20170602_1513_12",
+                    "labels": [
+                        "Documentation"
+                    ]
+                }
+            ]
         }
     """
     guess_labels = True

@@ -54,12 +54,12 @@ class DummyDocSearch(object):
         self.fs = fs.GioFileSystem()
 
     @staticmethod
-    def get_doc_examiner():
+    def get_doc_examiner(*args, **kwargs):
         """ Do nothing """
         assert()
 
     @staticmethod
-    def get_index_updater():
+    def get_index_updater(*args, **kwargs):
         """ Do nothing """
         assert()
 

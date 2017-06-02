@@ -448,15 +448,15 @@ def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
             )
             for label in labels:
                 dsearch.add_label(doc, label, update_index=False)
-        verbose("{} --> Document {} (labels: {})".format(
-            filepath, doc.docid,
+        verbose("Document {} (labels: {})".format(
+            doc.docid,
             ", ".join([label.name for label in doc.labels])
         ))
         index_updater.add_doc(doc)
 
     for doc in import_result.upd_docs:
-        verbose("{} --> Document {} (labels: {})".format(
-            filepath, doc.docid,
+        verbose("Document {} (labels: {})".format(
+            doc.docid,
             ", ".join([label.name for label in doc.labels])
         ))
         index_updater.upd_doc(doc)

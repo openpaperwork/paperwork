@@ -106,13 +106,13 @@ class ImgPage(BasicPage):
                 return boxes
             # fallback: old format: word boxes
             # shouldn't be used anymore ...
-            logger.warning("WARNING: Doc %s uses old box format" %
-                           (str(self.doc)))
             box_builder = pyocr.builders.WordBoxBuilder()
             with self.fs.open(boxfile, 'r') as file_desc:
                 boxes = box_builder.read_file(file_desc)
             if len(boxes) <= 0:
                 return []
+            logger.warning("WARNING: Doc %s uses old box format" %
+                           (str(self.doc)))
             return [pyocr.builders.LineBox(boxes, boxes[0].position)]
         except IOError as exc:
             logger.error("Unable to get boxes for '%s': %s"

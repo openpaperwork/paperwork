@@ -416,12 +416,13 @@ def _get_importer(fileuris, doc):
 def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
     index_updater = dsearch.get_index_updater(optimize=False)
 
-    for filepath in filepaths:
-        # safety checks first
-        if not FS.exists(filepath):
-            raise FileNotFoundError(filepath)  # NOQA (Python 3.x only)
-
     fileuris = [FS.safe(f) for f in filepaths]
+
+    for fileuri in fileuris:
+        # safety checks first
+        if not FS.exists(fileuri):
+            raise FileNotFoundError(fileuri)  # NOQA (Python 3.x only)
+
     importer = _get_importer(fileuris, doc)
     verbose("Files {}: Importer = {}".format(fileuris, importer))
     import_result = importer.import_doc(

@@ -73,6 +73,16 @@ class ImportResult(object):
         self.stats = self.BASE_STATS.copy()
         self.stats.update(stats)
 
+    def get(self):
+        return {
+            "imported_file_uris": self.imported_file_uris,
+            "new_docs": [doc.docid for doc in self.new_docs],
+            "upd_docs": [doc.docid for doc in self.upd_docs],
+            "new_docs_pages": [page.pageid for page in self.new_docs_pages],
+            "upd_docs_pages": [page.pageid for page in self.upd_docs_pages],
+            "stats": self.stats,
+        }
+
     @property
     def has_import(self):
         return len(self.new_docs) > 0 or len(self.upd_docs) > 0
@@ -180,8 +190,8 @@ class PdfImporter(BaseImporter):
             select_doc=doc, new_docs=docs,
             new_docs_pages=pages,
             stats={
-                _("PDF"): len(file_uris),
-                _("Document(s)"): len(file_uris),
+                _("PDF"): len(imported),
+                _("Document(s)"): len(imported),
                 _("Page(s)"): len(pages),
             }
         )
@@ -471,7 +481,7 @@ IMPORTERS = [
 
 def get_possible_importers(file_uris, current_doc=None):
     """
-    Return all the importer objects that can handle the specified file.
+    Return all the importer objects that can handle the specified files.
 
     Possible imports may vary depending on the currently active document
     """

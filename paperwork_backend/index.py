@@ -449,7 +449,7 @@ class PaperworkIndex(object):
         self.index.refresh()
 
         if self.label_guesser:
-            if label_guesser_update:
+            if label_guesser_update and self.label_guesser_updater is not None:
                 self.label_guesser_updater.commit()
             if index_update:
                 self.reload_searcher()

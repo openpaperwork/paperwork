@@ -1,5 +1,5 @@
 import gc
-from pprint import pprint
+import json
 import os
 import sys
 
@@ -8,8 +8,6 @@ import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
-
-from gi.repository import GLib
 
 from . import config
 from . import docimport
@@ -29,12 +27,26 @@ def is_interactive():
     return os.environ['PAPERWORK_INTERACTIVE'] != ""
 
 
+def verbose(txt):
+    if is_verbose():
+        print (txt)
+
+
+def reply(data):
+    if "status" not in data:
+        data['status'] = 'ok'
+    print (json.dumps(
+        data, indent=4,
+        separators=(',', ': '),
+        sort_keys=True
+    ))
+
+
 def get_docsearch():
     pconfig = config.PaperworkConfig()
     pconfig.read()
 
-    if is_verbose():
-        print ("Work directory: {}".format(pconfig.settings['workdir'].value))
+    verbose("Work directory: {}".format(pconfig.settings['workdir'].value))
 
     dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
     dsearch.reload_index()
@@ -56,6 +68,15 @@ def cmd_add_label(docid, label_name, color=None):
     Color must be specified if the label doesn't exist yet.
     Color will be ignored if the label already exists.
     Color format must be given in hexadecimal format. Ex: #abcdef
+
+    Possible JSON replies:
+        --
+        { "status": "ok", "docid": "xxxxx", "label": "yyyyy" }
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
@@ -82,15 +103,28 @@ def cmd_add_label(docid, label_name, color=None):
         dsearch.create_label(label)
 
     dsearch.add_label(doc, label)
-    print ("Label {} added on document {}".format(
+    verbose("Label {} added on document {}".format(
         label_name, docid
     ))
+    reply({
+        "docid": docid,
+        "label": label_name,
+    })
 
 
 def cmd_delete_doc(docid):
     """
     Arguments: <document_id>
     Delete a document.
+
+    Possible JSON replies:
+        --
+        { "status": "ok", "docid": "xxxx" }
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
@@ -104,7 +138,10 @@ def cmd_delete_doc(docid):
     index_updater.del_doc(doc)
     index_updater.commit()
     doc.destroy()
-    print ("Document {} deleted".format(docid))
+    verbose("Document {} deleted".format(docid))
+    reply({
+        'docid': docid
+    })
 
 
 def cmd_dump(docid, page_nb=None):
@@ -113,16 +150,20 @@ def cmd_dump(docid, page_nb=None):
     Dump the content of the specified document.
     Beware, page numbers start from 1.
     See 'search' for the document ids.
+
+    Replies with page content.
+    Beware: This is the only command not replying in JSON format.
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
+    pages = doc.pages
+    pages = [page for page in pages]
     if page_nb:
-        page = doc.pages[int(page_nb) - 1]
+        page_nb = int(page_nb)
+        pages = pages[page_nb - 1:page_nb]
+    for page in pages:
+        verbose("=== Page {} ===".format(page.page_nb + 1))
         _dump_page(page)
-    else:
-        for page in doc.pages:
-            print ("=== Page {} ===".format(page.page_nb + 1))
-            _dump_page(page)
 
 
 def _get_export_params(args):
@@ -155,8 +196,7 @@ def _get_export_params(args):
             break
 
     if not isinstance(page_format, tuple):
-        sys.stderr.write("Unknown page format: {}".format(page_format))
-        return
+        raise Exception("Unknown page format: {}".format(page_format))
 
     return tuple(args) + (quality, page_format)
 
@@ -168,6 +208,23 @@ def cmd_export_all(*args):
     Export all documents as PDF files.
     Default quality is 50.
     Default page format is A4.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "docids": [
+                        ["xxx", "file:///tmp/xxx.pdf"],
+                        ["yyy", "file:///tmp/yyy.pdf"],
+                        ["zzz", "file:///tmp/zzz.pdf"]
+                      ],
+            "output_dir": "file:///tmp",
+        }
     """
     (output_dir, quality, page_format) = _get_export_params(args)
 
@@ -175,28 +232,37 @@ def cmd_export_all(*args):
 
     try:
         os.mkdir(output_dir)
-    except FileExistsError:
+    except FileExistsError:  # NOQA (Python 3.x only)
         pass
+
+    out = []
 
     docs = [d for d in dsearch.docs]
     docs.sort(key=lambda doc: doc.docid)
+    output_dir = FS.safe(output_dir)
     for (doc_idx, doc) in enumerate(docs):
-        output_pdf = os.path.join(output_dir, doc.docid + ".pdf")
+        output_pdf = FS.join(output_dir, doc.docid + ".pdf")
 
         exporter = doc.build_exporter(file_format="pdf")
         if exporter.can_change_quality:
             exporter.set_quality(quality)
         if exporter.can_select_format:
             exporter.set_page_format(page_format)
-        print (
+        verbose(
             "[{}/{}] Exporting {} --> {} ...".format(
                 doc_idx + 1, len(docs), doc.docid, output_pdf
             )
         )
-        exporter.save(FS.safe(output_pdf))
+        exporter.save(output_pdf)
+        out.append((doc.docid, output_pdf))
+        doc = None
         gc.collect()
 
-    print ("Done")
+    verbose("Done")
+    reply({
+        "docids": out,
+        "output_dir": output_dir,
+    })
 
 
 def cmd_export_doc(*args):
@@ -207,6 +273,21 @@ def cmd_export_doc(*args):
     Export one document as a PDF file.
     Default quality is 50.
     Default page format is A4.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "docid": "xxxx",
+            "output_file": "file:///tmp/xxxx.pdf",
+            "quality": 50,
+            "page_format": "A4",
+        }
     """
     (docid, output_pdf, quality, page_format) = _get_export_params(args)
 
@@ -218,16 +299,41 @@ def cmd_export_doc(*args):
         exporter.set_quality(quality)
     if exporter.can_select_format:
         exporter.set_page_format(page_format)
-    print ("Exporting {} --> {} ...".format(docid, output_pdf))
-    exporter.save(FS.save(output_pdf))
-    print ("Done")
+    verbose("Exporting {} --> {} ...".format(docid, output_pdf))
+    output_pdf = FS.safe(output_pdf)
+    exporter.save(output_pdf)
+    verbose("Done")
+    r = {
+        "docid": doc.docid,
+        "output_file": output_pdf,
+    }
+    if exporter.can_change_quality:
+        r['quality'] = quality
+    if exporter.can_select_format:
+        r['page_format'] = page_format
+    reply(r)
 
 
 def cmd_guess_labels(*args):
     """
     Arguments: <document id> [-- [--apply]]
     Guess the labels that should be set on the document.
-    Example: paperwork-shell -v guess_labels -- 20161207_1144_00_8 --apply
+    Example: paperwork-shell guess_labels -- 20161207_1144_00_8 --apply
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "docid": "xxxx",
+            "current_labels": ["label_a", "label_b"],
+            "guessed_labels": ["label_b", "label_c"],
+            "applied": "yes",
+        }
     """
     args = list(args)
 
@@ -246,15 +352,22 @@ def cmd_guess_labels(*args):
             )
         )
 
-    print ("Current labels: {}".format(
+    verbose("Current labels: {}".format(
         ", ".join([label.name for label in doc.labels])
     ))
 
     guessed = dsearch.guess_labels(doc)
 
-    print ("Guessed labels: {}".format(
+    verbose("Guessed labels: {}".format(
         ", ".join([label.name for label in guessed])
     ))
+
+    r = {
+        'docid': doc.docid,
+        'current_labels': [label.name for label in doc.labels],
+        'guessed_labels': [label.name for label in guessed],
+        'applied': "yes" if apply_labels else "no",
+    }
 
     changed = False
     if apply_labels:
@@ -271,85 +384,109 @@ def cmd_guess_labels(*args):
         index_updater = dsearch.get_index_updater(optimize=False)
         index_updater.upd_doc(doc)
         index_updater.commit()
-        print ("Document {} updated".format(docid))
+        verbose("Document {} updated".format(docid))
     elif apply_labels:
-        print ("Document {} unchanged".format(docid))
+        verbose("Document {} unchanged".format(docid))
+    reply(r)
 
 
-def _get_importer(filepath, doc):
-    fileuri = GLib.filename_to_uri(filepath)
-    importers = docimport.get_possible_importers(fileuri, current_doc=doc)
+def _get_importer(fileuris, doc):
+    importers = docimport.get_possible_importers(fileuris, current_doc=doc)
 
-    if len(importers) < 0:
-        raise Exception("Don't know how to import {}".format(filepath))
+    if len(importers) <= 0:
+        raise Exception("Don't know how to import {}".format(fileuris))
     if len(importers) == 1:
         return importers[0]
     elif not is_interactive():
         raise Exception(
-            "Many way to import {} and running in batch mode".format(
-                filepath
+            "Many way to import {} and running in batch mode. Can't import.\n{}"
+            .format(
+                fileuris,
+                ", ".join([str(importer) for importer in importers])
             )
         )
     else:
-        print("Import of {}:")
+        verbose("Import of {}:")
         for (idx, importer) in enumerate(importers):
-            print ("{} - {}".format(idx, importer))
+            verbose("{} - {}".format(idx, importer))
         idx = input("? ")
         return importers[int(idx)]
 
 
-def _do_import(filepaths, dsearch, doc, guess_labels=True):
+def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
     index_updater = dsearch.get_index_updater(optimize=False)
 
     for filepath in filepaths:
-        if not os.path.exists(filepath):
+        # safety checks first
+        if not FS.exists(filepath):
             raise FileNotFoundError(filepath)  # NOQA (Python 3.x only)
-        fileuri = GLib.filename_to_uri(filepath)
-        importer = _get_importer(filepath, doc)
-        if is_verbose():
-            print ("File {}: Importer = {}".format(filepath, importer))
-        import_result = importer.import_doc(
-            fileuri, dsearch, current_doc=doc
-        )
 
-        print("{}:".format(filepath))
-        pprint(import_result.stats)
+    fileuris = [FS.safe(f) for f in filepaths]
+    importer = _get_importer(fileuris, doc)
+    verbose("Files {}: Importer = {}".format(fileuris, importer))
+    import_result = importer.import_doc(
+        fileuris, dsearch, current_doc=doc
+    )
 
-        for doc in import_result.new_docs:
-            if guess_labels:
-                labels = dsearch.guess_labels(doc)
-                for label in labels:
-                    dsearch.add_label(doc, label, update_index=False)
-            if is_verbose():
-                print("{} --> Document {} (labels: {})".format(
-                    filepath, doc.docid,
-                    ", ".join([label.name for label in doc.labels])
-                ))
-            index_updater.add_doc(doc)
+    verbose("{}:".format(fileuris))
+    r = {"imports": import_result.get()}
 
-        for doc in import_result.upd_docs:
-            if is_verbose():
-                print("{} --> Document {} (labels: {})".format(
-                    filepath, doc.docid,
-                    ", ".join([label.name for label in doc.labels])
-                ))
-            index_updater.upd_doc(doc)
+    # TODO(Jflesch): OCR if no text / image !
 
-    if is_verbose():
-        print ("Updating index ...")
+    for doc in import_result.new_docs:
+        if guess_labels:
+            labels = dsearch.guess_labels(doc)
+            r['guessed_labels'] = [label.name for label in labels]
+            for label in labels:
+                dsearch.add_label(doc, label, update_index=False)
+        verbose("{} --> Document {} (labels: {})".format(
+            filepath, doc.docid,
+            ", ".join([label.name for label in doc.labels])
+        ))
+        index_updater.add_doc(doc)
+
+    for doc in import_result.upd_docs:
+        verbose("{} --> Document {} (labels: {})".format(
+            filepath, doc.docid,
+            ", ".join([label.name for label in doc.labels])
+        ))
+        index_updater.upd_doc(doc)
+
+    verbose("Updating index ...")
     index_updater.commit()
-    if is_verbose():
-        print ("Done")
+    verbose("Done")
+    reply(r)
 
 
 def cmd_import(*args):
     """
     Arguments:
-        <file_or_folder> [-- [--no_label_guessing] [--append <document_id>]]
-    Import a file or a PDF folder.
+        <file_or_folder> [<file_or_folder> [...]
+            [-- [--no_ocr] [--no_label_guessing] [--append <document_id>]]
+    Import a file or a PDF folder. OCR is run by default on images
+    and on PDF pages without text (PDF containing only images)
+
+    Please keep in mind that documents that are already in the word directory
+    are never imported again and are simply ignored.
+
     Example: paperwork-shell -v import -- somefile.pdf --no_label_guessing
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "imports": {
+                (stats + infos ...)
+            }
+        }
     """
     guess_labels = True
+    ocr = True
     docid = None
     doc = None
 
@@ -358,6 +495,9 @@ def cmd_import(*args):
     if "--no_label_guessing" in args:
         guess_labels = False
         args.remove("--no_label_guessing")
+    if "--no_ocr" in args:
+        ocr = False
+        args.remove("--no_ocr")
     if "--append" in args:
         idx = args.index("--append")
         docid = args[idx + 1]
@@ -375,7 +515,7 @@ def cmd_import(*args):
             sys.stderr.write("Document {} not found\n".format(docid))
             return
 
-    return _do_import(args, dsearch, doc, guess_labels)
+    return _do_import(args, dsearch, doc, ocr, guess_labels)
 
 
 def cmd_remove_label(docid, label_name):
@@ -384,6 +524,19 @@ def cmd_remove_label(docid, label_name):
     Remove a label from a document.
     Note that if the document was the last one to use the label,
     the label may disappear entirely from Paperwork.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "docid": "xxxx",
+            "labels": ["aaa", "bbb", "ccc"],  # after deletion
+        }
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
@@ -401,7 +554,11 @@ def cmd_remove_label(docid, label_name):
         raise Exception("Unknown label {}".format(label_name))
 
     dsearch.remove_label(doc, label)
-    print ("Label {} removed from document {}".format(label_name, docid))
+    verbose("Label {} removed from document {}".format(label_name, docid))
+    reply({
+        "docid": docid,
+        "labels": [l.name for l in doc.labels],
+    })
 
 
 def cmd_rename(old_docid, new_docid):
@@ -411,6 +568,19 @@ def cmd_rename(old_docid, new_docid):
     Note that the document id are also their date.
     Using an ID that is not a date may have side effects
     (the main one being the document won't be sorted correctly).
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "old_docid": "xxxx",
+            "new_docid": "yyyy",
+        }
     """
     dsearch = get_docsearch()
     doc = dsearch.get(old_docid)
@@ -433,37 +603,45 @@ def cmd_rename(old_docid, new_docid):
     index_updater.add_doc(doc)
     index_updater.commit()
 
-    print ("Document {} renamed into {}".format(old_docid, new_docid))
+    verbose("Document {} renamed into {}".format(old_docid, new_docid))
+    reply({
+        "old_docid": old_docid,
+        "new_docid": new_docid
+    })
 
 
 class RescanManager(object):
     def __init__(self):
         self.dsearch = get_docsearch()
-        self.verbose = is_verbose()
         self.dexaminer = self.dsearch.get_doc_examiner()
         self.index_updater = self.dsearch.get_index_updater()
+        self.reply = {
+            "new_docs": [],
+            "updated_docs": [],
+            "deleted_docs": [],
+        }
 
     def _on_new_doc(self, doc):
         self.index_updater.add_doc(doc)
-        if self.verbose:
-            print ("New document: {}".format(doc.docid))
+        verbose("New document: {}".format(doc.docid))
+        self.reply['new_docs'].append(doc.docid)
 
     def _on_upd_doc(self, doc):
         self.index_updater.upd_doc(doc)
         self.changes['upd'].add(doc)
-        if self.verbose:
-            print ("Updated document: {}".format(doc.docid))
+        verbose("Updated document: {}".format(doc.docid))
+        self.reply['updated_docs'].append(doc.docid)
 
     def _on_del_doc(self, doc):
         self.index_updater.del_doc(doc)
-        if self.verbose:
-            print ("Deleted document: {}".format(doc.docid))
+        verbose("Deleted document: {}".format(doc.docid))
+        self.reply['deleted_docs'].append(doc.docid)
 
     def _on_doc_unchanged(self, doc):
         pass
 
     def _on_progress(self, progression, total, step=None, doc=None):
-        if not self.verbose:
+        if not is_verbose():
             return
         if progression % 10 != 0:
             return
@@ -491,22 +669,36 @@ class RescanManager(object):
             self._on_doc_unchanged,
             self._on_progress
         )
-        if self.verbose:
+        if is_verbose():
             sys.stdout.write("\b" * 100 + " " * 100)
             sys.stdout.write("\b" * 100)
-            print ("Rewriting index ...")
+            verbose("Rewriting index ...")
         self.index_updater.commit()
-        if self.verbose:
-            print ("Done")
+        verbose("Done")
 
 
 def cmd_rescan():
     """
     Rescan the work directory. Look for new, updated or deleted documents
     and update the index accordingly.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "new_docs": ["xxx", "yyy"],
+            "updated_docs": ["xxx", "yyy"],
+            "deleted_docs": ["xxx", "yyy"],
+        }
     """
     rm = RescanManager()
     rm.rescan()
+    reply(rm.reply)
 
 
 def _get_first_line(doc):
@@ -529,22 +721,48 @@ def cmd_show(docid):
     Arguments: <doc_id>
     Show document information (but not its content, see 'dump').
     See 'search' for the document id.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "type": "ImgDoc",
+            "nb_pages": 3,
+            "pages": [
+                {"n": 1, "lines": 10, "words": 22},
+                {"n": 2, "lines": 20, "words": 22},
+                {"n": 3, "lines": 30, "words": 34},
+            ],
+            "labels": ["aaa", "bbb"],
+            "first_line": "vwklsd wldkwq",
+        }
     """
     dsearch = get_docsearch()
     doc = dsearch.get(docid)
-    print ("Type: {}".format(type(doc)))
-    print ("Number of pages: {}".format(doc.nb_pages))
+    r = {
+        'type': str(type(doc)),
+        'nb_pages': doc.nb_pages,
+        'labels': [l.name for l in doc.labels],
+        'first_line': _get_first_line(doc),
+        'pages': []
+    }
     for page in doc.pages:
         nb_lines = 0
         nb_words = 0
         for line in page.boxes:
             nb_lines += 1
             nb_words += len(line.word_boxes)
-        print ("  page {}: {} lines, {} words".format(
-            page.page_nb, nb_lines, nb_words
-        ))
-    print ("Labels: {}".format(", ".join([l.name for l in doc.labels])))
-    print ("First line: {}".format(_get_first_line(doc)))
+        r['pages'].append({
+            "n": page.page_nb + 1,
+            "lines": nb_lines,
+            "words": nb_words,
+        })
+    reply(r)
 
 
 def cmd_search(*args):
@@ -553,21 +771,38 @@ def cmd_search(*args):
     List the documents containing the keywords. Syntax is the same
     than with the search field in Paperwork-gui.
     Example: 'label:contrat AND paperwork'
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "results" [
+                {"docid": "xxxx", "nb_pages": 22, "labels": ["xxx", "yyy"]}
+                {"docid": "yyyy", "nb_pages": 22, "labels": ["xxx", "yyy"]}
+                {"docid": "zzzz", "nb_pages": 22, "labels": ["xxx", "yyy"]}
+            ],
+        }
     """
     dsearch = get_docsearch()
 
-    if is_verbose():
-        print ("Search: {}".format(" ".join(args)))
+    verbose("Search: {}".format(" ".join(args)))
+
+    r = {'results': []}
 
     docs = dsearch.find_documents(" ".join(args))
     docs.sort(key=lambda doc: doc.docid)
     for doc in docs:
-        if not is_verbose():
-            print (doc.docid)
-        else:
-            sys.stdout.write("{} ({} pages) ".format(doc.docid, doc.nb_pages))
-            sys.stdout.write(", ".join([l.name for l in doc.labels]))
-            sys.stdout.write("\n")
+        r['results'].append({
+            'docid': doc.docid,
+            'nb_pages': doc.nb_pages,
+            'labels': [l.name for l in doc.labels],
+        })
+    reply(r)
 
 
 def cmd_switch_workdir(new_workdir):
@@ -576,14 +811,35 @@ def cmd_switch_workdir(new_workdir):
     Change current Paperwork's work directory.
     Does *not* update the index.
     You should run 'paperwork-shell rescan' after this command.
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "old_workdir": "file:///home/jflesch/papers",
+            "new_workdir": "file:///tmp/papers",
+        }
     """
-    if not os.path.exists(new_workdir) or not os.path.isdir(new_workdir):
-        sys.stderr.write("New work directory must be an existing directory.")
+    new_workdir = FS.safe(new_workdir)
+    if not FS.exists(new_workdir) or not FS.isdir(new_workdir):
+        sys.stderr.write("New work directory {} doesn't exists".format(
+            new_workdir
+        ))
         return
     pconfig = config.PaperworkConfig()
     pconfig.read()
+    r = {
+        'old_workdir': pconfig.settings['workdir'].value,
+        'new_workdir': new_workdir
+    }
     pconfig.settings['workdir'].value = new_workdir
     pconfig.write()
+    reply(r)
 
 
 COMMANDS = {

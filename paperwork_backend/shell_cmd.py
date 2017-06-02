@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
+import logging
 import os
 import platform
 import sys
@@ -141,14 +143,16 @@ def cmd_help(*args):
         print("")
         for cmd_name in sorted(COMMANDS.keys()):
             cmd_func = COMMANDS[cmd_name]
-            print("\t{}:".format(cmd_name))
-            print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
+            print("{}:".format(cmd_name))
+            print("=" * (len(cmd_name) + 1))
+            print("    {}".format(cmd_func.__doc__.strip()))
             print("")
     else:
         cmd_name = args[0]
         cmd_func = COMMANDS[cmd_name]
-        print("\t{}:".format(cmd_name))
-        print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
+        print("{}:".format(cmd_name))
+        print("=" * (len(cmd_name) + 1))
+        print("    {}".format(cmd_func.__doc__.strip()))
 
 
 COMMANDS = {
@@ -174,23 +178,45 @@ def main():
         'cmd_args', metavar="arg", type=str, nargs="*",
         help="Command arguments (use 'help <command>' for details)"
     )
-    parser.add_argument('-v', dest="verbose",
-                        action='store_true', help="verbose")
+    parser.add_argument('-q', dest="quiet",
+                        action='store_true',
+                        help="quiet mode (JSON reply only)")
     parser.add_argument('-b', dest="batch",
-                        action='store_true', help="non-interactive mode")
+                        action='store_true',
+                        help="batch mode (never ask any question)")
     args = parser.parse_args()
-    verbose_enabled = args.verbose
+    verbose_enabled = not args.quiet
     interactive = not args.batch
 
     os.environ['PAPERWORK_SHELL_VERBOSE'] = "True" if verbose_enabled else ""
     os.environ['PAPERWORK_INTERACTIVE'] = "True" if interactive else ""
+
+    if not verbose_enabled:
+        # hide warnings. They could mess output parsing
+        logging.getLogger().setLevel(logging.ERROR)
 
     if args.cmd not in COMMANDS:
         print("Unknown command {}".format(args.cmd))
         cmd_help()
         sys.exit(1)
 
-    sys.exit(COMMANDS[args.cmd](*args.cmd_args))
+    try:
+        sys.exit(COMMANDS[args.cmd](*args.cmd_args))
+    except Exception as exc:
+        print (json.dumps(
+            {
+                "status": "error",
+                "exception": str(type(exc)),
+                "args": str(exc.args),
+                "reason": str(exc),
+            },
+            indent=4,
+            separators=(',', ': '),
+            sort_keys=True
+        ))
+        if verbose_enabled:
+            raise
+        sys.exit(5)
 
 if __name__ == "__main__":
     main()

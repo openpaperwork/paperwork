@@ -21,13 +21,17 @@ import base64
 import configparser
 import logging
 import os
+import pyocr
 
 from . import util
 from . import fs
+from .util import find_language
 
 
 logger = logging.getLogger(__name__)
 FS = fs.GioFileSystem()
+
+DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
 
 def paperwork_cfg_boolean(string):
@@ -100,6 +104,23 @@ class PaperworkURI(object):
         config.set(self.section, self.token, value.strip())
 
 
+def get_default_ocr_lang():
+    # Try to guess based on the system locale what would be
+    # the best OCR language
+
+    ocr_tools = pyocr.get_available_tools()
+    if len(ocr_tools) == 0:
+        return DEFAULT_OCR_LANG
+    ocr_langs = ocr_tools[0].get_available_languages()
+
+    lang = find_language()
+    if hasattr(lang, 'iso639_3_code') and lang.iso639_3_code in ocr_langs:
+        return lang.iso639_3_code
+    if hasattr(lang, 'terminology') and lang.terminology in ocr_langs:
+        return lang.terminology
+    return DEFAULT_OCR_LANG
+
+
 class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is
@@ -114,6 +135,9 @@ class PaperworkConfig(object):
                 lambda: os.path.expanduser("~/papers")),
             'index_version': PaperworkSetting(
                 "Global", "IndexVersion", lambda: "-1"),
+            'ocr_lang': PaperworkSetting(
+                "OCR", "Lang", get_default_ocr_lang
+            ),
         }
 
         self._configparser = None

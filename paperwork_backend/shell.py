@@ -1,9 +1,11 @@
 import gc
+import itertools
 import json
 import os
 import sys
 
 import gi
+import pyocr
 
 gi.require_version('Gdk', '3.0')
 gi.require_version('PangoCairo', '1.0')
@@ -413,7 +415,8 @@ def _get_importer(fileuris, doc):
         return importers[int(idx)]
 
 
-def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
+def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
+               guess_labels=True):
     index_updater = dsearch.get_index_updater(optimize=False)
 
     fileuris = [FS.safe(f) for f in filepaths]
@@ -432,10 +435,27 @@ def _do_import(filepaths, dsearch, doc, ocr=True, guess_labels=True):
     verbose("{}:".format(fileuris))
     r = {
         "imports": import_result.get(),
+        "ocr": [],
         "guessed_labels": [],
     }
 
-    # TODO(Jflesch): OCR if no text / image !
+    if ocr is not None:
+        for page in itertools.chain(
+            import_result.new_docs_pages,
+            import_result.upd_docs_pages
+        ):
+            if len(page.boxes) > 0:
+                verbose("Page {} has already some text. No OCR run".format(
+                    page.pageid
+                ))
+                continue
+            verbose("Running OCR on page {}".format(page.pageid))
+            page.boxes = ocr.image_to_string(
+                page.img,
+                lang=ocr_lang,
+                builder=pyocr.builders.LineBoxBuilder()
+            )
+            r['ocr'].append(page.pageid)
 
     for doc in import_result.new_docs:
         if guess_labels:
@@ -526,17 +546,21 @@ def cmd_import(*args):
         }
     """
     guess_labels = True
-    ocr = True
+    ocr = pyocr.get_available_tools()
     docid = None
     doc = None
 
     args = list(args)
 
+    if len(ocr) <= 0:
+        raise Exception("No OCR tool found")
+    ocr = ocr[0]
+
     if "--no_label_guessing" in args:
         guess_labels = False
         args.remove("--no_label_guessing")
     if "--no_ocr" in args:
-        ocr = False
+        ocr = None
         args.remove("--no_ocr")
     if "--append" in args:
         idx = args.index("--append")
@@ -555,7 +579,12 @@ def cmd_import(*args):
             sys.stderr.write("Document {} not found\n".format(docid))
             return
 
-    return _do_import(args, dsearch, doc, ocr, guess_labels)
+    ocr_lang = None
+    if ocr is not None:
+        pconfig = config.PaperworkConfig()
+        pconfig.read()
+        ocr_lang = pconfig.settings['ocr_lang'].value
+    return _do_import(args, dsearch, doc, ocr, ocr_lang, guess_labels)
 
 
 def cmd_remove_label(docid, label_name):

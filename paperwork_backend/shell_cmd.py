@@ -160,15 +160,19 @@ COMMANDS.update(BACKEND_COMMANDS)
 
 
 def main():
-    # TODO: Interactive shell
-    parser = argparse.ArgumentParser(description='Paperwork shell')
+    parser = argparse.ArgumentParser(
+        description='Paperwork shell'
+    )
     parser.add_argument(
         'cmd', metavar="command", type=str,
-        help="Command. Can be: {}".format(", ".join(COMMANDS.keys()))
+        help=(
+            "Command. Can be: {} (use 'help <command>' for details)"
+            .format(", ".join(COMMANDS.keys()))
+        )
     )
     parser.add_argument(
         'cmd_args', metavar="arg", type=str, nargs="*",
-        help="Command arguments"
+        help="Command arguments (use 'help <command>' for details)"
     )
     parser.add_argument('-v', dest="verbose",
                         action='store_true', help="verbose")

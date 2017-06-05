@@ -22,7 +22,7 @@
   location when the user actually clicks on 'export'
 - Export: Display a notification when exports are finished
 - Search: When searching, display a search bar to browse the document(s)
-- Search: new keyboard shorcuts: F3 (next) + Shift+F3 (previous)
+- Search: new keyboard shortcuts: F3 (next) + Shift+F3 (previous)
 - Settings: Remove "Disable OCR" from the language list. It's redundant with
   the check box above the language list
 - non-Gnome / non-Unity environements : Move the application menu to the left

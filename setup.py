@@ -16,7 +16,7 @@ setup(
     name="paperwork-backend",
     # if you change the version, don't forget to
     # * update the ChangeLog file
-    version="1.2",
+    version="1.3",
     description=(
         "Paperwork's backend"
     ),

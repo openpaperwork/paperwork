@@ -265,8 +265,12 @@ class BasicPage(object):
     def has_ocr(self):
         return self.fs.exists(self._get_filepath(self.EXT_BOX))
 
+    def __hash__(self):
+        return hash(self.pageid)
+
 
 class DummyPage(object):
+    pageid = 0
     page_nb = -1
     text = ""
     boxes = []
@@ -305,3 +309,6 @@ class DummyPage(object):
 
     def __str__(self):
         return "Dummy page"
+
+    def __hash__(self):
+        return 0

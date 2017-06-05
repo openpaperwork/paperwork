@@ -587,6 +587,103 @@ def cmd_import(*args):
     return _do_import(args, dsearch, doc, ocr, ocr_lang, guess_labels)
 
 
+def cmd_ocr(*args):
+    """
+    Arguments:
+        <document id or page id> [<document id or page id> [...]]
+        [-- [--lang <ocr_lang>] [--empty_only]]
+
+    Re-run the OCR on the specified elements. Elements can be whole documents
+    or specific pages.
+
+    --lang: specifies the language to use for OCR.
+    The default language used is the one in Paperwork's configuration
+
+    --empty_only: if set, only the pages with no text are run through the OCR.
+    Otherwise, all pages are run through it.
+
+    Examples:
+        Documents:
+          paperwork-shell ocr 20170512_1252_51 20170512_1241_40
+          paperwork-shell ocr 20170512_1252_51 20170512_1241_40 -- --lang fra
+        Pages:
+          paperwork-shell ocr "20170512_1252_51|2" "20170512_1241_40|1"
+
+    Possible JSON replies:
+        --
+        {
+            "status": "error", "exception": "yyy",
+            "reason": "xxxx", "args": "(xxxx, )"
+        }
+        --
+        {
+            "status": "ok",
+            "ocr": [
+                "20170602_1513_12|0",
+                "20170602_1513_12|1"
+            ]
+        }
+    """
+    ocr_lang = None
+    empty_only = False
+
+    args = list(args)
+
+    ocr = pyocr.get_available_tools()
+    if len(ocr) <= 0:
+        raise Exception("No OCR tool found")
+    ocr = ocr[0]
+
+    if "--lang" in args:
+        idx = args.index("--lang")
+        ocr_lang = args[idx + 1]
+        args.pop(idx)
+        args.pop(idx)
+
+    if "--empty_only" in args:
+        empty_only = True
+        args.remove("--empty_only")
+
+    if ocr_lang is None:
+        pconfig = config.PaperworkConfig()
+        pconfig.read()
+        ocr_lang = pconfig.settings['ocr_lang'].value
+
+    dsearch = get_docsearch()
+    pages = set()
+    docs = set()
+
+    for objid in args:
+        obj = dsearch.get(objid)
+        if hasattr(obj, 'pages'):
+            pages.update(obj.pages)
+        else:
+            pages.add(obj)
+
+    index_updater = dsearch.get_index_updater(optimize=False)
+
+    for page in set(pages):
+        if empty_only and len(page.boxes) > 0:
+            pages.remove(page)
+            continue
+        verbose("Running OCR on {} ...".format(page.pageid))
+        page.boxes = ocr.image_to_string(
+            page.img,
+            lang=ocr_lang,
+            builder=pyocr.builders.LineBoxBuilder()
+        )
+        docs.add(page.doc)
+
+    verbose("Updating index ...")
+    for doc in docs:
+        index_updater.upd_doc(doc)
+    index_updater.commit()
+    verbose("Done")
+
+    reply({
+        "ocr": [page.pageid for page in pages]
+    })
+
 def cmd_remove_label(docid, label_name):
     """
     Arguments: <document_id> <label_name>
@@ -919,6 +1016,7 @@ COMMANDS = {
     'export_doc': cmd_export_doc,
     'guess_labels': cmd_guess_labels,
     'import': cmd_import,
+    'ocr': cmd_ocr,
     'remove_label': cmd_remove_label,
     'rename': cmd_rename,
     'rescan': cmd_rescan,

@@ -1,3 +1,43 @@
+2017/xx/xx - 1.2.0:
+- Add integrated documentations:
+  + Introduction to Paperwork (added to the documents when Paperworks starts
+    for the first time)
+  + User manual (not complete yet)
+  + Developer's guide
+  + Translator's guide
+- Automatically look for updates (disabled by default ; see settings)
+- Send anonymous usage statistics (disabled by default ; see settings)
+- Export: Add simplification methods 'grayscale', 'black and white', and
+  'grayscale + soft'. They produce much smaller documents
+- setup.py: Properly package resources files (glade, images, css) and load them
+  using pkg_resources. (thanks to Alexandre Vaissière)
+- Import: After import, propose the user to move files to trash after import
+  (thanks to Mathieu Schopfer)
+- Import: Allow selecting multiple files in the file chooser dialog
+- Import: Clearly show in the file chooser dialog which file formats are
+  supported
+- Import: Use notifications instead of popups
+- Virtualenv: also look for translation files (thanks to Alexandre Vaissière)
+- Export: Remove the text field + save button ; request the target file
+  location when the user actually clicks on 'export'
+- Export: Display a notification when exports are finished
+- Search: When searching, display a search bar to browse the document(s)
+- Search: new keyboard shorcuts: F3 (next) + Shift+F3 (previous)
+- Settings: Remove "Disable OCR" from the language list. It's redundant with
+  the check box above the language list
+- non-Gnome / non-Unity environements : Move the application menu to the left
+  headerbar (top left of the main window)
+- paperwork-shell chkdeps: look for libsane too
+- localize.sh: Also include the translations for paperwork-backend
+- Settings: Use pycountry to translate the language names + remove 'equ'
+  and 'osd'
+- GUI: change the way left panes are switched to reduce issues with GTK+
+- Internal: Switch everything to URIs (required for correct Gio use)
+- Devel: Add basic command line arguments (thanks to Mathieu
+  Coudron):
+  + -d for debug output
+  + -v for version
+
 2017/02/09 - 1.1.2:
 - Doc date changing: Fix for Windows: Don't display the document while
   renaming its folder --> it keeps a file descriptor opened to its PDF

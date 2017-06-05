@@ -71,23 +71,6 @@
 				}
 			]
         },
-        {
-            "name" :"olefile",
-            "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
-            "sources": [
-				{
-					"type": "archive",
-					"url": "https://pypi.python.org/packages/35/17/c15d41d5a8f8b98cc3df25eb00c5cee76193114c78e5674df6ef4ac92647/olefile-0.44.zip",
-					"sha256": "61f2ca0cd0aa77279eb943c07f607438edf374096b66332fae1ee64a6f0f73ad"
-				},
-				{
-					"type": "file",
-					"path": "pip-Makefile",
-					"dest-filename": "Makefile"
-				}
-			]
-        },
 		{
             "name" :"Pillow",
             "no-autogen": true,
@@ -103,7 +86,26 @@
 					"path": "pip-Makefile",
 					"dest-filename": "Makefile"
 				}
-			]
+			],
+			"modules": [
+			    {
+                    "name" :"olefile",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/35/17/c15d41d5a8f8b98cc3df25eb00c5cee76193114c78e5674df6ef4ac92647/olefile-0.44.zip",
+					        "sha256": "61f2ca0cd0aa77279eb943c07f607438edf374096b66332fae1ee64a6f0f73ad"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                }
+            ]
         },
 		{
             "name" :"pycountry",
@@ -190,74 +192,6 @@
 				}
 			]
         },
-        {
-            "name" :"pyenchant",
-            "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
-            "sources": [
-				{
-					"type": "archive",
-					"url": "https://pypi.python.org/packages/73/73/49f95fe636ab3deed0ef1e3b9087902413bcdf74ec00298c3059e660cfbb/pyenchant-1.6.8.tar.gz",
-					"sha256": "7ead2ee74f1a4fc2a7199b3d6012eaaaceea03fbcadcb5df67d2f9d0d51f050a"
-				},
-				{
-					"type": "file",
-					"path": "pip-Makefile",
-					"dest-filename": "Makefile"
-				}
-			]
-        },
-        {
-            "name" :"simplebayes",
-            "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
-            "sources": [
-				{
-					"type": "archive",
-					"url": "https://pypi.python.org/packages/b9/73/764578df72934940d95a8941cbd374b56319562dda72630fc8bfeaefc350/simplebayes-1.5.8.tar.gz",
-					"sha256": "363418c0ef185ac2158ebbd6d8afb45aa997254fcb809a73ed20a7d5dccf8b85"
-				},
-				{
-					"type": "file",
-					"path": "pip-Makefile",
-					"dest-filename": "Makefile"
-				}
-			]
-        },
-        {
-            "name" :"whoosh",
-            "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
-            "sources": [
-				{
-					"type": "archive",
-					"url": "https://pypi.python.org/packages/25/2b/6beed2107b148edc1321da0d489afc4617b9ed317ef7b72d4993cad9b684/Whoosh-2.7.4.tar.gz",
-					"sha256": "7ca5633dbfa9e0e0fa400d3151a8a0c4bec53bd2ecedc0a67705b17565c31a83"
-				},
-				{
-					"type": "file",
-					"path": "pip-Makefile",
-					"dest-filename": "Makefile"
-				}
-			]
-        },
-        {
-            "name" :"termcolor",
-            "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
-            "sources": [
-				{
-					"type": "archive",
-					"url": "https://pypi.python.org/packages/8a/48/a76be51647d0eb9f10e2a4511bf3ffb8cc1e6b14e9e4fab46173aa79f981/termcolor-1.1.0.tar.gz",
-					"sha256": "1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"
-				},
-				{
-					"type": "file",
-					"path": "pip-Makefile",
-					"dest-filename": "Makefile"
-				}
-			]
-        },
 		{
             "name" :"paperwork-backend",
             "no-autogen": true,
@@ -273,7 +207,77 @@
 					"path": "pip-Makefile",
 					"dest-filename": "Makefile"
 				}
-			]
+			],
+			"modules": [
+		        {
+                    "name" :"pyenchant",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/73/73/49f95fe636ab3deed0ef1e3b9087902413bcdf74ec00298c3059e660cfbb/pyenchant-1.6.8.tar.gz",
+					        "sha256": "7ead2ee74f1a4fc2a7199b3d6012eaaaceea03fbcadcb5df67d2f9d0d51f050a"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                },
+                {
+                    "name" :"simplebayes",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/b9/73/764578df72934940d95a8941cbd374b56319562dda72630fc8bfeaefc350/simplebayes-1.5.8.tar.gz",
+					        "sha256": "363418c0ef185ac2158ebbd6d8afb45aa997254fcb809a73ed20a7d5dccf8b85"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                },
+                {
+                    "name" :"whoosh",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/25/2b/6beed2107b148edc1321da0d489afc4617b9ed317ef7b72d4993cad9b684/Whoosh-2.7.4.tar.gz",
+					        "sha256": "7ca5633dbfa9e0e0fa400d3151a8a0c4bec53bd2ecedc0a67705b17565c31a83"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                },
+                {
+                    "name" :"termcolor",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/8a/48/a76be51647d0eb9f10e2a4511bf3ffb8cc1e6b14e9e4fab46173aa79f981/termcolor-1.1.0.tar.gz",
+					        "sha256": "1d6d69ce66211143803fbc56652b41d73b4a400a2891d7bf7a1cdf4c02de613b"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                }
+            ]
         },
 		{
 			"name": "paperwork",

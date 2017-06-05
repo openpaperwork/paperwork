@@ -37,7 +37,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.2",
+    version="1.3",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -63,7 +63,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/jflesch/paperwork",
     download_url=("https://github.com/jflesch/paperwork"
-                  "/archive/1.2.tar.gz"),
+                  "/archive/1.3.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
@@ -116,7 +116,7 @@ Main features are:
         "pyocr >= 0.3.0",
         "pypillowfight",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend >= 1.2",
+        "paperwork-backend >= 1.3",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

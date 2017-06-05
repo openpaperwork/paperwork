@@ -86,7 +86,7 @@ _ = gettext.gettext
 logger = logging.getLogger(__name__)
 
 
-__version__ = '1.2-git'
+__version__ = '1.3-git'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must

@@ -66,7 +66,9 @@ def _dump_page(page):
 def cmd_add_label(docid, label_name, color=None):
     """
     Arguments: <document_id> <label_name> [<label_color>]
+
     Add a label on a document.
+
     Color must be specified if the label doesn't exist yet.
     Color will be ignored if the label already exists.
     Color format must be given in hexadecimal format. Ex: #abcdef
@@ -117,6 +119,7 @@ def cmd_add_label(docid, label_name, color=None):
 def cmd_delete_doc(docid):
     """
     Arguments: <document_id>
+
     Delete a document.
 
     Possible JSON replies:
@@ -149,6 +152,7 @@ def cmd_delete_doc(docid):
 def cmd_dump(docid, page_nb=None):
     """
     Arguments: <document id> [<page number>]
+
     Dump the content of the specified document.
     Beware, page numbers start from 1.
     See 'search' for the document ids.
@@ -207,7 +211,9 @@ def cmd_export_all(*args):
     """
     Arguments:
         <output folder> [-- [--quality <0-100>] [--page_format <page_format>]]
+
     Export all documents as PDF files.
+
     Default quality is 50.
     Default page format is A4.
 
@@ -272,7 +278,9 @@ def cmd_export_doc(*args):
     Arguments:
         <document id> <output PDF file path>
         [-- [--quality <0-100>] [--page_format <page_format>]]
+
     Export one document as a PDF file.
+
     Default quality is 50.
     Default page format is A4.
 
@@ -319,6 +327,7 @@ def cmd_export_doc(*args):
 def cmd_guess_labels(*args):
     """
     Arguments: <document id> [-- [--apply]]
+
     Guess the labels that should be set on the document.
     Example: paperwork-shell guess_labels -- 20161207_1144_00_8 --apply
 
@@ -490,15 +499,16 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
 def cmd_import(*args):
     """
     Arguments:
-        <file_or_folder> [<file_or_folder> [...]
+        <file_or_folder> [<file_or_folder> [...]]
             [-- [--no_ocr] [--no_label_guessing] [--append <document_id>]]
+
     Import a file or a PDF folder. OCR is run by default on images
     and on PDF pages without text (PDF containing only images)
 
     Please keep in mind that documents that are already in the word directory
     are never imported again and are simply ignored.
 
-    Example: paperwork-shell -v import -- somefile.pdf --no_label_guessing
+    Example: paperwork-shell import -- somefile.pdf --no_label_guessing
 
     Possible JSON replies:
         --
@@ -509,6 +519,10 @@ def cmd_import(*args):
         --
         {
             "status": "ok",
+            "ocr": [
+                "20170602_1513_12|0",
+                "20170602_1513_12|1"
+            ],
             "imports": {
                 # beware this section is filled in *before* label guessing
                 "imported_file_uris": [
@@ -687,7 +701,9 @@ def cmd_ocr(*args):
 def cmd_remove_label(docid, label_name):
     """
     Arguments: <document_id> <label_name>
+
     Remove a label from a document.
+
     Note that if the document was the last one to use the label,
     the label may disappear entirely from Paperwork.
 
@@ -730,7 +746,9 @@ def cmd_remove_label(docid, label_name):
 def cmd_rename(old_docid, new_docid):
     """
     Arguments: <current document_id> <new document_id>
+
     Change the ID of a document.
+
     Note that the document id are also their date.
     Using an ID that is not a date may have side effects
     (the main one being the document won't be sorted correctly).
@@ -885,6 +903,7 @@ def _get_first_line(doc):
 def cmd_show(docid):
     """
     Arguments: <doc_id>
+
     Show document information (but not its content, see 'dump').
     See 'search' for the document id.
 
@@ -934,8 +953,12 @@ def cmd_show(docid):
 def cmd_search(*args):
     """
     Arguments: <keyword1> [<keyword2> [<keyword3> [...]]]
-    List the documents containing the keywords. Syntax is the same
-    than with the search field in Paperwork-gui.
+
+    List the documents containing the keywords.
+
+    Syntax is the same than with the search field in Paperwork-gui.
+    Search "" (empty string) to get all the documents.
+
     Example: 'label:contrat AND paperwork'
 
     Possible JSON replies:
@@ -974,7 +997,9 @@ def cmd_search(*args):
 def cmd_switch_workdir(new_workdir):
     """
     Arguments: <new work directory path>
+
     Change current Paperwork's work directory.
+
     Does *not* update the index.
     You should run 'paperwork-shell rescan' after this command.
 

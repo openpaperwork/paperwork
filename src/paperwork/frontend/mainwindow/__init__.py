@@ -2273,7 +2273,7 @@ class ActionAbout(SimpleAction):
 
     def do(self):
         SimpleAction.do(self)
-        self.diag = AboutDialog(self.__main_win.window)
+        self.diag = AboutDialog(self.__main_win.window, __version__)
         self.diag.show()
 
 

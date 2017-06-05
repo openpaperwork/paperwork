@@ -36,7 +36,7 @@ class AboutDialog(object):
     AboutDialog.show().
     """
 
-    def __init__(self, main_window):
+    def __init__(self, main_window, version):
         preload_file(os.path.join("aboutdialog", "paperwork.svg"))
         self.__widget_tree = load_uifile(
             os.path.join("aboutdialog", "aboutdialog.glade"))
@@ -44,6 +44,7 @@ class AboutDialog(object):
         self.__dialog = self.__widget_tree.get_object("aboutdialog")
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
+        self.__dialog.set_version(version)
 
         logo_path = os.path.join(
             sys.prefix, 'share', 'icons', 'hicolor', 'scalable', 'apps',

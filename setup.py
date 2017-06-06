@@ -100,8 +100,6 @@ Main features are:
 
         # documentation
         ('paperwork/frontend/doc', glob.glob('doc/*.pdf')),
-
-        ('share/applications', ['data/paperwork.desktop']),
     ] + data_files,
     entry_points={
         'gui_scripts': [

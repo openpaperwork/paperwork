@@ -2615,9 +2615,10 @@ class SearchBar(object):
 
 
 class MainWindow(object):
-    def __init__(self, config, main_loop):
+    def __init__(self, config, main_loop, workdir_scan=True):
         self.ready = False
         self.docsearch = DummyDocSearch()
+        self.workdir_scan_at_start = workdir_scan
 
         self.version = __version__
 
@@ -3073,6 +3074,7 @@ class MainWindow(object):
         self.window.connect(
             "key-release-event", self.__on_key_release_event_cb,
         )
+        self.window.connect("realize", self.__on_window_realize_cb)
 
         for scheduler in self.schedulers.values():
             scheduler.start()
@@ -3965,6 +3967,11 @@ class MainWindow(object):
     def __on_window_resized_cb(self, _, rectangle):
         (w, h) = (rectangle.width, rectangle.height)
         self.__config['main_win_size'].value = (w, h)
+
+    def __on_window_realize_cb(self, _):
+        if self.workdir_scan_at_start:
+            self.workdir_scan_at_start = False
+            GLib.idle_add(self.actions['reindex'][1].do)
 
     def __set_zoom_level_on_scroll(self, zoom):
         logger.info("Changing zoom level (scroll): %f"

@@ -41,7 +41,6 @@ import pyinsane2
 
 from .frontend.diag import LogTracker
 from .frontend.mainwindow import ActionRealQuit, __version__
-from .frontend.mainwindow import ActionRefreshIndex
 from .frontend.mainwindow import MainWindow
 from .frontend.util.config import load_config
 
@@ -167,10 +166,9 @@ class Main(object):
             self.config = load_config()
             self.config.read()
 
-            self.main_win = MainWindow(self.config, self.main_loop)
-            ActionRefreshIndex(self.main_win, self.config,
-                               skip_examination=skip_workdir_scan).do()
-
+            self.main_win = MainWindow(
+                self.config, self.main_loop, not skip_workdir_scan
+            )
             if hook_func:
                 hook_func(self.config, self.main_win)
 

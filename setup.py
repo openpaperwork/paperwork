@@ -20,7 +20,8 @@ for icon_dirpath in glob.glob('data/[0-9][0-9]*'):
     if os.path.exists(icon_path):
         size = os.path.basename(icon_dirpath)
         data_files.append(
-            ('share/icons/hicolor/{}/apps'.format(size), [icon_path])
+            ('paperwork/frontend/share/icons/hicolor/{}/apps'.format(size),
+             [icon_path])
         )
 
 setup(
@@ -86,7 +87,7 @@ Main features are:
     package_dir={'': 'src'},
     include_package_data=True,
     data_files=[
-        ('share/icons/hicolor/scalable/apps',
+        ('paperwork/frontend/share/icons/hicolor/scalable/apps',
          ['data/paperwork.svg', 'data/paperwork_halo.svg']),
         ('share/locale/fr/LC_MESSAGES',
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
@@ -99,8 +100,6 @@ Main features are:
 
         # documentation
         ('paperwork/frontend/doc', glob.glob('doc/*.pdf')),
-
-        ('share/applications', ['data/paperwork.desktop']),
     ] + data_files,
     entry_points={
         'gui_scripts': [
@@ -115,6 +114,7 @@ Main features are:
         "pyinsane2",
         "pyocr >= 0.3.0",
         "pypillowfight",
+        "pyxdg >= 0.25",
         "termcolor",  # used by paperwork-chkdeps
         "paperwork-backend >= 1.3",
         # paperwork-chkdeps take care of all the dependencies that can't be
@@ -128,8 +128,14 @@ Main features are:
 print("============================================================")
 print("============================================================")
 print("||                       IMPORTANT                        ||")
-print("|| Please run 'paperwork-shell chkdeps paperwork_backend' ||")
-print("||        and 'paperwork-shell chkdeps paperwork'         ||")
-print("||        to find any missing dependency                  ||")
+print("||                                                        ||")
+print("||                       Please run                       ||")
+print("||--------------------------------------------------------||")
+print("||          paperwork-shell chkdeps paperwork_backend     ||")
+print("||             paperwork-shell chkdeps paperwork          ||")
+print("||                  paperwork-shell install               ||")
+print("||--------------------------------------------------------||")
+print("||             to find any missing dependencies           ||")
+print("||       and install Paperwork's icons and shortcuts      ||")
 print("============================================================")
 print("============================================================")

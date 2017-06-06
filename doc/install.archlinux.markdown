@@ -18,6 +18,15 @@ guides for reference.
 
 ## Runtime dependencies
 
+### Paperwork &gt;= 1.2
+
+Once installed, please run ```paperwork-shell chkdeps paperwork_backend```
+and ```paperwork-shell chkdeps paperwork``` to make sure all the required
+depencies are installed.
+
+You can run ```paperwork-shell install``` to add a Paperwork entry
+in the menus of your desktop.
+
 ### Paperwork &gt;= 1.0
 
 Once installed, please run ```paperwork-shell chkdeps paperwork_backend```
@@ -47,8 +56,8 @@ The command "papework-chkdeps" can help you find any other missing dependency.
 
 ## Running Paperwork
 
-A shortcut should be available in the menus of your window manager (you may
-have to log out first).
+If you used "paperwork-shell install", a shortcut should be available in the
+menus of your window manager (you may have to log out first).
 
 You can also start Paperwork by running the command 'paperwork'.
 

@@ -1,4 +1,6 @@
 2017/xx/xx - 1.2.0:
+- Installation: A new command has been added: "paperwork-shell install".
+  This command installs icons and shortcut in the desktop menus.
 - Add integrated documentations:
   + Introduction to Paperwork (added to the documents when Paperworks starts
     for the first time)

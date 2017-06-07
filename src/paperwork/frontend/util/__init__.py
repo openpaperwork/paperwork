@@ -105,7 +105,7 @@ def _get_resource_path(filename):
     path = resource_filename('paperwork.frontend', filename)
 
     if not os.access(path, os.R_OK):
-        raise FileNotFoundError(
+        raise FileNotFoundError(  # NOQA (Python 3.x only)
             "Can't find resource file '%s'. Aborting" % filename
         )
 
@@ -191,7 +191,7 @@ def preload_file(filename):
     """
     try:
         _get_resource_path(filename)
-    except FileNotFoundError:
+    except FileNotFoundError:  # NOQA (Python 3.x only)
         logger.warning("Failed to preload '%s' !", filename)
 
 
@@ -254,7 +254,9 @@ def get_documentation(doc_name):
     if os.path.exists(default):
         return default
 
-    raise FileNotFoundError("Documentation {} not found !".format(doc_name))
+    raise FileNotFoundError(  # NOQA (Python 3.x only)
+        "Documentation {} not found !".format(doc_name)
+    )
 
 
 def sizeof_fmt(num):

@@ -724,7 +724,6 @@ Another tool is 'pylint'.
 \end_layout
 
 \begin_layout Verbatim
-
 $ cd src ; pylint --rcfile=../pylintrc *
 \end_layout
 
@@ -791,12 +790,13 @@ Pyinsane2, libsane, and scanner drivers
 \end_layout
 
 \begin_layout Standard
-Not thread-safe.
+libsane is not thread-safe (mostly depending on the driver used).
+ Previous versions of libsane + HP drivers were so sensitive that you had
+ to call their functions always from the very same thread.
 \end_layout
 
 \begin_layout Standard
-Previous versions of libsane + HP drivers were so sensitive that you had
- to run call their functions always from the very same thread.
+However, Pyinsane2 is thread-safe.
 \end_layout
 
 \begin_layout Subsection
@@ -808,13 +808,17 @@ Thread-safe.
 \end_layout
 
 \begin_layout Section
-Threads safety
+Threads and processes
+\end_layout
+
+\begin_layout Subsection
+Thread safety
 \end_layout
 
 \begin_layout Standard
 Thread safety is a major issue in Paperwork.
- We need threads to keep the GUI smooth, but unfortunately, a lot of Paperwork
- dependencies are not thread-safe.
+ We need threads to keep the GUI smooth, but unfortunately, not all Paperwork
+ dependencies are thread-safe.
 \end_layout
 
 \begin_layout Standard
@@ -868,6 +872,55 @@ main
 \begin_layout Standard
 Note that there are other threads running.
  For instance, there are the thread of PyInsane and the GTK+/GLib main loop.
+\end_layout
+
+\begin_layout Subsection
+Multi-processes
+\end_layout
+
+\begin_layout Subsubsection
+Pyinsane and Sane
+\end_layout
+
+\begin_layout Standard
+In the past, some Sane drivers have shown to be unreliable.
+ Some crashes, while some other corrupts memory areas sometimes.
+\end_layout
+
+\begin_layout Standard
+To work around those issues, on GNU/Linux, Pyinsane forks (see 
+\emph on
+pyinsane2/sane/abstract_proc.py
+\emph default
+).
+ A dedicated process is used to scan.
+ Two unix pipes are created for the communication.
+\end_layout
+
+\begin_layout Subsubsection
+Paperwork-backend and python-whoosh
+\end_layout
+
+\begin_layout Standard
+Python-whoosh locks Python's GIL (Global Interpreter Lock).
+ When the GIL is locked, the GUI is stuck.
+\end_layout
+
+\begin_layout Standard
+As a workaround, paperwork-backend uses the 
+\emph on
+multiprocessing
+\emph default
+ module : It forks itself.
+ One process acts as client (
+\emph on
+docsearch.py
+\emph default
+) and the other as server (
+\emph on
+index.py
+\emph default
+)
 \end_layout
 
 \begin_layout Section

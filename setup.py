@@ -89,10 +89,14 @@ Main features are:
     data_files=[
         ('paperwork/frontend/share/icons/hicolor/scalable/apps',
          ['data/paperwork.svg', 'data/paperwork_halo.svg']),
-        ('share/locale/fr/LC_MESSAGES',
+
+        ('paperwork/frontend/share/locale/fr/LC_MESSAGES',
          ['locale/fr/LC_MESSAGES/paperwork.mo']),
-        ('share/locale/de/LC_MESSAGES',
+        ('paperwork/frontend/share/locale/de/LC_MESSAGES',
          ['locale/de/LC_MESSAGES/paperwork.mo']),
+        ('paperwork/frontend/share/locale/uk/LC_MESSAGES',
+         ['locale/uk/LC_MESSAGES/paperwork.mo']),
+
         ('paperwork/frontend/mainwindow',
          ['data/paperwork_halo.svg']),
         ('paperwork/frontend/aboutdialog',

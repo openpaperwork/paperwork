@@ -18,6 +18,7 @@
 import locale
 import logging
 import os
+import sys
 
 import heapq
 import gettext
@@ -192,6 +193,30 @@ def preload_file(filename):
         _get_resource_path(filename)
     except FileNotFoundError:
         logger.warning("Failed to preload '%s' !", filename)
+
+
+def get_locale_dirs():
+    locale_dirs = [
+        "."
+    ]
+
+    # Pyinstaller support
+    if getattr(sys, 'frozen', False):
+        locale_dirs.append(os.path.join(sys._MEIPASS, "share"))
+
+    # use the french locale file for reference
+    try:
+        path = resource_filename(
+            'paperwork.frontend',
+            os.path.join("share", "locale", "fr", "LC_MESSAGES")
+        )
+        for _ in range(0, 3):
+            path = os.path.dirname(path)
+        locale_dirs.append(path)
+    except Exception as exc:
+        logger.warning("Failed to locate locales !", exc_info=exc)
+
+    return locale_dirs
 
 
 def get_documentation(doc_name):

@@ -42,20 +42,14 @@ import pyinsane2
 from .frontend.diag import LogTracker
 from .frontend.mainwindow import ActionRealQuit, __version__
 from .frontend.mainwindow import MainWindow
+from .frontend.util import get_locale_dirs
 from .frontend.util.config import load_config
 
 logger = logging.getLogger(__name__)
 
 PREFIX = os.environ.get('VIRTUAL_ENV', '/usr')
 
-LOCALE_PATHS = []
-if getattr(sys, 'frozen', False):
-    LOCALE_PATHS += [os.path.join(sys._MEIPASS, "share")]
-LOCALE_PATHS += [
-    '.',
-    PREFIX + '/local/share/',
-    PREFIX + '/share/',
-]
+LOCALE_PATHS = get_locale_dirs()
 
 
 def set_locale_windows(locales_dir):

@@ -862,7 +862,7 @@ msgstr "Refaire l'OCR sur tout les documents"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:8
 msgid "_Help"
-msgstr "Aide"
+msgstr "_Aide"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:9
 msgid "_Introduction"

@@ -224,7 +224,7 @@
                 <child>
                   <object class="GtkHeaderBar" id="loading_headerbar_left">
                     <property name="visible">True</property>
-                    <property name="title">Loading ...</property>
+                    <property name="title" translatable="yes">Loading ...</property>
                     <property name="subtitle"></property>
                     <property name="show_close_button">False</property>
                     <style>
@@ -310,7 +310,7 @@
                 <child>
                   <object class="GtkHeaderBar" id="docproperties_headerbar_left">
                     <property name="visible">True</property>
-                    <property name="title">Properties</property>
+                    <property name="title" translatable="yes">Properties</property>
                     <property name="subtitle"></property>
                     <property name="show_close_button">False</property>
                     <style>

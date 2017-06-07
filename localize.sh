@@ -24,7 +24,7 @@ usage()
 }
 
 if [ -z "${BACKEND_DIRECTORY}" ] ; then
-	BACKEND_DIRECTORY=$(python -c "import paperwork_backend; print(paperwork_backend.__file__)")
+	BACKEND_DIRECTORY=$(python3 -c "import paperwork_backend; print(paperwork_backend.__file__)")
 	BACKEND_DIRECTORY=$(dirname "${BACKEND_DIRECTORY}")
 fi
 

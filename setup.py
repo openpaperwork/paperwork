@@ -24,6 +24,17 @@ for icon_dirpath in glob.glob('data/[0-9][0-9]*'):
              [icon_path])
         )
 
+# include locales
+for locale_dir in glob.glob("locale/??"):
+    mo_dir = os.path.join(locale_dir, "LC_MESSAGES")
+    mo = os.path.join(mo_dir, "paperwork.mo")
+    data_files.append(
+        (
+            os.path.join('paperwork', 'frontend', 'share', mo_dir),
+            [mo]
+        ),
+    )
+
 setup(
     name="paperwork",
     # if you change the version, don't forget to
@@ -89,10 +100,7 @@ Main features are:
     data_files=[
         ('paperwork/frontend/share/icons/hicolor/scalable/apps',
          ['data/paperwork.svg', 'data/paperwork_halo.svg']),
-        ('share/locale/fr/LC_MESSAGES',
-         ['locale/fr/LC_MESSAGES/paperwork.mo']),
-        ('share/locale/de/LC_MESSAGES',
-         ['locale/de/LC_MESSAGES/paperwork.mo']),
+
         ('paperwork/frontend/mainwindow',
          ['data/paperwork_halo.svg']),
         ('paperwork/frontend/aboutdialog',

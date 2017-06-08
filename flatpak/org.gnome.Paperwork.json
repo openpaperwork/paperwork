@@ -282,13 +282,14 @@
 		{
 			"name": "paperwork",
 			"make-install-args": ["prefix=/app"],
+			"no-make-install": true,
 			"no-autogen": true,
 			"ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
 			"sources": [
 				{
 					"type": "archive",
-					"url": "https://github.com/openpaperwork/paperwork/archive/1.1.2.zip",
-					"sha256": "0724b0f61040775bc71c4cd5c69d9eb4178e2d2dcf844aedc695fd69092dfcad"
+					"url": "https://pypi.python.org/packages/c8/7c/ce3334e6504a45b9a0eadcd3b6ff4dda10a16f12b80a48f80ffe921de439/paperwork-1.1.1.tar.gz",
+					"sha256": "9c9dfeb7dd0ee2069fd0e7090c7a3d395df42c776d52b7340679b05329cce580"
 				}
 			]
 		}

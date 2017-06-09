@@ -34,7 +34,8 @@ missing dependencies by running 'paperwork-chkdeps'.
     $ paperwork-shell chkdeps paperwork_backend
     $ paperwork-shell chkdeps paperwork
 
-You can add a Paperwork entry in your desktop menus with the following command:
+Since Paperwork 1.2, you can add a Paperwork entry in your desktop menus
+with the following command:
 
     $ paperwork-shell install
 

@@ -76,6 +76,7 @@ class PaperworkURI(object):
     def load(self, config):
         try:
             value = config.get(self.section, self.token)
+            value = value.strip()
             if value != "None":
                 try:
                     value = base64.decodebytes(value.encode("utf-8")).decode(

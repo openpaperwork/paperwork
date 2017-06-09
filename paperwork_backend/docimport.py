@@ -345,8 +345,10 @@ class ImageDirectoryImporter(BaseImporter):
         """
         Import the specified PDF files
         """
-        if current_doc is None or current_doc.is_new:
-            if not current_doc:
+        if (current_doc is None or
+                current_doc.is_new or
+                not current_doc.can_edit):
+            if not current_doc or not current_doc.can_edit:
                 current_doc = ImgDoc(self.fs, docsearch.rootdir)
             new_docs = [current_doc]
             upd_docs = []
@@ -435,8 +437,10 @@ class ImageImporter(BaseImporter):
         """
         Import the specified images
         """
-        if current_doc is None or current_doc.is_new:
-            if not current_doc:
+        if (current_doc is None or
+                current_doc.is_new or
+                not current_doc.can_edit):
+            if not current_doc or not current_doc.can_edit:
                 current_doc = ImgDoc(self.fs, docsearch.rootdir)
             new_docs = [current_doc]
             upd_docs = []

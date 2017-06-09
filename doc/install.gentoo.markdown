@@ -12,6 +12,12 @@ missing dependencies by running 'paperwork-chkdeps'
     $ paperwork-shell chkdeps paperwork_backend
     $ paperwork-shell chkdeps paperwork
 
+Since Paperwork 1.2, you can add a Paperwork shortcut in your desktop menus
+with the following command:
+
+    $ paperwork-shell install
+
+
 ## Running Paperwork
 
 If you used "paperwork-shell install", a shortcut should be available in the

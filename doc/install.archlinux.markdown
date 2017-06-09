@@ -25,7 +25,7 @@ and ```paperwork-shell chkdeps paperwork``` to make sure all the required
 depencies are installed.
 
 You can run ```paperwork-shell install``` to add a Paperwork entry
-in the menus of your desktop.
+in the menus of your desktop (Paperwork >= 1.2 only).
 
 ### Paperwork &gt;= 1.0
 

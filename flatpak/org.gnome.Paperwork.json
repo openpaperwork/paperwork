@@ -192,6 +192,23 @@
 				}
 			]
         },
+        {
+            "name" :"pyxdg",
+            "no-autogen": true,
+            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
+            "sources": [
+				{
+					"type": "archive",
+					"url": "https://pypi.python.org/packages/26/28/ee953bd2c030ae5a9e9a0ff68e5912bd90ee50ae766871151cd2572ca570/pyxdg-0.25.tar.gz",
+					"sha256": "81e883e0b9517d624e8b0499eb267b82a815c0b7146d5269f364988ae031279d"
+				},
+				{
+					"type": "file",
+					"path": "pip-Makefile",
+					"dest-filename": "Makefile"
+				}
+			]
+        },
 		{
             "name" :"paperwork-backend",
             "no-autogen": true,
@@ -199,8 +216,8 @@
             "sources": [
 				{
 					"type": "archive",
-					"url": "https://pypi.python.org/packages/c9/a6/ca5c859ca08a9d5263599ddad45ae4dba39a91b4c1cc14fc45bcd9e5e5aa/paperwork-backend-1.1.2.tar.gz",
-					"sha256": "b6fa568183d333c95716a14427838833cdfa03c31bf893acdecf0ba4b6b6f413"
+					"url": "https://github.com/openpaperwork/paperwork-backend/archive/unstable.zip",
+					"sha256": "62cc81d7ff75a19a75f19339b5fb51a052a227bdf61b9b8d0365fc4d3a311b46"
 				},
 				{
 					"type": "file",
@@ -209,6 +226,23 @@
 				}
 			],
 			"modules": [
+				{
+                    "name" :"natsort",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/8e/6b/a4e3031e573ef29a251984ac0a6bd26cedac6f5e67a7607c9746bd64b3fe/natsort-5.0.3.tar.gz",
+					        "sha256": "d57b7a0156f16f49c6c010c9ce97e2125956697846f31bba7cd544cd24b007c1"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
+                },
 		        {
                     "name" :"pyenchant",
                     "no-autogen": true,
@@ -282,15 +316,19 @@
 		{
 			"name": "paperwork",
 			"make-install-args": ["prefix=/app"],
-			"no-make-install": true,
 			"no-autogen": true,
 			"ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
 			"sources": [
 				{
 					"type": "archive",
-					"url": "https://pypi.python.org/packages/c8/7c/ce3334e6504a45b9a0eadcd3b6ff4dda10a16f12b80a48f80ffe921de439/paperwork-1.1.1.tar.gz",
-					"sha256": "9c9dfeb7dd0ee2069fd0e7090c7a3d395df42c776d52b7340679b05329cce580"
-				}
+					"url": "https://github.com/openpaperwork/paperwork/archive/unstable.zip",
+					"sha256": "7d884755c089b9b6edc881c3e26b853cd6ccebb063c5a1eb0f822b622aa354e6"
+				},
+			        {
+				        "type": "file",
+				        "path": "pip-Makefile",
+				        "dest-filename": "Makefile"
+			        }
 			]
 		}
 	]

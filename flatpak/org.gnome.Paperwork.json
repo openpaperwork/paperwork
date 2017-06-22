@@ -313,11 +313,38 @@
                 }
             ]
         },
+        {
+            "name": "poppler-data",
+            "buildsystem": "cmake",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://poppler.freedesktop.org/poppler-data-0.4.7.tar.gz",
+                    "sha256": "e752b0d88a7aba54574152143e7bf76436a7ef51977c55d6bd9a48dccde3a7de"
+                }
+            ]
+        },
+        {
+            "name": "poppler",
+            "buildsystem": "autotools",
+            "config-opts": [
+                "--enable-libopenjpeg=none",
+                "--enable-xpdf-headers"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://poppler.freedesktop.org/poppler-0.55.0.tar.xz",
+                    "sha256": "537f2bc60d796525705ad9ca8e46899dcc99c2e9480b80051808bae265cdc658"
+                }
+            ]
+},
 		{
 			"name": "paperwork",
 			"make-install-args": ["prefix=/app"],
 			"no-autogen": true,
-			"ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
+			"ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
+			"post-install": ["paperwork-shell install"],
 			"sources": [
 				{
 					"type": "archive",

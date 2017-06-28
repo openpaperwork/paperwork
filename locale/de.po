@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Paperwork 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-11 11:15+0100\n"
-"PO-Revision-Date: 2017-01-11 11:31+0200\n"
+"POT-Creation-Date: 2017-06-28 12:44+0200\n"
+"PO-Revision-Date: 2017-06-28 14:16+0200\n"
 "Last-Translator: Tristan Kohl <blobbyjj@ymail.com>\n"
 "Language-Team: German <>\n"
 "Language: de\n"
@@ -19,38 +19,34 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Virtaal 0.7.1\n"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:150
+#: src/paperwork/frontend/settingswindow/__init__.py:151
 msgid "Automatic"
 msgstr "Automatisch"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:151
+#: src/paperwork/frontend/settingswindow/__init__.py:152
 msgid "Flatbed"
 msgstr "Flachbett"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:152
+#: src/paperwork/frontend/settingswindow/__init__.py:153
 msgid "Automatic Feeder"
 msgstr "Automatischer Einzug"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:246
+#: src/paperwork/frontend/settingswindow/__init__.py:247
 msgid " (recommended)"
 msgstr " (empfohlen)"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:365
+#: src/paperwork/frontend/settingswindow/__init__.py:366
 msgid "No paper to scan"
 msgstr "Keine Seiten zu scannen"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:370
-#: src/paperwork/frontend/settingswindow/__init__.py:932
+#: src/paperwork/frontend/settingswindow/__init__.py:371
+#: src/paperwork/frontend/settingswindow/__init__.py:966
 msgid "Error while scanning: {}"
 msgstr "Fehler beim Scannen: {}"
 
-#: src/paperwork/frontend/settingswindow/__init__.py:795
-msgid "Disable OCR"
-msgstr "OCR deaktivieren"
-
 #: src/paperwork/frontend/searchdialog/__init__.py:67
 msgid "Keyword(s)"
-msgstr "Schlüsselwort(e)"
+msgstr "Schlüsselwörter"
 
 #: src/paperwork/frontend/searchdialog/__init__.py:115
 #: src/paperwork/frontend/labeleditor/labeleditor.glade.h:2
@@ -65,23 +61,24 @@ msgstr "Von:"
 msgid "to:"
 msgstr "An:"
 
-#: src/paperwork/frontend/searchdialog/__init__.py:237
+#: src/paperwork/frontend/searchdialog/__init__.py:239
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:38
 msgid "Date"
 msgstr "Datum"
 
-#: src/paperwork/frontend/searchdialog/__init__.py:269
+#: src/paperwork/frontend/searchdialog/__init__.py:271
 msgid "and"
 msgstr "und"
 
-#: src/paperwork/frontend/searchdialog/__init__.py:270
+#: src/paperwork/frontend/searchdialog/__init__.py:272
 msgid "or"
 msgstr "oder"
 
-#: src/paperwork/frontend/searchdialog/__init__.py:287
+#: src/paperwork/frontend/searchdialog/__init__.py:289
 msgid "not"
 msgstr "nicht"
 
-#: src/paperwork/frontend/searchdialog/__init__.py:311
+#: src/paperwork/frontend/searchdialog/__init__.py:313
 msgid "Remove"
 msgstr "Löschen"
 
@@ -110,7 +107,7 @@ msgstr "Aktivierungsschlüssel ist beschädigt"
 msgid "Invalid activation key"
 msgstr "Ungültiger Aktivierungsschlüssel"
 
-#: src/paperwork/frontend/activation/__init__.py:278
+#: src/paperwork/frontend/activation/__init__.py:282
 msgid "Activation successful. Please restart Paperwork"
 msgstr "Aktivierung erfolgreich. Bitte Paperwork neu starten"
 
@@ -126,20 +123,20 @@ msgstr "Dokument Statistiken"
 msgid "scanner's information"
 msgstr "Scanner Information"
 
-#: src/paperwork/frontend/diag/__init__.py:292
+#: src/paperwork/frontend/diag/__init__.py:295
 msgid "Please wait. It may take a few minutes ..."
 msgstr "Bitte warten. Dies kann einige Minuten dauern ..."
 
-#: src/paperwork/frontend/diag/__init__.py:315
+#: src/paperwork/frontend/diag/__init__.py:318
 msgid "Getting {} ({}%)"
 msgstr "Erhalte {} ({}%)"
 
-#: src/paperwork/frontend/diag/__init__.py:322
+#: src/paperwork/frontend/diag/__init__.py:325
 msgid "Diagnostic information are ready"
 msgstr "Diagnostische Information ist bereit"
 
-#: src/paperwork/frontend/diag/__init__.py:333
-#: src/paperwork/frontend/mainwindow/__init__.py:2059
+#: src/paperwork/frontend/diag/__init__.py:336
+#: src/paperwork/frontend/mainwindow/__init__.py:2176
 msgid "Save as"
 msgstr "Speichern als"
 
@@ -152,55 +149,56 @@ msgid "Scanner not found (is your scanner turned on ?) (error was: {})"
 msgstr ""
 "Keinen Scanner gefunden (ist der Scanner betriebsbereit?) (Fehler war: {})"
 
-#: src/paperwork/frontend/util/dialog.py:75
+#: src/paperwork/frontend/util/dialog.py:72
 msgid "Are you sure ?"
 msgstr "Ganz sicher ?"
 
-#: src/paperwork/frontend/util/__init__.py:181
+#: src/paperwork/frontend/util/__init__.py:171
 #, python-format
 msgid "%3.1f bytes"
 msgstr "%3.1f Bytes"
 
-#: src/paperwork/frontend/util/__init__.py:182
+#: src/paperwork/frontend/util/__init__.py:172
 #, python-format
-msgid "%3.1f KB"
-msgstr "%3.1f KB"
+msgid "%3.1f KiB"
+msgstr "%3.1f KiB"
 
-#: src/paperwork/frontend/util/__init__.py:183
+#: src/paperwork/frontend/util/__init__.py:173
 #, python-format
-msgid "%3.1f MB"
-msgstr "%3.1f MB"
+msgid "%3.1f MiB"
+msgstr "%3.1f MiB"
 
-#: src/paperwork/frontend/util/__init__.py:184
+#: src/paperwork/frontend/util/__init__.py:174
 #, python-format
-msgid "%3.1f GB"
-msgstr "%3.1f GB"
+msgid "%3.1f GiB"
+msgstr "%3.1f GiB"
 
-#: src/paperwork/frontend/util/__init__.py:185
+#: src/paperwork/frontend/util/__init__.py:175
 #, python-format
-msgid "%3.1f TB"
-msgstr "%3.1f TB"
+msgid "%3.1f TiB"
+msgstr "%3.1f TiB"
 
 #: src/paperwork/frontend/util/progressivelist.py:193
-#: src/paperwork/frontend/mainwindow/__init__.py:139
-#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:15
+#: src/paperwork/frontend/mainwindow/__init__.py:146
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:1
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:33
 msgid "Loading ..."
 msgstr "Laden ..."
 
 #: src/paperwork/frontend/multiscan/__init__.py:54
+#: src/paperwork/frontend/multiscan/__init__.py:98
 #: src/paperwork/frontend/multiscan/__init__.py:100
-#: src/paperwork/frontend/multiscan/__init__.py:102
 #, python-format
 msgid "Document %d"
 msgstr "Dokument %d"
 
-#: src/paperwork/frontend/multiscan/__init__.py:154
-#: src/paperwork/frontend/mainwindow/__init__.py:1362
+#: src/paperwork/frontend/multiscan/__init__.py:152
+#: src/paperwork/frontend/mainwindow/__init__.py:1386
 msgid "Scan failed: No paper found"
 msgstr "Scan fehlgeschlagen: Keine Seiten gefunden"
 
-#: src/paperwork/frontend/multiscan/__init__.py:156
-#: src/paperwork/frontend/mainwindow/__init__.py:1364
+#: src/paperwork/frontend/multiscan/__init__.py:154
+#: src/paperwork/frontend/mainwindow/__init__.py:1388
 msgid "Scan failed: {}"
 msgstr "Scan fehlgeschlagen: {}"
 
@@ -230,192 +228,303 @@ msgstr "Alle Seiten wurden gescannt"
 msgid "Less pages than expected have been Img (got %d pages)"
 msgstr "Weniger Seiten, als erwartet gescannt (%d Seiten erhalten)"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:249
+#: src/paperwork/frontend/mainwindow/__init__.py:257
 msgid "Checking ..."
 msgstr "Überprüfen ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:404
+#: src/paperwork/frontend/mainwindow/__init__.py:415
 msgid "Indexing new document ..."
 msgstr "Neues Dokument indizieren ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:406
+#: src/paperwork/frontend/mainwindow/__init__.py:417
 msgid "Reindexing modified document ..."
 msgstr "Verändertes Dokument erneut indizieren ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:408
+#: src/paperwork/frontend/mainwindow/__init__.py:419
 msgid "Removing deleted document from index ..."
 msgstr "Gelöschtes Dokument aus dem Index entfernen ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:433
+#: src/paperwork/frontend/mainwindow/__init__.py:445
 msgid "Writing index ..."
 msgstr "Index schreiben ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1512
+#: src/paperwork/frontend/mainwindow/__init__.py:1518
+msgid "All supported file formats"
+msgstr "Unterstützte Dateiformate"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1522
+msgid "Any file"
+msgstr "Alle Datein"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1567
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Kann '%s' nicht importieren. Entschuldigung."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1526
+#: src/paperwork/frontend/mainwindow/__init__.py:1581
 msgid "No new document to import found"
 msgstr "Kein neues Dokument für den Import gefunden"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1539
+#: src/paperwork/frontend/mainwindow/__init__.py:1594
 msgid "Import failed: {}"
 msgstr "Import fehlgeschlagen: {}"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1552
+#: src/paperwork/frontend/mainwindow/__init__.py:1607
 msgid "Imported:\n"
 msgstr "Importiert:\n"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1762
+#: src/paperwork/frontend/mainwindow/__init__.py:1614
+msgid "Import successful"
+msgstr "Import erfolgreich"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1620
+msgid "Delete imported files"
+msgstr "Lösche importierte Dateien"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1628
+msgid "Would you like to move the original file(s) to trash?\n"
+msgstr "Soll(en) die Originaldatei(en) in den Papierkorb verschoben werden?\n"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1644
+msgid "Imported file(s) deleted"
+msgstr "Importierte Datei(en) gelöscht"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1865
 msgid "No simplification"
 msgstr "Keine Vereinfachung"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1763
+#: src/paperwork/frontend/mainwindow/__init__.py:1867
+msgid "Grayscale"
+msgstr "Graustufen"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1868
 msgid "Soft"
 msgstr "Weich"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1764
+#: src/paperwork/frontend/mainwindow/__init__.py:1869
+msgid "Grayscale + soft"
+msgstr "Graustufen + weich"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1870
+msgid "Black and white"
+msgstr "Schwarz/Weiß"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:1871
 msgid "Hard"
 msgstr "Hart"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1765
+#: src/paperwork/frontend/mainwindow/__init__.py:1872
 msgid "Extreme"
 msgstr "Extrem"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1914
+#: src/paperwork/frontend/mainwindow/__init__.py:2026
 msgid "Multiple PDF in a folder"
 msgstr "Mehrere PDFs in einem Ordner"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1929
+#: src/paperwork/frontend/mainwindow/__init__.py:2041
 msgid "Export page"
 msgstr "Seite exportieren"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1948
+#: src/paperwork/frontend/mainwindow/__init__.py:2060
 msgid "Export document"
 msgstr "Dokument exportieren"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:1953
+#: src/paperwork/frontend/mainwindow/__init__.py:2065
 msgid "Export documents"
 msgstr "Dokumente exportieren"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2069
+#: src/paperwork/frontend/mainwindow/__init__.py:2186
 msgid "Save in"
 msgstr "Speichern in"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2779
+#: src/paperwork/frontend/mainwindow/__init__.py:2607
+msgid "{} of {}"
+msgstr "{} von {}"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3184
 msgid "Paperwork"
 msgstr "Paperwork"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2891
+#: src/paperwork/frontend/mainwindow/__init__.py:3296
 msgid "Trial period has expired"
 msgstr "Testphase abgelaufen"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2892
+#: src/paperwork/frontend/mainwindow/__init__.py:3297
 msgid "Everything will work as usual, except we've"
 msgstr "Alles funktioniert wie gewohnt außer, dass wir"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2893
+#: src/paperwork/frontend/mainwindow/__init__.py:3298
 msgid "switched all the fonts to {}"
-msgstr "alle Schriften zu {} geändert"
+msgstr "alle Schriften zu {} geändert haben"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2895
+#: src/paperwork/frontend/mainwindow/__init__.py:3300
 msgid "until you get an activation key"
 msgstr "bis ein Aktivierungsschlüssel vorliegt"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2897
-msgid "Go to https://openpaper.work/activation/"
-msgstr "Gehe zu https://openpaper.work/activation/"
+#: src/paperwork/frontend/mainwindow/__init__.py:3302
+msgid "You can go to https://openpaper.work/activation/"
+msgstr "Besuchen sie https://openpaper.work/activation/"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2898
+#: src/paperwork/frontend/mainwindow/__init__.py:3303
 msgid "to get an activation key"
 msgstr "um einen Aktivierungsschlüssel zu erhalten"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:2907
+#: src/paperwork/frontend/mainwindow/__init__.py:3308
 msgid "Trial period: {} days remaining"
 msgstr "Testphase: {} Tage verbleiben"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3269
+#: src/paperwork/frontend/mainwindow/__init__.py:3312
+msgid "A new version is available:"
+msgstr "Eine neue Version ist verfügbar:"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3313
+msgid "Paperwork {}"
+msgstr "Paperwork {}"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3406
+msgid "Documentation"
+msgstr "Dokumentation"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:3765
 #, python-format
 msgid "/ %d"
 msgstr "/ %d"
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3363
+#: src/paperwork/frontend/mainwindow/__init__.py:3862
 msgid "Computing ..."
 msgstr "Verarbeiten ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3655
-msgid "Examining imported file ..."
-msgstr "Untersuche importierte Datein ..."
+#: src/paperwork/frontend/mainwindow/__init__.py:4155
+msgid "Examining imported file(s) ..."
+msgstr "Untersuche importierte Datei(en) ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3695
-#: src/paperwork/frontend/mainwindow/__init__.py:3698
+#: src/paperwork/frontend/mainwindow/__init__.py:4195
+#: src/paperwork/frontend/mainwindow/__init__.py:4198
 msgid "Exporting ..."
 msgstr "Exportieren ..."
 
-#: src/paperwork/frontend/mainwindow/__init__.py:3706
+#: src/paperwork/frontend/mainwindow/__init__.py:4204
+msgid "Export finished"
+msgstr "Export abgeschlossen"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:4205
+msgid "Export of {} as {} finished"
+msgstr "Export von {} als {} abgeschlossen"
+
+#: src/paperwork/frontend/mainwindow/__init__.py:4215
 msgid "Export failed: {}"
 msgstr "Export fehlgeschlagen: {}"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1045
+#: src/paperwork/frontend/mainwindow/pages.py:1230
+msgid "Copy selected text"
+msgstr "Kopiere markierten Text"
+
+#: src/paperwork/frontend/mainwindow/pages.py:1242
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1057
+#: src/paperwork/frontend/mainwindow/pages.py:1254
 msgid "Delete page"
 msgstr "Seite löschen"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1073
+#: src/paperwork/frontend/mainwindow/pages.py:1270
 #: src/paperwork/frontend/mainwindow/export.glade.h:1
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1080
+#: src/paperwork/frontend/mainwindow/pages.py:1277
 msgid "Crop"
 msgstr "Beschneiden"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1087
+#: src/paperwork/frontend/mainwindow/pages.py:1284
 msgid "Rotate counter-clockwise"
 msgstr "Gegen den Uhrzeigersinn drehen"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1094
+#: src/paperwork/frontend/mainwindow/pages.py:1291
 msgid "Rotate clockwise"
 msgstr "Im Uhrzeigersinn drehen"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1099
+#: src/paperwork/frontend/mainwindow/pages.py:1296
 msgid "Automatic Color Equalization"
 msgstr "Automatische Farbangleichung"
 
-#: src/paperwork/frontend/mainwindow/pages.py:1106
+#: src/paperwork/frontend/mainwindow/pages.py:1303
 msgid "Apply"
 msgstr "Anwenden"
 
-#: src/paperwork/frontend/mainwindow/docs.py:1195
-#: src/paperwork/frontend/mainwindow/docs.py:1202
+#: src/paperwork/frontend/mainwindow/docs.py:1066
+#: src/paperwork/frontend/multiscan/multiscan.glade.h:3
+msgid "Documents"
+msgstr "Dokumente"
+
+#: src/paperwork/frontend/mainwindow/docs.py:1066
+msgid "Matching papers"
+msgstr "Seiten vergleichen"
+
+#: src/paperwork/frontend/mainwindow/docs.py:1247
+#: src/paperwork/frontend/mainwindow/docs.py:1254
 msgid "Loading thumbnails ..."
 msgstr "Vorschaubilder laden ..."
 
-#: src/paperwork/frontend/mainwindow/docs.py:1361
+#: src/paperwork/frontend/mainwindow/docs.py:1413
 msgid "Invalid date format: {}"
 msgstr "Ungültiges Datumsformat: {}"
 
-#: src/paperwork/frontend/mainwindow/docs.py:1599
+#: src/paperwork/frontend/mainwindow/docs.py:1658
 #, python-format
 msgid "Updating label (%s) ..."
 msgstr "Schlagwort (%s) aktualisieren ..."
 
-#: src/paperwork/frontend/mainwindow/docs.py:1605
+#: src/paperwork/frontend/mainwindow/docs.py:1664
 #, python-format
 msgid "Deleting label (%s) ..."
 msgstr "Schlagwort (%s) löschen ..."
 
-#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:1
-msgid "Settings"
-msgstr "Einstellungen"
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/common/doc.py:332
+msgid "New document"
+msgstr "Neues Dokument"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:37
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:104
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:187
+msgid "PDF"
+msgstr "PDF"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:38
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:105
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:188
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:250
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:7
+msgid "Document(s)"
+msgstr "Dokument(e)"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:39
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:249
+msgid "Image file(s)"
+msgstr "Bilddatei(en)"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:40
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:106
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:189
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:251
+msgid "Page(s)"
+msgstr "Seite(n)"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:111
+msgid "Import PDF"
+msgstr "Importiere PDF"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:194
+msgid "Import each PDF in the folder as a new document"
+msgstr "Importiere jedes PDF im Ordner als ein neues Dokument"
+
+#: /usr/local/lib/python3.5/dist-packages/paperwork_backend/docimport.py:256
+msgid "Append the image to the current document"
+msgstr "Hänge das Bild an das aktuelle Dokument an"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:2
-msgid "Help"
-msgstr "Hilfe"
+msgid "Settings"
+msgstr "Einstellungen"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:3
 msgid "Select a folder"
@@ -458,11 +567,24 @@ msgid "<b>OCR</b>"
 msgstr "<b>OCR</b>"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:13
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:34
+msgid "Check for updates"
+msgstr "Auf Updates überprüfen"
+
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:14
+msgid "Send anonymous usage statistics"
+msgstr "Sende anonymisierte Nutzungsstatistiken"
+
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:15
+msgid "<b>Network</b>"
+msgstr "<b>Netzwert</b>"
+
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:16
+#: src/paperwork/frontend/multiscan/multiscan.glade.h:2
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:35
 msgid "Scan"
 msgstr "Scannen"
 
-#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:14
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:17
 msgid "<b>Scanner calibration</b>"
 msgstr "<b>Scannerkalibrierung</b>"
 
@@ -479,7 +601,7 @@ msgid "Pick"
 msgstr "Auswählen"
 
 #: src/paperwork/frontend/searchdialog/searchdialog.glade.h:1
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:35
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:36
 msgid "Search"
 msgstr "Suchen"
 
@@ -521,11 +643,6 @@ msgstr "Bitte warten"
 msgid "From scanner feeder"
 msgstr "Vom Dokumenteneinzug des Scanners"
 
-#: src/paperwork/frontend/multiscan/multiscan.glade.h:3
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:33
-msgid "Documents"
-msgstr "Dokumente"
-
 #: src/paperwork/frontend/multiscan/multiscan.glade.h:4
 msgid "Number of pages"
 msgstr "Anzahl der Seiten"
@@ -550,10 +667,6 @@ msgstr "Exportieren"
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:6
 msgid "Page"
 msgstr "Seite"
-
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:7
-msgid "Document(s)"
-msgstr "Dokument(e)"
 
 #: src/paperwork/frontend/mainwindow/mainwindow.glade.h:8
 msgid "Redo OCR"
@@ -622,13 +735,53 @@ msgstr "175%"
 msgid "200%"
 msgstr "200%"
 
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:36
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:34
+msgid "Properties"
+msgstr "Eigenschaften"
+
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:37
 msgid "Advanced search"
 msgstr "Erweiterte Suche"
 
-#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:37
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:39
+msgid "Additional keywords"
+msgstr "Weitere Schlüsselworte"
+
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:40
 msgid "Highlight words"
 msgstr "Wörter hervorheben"
+
+#: src/paperwork/frontend/mainwindow/mainwindow.glade.h:41
+msgid ""
+"If by any chance character recognition doesn't work, type in a few keywords "
+"so you'll be able to search for them."
+msgstr ""
+"Für den Fall, dass die Texterkennung nicht funktioniert, bitte einige "
+"Schlüsselworts eintragen, sodass nach diesen gesucht werden kann."
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:1
+msgid "Previous document"
+msgstr "Vorheriges Dokument"
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:2
+msgid "First occurrence"
+msgstr "Erste Übereinstimmung"
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:3
+msgid "Previous occurence"
+msgstr "Vorherige Übereinstimmung"
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:4
+msgid "Next occurence"
+msgstr "Nächste Übereinstimmung"
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:5
+msgid "Last occurence"
+msgstr "Letzte Übereinstimmung"
+
+#: src/paperwork/frontend/mainwindow/searchbar.glade.h:6
+msgid "Next document"
+msgstr "Nächstes Dokument"
 
 #: src/paperwork/frontend/mainwindow/export.glade.h:3
 msgid "File format"
@@ -649,10 +802,6 @@ msgstr "Qualität"
 #: src/paperwork/frontend/mainwindow/export.glade.h:7
 msgid "Estimated Size"
 msgstr "Geschätzte Größe"
-
-#: src/paperwork/frontend/mainwindow/export.glade.h:8
-msgid " Save as ... "
-msgstr " Speichern als ... "
 
 #: src/paperwork/frontend/aboutdialog/aboutdialog.glade.h:1
 msgid "About"
@@ -695,13 +844,39 @@ msgid "Redo OCR on all the documents"
 msgstr "OCR für alle Dokumente wiederholen"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:8
-msgid "A_ctivate"
-msgstr "A_ktivieren"
+msgid "_Help"
+msgstr "_Hilfe"
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:9
+msgid "_Introduction"
+msgstr "_Einführung"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:10
+msgid "User Manual"
+msgstr "Handbuch"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:11
+msgid "Translator Guide"
+msgstr "Übersetzungshandbuch"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:12
+msgid "Developer Guide"
+msgstr "Entwicklerhandbuch"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:13
 msgid "_About"
 msgstr "_Über"
 
-#: src/paperwork/frontend/mainwindow/appmenu.xml.h:10
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:14
+msgid "A_ctivate"
+msgstr "A_ktivieren"
+
+#: src/paperwork/frontend/mainwindow/appmenu.xml.h:15
 msgid "_Quit"
 msgstr "_Beenden"
+
+#~ msgid "Disable OCR"
+#~ msgstr "OCR deaktivieren"
+
+#~ msgid " Save as ... "
+#~ msgstr " Speichern als ... "

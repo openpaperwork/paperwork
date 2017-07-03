@@ -831,6 +831,11 @@ msgstr "Dernière occurrence"
 #: src/paperwork/frontend/mainwindow/searchbar.glade.h:6
 msgid "Next document"
 msgstr "Document suivant"
+#: src/paperwork/frontend/settingswindow/settingswindow.glade.h:15
+msgid "Help us improve Paperwork by telling us how you use it"
+msgstr ""
+"Aidez nous à améliorer Paperwork en nous disant comment vous l'utilisez"
+
 
 #: src/paperwork/frontend/mainwindow/appmenu.xml.h:1
 msgid "_File"

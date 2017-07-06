@@ -310,6 +310,23 @@
 					        "dest-filename": "Makefile"
 				        }
 			        ]
+                },
+                {
+                    "name" :"setuptools",
+                    "no-autogen": true,
+                    "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
+                    "sources": [
+				        {
+					        "type": "archive",
+					        "url": "https://pypi.python.org/packages/a9/23/720c7558ba6ad3e0f5ad01e0d6ea2288b486da32f053c73e259f7c392042/setuptools-36.0.1.zip",
+					        "sha256": "e17c4687fddd6d70a6604ac0ad25e33324cec71b5137267dd5c45e103c4b288a"
+				        },
+				        {
+					        "type": "file",
+					        "path": "pip-Makefile",
+					        "dest-filename": "Makefile"
+				        }
+			        ]
                 }
             ]
         },
@@ -338,7 +355,7 @@
                     "sha256": "537f2bc60d796525705ad9ca8e46899dcc99c2e9480b80051808bae265cdc658"
                 }
             ]
-},
+		},
 		{
 			"name": "paperwork",
 			"make-install-args": ["prefix=/app"],

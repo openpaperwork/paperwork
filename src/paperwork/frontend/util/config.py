@@ -14,6 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
 import configparser
 import datetime
 import logging
@@ -216,6 +217,45 @@ class _PaperworkSize(object):
         config.set(self.section, self.base_token + "_h", str(self.value[1]))
 
 
+class _PaperworkRecent(object):
+    def __init__(self, section, base_token, max_length=10):
+        self.section = section
+        self.base_token = base_token
+        self.max_length = max_length
+        self.value = []
+
+    def push(self, value):
+        value = value.strip()
+        if value == "":
+            return
+        if value in self.value:
+            # duplicates are useless
+            return
+        self.value.append(value)
+        if len(self.value) > self.max_length:
+            self.value.pop(0)
+
+    def load(self, config):
+        try:
+            idx = 0
+            while True:
+                v = config.get(self.section, self.base_token + "_" + str(idx))
+                v = v.encode("utf-8")
+                v = base64.decodebytes(v)
+                v = v.decode("utf-8")
+                self.push(v)
+                idx += 1
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            pass
+
+    def update(self, config):
+        for (idx, v) in enumerate(self.value):
+            v = v.encode("utf-8")
+            v = base64.encodebytes(v).strip()
+            v = v.decode("utf-8")
+            config.set(self.section, self.base_token + "_" + str(idx), v)
+
+
 def get_default_spellcheck_lang(ocr_lang):
     ocr_lang = ocr_lang.value
     if ocr_lang is None:
@@ -284,8 +324,13 @@ def load_config():
         ),
         'uuid': PaperworkSetting(
             "Statistics", "uuid", lambda: uuid.getnode(), int
-        )
+        ),
+
+        # recents
+        'last_documents': _PaperworkRecent("recent", "documents", 3),
+        'last_searches': _PaperworkRecent("recent", "search", 10),
     }
+
     ocr_lang = get_default_spellcheck_lang
     settings['spelling_lang'] = (
         PaperworkSetting("SpellChecking", "Lang",

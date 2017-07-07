@@ -2309,6 +2309,9 @@ class ActionRealQuit(SimpleAction):
         GLib.idle_add(self.__actual_quit)
 
     def __actual_quit(self):
+        logger.info("Saving configuration ...")
+        self.__config.write()
+
         # We must stop the schedulers before anything else because jobs
         # may need the Gtk loop or other services to stop correctly
         logger.info("Stopping schedulers ...")
@@ -2616,6 +2619,8 @@ class SearchBar(object):
 
 class MainWindow(object):
     def __init__(self, config, main_loop, workdir_scan=True):
+        self.__config = config
+
         self.ready = False
         self.docsearch = DummyDocSearch()
         self.workdir_scan_at_start = workdir_scan
@@ -3680,6 +3685,11 @@ class MainWindow(object):
 
         return (True, force_refresh)
 
+    def update_recent(self):
+        self.__config['last_documents'].push(self.doc.docid)
+        search = self.search_field.get_text()
+        self.__config['last_searches'].push(search)
+
     def _show_pages(self, doc):
         if not self.page or self.page.doc.docid != doc.docid:
             if doc.nb_pages > 0:
@@ -3708,8 +3718,7 @@ class MainWindow(object):
 
     def _show_doc_internal(self, doc, force_refresh=False):
         # Make sure we display the same instance of the document than the
-        # one in the backend. Not a copy (unless there is no instance in the
-        # backend)
+        # one in the backend.
         # This is required to workaround some issues regarding caching
         # in the backend
         doc_inst = self.docsearch.get_doc_from_docid(doc.docid, inst=False)
@@ -3747,6 +3756,7 @@ class MainWindow(object):
 
         self.doclist.set_selected_doc(self.doc)
         self.doc_properties_panel.set_doc(self.doc)
+        self.update_recent()
 
     def _show_doc_hook(self, doc, force_refresh=False):
         try:

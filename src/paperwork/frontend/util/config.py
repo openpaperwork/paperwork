@@ -236,6 +236,7 @@ class _PaperworkRecent(object):
             self.value.pop(0)
 
     def load(self, config):
+        self.value = []
         try:
             idx = 0
             while True:

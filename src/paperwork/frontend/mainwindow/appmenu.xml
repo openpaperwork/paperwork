@@ -5,6 +5,10 @@
 			<attribute name="label" translatable="yes">_File</attribute>
 			<section>
 				<item>
+					<attribute name="label" translatable="yes">Summary</attribute>
+					<attribute name="action">app.summary</attribute>
+				</item>
+				<item>
 					<attribute name="label" translatable="yes">_Settings</attribute>
 					<attribute name="action">app.settings</attribute>
 				</item>

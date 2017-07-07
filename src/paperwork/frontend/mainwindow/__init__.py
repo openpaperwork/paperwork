@@ -2265,6 +2265,19 @@ class ActionOpenActivation(SimpleAction):
         self.diag.show()
 
 
+class ActionOpenSummary(SimpleAction):
+    """
+    Quit
+    """
+    def __init__(self, main_window):
+        SimpleAction.__init__(self, "Open summary")
+        self.__main_win = main_window
+
+    def do(self):
+        SimpleAction.do(self)
+        self.__main_win.switch_mainview("summary")
+
+
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2656,7 +2669,9 @@ class MainWindow(object):
         preload_file(os.path.join("mainwindow", "paperwork_halo.svg"))
 
         widget_tree = load_uifile(
-            os.path.join("mainwindow", "mainwindow.glade"))
+            os.path.join("mainwindow", "mainwindow.glade")
+        )
+        summary_tree = load_uifile(os.path.join("mainwindow", "summary.glade"))
         # self.widget_tree is for tests/screenshots ONLY
         self.widget_tree = widget_tree
 
@@ -2706,6 +2721,8 @@ class MainWindow(object):
             'search': self.search_field,
         }
 
+        self.global_page_box = widget_tree.get_object("globalPageBox")
+
         img_scrollbars = widget_tree.get_object("scrolledwindowPageImg")
         img_widget = Canvas(img_scrollbars)
         img_widget.set_visible(True)
@@ -2749,6 +2766,12 @@ class MainWindow(object):
         self.page_drop_handler = PageDropHandler(self)
         self.img['canvas'].add_drawer(self.page_drop_handler)
         self.page_drop_handler.set_enabled(self.doc.can_edit)
+
+        self.summary = {
+            "view": summary_tree.get_object("summary_view"),
+        }
+
+        self.active_view = "content"
 
         self.popovers = {
             'view_settings': widget_tree.get_object("view_settings_popover"),
@@ -2796,7 +2819,6 @@ class MainWindow(object):
             'total': widget_tree.get_object("labelTotalPages"),
         }
 
-        self.global_page_box = widget_tree.get_object("globalPageBox")
         self.export = {
             'dialog': None,
             'exporter': None,
@@ -2922,6 +2944,12 @@ class MainWindow(object):
                     gactions['open_help_hacking'],
                 ],
                 ActionOpenHelp(self, "hacking")
+            ),
+            'open_summary': (
+                [
+                    gactions['summary'],
+                ],
+                ActionOpenSummary(self)
             ),
             'quit': (
                 [
@@ -3084,8 +3112,8 @@ class MainWindow(object):
         for scheduler in self.schedulers.values():
             scheduler.start()
 
-        GLib.idle_add(self.__init_canvas, config)
         GLib.idle_add(self.window.set_visible, True)
+        GLib.idle_add(self.switch_mainview, "summary")
 
         self.beacon = beacon.Beacon(config)
         beacon.check_update(self.beacon)
@@ -3219,6 +3247,7 @@ class MainWindow(object):
             'reindex_all': Gio.SimpleAction.new("reindex_all", None),
             'scan_single': Gio.SimpleAction.new("scan_single_page", None),
             'scan_from_feeder': Gio.SimpleAction.new("scan_from_feeder", None),
+            'summary': Gio.SimpleAction.new("summary", None),
             'quit': Gio.SimpleAction.new("quit", None),
         }
         if g_must_init_app:
@@ -3265,68 +3294,6 @@ class MainWindow(object):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             window.set_icon(logo)
         return window
-
-    def __init_canvas(self, config):
-        logo = "paperwork_100.png"
-
-        activated = activation.is_activated(config)
-        expired = activation.has_expired(config)
-
-        if not activated and expired:
-            logo = "bad.png"
-
-        logo_size = (0, 0)
-        try:
-            logo = load_image(logo)
-            logo_size = logo.size
-            logo_drawer = PillowImageDrawer((
-                - (logo_size[0] / 2),
-                - (logo_size[1] / 2) - 12,
-            ), logo)
-            logo_drawer = Centerer(logo_drawer)
-            logo_drawer.layer = logo_drawer.BACKGROUND_LAYER
-            self.img['canvas'].add_drawer(logo_drawer)
-        except Exception as exc:
-            logger.warning("Failed to display logo: {}".format(exc))
-            raise
-
-        update = config['last_update_found'].value
-
-        lines = [
-            ("Paperwork {}".format(__version__), 28),
-        ]
-        if not activated:
-            if expired:
-                lines += [
-                    (_("Trial period has expired"), 30),
-                    (_("Everything will work as usual, except we've"), 24),
-                    (_("switched all the fonts to {}").format(
-                        self.default_font), 24),
-                    (_("until you get an activation key"), 24),
-                    # TODO(Jflesch): Make that a link
-                    (_("You can go to https://openpaper.work/activation/"), 24),
-                    (_("to get an activation key"), 24),
-                ]
-            else:
-                remaining = activation.get_remaining_days(config)
-                lines += [
-                    _("Trial period: {} days remaining").format(remaining), 20
-                ]
-        elif update and update != self.version:
-            lines += [
-                (_("A new version is available:"), 20),
-                (_("Paperwork {}").format(update), 20),
-                # TODO(Jflesch): Make that a link
-                ("https://openpaper.work/download/", 20),
-            ]
-
-        pos = logo_size[1] / 2
-        for (txt, font_size) in lines:
-            txt_drawer = TextDrawer((0, pos), txt, height=font_size)
-            txt_drawer.font = self.default_font
-            txt_drawer = Centerer(txt_drawer)
-            self.img['canvas'].add_drawer(txt_drawer)
-            pos += font_size + 5
 
     def set_search_availability(self, enabled):
         set_widget_state(self.doc_browsing.values(), enabled)
@@ -3454,6 +3421,19 @@ class MainWindow(object):
             Gdk.RGBA(red=1.0, green=0.0, blue=0.0, alpha=1.0)
         )
         self.doclist.clear()
+
+    def switch_mainview(self, to):
+        if to == self.active_view:
+            return
+        if to == "summary":
+            self.global_page_box.remove(self.img['scrollbar'])
+            self.global_page_box.pack_end(self.summary['view'], True, True, 0)
+        elif to == "content":
+            self.global_page_box.remove(self.summary['view'])
+            self.global_page_box.pack_end(self.img['scrollbar'], True, True, 0)
+        else:
+            assert False, "Unknown main view requested"
+        self.active_view = to
 
     def switch_leftpane(self, to):
         for (name, revealers) in self.left_revealers.items():
@@ -3757,6 +3737,7 @@ class MainWindow(object):
         self.doclist.set_selected_doc(self.doc)
         self.doc_properties_panel.set_doc(self.doc)
         self.update_recent()
+        self.switch_mainview("content")
 
     def _show_doc_hook(self, doc, force_refresh=False):
         try:

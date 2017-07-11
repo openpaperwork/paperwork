@@ -92,7 +92,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.2.post1",
+    version="1.2.post2",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),

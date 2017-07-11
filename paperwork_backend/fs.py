@@ -222,14 +222,15 @@ class GioFileSystem(object):
         pass
 
     def safe(self, uri):
-        if "://" not in uri:
+        if "://" in uri:
+            return uri
+        if os.name != "nt":
             uri = os.path.abspath(uri)
-            # assume local path
-            if os.name == "nt":
-                uri = "file://" + uri  # for some reason, it makes things worst
-            else:
-                uri = "file://" + urllib.parse.quote(uri)
-        return uri
+            uri = "file://" + urllib.parse.quote(uri)
+            return uri
+        else:
+            gf = Gio.File.new_for_path(uri)
+            return gf.get_uri()
 
     def unsafe(self, uri):
         if "://" not in uri:

@@ -107,6 +107,9 @@ def _get_resource_path(filename, pkg="paperwork.frontend"):
         if os.path.exists(path):
             return path
 
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, "data", filename)
+
     path = resource_filename(pkg, filename)
 
     if not os.access(path, os.R_OK):

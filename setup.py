@@ -4,32 +4,32 @@ import os
 
 from setuptools import setup, find_packages
 
-ICON_DIRPATHS = [
-    "data/16",
-    "data/22",
-    "data/24",
-    "data/30",
-    "data/32",
-    "data/36",
-    "data/42",
-    "data/48",
-    "data/50",
-    "data/64",
-    "data/72",
-    "data/96",
-    "data/100",
-    "data/128",
-    "data/150",
-    "data/160",
-    "data/192",
-    "data/256",
-    "data/512",
+LOCALES = [
+    "de",
+    "fr",
+    "uk",
 ]
 
-LOCALE_DIRPATHS = [
-    "locale/de",
-    "locale/fr",
-    "locale/uk",
+ICON_SIZES = [
+    16,
+    22,
+    24,
+    30,
+    32,
+    36,
+    42,
+    48,
+    50,
+    64,
+    72,
+    96,
+    100,
+    128,
+    150,
+    160,
+    192,
+    256,
+    512,
 ]
 
 DOC_PATHS = [
@@ -40,6 +40,21 @@ DOC_PATHS = [
     "doc/usage.pdf",
 ]
 
+packages = find_packages('src') + [
+    'paperwork.frontend.doc',
+]
+package_dir = {
+    '': 'src',
+    'paperwork.frontend.doc': 'doc',
+}
+package_data = {
+    'paperwork.frontend': [
+        'data/paperwork.svg',
+        'data/paperwork_halo.svg',
+    ],
+    'paperwork.frontend.doc': DOC_PATHS,
+}
+
 extra_deps = []
 
 if os.name == "nt":
@@ -47,27 +62,21 @@ if os.name == "nt":
         "pycrypto"  # used to check the activation keys
     ]
 
-data_files = []
-
 # include icons
-for icon_dirpath in ICON_DIRPATHS:
-    icon_path = os.path.join(icon_dirpath, 'paperwork.png')
-    size = os.path.basename(icon_dirpath)
-    data_files.append(
-        ('paperwork/frontend/share/icons/hicolor/{}/apps'.format(size),
-            [icon_path])
-    )
+packages.append("paperwork.frontend.data")
+package_dir['paperwork.frontend.data'] = 'data'
+for size in ICON_SIZES:
+    icon_path = os.path.join("data", 'paperwork_{}.png'.format(size))
+    package_data['paperwork.frontend.data'] = [icon_path]
 
 # include locales
-for locale_dir in LOCALE_DIRPATHS:
-    mo_dir = os.path.join(locale_dir, "LC_MESSAGES")
+for locale in LOCALES:
+    mo_dir = os.path.join("locale", locale, "LC_MESSAGES")
     mo = os.path.join(mo_dir, "paperwork.mo")
-    data_files.append(
-        (
-            os.path.join('paperwork', 'frontend', 'share', mo_dir),
-            [mo]
-        ),
-    )
+    pkg = "paperwork.frontend.locale.{}.LC_MESSAGES".format(locale)
+    packages.append(pkg)
+    package_dir[pkg] = mo_dir
+    package_data[pkg] = [mo]
 
 setup(
     name="paperwork",
@@ -128,21 +137,10 @@ Main features are:
     license="GPLv3+",
     author="Jerome Flesch",
     author_email="jflesch@openpaper.work",
-    packages=find_packages('src'),
-    package_dir={'': 'src'},
+    packages=packages,
+    package_dir=package_dir,
+    package_data=package_data,
     include_package_data=True,
-    data_files=[
-        ('paperwork/frontend/share/icons/hicolor/scalable/apps',
-         ['data/paperwork.svg', 'data/paperwork_halo.svg']),
-
-        ('paperwork/frontend/mainwindow',
-         ['data/paperwork_halo.svg']),
-        ('paperwork/frontend/aboutdialog',
-         ['data/paperwork.svg']),
-
-        # documentation
-        ('paperwork/frontend/doc', DOC_PATHS),
-    ] + data_files,
     entry_points={
         'gui_scripts': [
             'paperwork = paperwork.paperwork:main',

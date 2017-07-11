@@ -204,7 +204,7 @@
     <property name="title">Paperwork</property>
     <property name="default_width">1024</property>
     <property name="default_height">768</property>
-    <property name="icon">paperwork_halo.svg</property>
+    <property name="icon">data/paperwork_halo.svg</property>
     <property name="show_menubar">False</property>
     <child type="titlebar">
       <object class="GtkBox" id="box_headerbar">

@@ -18,7 +18,6 @@
 import gc
 import logging
 import os
-import sys
 import threading
 
 import gettext
@@ -2646,10 +2645,6 @@ class MainWindow(object):
         # can load it after the cruel and unusual DRM
         load_cssfile("application.css")
 
-        # before loading the main window, load the icon, so Gtk can access
-        # it too
-        preload_file(os.path.join("mainwindow", "paperwork_halo.svg"))
-
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade"))
         # self.widget_tree is for tests/screenshots ONLY
@@ -3251,28 +3246,27 @@ class MainWindow(object):
         window.set_default_size(config['main_win_size'].value[0],
                                 config['main_win_size'].value[1])
 
-        logo_path = os.path.join(
-            sys.prefix,
-            'share', 'icons', 'hicolor', 'scalable', 'apps',
-            'paperwork_halo.svg'
-        )
-        if os.access(logo_path, os.F_OK):
-            logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
-            window.set_icon(logo)
+        # before loading the main window, load the icon, so Gtk can access
+        # it too
+        logo_path = preload_file("paperwork_halo.svg")
+        logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
+        window.set_icon(logo)
         return window
 
     def __init_canvas(self, config):
         logo = "paperwork_100.png"
+        pkg = "paperwork.frontend.data"
 
         activated = activation.is_activated(config)
         expired = activation.has_expired(config)
 
         if not activated and expired:
             logo = "bad.png"
+            pkg = "paperwork.frontend"
 
         logo_size = (0, 0)
         try:
-            logo = load_image(logo)
+            logo = load_image(logo, pkg=pkg)
             logo_size = logo.size
             logo_drawer = PillowImageDrawer((
                 - (logo_size[0] / 2),

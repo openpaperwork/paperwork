@@ -175,7 +175,7 @@ class SpinnerAnimation(Animation):
         self.position = position
         self.size = (self.ICON_SIZE, self.ICON_SIZE)
 
-        img = load_image("waiting.png")
+        img = load_image("waiting.png", pkg="paperwork.frontend")
         factor = self.ICON_SIZE / self.src_size
         img = img.resize((int(img.size[0] * factor), int(img.size[1] * factor)),
                          PIL.Image.ANTIALIAS)

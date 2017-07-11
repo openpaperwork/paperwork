@@ -1255,7 +1255,9 @@ class PageDrawer(Drawer, GObject.GObject):
             )
             first_editor_buttons_pos += 10 + self.BUTTON_SIZE
 
-        ace_button_img = load_image("magic_colors.png")
+        ace_button_img = load_image(
+            "magic_colors.png", pkg="paperwork.frontend"
+        )
         ace_button_surface = image2surface(ace_button_img)
 
         self.editor_buttons = {

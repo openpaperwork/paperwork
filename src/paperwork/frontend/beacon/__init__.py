@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 import os
 import platform
+import re
 import threading
 import urllib
 
@@ -54,6 +55,8 @@ class Beacon(object):
         for release in r:
             date = dateutil.parser.parse(release['created_at'])
             tag = release['tag_name']
+            if not re.match("\d+\.\d+(|\.\d+)", tag):
+                continue
             if last_tag_date is None or last_tag_date < date:
                 last_tag_date = date
                 last_tag_name = tag

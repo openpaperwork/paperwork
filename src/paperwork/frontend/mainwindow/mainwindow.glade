@@ -503,15 +503,15 @@
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
 
-            <style>
-              <class name="box-left"/>
-            </style>
-
             <child>
               <object class="GtkBox" id="box_search">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">horizontal</property>
+                <style>
+                  <class name="box-left"/>
+                </style>
+
                 <child>
                   <object class="GtkSearchEntry" id="entrySearch">
                     <property name="visible">True</property>
@@ -562,9 +562,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="orientation">horizontal</property>
-                <style>
-                  <class name="box-left"/>
-                </style>
 
                 <child>
                   <object class="GtkRevealer" id="box_left_loading_revealer">
@@ -652,6 +649,10 @@
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
                         <property name="vscrollbar_policy">automatic</property>
+                        <style>
+                          <class name="box-left"/>
+                        </style>
+
                         <child>
 
                           <object class="GtkBox">
@@ -947,6 +948,7 @@
       <widget name="box_left_doclist"/>
       <widget name="box_left_docproperties"/>
       <widget name="scrolledwindowLoading"/>
+      <widget name="box_search"/>
 
       <widget name="doclist_headerbar_left"/>
       <widget name="docproperties_headerbar_left"/>

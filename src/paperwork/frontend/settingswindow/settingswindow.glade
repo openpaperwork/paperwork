@@ -424,6 +424,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="draw_indicator">True</property>
+                                <property name="tooltip_text" translatable="yes">Help us improve Paperwork by telling us how you use it</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

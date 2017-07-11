@@ -1568,8 +1568,12 @@ class PageDrawer(Drawer, GObject.GObject):
         self.canvas.redraw((position, size))
 
     def set_drag_enabled(self, drag):
-        if not self.page.doc.can_edit:
+        if self.editor_state != "before":
+            # page editor is active ; can't drag'n'drop
             drag = False
+        elif not self.page.doc.can_edit:
+            drag = False
+
         self.drag_enabled = drag
         if not self.canvas:
             return

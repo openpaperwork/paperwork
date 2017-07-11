@@ -225,8 +225,6 @@ def get_documentation(doc_name):
     Return the path to a documentation PDF.
     Try to match the user language.
     """
-    DOC_SUBDIR = "doc"
-
     lang = "en"
     try:
         lang = locale.getdefaultlocale()[0][:2]
@@ -237,16 +235,15 @@ def get_documentation(doc_name):
         )
         pass
 
-    default = os.path.join(DOC_SUBDIR, doc_name + ".pdf")
-    localized = os.path.join(DOC_SUBDIR,
-                             "{}_{}.pdf".format(doc_name, lang))
+    default = doc_name + ".pdf"
+    localized = "{}_{}.pdf".format(doc_name, lang)
     try:
-        return _get_resource_path(localized, pkg="paperwork.frontend.docs")
+        return _get_resource_path(localized, pkg="paperwork.frontend.doc")
     except:
         pass
 
     try:
-        return _get_resource_path(default, pkg="paperwork.frontend.docs")
+        return _get_resource_path(default, pkg="paperwork.frontend.doc")
     except:
         pass
 

@@ -1,9 +1,44 @@
 #!/usr/bin/env python
 
-import glob
 import os
 
 from setuptools import setup, find_packages
+
+ICON_DIRPATHS = [
+    "data/16",
+    "data/22",
+    "data/24",
+    "data/30",
+    "data/32",
+    "data/36",
+    "data/42",
+    "data/48",
+    "data/50",
+    "data/64",
+    "data/72",
+    "data/96",
+    "data/100",
+    "data/128",
+    "data/150",
+    "data/160",
+    "data/192",
+    "data/256",
+    "data/512",
+]
+
+LOCALE_DIRPATHS = [
+    "locale/de",
+    "locale/fr",
+    "locale/uk",
+]
+
+DOC_PATHS = [
+    "doc/hacking.pdf",
+    "doc/intro_fr.pdf",
+    "doc/intro.pdf",
+    "doc/translating.pdf",
+    "doc/usage.pdf",
+]
 
 extra_deps = []
 
@@ -15,17 +50,16 @@ if os.name == "nt":
 data_files = []
 
 # include icons
-for icon_dirpath in glob.glob('data/[0-9][0-9]*'):
+for icon_dirpath in ICON_DIRPATHS:
     icon_path = os.path.join(icon_dirpath, 'paperwork.png')
-    if os.path.exists(icon_path):
-        size = os.path.basename(icon_dirpath)
-        data_files.append(
-            ('paperwork/frontend/share/icons/hicolor/{}/apps'.format(size),
-             [icon_path])
-        )
+    size = os.path.basename(icon_dirpath)
+    data_files.append(
+        ('paperwork/frontend/share/icons/hicolor/{}/apps'.format(size),
+            [icon_path])
+    )
 
 # include locales
-for locale_dir in glob.glob("locale/??"):
+for locale_dir in LOCALE_DIRPATHS:
     mo_dir = os.path.join(locale_dir, "LC_MESSAGES")
     mo = os.path.join(mo_dir, "paperwork.mo")
     data_files.append(
@@ -49,7 +83,7 @@ setup(
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
-    version="1.2",
+    version="1.2.post1",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -107,7 +141,7 @@ Main features are:
          ['data/paperwork.svg']),
 
         # documentation
-        ('paperwork/frontend/doc', glob.glob('doc/*.pdf')),
+        ('paperwork/frontend/doc', DOC_PATHS),
     ] + data_files,
     entry_points={
         'gui_scripts': [

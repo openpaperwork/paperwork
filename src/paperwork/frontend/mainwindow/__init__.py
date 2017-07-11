@@ -2897,24 +2897,6 @@ class MainWindow(object):
                 ],
                 ActionImport(self, config)
             ),
-            'print': (
-                [
-                    gactions['print'],
-                ],
-                ActionPrintDoc(self)
-            ),
-            'open_export_doc_dialog': (
-                [
-                    gactions['export_doc'],
-                ],
-                ActionOpenExportDocDialog(self)
-            ),
-            'open_export_page_dialog': (
-                [
-                    gactions['export_page'],
-                ],
-                ActionOpenExportPageDialog(self)
-            ),
             'open_settings': (
                 [
                     gactions['open_settings'],
@@ -2957,12 +2939,6 @@ class MainWindow(object):
                 ],
                 ActionQuit(self, config),
             ),
-            'open_doc_dir': (
-                [
-                    gactions['open_doc_dir']
-                ],
-                ActionOpenDocDir(self),
-            ),
             'optimize_index': (
                 [
                     gactions['optimize_index'],
@@ -2998,12 +2974,6 @@ class MainWindow(object):
                     widget_tree.get_object("show_all_boxes"),
                 ],
                 ActionToggleAllBoxes(self)
-            ),
-            'redo_ocr_doc': (
-                [
-                    gactions['redo_ocr_doc'],
-                ],
-                ActionRedoDocOCR(self),
             ),
             'redo_ocr_all': (
                 [
@@ -3059,17 +3029,11 @@ class MainWindow(object):
         self.window.add_events(Gdk.EventMask.KEY_PRESS_MASK)
 
         self.need_doc_widgets = set(
-            self.actions['print'][0] +
-            self.actions['open_doc_dir'][0] +
-            self.actions['redo_ocr_doc'][0] +
-            self.actions['open_export_doc_dialog'][0] +
             self.actions['set_current_page'][0] +
             self.actions['open_view_settings'][0]
         )
 
-        self.need_page_widgets = set(
-            self.actions['open_export_page_dialog'][0]
-        )
+        self.need_page_widgets = set()
 
         self.__show_all_boxes_widget = \
             self.actions['show_all_boxes'][0][0]
@@ -3229,8 +3193,6 @@ class MainWindow(object):
             'about': Gio.SimpleAction.new("about", None),
             'activate': Gio.SimpleAction.new("activate", None),
             'diagnostic': Gio.SimpleAction.new("diag", None),
-            'export_doc': Gio.SimpleAction.new("export_doc", None),
-            'export_page': Gio.SimpleAction.new("export_page", None),
             'import': Gio.SimpleAction.new("import", None),
             'open_help_introduction': Gio.SimpleAction.new("help.introduction",
                                                            None),
@@ -3239,10 +3201,7 @@ class MainWindow(object):
                                                           None),
             'open_help_hacking': Gio.SimpleAction.new("help.hacking", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
-            'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
             'optimize_index': Gio.SimpleAction.new("optimize_index", None),
-            'print': Gio.SimpleAction.new("print", None),
-            'redo_ocr_doc': Gio.SimpleAction.new("redo_ocr_doc", None),
             'redo_ocr_all': Gio.SimpleAction.new("redo_ocr_all", None),
             'reindex_all': Gio.SimpleAction.new("reindex_all", None),
             'scan_single': Gio.SimpleAction.new("scan_single_page", None),

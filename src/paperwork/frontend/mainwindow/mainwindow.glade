@@ -24,38 +24,6 @@
     </section>
   </menu>
 
-  <menu id="advanced_window_menu">
-    <section>
-
-      <item>
-        <attribute name="label" translatable="yes">Open directory</attribute>
-        <attribute name="action">app.doc_open_dir</attribute>
-      </item>
-      <item>
-        <attribute name="label" translatable="yes">Print</attribute>
-        <attribute name="action">app.print</attribute>
-      </item>
-
-      <submenu id="advanced_export">
-        <attribute name="label" translatable="yes">Export</attribute>
-        <item>
-          <attribute name="label" translatable="yes">Page</attribute>
-          <attribute name="action">app.export_page</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Document(s)</attribute>
-          <attribute name="action">app.export_doc</attribute>
-        </item>
-      </submenu>
-
-      <item>
-        <attribute name="label" translatable="yes">Redo OCR</attribute>
-        <attribute name="action">app.redo_ocr_doc</attribute>
-      </item>
-
-    </section>
-  </menu>
-
   <object class="GtkAdjustment" id="adjustmentQuality">
     <property name="lower">5</property>
     <property name="upper">100</property>
@@ -257,6 +225,25 @@
                       <class name="left-header-bar"/>
                       <class name="titlebar"/>
                     </style>
+
+                    <child>
+                      <object class="GtkButton" id="menubuttonObjectSelect">
+                        <property name="use_action_appearance">False</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="visible">True</property>
+                            <property name="icon_name">object-select-symbolic</property>
+                            <property name="can_focus">False</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="pack_type">start</property>
+                      </packing>
+                    </child>
+
                     <child>
                       <object class="GtkButton" id="toolbuttonNewDoc">
                         <property name="use_action_appearance">False</property>
@@ -268,8 +255,10 @@
                           <object class="GtkImage" id="image_button_new_doc">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="icon_name">list-add-symbolic</property>
+                            <property name="icon_name">document-new-symbolic</property>
                             <property name="icon_size">1</property>
+                            <property name="has_tooltip">True</property>
+                            <property name="tooltip_text" translatable="yes">New document</property>
                           </object>
                         </child>
                       </object>
@@ -402,6 +391,8 @@
                     <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">View settings</property>
                     <style>
                       <class name="button-right"/>
                     </style>
@@ -427,15 +418,14 @@
 
             <!-- end -->
             <child>
-              <object class="GtkMenuButton" id="menubuttonWindowAdvanced">
+              <object class="GtkButton" id="buttonDocumentProperties">
                 <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="menu_model">advanced_window_menu</property>
                 <child>
-                  <object class="GtkImage" id="image_button_menu_window_advanced">
+                  <object class="GtkImage">
                     <property name="visible">True</property>
-                    <property name="icon_name">open-menu-symbolic</property>
+                    <property name="icon_name">document-properties-symbolic</property>
                     <property name="can_focus">False</property>
                   </object>
                 </child>
@@ -469,6 +459,8 @@
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="menu_model">scan_menu</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip_text" translatable="yes">Other input methods</property>
                     <style>
                       <class name="button-right"/>
                     </style>
@@ -964,7 +956,7 @@
       <widget name="entryPageNb"/>
       <widget name="labelTotalPages"/>
       <widget name="viewSettingsButton"/>
-      <widget name="menubuttonWindowAdvanced"/>
+      <widget name="buttonDocumentProperties"/>
       <widget name="buttonScan"/>
       <widget name="menubuttonOtherScans"/>
     </widgets>

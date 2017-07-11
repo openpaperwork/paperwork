@@ -17,14 +17,21 @@
 Paperwork configuration management code
 """
 
+import base64
 import configparser
 import logging
 import os
+import pyocr
 
 from . import util
+from . import fs
+from .util import find_language
 
 
 logger = logging.getLogger(__name__)
+FS = fs.GioFileSystem()
+
+DEFAULT_OCR_LANG = "eng"  # if really we can't guess anything
 
 
 def paperwork_cfg_boolean(string):
@@ -34,7 +41,6 @@ def paperwork_cfg_boolean(string):
 
 
 class PaperworkSetting(object):
-
     def __init__(self, section, token, default_value_func=lambda: None,
                  constructor=str):
         self.section = section
@@ -60,21 +66,79 @@ class PaperworkSetting(object):
         config.set(self.section, self.token, str(self.value))
 
 
-class PaperworkConfig(object):
+class PaperworkURI(object):
+    def __init__(self, section, token, default_value_func=lambda: None):
+        self.section = section
+        self.token = token
+        self.default_value_func = default_value_func
+        self.value = None
 
+    def load(self, config):
+        try:
+            value = config.get(self.section, self.token)
+            value = value.strip()
+            if value != "None":
+                try:
+                    value = base64.decodebytes(value.encode("utf-8")).decode(
+                        'utf-8')
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to decode work dir path ({})".format(value),
+                        exc_info=exc
+                    )
+                value = FS.safe(value)
+            else:
+                value = None
+            self.value = value
+            return
+        except (configparser.NoOptionError, configparser.NoSectionError):
+            pass
+        self.value = self.default_value_func()
+
+    def update(self, config):
+        value = FS.safe(str(self.value))
+        try:
+            value = base64.encodebytes(value.encode('utf-8')).decode('utf-8')
+        except Exception as exc:
+            logger.warning("Failed to encode work dir path ({})".format(value),
+                           exc_info=exc)
+        config.set(self.section, self.token, value.strip())
+
+
+def get_default_ocr_lang():
+    # Try to guess based on the system locale what would be
+    # the best OCR language
+
+    ocr_tools = pyocr.get_available_tools()
+    if len(ocr_tools) == 0:
+        return DEFAULT_OCR_LANG
+    ocr_langs = ocr_tools[0].get_available_languages()
+
+    lang = find_language()
+    if hasattr(lang, 'iso639_3_code') and lang.iso639_3_code in ocr_langs:
+        return lang.iso639_3_code
+    if hasattr(lang, 'terminology') and lang.terminology in ocr_langs:
+        return lang.terminology
+    return DEFAULT_OCR_LANG
+
+
+class PaperworkConfig(object):
     """
     Paperwork config. See each accessor to know for what purpose each value is
     used.
     """
-    CURRENT_INDEX_VERSION = "6"
+    CURRENT_INDEX_VERSION = "7"
 
     def __init__(self):
         self.settings = {
-            'workdir': PaperworkSetting(
+            'workdir': PaperworkURI(
                 "Global", "WorkDirectory",
                 lambda: os.path.expanduser("~/papers")),
             'index_version': PaperworkSetting(
                 "Global", "IndexVersion", lambda: "-1"),
+            'ocr_lang': PaperworkSetting(
+                "OCR", "Lang", get_default_ocr_lang
+            ),
         }
 
         self._configparser = None
@@ -89,13 +153,11 @@ class PaperworkConfig(object):
                           os.path.expanduser("~/.config"))))
         ]
 
-        configfile_found = False
         for self.__configfile in configfiles:
             if os.access(self.__configfile, os.R_OK):
-                configfile_found = True
                 logger.info("Config file found: %s" % self.__configfile)
                 break
-        if not configfile_found:
+        else:
             logger.info("Config file not found. Will use '%s'"
                         % self.__configfile)
         util.mkdir_p(os.path.dirname(self.__configfile))

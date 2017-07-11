@@ -22,19 +22,20 @@ import tempfile
 
 import PIL.Image
 
-from ..common.doc import dummy_export_progress_cb
+from ..common.export import Exporter
+from ..common.export import dummy_export_progress_cb
 from ..util import strip_accents
 from ..util import split_words
 
 logger = logging.getLogger(__name__)
 
 
-class PageExporter(object):
-    can_select_format = False
-    can_change_quality = True
-
+class PageExporter(Exporter):
     def __init__(self, page, img_format='PNG', mime='image/png',
                  valid_exts=['png']):
+        super().__init__(page, img_format)
+        self.can_change_quality = True
+        self.can_select_format = False
         self.page = page
         self.img_format = img_format
         self.mime = mime
@@ -50,6 +51,8 @@ class PageExporter(object):
         return self.valid_exts
 
     def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        target_path = self.page.fs.safe(target_path)
+
         progress_cb(0, 4)
 
         # the user gives us a quality between 0 and 100
@@ -71,7 +74,8 @@ class PageExporter(object):
             img = self.__postprocess_func(img)
             progress_cb(3, 4)
 
-        img.save(target_path, self.img_format, quality=quality)
+        with self.page.fs.open(target_path, 'wb') as fd:
+            img.save(fd, self.img_format, quality=quality)
         progress_cb(4, 4)
 
         return target_path
@@ -84,8 +88,9 @@ class PageExporter(object):
         os.close(tmpfd)
 
         path = self.save(tmppath)
-        img = PIL.Image.open(path)
-        img.load()
+        with self.page.fs.open(path, 'rb') as fd:
+            img = PIL.Image.open(fd)
+            img.load()
 
         self.__img = (path, img)
 
@@ -100,7 +105,7 @@ class PageExporter(object):
     def estimate_size(self):
         if self.__img is None:
             self.refresh()
-        return os.path.getsize(self.__img[0])
+        return self.page.fs.getsize(self.__img[0])
 
     def get_img(self):
         if self.__img is None:
@@ -139,11 +144,9 @@ class BasicPage(object):
         """
         Don't create directly. Please use ImgDoc.get_page()
         """
+        self.fs = doc.fs
         self.doc = doc
         self.page_nb = page_nb
-
-        self.__thumbnail_cache = (None, 0)
-        self.__text_cache = None
 
         assert(self.page_nb >= 0)
         self.__prototype_exporters = {
@@ -162,7 +165,7 @@ class BasicPage(object):
         Returns a file path relative to this page
         """
         filename = ("%s%d.%s" % (self.FILE_PREFIX, self.page_nb + 1, ext))
-        return os.path.join(self.doc.path, filename)
+        return self.fs.join(self.doc.path, filename)
 
     def __make_thumbnail(self, width, height):
         """
@@ -184,36 +187,26 @@ class BasicPage(object):
         """
         thumbnail with a memory cache
         """
-        if ((width, height) == self.__thumbnail_cache[1]):
-            return self.__thumbnail_cache[0]
-
         # get from the file
         try:
-            if (os.path.getmtime(self.get_doc_file_path()) <
-                    os.path.getmtime(self._get_thumb_path())):
-                thumbnail = PIL.Image.open(self._get_thumb_path())
+            if (self.fs.getmtime(self.get_doc_file_path()) <
+                    self.fs.getmtime(self._get_thumb_path())):
+                with self.fs.open(self._get_thumb_path(), 'rb') as fd:
+                    thumbnail = PIL.Image.open(fd)
+                    thumbnail.load()
             else:
                 thumbnail = self.__make_thumbnail(width, height)
-                thumbnail.save(self._get_thumb_path())
+                with self.fs.open(self._get_thumb_path(), 'wb') as fd:
+                    thumbnail.save(fd, format="JPEG")
         except:
             thumbnail = self.__make_thumbnail(width, height)
-            thumbnail.save(self._get_thumb_path())
+            with self.fs.open(self._get_thumb_path(), 'wb') as fd:
+                thumbnail.save(fd, format="JPEG")
 
-        self.__thumbnail_cache = (thumbnail, (width, height))
         return thumbnail
 
-    def drop_cache(self):
-        logger.debug("Dropping cache of page {}".format(
-            self
-        ))
-        self.__thumbnail_cache = (None, 0)
-        self.__text_cache = None
-
     def __get_text(self):
-        if self.__text_cache is not None:
-            return self.__text_cache
-        self.__text_cache = self._get_text()
-        return self.__text_cache
+        return self._get_text()
 
     text = property(__get_text)
 
@@ -270,10 +263,14 @@ class BasicPage(object):
     keywords = property(__get_keywords)
 
     def has_ocr(self):
-        return os.path.exists(self._get_filepath(self.EXT_BOX))
+        return self.fs.exists(self._get_filepath(self.EXT_BOX))
+
+    def __hash__(self):
+        return hash(self.pageid)
 
 
 class DummyPage(object):
+    pageid = 0
     page_nb = -1
     text = ""
     boxes = []
@@ -312,3 +309,6 @@ class DummyPage(object):
 
     def __str__(self):
         return "Dummy page"
+
+    def __hash__(self):
+        return 0

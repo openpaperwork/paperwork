@@ -141,8 +141,7 @@ def check_spelling(spelling_lang, txt):
     if os.name == "nt":
         assert(not "check_spelling() not available on Windows")
         return
-    _ENCHANT_LOCK.acquire()
-    try:
+    with _ENCHANT_LOCK:
         # Maximum distance from the first suggestion from python-enchant
 
         words_dict = enchant.request_dict(spelling_lang)
@@ -187,8 +186,6 @@ def check_spelling(spelling_lang, txt):
             score += 5
 
         return (txt, score)
-    finally:
-        _ENCHANT_LOCK.release()
 
 
 def mkdir_p(path):
@@ -244,9 +241,7 @@ def surface2image(surface):
     # return background
 
     global g_lock
-    g_lock.acquire()
-
-    try:
+    with g_lock:
         img_io = io.BytesIO()
         surface.write_to_png(img_io)
         img_io.seek(0)
@@ -259,8 +254,6 @@ def surface2image(surface):
         img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
         img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
         return img_no_alpha
-    finally:
-        g_lock.release()
 
 
 def image2surface(img):
@@ -283,14 +276,11 @@ def image2surface(img):
 
     # So we fall back to this method:
     global g_lock
-    g_lock.acquire()
-    try:
+    with g_lock:
         img_io = io.BytesIO()
         img.save(img_io, format="PNG")
         img_io.seek(0)
         return cairo.ImageSurface.create_from_png(img_io)
-    finally:
-        g_lock.release()
 
 
 def find_language(lang_str=None, allow_none=False):

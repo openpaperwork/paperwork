@@ -14,24 +14,17 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import codecs
 import datetime
 import gettext
 import logging
-import os.path
 import time
 import hashlib
 
 from ..labels import Label
-from ..util import rm_rf
 
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
-
-def dummy_export_progress_cb(*args, **kwargs):
-    pass
 
 
 class BasicDoc(object):
@@ -42,7 +35,7 @@ class BasicDoc(object):
     pages = []
     can_edit = False
 
-    def __init__(self, docpath, docid=None):
+    def __init__(self, fs, docpath, docid=None):
         """
         Basic init of common parts of doc.
 
@@ -50,36 +43,31 @@ class BasicDoc(object):
         content in __init__(). It would reduce in a huge performance loose
         and thread-safety issues. Load the content on-the-fly when requested.
         """
+        self.fs = fs
+        docpath = fs.safe(docpath)
         if docid is None:
             # new empty doc
             # we must make sure we use an unused id
             basic_docid = time.strftime(self.DOCNAME_FORMAT)
             extra = 0
             docid = basic_docid
-            path = os.path.join(docpath, docid)
-            while os.access(path, os.F_OK):
+            path = self.fs.join(docpath, docid)
+            while self.fs.exists(path):
                 extra += 1
                 docid = "%s_%d" % (basic_docid, extra)
-                path = os.path.join(docpath, docid)
+                path = self.fs.join(docpath, docid)
 
             self.__docid = docid
             self.path = path
         else:
             self.__docid = docid
             self.path = docpath
-        self.__cache = {}
 
         # We need to keep track of the labels:
         # When updating bayesian filters for label guessing,
         # we need to know the new label list, but also the *previous* label
         # list
         self._previous_labels = self.labels[:]
-
-    def drop_cache(self):
-        logger.debug("Dropping cache of document {} ({})".format(
-            self.docid, self
-        ))
-        self.__cache = {}
 
     def __str__(self):
         return self.__docid
@@ -95,9 +83,7 @@ class BasicDoc(object):
     last_mod = property(__get_last_mod)
 
     def __get_nb_pages(self):
-        if 'nb_pages' not in self.__cache:
-            self.__cache['nb_pages'] = self._get_nb_pages()
-        return self.__cache['nb_pages']
+        return self._get_nb_pages()
 
     nb_pages = property(__get_nb_pages)
 
@@ -132,9 +118,8 @@ class BasicDoc(object):
         """
         Delete the document. The *whole* document. There will be no survivors.
         """
-        self.drop_cache()
         logger.info("Destroying doc: %s" % self.path)
-        rm_rf(self.path)
+        self.fs.rm_rf(self.path)
         logger.info("Done")
 
     def add_label(self, label):
@@ -143,10 +128,9 @@ class BasicDoc(object):
         """
         if label in self.labels:
             return
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'a',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'a') \
+                as file_desc:
             file_desc.write("%s,%s\n" % (label.name, label.get_color_str()))
-        self.drop_cache()
 
     def remove_label(self, to_remove):
         """
@@ -156,12 +140,11 @@ class BasicDoc(object):
             return
         labels = self.labels
         labels.remove(to_remove)
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.drop_cache()
 
     def __get_labels(self):
         """
@@ -170,31 +153,28 @@ class BasicDoc(object):
         Returns:
             An array of labels.Label objects
         """
-        if 'labels' not in self.__cache:
-            labels = []
-            try:
-                with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'r',
-                                 encoding='utf-8') as file_desc:
-                    for line in file_desc.readlines():
-                        line = line.strip()
-                        (label_name, label_color) = line.split(",", 1)
-                        labels.append(Label(name=label_name,
-                                            color=label_color))
-            except IOError:
-                pass
-            self.__cache['labels'] = labels
-        return self.__cache['labels']
+        labels = []
+        try:
+            with self.fs.open(self.fs.join(self.path, self.LABEL_FILE),
+                                'r') as file_desc:
+                for line in file_desc.readlines():
+                    line = line.strip()
+                    (label_name, label_color) = line.split(",", 1)
+                    labels.append(Label(name=label_name,
+                                        color=label_color))
+        except IOError:
+            pass
+        return labels
 
     def __set_labels(self, labels):
         """
         Add a label on the document.
         """
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.__cache['labels'] = labels
 
     labels = property(__get_labels, __set_labels)
 
@@ -245,12 +225,11 @@ class BasicDoc(object):
         logger.info("%s : Updating label ([%s] -> [%s])"
                     % (str(self), old_label.name, new_label.name))
         labels.append(new_label)
-        with codecs.open(os.path.join(self.path, self.LABEL_FILE), 'w',
-                         encoding='utf-8') as file_desc:
+        with self.fs.open(self.fs.join(self.path, self.LABEL_FILE), 'w') \
+                as file_desc:
             for label in labels:
                 file_desc.write("%s,%s\n" % (label.name,
                                              label.get_color_str()))
-        self.drop_cache()
 
     @staticmethod
     def get_export_formats():
@@ -260,6 +239,8 @@ class BasicDoc(object):
         """
         Returns:
             Returned object must implement the following methods/attributes:
+            .obj
+            .export_format
             .can_change_quality = (True|False)
             .set_quality(quality_pourcent)  # if can_change_quality
             .set_postprocess_func(func)  # if can_change_quality
@@ -309,10 +290,7 @@ class BasicDoc(object):
         return hash(self.__docid)
 
     def __is_new(self):
-        if 'new' in self.__cache:
-            return self.__cache['new']
-        self.__cache['new'] = not os.access(self.path, os.F_OK)
-        return self.__cache['new']
+        return not self.fs.exists(self.path)
 
     is_new = property(__is_new)
 
@@ -347,27 +325,24 @@ class BasicDoc(object):
     def __get_docid(self):
         return self.__docid
 
-    def __set_docid(self, new_base_docid):
-        # XXX(JFlesch): On Windows, we must be sure that all the file descriptors are closed
-        self.drop_cache()
-
-        workdir = os.path.dirname(self.path)
+    def _set_docid(self, new_base_docid):
+        workdir = self.fs.dirname(self.path)
         new_docid = new_base_docid
-        new_docpath = os.path.join(workdir, new_docid)
+        new_docpath = self.fs.join(workdir, new_docid)
         idx = 0
 
-        while os.path.exists(new_docpath):
+        while self.fs.exists(new_docpath):
             idx += 1
             new_docid = new_base_docid + ("_%02d" % idx)
-            new_docpath = os.path.join(workdir, new_docid)
+            new_docpath = self.fs.join(workdir, new_docid)
 
         self.__docid = new_docid
         if self.path != new_docpath:
             logger.info("Changing docid: %s -> %s", self.path, new_docpath)
-            os.rename(self.path, new_docpath)
+            self.fs.rename(self.path, new_docpath)
             self.path = new_docpath
 
-    docid = property(__get_docid, __set_docid)
+    docid = property(__get_docid, _set_docid)
 
     def __get_date(self):
         try:
@@ -389,29 +364,30 @@ class BasicDoc(object):
     date = property(__get_date, __set_date)
 
     def __get_extra_text(self):
-        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
-        if not os.access(extra_txt_file, os.R_OK):
+        extra_txt_file = self.fs.join(self.path, self.EXTRA_TEXT_FILE)
+        if not self.fs.exists(extra_txt_file):
             return u""
-        with codecs.open(extra_txt_file, 'r', encoding='utf-8') as file_desc:
+        with self.fs.open(extra_txt_file, 'r') as file_desc:
             text = file_desc.read()
             return text
 
     def __set_extra_text(self, txt):
-        extra_txt_file = os.path.join(self.path, self.EXTRA_TEXT_FILE)
+        extra_txt_file = self.fs.join(self.path, self.EXTRA_TEXT_FILE)
 
         txt = txt.strip()
         if txt == u"":
-            os.unlink(extra_txt_file)
+            self.fs.unlink(extra_txt_file)
         else:
-            with codecs.open(extra_txt_file, 'w',
-                             encoding='utf-8') as file_desc:
+            with self.fs.open(extra_txt_file, 'w') as file_desc:
                 file_desc.write(txt)
 
     extra_text = property(__get_extra_text, __set_extra_text)
 
     @staticmethod
-    def hash_file(path):
-        dochash = hashlib.sha256(open(path, 'rb').read()).hexdigest()
+    def hash_file(fs, path):
+        with fs.open(path, 'rb') as fd:
+            content = fd.read()
+            dochash = hashlib.sha256(content).hexdigest()
         return int(dochash, 16)
 
     def clone(self):
@@ -419,7 +395,7 @@ class BasicDoc(object):
 
     def has_ocr(self):
         """
-        Indicates if the OCR has be ran on this document.
+        Indicates if the OCR has been ran on this document.
         """
         if self.nb_pages <= 0:
             return False

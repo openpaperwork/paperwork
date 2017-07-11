@@ -2,7 +2,7 @@
 
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 if os.name == "nt":
     extra_deps = []
@@ -17,7 +17,7 @@ setup(
     # if you change the version, don't forget to
     # * update the ChangeLog file
     # * update the download_url in this file
-    version="1.1.2",
+    version="1.2",
     description=(
         "Paperwork's backend"
     ),
@@ -36,7 +36,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     keywords="documents",
     url="https://github.com/jflesch/paperwork-backend",
     download_url=("https://github.com/jflesch/paperwork-backend"
-                  "/archive/1.1.2.tar.gz"),
+                  "/archive/1.2.0.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",
@@ -53,24 +53,17 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     license="GPLv3+",
     author="Jerome Flesch",
     author_email="jflesch@openpaper.work",
-    packages=[
-        'paperwork_backend',
-        'paperwork_backend.common',
-        'paperwork_backend.pdf',
-        'paperwork_backend.img',
-    ],
-    package_dir={
-        'paperwork_backend': 'src/paperwork/backend',
-        'paperwork_backend.common': 'src/paperwork/backend/common',
-        'paperwork_backend.pdf': 'src/paperwork/backend/pdf',
-        'paperwork_backend.img': 'src/paperwork/backend/img',
+    packages=find_packages(),
+    entry_points={
+        'console_scripts': [
+            'paperwork-shell = paperwork_backend.shell_cmd:main',
+        ],
     },
-    scripts=[
-        'scripts/paperwork-shell',
-    ],
     install_requires=[
+        "natsort",
         "Pillow",
         "pycountry",
+        "pyocr",
         "termcolor",  # used by paperwork-chkdeps
         "Whoosh",
         "simplebayes",

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
+import logging
 import os
 import platform
 import sys
@@ -20,11 +22,11 @@ except:
 
 
 PACKAGE_TOOLS = {
-    'debian': 'apt-get install',
+    'debian': 'apt install',
     'fedora': 'yum install',
     'gentoo': 'emerge',
-    'linuxmint': 'apt-get install',
-    'ubuntu': 'apt-get install',
+    'linuxmint': 'apt install',
+    'ubuntu': 'apt install',
     'suse': 'zypper in',
 }
 
@@ -87,12 +89,12 @@ def _chkdeps(module_name, distribution):
     pkgs = []
     for dep in missing:
         if distribution in dep[2]:
-            print("  - %s (python module: %s ; %s package : %s)"
+            print("  - %s (python module: %s ; %s package: %s)"
                   % (dep[0], dep[1], distribution, dep[2][distribution]))
             pkgs.append(dep[2][distribution])
         else:
-            print("  - %s (python module: %s)"
-                  % (dep[0], dep[1]))
+            print("  - %s (python module: %s ; Debian package: %s)"
+                  % (dep[0], dep[1], dep[2]['debian']))
 
     if len(pkgs) > 0 and distribution in PACKAGE_TOOLS:
         command = "sudo %s %s" % (
@@ -141,14 +143,17 @@ def cmd_help(*args):
         print("")
         for cmd_name in sorted(COMMANDS.keys()):
             cmd_func = COMMANDS[cmd_name]
-            print("\t{}:".format(cmd_name))
-            print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
+            print("{}:".format(cmd_name))
+            print("=" * (len(cmd_name) + 1))
+            print("    {}".format(cmd_func.__doc__.strip()))
             print("")
     else:
         cmd_name = args[0]
         cmd_func = COMMANDS[cmd_name]
-        print("\t{}:".format(cmd_name))
-        print("{}".format(cmd_func.__doc__.strip().replace("    ", "")))
+        print("{}:".format(cmd_name))
+        print("=" * (len(cmd_name) + 1))
+        print("    {}".format(cmd_func.__doc__.strip()))
+
 
 COMMANDS = {
     "chkdeps": chkdeps,
@@ -157,31 +162,61 @@ COMMANDS = {
 COMMANDS.update(FRONTEND_COMMANDS)
 COMMANDS.update(BACKEND_COMMANDS)
 
-if __name__ == "__main__":
-    # TODO: Interactive shell
-    parser = argparse.ArgumentParser(description='Paperwork shell')
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Paperwork shell'
+    )
     parser.add_argument(
         'cmd', metavar="command", type=str,
-        help="Command. Can be: {}".format(", ".join(COMMANDS.keys()))
+        help=(
+            "Command. Can be: {} (use 'help <command>' for details)"
+            .format(", ".join(COMMANDS.keys()))
+        )
     )
     parser.add_argument(
         'cmd_args', metavar="arg", type=str, nargs="*",
-        help="Command arguments"
+        help="Command arguments (use 'help <command>' for details)"
     )
-    parser.add_argument('-v', dest="verbose",
-                        action='store_true', help="verbose")
+    parser.add_argument('-q', dest="quiet",
+                        action='store_true',
+                        help="quiet mode (JSON reply only)")
     parser.add_argument('-b', dest="batch",
-                        action='store_true', help="non-interactive mode")
+                        action='store_true',
+                        help="batch mode (never ask any question)")
     args = parser.parse_args()
-    verbose_enabled = args.verbose
+    verbose_enabled = not args.quiet
     interactive = not args.batch
 
     os.environ['PAPERWORK_SHELL_VERBOSE'] = "True" if verbose_enabled else ""
     os.environ['PAPERWORK_INTERACTIVE'] = "True" if interactive else ""
+
+    if not verbose_enabled:
+        # hide warnings. They could mess output parsing
+        logging.getLogger().setLevel(logging.ERROR)
 
     if args.cmd not in COMMANDS:
         print("Unknown command {}".format(args.cmd))
         cmd_help()
         sys.exit(1)
 
-    sys.exit(COMMANDS[args.cmd](*args.cmd_args))
+    try:
+        sys.exit(COMMANDS[args.cmd](*args.cmd_args))
+    except Exception as exc:
+        print (json.dumps(
+            {
+                "status": "error",
+                "exception": str(type(exc)),
+                "args": str(exc.args),
+                "reason": str(exc),
+            },
+            indent=4,
+            separators=(',', ': '),
+            sort_keys=True
+        ))
+        if verbose_enabled:
+            raise
+        sys.exit(5)
+
+if __name__ == "__main__":
+    main()

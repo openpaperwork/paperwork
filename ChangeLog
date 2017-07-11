@@ -1,3 +1,28 @@
+2017/07/11 - 1.2.0:
+- API: remove methods doc.drop_cache() and page.drop_cache()
+- API: docsearch: add method close()
+- paperwork-shell: Use JSON format for the output (except for 'paperwork-shell
+  dump')
+- Use GIO functions instead of Python functions (open(), read(), close(), etc)
+- Use URIs instead of Unix file paths (file:///...)
+- Index is now managed in a separate process (avoid Python GIL locking + UI
+  freezes)
+- Import: Make it possible to import image folder
+- Importers: provide a list of supported file formats (mime types)
+- Import: To figure out a file type, look at the file extensions but also the
+  mime type in case the extension is not set
+- Import: Make the importers able to handle multiple Files/URIs instead of just
+  one
+- paperwork-shell import: Run OCR on imported pages that have no words
+- paperwork-shell: add command 'ocr'
+- Configuration: [Global]:workdirectory is now an URI encoded in base64
+  (base64 encoding was required due to limitations of Python's ConfigParser)
+- DocSearch: When unable to open the index, destroy it and rebuild it from scratch
+- Add a new document type: ExternalPdfDoc: Used to display PDF that are outside
+  of the work directory (for instance application help manual)
+- Configuration setting [OCR]:lang is now managed by the backend instead of
+  the frontend
+
 2017/02/09 - 1.1.2:
 - PDF: When PdfDoc.drop_cache() is called, make sure *all* the references to
   the Poppler objects are dropped, including those to the pages of the document

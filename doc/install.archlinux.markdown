@@ -18,40 +18,14 @@ guides for reference.
 
 ## Runtime dependencies
 
-### Paperwork &gt;= 1.2
+### Paperwork
 
 Once installed, please run ```paperwork-shell chkdeps paperwork_backend```
 and ```paperwork-shell chkdeps paperwork``` to make sure all the required
 depencies are installed.
 
 You can run ```paperwork-shell install``` to add a Paperwork entry
-in the menus of your desktop (Paperwork >= 1.2 only).
-
-### Paperwork &gt;= 1.0
-
-Once installed, please run ```paperwork-shell chkdeps paperwork_backend```
-and ```paperwork-shell chkdeps paperwork``` to make sure all the required
-depencies are installed.
-
-### Paperwork &gt;= 0.2.1 and &lt; 1.0
-
-Once installed, please run 'paperwork-chkdeps' to make sure all the required depencies are installed.
-
-### Paperwork &lt;= 0.2.0
-
-Some dependencies cannot be installed automatically, because they depend on your language:
-
-You need an OCR tool. You can use Tesseract or Cuneiform. For now,
-[Tesseract is strongly recommended](https://github.com/jflesch/pyocr/issues/2):
-
-    $ sudo pacman -S tesseract tesseract-data-<your language>
-
-Optional, but strongly recommended:
-Spell checking is used to improve page orientation detection, so:
-
-    $ sudo pacman -S aspell-<your language>
-
-The command "papework-chkdeps" can help you find any other missing dependency.
+in the menus of your desktop.
 
 
 ## Running Paperwork

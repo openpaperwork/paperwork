@@ -27,7 +27,6 @@ $ sudo python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork
 
 # if you want to add it in the menus
-# (Paperwork >= 1.2 only)
 $ paperwork-shell install
 ```
 

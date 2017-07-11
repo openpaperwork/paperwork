@@ -85,10 +85,10 @@ exe = EXE(
     a.scripts,
     exclude_binaries=True,
     name='paperwork',
-    debug=True,
+    debug=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,
     icon=os.path.join(BASE_PATH, 'data', 'paperwork_32.ico')
 )
 coll = COLLECT(

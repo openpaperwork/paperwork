@@ -102,6 +102,11 @@ def _get_resource_path(filename, pkg="paperwork.frontend"):
         Exception -- if the file is not found.
 
     """
+    for dirpath in ["data", "doc"]:
+        path = os.path.join(dirpath, filename)
+        if os.path.exists(path):
+            return path
+
     path = resource_filename(pkg, filename)
 
     if not os.access(path, os.R_OK):

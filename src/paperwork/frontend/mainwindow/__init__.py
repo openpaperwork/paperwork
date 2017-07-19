@@ -2757,29 +2757,36 @@ class MainWindow(object):
 
         self.left_revealers = {
             'loading': [
-                (True, 0,
-                 widget_tree.get_object("box_left_loading_revealer")),
-                (False, 0,
-                 widget_tree.get_object("box_left_headerbar_loading_revealer")),
+                (
+                    widget_tree.get_object("box_left_revealers"), 0,
+                    widget_tree.get_object("box_left_loading_revealer"),
+                ),
+                (
+                    widget_tree.get_object("box_headerbar_left"), 0,
+                    widget_tree.get_object("box_left_headerbar_loading_revealer")
+                ),
             ],
             'doc_list': [
-                (True, 1,
-                 widget_tree.get_object("box_left_doclist_revealer")),
-                (False, 1,
-                 widget_tree.get_object("box_headerbar_left_doclist_revealer")),
+                (
+                    widget_tree.get_object("box_left_revealers"), 1,
+                    widget_tree.get_object("box_left_doclist_revealer")
+                ),
+                (
+                    widget_tree.get_object("box_headerbar_left"), 1,
+                    widget_tree.get_object("box_headerbar_left_doclist_revealer")
+                ),
             ],
             'doc_properties': [
-                (True, 2, widget_tree.get_object(
-                    "box_left_docproperties_revealer"
-                )),
-                (False, 2, widget_tree.get_object(
-                    "box_headerbar_left_docproperties_revealer"
-                )),
+                (
+                    widget_tree.get_object("box_left_revealers"), 2,
+                    widget_tree.get_object("box_left_docproperties_revealer")
+                ),
+                (
+                    widget_tree.get_object("box_headerbar_left"), 2,
+                    widget_tree.get_object("box_headerbar_left_docproperties_revealer")
+                ),
             ],
         }
-        self.left_revealers_parent = (
-            widget_tree.get_object("box_left_revealers")
-        )
 
         self.page_nb = {
             'current': widget_tree.get_object("entryPageNb"),
@@ -3447,27 +3454,23 @@ class MainWindow(object):
     def switch_leftpane(self, to):
         for (name, revealers) in self.left_revealers.items():
             visible = (to == name)
-            for (must_add_remove, position, revealer) in revealers:
-                is_visible = (
-                    revealer in self.left_revealers_parent.get_children()
-                )
-                if must_add_remove:
+            for (parent, position, revealer) in revealers:
+                if parent is not None:
+                    is_visible = revealer in parent.get_children()
                     if visible and not is_visible:
-                        self.left_revealers_parent.add(revealer)
+                        parent.add(revealer)
                     elif not visible and is_visible:
                         # WORKAROUND(Jflesch):
                         # We remove the GtkRevealers. It reduces the amount
                         # of warnings of Gtk about GtkRevealers size
                         # and it forces a redraw avoiding some other issues.
                         # Remove only after transition
-                        GLib.timeout_add(
-                            500,
-                            self.left_revealers_parent.remove, revealer
-                        )
+                        if os.name == "nt":
+                            parent.remove(revealer)
+                        else:
+                            GLib.timeout_add(500, parent.remove, revealer)
                     if visible:
-                        self.left_revealers_parent.reorder_child(
-                            revealer, position
-                        )
+                        parent.reorder_child(revealer, position)
                 revealer.set_reveal_child(visible)
         self.search_box.set_visible(to != 'doc_properties')
 

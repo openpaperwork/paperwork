@@ -7,6 +7,8 @@
   + User manual (not complete yet)
   + Developer's guide
   + Translator's guide
+- Text in pages can be selected
+- Text in pages can be copied in clipboard
 - Automatically look for updates (disabled by default ; see settings)
 - Send anonymous usage statistics (disabled by default ; see settings)
 - Export: Add simplification methods 'grayscale', 'black and white', and

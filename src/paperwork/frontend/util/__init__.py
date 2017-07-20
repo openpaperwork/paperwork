@@ -108,7 +108,9 @@ def _get_resource_path(filename, pkg="paperwork.frontend"):
             return path
 
     if getattr(sys, 'frozen', False):
-        return os.path.join(sys._MEIPASS, "data", filename)
+        path = os.path.join(sys._MEIPASS, "data", filename)
+        if os.path.exists(path):
+            return path
 
     path = resource_filename(pkg, filename)
 
@@ -118,7 +120,6 @@ def _get_resource_path(filename, pkg="paperwork.frontend"):
         )
 
     logger.debug("For filename '%s' got file '%s'", filename, path)
-
     return path
 
 

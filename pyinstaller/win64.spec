@@ -58,6 +58,8 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
         elif filename.lower().endswith(".mo"):
             dirpath = os.path.dirname(dirpath)  # drop 'LC_MESSAGES'
             dest = os.path.join("share", "locale", os.path.basename(dirpath), "LC_MESSAGES")
+        elif os.path.basename(dirpath) == "doc":
+            dest = "data"
         else:
             dest = os.path.join("data", os.path.basename(dirpath))
         sys.stderr.write(

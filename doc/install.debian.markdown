@@ -48,13 +48,15 @@ However, Debian doesn't provide yet the command ```pypi-install``` for Python 3.
 Therefore it has fiest to be installed .. manually.
 
     $ sudo apt install python3-all-dev python3-pip
+    $ sudo apt install python3-{pyocr,enchant,levenshtein,natsort,pycountry,termcolor}
     $ sudo pip3 install stdeb
 
 Then you can generate and install the packages for Paperwork libraires:
 
-    $ sudo /usr/local/bin/pypi-install pyocr
+    $ sudo /usr/local/bin/pypi-install --release 1.3.7 nose
     $ sudo /usr/local/bin/pypi-install pyinsane2
     $ sudo /usr/local/bin/pypi-install pypillowfight
+    $ sudo /usr/local/bin/pypi-install simplebayes
 
 And then you can generate and install the packages for Paperwork itself:
 

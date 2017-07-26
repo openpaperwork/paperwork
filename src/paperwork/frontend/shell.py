@@ -48,9 +48,7 @@ def install():
         16, 22, 24, 30, 32, 36, 42, 48, 50, 64, 72, 96, 100, 128, 150, 160, 192,
         256, 512
     ]
-    png_src_icon_pattern = os.path.join(
-        "share", "icons", "hicolor", "{}", "apps", "paperwork.png"
-    )
+    png_src_icon_pattern = "paperwork_{}.png"
     png_dst_icon_pattern = os.path.join(
         xdg.IconTheme.icondirs[0], "hicolor", "{}", "apps", "paperwork.png"
     )
@@ -61,7 +59,7 @@ def install():
     to_copy = [
         (
             pkg_resources.resource_filename(
-                'paperwork.frontend',
+                'paperwork.frontend.data',
                 png_src_icon_pattern.format(size)
             ),
             png_dst_icon_pattern.format(size),
@@ -71,10 +69,7 @@ def install():
         to_copy.append(
             (
                 pkg_resources.resource_filename(
-                    'paperwork.frontend',
-                    os.path.join(
-                        'share', 'icons', 'hicolor', 'scalable', 'apps', icon
-                    )
+                    'paperwork.frontend.data', icon
                 ),
                 os.path.join(
                     xdg.IconTheme.icondirs[0], "hicolor", "scalable", "apps",

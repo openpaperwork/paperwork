@@ -85,7 +85,7 @@ def fix_widgets(widget_tree):
             )
 
 
-def _get_resource_path(filename):
+def _get_resource_path(filename, pkg="paperwork.frontend"):
     """
     Gets the absolute location of a datafile located within the package
     (paperwork.frontend).
@@ -102,7 +102,17 @@ def _get_resource_path(filename):
         Exception -- if the file is not found.
 
     """
-    path = resource_filename('paperwork.frontend', filename)
+    for dirpath in ["data", "doc"]:
+        path = os.path.join(dirpath, filename)
+        if os.path.exists(path):
+            return path
+
+    if getattr(sys, 'frozen', False):
+        path = os.path.join(sys._MEIPASS, "data", filename)
+        if os.path.exists(path):
+            return path
+
+    path = resource_filename(pkg, filename)
 
     if not os.access(path, os.R_OK):
         raise FileNotFoundError(  # NOQA (Python 3.x only)
@@ -110,7 +120,6 @@ def _get_resource_path(filename):
         )
 
     logger.debug("For filename '%s' got file '%s'", filename, path)
-
     return path
 
 
@@ -176,23 +185,24 @@ _SIZEOF_FMT_STRINGS = [
 ]
 
 
-def load_image(filename):
+def load_image(filename, pkg="paperwork.frontend.data"):
     """
     Load an image from Paperwork data
     """
-    img = _get_resource_path(filename)
+    img = _get_resource_path(filename, pkg=pkg)
     return PIL.Image.open(img)
 
 
-def preload_file(filename):
+def preload_file(filename, pkg="paperwork.frontend.data"):
     """
     Just make sure Python make the file available to other elements (Gtk
     for instance)
     """
     try:
-        _get_resource_path(filename)
+        return _get_resource_path(filename, pkg=pkg)
     except FileNotFoundError:  # NOQA (Python 3.x only)
         logger.warning("Failed to preload '%s' !", filename)
+        return None
 
 
 def get_locale_dirs():
@@ -208,7 +218,7 @@ def get_locale_dirs():
     try:
         path = resource_filename(
             'paperwork.frontend',
-            os.path.join("share", "locale", "fr", "LC_MESSAGES")
+            os.path.join("locale", "fr", "LC_MESSAGES")
         )
         for _ in range(0, 3):
             path = os.path.dirname(path)
@@ -224,8 +234,6 @@ def get_documentation(doc_name):
     Return the path to a documentation PDF.
     Try to match the user language.
     """
-    DOC_SUBDIR = "doc"
-
     lang = "en"
     try:
         lang = locale.getdefaultlocale()[0][:2]
@@ -236,16 +244,15 @@ def get_documentation(doc_name):
         )
         pass
 
-    default = os.path.join(DOC_SUBDIR, doc_name + ".pdf")
-    localized = os.path.join(DOC_SUBDIR,
-                             "{}_{}.pdf".format(doc_name, lang))
+    default = doc_name + ".pdf"
+    localized = "{}_{}.pdf".format(doc_name, lang)
     try:
-        return _get_resource_path(localized)
+        return _get_resource_path(localized, pkg="paperwork.frontend.doc")
     except:
         pass
 
     try:
-        return _get_resource_path(default)
+        return _get_resource_path(default, pkg="paperwork.frontend.doc")
     except:
         pass
 

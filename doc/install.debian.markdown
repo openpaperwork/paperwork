@@ -68,7 +68,7 @@ Finally, you have to run the following commands to check some extra dependencies
     $ paperwork-shell chkdeps paperwork_backend
     $ paperwork-shell chkdeps paperwork
 
-And the menu entry (Paperwork >= 1.2 only):
+And the menu entry:
 
     $ paperwork-shell install
 

@@ -72,7 +72,7 @@ def check_activation_key(activation_key, email):
     # smart enough to build your own version of Paperwork for Windows.
 
     public_key = \
-        b"gAN9cQAoWAEAAAB5cQFKHOxVIFgBAAAAZ3ECSuiU9CBYAQAAAHBxA4oFgwNinQB1Lg"
+        b"gAN9cQAoWAEAAAB5cQGKBU4Sv4UAWAEAAABwcQKKBdNTMv8AWAEAAABncQNKWhFrGXUu"
     public_key = unserialize_elgamal_key(public_key)
     activation_key = activation_key.encode("utf-8")
     email = b"" if email is None else email.encode("utf-8")

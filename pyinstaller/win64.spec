@@ -24,6 +24,7 @@ lib_path = os.path.join(site.getsitepackages()[1], 'gnome')
 extra_libs = [
     (os.path.join(lib_path, 'libpoppler-glib-8.dll'), '.'),
     (os.path.join(lib_path, 'liblcms2-2.dll'), '.'),
+    (os.path.join(lib_path, 'libnotify-4.dll'), '.'),
     (os.path.join(lib_path, 'libopenjp2.dll'), '.'),
     (os.path.join(lib_path, 'libstdc++.dll'), '.'),
 ]
@@ -38,13 +39,16 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
             or "egg" in dirpath.lower()):
         continue
     for filename in filenames:
+        if filename.lower().endswith(".png") and dirpath.lower().endswith("doc"):
+            continue
         if (not filename.lower().endswith(".ico")
                 and not filename.lower().endswith(".png")
                 and not filename.lower().endswith(".svg")
                 and not filename.lower().endswith(".xml")
                 and not filename.lower().endswith(".glade")
                 and not filename.lower().endswith(".css")
-                and not filename.lower().endswith(".mo")):
+                and not filename.lower().endswith(".mo")
+                and not filename.lower().endswith(".pdf")):
             continue
         filepath = os.path.join(dirpath, filename)
 
@@ -54,6 +58,8 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
         elif filename.lower().endswith(".mo"):
             dirpath = os.path.dirname(dirpath)  # drop 'LC_MESSAGES'
             dest = os.path.join("share", "locale", os.path.basename(dirpath), "LC_MESSAGES")
+        elif os.path.basename(dirpath) == "doc":
+            dest = "data"
         else:
             dest = os.path.join("data", os.path.basename(dirpath))
         sys.stderr.write(
@@ -63,7 +69,7 @@ for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
 
 
 a = Analysis(
-    [os.path.join(BASE_PATH, 'scripts', 'paperwork')],
+    [os.path.join(BASE_PATH, 'pyinstaller', 'paperwork_launcher.py')],
     pathex=[],
     binaries=bins,
     datas=datas,

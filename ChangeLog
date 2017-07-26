@@ -1,4 +1,4 @@
-2017/xx/xx - 1.2.0:
+2017/07/11 - 1.2.0:
 - Installation: A new command has been added: "paperwork-shell install".
   This command installs icons and shortcut in the desktop menus.
 - Add integrated documentations:
@@ -7,6 +7,8 @@
   + User manual (not complete yet)
   + Developer's guide
   + Translator's guide
+- Text in pages can be selected
+- Text in pages can be copied in clipboard
 - Automatically look for updates (disabled by default ; see settings)
 - Send anonymous usage statistics (disabled by default ; see settings)
 - Export: Add simplification methods 'grayscale', 'black and white', and

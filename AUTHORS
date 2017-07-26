@@ -4,23 +4,26 @@
 # Contributions to paperwork-backend must be counted here too
 
 Code contributors:
+	Alexandre Vaissière <avaiss@fmiw.org> (3)
 	Bignaux Ronan <ronan@aimao.org> (1)
 	Christophe Chauvet <christophe.chauvet@gmail.com> (1)
-	Dominique Hazael-Massieux <dom@w3.org>
+	Dominique Hazael-Massieux <dom@w3.org> (1)
 	François Schmidts <francois.schmidts@gmail.com> (7)
-	Glandos <bugs-github@antipoul.fr>
-	Hannes <>
-	Jerome Flesch <jflesch@openpaper.work> (2585)
+	Glandos <bugs-github@antipoul.fr> (1)
+	Hannes <> (1)
+	Jerome Flesch <jflesch@openpaper.work> (2834)
 	Josselin Jacquard <josselin.jacquard@gmail.com> (35)
-	Krap <>
-	Matthias Mailänder <> (2)
+	Krap <> (1)
 	Mathieu Jourdan <mathieu.jourdan@gresille.org> (31)
+	Mathieu Schopfer <mathieu.schopfer@protonmail.ch> (2)
+	Matthias Mailänder <> (2)
+	Matthieu Coudron <mattator@gmail.com> (4)
 	Patrick Scheid <p.scheid92@gmail.com> (2)
-	Paul Liétar <paul@lietar.net> (5)
+	Paul Liétar <paul@lietar.net> (6)
 	pingtux <> (2)
 	RyDroid <rydroid_dev@yahoo.com> (7)
-	Stefan Pokorny <stefan@stefanpokorny.de>
-	Sébastien Maccagnoni-Munch <sebastien@smm-informatique.fr> (6)
+	Stefan Pokorny <stefan@stefanpokorny.de> (1)
+	Sébastien Maccagnoni-Munch <sebastien@maccagnoni.eu> (2)
 	Sebastian Spaeth <Sebastian@SSpaeth.de> (2)
 
 UI design:
@@ -28,14 +31,15 @@ UI design:
 
 Translators:
 	French: Jerome Flesch <jflesch@openpaper.work>
-	German: Tristan Kohl (Mirodin) <blobbyjj@ymail.com> (13)
+	German: Tristan Kohl (Mirodin) <blobbyjj@ymail.com> (14)
+	Ukrainian: Daniel Korostil <ted.korostiled@gmail.com> (1)
 
 Documentation contributors:
 	Alain <github@STudio26.no-ip.biz> (1)
 	arthurlutz <arthur.lutz@gmail.com> (1)
-	Christophe Delaere <christophe.delaere@cern.ch>
+	Christophe Delaere <christophe.delaere@cern.ch> (2)
 	Christophe GERARDIN (RTDaemons) <cgerardin@elitemail.org> (1)
-	Daniel Hahler <git@thequod.de> (2)
+	Daniel Hahler <git@thequod.de> (1)
 	Davidbrcz <Davidbrcz@users.noreply.github.com> (2)
 	Jehan <jehan@girinstud.io> (1)
 	lb1a <github@lb1a.de> (2)
@@ -45,5 +49,6 @@ Documentation contributors:
 	swap38 <swap38@no-log.org> (1)
 
 Docker packaging:
+	foudfou <foudil.newbie+git@gmail.com> (1)
 	Markus Mayr <markusmayr@gmx.net> (2)
 	Thomas Clavier <tom@tcweb.org> (2)

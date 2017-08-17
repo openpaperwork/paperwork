@@ -408,7 +408,7 @@ class DocSearch(object):
         updating the index.
         """
         current = 0
-        total = self.get_nb_docs()
+        total = self.index.get_nb_docs()
         self.index.start_update_label(old_label, new_label)
         while True:
             (op, doc) = self.index.continue_update_label()
@@ -424,7 +424,7 @@ class DocSearch(object):
         the index.
         """
         current = 0
-        total = self.get_nb_docs()
+        total = self.index.get_nb_docs()
         self.index.start_destroy_label(label)
         while True:
             (op, doc) = self.index.continue_destroy_label()

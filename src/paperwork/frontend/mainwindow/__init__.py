@@ -69,6 +69,7 @@ from ..util.actions import SimpleAction
 from ..util.config import get_scanner
 from ..util.dialog import ask_confirmation
 from ..util.dialog import popup_no_scanner_found
+from ..util.dialog import show_msg
 from ..util.canvas import Canvas
 from ..util.canvas.animations import SpinnerAnimation
 from ..util.canvas.drawers import Centerer
@@ -4197,14 +4198,14 @@ class MainWindow(object):
     def on_export_done(self, exporter):
         self.set_mouse_cursor("Normal")
         self.set_progression(None, 0.0, None)
-        notification = Notify.Notification.new(
-            _("Export finished"),
-            _("Export of {} as {} finished").format(
+        show_msg(
+            parent=self.window,
+            title=_("Export finished"),
+            msg=_("Export of {} as {} finished").format(
                 str(exporter.obj), str(exporter.export_format)
             ),
-            "document-save"
+            notify_type="document-save"
         )
-        notification.show()
 
     def on_export_error(self, exporter, error):
         self.set_mouse_cursor("Normal")

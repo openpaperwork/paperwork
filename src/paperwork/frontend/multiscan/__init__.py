@@ -235,8 +235,10 @@ class ActionScan(SimpleAction):
         if last_page_scan:
             last_page_scan.connect(
                 "done",
-                lambda _: GLib.idle_add(
-                    self.__multiscan_win.on_global_scan_end_cb)
+                lambda _, scan_session: GLib.idle_add(
+                    self.__multiscan_win.on_global_scan_end_cb,
+                    scan_session
+                )
             )
         if first_page_scan:
             first_page_scan.start_scan_workflow()
@@ -401,7 +403,12 @@ class MultiscanDialog(GObject.GObject):
         self.lists['docs']['model'][page_scan.line_idx][4] = _("Done")
         self.scanned_pages += 1
 
-    def on_global_scan_end_cb(self):
+    def on_global_scan_end_cb(self, scan_session):
+        try:
+            logger.info("Ending scan session")
+            scan_session.scan.cancel()
+        except Exception as exc:
+            logger.warning("Failed to cancel scan: %s", str(exc), exc_info=exc)
         self.emit('need-doclist-refresh')
         self.set_mouse_cursor("Normal")
         msg = _("All the pages have been scanned")

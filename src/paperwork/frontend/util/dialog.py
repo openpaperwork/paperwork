@@ -19,6 +19,7 @@ import logging
 import gettext
 from gi.repository import GLib
 from gi.repository import Gtk
+from gi.repository import Notify
 
 
 _ = gettext.gettext
@@ -85,3 +86,25 @@ def ask_confirmation(parent, next_func, msg=None, **kwargs):
                 )
     confirm.show_all()
     return True
+
+
+def show_msg(parent, title, msg, notify_type="document-save"):
+    if "body" in Notify.get_server_caps():
+        # happens on Windows for instance
+        notification = Notify.Notification.new(
+            title, msg, notify_type
+        )
+        notification.show()
+        return
+
+    # fallback on classical ugly popups
+    popup = Gtk.MessageDialog(parent=parent,
+                                flags=Gtk.DialogFlags.MODAL
+                                | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                message_type=Gtk.MessageType.INFO,
+                                buttons=Gtk.ButtonsType.OK,
+                                text=msg)
+    popup.connect("response",
+        lambda dialog, response: GLib.idle_add(dialog.destroy)
+    )
+    popup.show_all()

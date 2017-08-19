@@ -1,0 +1,6 @@
+Required plugins:
+--------------------
+
+
+http://nsis.sourceforge.net/Nsisunz_plug-in
+http://nsis.sourceforge.net/Inetc_plug-in

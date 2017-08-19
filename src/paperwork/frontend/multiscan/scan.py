@@ -44,7 +44,8 @@ class PageScan(GObject.GObject):
     __gsignals__ = {
         'scanworkflow-inst': (GObject.SignalFlags.RUN_LAST, None,
                               (GObject.TYPE_PYOBJECT, )),
-        'done': (GObject.SignalFlags.RUN_LAST, None, ()),
+        'done': (GObject.SignalFlags.RUN_LAST, None,
+                 (GObject.TYPE_PYOBJECT, )),
     }
 
     def __init__(self,
@@ -66,7 +67,7 @@ class PageScan(GObject.GObject):
     def __on_ocr_done(self, img, line_boxes):
         docid = self.__main_win.remove_scan_workflow(self.scan_workflow)
         self.__main_win.add_page(docid, img, line_boxes)
-        self.emit("done")
+        self.emit("done", self.__scan_session)
 
     def __on_error(self, exc):
         logger.error("Scan failed: %s" % str(exc))
@@ -103,8 +104,12 @@ class PageScan(GObject.GObject):
         self.scan_workflow.scan_and_ocr(self.resolution, self.__scan_session)
 
     def connect_next_page_scan(self, next_page_scan):
-        self.connect("done", lambda _: GLib.idle_add(
-            next_page_scan.start_scan_workflow))
+        self.connect(
+            "done",
+            lambda _, scan_session: GLib.idle_add(
+                next_page_scan.start_scan_workflow
+            )
+        )
 
 
 GObject.type_register(PageScan)

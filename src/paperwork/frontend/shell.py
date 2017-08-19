@@ -42,6 +42,11 @@ def scan():
 
 
 def install():
+    """
+    Install Paperwork icons and shortcut.
+    Files are installed in the home directory of the current user. No root
+    access required.
+    """
     from paperwork.frontend import mainwindow
 
     ICON_SIZES = [
@@ -79,11 +84,11 @@ def install():
         )
 
     for (src, dst) in to_copy:
-        print ("Installing {} ...".format(dst))
+        print("Installing {} ...".format(dst))
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copyfile(src, dst)
 
-    print ("Generating {} ...".format(desktop_path))
+    print("Generating {} ...".format(desktop_path))
     entry = xdg.DesktopEntry.DesktopEntry(desktop_path)
     entry.set("GenericName", "Personal Document Manager")
     entry.set("Version", mainwindow.__version__)
@@ -96,7 +101,7 @@ def install():
     entry.set("Icon", "paperwork")
     entry.set("Keywords", "document;scanner;ocr;")
     entry.write()
-    print ("Done")
+    print("Done")
 
 
 COMMANDS = {

@@ -16,6 +16,7 @@ setup(
     name="paperwork-backend",
     # if you change the version, don't forget to
     # * update the ChangeLog file
+    # * update the download_url in this file
     version="1.3",
     description=(
         "Paperwork's backend"
@@ -35,7 +36,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
     keywords="documents",
     url="https://github.com/jflesch/paperwork-backend",
     download_url=("https://github.com/jflesch/paperwork-backend"
-                  "/archive/unstable.tar.gz"),
+                  "/archive/1.3.0.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",

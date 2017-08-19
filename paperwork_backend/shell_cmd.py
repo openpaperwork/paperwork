@@ -121,8 +121,14 @@ def _chkdeps(module_name, distribution):
 def chkdeps(*args):
     """
     Arguments: <component1> [<component2> [...]]]
-    Look for missing dependencies.
-    Ex: 'paperwork_backend',  'paperwork', 'paperwork_backend paperwork'
+
+    Look for missing dependencies and tries to suggest a command to install
+    them all using the local distribution package manager (APT, DNF, etc).
+
+    Examples:
+        paperwork-shell chkdeps paperwork_backend
+        paperwork-shell chkdeps paperwork
+        paperwork-shell chkdeps paperwork_backend paperwork
     """
     module_names = args
     if len(module_names) <= 0:

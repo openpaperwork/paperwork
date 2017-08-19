@@ -222,23 +222,36 @@ class GioFileSystem(object):
         pass
 
     def safe(self, uri):
+        logger.debug("safe: %s", uri)
         if "://" in uri:
+            logger.debug("safe: --> %s", uri)
             return uri
         if os.name != "nt":
             uri = os.path.abspath(uri)
             uri = "file://" + urllib.parse.quote(uri)
+            logger.debug("safe: --> %s", uri)
             return uri
         else:
             gf = Gio.File.new_for_path(uri)
-            return gf.get_uri()
+            uri = gf.get_uri()
+            logger.debug("safe: --> %s", uri)
+            return uri
 
     def unsafe(self, uri):
+        logger.debug("unsafe: %s", uri)
         if "://" not in uri:
+            logger.debug("unsafe: --> %s", uri)
             return uri
         if not uri.startswith("file://"):
+            logger.debug("unsafe: --> EXC")
             raise Exception("TARGET URI SHOULD BE A LOCAL FILE")
         uri = uri[len("file://"):]
+        if os.name == 'nt' and uri[0] == '/':
+            # for some reason, some URI on Windows starts with
+            # "file:///C:\..." instead of "file://C:\..."
+            uri = uri[1:]
         uri = urllib.parse.unquote(uri)
+        logger.debug("unsafe: --> %s", uri)
         return uri
 
     def open(self, uri, mode='rb'):

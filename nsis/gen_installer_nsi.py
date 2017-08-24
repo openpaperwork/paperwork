@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import re
@@ -6,6 +6,8 @@ import sys
 
 from paperwork_backend.util import find_language
 
+
+DOWNLOAD_URI = "https://github.com/openpaperwork/paperwork/releases/download/${PRODUCT_SHORT_VERSION}/paperwork_${PRODUCT_VERSION}_win64.zip"
 
 ALL_LANGUAGES = [
     "eng",  # English (always first)
@@ -189,6 +191,7 @@ HEADER = """
 !define PRODUCT_WEB_SITE "https://openpaper.work"
 !define PRODUCT_UNINST_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define PRODUCT_DOWNLOAD_URI "{download_uri}"
 
 !addplugindir ".\dll"
 
@@ -246,7 +249,7 @@ Section "Paperwork" SEC_PAPERWORK
   SetOutPath "$INSTDIR"
   SetOverwrite on
 
-  inetc::get "https://github.com/openpaperwork/paperwork/releases/download/${PRODUCT_SHORT_VERSION}/paperwork_${PRODUCT_VERSION}_win64.zip" "$PLUGINSDIR\\paperwork.zip" /END
+  inetc::get "${PRODUCT_DOWNLOAD_URI}" "$PLUGINSDIR\\paperwork.zip" /END
   Pop $0
   StrCmp $0 "OK" +3
     MessageBox MB_OK "Download failed"
@@ -410,16 +413,22 @@ def get_lang_infos(lang_name):
 
 def main(args):
     if (len(args) < 2):
-        print ("ARGS: {} <version>".format(args[0]))
+        print ("ARGS: {} <version> [<download URI>]".format(args[0]))
         return
 
-    version = args[1]
+    download_uri = DOWNLOAD_URI
     
-    m = re.match("([\d\.]+)", version)  # match everything but the suffix
-    short_version = m.string[m.start():m.end()]
+    if len(args) == 3:
+        version = short_version = args[1]
+        download_uri = args[2]
+    else:
+        version = args[1]
+        m = re.match("([\d\.]+)", version)  # match everything but the suffix
+        short_version = m.string[m.start():m.end()]
+        download_uri = DOWNLOAD_URI
 
     with open("out.nsi", "w") as out_fd:
-        out_fd.write(VERSION.format(version=version, short_version=short_version))
+        out_fd.write(VERSION.format(version=version, short_version=short_version, download_uri=download_uri))
         out_fd.write(HEADER)
 
 
@@ -466,6 +475,7 @@ SectionGroupEnd
 """)
 
         out_fd.write(FOOTER)
+    print ("out.nsi written")
 
 if __name__ == "__main__":
     main(sys.argv)

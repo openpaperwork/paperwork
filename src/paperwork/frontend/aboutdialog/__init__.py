@@ -19,7 +19,6 @@ on Help->About)
 """
 
 import os
-import sys
 
 from gi.repository import GdkPixbuf
 
@@ -37,7 +36,7 @@ class AboutDialog(object):
     """
 
     def __init__(self, main_window):
-        preload_file(os.path.join("aboutdialog", "paperwork.svg"))
+        logo_path = preload_file("paperwork.svg")
         self.__widget_tree = load_uifile(
             os.path.join("aboutdialog", "aboutdialog.glade"))
 
@@ -45,11 +44,7 @@ class AboutDialog(object):
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
 
-        logo_path = os.path.join(
-            sys.prefix, 'share', 'icons', 'hicolor', 'scalable', 'apps',
-            'paperwork.svg'
-        )
-        if os.access(logo_path, os.F_OK):
+        if logo_path and os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)
             self.__dialog.set_logo(logo)
         self.__dialog.connect("response", lambda x, y: x.destroy())

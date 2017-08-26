@@ -1,3 +1,13 @@
+2017/08/26 - 1.2.1:
+- Add source code of Windows installer (NSIS installer) generator
+- Scanner support / Multi-scan: Cancel also successful scan session. Otherwise
+  some scanner won't allow new scan sessions later.
+- Remove gi version warnings when starting (thanks to Matthieu Coudron)
+- Documentation: Add missing stdeb dependencies (thanks to Notkea)
+- paperwork-shell: Fix command 'scan'
+- paperwork-shell install: add docstring
+- Fix dialog 'about'
+
 2017/07/11 - 1.2.0:
 - Installation: A new command has been added: "paperwork-shell install".
   This command installs icons and shortcut in the desktop menus.

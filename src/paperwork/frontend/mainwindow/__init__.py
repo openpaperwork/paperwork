@@ -2998,6 +2998,10 @@ class MainWindow(object):
                 [],
                 ActionRefreshIndex(self, config, force=False),
             ),
+            'reload': (
+                [],
+                ActionRefreshIndex(self, config, force=False, skip_examination=True),
+            ),
             'diagnostic': (
                 [
                     gactions['diagnostic'],
@@ -3919,9 +3923,9 @@ class MainWindow(object):
         self.__config['main_win_size'].value = (w, h)
 
     def __on_window_realize_cb(self, _):
-        if self.workdir_scan_at_start:
-            self.workdir_scan_at_start = False
-            GLib.idle_add(self.actions['reindex'][1].do)
+        action = 'reindex' if self.workdir_scan_at_start else 'reload'
+        self.workdir_scan_at_start = False
+        GLib.idle_add(self.actions[action][1].do)
 
     def __set_zoom_level_on_scroll(self, zoom):
         logger.info("Changing zoom level (scroll): %f"

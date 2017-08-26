@@ -1,3 +1,9 @@
+2017/08/26 - 1.2.1:
+- 'paperwork-shell install': Add documentation
+- Fix label deletion / renaming
+- Windows: Fix FS.safe() when used for PDF import
+- Windows: Fix FS.unsafe() (used for PDF export)
+
 2017/07/11 - 1.2.0:
 - API: remove methods doc.drop_cache() and page.drop_cache()
 - API: docsearch: add method close()

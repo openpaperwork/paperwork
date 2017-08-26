@@ -1,5 +1,5 @@
 2017/08/26 - 1.2.1:
-- 'paperwork-shell install': Add documentation
+- paperwork-shell: improve help string of 'paperwork-shell chkdeps'
 - Fix label deletion / renaming
 - Windows: Fix FS.safe() when used for PDF import
 - Windows: Fix FS.unsafe() (used for PDF export)

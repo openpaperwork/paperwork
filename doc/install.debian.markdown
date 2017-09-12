@@ -45,7 +45,7 @@ If you're reluctant to install system wide python libraries through pip,
 you can also use debian packages generated on the fly by [python-stdeb](https://pypi.python.org/pypi/stdeb)
 
 However, Debian doesn't provide yet the command ```pypi-install``` for Python 3.
-Therefore it has fiest to be installed .. manually.
+Therefore it has first to be installed .. manually.
 
     $ sudo apt install python3-all-dev python3-pip
     $ sudo apt install python3-{pyocr,enchant,levenshtein,natsort,pycountry,termcolor}

@@ -88,6 +88,19 @@ DATA_FILES = [
             'fedora': 'gnome-icon-theme-symbolic',
         }
     ),
+    (
+        "Gnome symbolic icons"
+        " (/usr/share/icons/gnome/(...)/edit-copy.png",
+        [
+            "/usr/share/icons/gnome/24x24/actions/edit-copy.png",
+            "/usr/local/share/icons/gnome/24x24/actions/edit-copy.png",
+        ],
+        {
+            'debian': 'gnome-icon-theme',
+            'ubuntu': 'gnome-icon-theme',
+            'fedora': 'gnome-icon-theme',
+        }
+    ),
 ]
 
 

@@ -182,8 +182,11 @@ LangString DESC_SEC_FRA ${{LANG_GERMAN}} "Data files required to run OCR on Fren
     },
 }
 
-VERSION = """!define PRODUCT_VERSION "{version}\"
-!define PRODUCT_SHORT_VERSION "{short_version}\""""
+VERSION = """
+!define PRODUCT_VERSION "{version}"
+!define PRODUCT_SHORT_VERSION "{short_version}"
+!define PRODUCT_DOWNLOAD_URI "{download_uri}"
+"""
 
 HEADER = """
 !define PRODUCT_NAME "Paperwork"
@@ -191,7 +194,6 @@ HEADER = """
 !define PRODUCT_WEB_SITE "https://openpaper.work"
 !define PRODUCT_UNINST_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
-!define PRODUCT_DOWNLOAD_URI "{download_uri}"
 
 !addplugindir ".\dll"
 

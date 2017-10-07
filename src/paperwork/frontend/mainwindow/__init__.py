@@ -22,9 +22,6 @@ import threading
 
 import gettext
 
-import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('Notify', '0.7')
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
@@ -34,6 +31,45 @@ from gi.repository import Gtk
 from gi.repository import Notify
 import pillowfight
 
+from . import summary
+from ..aboutdialog import AboutDialog
+from ..diag import DiagDialog
+from ..import activation
+from ..import beacon
+from ..mainwindow.docs import DocList
+from ..mainwindow.docs import DocPropertiesPanel
+from ..mainwindow.docs import sort_documents_by_date
+from ..mainwindow.pages import JobFactoryImgProcesser
+from ..mainwindow.pages import JobFactoryPageBoxesLoader
+from ..mainwindow.pages import JobFactoryPageImgLoader
+from ..mainwindow.pages import PageDrawer
+from ..mainwindow.pages import PageDropHandler
+from ..mainwindow.pages import SimplePageDrawer
+from ..mainwindow.scan import MultiAnglesScanWorkflowDrawer
+from ..mainwindow.scan import ScanWorkflow
+from ..mainwindow.scan import SingleAngleScanWorkflowDrawer
+from ..multiscan import MultiscanDialog
+from ..searchdialog import SearchDialog
+from ..settingswindow import SettingsWindow
+from ..util import connect_actions
+from ..util import get_documentation
+from ..util import load_cssfile
+from ..util import load_uifile
+from ..util import preload_file
+from ..util import renderer
+from ..util import sizeof_fmt
+from ..util.actions import SimpleAction
+from ..util.canvas import Canvas
+from ..util.canvas.animations import SpinnerAnimation
+from ..util.canvas.drawers import PillowImageDrawer
+from ..util.canvas.drawers import ProgressBarDrawer
+from ..util.config import get_scanner
+from ..util.dialog import ask_confirmation
+from ..util.dialog import popup_no_scanner_found
+from ..util.dialog import show_msg
+from ..util.jobs import Job
+from ..util.jobs import JobFactory
+from ..util.jobs import JobScheduler
 from paperwork_backend import docexport
 from paperwork_backend import docimport
 from paperwork_backend import fs
@@ -43,47 +79,6 @@ from paperwork_backend.docsearch import DocSearch
 from paperwork_backend.docsearch import DummyDocSearch
 from paperwork_backend.labels import Label
 from paperwork_backend.pdf.doc import ExternalPdfDoc
-from ..aboutdialog import AboutDialog
-from ..import activation
-from ..import beacon
-from ..diag import DiagDialog
-from ..mainwindow.docs import DocList
-from ..mainwindow.docs import DocPropertiesPanel
-from ..mainwindow.docs import sort_documents_by_date
-from ..mainwindow.pages import PageDrawer
-from ..mainwindow.pages import PageDropHandler
-from ..mainwindow.pages import JobFactoryImgProcesser
-from ..mainwindow.pages import JobFactoryPageBoxesLoader
-from ..mainwindow.pages import JobFactoryPageImgLoader
-from ..mainwindow.pages import SimplePageDrawer
-from ..mainwindow.scan import ScanWorkflow
-from ..mainwindow.scan import MultiAnglesScanWorkflowDrawer
-from ..mainwindow.scan import SingleAngleScanWorkflowDrawer
-from ..multiscan import MultiscanDialog
-from ..searchdialog import SearchDialog
-from ..settingswindow import SettingsWindow
-from ..util import connect_actions
-from ..util import get_documentation
-from ..util import load_cssfile
-from ..util import load_image
-from ..util import load_uifile
-from ..util import preload_file
-from ..util import sizeof_fmt
-from ..util.actions import SimpleAction
-from ..util.config import get_scanner
-from ..util.dialog import ask_confirmation
-from ..util.dialog import popup_no_scanner_found
-from ..util.dialog import show_msg
-from ..util.canvas import Canvas
-from ..util.canvas.animations import SpinnerAnimation
-from ..util.canvas.drawers import Centerer
-from ..util.canvas.drawers import PillowImageDrawer
-from ..util.canvas.drawers import ProgressBarDrawer
-from ..util.canvas.drawers import TextDrawer
-from ..util.jobs import Job
-from ..util.jobs import JobFactory
-from ..util.jobs import JobScheduler
-from ..util import renderer
 
 
 _ = gettext.gettext
@@ -833,7 +828,7 @@ class JobPageImgRenderer(Job):
             self.emit("rendered",
                       self.page.page_nb, self.page.doc.nb_pages,
                       self.page.img, self.page.boxes)
-        except:
+        except:  # NOQA
             # TODO(Jflesch)
             # We get "MemoryError" sometimes ? oO
             self.emit("rendering-error")
@@ -2796,7 +2791,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 0,
-                    widget_tree.get_object("box_left_headerbar_loading_revealer")
+                    widget_tree.get_object(
+                        "box_left_headerbar_loading_revealer"
+                    ),
                 ),
             ],
             'doc_list': [
@@ -2806,7 +2803,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 1,
-                    widget_tree.get_object("box_headerbar_left_doclist_revealer")
+                    widget_tree.get_object(
+                        "box_headerbar_left_doclist_revealer"
+                    ),
                 ),
             ],
             'doc_properties': [
@@ -2816,7 +2815,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 2,
-                    widget_tree.get_object("box_headerbar_left_docproperties_revealer")
+                    widget_tree.get_object(
+                        "box_headerbar_left_docproperties_revealer"
+                    ),
                 ),
             ],
         }
@@ -3000,7 +3001,8 @@ class MainWindow(object):
             ),
             'reload': (
                 [],
-                ActionRefreshIndex(self, config, force=False, skip_examination=True),
+                ActionRefreshIndex(self, config, force=False,
+                                   skip_examination=True),
             ),
             'diagnostic': (
                 [

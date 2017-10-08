@@ -58,7 +58,8 @@ def install():
         xdg.IconTheme.icondirs[0], "hicolor", "{}", "apps", "paperwork.png"
     )
     desktop_path = os.path.join(
-        xdg.BaseDirectory.xdg_data_dirs[0], 'applications', 'paperwork.desktop'
+        xdg.BaseDirectory.xdg_data_dirs[0], 'applications',
+        'work.openpaper.Paperwork.desktop'
     )
 
     to_copy = [

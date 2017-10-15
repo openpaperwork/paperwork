@@ -3389,7 +3389,7 @@ class MainWindow(object):
             self.global_page_box.pack_end(self.summary.view, True, True, 0)
             self.refresh_summary()
         elif to == "content":
-            self.global_page_box.remove(self.summary['view'])
+            self.global_page_box.remove(self.summary.view)
             self.global_page_box.pack_end(self.img['scrollbar'], True, True, 0)
         else:
             assert False, "Unknown main view requested"

@@ -50,7 +50,7 @@
                                 <property name="can_focus">False</property>
                                 <property name="spacing">5</property>
                                 <child>
-                                  <object class="GtkImage" id="other">
+                                  <object class="GtkImage" id="imageRecent1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="icon_name">document-new-symbolic</property>
@@ -122,7 +122,7 @@
                                     <property name="can_focus">False</property>
                                     <property name="spacing">5</property>
                                     <child>
-                                      <object class="GtkImage">
+                                      <object class="GtkImage" id="imageRecent2">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="icon_name">document-new-symbolic</property>
@@ -161,7 +161,7 @@
                                     <property name="can_focus">False</property>
                                     <property name="spacing">5</property>
                                     <child>
-                                      <object class="GtkImage">
+                                      <object class="GtkImage" id="imageRecent3">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="icon_name">document-new-symbolic</property>
@@ -418,7 +418,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="labelPaperCount">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
@@ -431,7 +431,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="labelPageCount">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
@@ -444,7 +444,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="labelTotalSize">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can_focus">False</property>

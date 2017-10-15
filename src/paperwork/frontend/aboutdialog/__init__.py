@@ -20,10 +20,14 @@ on Help->About)
 
 import os
 
+import gi
 from gi.repository import GdkPixbuf
 
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util import preload_file
+
+gi.require_version('Gtk', '3.0')
+gi.require_version('Notify', '0.7')
 
 
 class AboutDialog(object):

@@ -31,7 +31,6 @@ from gi.repository import Gtk
 from gi.repository import Notify
 import pillowfight
 
-from . import summary
 from ..aboutdialog import AboutDialog
 from ..diag import DiagDialog
 from ..import activation
@@ -2264,19 +2263,6 @@ class ActionOpenActivation(SimpleAction):
         self.diag.show()
 
 
-class ActionOpenSummary(SimpleAction):
-    """
-    Quit
-    """
-    def __init__(self, main_window):
-        SimpleAction.__init__(self, "Open summary")
-        self.__main_win = main_window
-
-    def do(self):
-        SimpleAction.do(self)
-        self.__main_win.switch_mainview("summary")
-
-
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2666,9 +2652,9 @@ class MainWindow(object):
         widget_tree = load_uifile(
             os.path.join("mainwindow", "mainwindow.glade")
         )
-        summary_tree = load_uifile(os.path.join("mainwindow", "summary.glade"))
         # self.widget_tree is for tests/screenshots ONLY
         self.widget_tree = widget_tree
+        self.summary = summary.Summary(self, config)
 
         self.__init_headerbars(widget_tree)
 
@@ -2761,10 +2747,6 @@ class MainWindow(object):
         self.page_drop_handler = PageDropHandler(self)
         self.img['canvas'].add_drawer(self.page_drop_handler)
         self.page_drop_handler.set_enabled(self.doc.can_edit)
-
-        self.summary = {
-            "view": summary_tree.get_object("summary_view"),
-        }
 
         self.active_view = "content"
 
@@ -2939,7 +2921,7 @@ class MainWindow(object):
                 [
                     gactions['summary'],
                 ],
-                ActionOpenSummary(self)
+                summary.ActionOpenSummary(self)
             ),
             'quit': (
                 [
@@ -3325,6 +3307,7 @@ class MainWindow(object):
         self.docsearch = docsearch
         self.refresh_doc_list()
         self.refresh_label_list()
+        self.refresh_summary()
 
         GLib.timeout_add(1000, self._check_new_workdir)
 
@@ -3391,18 +3374,24 @@ class MainWindow(object):
         )
         self.doclist.clear()
 
+    def refresh_summary(self):
+        if self.active_view == 'summary':
+            return
+        self.summary.refresh()
+
     def switch_mainview(self, to):
         if to == self.active_view:
             return
+        self.active_view = to
         if to == "summary":
             self.global_page_box.remove(self.img['scrollbar'])
-            self.global_page_box.pack_end(self.summary['view'], True, True, 0)
+            self.global_page_box.pack_end(self.summary.view, True, True, 0)
+            self.refresh_summary()
         elif to == "content":
             self.global_page_box.remove(self.summary['view'])
             self.global_page_box.pack_end(self.img['scrollbar'], True, True, 0)
         else:
             assert False, "Unknown main view requested"
-        self.active_view = to
 
     def switch_leftpane(self, to):
         for (name, revealers) in self.left_revealers.items():

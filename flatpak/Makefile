@@ -6,9 +6,6 @@ all: app
 build: app
 app: $(APP)
 
-test:
-	echo $(APP:%=%.bundle)
-
 uninstall:
 	flatpak --user uninstall $(APP)
 
@@ -27,4 +24,4 @@ clean:
 	flatpak-builder --repo=$(REPO) --subject="Build of $@ `date`" ${EXPORT_ARGS} app $<
 	flatpak -v build-bundle repo $(patsubst %.json,%.flatpak,$<) $@ $(VER)
 
-.PHONY: all clean test uninstall install build
+.PHONY: all uninstall install build

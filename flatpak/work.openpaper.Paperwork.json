@@ -213,9 +213,9 @@
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://github.com/openpaperwork/paperwork-backend/archive/1.2.1.tar.gz",
-                    "sha256": "397a829b741a7b3e311aa239c8bb9e9a21f9596d37c64c99d1f00aab3c52c4c3"
+                    "type": "git",
+                    "url": "https://github.com/openpaperwork/paperwork-backend.git",
+                    "branch": "stable"
                 },
                 {
                     "type": "file",
@@ -376,9 +376,9 @@
             "post-install": ["paperwork-shell install"],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://github.com/openpaperwork/paperwork/archive/wip-flatpak.tar.gz",
-                    "sha256": "2830771504aa0a859295aa1df19877aa2dba4c5d6a342644ca70547d301a6314"
+                    "type": "git",
+                    "url": "https://github.com/openpaperwork/paperwork.git",
+                    "branch": "wip-flatpak"
                 },
                 {
                     "type": "file",

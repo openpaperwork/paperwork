@@ -1,27 +1,35 @@
 REPO = repo
-APP = $(patsubst %.json,%,$(wildcard *.json))
-VER = 1.2.1
+APP = work.openpaper.Paperwork
+APPS = $(patsubst %.json,%,$(wildcard *.json))
 
-all: app
-build: app
-app: $(APP)
+all: repo bundles
 
-uninstall:
-	flatpak --user uninstall $(APP)
-
-install: build
-	flatpak --user install --bundle $(APP:%=%.bundle)
-
-reinstall: uninstall install
+# uninstall:
+# 	flatpak --user uninstall $(APP)
+#
+# install: $(patsubst %,%.flatpak,$(APP))
+# 	flatpak --user install --bundle $(patsubst %,%.flatpak,$(APP))
+#
+# reinstall: uninstall install
 
 clean:
-	rm -rf app repo .flatpak-builder $(APP:%=%.bundle)
+	rm -rf repo $(patsubst %,%.app,$(APPS)) $(patsubst %,%.flatpak,$(APPS))
 
+dist-clean: clean
+	rm -rf .flatpak-builder
 
-%: %.json
-	rm -rf app
-	echo $@
-	flatpak-builder --repo=$(REPO) --subject="Build of $@ `date`" ${EXPORT_ARGS} app $<
-	flatpak -v build-bundle repo $(patsubst %.json,%.flatpak,$<) $@ $(VER)
+%.app: %.json
+	@echo flatpak-builder $< --\> $@
+	flatpak-builder $@ $<
+	@echo flatpak build-export -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $@ --\> repo \(branch: $(@:%.app=%)\)
+	flatpak build-export $(REPO) $@ $(@:%.app=%)
 
-.PHONY: all uninstall install build
+repo: $(patsubst %,%.app,$(APPS))
+
+%.flatpak: repo
+	@echo flatpak build-bundle $(REPO) --\> $@ \(branch: $(@:%.flatpak=%)\)
+	flatpak -v build-bundle $(REPO) $@ $(APP) $(@:%.flatpak=%)
+
+bundles: $(patsubst %,%.flatpak,$(APPS))
+
+.PHONY: all

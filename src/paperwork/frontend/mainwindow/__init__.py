@@ -31,7 +31,6 @@ from gi.repository import Gtk
 from gi.repository import Notify
 import pillowfight
 
-from . import summary
 from ..aboutdialog import AboutDialog
 from ..diag import DiagDialog
 from ..import activation

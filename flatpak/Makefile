@@ -13,16 +13,14 @@ all: repo bundles
 # reinstall: uninstall install
 
 clean:
-	rm -rf repo $(patsubst %,%.app,$(APPS)) $(patsubst %,%.flatpak,$(APPS))
+	rm -rf $(patsubst %,%.app,$(APPS)) $(patsubst %,%.flatpak,$(APPS))
 
 dist-clean: clean
-	rm -rf .flatpak-builder
+	rm -rf repo .flatpak-builder
 
 %.app: %.json
 	@echo flatpak-builder $< --\> $@
-	flatpak-builder $@ $<
-	@echo flatpak build-export -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $@ --\> repo \(branch: $(@:%.app=%)\)
-	flatpak build-export $(REPO) $@ $(@:%.app=%)
+	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" $@ $<
 
 repo: $(patsubst %,%.app,$(APPS))
 

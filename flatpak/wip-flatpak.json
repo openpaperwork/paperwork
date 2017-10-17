@@ -1,6 +1,6 @@
 {
     "app-id": "work.openpaper.Paperwork",
-    "branch": "1.2.1",
+    "branch": "wip-flatpak",
     "runtime": "org.gnome.Platform",
     "runtime-version": "3.26",
     "sdk": "org.gnome.Sdk",

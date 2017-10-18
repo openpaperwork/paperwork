@@ -20,7 +20,7 @@ dist-clean: clean
 
 %.app: %.json
 	@echo flatpak-builder $< --\> $@
-	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" $@ $<
+	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $@ $<
 
 repo: $(patsubst %,%.app,$(APPS))
 

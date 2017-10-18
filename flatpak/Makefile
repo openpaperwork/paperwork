@@ -23,6 +23,7 @@ dist-clean: clean
 	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" $@ $<
 
 repo: $(patsubst %,%.app,$(APPS))
+	flatpak build-update-repo $(REPO)
 
 %.flatpak: repo
 	@echo flatpak build-bundle $(REPO) --\> $@ \(branch: $(@:%.flatpak=%)\)

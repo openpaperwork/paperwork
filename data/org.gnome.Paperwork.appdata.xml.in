@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+ <id type="desktop">org.gnome.Paperwork.desktop</id>
+ <licence>CC0</licence>
+ <_name>Paperwork</_name>
+ <_summary>All your personnal documents, scanned and PDFs, available in one click.</_summary>
+ <description>
+  <_p>
+	Sorting documents is a machine's job. Paperwork is an easy-to-use application which allows you to find in all your documents what you need, when you need it. Type a few keywords in the search bar and the list of papers will shrink to only the relevant content.
+  </_p>
+  <_p>
+	This is where the magic happens: Paperwork uses optical character recognition (OCR) to convert your papers into simple text files, so it's easy to search for text.
+  </_p>
+ </description>
+ <screenshots>
+  <screenshot type="default" width="800" height="439"><https://raw.githubusercontent.com/jflesch/paperwork-screenshots/master/1.0/main_window.png>
+ </screenshots>
+ <url type="homepage">https://openpaper.work/</url>
+ <updatecontact>jflesch@openpaper.work</updatecontact>
+</application>

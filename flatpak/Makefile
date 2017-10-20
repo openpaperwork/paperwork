@@ -19,7 +19,7 @@ traineddata: eng.traineddata osd.traineddata \
 
 %.app: %.json traineddata
 	@echo flatpak-builder $< --\> $@ \(${EXPORT_ARGS}\)
-	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $@ $<
+	flatpak-builder ${EXPORT_ARGS} $@ $<
 	@echo configuring Tesseract traineddata
 	mkdir -p $@/files/share/tessdata
 	cp deu.traineddata $@/files/share/locale/de
@@ -28,6 +28,8 @@ traineddata: eng.traineddata osd.traineddata \
 	ln -s $@/files/share/locale/fr $@/files/share/tessdata
 	cp eng.traineddata $@/files/share/tessdata
 	cp osd.traineddata $@/files/share/tessdata
+	@echo exporting to repo
+	flatpak build-export -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARG} $(REPO) $@ $(@:%.app=%)
 
 repo: $(patsubst %,%.app,$(APPS))
 	@echo flatpak build-update-repo $(REPO) \(${EXPORT_ARGS}\)

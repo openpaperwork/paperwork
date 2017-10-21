@@ -23,9 +23,9 @@ traineddata: eng.traineddata osd.traineddata \
 	@echo configuring Tesseract traineddata
 	mkdir -p $@/files/share/tessdata
 	cp deu.traineddata $@/files/share/locale/de
-	ln -s $@/files/share/locale/de $@/files/share/tessdata
+	ln -s $@/files/share/locale/de/deu.traineddata $@/files/share/tessdata
 	cp fra.traineddata $@/files/share/locale/fr
-	ln -s $@/files/share/locale/fr $@/files/share/tessdata
+	ln -s $@/files/share/locale/fr/fra.traineddata $@/files/share/tessdata
 	cp eng.traineddata $@/files/share/tessdata
 	cp osd.traineddata $@/files/share/tessdata
 	@echo exporting to repo

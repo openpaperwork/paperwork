@@ -29,7 +29,7 @@ traineddata: eng.traineddata osd.traineddata \
 	cp eng.traineddata $@/files/share/tessdata
 	cp osd.traineddata $@/files/share/tessdata
 	@echo exporting to repo
-	flatpak build-export -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARG} $(REPO) $@ $(@:%.app=%)
+	flatpak build-export -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $(REPO) $@ $(@:%.app=%)
 
 repo: $(patsubst %,%.app,$(APPS))
 	@echo flatpak build-update-repo $(REPO) \(${EXPORT_ARGS}\)

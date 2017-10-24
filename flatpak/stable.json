@@ -396,6 +396,26 @@
             ]
         },
         {
+            "name": "tessdata",
+            "no-autogen": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://builder.openpaper.work/tessdata/tessdata-3.04.00-openpaperwork-0.2.tar.gz",
+                    "sha256": "e5dce70a5d0b8c38ffc7152d5fea6d5679fe0d218e247b76162fcde7eab6b93e"
+                }
+            ],
+            "post-install": [
+                "mkdir -p /app/share/tessdata",
+                "cp eng.traineddata /app/share/tessdata",
+                "cp osd.traineddata /app/share/tessdata",
+                "cp deu.traineddata /app/share/locale/de",
+                "ln -s ../locale/de/deu.traineddata /app/share/tessdata",
+                "cp fra.traineddata /app/share/locale/fr",
+                "ln -s ../locale/fr/fra.traineddata /app/share/tessdata"
+            ]
+        },
+        {
             "name": "paperwork",
             "make-install-args": ["prefix=/app"],
             "no-autogen": true,

@@ -401,8 +401,13 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://builder.openpaper.work/tessdata/tessdata-3.04.00-openpaperwork-0.2.tar.gz",
-                    "sha256": "e5dce70a5d0b8c38ffc7152d5fea6d5679fe0d218e247b76162fcde7eab6b93e"
+                    "url": "https://github.com/tesseract-ocr/tessdata/archive/3.04.00.tar.gz",
+                    "sha256": "5dcb37198336b6953843b461ee535df1401b41008d550fc9e43d0edabca7adb1"
+                },
+                {
+                    "type": "file",
+                    "path": "noop-Makefile",
+                    "dest-filename": "Makefile"
                 }
             ],
             "post-install": [

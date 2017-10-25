@@ -1,0 +1,7 @@
+all:
+	@echo no-op
+
+install:
+	@echo no-op
+
+.PHONY: all

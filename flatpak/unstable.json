@@ -415,9 +415,7 @@
                 "cp eng.traineddata /app/share/tessdata",
                 "cp osd.traineddata /app/share/tessdata",
                 "cp deu.traineddata /app/share/locale/de",
-                "ln -s ../locale/de/deu.traineddata /app/share/tessdata",
-                "cp fra.traineddata /app/share/locale/fr",
-                "ln -s ../locale/fr/fra.traineddata /app/share/tessdata"
+                "cp fra.traineddata /app/share/locale/fr"
             ]
         },
         {

@@ -18,6 +18,7 @@
 Bootstrapping code
 """
 
+import glob
 import os
 import sys
 
@@ -38,6 +39,9 @@ import signal
 import argparse
 
 import pyinsane2
+
+from paperwork_backend.util import mkdir_p
+from paperwork_backend.util import rm_rf
 
 from .frontend.diag import LogTracker
 from .frontend.mainwindow import ActionRealQuit, __version__
@@ -113,6 +117,39 @@ def set_locale():
             module.textdomain('paperwork')
 
 
+def make_tessdata():
+    """
+    If we are in Flatpak, we must build a tessdata/ directory using the
+    .traineddata files from each locale directory
+    """
+    tessdata_files = glob.glob("/usr/share/locale/*/*.traineddata")
+    if len(tessdata_files) <= 0:
+        return
+
+    localdir = os.path.expanduser("~/.local")
+    base_data_dir = os.getenv(
+        "XDG_DATA_HOME",
+        os.path.join(localdir, "share")
+    )
+    tessdatadir = os.path.join(base_data_dir, "paperwork", "tessdata")
+
+    logger.info("Assuming we are running in Flatpak."
+                " Building tessdata directory {} ...".format(tessdatadir))
+    rm_rf(tessdatadir)
+    mkdir_p(tessdatadir)
+
+    os.symlink("/usr/share/tessdata/eng.traineddata",
+               os.path.join(tessdatadir, "eng.traineddata"))
+    os.symlink("/usr/share/tessdata/osd.traineddata",
+               os.path.join(tessdatadir, "osd.traineddata"))
+    for tessdata in tessdata_files:
+        logger.info("{} found".format(tessdata))
+        os.symlink(tessdata, os.path.join(tessdatadir,
+                                          os.path.basename(tessdata)))
+    os.environ['TESSDATA_PREFIX'] = os.path.dirname(tessdatadir)
+    logger.info("Tessdata directory ready")
+
+
 class Main(object):
     def __init__(self):
         self.main_win = None
@@ -151,6 +188,7 @@ class Main(object):
             GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
                                  self.quit_nicely, None)
 
+        make_tessdata()
         logger.info("Initializing pyinsane ...")
         pyinsane2.init()
         try:

@@ -414,8 +414,24 @@
                 "mkdir -p /app/share/tessdata",
                 "cp eng.traineddata /app/share/tessdata",
                 "cp osd.traineddata /app/share/tessdata",
+
+                "cp bul.traineddata /app/share/locale/bg",
+                "cp dan.traineddata /app/share/locale/da",
                 "cp deu.traineddata /app/share/locale/de",
-                "cp fra.traineddata /app/share/locale/fr"
+                "cp epo.traineddata /app/share/locale/eo",
+                "cp fin.traineddata /app/share/locale/fi",
+                "cp fra.traineddata /app/share/locale/fr",
+                "cp glg.traineddata /app/share/locale/gl",
+                "cp hun.traineddata /app/share/locale/hu",
+                "cp ita.traineddata /app/share/locale/it",
+                "cp jpn.traineddata /app/share/locale/ja",
+                "cp nld.traineddata /app/share/locale/nl",
+                "cp nor.traineddata /app/share/locale/nb",
+                "cp por.traineddata /app/share/locale/pt",
+                "cp rus.traineddata /app/share/locale/ru",
+                "cp spa.traineddata /app/share/locale/es",
+                "cp swe.traineddata /app/share/locale/sv",
+                "cp ukr.traineddata /app/share/locale/uk"
             ]
         },
         {

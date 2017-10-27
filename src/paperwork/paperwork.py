@@ -122,7 +122,7 @@ def make_tessdata():
     If we are in Flatpak, we must build a tessdata/ directory using the
     .traineddata files from each locale directory
     """
-    tessdata_files = glob.glob("/usr/share/locale/*/*.traineddata")
+    tessdata_files = glob.glob("/app/share/locale/*/*.traineddata")
     if len(tessdata_files) <= 0:
         return
 
@@ -138,9 +138,9 @@ def make_tessdata():
     rm_rf(tessdatadir)
     mkdir_p(tessdatadir)
 
-    os.symlink("/usr/share/tessdata/eng.traineddata",
+    os.symlink("/app/share/tessdata/eng.traineddata",
                os.path.join(tessdatadir, "eng.traineddata"))
-    os.symlink("/usr/share/tessdata/osd.traineddata",
+    os.symlink("/app/share/tessdata/osd.traineddata",
                os.path.join(tessdatadir, "osd.traineddata"))
     for tessdata in tessdata_files:
         logger.info("{} found".format(tessdata))

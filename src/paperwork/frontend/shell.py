@@ -90,7 +90,7 @@ def _install(icondir, datadir):
     entry.set("Comment", "You can grep dead trees")
     entry.set("Exec", "paperwork")
     entry.set("Name", "Paperwork")
-    entry.set("Icon", "work.paperwork.Paperwork")
+    entry.set("Icon", "work.openpaper.Paperwork")
     entry.set("Keywords", "document;scanner;ocr;")
     entry.write()
     print("Done")

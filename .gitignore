@@ -5,8 +5,8 @@ paperwork.conf
 dist/
 paperwork.egg-info/
 .idea
-flatpak/*.traineddata
-flatpak/*.app/
-flatpak/.flatpak-builder/
-flatpak/repo/
+*.traineddata
+*.app/
+.flatpak-builder/
+repo/
 *.flatpak

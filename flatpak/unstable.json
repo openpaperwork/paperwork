@@ -396,11 +396,50 @@
             ]
         },
         {
+            "name": "tessdata",
+            "no-autogen": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/tesseract-ocr/tessdata/archive/3.04.00.tar.gz",
+                    "sha256": "5dcb37198336b6953843b461ee535df1401b41008d550fc9e43d0edabca7adb1"
+                },
+                {
+                    "type": "file",
+                    "path": "noop-Makefile",
+                    "dest-filename": "Makefile"
+                }
+            ],
+            "post-install": [
+                "mkdir -p /app/share/tessdata",
+                "cp eng.traineddata /app/share/tessdata",
+                "cp osd.traineddata /app/share/tessdata",
+
+                "cp bul.traineddata /app/share/locale/bg",
+                "cp dan.traineddata /app/share/locale/da",
+                "cp deu.traineddata /app/share/locale/de",
+                "cp epo.traineddata /app/share/locale/eo",
+                "cp fin.traineddata /app/share/locale/fi",
+                "cp fra.traineddata /app/share/locale/fr",
+                "cp glg.traineddata /app/share/locale/gl",
+                "cp hun.traineddata /app/share/locale/hu",
+                "cp ita.traineddata /app/share/locale/it",
+                "cp jpn.traineddata /app/share/locale/ja",
+                "cp nld.traineddata /app/share/locale/nl",
+                "cp nor.traineddata /app/share/locale/nb",
+                "cp por.traineddata /app/share/locale/pt",
+                "cp rus.traineddata /app/share/locale/ru",
+                "cp spa.traineddata /app/share/locale/es",
+                "cp swe.traineddata /app/share/locale/sv",
+                "cp ukr.traineddata /app/share/locale/uk"
+            ]
+        },
+        {
             "name": "paperwork",
             "make-install-args": ["prefix=/app"],
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
-            "post-install": ["paperwork-shell install"],
+            "post-install": ["paperwork-shell install_system /app/share/icons /app/share"],
             "sources": [
                 {
                     "type": "git",

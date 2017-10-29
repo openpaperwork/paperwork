@@ -41,12 +41,7 @@ def scan():
     paperwork.main(hook_func=_hook_scan, skip_workdir_scan=True)
 
 
-def install():
-    """
-    Install Paperwork icons and shortcut.
-    Files are installed in the home directory of the current user. No root
-    access required.
-    """
+def _install(icondir, datadir):
     from paperwork.frontend import mainwindow
 
     ICON_SIZES = [
@@ -55,12 +50,12 @@ def install():
     ]
     png_src_icon_pattern = "paperwork_{}.png"
     png_dst_icon_pattern = os.path.join(
-        xdg.IconTheme.icondirs[0], "hicolor", "{}", "apps", "paperwork.png"
+        icondir, "hicolor", "{}", "apps", "work.openpaper.Paperwork.png"
     )
     desktop_path = os.path.join(
-        xdg.BaseDirectory.xdg_data_dirs[0], 'applications',
-        'work.openpaper.Paperwork.desktop'
+        datadir, 'applications', 'work.openpaper.Paperwork.desktop'
     )
+    os.makedirs(os.path.dirname(desktop_path), exist_ok=True)
 
     to_copy = [
         (
@@ -72,15 +67,16 @@ def install():
         ) for size in ICON_SIZES
     ]
     for icon in ['paperwork.svg', 'paperwork_halo.svg']:
+        src_icon = icon
+        dst_icon = icon
+        if icon == 'paperwork.svg':
+            dst_icon = 'work.openpaper.Paperwork.svg'
         to_copy.append(
             (
                 pkg_resources.resource_filename(
-                    'paperwork.frontend.data', icon
+                    'paperwork.frontend.data', src_icon
                 ),
-                os.path.join(
-                    xdg.IconTheme.icondirs[0], "hicolor", "scalable", "apps",
-                    icon
-                )
+                os.path.join(icondir, "hicolor", "scalable", "apps", dst_icon)
             )
         )
 
@@ -92,20 +88,46 @@ def install():
     print("Generating {} ...".format(desktop_path))
     entry = xdg.DesktopEntry.DesktopEntry(desktop_path)
     entry.set("GenericName", "Personal Document Manager")
-    entry.set("Version", mainwindow.__version__)
     entry.set("Type", "Application")
     entry.set("Categories", "Office;Scanning;")
     entry.set("Terminal", "false")
     entry.set("Comment", "You can grep dead trees")
     entry.set("Exec", "paperwork")
     entry.set("Name", "Paperwork")
-    entry.set("Icon", "paperwork")
+    entry.set("Icon", "work.openpaper.Paperwork")
     entry.set("Keywords", "document;scanner;ocr;")
     entry.write()
     print("Done")
 
 
+def install():
+    """
+    Install Paperwork icons and shortcut.
+    Files are installed in the home directory of the current user. No root
+    access required.
+    """
+    _install(
+        xdg.IconTheme.icondirs[0],
+        xdg.BaseDirectory.xdg_data_dirs[0],
+    )
+
+
+def install_system(icon_basedir="/usr/share/icons", data_basedir="/usr/share"):
+    """
+    Install Paperwork icons and shortcut.
+    Files are installed system-wide. Root access is required.
+
+    Arguments:
+        [<icon basedir> [<data basedir>]]
+
+    icon basedir: default is /usr/share/icons
+    data basedir: default is /usr/share
+    """
+    _install(icon_basedir, data_basedir)
+
+
 COMMANDS = {
     'install': install,
+    'install_system': install_system,
     'scan': scan,
 }

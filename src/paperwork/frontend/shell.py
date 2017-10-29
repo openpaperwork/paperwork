@@ -41,12 +41,7 @@ def scan():
     paperwork.main(hook_func=_hook_scan, skip_workdir_scan=True)
 
 
-def install():
-    """
-    Install Paperwork icons and shortcut.
-    Files are installed in the home directory of the current user. No root
-    access required.
-    """
+def _install(icondir, datadir):
     from paperwork.frontend import mainwindow
 
     ICON_SIZES = [
@@ -55,12 +50,12 @@ def install():
     ]
     png_src_icon_pattern = "paperwork_{}.png"
     png_dst_icon_pattern = os.path.join(
-        xdg.IconTheme.icondirs[0], "hicolor", "{}", "apps", "paperwork.png"
+        icondir, "hicolor", "{}", "apps", "paperwork.png"
     )
     desktop_path = os.path.join(
-        xdg.BaseDirectory.xdg_data_dirs[0], 'applications',
-        'work.openpaper.Paperwork.desktop'
+        datadir, 'applications', 'work.openpaper.Paperwork.desktop'
     )
+    os.makedirs(os.path.dirname(desktop_path), exist_ok=True)
 
     to_copy = [
         (
@@ -77,10 +72,7 @@ def install():
                 pkg_resources.resource_filename(
                     'paperwork.frontend.data', icon
                 ),
-                os.path.join(
-                    xdg.IconTheme.icondirs[0], "hicolor", "scalable", "apps",
-                    icon
-                )
+                os.path.join(icondir, "hicolor", "scalable", "apps", icon)
             )
         )
 
@@ -105,7 +97,34 @@ def install():
     print("Done")
 
 
+def install():
+    """
+    Install Paperwork icons and shortcut.
+    Files are installed in the home directory of the current user. No root
+    access required.
+    """
+    _install(
+        xdg.IconTheme.icondirs[0],
+        xdg.BaseDirectory.xdg_data_dirs[0],
+    )
+
+
+def install_system(icon_basedir="/usr/share/icons", data_basedir="/usr/share"):
+    """
+    Install Paperwork icons and shortcut.
+    Files are installed system-wide. Root access is required.
+
+    Arguments:
+        [<icon basedir> [<data basedir>]]
+
+    icon basedir: default is /usr/share/icons
+    data basedir: default is /usr/share
+    """
+    _install(icon_basedir, data_basedir)
+
+
 COMMANDS = {
     'install': install,
+    'install_system': install_system,
     'scan': scan,
 }

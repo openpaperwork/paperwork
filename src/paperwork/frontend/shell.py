@@ -50,7 +50,7 @@ def _install(icondir, datadir):
     ]
     png_src_icon_pattern = "paperwork_{}.png"
     png_dst_icon_pattern = os.path.join(
-        icondir, "hicolor", "{}", "apps", "paperwork.png"
+        icondir, "hicolor", "{}", "apps", "work.openpaper.Paperwork.png"
     )
     desktop_path = os.path.join(
         datadir, 'applications', 'work.openpaper.Paperwork.desktop'
@@ -84,7 +84,6 @@ def _install(icondir, datadir):
     print("Generating {} ...".format(desktop_path))
     entry = xdg.DesktopEntry.DesktopEntry(desktop_path)
     entry.set("GenericName", "Personal Document Manager")
-    entry.set("Version", mainwindow.__version__)
     entry.set("Type", "Application")
     entry.set("Categories", "Office;Scanning;")
     entry.set("Terminal", "false")

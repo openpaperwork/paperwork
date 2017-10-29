@@ -70,11 +70,11 @@ def _install(icondir, datadir):
         src_icon = icon
         dst_icon = icon
         if icon == 'paperwork.svg':
-            icon = 'work.openpaper.Paperwork.svg'
+            dst_icon = 'work.openpaper.Paperwork.svg'
         to_copy.append(
             (
                 pkg_resources.resource_filename(
-                    'paperwork.frontend.data', icon
+                    'paperwork.frontend.data', src_icon
                 ),
                 os.path.join(icondir, "hicolor", "scalable", "apps", dst_icon)
             )

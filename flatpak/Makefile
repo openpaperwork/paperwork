@@ -23,4 +23,4 @@ repo: $(patsubst %,%.app,$(APPS))
 
 bundles: $(patsubst %,%.flatpak,$(APPS))
 
-.PHONY: all
+.PHONY: all clean dist-clean bundles

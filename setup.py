@@ -59,6 +59,7 @@ There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
             'paperwork-shell = paperwork_backend.shell_cmd:main',
         ],
     },
+    zip_safe=True,
     install_requires=[
         "natsort",
         "Pillow",

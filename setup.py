@@ -146,6 +146,7 @@ Main features are:
             'paperwork = paperwork.paperwork:main',
         ]
     },
+    zip_safe=True,
     install_requires=[
         "python-dateutil",
         "python-Levenshtein",

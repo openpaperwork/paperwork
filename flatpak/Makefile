@@ -16,6 +16,7 @@ dist-clean: clean
 
 repo: $(patsubst %,%.app,$(APPS))
 	@echo flatpak build-update-repo $(REPO) \(${EXPORT_ARGS}\)
+	flatpak build-update-repo --generate-static-deltas ${EXPORT_ARGS} $(REPO)
 
 %.flatpak: repo
 	@echo flatpak build-bundle $(REPO) --\> $@ \(branch: $(@:%.flatpak=%)\)

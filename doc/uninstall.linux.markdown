@@ -41,7 +41,19 @@ sudo pip3 uninstall paperwork-backend  # run it as many times as required
 sudo pip3 uninstall paperwork  # run it as many times as required
 ```
 
-[Bug reports](https://github.com/jflesch/paperwork/issues/513) indicate that
+Files installed by ```paperwork-shell install```:
+
+```sh
+rm -f ~/.local/share/applications/paperwork.desktop
+rm -f ~/.local/share/applications/work.openpaper.Paperwork.desktop
+rm -f ~/.local/share/icons/hicolor/*/apps/paperwork.png
+rm -f ~/.local/share/icons/hicolor/*/apps/work.openpaper.Paperwork.png
+rm -f ~/.local/share/icons/hicolor/scalable/apps/paperwork.svg
+rm -f ~/.local/share/icons/hicolor/scalable/apps/work.openpaper.Paperwork.svg
+rm -f ~/.local/share/icons/hicolor/scalable/apps/paperwork_halo.svg
+```
+
+*Old versions*: [Bug reports](https://github.com/jflesch/paperwork/issues/513) indicate that
 Pip may loose track of data files and even not replace them later. So,
 just to be safe, you can also run:
 

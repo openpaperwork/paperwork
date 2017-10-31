@@ -1,0 +1,96 @@
+{
+    "name": "tesseract-bundle",
+    "no-autogen": true,
+    "sources": [
+        {
+            "type": "file",
+            "path": "noop-Makefile",
+            "dest-filename": "Makefile"
+        }
+    ],
+    "modules": [
+        {
+            "name": "libleptonica",
+            "buildsystem": "autotools",
+            "config-opts": [
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/DanBloomberg/leptonica/releases/download/1.74.4/leptonica-1.74.4.tar.gz",
+                    "sha256": "29c35426a416bf454413c6fec24c24a0b633e26144a17e98351b6dffaa4a833b"
+                }
+            ]
+        },
+        {
+            "name": "tesseract",
+            "buildsystem": "autotools",
+            "config-opts": [
+                "--disable-graphics"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/tesseract-ocr/tesseract/archive/3.05.01.tar.gz",
+                    "sha256": "05898f93c5d057fada49b9a116fc86ad9310ff1726a0f499c3e5211b3af47ec1"
+                }
+            ]
+        },
+        {
+            "name": "tessdata",
+            "no-autogen": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/tesseract-ocr/tessdata/archive/3.04.00.tar.gz",
+                    "sha256": "5dcb37198336b6953843b461ee535df1401b41008d550fc9e43d0edabca7adb1"
+                },
+                {
+                    "type": "file",
+                    "path": "noop-Makefile",
+                    "dest-filename": "Makefile"
+                }
+            ],
+            "post-install": [
+                "mkdir -p /app/share/tessdata",
+                "cp eng.traineddata /app/share/tessdata",
+                "cp osd.traineddata /app/share/tessdata",
+
+                "mkdir -p /app/share/locale/bg",
+                "cp bul.traineddata /app/share/locale/bg",
+                "mkdir -p /app/share/locale/da",
+                "cp dan.traineddata /app/share/locale/da",
+                "mkdir -p /app/share/locale/de",
+                "cp deu.traineddata /app/share/locale/de",
+                "mkdir -p /app/share/locale/eo",
+                "cp epo.traineddata /app/share/locale/eo",
+                "mkdir -p /app/share/locale/fi",
+                "cp fin.traineddata /app/share/locale/fi",
+                "mkdir -p /app/share/locale/fr",
+                "cp fra.traineddata /app/share/locale/fr",
+                "mkdir -p /app/share/locale/gl",
+                "cp glg.traineddata /app/share/locale/gl",
+                "mkdir -p /app/share/locale/hu",
+                "cp hun.traineddata /app/share/locale/hu",
+                "mkdir -p /app/share/locale/it",
+                "cp ita.traineddata /app/share/locale/it",
+                "mkdir -p /app/share/locale/ja",
+                "cp jpn.traineddata /app/share/locale/ja",
+                "mkdir -p /app/share/locale/nl",
+                "cp nld.traineddata /app/share/locale/nl",
+                "mkdir -p /app/share/locale/nb",
+                "cp nor.traineddata /app/share/locale/nb",
+                "mkdir -p /app/share/locale/pt",
+                "cp por.traineddata /app/share/locale/pt",
+                "mkdir -p /app/share/locale/ru",
+                "cp rus.traineddata /app/share/locale/ru",
+                "mkdir -p /app/share/locale/es",
+                "cp spa.traineddata /app/share/locale/es",
+                "mkdir -p /app/share/locale/sv",
+                "cp swe.traineddata /app/share/locale/sv",
+                "mkdir -p /app/share/locale/uk",
+                "cp ukr.traineddata /app/share/locale/uk"
+            ]
+        }
+    ]
+}

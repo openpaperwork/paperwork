@@ -1298,11 +1298,18 @@ class ActionOpenDocDir(SimpleAction):
         if os.name == 'nt':
             os.startfile(self.__main_win.doc.path)
             return
-        Gtk.show_uri(
-            self.__main_win.window.get_window().get_screen(),
-            self.__main_win.doc.path,
-            Gdk.CURRENT_TIME
-        )
+        if hasattr(Gtk, 'show_uri_on_window'):
+            Gtk.show_uri_on_window(
+                self.__main_win.window,
+                self.__main_win.doc.path,
+                Gdk.CURRENT_TIME
+            )
+        else:
+            Gtk.show_uri(
+                self.__main_win.window.get_window().get_screen(),
+                self.__main_win.doc.path,
+                Gdk.CURRENT_TIME
+            )
 
 
 class ActionPrintDoc(SimpleAction):

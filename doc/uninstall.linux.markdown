@@ -1,3 +1,6 @@
+Uninstallation *won't* delete your work directory.
+
+
 # Paperwork uninstallation using Flatpak
 
 If you installed Paperwork using Flatpak, uninstalling it is easy:

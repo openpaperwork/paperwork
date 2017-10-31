@@ -6,7 +6,7 @@
 # Install Flatpak and Saned
 sudo apt install flatpak sane-utils
 
-# Enable Saned (required for scanning ; allow connexion from the loopback only)
+# Enable Saned (required for scanning ; allow connection from the loopback only)
 sudo sh -c "echo 127.0.0.1 >> /etc/sane.d/saned.conf"
 sudo systemctl start saned.socket
 
@@ -29,7 +29,7 @@ flatpak --user update
 
 When installed using Flatpak, Paperwork runs in a container. This container prevents
 Paperwork from accessing devices directly. Therefore, [Saned](https://linux.die.net/man/1/saned),
-the scanning daemon, must be enabled on the host system, and connexion must be allowed from 127.0.0.1.
+the scanning daemon, must be enabled on the host system, and connection must be allowed from 127.0.0.1.
 
 ## Nightly builds
 

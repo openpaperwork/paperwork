@@ -19,6 +19,8 @@
         "--own-name=work.openpaper.paperwork"
     ],
     "modules": [
+        "shared-modules/tesseract-3.05.01.json",
+        "shared-modules/sane-backends-1.0.27.json",
         {
             "name" :"six",
             "no-autogen": true,
@@ -355,92 +357,6 @@
                     "url": "https://poppler.freedesktop.org/poppler-0.55.0.tar.xz",
                     "sha256": "537f2bc60d796525705ad9ca8e46899dcc99c2e9480b80051808bae265cdc658"
                 }
-            ]
-        },
-        {
-            "name": "sane-backends",
-            "buildsystem": "autotools",
-            "config-opts": [
-                    "--disable-saned"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://ftp.osuosl.org/.1/blfs/conglomeration/sane-backends/sane-backends-1.0.27.tar.gz",
-                    "sha256": "293747bf37275c424ebb2c833f8588601a60b2f9653945d5a3194875355e36c9"
-                }
-            ],
-            "post-install": [
-                "rm /app/etc/sane.d/dll.conf",
-                "rm /app/etc/sane.d/net.conf",
-                "echo 127.0.0.1 > /app/etc/sane.d/net.conf",
-                "echo net > /app/etc/sane.d/dll.conf"
-            ]
-        },
-        {
-            "name": "libleptonica",
-            "buildsystem": "autotools",
-            "config-opts": [
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://github.com/DanBloomberg/leptonica/releases/download/1.74.4/leptonica-1.74.4.tar.gz",
-                    "sha256": "29c35426a416bf454413c6fec24c24a0b633e26144a17e98351b6dffaa4a833b"
-                }
-            ]
-        },
-        {
-            "name": "tesseract",
-            "buildsystem": "autotools",
-            "config-opts": [
-                    "--disable-graphics"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://github.com/tesseract-ocr/tesseract/archive/3.05.01.tar.gz",
-                    "sha256": "05898f93c5d057fada49b9a116fc86ad9310ff1726a0f499c3e5211b3af47ec1"
-                }
-            ]
-        },
-        {
-            "name": "tessdata",
-            "no-autogen": true,
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://github.com/tesseract-ocr/tessdata/archive/3.04.00.tar.gz",
-                    "sha256": "5dcb37198336b6953843b461ee535df1401b41008d550fc9e43d0edabca7adb1"
-                },
-                {
-                    "type": "file",
-                    "path": "noop-Makefile",
-                    "dest-filename": "Makefile"
-                }
-            ],
-            "post-install": [
-                "mkdir -p /app/share/tessdata",
-                "cp eng.traineddata /app/share/tessdata",
-                "cp osd.traineddata /app/share/tessdata",
-
-                "cp bul.traineddata /app/share/locale/bg",
-                "cp dan.traineddata /app/share/locale/da",
-                "cp deu.traineddata /app/share/locale/de",
-                "cp epo.traineddata /app/share/locale/eo",
-                "cp fin.traineddata /app/share/locale/fi",
-                "cp fra.traineddata /app/share/locale/fr",
-                "cp glg.traineddata /app/share/locale/gl",
-                "cp hun.traineddata /app/share/locale/hu",
-                "cp ita.traineddata /app/share/locale/it",
-                "cp jpn.traineddata /app/share/locale/ja",
-                "cp nld.traineddata /app/share/locale/nl",
-                "cp nor.traineddata /app/share/locale/nb",
-                "cp por.traineddata /app/share/locale/pt",
-                "cp rus.traineddata /app/share/locale/ru",
-                "cp spa.traineddata /app/share/locale/es",
-                "cp swe.traineddata /app/share/locale/sv",
-                "cp ukr.traineddata /app/share/locale/uk"
             ]
         },
         {

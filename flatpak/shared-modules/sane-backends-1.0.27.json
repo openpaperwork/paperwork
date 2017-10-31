@@ -1,0 +1,20 @@
+{
+    "name": "sane-backends",
+    "buildsystem": "autotools",
+    "config-opts": [
+        "--disable-saned"
+    ],
+    "sources": [
+        {
+            "type": "archive",
+            "url": "https://ftp.osuosl.org/.1/blfs/conglomeration/sane-backends/sane-backends-1.0.27.tar.gz",
+            "sha256": "293747bf37275c424ebb2c833f8588601a60b2f9653945d5a3194875355e36c9"
+        }
+    ],
+    "post-install": [
+        "rm /app/etc/sane.d/dll.conf",
+        "rm /app/etc/sane.d/net.conf",
+        "echo 127.0.0.1 > /app/etc/sane.d/net.conf",
+        "echo net > /app/etc/sane.d/dll.conf"
+    ]
+}

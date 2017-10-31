@@ -54,6 +54,8 @@ In other words, let the machine do most of the work for you.
 * Quick edit of scans
 * PDF support
 
+Papers are organized into documents. Each document contains pages.
+
 
 ## Installation
 
@@ -101,8 +103,6 @@ If you installed it manually (for development), you can follow the same process 
 
 
 ## Details
-
-Papers are organized into documents. Each document contains pages.
 
 It mainly uses:
 

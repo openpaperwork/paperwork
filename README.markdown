@@ -90,9 +90,7 @@ If you installed it manually (for development), you can follow the same process 
 
 ## Donate
 
-<a href="https://www.patreon.com/openpaper">
-<img src="https://openpaper.work/static/Patreon-banner.png">
-</a>
+<a href="https://openpaper.work/download#donate">Help us help you ! ;-)</a>
 
 
 ## Contact/Help

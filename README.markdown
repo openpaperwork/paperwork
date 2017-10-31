@@ -61,12 +61,14 @@ Note regarding updates:
 If you're upgrading from a previous version installed with pip, it is strongly recommended you uninstall
 it first before installing the new version.
 
-* [GNU/Linux Archlinux](doc/install.archlinux.markdown)
-* [GNU/Linux Debian](doc/install.debian.markdown)
-* [GNU/Linux Fedora](doc/install.fedora.markdown)
-* [GNU/Linux Gentoo](doc/install.gentoo.markdown)
-* [GNU/Linux Ubuntu](doc/install.debian.markdown)
-* [Docker](doc/install.docker.markdown)
+* [Using Flatpak](flatpak/README.markdown) (recommended)
+* Distribution-specific methods:
+  * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
+  * [GNU/Linux Debian](doc/install.debian.markdown)
+  * [GNU/Linux Fedora](doc/install.fedora.markdown)
+  * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
+  * [GNU/Linux Ubuntu](doc/install.debian.markdown)
+* [Using Docker](doc/install.docker.markdown)
 * [GNU/Linux Development](doc/install.devel.markdown)
 * Windows: [Installation](https://openpaper.work) / [Development](doc/devel.windows.markdown)
 

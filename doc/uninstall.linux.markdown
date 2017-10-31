@@ -1,6 +1,14 @@
-# Paperwork uninstallation
+# Paperwork uninstallation using Flatpak
 
-This document assumes you installed Paperwork with Python tools (Pip or ```python3 ./setup.py install```).
+If you installed Paperwork using Flatpak, uninstalling it is easy:
+
+```shell
+flatpak --user uninstall work.openpaper.Paperwork
+```
+
+# Paperwork uninstallation using PIP
+
+This section assumes you installed Paperwork with Python tools (Pip or ```python3 ./setup.py install```).
 If you installed it with your distribution package manager, please use it to uninstall Paperwork.
 
 

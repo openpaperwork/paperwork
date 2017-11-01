@@ -2,6 +2,11 @@
 
 ## Debian >= jessie / Ubuntu >= 16.04
 
+When installed using Flatpak, Paperwork runs in a container. This container prevents
+Paperwork from accessing devices directly. Therefore the scanning daemon
+[Saned](https://linux.die.net/man/1/saned) must be enabled on the host system,
+and connexion must be allowed from 127.0.0.1.
+
 ```sh
 # Install Flatpak and Saned
 sudo apt install flatpak sane-utils
@@ -70,7 +75,9 @@ flatpak run work.openpaper.Paperwork//unstable
 
 ## Running paperwork-shell
 
-When using Flatpak, paperwork-shell remains available. Note that it will run inside Paperwork's container, and may not access files outside your home directory.
+When using Flatpak, paperwork-shell remains available. Note that it will run
+inside Paperwork's container and may not access files outside your home
+directory.
 
 ```shell
 flatpak run --command=paperwork-shell work.openpaper.Paperwork [args]

@@ -15,14 +15,14 @@ $ mkdir -p ~/git
 $ cd ~/git
 $ git clone https://github.com/jflesch/paperwork-backend.git
 $ cd paperwork-backend
-$ git checkout unstable  # or 'testing'
+$ git checkout develop  # or 'release-xxx'
 $ sudo python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork_backend
 
 $ cd ~/git
 $ git clone https://github.com/jflesch/paperwork.git
 $ cd paperwork
-$ git checkout unstable  # or 'testing'
+$ git checkout develop  # or 'release-xxx'
 $ sudo python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork
 
@@ -30,7 +30,7 @@ $ paperwork-shell chkdeps paperwork
 $ paperwork-shell install
 ```
 
-(see [the wiki as to why you probably want to work on the branch 'unstable'](https://github.com/jflesch/paperwork/wiki/Branches))
+(see [the wiki as to why you probably want to work on the branch 'develop'](https://github.com/jflesch/paperwork/wiki/Branches))
 
 
 ## Paperwork in a Python Virtualenv
@@ -62,14 +62,14 @@ $ source bin/activate
 
 $ git clone https://github.com/jflesch/paperwork-backend.git
 $ cd paperwork-backend
-$ git checkout unstable  # or 'testing'
+$ git checkout develop  # or 'release-xxx'
 $ python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork_backend
 
 $ cd ..
 $ git clone https://github.com/jflesch/paperwork.git
 $ cd paperwork
-$ git checkout unstable  # or 'testing'
+$ git checkout develop  # or 'release-xxx'
 $ python3 ./setup.py install
 $ paperwork-shell chkdeps paperwork
 ```

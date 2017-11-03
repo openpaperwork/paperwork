@@ -1,6 +1,6 @@
 {
     "app-id": "work.openpaper.Paperwork",
-    "branch": "stable",
+    "branch": "develop",
     "runtime": "org.gnome.Platform",
     "runtime-version": "3.26",
     "sdk": "org.gnome.Sdk",
@@ -212,15 +212,12 @@
         {
             "name" :"paperwork-backend",
             "no-autogen": true,
-            "ensure-writable": [
-                    "/lib/python*/site-packages/easy-install.pth",
-                    "/lib/python*/site-packages/setuptools.pth"
-            ],
+            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
             "sources": [
                 {
                     "type": "git",
                     "url": "https://github.com/openpaperwork/paperwork-backend.git",
-                    "branch": "stable"
+                    "branch": "develop"
                 },
                 {
                     "type": "file",
@@ -363,16 +360,13 @@
             "name": "paperwork",
             "make-install-args": ["prefix=/app"],
             "no-autogen": true,
-            "ensure-writable": [
-                    "/lib/python*/site-packages/easy-install.pth",
-                    "/lib/python*/site-packages/setuptools.pth"
-            ],
+            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
             "post-install": ["paperwork-shell install_system /app/share/icons /app/share"],
             "sources": [
                 {
                     "type": "git",
                     "url": "https://github.com/openpaperwork/paperwork.git",
-                    "branch": "stable"
+                    "branch": "develop"
                 },
                 {
                     "type": "file",

@@ -11,7 +11,7 @@ sudo sh -c "echo 127.0.0.1 >> /etc/sane.d/saned.conf"
 sudo systemctl start saned.socket
 
 # Install Paperwork (for the current user only)
-flatpak --user install https://builder.openpaper.work/paperwork_stable.flatpakref
+flatpak --user install https://builder.openpaper.work/paperwork_master.flatpakref
 
 # Start Paperwork
 flatpak run work.openpaper.Paperwork
@@ -34,17 +34,17 @@ and connection must be allowed from 127.0.0.1.
 
 ## Nightly builds
 
-For the nightly builds based on the branch 'stable':
+For the nightly builds based on the branch 'master' (the most stable branch):
 
 ```shell
-flatpak --user install https://builder.openpaper.work/paperwork_stable.flatpakref
+flatpak --user install https://builder.openpaper.work/paperwork_master.flatpakref
 ```
 
-For the nightly builds based on the branch 'unstable' (you can install both stable
-and unstable if you wish):
+For the nightly builds based on the branch 'develop' (you can install both master
+and develop if you wish):
 
 ```shell
-flatpak --user install https://builder.openpaper.work/paperwork_unstable.flatpakref
+flatpak --user install https://builder.openpaper.work/paperwork_develop.flatpakref
 ```
 
 ## Running Paperwork
@@ -57,16 +57,16 @@ You can also run it from the command line:
 flatpak run work.openpaper.Paperwork
 ```
 
-You can run specifically the branch 'stable':
+You can run specifically the branch 'master':
 
 ```shell
-flatpak run work.openpaper.Paperwork//stable
+flatpak run work.openpaper.Paperwork//master
 ```
 
-You can also run specifically the branch 'unstable':
+You can also run specifically the branch 'develop':
 
 ```shell
-flatpak run work.openpaper.Paperwork//unstable
+flatpak run work.openpaper.Paperwork//develop
 ```
 
 ## Running paperwork-shell

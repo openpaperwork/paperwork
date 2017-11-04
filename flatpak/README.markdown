@@ -8,6 +8,7 @@ sudo apt install flatpak sane-utils
 
 # Enable Saned (required for scanning ; allow connection from the loopback only)
 sudo sh -c "echo 127.0.0.1 >> /etc/sane.d/saned.conf"
+sudo systemctl enable saned.socket
 sudo systemctl start saned.socket
 
 # Install Paperwork (for the current user only)

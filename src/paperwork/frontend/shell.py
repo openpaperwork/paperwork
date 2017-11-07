@@ -42,8 +42,6 @@ def scan():
 
 
 def _install(icondir, datadir):
-    from paperwork.frontend import mainwindow
-
     ICON_SIZES = [
         16, 22, 24, 30, 32, 36, 42, 48, 50, 64, 72, 96, 100, 128, 150, 160, 192,
         256, 512
@@ -55,6 +53,10 @@ def _install(icondir, datadir):
     desktop_path = os.path.join(
         datadir, 'applications', 'work.openpaper.Paperwork.desktop'
     )
+    appdata_path = os.path.join(
+        datadir, "appdata", "work.openpaper.Paperwork.appdata.xml"
+    )
+
     os.makedirs(os.path.dirname(desktop_path), exist_ok=True)
 
     to_copy = [
@@ -66,6 +68,15 @@ def _install(icondir, datadir):
             png_dst_icon_pattern.format(size),
         ) for size in ICON_SIZES
     ]
+    to_copy.append(
+        (
+            pkg_resources.resource_filename(
+                'paperwork.frontend.data',
+                'work.openpaper.Paperwork.appdata.xml',
+            ),
+            appdata_path
+        )
+    )
     for icon in ['paperwork.svg', 'paperwork_halo.svg']:
         src_icon = icon
         dst_icon = icon
@@ -89,7 +100,7 @@ def _install(icondir, datadir):
     entry = xdg.DesktopEntry.DesktopEntry(desktop_path)
     entry.set("GenericName", "Personal Document Manager")
     entry.set("Type", "Application")
-    entry.set("Categories", "Office;Scanning;")
+    entry.set("Categories", "Office;Scanning;OCR;Archiving;GNOME;")
     entry.set("Terminal", "false")
     entry.set("Comment", "You can grep dead trees")
     entry.set("Exec", "paperwork")
@@ -118,7 +129,7 @@ def install_system(icon_basedir="/usr/share/icons", data_basedir="/usr/share"):
     Files are installed system-wide. Root access is required.
 
     Arguments:
-        [<icon basedir> [<data basedir>]]
+        [<icon basedir> [<data basedir> [<appdatadir]]]
 
     icon basedir: default is /usr/share/icons
     data basedir: default is /usr/share

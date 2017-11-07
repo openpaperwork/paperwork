@@ -52,6 +52,7 @@ package_data = {
         'data/paperwork.svg',
         'data/paperwork_halo.svg',
     ],
+    'paperwork.frontend.data': ['data/work.openpaper.Paperwork.appdata.xml'],
     'paperwork.frontend.doc': DOC_PATHS,
 }
 
@@ -67,7 +68,7 @@ packages.append("paperwork.frontend.data")
 package_dir['paperwork.frontend.data'] = 'data'
 for size in ICON_SIZES:
     icon_path = os.path.join("data", 'paperwork_{}.png'.format(size))
-    package_data['paperwork.frontend.data'] = [icon_path]
+    package_data['paperwork.frontend.data'].append(icon_path)
 
 # include locales
 for locale in LOCALES:

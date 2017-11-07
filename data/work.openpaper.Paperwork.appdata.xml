@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="https://specifications.freedesktop.org/metainfo/1.0" type="desktop-application">
+  <id>work.openpaper.Paperwork</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <name>Paperwork</name>
+  <summary>Personal document manager</summary>
+  <summary xml:lang="fr">Gestionnaire de documents personnels</summary>
+  <icon type="remote" width="128" height="128">https://raw.githubusercontent.com/openpaperwork/paperwork/master/data/paperwork_128.png</icon>
+  <description>
+    <p>
+      Sorting documents is a machine's job. Paperwork is an easy-to-use
+      application which allows you to find in all your documents
+      when you need them. Type a few keywords in the search bar and the list of
+      papers will shrink to only the relevant content.
+    </p>
+    <p xml:lang="fr">
+      Trier les documents est un travail de machine. Paperwork est une application
+      qui vous permet de trouver tout vos documents, quand vous en avez besoin.
+      Tapez quelques mots-clés et la liste des papiers se réduira au contenu
+      pertinent.
+    </p>
+    <p>
+      This is where the magic happens: Paperwork uses automatically optical
+      character recognition (OCR) to convert your papers into searchable documents.
+    </p>
+    <p xml:lang="fr">
+      Là où la magie se produit : Paperwork utilise automatiquement la
+      reconnaissance optique de caractères (ROC) pour convertir vos papiers en
+      documents cherchables.
+    </p>
+    <p>Main features are:</p>
+    <p xml:lang="fr">Les principales fonctionnalités sont :</p>
+    <ul>
+      <li>Scanner support</li>
+      <li>PDF support</li>
+      <li>Automatic detection of page orientation</li>
+      <li>OCR</li>
+      <li>Document labels</li>
+      <li>Automatic guessing of the labels to apply on new documents</li>
+      <li>Search</li>
+      <li>Keyword suggestions</li>
+      <li>Quick edit of scans</li>
+    </ul>
+    <ul xml:lang="fr">
+      <li>Support des scanners</li>
+      <li>Support des PDFs</li>
+      <li>Détection automatique de l'orientation des pages</li>
+      <li>ROC</li>
+      <li>Labels pour trier les documents</li>
+      <li>Labelisation semi-automatique des documents</li>
+      <li>Recherche</li>
+      <li>Suggestions de mots-clés</li>
+      <li>Édition rapides des pages</li>
+    </ul>
+  </description>
+  <categories>
+    <category>Office</category>
+    <category>Scanning</category>
+    <category>OCR</category>
+    <category>Archiving</category>
+    <category>GNOME</category>
+  </categories>
+  <url type="homepage">https://openpaper.work/</url>
+  <url type="bugtracker">https://github.com/openpaperwork/paperwork/issues/</url>
+  <url type="help">https://github.com/openpaperwork/paperwork/#readme</url>
+  <url type="donation">https://openpaper.work/fr/download#donate</url>
+  <launchable type="desktop-id">work.openpaper.Paperwork.desktop</launchable>
+
+  <releases>
+    <release version="1.2.1" date="2017-08-26" urgency="medium" />
+  </releases>
+
+  <provides>
+    <binary>paperwork</binary>
+    <python3>paperwork</python3>
+  </provides>
+
+  <mimetypes>
+    <mimetype>application/pdf</mimetype>
+    <mimetype>image/jpeg</mimetype>
+    <mimetype>image/png</mimetype>
+    <mimetype>image/x-ms-bmp</mimetype>
+  </mimetypes>
+
+  <project_license>GPL-3.0+</project_license>
+  <developer_name>Openpaper.work</developer_name>
+
+  <screenshots>
+    <!--
+    <screenshot>
+      <caption>Main window</caption>
+      <image type="source">https://xxxx</image>
+      <image type="thumbnail" width="128" height="128">https://xxxx</image>
+    </screenshot>
+    -->
+  </screenshots>
+
+  <update_contact>jflesch@openpaper.work</update_contact>
+
+
+
+</component>

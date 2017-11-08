@@ -142,6 +142,10 @@ def make_tessdata():
                os.path.join(tessdatadir, "eng.traineddata"))
     os.symlink("/app/share/tessdata/osd.traineddata",
                os.path.join(tessdatadir, "osd.traineddata"))
+    os.symlink("/app/share/tessdata/configs",
+               os.path.join(tessdatadir, "configs"))
+    os.symlink("/app/share/tessdata/tessconfigs",
+               os.path.join(tessdatadir, "tessconfigs"))
     for tessdata in tessdata_files:
         logger.info("{} found".format(tessdata))
         os.symlink(tessdata, os.path.join(tessdatadir,

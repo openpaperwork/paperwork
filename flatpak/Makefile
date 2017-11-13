@@ -1,4 +1,4 @@
-REPO = repo
+REPO ?= repo
 APP = work.openpaper.Paperwork
 APPS = $(patsubst %.json,%,$(wildcard *.json))
 

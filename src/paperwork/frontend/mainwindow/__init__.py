@@ -64,6 +64,7 @@ from ..searchdialog import SearchDialog
 from ..settingswindow import SettingsWindow
 from ..util import connect_actions
 from ..util import get_documentation
+from ..util import launch_dbus_filebrowser
 from ..util import load_cssfile
 from ..util import load_image
 from ..util import load_uifile
@@ -1302,8 +1303,12 @@ class ActionOpenDocDir(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         if os.name == 'nt':
-            os.startfile(self.__main_win.doc.path)
+            os.startfile(self.__main_win.docsearch.fs.unsafe(
+                self.__main_win.doc.path))
             return
+        if self.__main_win.flatpak:
+           launch_dbus_filebrowser(self.__main_win.doc.path)
+           return
         thread = threading.Thread(target=self.run_show_uri)
         thread.start()
 
@@ -2630,7 +2635,8 @@ class SearchBar(object):
 
 
 class MainWindow(object):
-    def __init__(self, config, main_loop, workdir_scan=True):
+    def __init__(self, config, main_loop, workdir_scan=True, flatpak=False):
+        self.flatpak = flatpak
         self.ready = False
         self.docsearch = DummyDocSearch()
         self.workdir_scan_at_start = workdir_scan

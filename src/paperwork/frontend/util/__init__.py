@@ -19,6 +19,7 @@ import locale
 import logging
 import os
 import sys
+import time
 
 import heapq
 import gettext
@@ -346,3 +347,22 @@ def connect_actions(actions):
         except:
             logger.error("Failed to connect action '%s'" % action)
             raise
+
+
+def launch_dbus_filebrowser(uri):
+    import dbus
+    import socket
+
+    uid = "{}{}_TIME{}".format(
+        socket.gethostname(), os.getpid(), int(time.time())
+    )
+
+    bus = dbus.SessionBus()
+    proxy = bus.get_object(
+        "org.freedesktop.FileManager1",
+        "/org/freedesktop/FileManager1"
+    )
+    iface = dbus.Interface(proxy, dbus_interface='org.freedesktop.FileManager1')
+    logger.info("Dbus: calling org.freedesktop.FileManager1.ShowFolders"
+                "(%s, %s)", str([uri]), str(uid))
+    iface.ShowFolders([uri], uid)

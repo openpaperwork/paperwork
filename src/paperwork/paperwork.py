@@ -117,14 +117,14 @@ def set_locale():
             module.textdomain('paperwork')
 
 
-def make_tessdata():
+def init_flatpak():
     """
     If we are in Flatpak, we must build a tessdata/ directory using the
     .traineddata files from each locale directory
     """
     tessdata_files = glob.glob("/app/share/locale/*/*.traineddata")
     if len(tessdata_files) <= 0:
-        return
+        return False
 
     localdir = os.path.expanduser("~/.local")
     base_data_dir = os.getenv(
@@ -152,6 +152,7 @@ def make_tessdata():
                                           os.path.basename(tessdata)))
     os.environ['TESSDATA_PREFIX'] = os.path.dirname(tessdatadir)
     logger.info("Tessdata directory ready")
+    return True
 
 
 class Main(object):
@@ -192,7 +193,7 @@ class Main(object):
             GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGTERM,
                                  self.quit_nicely, None)
 
-        make_tessdata()
+        flatpak = init_flatpak()
         logger.info("Initializing pyinsane ...")
         pyinsane2.init()
         try:
@@ -203,7 +204,8 @@ class Main(object):
             self.config.read()
 
             self.main_win = MainWindow(
-                self.config, self.main_loop, not skip_workdir_scan
+                self.config, self.main_loop, not skip_workdir_scan,
+                flatpak=flatpak
             )
             if hook_func:
                 hook_func(self.config, self.main_win)

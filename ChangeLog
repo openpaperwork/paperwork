@@ -1,3 +1,7 @@
+2017/xx/xx - x.y.z:
+- PDF: Fix thumbnail sizes. Incorrect thumbnails will be automatically
+  regenerated
+
 2017/08/26 - 1.2.1:
 - paperwork-shell: improve help string of 'paperwork-shell chkdeps'
 - Fix label deletion / renaming

@@ -178,7 +178,7 @@ class BasicPage(object):
         )
         w /= factor
         h /= factor
-        return self.get_image((int(w), int(h)))
+        return self.get_image((round(w), round(h)))
 
     def _get_thumb_path(self):
         return self._get_filepath(self.EXT_THUMB)
@@ -188,20 +188,35 @@ class BasicPage(object):
         thumbnail with a memory cache
         """
         # get from the file
+        thumb_path = self._get_thumb_path()
         try:
-            if (self.fs.getmtime(self.get_doc_file_path()) <
-                    self.fs.getmtime(self._get_thumb_path())):
-                with self.fs.open(self._get_thumb_path(), 'rb') as fd:
+            doc_file_path = self.get_doc_file_path()
+
+            if (self.fs.exists(thumb_path) and
+                    self.fs.getmtime(doc_file_path) <
+                    self.fs.getmtime(thumb_path)):
+                with self.fs.open(thumb_path, 'rb') as fd:
                     thumbnail = PIL.Image.open(fd)
                     thumbnail.load()
-            else:
-                thumbnail = self.__make_thumbnail(width, height)
-                with self.fs.open(self._get_thumb_path(), 'wb') as fd:
-                    thumbnail.save(fd, format="JPEG")
-        except:
-            thumbnail = self.__make_thumbnail(width, height)
-            with self.fs.open(self._get_thumb_path(), 'wb') as fd:
-                thumbnail.save(fd, format="JPEG")
+                if thumbnail.size[0] == width or thumbnail.size[1] == height:
+                    # fills the specified area
+                    return thumbnail
+                logger.warning(
+                    "[%s] Unexpected thumbnail size: %s instead of %s ;"
+                    " Updating thumbnail ...",
+                    str(self.doc.docid), str(thumbnail.size),
+                    str((width, height))
+                )
+        except Exception as exc:
+            logger.warning(
+                "[%s] Failed to check doc and thumbnail mdate. Forcing update"
+                " of the thumbnail", str(self.doc.docid), exc_info=exc
+            )
+
+        logger.info("[%s] Updating PDF thumbnail ...", str(self.doc.docid))
+        thumbnail = self.__make_thumbnail(width, height)
+        with self.fs.open(thumb_path, 'wb') as fd:
+            thumbnail.save(fd, format="JPEG")
 
         return thumbnail
 

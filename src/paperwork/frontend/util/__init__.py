@@ -350,19 +350,19 @@ def connect_actions(actions):
 
 
 def launch_dbus_filebrowser(uri):
-    import dbus
+    import pydbus
     import socket
 
     uid = "{}{}_TIME{}".format(
         socket.gethostname(), os.getpid(), int(time.time())
     )
 
-    bus = dbus.SessionBus()
-    proxy = bus.get_object(
+    bus = pydbus.SessionBus()
+    proxy = bus.get(
         "org.freedesktop.FileManager1",
         "/org/freedesktop/FileManager1"
     )
-    iface = dbus.Interface(proxy, dbus_interface='org.freedesktop.FileManager1')
+    iface = proxy['org.freedesktop.FileManager1']
     logger.info("Dbus: calling org.freedesktop.FileManager1.ShowFolders"
                 "(%s, %s)", str([uri]), str(uid))
     iface.ShowFolders([uri], uid)

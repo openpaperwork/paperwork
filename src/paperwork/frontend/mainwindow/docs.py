@@ -888,8 +888,6 @@ class DocList(object):
 
         target_doc.add_page(src_page.img, src_page.boxes)
         src_page.destroy()
-        if src_page.doc.nb_pages <= 0:
-            src_page.doc.destroy()
         drag_context.finish(True, True, time)  # success = True
 
         if not is_new:

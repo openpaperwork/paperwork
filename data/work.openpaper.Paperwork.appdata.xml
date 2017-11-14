@@ -85,13 +85,31 @@
   <developer_name>Openpaper.work</developer_name>
 
   <screenshots>
-    <!--
-    <screenshot>
-      <caption>Main window</caption>
-      <image type="source">https://xxxx</image>
-      <image type="thumbnail" width="128" height="128">https://xxxx</image>
+    <screenshot type="default">
+      <caption>Home screen</caption>
+      <image type="source">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_home.png</image>
+      <image type="thumbnail" width="384" height="216">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_home_thumb.png</image>
     </screenshot>
-    -->
+    <screenshot>
+      <caption>Paperwork document view</caption>
+      <image type="source">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_doc.png</image>
+      <image type="thumbnail" width="384" height="216">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_doc_thumb.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Paperwork page view</caption>
+      <image type="source">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_page.png</image>
+      <image type="thumbnail" width="384" height="216">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_page_thumb.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Paperwork import</caption>
+      <image type="source">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_import.png</image>
+      <image type="thumbnail" width="384" height="216">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_import_thumb.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Paperwork export</caption>
+      <image type="source">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_export.png</image>
+      <image type="thumbnail" width="384" height="216">https://raw.githubusercontent.com/openpaperwork/paperwork-screenshots/master/1.2.1/paperwork_export_thumb.png</image>
+    </screenshot>
   </screenshots>
 
   <update_contact>jflesch@openpaper.work</update_contact>

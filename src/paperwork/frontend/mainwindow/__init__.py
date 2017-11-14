@@ -1309,22 +1309,18 @@ class ActionOpenDocDir(SimpleAction):
         if self.__main_win.flatpak:
            launch_dbus_filebrowser(self.__main_win.doc.path)
            return
-        thread = threading.Thread(target=self.run_show_uri)
-        thread.start()
-
-    def run_show_uri(self):
         if hasattr(Gtk, 'show_uri_on_window'):
             Gtk.show_uri_on_window(
                 self.__main_win.window,
                 self.__main_win.doc.path,
                 Gdk.CURRENT_TIME
             )
-        else:
-            Gtk.show_uri(
-                self.__main_win.window.get_window().get_screen(),
-                self.__main_win.doc.path,
-                Gdk.CURRENT_TIME
-            )
+            return
+        Gtk.show_uri(
+            self.__main_win.window.get_window().get_screen(),
+            self.__main_win.doc.path,
+            Gdk.CURRENT_TIME
+        )
 
 
 class ActionPrintDoc(SimpleAction):

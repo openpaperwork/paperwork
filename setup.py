@@ -101,7 +101,7 @@ setup(
     # After the release:
     # * add a file flatpak/<version>.json
     # * update flatpak/release.json
-    version="1.2.1",
+    version="1.2.2",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),

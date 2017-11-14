@@ -1,3 +1,9 @@
+2017/xx/xx - x.y.z:
+- DnD: Fix double-delete: when moving the last page of a document
+  to another, don't delete the source document (it's up to the
+  backend code to delete it)
+- Flatpak support
+
 2017/08/26 - 1.2.1:
 - Add source code of Windows installer (NSIS installer) generator
 - Scanner support / Multi-scan: Cancel also successful scan session. Otherwise

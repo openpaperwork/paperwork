@@ -28,6 +28,11 @@ GtkEntry.button-left, GtkEntry.button-center, entry.button-left, entry.button-ri
   border-bottom-left-radius: 0px;
 }
 
+.left-header-bar GtkButton, .left-header-bar button {
+  /* add border around application button too */
+  border: 1px solid @borders;
+}
+
 /* Left Panel */
 
 .box-left {
@@ -38,11 +43,6 @@ GtkListBox GtkButton, listbox button {
   padding: 3px;
   border-color: transparent;
   background-color: transparent;
-}
-
-GtkHeaderBar GtkButton, headerbar button {
-  /* add border around application button too */
-  border: 1px solid @borders;
 }
 
 GtkListBox GtkButton:hover, listbox button:hover {

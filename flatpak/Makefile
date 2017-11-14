@@ -14,7 +14,7 @@ dist-clean: clean
 	@echo flatpak-builder $< --\> $@ \(${EXPORT_ARGS}\)
 	flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} $@ $<
 
-repo: $(patsubst %,%.app,$(APPS))
+mkrepo: $(patsubst %,%.app,$(APPS))
 	@echo flatpak build-update-repo $(REPO) \(${EXPORT_ARGS}\)
 	flatpak build-update-repo --generate-static-deltas ${EXPORT_ARGS} $(REPO)
 
@@ -24,4 +24,4 @@ repo: $(patsubst %,%.app,$(APPS))
 
 bundles: $(patsubst %,%.flatpak,$(APPS))
 
-.PHONY: all clean dist-clean bundles
+.PHONY: all clean dist-clean mkrepo bundles

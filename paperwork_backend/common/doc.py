@@ -72,6 +72,9 @@ class BasicDoc(object):
     def __str__(self):
         return self.__docid
 
+    def __repr__(self):
+        return str(self)
+
     def __get_id(self):
         return self.__docid
 

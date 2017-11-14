@@ -213,7 +213,6 @@ class PdfPage(BasicPage):
         if pdf_page is None:
             pdf_page = self.pdf_page
 
-        size = self.get_size(pdf_page)
         base_size = self.get_base_size(pdf_page)
 
         width = int(size[0])

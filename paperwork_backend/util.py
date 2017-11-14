@@ -215,8 +215,12 @@ def rm_rf(path):
                 os.unlink(filepath)
             for dirname in dirs:
                 dirpath = os.path.join(root, dirname)
-                logger.info("Deleting dir %s" % dirpath)
-                os.rmdir(dirpath)
+                if os.path.islink(dirpath):
+                    logger.info("Deleting link %s" % dirpath)
+                    os.unlink(dirpath)
+                else:
+                    logger.info("Deleting dir %s" % dirpath)
+                    os.rmdir(dirpath)
         logger.info("Deleting dir %s", path)
         os.rmdir(path)
 

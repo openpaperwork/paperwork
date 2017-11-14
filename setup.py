@@ -90,6 +90,7 @@ setup(
     # * change it also in
     #   src/paperwork/frontend/mainwindow/__init__.py:__version__
     # * update the dependency version on paperwork-backend
+    # * update data/work.openpaper.Paperwork.appdata.xml:<releases>
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required

@@ -9,6 +9,8 @@ import sys
 
 import termcolor
 
+from . import init
+
 try:
     import paperwork.frontend.shell
     FRONTEND_COMMANDS = paperwork.frontend.shell.COMMANDS
@@ -171,7 +173,8 @@ COMMANDS.update(BACKEND_COMMANDS)
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Paperwork shell'
+        description='Paperwork shell',
+        epilog="Call 'paperwork-shell help' for detailed help"
     )
     parser.add_argument(
         'cmd', metavar="command", type=str,
@@ -207,9 +210,10 @@ def main():
         sys.exit(1)
 
     try:
+        init()
         sys.exit(COMMANDS[args.cmd](*args.cmd_args))
     except Exception as exc:
-        print (json.dumps(
+        print(json.dumps(
             {
                 "status": "error",
                 "exception": str(type(exc)),
@@ -223,6 +227,7 @@ def main():
         if verbose_enabled:
             raise
         sys.exit(5)
+
 
 if __name__ == "__main__":
     main()

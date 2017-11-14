@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component xmlns="https://specifications.freedesktop.org/metainfo/1.0" type="desktop-application">
-  <id>work.openpaper.Paperwork</id>
+  <id>work.openpaper.Paperwork.desktop</id>
   <metadata_license>CC0-1.0</metadata_license>
   <name>Paperwork</name>
   <summary>Personal document manager</summary>
   <summary xml:lang="fr">Gestionnaire de documents personnels</summary>
-  <icon type="remote" width="128" height="128">https://raw.githubusercontent.com/openpaperwork/paperwork/master/data/paperwork_128.png</icon>
   <description>
     <p>
       Sorting documents is a machine's job. Paperwork is an easy-to-use

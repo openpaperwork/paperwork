@@ -3107,7 +3107,7 @@ class MainWindow(object):
         GLib.idle_add(self.__init_canvas, config)
         GLib.idle_add(self.window.set_visible, True)
 
-        self.beacon = beacon.Beacon(config)
+        self.beacon = beacon.Beacon(config, flatpak)
         beacon.check_update(self.beacon)
 
     def __init_cruel_and_unusual_drm(self, config):

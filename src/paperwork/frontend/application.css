@@ -12,8 +12,11 @@
   border-right-width: 0px;
 }
 GtkEntry.button-left, GtkEntry.button-center {
+  /* gtk <= 3.18 only */
   padding-top: 8px;
   padding-bottom: 8px;
+}
+GtkEntry.button-left, GtkEntry.button-center, entry.button-left, entry.button-right {
   font-size: 11px;
 }
 .button-center {
@@ -31,21 +34,23 @@ GtkEntry.button-left, GtkEntry.button-center {
   border-right: 1px solid @borders;
 }
 
-GtkListBox GtkButton {
+GtkListBox GtkButton, listbox button {
   padding: 3px;
-}
-
-GtkListBox GtkButton {
   border-color: transparent;
   background-color: transparent;
 }
 
-GtkListBox GtkButton:hover {
+GtkHeaderBar GtkButton, headerbar button {
+  /* add border around application button too */
+  border: 1px solid @borders;
+}
+
+GtkListBox GtkButton:hover, listbox button:hover {
   border-color: transparent;
   background-color: transparent;
 }
 
-GtkButton GtkColorSwatch {
+GtkButton GtkColorSwatch, button colorswatch {
   border-radius: 5px;
   border-color: transparent;
   margin: 0;

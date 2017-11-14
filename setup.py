@@ -81,19 +81,26 @@ for locale in LOCALES:
 
 setup(
     name="paperwork",
-    # if you change the version, don't forget to
+    # Before releasing a new version:
     # * update the download_url in this file
     # * update the ChangeLog file
     # * update AUTHORS
-    # * change it also in
-    #   src/paperwork/frontend/aboutdialog/aboutdialog.glade
-    # * change it also in
-    #   src/paperwork/frontend/mainwindow/__init__.py:__version__
+    # * update src/paperwork/frontend/aboutdialog/aboutdialog.glade
+    # * update src/paperwork/frontend/mainwindow/__init__.py:__version__
     # * update the dependency version on paperwork-backend
     # * update data/work.openpaper.Paperwork.appdata.xml:<releases>
     # * update the public key in
     #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
     #   if required
+    #
+    # Release:
+    # * commit
+    # * tag
+    # * python3 ./setup.py sdist upload
+    #
+    # After the release:
+    # * add a file flatpak/<version>.json
+    # * update flatpak/release.json
     version="1.3",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"

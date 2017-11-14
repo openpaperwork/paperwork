@@ -34,9 +34,10 @@ class Beacon(object):
         'path': '/beacon/post_statistics',
     }
 
-    def __init__(self, config):
+    def __init__(self, config, flatpak):
         super().__init__()
         self.config = config
+        self.flatpak = flatpak
 
     def get_version_github(self):
         logger.info("Querying GitHub ...")
@@ -120,13 +121,16 @@ class Beacon(object):
         if distribution[0] == '':
             distribution = platform.win32_ver()
         processor = ""
-        if os.name != 'nt':  # contains too much infos on Windows
+        os_name = os.name
+        if os_name != 'nt':  # contains too much infos on Windows
             processor = platform.processor()
+            if self.flatpak:
+                os_name += " (flatpak)"
         return {
             'uuid': int(self.config['uuid'].value),
             'paperwork_version': str(version),
             'nb_documents': int(docsearch.nb_docs),
-            'os_name': str(os.name),
+            'os_name': str(os_name),
             'platform_architecture': str(platform.architecture()),
             'platform_processor': str(processor),
             'platform_distribution': str(distribution),

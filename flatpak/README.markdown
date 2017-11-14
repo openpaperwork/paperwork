@@ -33,9 +33,18 @@ Paperwork from accessing devices directly. Therefore the scanning daemon
 [Saned](https://linux.die.net/man/1/saned) must be enabled on the host system,
 and connection must be allowed from 127.0.0.1.
 
+## Releases
+
+'release' always points to the latest Paperwork release.
+
+```shell
+flatpak --user install https://builder.openpaper.work/paperwork_release.flatpakref
+```
+
 ## Nightly builds
 
-For the nightly builds based on the branch 'master' (the most stable branch):
+For the nightly builds based on the branch 'master' (usually contains the latest
+release with some extra minor bugfixes):
 
 ```shell
 flatpak --user install https://builder.openpaper.work/paperwork_master.flatpakref

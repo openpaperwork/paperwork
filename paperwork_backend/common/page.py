@@ -115,6 +115,9 @@ class PageExporter(Exporter):
     def __str__(self):
         return self.img_format
 
+    def __repr__(self):
+        return str(self)
+
     def __copy__(self):
         return PageExporter(self.page, self.img_format, self.mime,
                             self.valid_exts)
@@ -245,6 +248,9 @@ class BasicPage(object):
     def __str__(self):
         return "%s p%d" % (str(self.doc), self.page_nb + 1)
 
+    def __repr__(self):
+        return str(self)
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -324,6 +330,9 @@ class DummyPage(object):
 
     def __str__(self):
         return "Dummy page"
+
+    def __repr__(self):
+        return str(self)
 
     def __hash__(self):
         return 0

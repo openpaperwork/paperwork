@@ -148,6 +148,9 @@ class Label(object):
         return ("Color: %s ; Text: %s"
                 % (self.get_html_color(), self.name))
 
+    def __repr__(self):
+        return str(self)
+
 
 class LabelGuessUpdater(object):
     def __init__(self, guesser):

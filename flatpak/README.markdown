@@ -1,3 +1,8 @@
+This README explains how to install Paperwork using Flatpak.
+Flatpak is a package manager for Linux. It also keep applications and all their
+dependencies inside containers, making them easy to update and uninstall.
+
+
 # Quick start
 
 ## Debian >= jessie / Ubuntu >= 16.04
@@ -21,7 +26,7 @@ flatpak run work.openpaper.Paperwork
 # Updating Paperwork
 
 ```sh
-flatpak --user update
+flatpak --user update work.openpaper.Paperwork
 ```
 
 # Details
@@ -107,4 +112,13 @@ flatpak --user remote-add --if-not-exists gnome https://sdk.gnome.org/gnome.flat
 flatpak --user install gnome org.gnome.Sdk//3.26
 flatpak --user install gnome org.gnome.Platform//3.26
 make
+```
+
+
+## Uninstallation
+
+Uninstallation *won't* delete your work directory nor your documents.
+
+```ahell
+flatpak --user uninstall work.openpaper.Paperwork
 ```

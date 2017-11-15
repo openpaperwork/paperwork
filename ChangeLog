@@ -1,8 +1,9 @@
-2017/xx/xx - x.y.z:
+2017/11/14 - 1.2.2:
 - DnD: Fix double-delete: when moving the last page of a document
   to another, don't delete the source document (it's up to the
   backend code to delete it)
 - Flatpak support
+- CSS: Add border around application button to make it more visible
 
 2017/08/26 - 1.2.1:
 - Add source code of Windows installer (NSIS installer) generator

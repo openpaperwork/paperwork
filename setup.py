@@ -94,13 +94,14 @@ setup(
     #   if required
     #
     # Release:
-    # * GNU/Linux: python3 ./setup.py sdist upload
-    # * Windows: twine upload dist\*
+    # * commit
+    # * tag
+    # * python3 ./setup.py sdist upload
     #
     # After the release:
     # * add a file flatpak/<version>.json
     # * update flatpak/release.json
-    version="1.2.1",
+    version="1.2.2",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -126,7 +127,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/jflesch/paperwork",
     download_url=("https://github.com/jflesch/paperwork"
-                  "/archive/1.2.1.tar.gz"),
+                  "/archive/1.2.2.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
@@ -165,7 +166,7 @@ Main features are:
         "pypillowfight",
         "pyxdg >= 0.25",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend>=1.2.1,<1.3",
+        "paperwork-backend>=1.2.2,<1.3",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

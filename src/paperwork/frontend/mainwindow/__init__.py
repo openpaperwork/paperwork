@@ -1655,7 +1655,14 @@ class ActionImport(SimpleAction):
         for file_uri in file_uris:
             logger.info("Moving {} to trash ...".format(file_uri))
             gfile = Gio.File.new_for_uri(file_uri)
-            gfile.trash()
+            try:
+                gfile.trash()
+            except Exception as exc:
+                logger.warning(
+                    "Failed to move file %s to trash. Will delete it",
+                    file_uri, exc_info=exc
+                )
+                gfile.delete()
         notification = Notify.Notification.new(
             _("Imported file(s) deleted"),
             None,

@@ -1641,36 +1641,35 @@ class ActionImport(SimpleAction):
         else:
             # fall back on classical ugly popup
             msg += "\n"
-            msg += _("Would you like to move the original file(s) to trash?\n")
+            msg += _("Would you like to delete the original file(s) ?\n")
             ask_confirmation(self.__main_win.window, self.__delete_files,
                              msg=msg, file_uris=file_uris)
 
     def _delete_files(self, notification, action, file_uris=[],
                       *args, **kwargs):
         self.notification = None
-        logger.info("Moving imported file(s) to trash ...")
+        logger.info("Deleting files ...")
         GLib.idle_add(self.__delete_files, file_uris)
 
     def __delete_files(self, file_uris=[]):
-        for file_uri in file_uris:
-            logger.info("Moving {} to trash ...".format(file_uri))
-            gfile = Gio.File.new_for_uri(file_uri)
-            trashed = False
-            try:
-                trashed = gfile.trash()
-            except Exception as exc:
-                logger.warning(
-                    "Failed to move file %s to trash. Will delete it",
-                    file_uri, exc_info=exc
-                )
-            if not trashed:
-                gfile.delete()
-        notification = Notify.Notification.new(
-            _("Imported file(s) deleted"),
-            None,
-            "edit-delete"
-        )
-        notification.show()
+        try:
+            for file_uri in file_uris:
+                logger.info("Deleting %s ...", file_uri)
+                self.__main_win.docsearch.fs.rm_rf(file_uri)
+            notification = Notify.Notification.new(
+                _("Imported file(s) deleted"),
+                None,
+                "edit-delete"
+            )
+            notification.show()
+        except Exception as exc:
+            notification = Notify.Notification.new(
+                _("Failed to delete files: %s") % str(exc),
+                None,
+                "edit-delete"
+            )
+            notification.show()
+            raise
 
     def do(self):
         SimpleAction.do(self)

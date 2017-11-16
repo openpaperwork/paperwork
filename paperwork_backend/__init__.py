@@ -16,7 +16,7 @@ def init_flatpak():
     """
     tessdata_files = glob.glob("/app/share/locale/*/*.traineddata")
     if len(tessdata_files) <= 0:
-        return False
+        return os.path.exists("/app")
 
     localdir = os.path.expanduser("~/.local")
     base_data_dir = os.getenv(

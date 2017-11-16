@@ -1301,8 +1301,8 @@ class ActionOpenDocDir(SimpleAction):
                 self.__main_win.doc.path))
             return
         if self.__main_win.flatpak:
-           launch_dbus_filebrowser(self.__main_win.doc.path)
-           return
+            launch_dbus_filebrowser(self.__main_win.doc.path)
+            return
         if hasattr(Gtk, 'show_uri_on_window'):
             Gtk.show_uri_on_window(
                 self.__main_win.window,
@@ -1649,13 +1649,15 @@ class ActionImport(SimpleAction):
         for file_uri in file_uris:
             logger.info("Moving {} to trash ...".format(file_uri))
             gfile = Gio.File.new_for_uri(file_uri)
+            trashed = False
             try:
-                gfile.trash()
+                trashed = gfile.trash()
             except Exception as exc:
                 logger.warning(
                     "Failed to move file %s to trash. Will delete it",
                     file_uri, exc_info=exc
                 )
+            if not trashed:
                 gfile.delete()
         notification = Notify.Notification.new(
             _("Imported file(s) deleted"),

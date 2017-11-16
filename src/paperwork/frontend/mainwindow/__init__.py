@@ -1307,8 +1307,8 @@ class ActionOpenDocDir(SimpleAction):
                 self.__main_win.doc.path))
             return
         if self.__main_win.flatpak:
-           launch_dbus_filebrowser(self.__main_win.doc.path)
-           return
+            launch_dbus_filebrowser(self.__main_win.doc.path)
+            return
         if hasattr(Gtk, 'show_uri_on_window'):
             Gtk.show_uri_on_window(
                 self.__main_win.window,

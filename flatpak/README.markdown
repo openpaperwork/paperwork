@@ -1,5 +1,5 @@
 This README explains how to install Paperwork using Flatpak.
-Flatpak is a package manager for Linux. It also keep applications and all their
+Flatpak is a package manager for Linux. It also keeps applications and all their
 dependencies inside containers, making them easy to update and uninstall.
 
 

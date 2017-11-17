@@ -54,6 +54,7 @@ from ..util import connect_actions
 from ..util import get_documentation
 from ..util import launch_dbus_filebrowser
 from ..util import load_cssfile
+from ..util import load_image
 from ..util import load_uifile
 from ..util import preload_file
 from ..util import renderer

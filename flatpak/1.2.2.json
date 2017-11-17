@@ -15,7 +15,6 @@
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.freedesktop.DBus",
         "--socket=session-bus",
-        "--socket=system-bus",
         "--own-name=work.openpaper.paperwork"
     ],
     "modules": [

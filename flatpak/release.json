@@ -84,6 +84,13 @@
                     "type": "file",
                     "path": "pip-Makefile",
                     "dest-filename": "Makefile"
+                },
+                {
+                    "type": "patch",
+                    "path": "python-pillow-disable-multithreaded-compilation.diff",
+                    "strip-components": 0,
+                    "dest": ".",
+                    "use-git": false
                 }
             ],
             "modules": [

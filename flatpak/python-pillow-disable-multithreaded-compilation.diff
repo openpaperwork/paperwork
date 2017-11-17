@@ -1,0 +1,11 @@
+--- setup.py	2017-11-16 21:02:44.002328167 +0100
++++ setup.py	2017-11-16 21:03:48.353489990 +0100
+@@ -22,7 +22,7 @@
+ 
+ # monkey patch import hook. Even though flake8 says it's not used, it is.
+ # comment this out to disable multi threaded builds.
+-import mp_compile
++# import mp_compile
+ 
+ _IMAGING = ("decode", "encode", "map", "display", "outline", "path")
+ 

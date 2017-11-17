@@ -15,14 +15,13 @@
         "--talk-name=org.freedesktop.Notifications",
         "--talk-name=org.freedesktop.DBus",
         "--socket=session-bus",
-        "--socket=system-bus",
         "--own-name=work.openpaper.paperwork"
     ],
     "modules": [
         "shared-modules/tesseract-3.05.01.json",
         "shared-modules/sane-backends-1.0.27.json",
         {
-            "name" :"six",
+            "name": "python-six",
             "no-autogen": true,
             "sources": [
                 {
@@ -38,7 +37,7 @@
             ]
         },
         {
-            "name" :"python-dateutil",
+            "name": "python-dateutil",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -72,7 +71,7 @@
             ]
         },
         {
-            "name" :"Pillow",
+            "name": "python-pillow",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -85,11 +84,18 @@
                     "type": "file",
                     "path": "pip-Makefile",
                     "dest-filename": "Makefile"
+                },
+                {
+                    "type": "patch",
+                    "path": "python-pillow-disable-multithreaded-compilation.diff",
+                    "strip-components": 0,
+                    "dest": ".",
+                    "use-git": false
                 }
             ],
             "modules": [
                 {
-                    "name" :"olefile",
+                    "name": "python-olefile",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -108,7 +114,7 @@
             ]
         },
         {
-            "name" :"pycountry",
+            "name": "python-pycountry",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -125,7 +131,7 @@
             ]
         },
         {
-            "name" :"nose",
+            "name": "python-nose",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -142,7 +148,7 @@
             ]
         },
         {
-            "name" :"pyinsane2",
+            "name": "python-pyinsane2",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -159,7 +165,7 @@
             ]
         },
         {
-            "name" :"pyocr",
+            "name": "python-pyocr",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -176,7 +182,7 @@
             ]
         },
         {
-            "name" :"pypillowfight",
+            "name": "python-pypillowfight",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
@@ -193,7 +199,7 @@
             ]
         },
         {
-            "name" :"pyxdg",
+            "name": "python-pyxdg",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
             "sources": [
@@ -210,7 +216,7 @@
             ]
         },
         {
-            "name" :"pydbus",
+            "name": "python-pydbus",
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
             "sources": [
@@ -227,7 +233,7 @@
             ]
         },
         {
-            "name" :"paperwork-backend",
+            "name": "python-paperwork-backend",
             "no-autogen": true,
             "ensure-writable": [
                     "/lib/python*/site-packages/easy-install.pth",
@@ -247,7 +253,7 @@
             ],
             "modules": [
                 {
-                    "name" :"natsort",
+                    "name": "python-natsort",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -264,7 +270,7 @@
                     ]
                 },
                 {
-                    "name" :"pyenchant",
+                    "name": "python-pyenchant",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -281,7 +287,7 @@
                     ]
                 },
                 {
-                    "name" :"simplebayes",
+                    "name": "python-simplebayes",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -298,7 +304,7 @@
                     ]
                 },
                 {
-                    "name" :"whoosh",
+                    "name": "python-whoosh",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -315,7 +321,7 @@
                     ]
                 },
                 {
-                    "name" :"termcolor",
+                    "name": "python-termcolor",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
                     "sources": [
@@ -332,7 +338,7 @@
                     ]
                 },
                 {
-                    "name" :"setuptools",
+                    "name": "python-setuptools",
                     "no-autogen": true,
                     "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
                     "sources": [
@@ -377,7 +383,7 @@
             ]
         },
         {
-            "name": "paperwork",
+            "name": "python-paperwork",
             "make-install-args": ["prefix=/app"],
             "no-autogen": true,
             "ensure-writable": [

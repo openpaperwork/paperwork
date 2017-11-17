@@ -64,7 +64,7 @@ If you're upgrading from a previous version installed with pip, it is strongly r
 it first before installing the new version.
 
 * GNU/Linux:
-  * [Using Flatpak](flatpak/README.markdown) (recommended)
+  * [Using Flatpak](flatpak/README.markdown)
   * Distribution-specific methods:
     * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
     * [GNU/Linux Debian](doc/install.debian.markdown)

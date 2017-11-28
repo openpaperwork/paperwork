@@ -31,6 +31,17 @@ try:
 except:
     CAIRO_AVAILABLE = False
 
+try:
+    import gi
+    gi.require_version('Gdk', '3.0')
+    gi.require_version('GdkPixbuf', '2.0')
+    from gi.repository import GLib
+    from gi.repository import Gdk
+    from gi.repository import GdkPixbuf
+    GDK_AVAILABLE = True
+except:
+    GDK_AVAILABLE = False
+
 if os.name != "nt":
     import enchant
     import enchant.tokenize
@@ -281,11 +292,27 @@ def image2surface(img):
     # So we fall back to this method:
     global g_lock
     with g_lock:
+        if (GDK_AVAILABLE and
+                hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') and
+                "A" not in img.getbands()):
+            data = GLib.Bytes.new(img.tobytes())
+            (width, height) = img.size
+            pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(
+                data, GdkPixbuf.Colorspace.RGB, False, 8,
+                width, height, width * 3
+            )
+            image_surface = cairo.ImageSurface(cairo.FORMAT_RGB24,
+                                               width, height)
+            ctx = cairo.Context(image_surface)
+            Gdk.cairo_set_source_pixbuf(ctx, pixbuf, 0.0, 0.0)
+            ctx.rectangle(0, 0, width, height)
+            ctx.fill()
+            return image_surface
+
         img_io = io.BytesIO()
         img.save(img_io, format="PNG")
         img_io.seek(0)
         return cairo.ImageSurface.create_from_png(img_io)
-
 
 def find_language(lang_str=None, allow_none=False):
     if lang_str is None:

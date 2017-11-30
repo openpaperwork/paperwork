@@ -31,11 +31,11 @@ This is the backend part of Paperwork. It manages:
 - Import
 - Export
 
-There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
+There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
     """,
     keywords="documents",
-    url="https://github.com/jflesch/paperwork-backend",
-    download_url=("https://github.com/jflesch/paperwork-backend"
+    url="https://github.com/openpaperwork/paperwork-backend",
+    download_url=("https://github.com/openpaperwork/paperwork-backend"
                   "/archive/1.3.0.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",

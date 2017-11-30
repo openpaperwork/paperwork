@@ -125,8 +125,8 @@ Main features are:
 - PDF support
     """,
     keywords="scanner ocr gui",
-    url="https://github.com/jflesch/paperwork",
-    download_url=("https://github.com/jflesch/paperwork"
+    url="https://github.com/openpaperwork/paperwork",
+    download_url=("https://github.com/openpaperwork/paperwork"
                   "/archive/1.2.2.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",

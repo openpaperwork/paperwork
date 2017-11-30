@@ -1,6 +1,6 @@
 ## Description
 
-[Paperwork](https://github.com/jflesch/paperwork#readme) is a GUI to make papers searchable.
+[Paperwork](https://github.com/openpaperwork/paperwork#readme) is a GUI to make papers searchable.
 
 This is the backend part of Paperwork. It manages:
 - The work directory / Access to the documents
@@ -10,7 +10,7 @@ This is the backend part of Paperwork. It manages:
 - Import
 - Export
 
-There is no GUI here. The GUI is https://github.com/jflesch/paperwork .
+There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
 
 Regarding the name "Paperwork", it can refer to both the GUI or the backend. If you want to be specific, you can call the gui "paperwork-gui" instead of just Paperwork.
 
@@ -25,7 +25,7 @@ Regarding the name "Paperwork", it can refer to both the GUI or the backend. If 
 
 ## Usage
 
-You can find some examples in scripts/. You can also look at the code of [Paperwork](https://github.com/jflesch/paperwork#readme) for reference.
+You can find some examples in scripts/. You can also look at the code of [Paperwork](https://github.com/openpaperwork/paperwork#readme) for reference.
 
 Here are some snippets:
 
@@ -72,15 +72,15 @@ print ("Page PIL Image object: {}".format(page.img))
 
 Developement is strongly related to Paperwork-gui.
 
-* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
+* [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list)
 * [Extra documentation / FAQ / Tips / Wiki](https://github.com/jflesch/paperwork-backend/wiki)
-* [Bug trackers](https://github.com/jflesch/paperwork/wiki/Contact#bug-trackers)
+* [Bug trackers](https://github.com/openpaperwork/paperwork/wiki/Contact#bug-trackers)
 
 
 ## Contact
 
-* [Mailing-list](https://github.com/jflesch/paperwork/wiki/Contact#mailing-list)
-* [Bug tracker](https://github.com/jflesch/paperwork/issues/)
+* [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list)
+* [Bug tracker](https://github.com/openpaperwork/paperwork/issues/)
 
 
 ## Licence
@@ -91,4 +91,4 @@ GPLv3 or later. See LICENSE.
 ## Development
 
 Developement is strongly related to Paperwork-gui.
-All the information can be found on [the wiki](https://github.com/jflesch/paperwork/wiki#for-developers)
+All the information can be found on [the wiki](https://github.com/openpaperwork/paperwork/wiki#for-developers)

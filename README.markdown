@@ -71,7 +71,7 @@ it first before installing the new version.
     * [GNU/Linux Fedora](doc/install.fedora.markdown)
     * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
     * [GNU/Linux Ubuntu](doc/install.debian.markdown)
-  * [Using Docker](doc/install.docker.markdown)
+  * [Using Docker](doc/install.docker.markdown) (deprecated: unmaintained)
   * [GNU/Linux Development](doc/install.devel.markdown)
 * Microsoft Windows:
   * [Installation](https://openpaper.work)

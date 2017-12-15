@@ -1,3 +1,6 @@
+**Warning**: This installation method is deprecated. No one is maintaining it anymore.
+You can use the [Flatpak installation](/flatpak/README.markdown) instead.
+
 # Starting the Docker containter
 
 ## Run paperwork with a Docker container

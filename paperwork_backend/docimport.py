@@ -18,6 +18,7 @@
 Document import (PDF, images, etc)
 """
 
+import gc
 import gettext
 import logging
 
@@ -271,6 +272,7 @@ class PdfDirectoryImporter(BaseImporter):
             idx = 0
 
             for child in recurse(parent):
+                gc.collect()
                 if not self.check_file_type(child.get_uri()):
                     continue
                 h = PdfDoc.hash_file(self.fs, child.get_uri())

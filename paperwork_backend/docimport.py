@@ -105,22 +105,6 @@ class ImportResult(object):
         return len(self.new_docs) > 0 or len(self.upd_docs) > 0
 
 
-def recurse(parent):
-    children = parent.enumerate_children(
-        Gio.FILE_ATTRIBUTE_STANDARD_NAME,
-        Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
-        None
-    )
-    for child in children:
-        name = child.get_name()
-        child = parent.get_child(name)
-        try:
-            for child in recurse(child):
-                yield child
-        except GLib.GError:
-            yield child
-
-
 class BaseImporter(object):
     def __init__(self, fs, file_extensions):
         self.fs = fs
@@ -248,7 +232,7 @@ class PdfDirectoryImporter(BaseImporter):
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
                 parent = Gio.File.parse_name(file_uri)
-                for child in recurse(parent):
+                for child in self.fs.recurse(parent):
                     if self.check_file_type(child.get_uri()):
                         return True
         except GLib.GError:
@@ -271,7 +255,7 @@ class PdfDirectoryImporter(BaseImporter):
             parent = Gio.File.parse_name(file_uri)
             idx = 0
 
-            for child in recurse(parent):
+            for child in self.fs.recurse(parent):
                 gc.collect()
                 if not self.check_file_type(child.get_uri()):
                     continue
@@ -336,7 +320,7 @@ class ImageDirectoryImporter(BaseImporter):
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
                 parent = Gio.File.parse_name(file_uri)
-                for child in recurse(parent):
+                for child in self.fs.recurse(parent):
                     if self.check_file_type(child.get_uri()):
                         return True
         except GLib.GError:
@@ -369,7 +353,7 @@ class ImageDirectoryImporter(BaseImporter):
             logger.info("Importing images from '%s'" % (file_uri))
             parent = Gio.File.parse_name(file_uri)
 
-            for child in recurse(parent):
+            for child in self.fs.recurse(parent):
                 if ".thumb." in child.get_uri():
                     # We are re-importing an old document --> ignore thumbnails
                     logger.info("{} ignored".format(child.get_uri()))

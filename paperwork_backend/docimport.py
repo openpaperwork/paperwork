@@ -262,7 +262,7 @@ class PdfDirectoryImporter(BaseImporter):
                 if docsearch.is_hash_in_index(h):
                     logger.info(
                         "Document %s already found in the index. Skipped",
-                        (child.get_path())
+                        child
                     )
                     continue
                 imported.append(child)

@@ -127,6 +127,7 @@ class BaseImporter(object):
         return []
 
     def check_file_type(self, file_uri):
+        # TODO(Jflesch): should use fs.py
         lfile_uri = file_uri.lower()
         for extension in self.file_extensions:
             if lfile_uri.endswith(extension):
@@ -231,9 +232,8 @@ class PdfDirectoryImporter(BaseImporter):
         try:
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
-                parent = Gio.File.parse_name(file_uri)
-                for child in self.fs.recurse(parent):
-                    if self.check_file_type(child.get_uri()):
+                for child in self.fs.recurse(file_uri):
+                    if self.check_file_type(child):
                         return True
         except GLib.GError:
             pass
@@ -252,23 +252,22 @@ class PdfDirectoryImporter(BaseImporter):
         imported = []
         for file_uri in file_uris:
             logger.info("Importing PDF from '%s'" % (file_uri))
-            parent = Gio.File.parse_name(file_uri)
             idx = 0
 
-            for child in self.fs.recurse(parent):
+            for child in self.fs.recurse(file_uri):
                 gc.collect()
-                if not self.check_file_type(child.get_uri()):
+                if not self.check_file_type(child):
                     continue
-                h = PdfDoc.hash_file(self.fs, child.get_uri())
+                h = PdfDoc.hash_file(self.fs, child)
                 if docsearch.is_hash_in_index(h):
                     logger.info(
                         "Document %s already found in the index. Skipped",
-                        (child.get_path())
+                        child
                     )
                     continue
-                imported.append(child.get_uri())
+                imported.append(child)
                 doc = PdfDoc(self.fs, docsearch.rootdir)
-                error = doc.import_pdf(child.get_uri())
+                error = doc.import_pdf(child)
                 if error:
                     continue
                 docs.append(doc)
@@ -319,9 +318,8 @@ class ImageDirectoryImporter(BaseImporter):
         try:
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
-                parent = Gio.File.parse_name(file_uri)
-                for child in self.fs.recurse(parent):
-                    if self.check_file_type(child.get_uri()):
+                for child in self.fs.recurse(file_uri):
+                    if self.check_file_type(child):
                         return True
         except GLib.GError:
             pass
@@ -351,17 +349,16 @@ class ImageDirectoryImporter(BaseImporter):
         for file_uri in file_uris:
             file_uri = self.fs.safe(file_uri)
             logger.info("Importing images from '%s'" % (file_uri))
-            parent = Gio.File.parse_name(file_uri)
 
-            for child in self.fs.recurse(parent):
-                if ".thumb." in child.get_uri():
+            for child in self.fs.recurse(file_uri):
+                if ".thumb." in child:
                     # We are re-importing an old document --> ignore thumbnails
-                    logger.info("{} ignored".format(child.get_uri()))
+                    logger.info("{} ignored".format(child))
                     continue
-                if not self.check_file_type(child.get_uri()):
+                if not self.check_file_type(child):
                     continue
-                imported.append(child.get_uri())
-                with self.fs.open(child.get_uri(), "rb") as fd:
+                imported.append(child)
+                with self.fs.open(child, "rb") as fd:
                     img = Image.open(fd)
                     img.load()
                 page = current_doc.add_page(img, [])

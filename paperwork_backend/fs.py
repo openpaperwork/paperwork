@@ -441,7 +441,7 @@ class GioFileSystem(CommonFs):
             name = child.get_name()
             child = parent.get_child(name)
             try:
-                for sub in self.recurse(child):
+                for sub in self._recurse(child):
                     yield sub
             except GLib.GError:
                 yield child
@@ -450,6 +450,6 @@ class GioFileSystem(CommonFs):
             yield parent
 
     def recurse(self, parent_uri, dir_included=False):
-        parent = Gio.File.new_for_uri(url)
+        parent = Gio.File.new_for_uri(parent_uri)
         for f in self._recurse(parent, dir_included):
             yield f.get_uri()

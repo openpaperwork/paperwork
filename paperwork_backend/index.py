@@ -703,6 +703,7 @@ class PaperworkIndex(object):
         doc.remove_label(label)
         if must_reindex:
             self.upd_doc(doc, label_guesser_update=False)
+        return ('label_deleted', doc)
 
     def end_destroy_label(self):
         label = self.destroy_label_data['label']

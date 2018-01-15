@@ -91,16 +91,12 @@ class PdfPage(BasicPage):
         self._size = None  # page size never change --> can be cached
         self.__boxes = None
         self._on_disk_cache = on_disk_cache
-        self._pdf = None
-        self._pdf_page = None
 
     @property
     def pdf_page(self):
-        if self._pdf is None:
-            self._pdf = self.doc.get_pdf()
-        if self._pdf_page is None:
-            self._pdf_page = self._pdf.get_page(self.page_nb)
-        return self._pdf_page
+        pdf = self.doc.get_pdf()
+        pdf_page = pdf.get_page(self.page_nb)
+        return pdf_page
 
     def get_doc_file_path(self):
         """

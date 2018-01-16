@@ -101,7 +101,7 @@ If you installed it manually (for development), you can follow the same process 
 
 * [Extra documentation / FAQ / Tips / Wiki](https://github.com/openpaperwork/paperwork/wiki)
 * [Contributing to Paperwork](https://github.com/openpaperwork/paperwork/wiki/Contributing)
-* [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list) (be careful: [By default, Google groups set your subscription to "no email"](https://productforums.google.com/forum/#!topic/apps/3OUlPmzKCi8))
+* [IRC](https://github.com/openpaperwork/paperwork/wiki/Contact#irc) / [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list) (be careful: [By default, Google groups set your subscription to "no email"](https://productforums.google.com/forum/#!topic/apps/3OUlPmzKCi8))
 * [Bug trackers](https://github.com/openpaperwork/paperwork/wiki/Contact#bug-trackers)
 
 

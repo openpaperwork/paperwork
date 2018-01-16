@@ -216,7 +216,7 @@ class BasicPage(object):
                 " of the thumbnail", str(self.doc.docid), exc_info=exc
             )
 
-        logger.info("[%s] Updating PDF thumbnail ...", str(self.doc.docid))
+        logger.info("[%s] Updating thumbnail ...", str(self.doc.docid))
         thumbnail = self.__make_thumbnail(width, height)
         with self.fs.open(thumb_path, 'wb') as fd:
             thumbnail.save(fd, format="JPEG")

@@ -1134,7 +1134,8 @@ class ActionOpenViewSettings(SimpleAction):
     def do(self):
         SimpleAction.do(self)
         self.__main_win.popovers['view_settings'].set_relative_to(
-            self.__main_win.actions['open_view_settings'][0][0])
+            self.__main_win.actions['open_view_settings'][0][0]
+        )
         self.__main_win.popovers['view_settings'].set_visible(True)
 
 
@@ -1938,6 +1939,7 @@ class BasicActionOpenExportDialog(SimpleAction):
 
     def init_dialog(self):
         widget_tree = load_uifile(os.path.join("mainwindow", "export.glade"))
+        self.main_win._hide_export_dialog()
         self.main_win.export['dialog'] = widget_tree.get_object("infobarExport")
         self.main_win.export['fileFormat'] = {
             'widget': widget_tree.get_object("comboboxExportFormat"),
@@ -3659,10 +3661,13 @@ class MainWindow(object):
         return first_scan_drawer
 
     def _hide_export_dialog(self):
-        if self.export['dialog']:
+        if self.export['dialog'] is not None:
             self.global_page_box.remove(self.export['dialog'])
             self.export['dialog'].set_visible(False)
-            self.export['dialog'] = None
+        self.export['dialog'] = None
+        self.export['exporter'] = None
+        for button in self.actions['open_view_settings'][0]:
+            button.set_sensitive(True)
 
     def set_searchbar_visible(self, visible):
         if self.searchbar.is_visible() == visible:
@@ -4210,13 +4215,9 @@ class MainWindow(object):
 
     def hide_export_dialog(self):
         # force refresh of the current page
-        self.global_page_box.remove(self.export['dialog'])
-        self.export['dialog'].set_visible(False)
-        self.export['dialog'] = None
-        self.export['exporter'] = None
-        for button in self.actions['open_view_settings'][0]:
-            button.set_sensitive(True)
-        self.show_page(self.page, force_refresh=True)
+        self._hide_export_dialog()
+        if self.page is not None:
+            self.show_page(self.page, force_refresh=True)
 
     def on_export_start(self):
         self.set_mouse_cursor("Busy")

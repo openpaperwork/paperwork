@@ -372,6 +372,8 @@ class GioFileSystem(CommonFs):
     def getmtime(self, url):
         try:
             f = Gio.File.new_for_uri(url)
+            if not f.query_exists():
+                raise IOError("File {} does not exist".format(str(url)))
             fi = f.query_info(
                 Gio.FILE_ATTRIBUTE_TIME_CHANGED, Gio.FileQueryInfoFlags.NONE
             )

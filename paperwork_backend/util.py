@@ -271,7 +271,7 @@ def surface2image(surface):
         return img_no_alpha
 
 
-def image2surface(img):
+def image2surface(img, intermediate="pixbuf", quality=90):
     """
     Convert a PIL image into a Cairo surface
     """
@@ -291,10 +291,16 @@ def image2surface(img):
 
     # So we fall back to this method:
     global g_lock
+    assert(CAIRO_AVAILABLE)
     with g_lock:
-        if (GDK_AVAILABLE and
-                hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') and
-                img.getbands() == ('R', 'G', 'B')):
+        if intermediate == "pixbuf" and (
+                    not GDK_AVAILABLE or
+                    not hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') or
+                    img.getbands() != ('R', 'G', 'B')
+                ):
+            intermediate = "png"
+
+        if intermediate == "pixbuf":
             data = GLib.Bytes.new(img.tobytes())
             (width, height) = img.size
             pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(
@@ -308,11 +314,29 @@ def image2surface(img):
             ctx.rectangle(0, 0, width, height)
             ctx.fill()
             return image_surface
+        elif intermediate == "png":
+            img_io = io.BytesIO()
+            img.save(img_io, format="PNG")
+            img_io.seek(0)
+            return cairo.ImageSurface.create_from_png(img_io)
+        elif intermediate == "jpeg":
+            # IMPORTANT: The actual surface will be empty.
+            # but mime-data will have attached the correct data
+            # to the surface that supports it
+            img_surface = cairo.ImageSurface(
+                cairo.FORMAT_RGB24, img.size[0], img.size[1]
+            )
+            img_io = io.BytesIO()
+            img.save(img_io, format="JPEG", quality=quality)
+            img_io.seek(0)
+            data = img_io.read()
+            img_surface.set_mime_data(
+                cairo.MIME_TYPE_JPEG, data
+            )
+            return img_surface
+        else:
+            raise Exception("image2surface(): unknown intermediate")
 
-        img_io = io.BytesIO()
-        img.save(img_io, format="PNG")
-        img_io.seek(0)
-        return cairo.ImageSurface.create_from_png(img_io)
 
 def find_language(lang_str=None, allow_none=False):
     if lang_str is None:

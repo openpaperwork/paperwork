@@ -123,7 +123,8 @@ class ImgToPdfDocExporter(Exporter):
         scale_factor_y = pdf_size[1] / img.size[1]
         scale_factor = min(scale_factor_x, scale_factor_y)
 
-        img_surface = image2surface(img)
+        img_surface = image2surface(img, intermediate="jpeg",
+                                    quality=int(self.__quality))
 
         pdf_context.save()
         try:

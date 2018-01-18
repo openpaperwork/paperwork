@@ -16,15 +16,213 @@
 
 import datetime
 import gettext
-import logging
-import time
 import hashlib
+import logging
+import os
+import tempfile
+import time
+
+import cairo
+from gi.repository import Gio
+try:
+    from gi.repository import Pango
+    from gi.repository import PangoCairo
+    PANGO_AVAILABLE = True
+except:
+    PANGO_AVAILABLE = False
+from gi.repository import Poppler
+import PIL.Image
 
 from ..labels import Label
+from ..util import image2surface
+from ..util import surface2image
+from .export import dummy_export_progress_cb
+from .export import Exporter
 
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
+
+
+class ImgToPdfDocExporter(Exporter):
+    def __init__(self, doc, page_nb):
+        super().__init__(doc, 'PDF')
+        self.can_change_quality = True
+        self.can_select_format = True
+        self.valid_exts = ['pdf']
+        self.doc = doc
+        self.page_nb = page_nb
+        self.__quality = 50
+        self.__preview = None  # will just contain the first page
+        self.__page_format = (0, 0)
+        self.__process_func = None
+
+    def get_mime_type(self):
+        return 'application/pdf'
+
+    def get_file_extensions(self):
+        return ['pdf']
+
+    def __paint_txt(self, pdf_surface, pdf_size, pdf_context, page):
+        if not PANGO_AVAILABLE:
+            return
+
+        img = page.img
+
+        scale_factor_x = pdf_size[0] / img.size[0]
+        scale_factor_y = pdf_size[1] / img.size[1]
+        scale_factor = min(scale_factor_x, scale_factor_y)
+
+        for line in page.boxes:
+            for word in line.word_boxes:
+                box_size = (
+                    (word.position[1][0] - word.position[0][0]) * scale_factor,
+                    (word.position[1][1] - word.position[0][1]) * scale_factor
+                )
+
+                layout = PangoCairo.create_layout(pdf_context)
+                layout.set_text(word.content, -1)
+
+                txt_size = layout.get_size()
+                if 0 in txt_size or 0 in box_size:
+                    continue
+
+                txt_factors = (
+                    float(box_size[0]) * Pango.SCALE / txt_size[0],
+                    float(box_size[1]) * Pango.SCALE / txt_size[1],
+                )
+
+                pdf_context.save()
+                try:
+                    pdf_context.set_source_rgb(0, 0, 0)
+                    pdf_context.translate(
+                        word.position[0][0] * scale_factor,
+                        word.position[0][1] * scale_factor
+                    )
+
+                    # make the text use the whole box space
+                    pdf_context.scale(txt_factors[0], txt_factors[1])
+
+                    PangoCairo.update_layout(pdf_context, layout)
+                    PangoCairo.show_layout(pdf_context, layout)
+                finally:
+                    pdf_context.restore()
+
+    def __paint_img(self, pdf_surface, pdf_size, pdf_context, page,
+                    preview=False):
+        img = page.img
+        if self.__process_func:
+            img = self.__process_func(img)
+        quality = float(self.__quality) / 100.0
+
+        new_size = (int(quality * img.size[0]),
+                    int(quality * img.size[1]))
+        img = img.resize(new_size, PIL.Image.ANTIALIAS)
+
+        scale_factor_x = pdf_size[0] / img.size[0]
+        scale_factor_y = pdf_size[1] / img.size[1]
+        scale_factor = min(scale_factor_x, scale_factor_y)
+
+        img_surface = image2surface(img)
+
+        pdf_context.save()
+        try:
+            pdf_context.identity_matrix()
+            pdf_context.scale(scale_factor, scale_factor)
+            pdf_context.set_source_surface(img_surface)
+            pdf_context.paint()
+        finally:
+            pdf_context.restore()
+
+    def __save(self, target_path, pages, progress_cb=dummy_export_progress_cb):
+        # XXX(Jflesch): This is a problem. It will fails if someone tries
+        # to export to a non-local directory. We should use
+        # cairo_pdf_surface_create_for_stream()
+        target_path = self.doc.fs.unsafe(target_path)
+
+        pdf_surface = cairo.PDFSurface(target_path,
+                                       self.__page_format[0],
+                                       self.__page_format[1])
+        pdf_context = cairo.Context(pdf_surface)
+
+        pages = [self.doc.pages[x] for x in range(pages[0], pages[1])]
+        for page_idx, page in enumerate(pages):
+            progress_cb(page_idx, len(pages))
+            img = page.img
+            if (img.size[0] < img.size[1]):
+                (x, y) = (min(self.__page_format[0], self.__page_format[1]),
+                          max(self.__page_format[0], self.__page_format[1]))
+            else:
+                (x, y) = (max(self.__page_format[0], self.__page_format[1]),
+                          min(self.__page_format[0], self.__page_format[1]))
+            pdf_surface.set_size(x, y)
+
+            logger.info("Adding text to PDF page {} ...".format(page))
+            self.__paint_txt(pdf_surface, (x, y), pdf_context, page)
+            logger.info("Adding image to PDF page {} ...".format(page))
+            self.__paint_img(pdf_surface, (x, y), pdf_context, page)
+            pdf_context.show_page()
+            logger.info("Page {} ready".format(page))
+
+        progress_cb(len(pages), len(pages))
+        return self.doc.fs.safe(target_path)
+
+    def save(self, target_path, progress_cb=dummy_export_progress_cb):
+        return self.__save(target_path, (0, self.doc.nb_pages), progress_cb)
+
+    def refresh(self):
+        # make the preview
+
+        (tmpfd, tmppath) = tempfile.mkstemp(
+            suffix=".pdf",
+            prefix="paperwork_export_"
+        )
+        os.close(tmpfd)
+
+        path = self.__save(tmppath, pages=(self.page_nb, self.page_nb + 1))
+
+        # reload the preview
+
+        file = Gio.File.new_for_uri(path)
+        pdfdoc = Poppler.Document.new_from_gfile(file, password=None)
+        assert(pdfdoc.get_n_pages() > 0)
+
+        pdfpage = pdfdoc.get_page(0)
+        pdfpage_size = pdfpage.get_size()
+
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                     int(pdfpage_size[0]),
+                                     int(pdfpage_size[1]))
+        ctx = cairo.Context(surface)
+        pdfpage.render(ctx)
+        img = surface2image(surface)
+
+        self.__preview = (path, img)
+
+    def set_quality(self, quality):
+        self.__quality = quality
+        self.__preview = None
+
+    def set_page_format(self, page_format):
+        self.__page_format = page_format
+        self.__preview = None
+
+    def set_postprocess_func(self, postprocess_func):
+        self.__process_func = postprocess_func
+        self.__preview = None
+
+    def estimate_size(self):
+        if self.__preview is None:
+            self.refresh()
+        return self.doc.fs.getsize(self.__preview[0]) * self.doc.nb_pages
+
+    def get_img(self):
+        if self.__preview is None:
+            self.refresh()
+        return self.__preview[1]
+
+    def __str__(self):
+        return 'PDF (generated)'
 
 
 class BasicDoc(object):
@@ -236,7 +434,7 @@ class BasicDoc(object):
 
     @staticmethod
     def get_export_formats():
-        raise NotImplementedError()
+        return ['PDF']
 
     def build_exporter(self, file_format='pdf', preview_page_nb=0):
         """
@@ -254,7 +452,8 @@ class BasicDoc(object):
             .save(file_path, progress_cb=dummy_export_progress_cb)
             progress_cb(current, total)
         """
-        raise NotImplementedError()
+        assert(file_format.lower() == 'pdf')
+        return ImgToPdfDocExporter(self, preview_page_nb)
 
     def __doc_cmp(self, other):
         """

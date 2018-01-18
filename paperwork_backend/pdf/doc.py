@@ -58,7 +58,7 @@ class PdfDocExporter(Exporter):
         return self.page.img
 
     def __str__(self):
-        return 'PDF'
+        return 'PDF (original)'
 
 
 class PdfPagesIterator(object):
@@ -156,11 +156,14 @@ class _CommonPdfDoc(BasicDoc):
 
     @staticmethod
     def get_export_formats():
-        return ['PDF']
+        return ['PDF (original)', 'PDF (generated)']
 
-    def build_exporter(self, file_format='pdf', preview_page_nb=0):
-        assert(file_format.lower() == 'pdf')
-        return PdfDocExporter(self, preview_page_nb)
+    def build_exporter(self, file_format='pdf (original)', preview_page_nb=0):
+        if "original" in file_format.lower():
+            return PdfDocExporter(self, preview_page_nb)
+        assert('pdf' in file_format.lower())
+        # generate PDF (including OCR)
+        return super().build_exporter('pdf', preview_page_nb)
 
     def get_docfilehash(self):
         return super().hash_file(self.fs, "%s/%s" % (self.path, PDF_FILENAME))

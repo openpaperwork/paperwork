@@ -294,7 +294,7 @@ def image2surface(img):
     with g_lock:
         if (GDK_AVAILABLE and
                 hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') and
-                "A" not in img.getbands()):
+                img.getbands() == ('R', 'G', 'B')):
             data = GLib.Bytes.new(img.tobytes())
             (width, height) = img.size
             pixbuf = GdkPixbuf.Pixbuf.new_from_bytes(

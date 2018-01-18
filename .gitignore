@@ -10,3 +10,4 @@ paperwork.egg-info/
 .flatpak-builder/
 repo/
 *.flatpak
+venv*/

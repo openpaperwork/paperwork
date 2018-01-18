@@ -62,8 +62,10 @@ from ..util import sizeof_fmt
 from ..util.actions import SimpleAction
 from ..util.canvas import Canvas
 from ..util.canvas.animations import SpinnerAnimation
+from ..util.canvas.drawers import Centerer
 from ..util.canvas.drawers import PillowImageDrawer
 from ..util.canvas.drawers import ProgressBarDrawer
+from ..util.canvas.drawers import TextDrawer
 from ..util.config import get_scanner
 from ..util.dialog import ask_confirmation
 from ..util.dialog import popup_no_scanner_found

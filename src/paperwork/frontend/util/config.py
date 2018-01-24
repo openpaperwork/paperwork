@@ -255,15 +255,6 @@ def load_config():
         'zoom_level': PaperworkSetting("GUI", "zoom_level",
                                        lambda: 0.0, float),
 
-        # activation
-        'activation_email': PaperworkSetting(
-            "Activation", "email", lambda: None, str
-        ),
-        'activation_key': PaperworkSetting(
-            "Activation", "key", lambda: None, str
-        ),
-        'first_start': _PaperworkDate("Activation", "first_start"),
-
         # update detection
         'check_for_update': PaperworkSetting("Update", "check", lambda: False,
                                              paperwork_cfg_boolean),

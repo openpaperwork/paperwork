@@ -44,7 +44,6 @@ from paperwork_backend.docsearch import DummyDocSearch
 from paperwork_backend.labels import Label
 from paperwork_backend.pdf.doc import ExternalPdfDoc
 from ..aboutdialog import AboutDialog
-from ..import activation
 from ..import beacon
 from ..diag import DiagDialog
 from ..mainwindow.docs import DocList
@@ -2279,19 +2278,6 @@ class ActionOpenDiagnostic(SimpleAction):
         self.diag.show()
 
 
-class ActionOpenActivation(SimpleAction):
-    def __init__(self, main_window, config):
-        SimpleAction.__init__(self, "Opening activaton dialog")
-        self.__config = config
-        self.__main_win = main_window
-        self.diag = None  # used to prevent gc
-
-    def do(self):
-        SimpleAction.do(self)
-        self.diag = activation.ActivationDialog(self.__main_win, self.__config)
-        self.diag.show()
-
-
 class ActionAbout(SimpleAction):
     def __init__(self, main_window):
         SimpleAction.__init__(self, "Opening about dialog")
@@ -2669,9 +2655,6 @@ class MainWindow(object):
 
         self.default_font = None
         self.__fix_css()
-        self.__init_cruel_and_unusual_drm(config)
-        # Except for a few widget, the CSS doesn't specify any font, so we
-        # can load it after the cruel and unusual DRM
         load_cssfile("application.css")
 
         widget_tree = load_uifile(
@@ -3029,12 +3012,6 @@ class MainWindow(object):
                 ],
                 ActionOpenDiagnostic(self),
             ),
-            'activation': (
-                [
-                    gactions['activate'],
-                ],
-                ActionOpenActivation(self, config),
-            ),
             'about': (
                 [
                     gactions['about'],
@@ -3119,30 +3096,6 @@ class MainWindow(object):
 
         self.beacon = beacon.Beacon(config, flatpak)
         beacon.check_update(self.beacon)
-
-    def __init_cruel_and_unusual_drm(self, config):
-        activated = activation.is_activated(config)
-        expired = activation.has_expired(config)
-
-        if not activated and expired:
-            css_provider = Gtk.CssProvider()
-
-            # May have God mercy on my soul
-            self.default_font = "Comic Sans MS"
-            if os.name != "nt":
-                self.default_font = "URW Chancery L"
-            self.default_font = os.getenv(
-                "PAPERWORK_EXPIRED_FONT", self.default_font
-            )
-            renderer.FONT = self.default_font
-            css = "* {{ font-family: {}; }}".format(self.default_font)
-            css = css.encode("utf-8")
-            css_provider.load_from_data(css)
-            Gtk.StyleContext.add_provider_for_screen(
-                Gdk.Screen.get_default(),
-                css_provider,
-                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-            )
 
     def __init_headerbars(self, widget_tree):
         # Fix Unity placement of close/minize/maximize (it *must* be on the
@@ -3229,7 +3182,6 @@ class MainWindow(object):
     def __init_gactions(self, app):
         gactions = {
             'about': Gio.SimpleAction.new("about", None),
-            'activate': Gio.SimpleAction.new("activate", None),
             'diagnostic': Gio.SimpleAction.new("diag", None),
             'export_doc': Gio.SimpleAction.new("export_doc", None),
             'export_page': Gio.SimpleAction.new("export_page", None),
@@ -3272,10 +3224,6 @@ class MainWindow(object):
         app_menu = load_uifile(os.path.join("mainwindow", "appmenu.xml"))
         advanced_menu = app_menu.get_object("advanced")
 
-        if activation.is_activated(config):
-            menu = app_menu.get_object("menu_end")
-            menu.remove(0)
-
         app.set_app_menu(app_menu.get_object("app-menu"))
         return advanced_menu
 
@@ -3297,13 +3245,6 @@ class MainWindow(object):
         logo = "paperwork_100.png"
         pkg = "paperwork.frontend.data"
 
-        activated = activation.is_activated(config)
-        expired = activation.has_expired(config)
-
-        if not activated and expired:
-            logo = "bad.png"
-            pkg = "paperwork.frontend"
-
         logo_size = (0, 0)
         try:
             logo = load_image(logo, pkg=pkg)
@@ -3324,24 +3265,7 @@ class MainWindow(object):
         lines = [
             ("Paperwork {}".format(__version__), 28),
         ]
-        if not activated:
-            if expired:
-                lines += [
-                    (_("Trial period has expired"), 30),
-                    (_("Everything will work as usual, except we've"), 24),
-                    (_("switched all the fonts to {}").format(
-                        self.default_font), 24),
-                    (_("until you get an activation key"), 24),
-                    # TODO(Jflesch): Make that a link
-                    (_("You can go to https://openpaper.work/activation/"), 24),
-                    (_("to get an activation key"), 24),
-                ]
-            else:
-                remaining = activation.get_remaining_days(config)
-                lines += [
-                    _("Trial period: {} days remaining").format(remaining), 20
-                ]
-        elif update and update != self.version:
+        if update and update != self.version:
             lines += [
                 (_("A new version is available:"), 20),
                 (_("Paperwork {}").format(update), 20),

@@ -458,7 +458,7 @@ msgstr "Documents"
 
 #: src/paperwork/frontend/mainwindow/docs.py:1066
 msgid "Matching papers"
-msgstr "Papiers correspondants"
+msgstr "Résultats"
 
 #: src/paperwork/frontend/mainwindow/docs.py:1247
 #: src/paperwork/frontend/mainwindow/docs.py:1254

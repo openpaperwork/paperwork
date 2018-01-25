@@ -4,7 +4,7 @@
     "sources": [
         {
             "type": "file",
-            "path": "noop-Makefile",
+            "path": "shared-modules/noop-Makefile",
             "dest-filename": "Makefile"
         }
     ],
@@ -47,7 +47,7 @@
                 },
                 {
                     "type": "file",
-                    "path": "noop-Makefile",
+                    "path": "shared-modules/noop-Makefile",
                     "dest-filename": "Makefile"
                 }
             ],

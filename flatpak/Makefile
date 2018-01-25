@@ -29,6 +29,11 @@ upd_branches: $(patsubst %,%.app,$(ALL_BRANCHES))
 	@echo flatpak build-update-repo $(REPO) \($(REPO) ${EXPORT_ARGS} ${ARCH_ARGS}\)
 	flatpak build-update-repo --generate-static-deltas ${EXPORT_ARGS} $(REPO)
 
+# Can be used if you call %.app manually first
+upd_repo:
+	@echo flatpak build-update-repo $(REPO) \($(REPO) ${EXPORT_ARGS} ${ARCH_ARGS}\)
+	flatpak build-update-repo --generate-static-deltas ${EXPORT_ARGS} $(REPO)
+
 # Build a Flatpak bundle
 %.flatpak: mk_all
 	@echo flatpak build-bundle $(REPO) --\> $@ \(${EXPORT_ARGS} ${ARCH_ARGS} branch: $(@:%.flatpak=%)\)

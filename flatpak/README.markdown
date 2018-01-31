@@ -46,16 +46,16 @@ and connection must be allowed from 127.0.0.1.
 flatpak --user install https://builder.openpaper.work/paperwork_release.flatpakref
 ```
 
-## Nightly builds
+## Continuous builds
 
-For the nightly builds based on the branch 'master' (usually contains the latest
+For the continuous builds based on the branch 'master' (usually contains the latest
 release with some extra minor bugfixes):
 
 ```shell
 flatpak --user install https://builder.openpaper.work/paperwork_master.flatpakref
 ```
 
-For the nightly builds based on the branch 'develop' (you can install both master
+For the continous builds based on the branch 'develop' (you can install both master
 and develop if you wish):
 
 ```shell

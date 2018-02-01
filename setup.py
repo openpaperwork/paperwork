@@ -17,7 +17,7 @@ setup(
     # if you change the version, don't forget to
     # * update the ChangeLog file
     # * update the download_url in this file
-    version="1.2.2",
+    version="1.2.3",
     description=(
         "Paperwork's backend"
     ),
@@ -36,7 +36,7 @@ There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
     keywords="documents",
     url="https://github.com/openpaperwork/paperwork-backend",
     download_url=("https://github.com/openpaperwork/paperwork-backend"
-                  "/archive/1.2.2.tar.gz"),
+                  "/archive/1.2.3.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",

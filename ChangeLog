@@ -1,3 +1,10 @@
+2018/02/01 - 1.2.3:
+- Flatpak: Fix support of other GTK themes (Dark Adwaita, etc)
+- French translations: shorten the translation of "Matching papers" because
+  otherwise it messes with the UI
+- Export dialog: Clicking on export->{document|page} a second time will first
+  close the first export dialog.
+
 2017/11/14 - 1.2.2:
 - DnD: Fix double-delete: when moving the last page of a document
   to another, don't delete the source document (it's up to the

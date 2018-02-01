@@ -89,9 +89,6 @@ setup(
     # * update src/paperwork/frontend/mainwindow/__init__.py:__version__
     # * update the dependency version on paperwork-backend
     # * update data/work.openpaper.Paperwork.appdata.xml:<releases>
-    # * update the public key in
-    #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
-    #   if required
     #
     # Release:
     # * commit
@@ -101,7 +98,7 @@ setup(
     # After the release:
     # * add a file flatpak/<version>.json
     # * update flatpak/release.json
-    version="1.2.2",
+    version="1.2.3",
     description=(
         "Using scanner and OCR to grep dead trees the easy way (Linux only)"
     ),
@@ -127,7 +124,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/openpaperwork/paperwork",
     download_url=("https://github.com/openpaperwork/paperwork"
-                  "/archive/1.2.2.tar.gz"),
+                  "/archive/1.2.3.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
@@ -166,7 +163,7 @@ Main features are:
         "pypillowfight",
         "pyxdg >= 0.25",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend>=1.2.2,<1.3",
+        "paperwork-backend>=1.2.3,<1.3",
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection

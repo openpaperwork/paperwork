@@ -1,3 +1,10 @@
+2018/02/01 - 1.2.3:
+- Windows: Fix labels handling: Fix CSV file reading
+- Fix global deletion of a label
+- Flatpak: Fix deletion of documents
+- PDF: Fix file descriptor leak
+- Flatpak: Fix support on English systems
+
 2017/11/14 - 1.2.2:
 - PDF: Fix thumbnail sizes. Incorrect thumbnails will be automatically
   regenerated

@@ -245,7 +245,7 @@
                 {
                     "type": "archive",
                     "url": "https://pypi.python.org/packages/3f/b9/8cae7c26a9a56a06fa3b1b3c5fc97f633a9a3f543a2a92f9a96edb7df8c0/paperwork-backend-1.2.3.tar.gz",
-                    "sha256": "b25aacb754f123465f77ebfbd68adf083025fbc3b240bf8f6cd4019dd9a91bd1",
+                    "sha256": "b25aacb754f123465f77ebfbd68adf083025fbc3b240bf8f6cd4019dd9a91bd1"
                 },
                 {
                     "type": "file",

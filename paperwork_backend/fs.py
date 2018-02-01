@@ -80,6 +80,8 @@ class GioFileAdapter(io.RawIOBase):
         raise OSError("readline() not supported on Gio.File objects")
 
     def readlines(self, hint=-1):
+        logger.warning("readlines() shouldn't be called on a binary file descriptor. This is not cross-platform")
+        all = self.readall()
         return [(x + b"\n") for x in self.readall().split(b"\n")]
 
     def seek(self, offset, whence=os.SEEK_SET):
@@ -162,7 +164,10 @@ class GioUTF8FileAdapter(io.RawIOBase):
         return r.decode("utf-8")
 
     def readlines(self, hint=-1):
-        lines = [(x + "\n") for x in self.readall().split(os.linesep)]
+        all = self.readall()
+        if os.linesep != "\n":
+            all = all.replace(os.linesep, "\n")
+        lines = [(x + "\n") for x in all.split("\n")]
         if lines[-1] == "\n":
             return lines[:-1]
         return lines

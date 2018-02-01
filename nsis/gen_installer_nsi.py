@@ -7,7 +7,7 @@ import sys
 from paperwork_backend.util import find_language
 
 
-DOWNLOAD_URI = "https://github.com/openpaperwork/paperwork/releases/download/${PRODUCT_SHORT_VERSION}/paperwork_${PRODUCT_VERSION}_win64.zip"
+DOWNLOAD_URI = "https://download.openpaper.work/${PRODUCT_SHORT_VERSION}/paperwork_${PRODUCT_VERSION}_win64.zip"
 
 ALL_LANGUAGES = [
     "eng",  # English (always first)

@@ -89,9 +89,6 @@ setup(
     # * update src/paperwork/frontend/mainwindow/__init__.py:__version__
     # * update the dependency version on paperwork-backend
     # * update data/work.openpaper.Paperwork.appdata.xml:<releases>
-    # * update the public key in
-    #   src/paperwork/frontend/activation/__init__.py:check_activation_key()
-    #   if required
     #
     # Release:
     # * commit
@@ -125,8 +122,8 @@ Main features are:
 - PDF support
     """,
     keywords="scanner ocr gui",
-    url="https://github.com/jflesch/paperwork",
-    download_url=("https://github.com/jflesch/paperwork"
+    url="https://github.com/openpaperwork/paperwork",
+    download_url=("https://github.com/openpaperwork/paperwork"
                   "/archive/1.3.tar.gz"),
     classifiers=[
         "Development Status :: 5 - Production/Stable",

@@ -7,15 +7,16 @@ import sys
 import gi
 import pyocr
 
-gi.require_version('Gdk', '3.0')
-gi.require_version('PangoCairo', '1.0')
-gi.require_version('Poppler', '0.18')
-
 from . import config
 from . import docimport
 from . import docsearch
 from .labels import Label
 from . import fs
+
+gi.require_version('Gdk', '3.0')
+gi.require_version('PangoCairo', '1.0')
+gi.require_version('Poppler', '0.18')
+
 
 
 FS = fs.GioFileSystem()

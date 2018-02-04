@@ -32,13 +32,13 @@ def is_interactive():
 
 def verbose(txt):
     if is_verbose():
-        print (txt)
+        print(txt)
 
 
 def reply(data):
     if "status" not in data:
         data['status'] = 'ok'
-    print (json.dumps(
+    print(json.dumps(
         data, indent=4,
         separators=(',', ': '),
         sort_keys=True
@@ -61,7 +61,7 @@ def _dump_page(page):
         out = ""
         for word in line.word_boxes:
             out += word.content + " "
-        print (out.strip())
+        print(out.strip())
 
 
 def cmd_add_label(docid, label_name, color=None):

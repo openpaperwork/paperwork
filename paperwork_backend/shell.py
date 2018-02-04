@@ -698,6 +698,7 @@ def cmd_ocr(*args):
         "ocr": [page.pageid for page in pages]
     })
 
+
 def cmd_remove_label(docid, label_name):
     """
     Arguments: <document_id> <label_name>

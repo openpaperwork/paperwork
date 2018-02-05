@@ -3,6 +3,8 @@ import itertools
 import json
 import os
 import sys
+from threading import Thread
+import queue
 
 import gi
 import pyocr
@@ -31,13 +33,13 @@ def is_interactive():
 
 def verbose(txt):
     if is_verbose():
-        print (txt)
+        print(txt)
 
 
 def reply(data):
     if "status" not in data:
         data['status'] = 'ok'
-    print (json.dumps(
+    print(json.dumps(
         data, indent=4,
         separators=(',', ': '),
         sort_keys=True
@@ -60,7 +62,7 @@ def _dump_page(page):
         out = ""
         for word in line.word_boxes:
             out += word.content + " "
-        print (out.strip())
+        print(out.strip())
 
 
 def cmd_add_label(docid, label_name, color=None):
@@ -424,6 +426,51 @@ def _get_importer(fileuris, doc):
         return importers[int(idx)]
 
 
+def _do_ocr(empty_only, ocr_lang, ocr, pages):
+    input_queue = queue.Queue(maxsize=0)
+    output_queue = queue.Queue(maxsize=0)
+    num_threads = os.cpu_count()
+
+    for page in pages:
+        if empty_only and len(page.boxes) > 0:
+            continue
+        input_queue.put(page)
+
+    for i in range(num_threads):
+        worker = Thread(
+                target=_do_ocr_thread,
+                args=(ocr_lang, ocr, input_queue, output_queue)
+                )
+        worker.setDaemon(True)
+        worker.start()
+
+    input_queue.join()
+    pages = []
+
+    while not output_queue.empty():
+        page = output_queue.get()
+        pages.append(page)
+        output_queue.task_done()
+
+    return pages
+
+
+def _do_ocr_thread(ocr_lang, ocr, input_queue, output_queue):
+    try:
+        while True:
+            page = input_queue.get(block=False)
+            verbose("Running OCR on {} ...".format(page.pageid))
+            page.boxes = ocr.image_to_string(
+                page.img,
+                lang=ocr_lang,
+                builder=pyocr.builders.LineBoxBuilder()
+            )
+            output_queue.put(page)
+            input_queue.task_done()
+    except queue.Empty:
+        pass
+
+
 def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
                guess_labels=True):
     index_updater = dsearch.get_index_updater(optimize=False)
@@ -449,21 +496,12 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
     }
 
     if ocr is not None:
-        for page in itertools.chain(
-            import_result.new_docs_pages,
-            import_result.upd_docs_pages
-        ):
-            if len(page.boxes) > 0:
-                verbose("Page {} has already some text. No OCR run".format(
-                    page.pageid
-                ))
-                continue
-            verbose("Running OCR on page {}".format(page.pageid))
-            page.boxes = ocr.image_to_string(
-                page.img,
-                lang=ocr_lang,
-                builder=pyocr.builders.LineBoxBuilder()
-            )
+        pages = itertools.chain(
+                import_result.new_docs_pages,
+                import_result.upd_docs_pages
+                )
+        pages = _do_ocr(True, ocr_lang, ocr, pages)
+        for page in pages:
             r['ocr'].append(page.pageid)
 
     for doc in import_result.new_docs:
@@ -676,16 +714,8 @@ def cmd_ocr(*args):
 
     index_updater = dsearch.get_index_updater(optimize=False)
 
-    for page in set(pages):
-        if empty_only and len(page.boxes) > 0:
-            pages.remove(page)
-            continue
-        verbose("Running OCR on {} ...".format(page.pageid))
-        page.boxes = ocr.image_to_string(
-            page.img,
-            lang=ocr_lang,
-            builder=pyocr.builders.LineBoxBuilder()
-        )
+    pages = _do_ocr(empty_only, ocr_lang, ocr, pages)
+    for page in pages:
         docs.add(page.doc)
 
     verbose("Updating index ...")
@@ -697,6 +727,7 @@ def cmd_ocr(*args):
     reply({
         "ocr": [page.pageid for page in pages]
     })
+
 
 def cmd_remove_label(docid, label_name):
     """

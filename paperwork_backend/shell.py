@@ -4,7 +4,7 @@ import json
 import os
 import sys
 from threading import Thread
-from queue import Queue
+import queue
 
 import gi
 import pyocr
@@ -427,8 +427,8 @@ def _get_importer(fileuris, doc):
 
 
 def _do_ocr(empty_only, ocr_lang, ocr, pages):
-    input_queue = Queue(maxsize=0)
-    output_queue = Queue(maxsize=0)
+    input_queue = queue.Queue(maxsize=0)
+    output_queue = queue.Queue(maxsize=0)
     num_threads = os.cpu_count()
 
     for page in pages:
@@ -456,16 +456,19 @@ def _do_ocr(empty_only, ocr_lang, ocr, pages):
 
 
 def _do_ocr_thread(ocr_lang, ocr, input_queue, output_queue):
-    while not input_queue.empty():
-        page = input_queue.get()
-        verbose("Running OCR on {} ...".format(page.pageid))
-        page.boxes = ocr.image_to_string(
-            page.img,
-            lang=ocr_lang,
-            builder=pyocr.builders.LineBoxBuilder()
-        )
-        output_queue.put(page)
-        input_queue.task_done()
+    try:
+        while True:
+            page = input_queue.get(block=False)
+            verbose("Running OCR on {} ...".format(page.pageid))
+            page.boxes = ocr.image_to_string(
+                page.img,
+                lang=ocr_lang,
+                builder=pyocr.builders.LineBoxBuilder()
+            )
+            output_queue.put(page)
+            input_queue.task_done()
+    except queue.Empty:
+        pass
 
 
 def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,

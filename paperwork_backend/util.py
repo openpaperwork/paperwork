@@ -314,26 +314,34 @@ def image2surface(img, intermediate="pixbuf", quality=90):
             ctx.rectangle(0, 0, width, height)
             ctx.fill()
             return image_surface
-        elif intermediate == "png":
+        elif intermediate == "jpeg":
+            if not hasattr(cairo.ImageSurface, 'set_mime_data'):
+                logger.warning("Cairo %s does not support yet 'set_mime_data'."
+                               " Cannot include image as JPEG in the PDF."
+                               " Image will be included as PNG (much bigger)",
+                               cairo.version)
+                intermediate = 'png'
+            else:
+                # IMPORTANT: The actual surface will be empty.
+                # but mime-data will have attached the correct data
+                # to the surface that supports it
+                img_surface = cairo.ImageSurface(
+                    cairo.FORMAT_RGB24, img.size[0], img.size[1]
+                )
+                img_io = io.BytesIO()
+                img.save(img_io, format="JPEG", quality=quality)
+                img_io.seek(0)
+                data = img_io.read()
+                img_surface.set_mime_data(
+                    cairo.MIME_TYPE_JPEG, data
+                )
+                return img_surface
+
+        if intermediate == "png":
             img_io = io.BytesIO()
             img.save(img_io, format="PNG")
             img_io.seek(0)
             return cairo.ImageSurface.create_from_png(img_io)
-        elif intermediate == "jpeg":
-            # IMPORTANT: The actual surface will be empty.
-            # but mime-data will have attached the correct data
-            # to the surface that supports it
-            img_surface = cairo.ImageSurface(
-                cairo.FORMAT_RGB24, img.size[0], img.size[1]
-            )
-            img_io = io.BytesIO()
-            img.save(img_io, format="JPEG", quality=quality)
-            img_io.seek(0)
-            data = img_io.read()
-            img_surface.set_mime_data(
-                cairo.MIME_TYPE_JPEG, data
-            )
-            return img_surface
         else:
             raise Exception("image2surface(): unknown intermediate")
 

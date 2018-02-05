@@ -3,6 +3,8 @@ import itertools
 import json
 import os
 import sys
+import multiprocessing
+from functools import partial
 
 import gi
 import pyocr
@@ -16,7 +18,6 @@ from . import fs
 gi.require_version('Gdk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
-
 
 FS = fs.GioFileSystem()
 
@@ -424,6 +425,22 @@ def _get_importer(fileuris, doc):
         return importers[int(idx)]
 
 
+def _do_ocr(empty_only, ocr_lang, page):
+    ocr = pyocr.get_available_tools()
+    if len(ocr) <= 0:
+        raise Exception("No OCR tool found")
+    ocr = ocr[0]
+    if empty_only and len(page.boxes) > 0:
+        return None
+    verbose("Running OCR on {} ...".format(page.pageid))
+    page.boxes = ocr.image_to_string(
+        page.img,
+        lang=ocr_lang,
+        builder=pyocr.builders.LineBoxBuilder()
+    )
+    return page.pageid
+
+
 def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
                guess_labels=True):
     index_updater = dsearch.get_index_updater(optimize=False)
@@ -449,22 +466,21 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
     }
 
     if ocr is not None:
-        for page in itertools.chain(
-            import_result.new_docs_pages,
-            import_result.upd_docs_pages
-        ):
-            if len(page.boxes) > 0:
-                verbose("Page {} has already some text. No OCR run".format(
-                    page.pageid
-                ))
-                continue
-            verbose("Running OCR on page {}".format(page.pageid))
-            page.boxes = ocr.image_to_string(
-                page.img,
-                lang=ocr_lang,
-                builder=pyocr.builders.LineBoxBuilder()
-            )
-            r['ocr'].append(page.pageid)
+        with multiprocessing.Pool() as pool:
+            pages = itertools.chain(
+                    import_result.new_docs_pages,
+                    import_result.upd_docs_pages
+                    )
+            results = pool.imap_unordered(
+                    partial(
+                        _do_ocr,
+                        True,
+                        ocr_lang,
+                        ),
+                    pages)
+            for pageid in results:
+                if pageid is not None:
+                    r['ocr'].append(pageid)
 
     for doc in import_result.new_docs:
         if guess_labels:
@@ -666,6 +682,7 @@ def cmd_ocr(*args):
     dsearch = get_docsearch()
     pages = set()
     docs = set()
+    pageid_pages = dict()
 
     for objid in args:
         obj = dsearch.get(objid)
@@ -674,19 +691,23 @@ def cmd_ocr(*args):
         else:
             pages.add(obj)
 
+    for page in pages:
+        pageid_pages[page.pageid] = page
+
     index_updater = dsearch.get_index_updater(optimize=False)
 
-    for page in set(pages):
-        if empty_only and len(page.boxes) > 0:
-            pages.remove(page)
-            continue
-        verbose("Running OCR on {} ...".format(page.pageid))
-        page.boxes = ocr.image_to_string(
-            page.img,
-            lang=ocr_lang,
-            builder=pyocr.builders.LineBoxBuilder()
-        )
-        docs.add(page.doc)
+    with multiprocessing.Pool() as pool:
+        results = pool.imap_unordered(
+                partial(
+                    _do_ocr,
+                    empty_only,
+                    ocr_lang,
+                    ),
+                pages)
+        for pageid in results:
+            if pageid is not None:
+                page = pageid_pages[pageid]
+                docs.add(page.doc)
 
     verbose("Updating index ...")
     for doc in docs:

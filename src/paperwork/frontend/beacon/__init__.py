@@ -4,7 +4,6 @@ import http
 import http.client
 import json
 import logging
-import multiprocessing
 import os
 import platform
 import re
@@ -134,7 +133,7 @@ class Beacon(object):
             'platform_architecture': str(platform.architecture()),
             'platform_processor': str(processor),
             'platform_distribution': str(distribution),
-            'cpu_count': int(multiprocessing.cpu_count()),
+            'cpu_count': int(os.cpu_count()),
         }
 
     def send_statistics(self, version, docsearch):

@@ -15,7 +15,6 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-import multiprocessing
 import re
 import threading
 import time
@@ -299,7 +298,7 @@ class JobOCR(Job):
             self.emit('ocr-score', 0, 0)
             return (0, img, [])
 
-        max_threads = multiprocessing.cpu_count()
+        max_threads = os.cpu_count()
         threads = []
         scores = []
 

@@ -371,11 +371,6 @@
                     "type": "git",
                     "url": "https://github.com/openpaperwork/paperwork.git",
                     "branch": "develop"
-                },
-                {
-                    "type": "file",
-                    "path": "pip-Makefile",
-                    "dest-filename": "Makefile"
                 }
             ]
         }

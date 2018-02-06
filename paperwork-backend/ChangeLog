@@ -1,0 +1,91 @@
+2018/02/01 - 1.2.3:
+- Windows: Fix labels handling: Fix CSV file reading
+- Fix global deletion of a label
+- Flatpak: Fix deletion of documents
+- PDF: Fix file descriptor leak
+- Flatpak: Fix support on English systems
+
+2017/11/14 - 1.2.2:
+- PDF: Fix thumbnail sizes. Incorrect thumbnails will be automatically
+  regenerated
+
+2017/08/26 - 1.2.1:
+- paperwork-shell: improve help string of 'paperwork-shell chkdeps'
+- Fix label deletion / renaming
+- Windows: Fix FS.safe() when used for PDF import
+- Windows: Fix FS.unsafe() (used for PDF export)
+
+2017/07/11 - 1.2.0:
+- API: remove methods doc.drop_cache() and page.drop_cache()
+- API: docsearch: add method close()
+- paperwork-shell: Use JSON format for the output (except for 'paperwork-shell
+  dump')
+- Use GIO functions instead of Python functions (open(), read(), close(), etc)
+- Use URIs instead of Unix file paths (file:///...)
+- Index is now managed in a separate process (avoid Python GIL locking + UI
+  freezes)
+- Import: Make it possible to import image folder
+- Importers: provide a list of supported file formats (mime types)
+- Import: To figure out a file type, look at the file extensions but also the
+  mime type in case the extension is not set
+- Import: Make the importers able to handle multiple Files/URIs instead of just
+  one
+- paperwork-shell import: Run OCR on imported pages that have no words
+- paperwork-shell: add command 'ocr'
+- Configuration: [Global]:workdirectory is now an URI encoded in base64
+  (base64 encoding was required due to limitations of Python's ConfigParser)
+- DocSearch: When unable to open the index, destroy it and rebuild it from scratch
+- Add a new document type: ExternalPdfDoc: Used to display PDF that are outside
+  of the work directory (for instance application help manual)
+- Configuration setting [OCR]:lang is now managed by the backend instead of
+  the frontend
+
+2017/02/09 - 1.1.2:
+- PDF: When PdfDoc.drop_cache() is called, make sure *all* the references to
+  the Poppler objects are dropped, including those to the pages of the document
+
+2017/02/05 - 1.1.1:
+- No change. Version created only to match Paperwork-gui version.
+
+2017/01/30 - 1.1.0:
+- Add methods doc.has_ocr() and page.has_ocr() indicating if OCR has already
+  been run on a given doc/page or not yet.
+  Used in GUI for the option "Redo OCR on all documents" as it must act only
+  on documents where OCR has already been done in the past (ie not PDF with
+  text included)
+- Optim: Provides a method page.get_image() returning an already resized
+  Pillow image (PDF rendering optimisation)
+- Export: Report progression
+- Optim: PDF thumbnail rendering: Keep a cached version of the first page only.
+  The other pages can be rendered on the fly
+- Fix: Label directory name use base64 encoding, and this encoding can result
+  in strings containing '/'. Those characters must be replaced (by '_')
+- Fix: util/find_language(): If the system locale is not set properly, pycountry
+  may raise UnicodeDecodeError.
+- paperwork-shell: Add commands 'search', 'dump', 'switch_workdir', 'rescan',
+  'show', 'import', 'delete_doc', 'guess_labels', 'add_label', 'remove_label',
+  'rename'
+- Import: When importing a single PDF, don't import it if it was already
+  previously imported
+- Import: Provides detailed information and statistics regarding what has been
+  imported (return value of Importer.import_doc() has changed)
+
+1.0.6:
+- No change. Version created only to match Paperwork-gui version.
+
+1.0.5:
+- Doc deletion: Drop cache and file descripts *before* deleting document
+(optional on GNU/Linux, but required on Windows)
+
+1.0.4:
+- Windows: Fix image import
+
+1.0.3:
+- Windows: Fix import/export
+
+1.0.2:
+- No change. Version created only to match Paperwork-gui version.
+
+1.0.1:
+- util/find_language(): fix pycountry db lookup
+- Windows: hide ~/.config instead of ~/.config/paperwork.conf

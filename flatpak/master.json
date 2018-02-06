@@ -362,7 +362,7 @@
         },
         {
             "name": "python-paperwork",
-            "make-install-args": ["prefix=/app"],
+            "make-install-args": ["PIP_ARGS=--prefix=/app"],
             "no-autogen": true,
             "ensure-writable": [
                     "/lib/python*/site-packages/easy-install.pth",

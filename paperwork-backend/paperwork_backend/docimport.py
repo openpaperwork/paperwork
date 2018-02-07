@@ -391,7 +391,9 @@ class ImageDirectoryImporter(BaseImporter):
         ]
 
     def __str__(self):
-        return _("Import all image files in the folder in the current document")
+        return (
+            _("Import all image files in the folder in the current document")
+        )
 
 
 class ImageImporter(BaseImporter):

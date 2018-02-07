@@ -25,6 +25,8 @@ import re
 import threading
 import unicodedata
 
+import PIL.Image
+
 try:
     import cairo
     CAIRO_AVAILABLE = True
@@ -36,7 +38,6 @@ if os.name != "nt":
     import enchant.tokenize
     import Levenshtein
 
-import PIL.Image
 
 logger = logging.getLogger(__name__)
 FORCED_SPLIT_KEYWORDS_REGEX = re.compile("[\n '()]", re.UNICODE)

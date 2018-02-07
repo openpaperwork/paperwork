@@ -14,8 +14,6 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
 import gettext
 import logging
 
@@ -44,4 +42,3 @@ class LabelColorButton(Gtk.ColorButton):
         Do not open a GtkColorChooserDialog
         """
         pass
-

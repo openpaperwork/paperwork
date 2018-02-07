@@ -456,7 +456,9 @@ class ActionParseDocDate(SimpleAction):
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(css.encode())
         css_context = date_entry.get_style_context()
-        css_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+        css_context.add_provider(
+            css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
+        )
 
         if not valid:
             return
@@ -965,8 +967,10 @@ class DocList(object):
             thumbnail = Gtk.Image.new_from_pixbuf(thumbnail)
         else:
             thumbnail = Gtk.Image.new_from_pixbuf(self.default_thumbnail)
-            thumbnail.set_size_request(JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
-                                       JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT)
+            thumbnail.set_size_request(
+                JobDocThumbnailer.SMALL_THUMBNAIL_WIDTH,
+                JobDocThumbnailer.SMALL_THUMBNAIL_HEIGHT
+            )
 
         globalbox.add(thumbnail)
 
@@ -1393,7 +1397,9 @@ class DocPropertiesPanel(object):
         else:
             try:
                 date = self.doc.date
-                self.widgets['calendar'].select_month(date.month - 1, date.year)
+                self.widgets['calendar'].select_month(
+                    date.month - 1, date.year
+                )
                 self.widgets['calendar'].select_day(date.day)
             except Exception as exc:
                 logger.warning("Failed to parse document date: %s --> %s"

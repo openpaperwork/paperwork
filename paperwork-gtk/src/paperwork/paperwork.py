@@ -30,22 +30,22 @@ gi.require_version('Notify', '0.7')
 gi.require_version('Poppler', '0.18')
 gi.require_version('PangoCairo', '1.0')
 
-from gi.repository import GLib
-from gi.repository import Notify
-import locale
-import logging
-import signal
-import argparse
+from gi.repository import GLib  # noqa: E402
+from gi.repository import Notify  # noqa: E402
+import locale  # noqa: E402
+import logging  # noqa: E402
+import signal  # noqa: E402
+import argparse  # noqa: E402
 
-import pyinsane2
+import pyinsane2  # noqa: E402
 
-import paperwork_backend
+import paperwork_backend  # noqa: E402
 
-from .frontend.diag import LogTracker
-from .frontend.mainwindow import ActionRealQuit, __version__
-from .frontend.mainwindow import MainWindow
-from .frontend.util import get_locale_dirs
-from .frontend.util.config import load_config
+from .frontend.diag import LogTracker  # noqa: E402
+from .frontend.mainwindow import ActionRealQuit, __version__  # noqa: E402
+from .frontend.mainwindow import MainWindow  # noqa: E402
+from .frontend.util import get_locale_dirs  # noqa: E402
+from .frontend.util.config import load_config  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

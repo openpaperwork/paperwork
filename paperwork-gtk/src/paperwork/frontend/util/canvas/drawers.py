@@ -499,7 +499,8 @@ class TextDrawer(Drawer):
 
     def __init__(self, position, text, height=12):
         super(TextDrawer, self).__init__()
-        self.size = (10, 10)  # will be updated later when text will be rendered
+        # self.size will be updated later when text will be rendered
+        self.size = (10, 10)
         self.center_position = position
         # In this case, it's actually the center of the text.
         # Will be updated later to be the top-left

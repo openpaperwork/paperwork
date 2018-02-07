@@ -93,7 +93,9 @@ class ActionRemoveDoc(SimpleAction):
             logger.warning("No doc selected")
             return
         model.remove(selection_iter)
-        for (line_idx, line) in enumerate(self.__dialog.lists['docs']['model']):
+        for (line_idx, line) in enumerate(
+                    self.__dialog.lists['docs']['model']
+                ):
             if not self.__dialog.lists['docs']['include_current_doc']:
                 line[0] = _("Document %d") % (line_idx + 1)
             elif line_idx != 0:
@@ -449,5 +451,6 @@ class MultiscanDialog(GObject.GObject):
 
     def __on_destroy(self, window=None):
         logger.info("Multi-scan dialog destroyed")
+
 
 GObject.type_register(MultiscanDialog)

@@ -11,11 +11,11 @@ gi.require_version('Gdk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
 
-from . import config
-from . import docimport
-from . import docsearch
-from .labels import Label
-from . import fs
+from . import config  # noqa: E402
+from . import docimport  # noqa: E402
+from . import docsearch  # noqa: E402
+from .labels import Label  # noqa: E402
+from . import fs  # noqa: E402
 
 
 FS = fs.GioFileSystem()
@@ -31,13 +31,13 @@ def is_interactive():
 
 def verbose(txt):
     if is_verbose():
-        print (txt)
+        print(txt)
 
 
 def reply(data):
     if "status" not in data:
         data['status'] = 'ok'
-    print (json.dumps(
+    print(json.dumps(
         data, indent=4,
         separators=(',', ': '),
         sort_keys=True
@@ -60,7 +60,7 @@ def _dump_page(page):
         out = ""
         for word in line.word_boxes:
             out += word.content + " "
-        print (out.strip())
+        print(out.strip())
 
 
 def cmd_add_label(docid, label_name, color=None):
@@ -98,7 +98,8 @@ def cmd_add_label(docid, label_name, color=None):
             break
     if not label and not color:
         raise Exception(
-            "Label {} doesn't exist yet, and no color has been provided".format(
+            "Label {} doesn't exist yet, and no color has been"
+            " provided".format(
                 label_name
             )
         )
@@ -410,7 +411,8 @@ def _get_importer(fileuris, doc):
         return importers[0]
     elif not is_interactive():
         raise Exception(
-            "Many way to import {} and running in batch mode. Can't import.\n{}"
+            "Many way to import {} and running in batch mode."
+            " Can't import.\n{}"
             .format(
                 fileuris,
                 ", ".join([str(importer) for importer in importers])
@@ -697,6 +699,7 @@ def cmd_ocr(*args):
     reply({
         "ocr": [page.pageid for page in pages]
     })
+
 
 def cmd_remove_label(docid, label_name):
     """

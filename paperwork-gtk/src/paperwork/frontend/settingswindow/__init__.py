@@ -178,6 +178,7 @@ class JobSourceFinder(Job):
         finally:
             self.emit("source-finding-end")
 
+
 GObject.type_register(JobSourceFinder)
 
 
@@ -451,6 +452,7 @@ class JobCalibrationScan(Job):
         assert(not will_resume)
         self.can_run = False
         self._stop_wait()
+
 
 GObject.type_register(JobCalibrationScan)
 
@@ -1049,5 +1051,6 @@ class SettingsWindow(GObject.GObject):
         Hide and destroy the settings window.
         """
         self.window.destroy()
+
 
 GObject.type_register(SettingsWindow)

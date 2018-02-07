@@ -907,7 +907,8 @@ class ScanWorkflow(GObject.GObject):
         Returns immediately.
         Listen for the signal ocr-done to get the result
         """
-        if not self.__config['ocr_enabled'].value or len(pyocr.get_available_tools()) == 0:
+        if (not self.__config['ocr_enabled'].value or
+                len(pyocr.get_available_tools()) == 0):
             angles = 0
         elif angles is None:
             angles = 4

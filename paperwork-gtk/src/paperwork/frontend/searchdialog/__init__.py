@@ -420,7 +420,8 @@ class SearchLine(object):
             sl.select_not(not_value)
             sl.set_element(se)
             sl.connect_signals()
-            logger.info("Loaded from search: %s --> %s" % (search_txt, str(se)))
+            logger.info("Loaded from search: %s --> %s"
+                        % (search_txt, str(se)))
             return sl
         assert()
 

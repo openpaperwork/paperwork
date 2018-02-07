@@ -79,11 +79,13 @@ def ask_confirmation(parent, next_func, msg=None, **kwargs):
                                 message_type=Gtk.MessageType.WARNING,
                                 buttons=Gtk.ButtonsType.YES_NO,
                                 text=msg)
-    confirm.connect("response",
-                    lambda dialog, response: GLib.idle_add(
-                        _ask_confirmation_goto_next, dialog, response, next_func, kwargs
-                    )
-                )
+    confirm.connect(
+        "response",
+        lambda dialog, response: GLib.idle_add(
+            _ask_confirmation_goto_next, dialog, response,
+            next_func, kwargs
+        )
+    )
     confirm.show_all()
     return True
 
@@ -99,12 +101,13 @@ def show_msg(parent, title, msg, notify_type="document-save"):
 
     # fallback on classical ugly popups
     popup = Gtk.MessageDialog(parent=parent,
-                                flags=Gtk.DialogFlags.MODAL
-                                | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                message_type=Gtk.MessageType.INFO,
-                                buttons=Gtk.ButtonsType.OK,
-                                text=msg)
-    popup.connect("response",
+                              flags=Gtk.DialogFlags.MODAL
+                              | Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                              message_type=Gtk.MessageType.INFO,
+                              buttons=Gtk.ButtonsType.OK,
+                              text=msg)
+    popup.connect(
+        "response",
         lambda dialog, response: GLib.idle_add(dialog.destroy)
     )
     popup.show_all()

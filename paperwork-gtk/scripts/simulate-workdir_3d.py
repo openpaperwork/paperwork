@@ -14,10 +14,10 @@ gi.require_version('Gdk', '3.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Poppler', '0.18')
 
-from paperwork_backend import config
-from paperwork_backend import docimport
-from paperwork_backend import docsearch
-from paperwork_backend.util import rm_rf
+from paperwork_backend import config  # noqa: E402
+from paperwork_backend import docimport  # noqa: E402
+from paperwork_backend import docsearch  # noqa: E402
+from paperwork_backend.util import rm_rf  # noqa: E402
 
 """
 Create a work directory progressively, like a user would.

@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import gc
 import logging
 import os
@@ -23,67 +24,68 @@ import threading
 import gettext
 
 import gi
+
 gi.require_version('Gtk', '3.0')
 gi.require_version('Notify', '0.7')
-from gi.repository import Gdk
-from gi.repository import GdkPixbuf
-from gi.repository import GLib
-from gi.repository import Gio
-from gi.repository import GObject
-from gi.repository import Gtk
-from gi.repository import Notify
-import pillowfight
 
-from paperwork_backend import docexport
-from paperwork_backend import docimport
-from paperwork_backend import fs
-from paperwork_backend.common.page import BasicPage
-from paperwork_backend.common.page import DummyPage
-from paperwork_backend.docsearch import DocSearch
-from paperwork_backend.docsearch import DummyDocSearch
-from paperwork_backend.labels import Label
-from paperwork_backend.pdf.doc import ExternalPdfDoc
-from ..aboutdialog import AboutDialog
-from ..import beacon
-from ..diag import DiagDialog
-from ..mainwindow.docs import DocList
-from ..mainwindow.docs import DocPropertiesPanel
-from ..mainwindow.docs import sort_documents_by_date
-from ..mainwindow.pages import PageDrawer
-from ..mainwindow.pages import PageDropHandler
-from ..mainwindow.pages import JobFactoryImgProcesser
-from ..mainwindow.pages import JobFactoryPageBoxesLoader
-from ..mainwindow.pages import JobFactoryPageImgLoader
-from ..mainwindow.pages import SimplePageDrawer
-from ..mainwindow.scan import ScanWorkflow
-from ..mainwindow.scan import MultiAnglesScanWorkflowDrawer
-from ..mainwindow.scan import SingleAngleScanWorkflowDrawer
-from ..multiscan import MultiscanDialog
-from ..searchdialog import SearchDialog
-from ..settingswindow import SettingsWindow
-from ..util import connect_actions
-from ..util import get_documentation
-from ..util import launch_dbus_filebrowser
-from ..util import load_cssfile
-from ..util import load_image
-from ..util import load_uifile
-from ..util import preload_file
-from ..util import sizeof_fmt
-from ..util.actions import SimpleAction
-from ..util.config import get_scanner
-from ..util.dialog import ask_confirmation
-from ..util.dialog import popup_no_scanner_found
-from ..util.dialog import show_msg
-from ..util.canvas import Canvas
-from ..util.canvas.animations import SpinnerAnimation
-from ..util.canvas.drawers import Centerer
-from ..util.canvas.drawers import PillowImageDrawer
-from ..util.canvas.drawers import ProgressBarDrawer
-from ..util.canvas.drawers import TextDrawer
-from ..util.jobs import Job
-from ..util.jobs import JobFactory
-from ..util.jobs import JobScheduler
-from ..util import renderer
+from gi.repository import Gdk  # noqa: E402
+from gi.repository import GdkPixbuf  # noqa: E402
+from gi.repository import GLib  # noqa: E402
+from gi.repository import Gio  # noqa: E402
+from gi.repository import GObject  # noqa: E402
+from gi.repository import Gtk  # noqa: E402
+from gi.repository import Notify  # noqa: E402
+import pillowfight  # noqa: E402
+
+from paperwork_backend import docexport  # noqa: E402
+from paperwork_backend import docimport  # noqa: E402
+from paperwork_backend import fs  # noqa: E402
+from paperwork_backend.common.page import BasicPage  # noqa: E402
+from paperwork_backend.common.page import DummyPage  # noqa: E402
+from paperwork_backend.docsearch import DocSearch  # noqa: E402
+from paperwork_backend.docsearch import DummyDocSearch  # noqa: E402
+from paperwork_backend.labels import Label  # noqa: E402
+from paperwork_backend.pdf.doc import ExternalPdfDoc  # noqa: E402
+from ..aboutdialog import AboutDialog  # noqa: E402
+from ..import beacon  # noqa: E402
+from ..diag import DiagDialog  # noqa: E402
+from ..mainwindow.docs import DocList  # noqa: E402
+from ..mainwindow.docs import DocPropertiesPanel  # noqa: E402
+from ..mainwindow.docs import sort_documents_by_date  # noqa: E402
+from ..mainwindow.pages import PageDrawer  # noqa: E402
+from ..mainwindow.pages import PageDropHandler  # noqa: E402
+from ..mainwindow.pages import JobFactoryImgProcesser  # noqa: E402
+from ..mainwindow.pages import JobFactoryPageBoxesLoader  # noqa: E402
+from ..mainwindow.pages import JobFactoryPageImgLoader  # noqa: E402
+from ..mainwindow.pages import SimplePageDrawer  # noqa: E402
+from ..mainwindow.scan import ScanWorkflow  # noqa: E402
+from ..mainwindow.scan import MultiAnglesScanWorkflowDrawer  # noqa: E402
+from ..mainwindow.scan import SingleAngleScanWorkflowDrawer  # noqa: E402
+from ..multiscan import MultiscanDialog  # noqa: E402
+from ..searchdialog import SearchDialog  # noqa: E402
+from ..settingswindow import SettingsWindow  # noqa: E402
+from ..util import connect_actions  # noqa: E402
+from ..util import get_documentation  # noqa: E402
+from ..util import launch_dbus_filebrowser  # noqa: E402
+from ..util import load_cssfile  # noqa: E402
+from ..util import load_image  # noqa: E402
+from ..util import load_uifile  # noqa: E402
+from ..util import preload_file  # noqa: E402
+from ..util import sizeof_fmt  # noqa: E402
+from ..util.actions import SimpleAction  # noqa: E402
+from ..util.config import get_scanner  # noqa: E402
+from ..util.dialog import ask_confirmation  # noqa: E402
+from ..util.dialog import popup_no_scanner_found  # noqa: E402
+from ..util.dialog import show_msg  # noqa: E402
+from ..util.canvas import Canvas  # noqa: E402
+from ..util.canvas.animations import SpinnerAnimation  # noqa: E402
+from ..util.canvas.drawers import Centerer  # noqa: E402
+from ..util.canvas.drawers import PillowImageDrawer  # noqa: E402
+from ..util.canvas.drawers import ProgressBarDrawer  # noqa: E402
+from ..util.canvas.drawers import TextDrawer  # noqa: E402
+from ..util.jobs import Job  # noqa: E402
+from ..util.jobs import JobFactory  # noqa: E402
+from ..util.jobs import JobScheduler  # noqa: E402
 
 
 _ = gettext.gettext
@@ -1690,8 +1692,9 @@ class ActionImport(SimpleAction):
                 logger.info("Adding %s to recently used files", file_uri)
                 Gtk.RecentManager().add_item(file_uri)
             else:
-                # If the user imported a file, assume they won't import it twice
-                # But they may import again other files from the same directory
+                # If the user imported a file, assume they won't import it
+                # twice but they may import again other files from the same
+                # directory
                 parent = gfile.get_parent()
                 logger.info("Adding %s to recently used files",
                             parent.get_uri())
@@ -1939,7 +1942,9 @@ class BasicActionOpenExportDialog(SimpleAction):
     def init_dialog(self):
         widget_tree = load_uifile(os.path.join("mainwindow", "export.glade"))
         self.main_win._hide_export_dialog()
-        self.main_win.export['dialog'] = widget_tree.get_object("infobarExport")
+        self.main_win.export['dialog'] = widget_tree.get_object(
+            "infobarExport"
+        )
         self.main_win.export['fileFormat'] = {
             'widget': widget_tree.get_object("comboboxExportFormat"),
             'model': widget_tree.get_object("liststoreExportFormat"),
@@ -2497,7 +2502,9 @@ class SearchBar(object):
             self.actions = {}
             return
 
-        widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
+        widget_tree = load_uifile(
+            os.path.join("mainwindow", "searchbar.glade")
+        )
 
         self.widget = widget_tree.get_object("searchbar")
         self.label = widget_tree.get_object("labelNbSearchResults")
@@ -2561,7 +2568,8 @@ class SearchBar(object):
 
         self.sorted_boxes = sorted(
             self.boxes.values(),
-            key=lambda b: (b[0], b[1][1], b[1][0])  # do not sort on the box ref
+            # do not sort on the box ref
+            key=lambda b: (b[0], b[1][1], b[1][0])
         )
 
         if len(self.sorted_boxes) <= 0:
@@ -2775,7 +2783,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 0,
-                    widget_tree.get_object("box_left_headerbar_loading_revealer")
+                    widget_tree.get_object(
+                        "box_left_headerbar_loading_revealer"
+                    )
                 ),
             ],
             'doc_list': [
@@ -2785,7 +2795,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 1,
-                    widget_tree.get_object("box_headerbar_left_doclist_revealer")
+                    widget_tree.get_object(
+                        "box_headerbar_left_doclist_revealer"
+                    )
                 ),
             ],
             'doc_properties': [
@@ -2795,7 +2807,9 @@ class MainWindow(object):
                 ),
                 (
                     widget_tree.get_object("box_headerbar_left"), 2,
-                    widget_tree.get_object("box_headerbar_left_docproperties_revealer")
+                    widget_tree.get_object(
+                        "box_headerbar_left_docproperties_revealer"
+                    )
                 ),
             ],
         }
@@ -3004,7 +3018,8 @@ class MainWindow(object):
             ),
             'reload': (
                 [],
-                ActionRefreshIndex(self, config, force=False, skip_examination=True),
+                ActionRefreshIndex(self, config, force=False,
+                                   skip_examination=True),
             ),
             'diagnostic': (
                 [

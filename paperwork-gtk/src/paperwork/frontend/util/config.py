@@ -267,8 +267,9 @@ def load_config():
         ),
 
         # statistics
-        'send_statistics': PaperworkSetting("Statistics", "send", lambda: False,
-                                            paperwork_cfg_boolean),
+        'send_statistics': PaperworkSetting(
+            "Statistics", "send", lambda: False, paperwork_cfg_boolean
+        ),
         'last_statistics_post': _PaperworkDate(
             "Statistics", "last_post",
             lambda: datetime.datetime(year=1970, month=1, day=1)
@@ -298,7 +299,8 @@ def _get_scanner(config, devid, preferred_sources=None):
     config_source = config['scanner_source'].value
 
     if 'source' not in dev.options:
-        logger.warning("Can't set the source on this scanner. Option not found")
+        logger.warning("Can't set the source on this scanner."
+                       " Option not found")
     elif preferred_sources:
         pyinsane2.set_scanner_opt(dev, 'source', preferred_sources)
     elif config_source:

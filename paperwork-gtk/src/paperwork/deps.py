@@ -14,13 +14,21 @@ try:
 except:
     pass
 
+g_gtk_available = False
+g_glib_available = False
+
 try:
     from gi.repository import GLib
-    from gi.repository import Gtk
-    g_gtk_available = True
+    g_glib_available = True
 except Exception as exc:
-    g_gtk_available = False
+    pass
 
+try:
+    if g_glib_available:
+        from gi.repository import Gtk
+        g_gtk_available = True
+except Exception as exc:
+    pass
 
 """
 Some modules/libraries required by Paperwork cannot be installed with pip or
@@ -140,7 +148,7 @@ def find_missing_ocr(lang):
         from pyocr import pyocr
         ocr_tools = pyocr.get_available_tools()
     except ImportError:
-        print (
+        print(
             "[WARNING] Couldn't import Pyocr. Will assume OCR tool is not"
             " installed yet"
         )
@@ -202,8 +210,6 @@ def find_missing_dict(lang):
 
 
 def _check_cairo():
-    from gi.repository import Gtk
-
     class CheckCairo(object):
         def __init__(self):
             self.test_successful = False
@@ -225,22 +231,21 @@ def _check_cairo():
     check = CheckCairo()
 
     try:
-        from gi.repository import GLib
+        if g_glib_available and g_gtk_available:
+            window = Gtk.Window()
+            da = Gtk.DrawingArea()
+            da.set_size_request(200, 200)
+            da.connect("draw", check.on_draw)
+            window.add(da)
+            da.queue_draw()
 
-        window = Gtk.Window()
-        da = Gtk.DrawingArea()
-        da.set_size_request(200, 200)
-        da.connect("draw", check.on_draw)
-        window.add(da)
-        da.queue_draw()
+            window.show_all()
 
-        window.show_all()
-
-        GLib.timeout_add(2000, check.quit)
-        Gtk.main()
-        window.set_visible(False)
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+            GLib.timeout_add(2000, check.quit)
+            Gtk.main()
+            window.set_visible(False)
+            while Gtk.events_pending():
+                Gtk.main_iteration()
     except Exception:
         pass
 

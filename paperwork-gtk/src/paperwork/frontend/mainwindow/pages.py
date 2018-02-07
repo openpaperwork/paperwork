@@ -738,7 +738,8 @@ class SimplePageDrawer(Drawer):
         return (closest[0], closest[2])
 
     def update_selected_boxes(self):
-        if not self.boxes['selection_start'] or not self.boxes['selection_end']:
+        if (not self.boxes['selection_start'] or
+                not self.boxes['selection_end']):
             logger.info("No box selected")
             self.boxes['selection_start'] = None
             self.boxes['selection_end'] = None

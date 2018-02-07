@@ -15,6 +15,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 
+
 import gc
 import logging
 import os
@@ -56,7 +57,6 @@ from ..util import load_cssfile
 from ..util import load_image
 from ..util import load_uifile
 from ..util import preload_file
-from ..util import renderer
 from ..util import sizeof_fmt
 from ..util.actions import SimpleAction
 from ..util.canvas import Canvas
@@ -1687,8 +1687,9 @@ class ActionImport(SimpleAction):
                 logger.info("Adding %s to recently used files", file_uri)
                 Gtk.RecentManager().add_item(file_uri)
             else:
-                # If the user imported a file, assume they won't import it twice
-                # But they may import again other files from the same directory
+                # If the user imported a file, assume they won't import it
+                # twice but they may import again other files from the same
+                # directory
                 parent = gfile.get_parent()
                 logger.info("Adding %s to recently used files",
                             parent.get_uri())
@@ -1936,7 +1937,9 @@ class BasicActionOpenExportDialog(SimpleAction):
     def init_dialog(self):
         widget_tree = load_uifile(os.path.join("mainwindow", "export.glade"))
         self.main_win._hide_export_dialog()
-        self.main_win.export['dialog'] = widget_tree.get_object("infobarExport")
+        self.main_win.export['dialog'] = widget_tree.get_object(
+            "infobarExport"
+        )
         self.main_win.export['fileFormat'] = {
             'widget': widget_tree.get_object("comboboxExportFormat"),
             'model': widget_tree.get_object("liststoreExportFormat"),
@@ -2494,7 +2497,9 @@ class SearchBar(object):
             self.actions = {}
             return
 
-        widget_tree = load_uifile(os.path.join("mainwindow", "searchbar.glade"))
+        widget_tree = load_uifile(
+            os.path.join("mainwindow", "searchbar.glade")
+        )
 
         self.widget = widget_tree.get_object("searchbar")
         self.label = widget_tree.get_object("labelNbSearchResults")
@@ -2558,7 +2563,8 @@ class SearchBar(object):
 
         self.sorted_boxes = sorted(
             self.boxes.values(),
-            key=lambda b: (b[0], b[1][1], b[1][0])  # do not sort on the box ref
+            # do not sort on the box ref
+            key=lambda b: (b[0], b[1][1], b[1][0])
         )
 
         if len(self.sorted_boxes) <= 0:

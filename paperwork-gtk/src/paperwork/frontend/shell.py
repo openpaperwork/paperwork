@@ -43,8 +43,8 @@ def scan():
 
 def _install(icondir, datadir):
     ICON_SIZES = [
-        16, 22, 24, 30, 32, 36, 42, 48, 50, 64, 72, 96, 100, 128, 150, 160, 192,
-        256, 512
+        16, 22, 24, 30, 32, 36, 42, 48, 50, 64, 72, 96, 100, 128, 150, 160,
+        192, 256, 512
     ]
     png_src_icon_pattern = "paperwork_{}.png"
     png_dst_icon_pattern = os.path.join(

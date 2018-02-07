@@ -137,7 +137,8 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
         super(Canvas, self).connect("button-release-event",
                                     self.__on_button_released)
         super(Canvas, self).connect("key-press-event", self.__on_key_pressed)
-        super(Canvas, self).connect("leave-notify-event", self.__on_mouse_leave)
+        super(Canvas, self).connect("leave-notify-event",
+                                    self.__on_mouse_leave)
 
         hadj.connect("value-changed", self.__on_adjustment_changed)
         vadj.connect("value-changed", self.__on_adjustment_changed)
@@ -528,5 +529,6 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
                 int(self.vadjustment.get_value()))
 
     position = property(__get_position)
+
 
 GObject.type_register(Canvas)

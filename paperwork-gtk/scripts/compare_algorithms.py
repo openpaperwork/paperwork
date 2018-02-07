@@ -14,20 +14,20 @@ gi.require_version('Pango', '1.0')
 gi.require_version('PangoCairo', '1.0')
 gi.require_version('Gtk', '3.0')
 
-import enchant
-import enchant.tokenize
-import Levenshtein
-import pillowfight
-import pyocr
+import enchant  # noqa: E402
+import enchant.tokenize  # noqa: E402
+import Levenshtein  # noqa: E402
+import pillowfight  # noqa: E402
+import pyocr  # noqa: E402
 
-from paperwork_backend import config
-from paperwork_backend import docsearch
+from paperwork_backend import config  # noqa: E402
+from paperwork_backend import docsearch  # noqa: E402
 
-from paperwork.frontend.util.jobs import Job
-from paperwork.frontend.util.jobs import JobFactory
-from paperwork.frontend.util.jobs import JobScheduler
+from paperwork.frontend.util.jobs import Job  # noqa: E402
+from paperwork.frontend.util.jobs import JobFactory  # noqa: E402
+from paperwork.frontend.util.jobs import JobScheduler  # noqa: E402
 
-from gi.repository import GObject
+from gi.repository import GObject  # noqa: E402
 
 
 """
@@ -191,10 +191,10 @@ class JobImageProcessing(Job):
             stats['maybe'] += 1
 
     def _print_stats(self):
-        print ("-" * 40)
+        print("-" * 40)
         for algo in ALGORITHMS:
             stats = algo[2]
-            print ("{}".format(algo[0]))
+            print("{}".format(algo[0]))
             sys.stdout.write("  ")
             for (name, value) in stats.items():
                 if not name.startswith("nb_"):
@@ -209,7 +209,7 @@ class JobImageProcessing(Job):
                         name, str(value).rjust(5)
                     ))
             sys.stdout.write("\n")
-        print ("-" * 40)
+        print("-" * 40)
 
     def do(self):
         with LOCK:
@@ -231,11 +231,11 @@ class JobImageProcessing(Job):
             time_per_document = elapsed_time / stats['nb_pages']
             eta = time_per_document * (g_nb_total_pages - stats['nb_pages'])
 
-            print ("")
-            print ("")
-            print ("")
-            print ("")
-            print ("Done: {} ({}/{} = {}% ==> ETA: {})".format(
+            print("")
+            print("")
+            print("")
+            print("")
+            print("Done: {} ({}/{} = {}% ==> ETA: {})".format(
                 self.page_in,
                 stats['nb_pages'], g_nb_total_pages,
                 int(stats['nb_pages'] * 100 / g_nb_total_pages),
@@ -244,6 +244,7 @@ class JobImageProcessing(Job):
             self._print_stats()
 
             gc.collect()
+
 
 GObject.type_register(JobImageProcessing)
 
@@ -298,9 +299,9 @@ def main():
     global g_nb_total_pages
     global g_start_time
 
-    print ("Will use {} for OCR".format(OCR_TOOL.get_name()))
+    print("Will use {} for OCR".format(OCR_TOOL.get_name()))
 
-    print ("Initializing dictionnary ...")
+    print("Initializing dictionnary ...")
     g_lang = "eng"
     if len(sys.argv) > 1:
         g_lang = "fra"
@@ -311,28 +312,28 @@ def main():
     except enchant.tokenize.TokenizerNotFoundError as exc:
         print("Warning: Falling back to default tokenizer ({})".format(exc))
         g_tknzr = enchant.tokenize.get_tokenizer()
-    print ("Done")
+    print("Done")
 
-    print ("Loading documents list ...")
+    print("Loading documents list ...")
     pconfig = config.PaperworkConfig()
     pconfig.read()
     work_dir = pconfig.settings['workdir'].value
     dsearch = docsearch.DocSearch(work_dir)
     dsearch.reload_index()
-    print ("Documents loaded")
-    print ("")
+    print("Documents loaded")
+    print("")
 
-    print ("Initalizing workers ...")
+    print("Initalizing workers ...")
     manager = WorkerManager()
     manager.start()
 
     factory = JobFactoryImageProcessing()
-    print ("Done")
+    print("Done")
 
     g_start_time = datetime.datetime.now()
 
     try:
-        print ("Queueing jobs ...")
+        print("Queueing jobs ...")
         nb_docs = 0
         nb_pages = 0
         for doc in dsearch.docs:

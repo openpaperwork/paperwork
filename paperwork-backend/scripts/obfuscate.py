@@ -181,7 +181,7 @@ if __name__ == "__main__":
         print("Words are replaced by pieces of their hash (SHA512)")
         print("")
         print("Example:")
-        print("  %s ~/papers/20100730_0000_01 ~/tmp/20100730_0000_01.anonymized"
+        print("  %s ~/papers/20100730_0000_01 ~/tmp/20100730_0000_01.anon"
               % sys.argv[0])
         sys.exit(1)
     src = sys.argv[1]

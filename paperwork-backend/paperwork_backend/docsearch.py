@@ -346,7 +346,8 @@ class DocSearch(object):
         return self.index.get(obj_id)
 
     def get_doc_from_docid(self, docid, doc_type_name=None, inst=True):
-        return self.index.get_doc_from_docid(docid, doc_type_name=doc_type_name,
+        return self.index.get_doc_from_docid(docid,
+                                             doc_type_name=doc_type_name,
                                              inst=inst)
 
     def find_documents(self, sentence, limit=None, must_sort=True,

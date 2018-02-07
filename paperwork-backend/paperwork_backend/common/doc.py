@@ -358,7 +358,7 @@ class BasicDoc(object):
         labels = []
         try:
             with self.fs.open(self.fs.join(self.path, self.LABEL_FILE),
-                                'r') as file_desc:
+                              'r') as file_desc:
                 for line in file_desc.readlines():
                     line = line.strip()
                     (label_name, label_color) = line.split(",", 1)

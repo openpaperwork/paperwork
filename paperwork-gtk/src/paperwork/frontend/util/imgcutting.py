@@ -65,8 +65,14 @@ class ImgGrip(Drawer):
 
     def __get_on_canvas_pos(self):
         drawer_position = self.handler.img_drawer.position
-        x = int(self._img_position[0] * self.handler.scale) + drawer_position[0]
-        y = int(self._img_position[1] * self.handler.scale) + drawer_position[1]
+        x = (
+            int(self._img_position[0] * self.handler.scale) +
+            drawer_position[0]
+        )
+        y = (
+            int(self._img_position[1] * self.handler.scale) +
+            drawer_position[1]
+        )
         return (x, y)
 
     def __set_on_canvas_pos(self, position):

@@ -7,10 +7,10 @@ import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('Poppler', '0.18')
 
-from paperwork_backend import config
-from paperwork_backend import docimport
-from paperwork_backend import docsearch
-from paperwork_backend.util import rm_rf
+from paperwork_backend import config  # noqa: E402
+from paperwork_backend import docimport  # noqa: E402
+from paperwork_backend import docsearch  # noqa: E402
+from paperwork_backend.util import rm_rf  # noqa: E402
 
 """
 Create a work directory progressively, like a user would.
@@ -117,7 +117,7 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
     if wrong:
         out += " / WRONG: {}".format(wrong)
 
-    print (out)
+    print(out)
 
 
 def print_stats():
@@ -138,20 +138,20 @@ def print_stats():
     if nb_documents == 0:
         nb_documents += 1
 
-    print ("---")
-    print ("Success/total:            {}/{} = {}%".format(
+    print("---")
+    print("Success/total:            {}/{} = {}%".format(
         g_perfect, nb_documents,
         int(g_perfect * 100 / nb_documents)
     ))
-    print ("Labels correctly guessed: {}/{} = {}%".format(
+    print("Labels correctly guessed: {}/{} = {}%".format(
         g_correct_guess, g_nb_src_labels,
         int(g_correct_guess * 100 / g_nb_src_labels)
     ))
-    print ("Labels not guessed:       {}/{} = {}%".format(
+    print("Labels not guessed:       {}/{} = {}%".format(
         g_missing_guess, g_nb_src_labels,
         int(g_missing_guess * 100 / g_nb_src_labels)
     ))
-    print ("Labels wrongly guessed:   {}/{} = {}%".format(
+    print("Labels wrongly guessed:   {}/{} = {}%".format(
         g_wrong_guess, g_nb_dst_labels,
         int(g_wrong_guess * 100 / g_nb_dst_labels)
     ))
@@ -162,13 +162,13 @@ def main():
     pconfig.read()
 
     src_dir = pconfig.settings['workdir'].value
-    print ("Source work directory : {}".format(src_dir))
+    print("Source work directory : {}".format(src_dir))
     src_dsearch = docsearch.DocSearch(src_dir)
     src_dsearch.reload_index()
 
     dst_doc_dir = tempfile.mkdtemp(suffix="paperwork-simulate-docs")
     dst_index_dir = tempfile.mkdtemp(suffix="paperwork-simulate-index")
-    print (
+    print(
         "Destination directories : {} | {}".format(dst_doc_dir, dst_index_dir)
     )
     dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
@@ -227,4 +227,4 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print ("Interrupted")
+        print("Interrupted")

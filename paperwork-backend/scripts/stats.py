@@ -135,20 +135,22 @@ def main():
     print("===")
     print("Maximum number of pages in one document: %d" % max_pages)
     print("Maximum word length: %d" % max_word_len)
-    print("Average word length: %f" % (float(total_word_len) / float(nb_words)))
-    print ("Average number of words per page: %f"
-           % (float(nb_words) / float(nb_pages)))
-    print ("Average number of words per document: %f"
-           % (float(nb_words) / float(nb_docs)))
-    print ("Average number of pages per document: %f"
-           % (float(nb_pages) / float(nb_docs)))
-    print ("Average number of unique words per document: %f"
-           % (float(total_nb_unique_words_per_doc) / float(nb_docs)))
+    print("Average word length: %f" % (
+        float(total_word_len) / float(nb_words)
+    ))
+    print("Average number of words per page: %f"
+          % (float(nb_words) / float(nb_pages)))
+    print("Average number of words per document: %f"
+          % (float(nb_words) / float(nb_docs)))
+    print("Average number of pages per document: %f"
+          % (float(nb_pages) / float(nb_docs)))
+    print("Average number of unique words per document: %f"
+          % (float(total_nb_unique_words_per_doc) / float(nb_docs)))
     for key in label_keys:
         total = total_labels[key]
         value = total_label_accuracy[key]
-        print ("Average accuracy of label prediction (%s): %f%%"
-               % (key, (100 * value / total)))
+        print("Average accuracy of label prediction (%s): %f%%"
+              % (key, (100 * value / total)))
 
 
 if __name__ == "__main__":

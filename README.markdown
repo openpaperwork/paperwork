@@ -118,15 +118,6 @@ It mainly uses:
 * [Pillow](https://pypi.python.org/pypi/Pillow/)/[Libpillowfight](https://github.com/openpaperwork/libpillowfight#readme): Image manipulation
 
 
-## Automated tests
-
-Paperwork has automated tests. These tests are designed in a unusual manner:
-They use screenshots (aka "May work or may not work. Do you feel lucky today ?").
-Because these screenshots change often and are heavy (compared to source files),
-they are stored in a separate Git repository:
-[paperwork-tests](https://github.com/openpaperwork/paperwork-tests#readme)
-
-
 ## Licence
 
 GPLv3 or later. See COPYING.

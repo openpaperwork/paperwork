@@ -15,7 +15,7 @@ help:
 	@echo "Components:" $(ALL_COMPONENTS:%=%_install)
 
 %_build:
-	echo "Installing $(@:%_build=%)"
+	echo "Building $(@:%_build=%)"
 	(cd $(@:%_build=%) ; python3 ./setup.py build)
 
 %_install:

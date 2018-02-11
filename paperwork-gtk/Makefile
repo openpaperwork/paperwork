@@ -65,9 +65,8 @@ clean:
 	rm -rf build dist src/*.egg-info
 
 install_py: ${VERSION_FILE}
-	python3 ./setup.py install
-	paperwork-shell chkdeps paperwork_backend
-	paperwork-shell chkdeps paperwork
+	# PIP_ARGS is used by Flatpak build
+	python3 ./setup.py install ${PIP_ARGS}
 
 install_c:
 

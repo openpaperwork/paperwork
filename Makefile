@@ -46,7 +46,7 @@ help:
 
 %_doc:
 	echo "Checking $(@:%_doc=%)"
-	make -C $(@:%_check=%) doc
+	make -C $(@:%_doc=%) doc
 
 %_build:
 	echo "Building $(@:%_build=%)"

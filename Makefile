@@ -25,6 +25,8 @@ doc: $(ALL_COMPONENTS:%=%_doc)
 
 release: $(ALL_COMPONENTS:%=%_release)
 
+exe: $(ALL_COMPONENTS:%=%_exe)
+
 help:
 	@echo "make build: run 'python3 ./setup.py build' in all components"
 	@echo "make clean"
@@ -89,5 +91,9 @@ help:
 %_release:
 	echo "Releasing $(@:%_release=%)"
 	make -C $(@:%_release=%) release
+
+%_exe:
+	echo "Building exe for $(@:%_exe=%)"
+	make -C $(@:%_exe=%) exe
 
 .PHONY: help build clean test check install install_py install_c uninstall uninstall_c uninstall_py release

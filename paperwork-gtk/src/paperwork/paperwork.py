@@ -41,8 +41,9 @@ import pyinsane2  # noqa: E402
 
 import paperwork_backend  # noqa: E402
 
+from . import __version__  # noqa: E402
 from .frontend.diag import LogTracker  # noqa: E402
-from .frontend.mainwindow import ActionRealQuit, __version__  # noqa: E402
+from .frontend.mainwindow import ActionRealQuit  # noqa: E402
 from .frontend.mainwindow import MainWindow  # noqa: E402
 from .frontend.util import get_locale_dirs  # noqa: E402
 from .frontend.util.config import load_config  # noqa: E402

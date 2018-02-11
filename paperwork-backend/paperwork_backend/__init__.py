@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 
+from . import _version
 from . import util
 
 logger = logging.getLogger(__name__)
@@ -53,3 +54,6 @@ def init():
     }
     state['flatpak'] = init_flatpak()
     return state
+
+
+__version__ = _version.version

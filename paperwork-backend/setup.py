@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 from setuptools import setup, find_packages
 
@@ -12,12 +13,21 @@ else:
         "python-Levenshtein",
     ]
 
+try:
+    with open("paperwork_backend/_version.py", "r") as file_descriptor:
+        version = file_descriptor.read().strip()
+        version = version.split(" ")[2][1:-1]
+    print("Paperwork-backend version: {}".format(version))
+    if "-" in version:
+        version = version.split("-")[0]
+except FileNotFoundError:
+    print("ERROR: _version.py file is missing")
+    print("ERROR: Please run 'make version' first")
+    sys.exit(1)
+
 setup(
     name="paperwork-backend",
-    # if you change the version, don't forget to
-    # * update the ChangeLog file
-    # * update the download_url in this file
-    version="1.2.3",
+    version=version,
     description=(
         "Paperwork's backend"
     ),
@@ -36,7 +46,7 @@ There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
     keywords="documents",
     url="https://github.com/openpaperwork/paperwork-backend",
     download_url=("https://github.com/openpaperwork/paperwork-backend"
-                  "/archive/1.2.3.tar.gz"),
+                  "/archive/{}.tar.gz".format(version)),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",

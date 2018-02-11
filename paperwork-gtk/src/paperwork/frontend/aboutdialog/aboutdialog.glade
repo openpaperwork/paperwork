@@ -10,7 +10,7 @@
     <property name="destroy_with_parent">True</property>
     <property name="type_hint">dialog</property>
     <property name="program_name">Paperwork</property>
-    <property name="version">1.2.3</property>
+    <property name="version"></property>
     <property name="copyright" translatable="yes">
 </property>
     <property name="comments" translatable="yes">Grep for Dead Trees</property>
@@ -689,30 +689,9 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 &lt;http://www.gnu.org/philosophy/why-not-lgpl.html&gt;.</property>
-    <!-- git shortlog -se -->
     <property name="authors">
-Bignaux Ronan &lt;ronan@aimao.org&gt; (1)
-Christophe Chauvet &lt;christophe.chauvet@gmail.com&gt; (1)
-Dominique Hazael-Massieux &lt;dom@w3.org&gt;
-François Schmidts &lt;francois.schmidts@gmail.com&gt; (7)
-Glandos &lt;bugs-github@antipoul.fr&gt;
-Hannes &lt;&gt;
-Jerome Flesch &lt;jflesch@openpaper.work&gt; (2585)
-Josselin Jacquard &lt;josselin.jacquard@gmail.com&gt; (35)
-Krap &lt;&gt;
-Matthias Mailänder &lt;&gt; (2)
-Mathieu Jourdan &lt;mathieu.jourdan@gresille.org&gt; (31) (code + UI design)
-Patrick Scheid &lt;p.scheid92@gmail.com&gt; (2)
-Paul Liétar &lt;paul@lietar.net&gt; (5)
-pingtux &lt;&gt; (2)
-RyDroid &lt;rydroid_dev@yahoo.com&gt; (7)
-Stefan Pokorny &lt;stefan@stefanpokorny.de&gt;
-Sébastien Maccagnoni-Munch &lt;sebastien@smm-informatique.fr&gt; (6)
-Sebastian Spaeth &lt;Sebastian@SSpaeth.de&gt; (2)
     </property>
     <property name="translator_credits">
-Jerome Flesch &lt;jflesch@openpaper.work&gt; (French)
-Tristan Kohl &lt;blobbyjj@ymail.com&gt; (German)
     </property>
     <property name="documenters">
 Alain &lt;github@STudio26.no-ip.biz&gt; (1)

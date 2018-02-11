@@ -46,6 +46,8 @@ from paperwork_backend.docsearch import DocSearch  # noqa: E402
 from paperwork_backend.docsearch import DummyDocSearch  # noqa: E402
 from paperwork_backend.labels import Label  # noqa: E402
 from paperwork_backend.pdf.doc import ExternalPdfDoc  # noqa: E402
+
+from ... import __version__  # noqa: E402
 from ..aboutdialog import AboutDialog  # noqa: E402
 from ..import beacon  # noqa: E402
 from ..diag import DiagDialog  # noqa: E402
@@ -90,9 +92,6 @@ from ..util.jobs import JobScheduler  # noqa: E402
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
-
-__version__ = '1.2.3'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must

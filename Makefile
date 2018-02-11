@@ -42,7 +42,7 @@ help:
 
 %_test:
 	echo "Checking $(@:%_test=%)"
-	make -C $(@:%_check=%) test
+	make -C $(@:%_test=%) test
 
 %_doc:
 	echo "Checking $(@:%_doc=%)"

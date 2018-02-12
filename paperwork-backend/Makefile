@@ -15,15 +15,9 @@ build_c:
 version: ${VERSION_FILE}
 
 ${VERSION_FILE}:
-ifeq ($(OS),Windows_NT)
-	echo|set /p="version = \"" > $@
-	echo|set /p=$(shell git describe --always) >> $@
-	echo "\"" >> $@
-else
 	echo -n "version = \"" >| $@
 	echo -n $(shell git describe --always) >> $@
 	echo "\"" >> $@
-endif
 
 doc:
 

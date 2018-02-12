@@ -17,6 +17,8 @@ uninstall_py: $(ALL_COMPONENTS:%=%_uninstall_py)
 
 uninstall_c: $(ALL_COMPONENTS:%=%_uninstall_c)
 
+version: $(ALL_COMPONENTS:%=%_version)
+
 check: $(ALL_COMPONENTS:%=%_check)
 
 test: $(ALL_COMPONENTS:%=%_test)
@@ -35,6 +37,10 @@ help:
 	@echo "make release"
 	@echo "make uninstall : run 'pip3 uninstall -y (component)' on all components"
 	@echo "Components:" ${ALL_COMPONENTS}
+
+%_version:
+	echo "Making version file $(@:%_version=%)"
+	make -C $(@:%_version=%) version
 
 %_check:
 	echo "Checking $(@:%_check=%)"

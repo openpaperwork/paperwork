@@ -27,14 +27,7 @@ except FileNotFoundError:
 
 setup(
     name="paperwork-backend",
-<<<<<<< HEAD
-    # if you change the version, don't forget to
-    # * update the ChangeLog file
-    # * update the download_url in this file
-    version="1.3",
-=======
     version=version,
->>>>>>> master
     description=(
         "Paperwork's backend"
     ),
@@ -53,11 +46,7 @@ There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
     keywords="documents",
     url="https://github.com/openpaperwork/paperwork-backend",
     download_url=("https://github.com/openpaperwork/paperwork-backend"
-<<<<<<< HEAD
-                  "/archive/1.3.0.tar.gz"),
-=======
                   "/archive/{}.tar.gz".format(version)),
->>>>>>> master
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: End Users/Desktop",

@@ -1,4 +1,5 @@
 VERSION_FILE = src/paperwork/_version.py
+PYTHON ?= python3
 
 build: build_c build_py
 
@@ -7,7 +8,7 @@ install: install_py install_c
 uninstall: uninstall_py
 
 build_py: ${VERSION_FILE}
-	python3 ./setup.py build
+	${PYTHON} ./setup.py build
 
 build_c:
 
@@ -55,7 +56,7 @@ else
 	git push origin ${RELEASE}
 	make clean
 	make version
-	python3 ./setup.py sdist upload
+	${PYTHON} ./setup.py sdist upload
 	@echo "All done"
 	@echo "IMPORTANT: Don't forgot to update the latest release on Flathub !"
 endif
@@ -66,7 +67,7 @@ clean:
 
 # PIP_ARGS is used by Flatpak build
 install_py: ${VERSION_FILE}
-	python3 ./setup.py install ${PIP_ARGS}
+	${PYTHON} ./setup.py install ${PIP_ARGS}
 
 install_c:
 

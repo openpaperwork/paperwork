@@ -22,6 +22,8 @@ import os
 
 from gi.repository import GdkPixbuf
 
+from ... import _version
+
 from paperwork.frontend.util import load_uifile
 from paperwork.frontend.util import preload_file
 
@@ -43,6 +45,13 @@ class AboutDialog(object):
         self.__dialog = self.__widget_tree.get_object("aboutdialog")
         assert(self.__dialog)
         self.__dialog.set_transient_for(main_window)
+
+        self.__dialog.set_version(_version.version)
+        self.__dialog.set_authors(_version.authors_code.split("\n"))
+        self.__dialog.set_documenters(
+            _version.authors_documentation.split("\n")
+        )
+        self.__dialog.set_translator_credits(_version.authors_translators)
 
         if logo_path and os.access(logo_path, os.F_OK):
             logo = GdkPixbuf.Pixbuf.new_from_file(logo_path)

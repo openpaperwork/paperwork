@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 
 from setuptools import setup, find_packages
+
+
+try:
+    with open("src/paperwork/_version.py", "r") as file_descriptor:
+        version = file_descriptor.readlines()[0].strip()
+        version = version.split(" ")[2][1:-1]
+    print("Paperwork version: {}".format(version))
+    if "-" in version:
+        version = version.split("-")[0]
+except FileNotFoundError:
+    print("ERROR: _version.py file is missing")
+    print("ERROR: Please run 'make version' first")
+    sys.exit(1)
+
 
 LOCALES = [
     "de",
@@ -81,26 +96,9 @@ for locale in LOCALES:
 
 setup(
     name="paperwork",
-    # Before releasing a new version:
-    # * update the download_url in this file
-    # * update the ChangeLog file
-    # * update AUTHORS
-    # * update src/paperwork/frontend/aboutdialog/aboutdialog.glade
-    # * update src/paperwork/frontend/mainwindow/__init__.py:__version__
-    # * update the dependency version on paperwork-backend
-    # * update data/work.openpaper.Paperwork.appdata.xml:<releases>
-    #
-    # Release:
-    # * commit
-    # * tag
-    # * python3 ./setup.py sdist upload
-    #
-    # After the release:
-    # * add a file flatpak/<version>.json
-    # * update flatpak/release.json
-    version="1.3",
+    version=version,
     description=(
-        "Using scanner and OCR to grep dead trees the easy way (Linux only)"
+        "Using scanner and OCR to grep dead trees the easy way"
     ),
     long_description="""Paperwork is a tool to make papers searchable.
 
@@ -124,7 +122,7 @@ Main features are:
     keywords="scanner ocr gui",
     url="https://github.com/openpaperwork/paperwork",
     download_url=("https://github.com/openpaperwork/paperwork"
-                  "/archive/1.3.tar.gz"),
+                  "/archive/{}.tar.gz".format(version)),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: X11 Applications :: GTK",
@@ -163,11 +161,11 @@ Main features are:
         "pypillowfight",
         "pyxdg >= 0.25",
         "termcolor",  # used by paperwork-chkdeps
-        "paperwork-backend >= 1.3",
+        "paperwork-backend>={}".format(version),
         # paperwork-chkdeps take care of all the dependencies that can't be
         # handled here. For instance:
         # - Dependencies using gobject introspection
-        # - Dependencies based on language (OCR data files, dictionnaries, etc)
+        # - Dependencies based on language (OCR data files, dictionaries, etc)
         # - Dependencies on data files (icons, etc)
     ] + extra_deps
 )

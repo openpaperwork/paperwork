@@ -32,6 +32,7 @@ from gi.repository import Gtk
 from gi.repository import Notify
 import pillowfight
 
+from ... import __version__
 from ..aboutdialog import AboutDialog
 from ..diag import DiagDialog
 from ..import beacon
@@ -85,9 +86,6 @@ from paperwork_backend.pdf.doc import ExternalPdfDoc
 
 _ = gettext.gettext
 logger = logging.getLogger(__name__)
-
-
-__version__ = '1.3-git'
 
 
 # during tests, we have multiple instatiations of MainWindow(), but we must

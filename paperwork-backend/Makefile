@@ -26,7 +26,9 @@ check:
 
 test:
 
-exe:
+linux_exe:
+
+windows_exe:
 
 release:
 ifeq (${RELEASE}, )

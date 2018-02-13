@@ -33,12 +33,10 @@ check:
 
 test:
 
-exe:
-ifeq ($(OS),Windows_NT)
+windows_exe:
 	pyinstaller pyinstaller/win64.spec
-else
-	echo "paperwork-gtk: make exe: Windows Only"
-endif
+
+linux_exe:
 
 release:
 ifeq (${RELEASE}, )

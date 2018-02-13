@@ -27,7 +27,9 @@ doc: $(ALL_COMPONENTS:%=%_doc)
 
 release: $(ALL_COMPONENTS:%=%_release)
 
-exe: $(ALL_COMPONENTS:%=%_exe)
+linux_exe: $(ALL_COMPONENTS:%=%_linux_exe)
+
+windows_exe: $(ALL_COMPONENTS:%=%_windows_exe)
 
 help:
 	@echo "make build: run 'python3 ./setup.py build' in all components"
@@ -98,8 +100,12 @@ help:
 	echo "Releasing $(@:%_release=%)"
 	make -C $(@:%_release=%) release
 
-%_exe:
-	echo "Building exe for $(@:%_exe=%)"
-	make -C $(@:%_exe=%) exe
+%_linux_exe:
+	echo "Building Linux exe for $(@:%_linux_exe=%)"
+	make -C $(@:%_linux_exe=%) linux_exe
+
+%_windows_exe:
+	echo "Building Windows exe for $(@:%_windows_exe=%)"
+	make -C $(@:%_windows_exe=%) windows_exe
 
 .PHONY: help build clean test check install install_py install_c uninstall uninstall_c uninstall_py release

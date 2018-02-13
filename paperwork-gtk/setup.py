@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import codecs
 import os
 import sys
 
@@ -7,8 +8,9 @@ from setuptools import setup, find_packages
 
 
 try:
-    with open("src/paperwork/_version.py", "r") as file_descriptor:
-        version = file_descriptor.readlines()[0].strip()
+    with codecs.open("src/paperwork/_version.py", "r", encoding="utf-8") \
+            as file_descriptor:
+        version = file_descriptor.readlines()[1].strip()
         version = version.split(" ")[2][1:-1]
     print("Paperwork version: {}".format(version))
     if "-" in version:

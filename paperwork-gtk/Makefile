@@ -29,7 +29,7 @@ ${VERSION_FILE}:
 doc:
 
 check:
-	flake8 src/paperwork
+	flake8 --exclude=_version.py src/paperwork
 
 test:
 

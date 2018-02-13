@@ -15,7 +15,8 @@ build_c:
 version: ${VERSION_FILE}
 
 ${VERSION_FILE}:
-	echo -n "version = \"" >| $@
+	echo "# -*- coding: utf-8 -*-" >| $@
+	echo -n "version = \"" >> $@
 	echo -n $(shell git describe --always) >> $@
 	echo "\"" >> $@
 	echo "authors_code = \"\"\"" >> $@

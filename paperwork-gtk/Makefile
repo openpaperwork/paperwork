@@ -1,4 +1,5 @@
 VERSION_FILE = src/paperwork/_version.py
+PYTHON ?= python3
 
 build: build_c build_py
 
@@ -7,14 +8,15 @@ install: install_py install_c
 uninstall: uninstall_py
 
 build_py: ${VERSION_FILE}
-	python3 ./setup.py build
+	${PYTHON} ./setup.py build
 
 build_c:
 
 version: ${VERSION_FILE}
 
 ${VERSION_FILE}:
-	echo -n "version = \"" >| $@
+	echo "# -*- coding: utf-8 -*-" >| $@
+	echo -n "version = \"" >> $@
 	echo -n $(shell git describe --always) >> $@
 	echo "\"" >> $@
 	echo "authors_code = \"\"\"" >> $@
@@ -27,16 +29,14 @@ ${VERSION_FILE}:
 doc:
 
 check:
-	flake8 src/paperwork
+	flake8 --exclude=_version.py src/paperwork
 
 test:
 
-exe:
-ifeq ($(OS),Windows_NT)
+windows_exe:
 	pyinstaller pyinstaller/win64.spec
-else
-	echo "paperwork-gtk: make exe: Windows Only"
-endif
+
+linux_exe:
 
 release:
 ifeq (${RELEASE}, )
@@ -55,7 +55,7 @@ else
 	git push origin ${RELEASE}
 	make clean
 	make version
-	python3 ./setup.py sdist upload
+	${PYTHON} ./setup.py sdist upload
 	@echo "All done"
 	@echo "IMPORTANT: Don't forgot to update the latest release on Flathub !"
 endif
@@ -64,9 +64,9 @@ clean:
 	rm -f ${VERSION_FILE}
 	rm -rf build dist src/*.egg-info
 
+# PIP_ARGS is used by Flatpak build
 install_py: ${VERSION_FILE}
-	# PIP_ARGS is used by Flatpak build
-	python3 ./setup.py install ${PIP_ARGS}
+	${PYTHON} ./setup.py install ${PIP_ARGS}
 
 install_c:
 

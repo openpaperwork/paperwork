@@ -3269,11 +3269,12 @@ class MainWindow(object):
             raise
 
         update = config['last_update_found'].value
+        version = self.version.split("-")[0]
 
         lines = [
             ("Paperwork {}".format(__version__), 28),
         ]
-        if update and update != self.version:
+        if update and update != version:
             lines += [
                 (_("A new version is available:"), 20),
                 (_("Paperwork {}").format(update), 20),

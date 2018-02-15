@@ -153,9 +153,8 @@ def find_missing_ocr(lang):
             " installed yet"
         )
         ocr_tools = []
-    if len(ocr_tools) > 0:
-        langs = ocr_tools[0].get_available_languages()
-    else:
+
+    if len(ocr_tools) <= 0:
         langs = []
         missing.append(
             (
@@ -169,6 +168,13 @@ def find_missing_ocr(lang):
                 },
             )
         )
+    else:
+        try:
+            langs = ocr_tools[0].get_available_languages()
+        except Exception as exc:
+            print("[WARNING] Exception while looking for available languages:"
+                  " {}".format(str(exc)))
+            langs = []
 
     if (len(langs) <= 0 or lang['tesseract'] not in langs):
         missing.append(

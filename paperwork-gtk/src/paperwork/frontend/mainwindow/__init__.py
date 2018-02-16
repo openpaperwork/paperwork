@@ -2927,18 +2927,6 @@ class MainWindow(object):
                 ],
                 ActionOpenHelp(self, "usage")
             ),
-            'open_help_translating': (
-                [
-                    gactions['open_help_translating'],
-                ],
-                ActionOpenHelp(self, "translating")
-            ),
-            'open_help_hacking': (
-                [
-                    gactions['open_help_hacking'],
-                ],
-                ActionOpenHelp(self, "hacking")
-            ),
             'quit': (
                 [
                     gactions['quit'],
@@ -3197,9 +3185,6 @@ class MainWindow(object):
             'open_help_introduction': Gio.SimpleAction.new("help.introduction",
                                                            None),
             'open_help_manual': Gio.SimpleAction.new("help.manual", None),
-            'open_help_translating': Gio.SimpleAction.new("help.translating",
-                                                          None),
-            'open_help_hacking': Gio.SimpleAction.new("help.hacking", None),
             'open_settings': Gio.SimpleAction.new("settings", None),
             'open_doc_dir': Gio.SimpleAction.new("doc_open_dir", None),
             'optimize_index': Gio.SimpleAction.new("optimize_index", None),

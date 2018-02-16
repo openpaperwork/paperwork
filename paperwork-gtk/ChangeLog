@@ -1,3 +1,6 @@
+xxxx/xx/xx - 1.3:
+- Remove documentations 'hacking' and 'translating'. They are in the Wiki now.
+
 2018/02/01 - 1.2.3:
 - Flatpak: Fix support of other GTK themes (Dark Adwaita, etc)
 - French translations: shorten the translation of "Matching papers" because

@@ -4,30 +4,26 @@
 
 Depending on which [branch](https://github.com/jflesch/paperwork/wiki/Branches) you
 are working, the build and runtime dependencies may not be the same.
-Setuptools and ```paperwork-shell chkdeps``` should take care of all of them,
-except ```paperwork-backend```.
+Setuptools and ```paperwork-shell chkdeps``` should take care of all of them.
 
 
 ## System-wide installation
 
-```
-$ mkdir -p ~/git
-$ cd ~/git
-$ git clone https://github.com/jflesch/paperwork-backend.git
-$ cd paperwork-backend
-$ git checkout develop  # or 'release-xxx'
-$ sudo python3 ./setup.py install
-$ paperwork-shell chkdeps paperwork_backend
+```sh
+mkdir -p ~/git
+cd ~/git
+git clone https://github.com/jflesch/paperwork.git
+git checkout develop  # or 'release-xxx'
 
-$ cd ~/git
-$ git clone https://github.com/jflesch/paperwork.git
-$ cd paperwork
-$ git checkout develop  # or 'release-xxx'
-$ sudo python3 ./setup.py install
-$ paperwork-shell chkdeps paperwork
+# will run 'python3 ./setup.py install' on all Paperwork components
+sudo make install  # or 'make install_py'
+
+# install non-Python dependencies
+paperwork-shell chkdeps paperwork_backend
+paperwork-shell chkdeps paperwork
 
 # if you want to add it in the menus
-$ paperwork-shell install
+paperwork-shell install
 ```
 
 (see [the wiki as to why you probably want to work on the branch 'develop'](https://github.com/jflesch/paperwork/wiki/Branches))
@@ -53,25 +49,19 @@ You will have to install [python-virtualenv](https://pypi.python.org/pypi/virtua
 
 ### Installation
 
-```
-$ virtualenv --system-site-packages paperwork-virtualenv
-$ cd paperwork-virtualenv
-$ source bin/activate
+```sh
+git clone https://github.com/jflesch/paperwork.git
+cd paperwork
+git checkout develop  # or 'release-xxx'
 
+virtualenv --system-site-packages -p python3 venv
+source venv/bin/activate
 # you're now in a virtualenv
 
-$ git clone https://github.com/jflesch/paperwork-backend.git
-$ cd paperwork-backend
-$ git checkout develop  # or 'release-xxx'
-$ python3 ./setup.py install
-$ paperwork-shell chkdeps paperwork_backend
+make install  # or 'make install_py'
 
-$ cd ..
-$ git clone https://github.com/jflesch/paperwork.git
-$ cd paperwork
-$ git checkout develop  # or 'release-xxx'
-$ python3 ./setup.py install
-$ paperwork-shell chkdeps paperwork
+paperwork-shell chkdeps paperwork_backend
+paperwork-shell chkdeps paperwork
 ```
 
 ### Note regarding the extra dependencies
@@ -87,13 +77,10 @@ manner.
 
 ### Running Paperwork
 
-    $ python3 src/launcher.py
-
-To restart paperwork:
-
-    $ cd paperwork-virtualenv
-    $ source bin/activate
-    $ cd paperwork
-    $ python3 src/launcher.py
+```sh
+cd ~/git/paperwork
+source venv/bin/activate
+paperwork
+```
 
 Enjoy :-)

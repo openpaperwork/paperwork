@@ -15,12 +15,8 @@ It's hard to list all the dependencies here. Currently, the main ones are:
 
 They must be installed *before* the rest of Paperwork. Once everything is installed:
 
-* [Clone](https://git-for-windows.github.io/):
-  * ```https://github.com/jflesch/paperwork.git```
-  * ```https://github.com/jflesch/paperwork-backend.git```
-* Backend can be installed like any Python library (```python setup.py install```). It should
-  install a bunch of dependencies as well.
-* On the frontend, you can run ```python ./setup.py install``` to fetch all the dependencies
+* [Clone](https://git-for-windows.github.io/) ```https://github.com/jflesch/paperwork.git```
+* You can run ```make install``` (GNU Makefile) to fetch all the Python dependencies
   not listed here. However, it won't create any shortcut or anything. Paperwork startup script
   is installed, but isn't of much help.
 
@@ -28,8 +24,8 @@ They must be installed *before* the rest of Paperwork. Once everything is instal
 ## Running
 
 
-Frontend can be started like on GNU/Linux. Go to where you checked out Paperwork frontend,
-and run ```python src\launcher.py```. Tesseract must be in your PATH.
+Go to where you checked out Paperwork frontend,
+and run ```python paperwork\src\launcher.py```. Tesseract must be in your PATH.
 
 
 ## Packaging
@@ -81,18 +77,3 @@ C:\Program Files (x86)\OpenPaper\ (for example)
 ```
 
 Note that it will only work if packaged with Pyinstaller.
-
-
-## Disabling the cruel and unusual DRM
-
-<del>
-Paperwork for Windows includes a trial period and an activation key mechanism.
-When working on Paperwork, they can be annoying. However, they can be disabled
-easily:
-
-* Either patch src/paperwork/frontend/activation/__init__.py:is_activated(). Just add
-  ```return True```.
-* Or set the environment variable ```PAPERWORK_ACTIVATED``` to ```"true"```
-</del>
-
-update: DRM is disabled for now.

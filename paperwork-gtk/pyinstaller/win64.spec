@@ -4,6 +4,12 @@ import os
 import site
 import sys
 
+
+SIGNTOOL_EXE = "c:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\signtool.exe"
+PATH_PFX="c:\\users\\jflesch\\cert\\openpaper.pfx"
+TIMESTAMP_URL = "http://timestamp.verisign.com/scripts/timestamp.dll"
+
+
 block_cipher = None
 
 if os.path.exists(os.path.join("src", "launcher.py")):
@@ -102,3 +108,19 @@ coll = COLLECT(
     upx=False,
     name='paperwork'
 )
+
+if not os.path.exists(PATH_PFX):
+    print ("No certifcate for signing")
+else:
+    import subprocess
+    print("Signtool")
+    print(SIGNTOOL_EXE)
+    print(PATH_PFX)
+    print(TIMESTAMP_URL)
+    subprocess.call([
+        SIGNTOOL_EXE,
+        "sign",
+        "/F", PATH_PFX,
+        "/T", TIMESTAMP_URL,
+        "dist\\paperwork.exe"
+    ])

@@ -15,7 +15,7 @@ block_cipher = None
 if os.path.exists(os.path.join("src", "launcher.py")):
     BASE_PATH = os.getcwd()
 else:
-    BASE_PATH = os.path.join(os.path.expanduser("~"), "git", "paperwork")
+    BASE_PATH = os.path.join(os.path.expanduser("~"), "git", "paperwork", "paperwork-gtk")
 
 # Pyinstaller misses some .dll (GObject & co) --> we have to request them
 # explicitly
@@ -122,5 +122,5 @@ else:
         "sign",
         "/F", PATH_PFX,
         "/T", TIMESTAMP_URL,
-        "dist\\paperwork.exe"
+        "dist\\paperwork\\paperwork.exe"
     ])

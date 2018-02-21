@@ -40,12 +40,13 @@ bins += extra_libs
 # We also have to add data files
 datas = []
 for (dirpath, subdirs, filenames) in os.walk(BASE_PATH):
-    if ("dist" in dirpath.lower()
-            or "build" in dirpath.lower()
-            or "egg" in dirpath.lower()):
+    shortdirpath = dirpath[len(BASE_PATH):]
+    if ("dist" in shortdirpath.lower()
+            or "build" in shortdirpath.lower()
+            or "egg" in shortdirpath.lower()):
         continue
     for filename in filenames:
-        if filename.lower().endswith(".png") and dirpath.lower().endswith("doc"):
+        if filename.lower().endswith(".png") and shortdirpath.lower().endswith("doc"):
             continue
         if (not filename.lower().endswith(".ico")
                 and not filename.lower().endswith(".png")

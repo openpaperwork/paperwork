@@ -22,13 +22,6 @@ import os
 import sys
 
 import gettext
-import gi
-
-gi.require_version('Gdk', '3.0')
-gi.require_version('Gtk', '3.0')
-gi.require_version('Notify', '0.7')
-gi.require_version('Poppler', '0.18')
-gi.require_version('PangoCairo', '1.0')
 
 from gi.repository import GLib  # noqa: E402
 from gi.repository import Notify  # noqa: E402
@@ -186,6 +179,14 @@ class Main(object):
 
 
 def main(hook_func=None, skip_workdir_scan=False):
+    import gi
+
+    gi.require_version('Gdk', '3.0')
+    gi.require_version('Gtk', '3.0')
+    gi.require_version('Notify', '0.7')
+    gi.require_version('Poppler', '0.18')
+    gi.require_version('PangoCairo', '1.0')
+
     m = Main()
     m.main(hook_func, skip_workdir_scan)
 

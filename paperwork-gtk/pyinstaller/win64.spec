@@ -7,6 +7,7 @@ import sys
 
 SIGNTOOL_EXE = "c:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\signtool.exe"
 PATH_PFX="c:\\users\\jflesch\\cert\\openpaper.pfx"
+PFX_PASSWD="1234"  # Microsoft forced me to put one :p
 TIMESTAMP_URL = "http://timestamp.verisign.com/scripts/timestamp.dll"
 
 
@@ -122,6 +123,7 @@ else:
         SIGNTOOL_EXE,
         "sign",
         "/F", PATH_PFX,
+        "/P", PFX_PASSWD,
         "/T", TIMESTAMP_URL,
         "dist\\paperwork\\paperwork.exe"
     ])

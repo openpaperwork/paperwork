@@ -92,11 +92,15 @@ class PdfPage(BasicPage):
         self.__boxes = None
         self._on_disk_cache = on_disk_cache
 
-    @property
-    def pdf_page(self):
-        pdf = self.doc.get_pdf()
+    def get_pdf_page(self, pdf=None):
+        if pdf is None:
+            pdf = self.doc.get_pdf()
         pdf_page = pdf.get_page(self.page_nb)
         return pdf_page
+
+    @property
+    def pdf_page(self):
+        return self.get_pdf_page()
 
     def get_doc_file_path(self):
         """
@@ -224,13 +228,13 @@ class PdfPage(BasicPage):
 
     def __get_img(self):
         pdf_page = self.pdf_page
-        return self.__render_img(self.get_size(pdf_page), pdf_page)
+        return self.__render_img(self.size, pdf_page)
 
     img = property(__get_img)
 
     @property
     def size(self):
-        return self.get_size()
+        return self.doc._page_sizes[self.page_nb]
 
     def get_image(self, size, pdf_page=None):
         return self.__render_img(size, pdf_page)

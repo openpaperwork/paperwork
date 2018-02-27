@@ -109,6 +109,8 @@ class _CommonPdfDoc(BasicDoc):
         self._on_disk_cache = on_disk_cache
         # number of pages never change --> we can keep it in memory safely
         self._nb_pages = -1
+        # page sizes never change --> we can keep them in memory safely
+        self._page_sizes = None
 
     def clone(self):
         assert()
@@ -128,7 +130,14 @@ class _CommonPdfDoc(BasicDoc):
     def get_pdf(self):
         logger.info("PDF: Opening {}".format(self.pdfpath))
         filepath = Gio.File.new_for_uri(self.pdfpath)
-        return Poppler.Document.new_from_gfile(filepath, password=None)
+        doc = Poppler.Document.new_from_gfile(filepath, password=None)
+        if self._nb_pages < 0:
+            self._nb_pages = doc.get_n_pages()
+        if self._page_sizes is None:
+            self._page_sizes = []
+            for page in self.pages:
+                self._page_sizes.append(page.get_size(page.get_pdf_page(doc)))
+        return doc
 
     def __get_pages(self):
         return PdfPages(self, self._on_disk_cache)
@@ -141,7 +150,7 @@ class _CommonPdfDoc(BasicDoc):
         if self.is_new:
             # happens when a doc was recently deleted
             return 0
-        self._nb_pages = self.get_pdf().get_n_pages()
+        self.get_pdf()
         return self._nb_pages
 
     def print_page_cb(self, print_op, print_context, page_nb, keep_refs={}):

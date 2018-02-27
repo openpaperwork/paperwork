@@ -480,10 +480,10 @@ class PaperworkIndex(object):
             return set()
         self.label_guesser.total_nb_documents = len(self._docs_by_id.keys())
         label_names = self.label_guesser.guess(doc)
-        labels = set()
-        for label_name in label_names:
-            label = self.labels[label_name]
-            labels.add(label)
+        labels = {
+            (self.labels[label_name], scores)
+            for (label_name, scores) in label_names
+        }
         return labels
 
     def get_all_docs(self):

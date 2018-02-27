@@ -334,9 +334,7 @@ class LabelGuesser(object):
             total = yes + no
             if total == 0:
                 continue
-            yes /= total
-            no /= total
-            if yes > self.min_yes:
-                label_names.add(label_name)
+            if (yes / total) > self.min_yes:
+                label_names.add((label_name, (yes, no)))
 
         return label_names

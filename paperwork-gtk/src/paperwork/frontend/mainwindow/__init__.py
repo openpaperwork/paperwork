@@ -635,10 +635,11 @@ class JobLabelPredictor(Job):
     def do(self):
         self.can_run = True
         try:
-            predicted_labels = self.__docsearch.guess_labels(self.doc)
+            guessed_labels = self.__docsearch.guess_labels(self.doc)
+            guessed_labels = [label for (label, scores) in guessed_labels]
             logger.info("Predicted labels on document [%s]: [%s]"
-                        % (self.doc.docid, predicted_labels))
-            self.emit('predicted-labels', self.doc, predicted_labels)
+                        % (self.doc.docid, guessed_labels))
+            self.emit('predicted-labels', self.doc, guessed_labels)
         except StopIteration:
             return
 

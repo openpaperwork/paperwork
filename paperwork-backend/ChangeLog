@@ -1,4 +1,7 @@
 2018/xx/xx - 1.2.4:
+- Import: Remove ambiguity: Importers designed for import of directory
+  will not try to import individual files. They will just let the importers
+  designed for importing single file take care of it.
 - Label guessing: Fix the way bayesian filters are updated (will trigger an
   index rebuild).
 - paperwork-shell/labels/guessing: return scores as well as labels

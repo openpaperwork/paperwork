@@ -49,6 +49,7 @@ def upd_index(dst_dsearch, doc, new):
 def label_guess(dst_dsearch, src_doc, dst_doc):
     """ Guess the labels, and apply the guess on the document """
     guessed_labels = dst_dsearch.guess_labels(dst_doc)
+    guessed_labels = [label for (label, scores) in guessed_labels]
 
     for label in guessed_labels:
         dst_dsearch.add_label(dst_doc, label, update_index=False)

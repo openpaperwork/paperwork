@@ -80,7 +80,9 @@ def main():
 
         # Label predictions stats
         doc_labels = {l.name for l in doc.labels}
-        predicted_labels = {l.name for l in dsearch.guess_labels(doc)}
+        predicted_labels = {
+            l.name for (l, scores) in dsearch.guess_labels(doc)
+        }
         accurate = {
             'exact': 1,
             'global': 0,

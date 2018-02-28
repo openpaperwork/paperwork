@@ -373,15 +373,24 @@ def cmd_guess_labels(*args):
     guessed = dsearch.guess_labels(doc)
 
     verbose("Guessed labels: {}".format(
-        ", ".join([label.name for label in guessed])
+        ", ".join(
+            [
+                "{} {}".format(label.name, scores)
+                for (label, scores) in guessed
+            ]
+        )
     ))
 
     r = {
         'docid': doc.docid,
         'current_labels': [label.name for label in doc.labels],
-        'guessed_labels': [label.name for label in guessed],
+        'guessed_labels': [
+            (label.name, scores) for (label, scores) in guessed
+        ],
         'applied': "yes" if apply_labels else "no",
     }
+
+    guessed = [label for (label, scores) in guessed]
 
     changed = False
     if apply_labels:

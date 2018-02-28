@@ -262,12 +262,6 @@ class BasicDoc(object):
             self.__docid = docid
             self.path = docpath
 
-        # We need to keep track of the labels:
-        # When updating bayesian filters for label guessing,
-        # we need to know the new label list, but also the *previous* label
-        # list
-        self._previous_labels = self.labels[:]
-
     def __str__(self):
         return self.__docid
 

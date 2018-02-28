@@ -1,3 +1,7 @@
+2018/xx/xx - 1.2.4:
+- Main window/pages/mouse handlers: Fix infinite loop in signal handling when
+  the mouse goes over buttons drawn over pages.
+
 2018/02/01 - 1.2.3:
 - Flatpak: Fix support of other GTK themes (Dark Adwaita, etc)
 - French translations: shorten the translation of "Matching papers" because

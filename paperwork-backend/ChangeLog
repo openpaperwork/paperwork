@@ -1,3 +1,11 @@
+2018/xx/xx - 1.2.4:
+- Label guessing: Fix the way bayesian filters are updated (will trigger an
+  index rebuild).
+- paperwork-shell/labels/guessing: return scores as well as labels
+  (useful for testing/debuging)
+- Optim: PDF: Keep in memory the page sizes. It's an information very often
+  requested when rendering and it cannot change with PDFs
+
 2018/02/01 - 1.2.3:
 - Windows: Fix labels handling: Fix CSV file reading
 - Fix global deletion of a label

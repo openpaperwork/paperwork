@@ -51,7 +51,7 @@ class PaperworkIndex(object):
         docid=whoosh.fields.ID(stored=True, unique=True),
         doctype=whoosh.fields.ID(stored=True, unique=False),
         docfilehash=whoosh.fields.ID(stored=True),
-        content=whoosh.fields.TEXT(spelling=True),
+        content=whoosh.fields.TEXT(spelling=True, stored=True),
         label=whoosh.fields.KEYWORD(stored=True, commas=True,
                                     scorable=True),
         date=whoosh.fields.DATETIME(stored=True),
@@ -336,6 +336,17 @@ class PaperworkIndex(object):
     def end_examine_rootdir(self):
         self.examine_rootdir_data = {}
 
+    def get_raw_doc_from_index(self, docid):
+        query = whoosh.query.Term("docid", docid)
+        results = self.__searcher.search(query, limit=1)
+        return {
+            'content': results[0]['content'],
+            'labels': results[0]['label'].split(","),
+        }
+
+    def get_doc_content(self, doc):
+        return strip_accents(doc.get_index_text()).strip()
+
     def _update_doc_in_index(self, index_writer, doc):
         """
         Add/Update a document in the index
@@ -354,13 +365,9 @@ class PaperworkIndex(object):
         dochash = doc.get_docfilehash()
         dochash = (u"%X" % dochash)
 
-        doc_txt = doc.get_index_text()
-        assert(isinstance(doc_txt, str))
+        doc_txt = self.get_doc_content(doc)
         labels_txt = doc.get_index_labels()
         assert(isinstance(labels_txt, str))
-
-        # append labels to doc txt, because we usually search on doc_txt
-        doc_txt += " " + labels_txt
 
         query = whoosh.query.Term("docid", docid)
         index_writer.delete_by_query(query)
@@ -369,7 +376,7 @@ class PaperworkIndex(object):
             docid=docid,
             doctype=doc.doctype,
             docfilehash=dochash,
-            content=strip_accents(doc_txt),
+            content=doc_txt,
             label=strip_accents(labels_txt),
             date=doc.date,
             last_read=last_mod
@@ -391,8 +398,8 @@ class PaperworkIndex(object):
         if not self.index_writer and index_update:
             self.index_writer = self.index.writer()
         if not self.label_guesser_updater and label_guesser_update:
-            self.label_guesser_updater = self.label_guesser.get_updater()
-        logger.info("Indexing new doc: %s" % doc)
+            self.label_guesser_updater = self.label_guesser.get_updater(self)
+        logger.info("Indexing new doc: %s", doc)
         if index_update:
             self._update_doc_in_index(self.index_writer, doc)
         if label_guesser_update:
@@ -407,12 +414,13 @@ class PaperworkIndex(object):
         if not self.index_writer and index_update:
             self.index_writer = self.index.writer()
         if not self.label_guesser_updater and label_guesser_update:
-            self.label_guesser_updater = self.label_guesser.get_updater()
-        logger.info("Updating modified doc: %s" % doc)
-        if index_update:
-            self._update_doc_in_index(self.index_writer, doc)
+            self.label_guesser_updater = self.label_guesser.get_updater(self)
+        logger.info("Updating modified doc: %s (%s, %s)",
+                    doc, str(index_update), str(label_guesser_update))
         if label_guesser_update:
             self.label_guesser_updater.upd_doc(doc)
+        if index_update:
+            self._update_doc_in_index(self.index_writer, doc)
 
     def del_doc(self, doc):
         """
@@ -421,17 +429,14 @@ class PaperworkIndex(object):
         if not self.index_writer:
             self.index_writer = self.index.writer()
         if not self.label_guesser_updater:
-            self.label_guesser_updater = self.label_guesser.get_updater()
-        logger.info("Removing doc from the index: %s" % doc)
-        if doc.docid in self._docs_by_id:
+            self.label_guesser_updater = self.label_guesser.get_updater(self)
+
+        docid = doc if isinstance(doc, str) else doc.docid
+        logger.info("Removing doc from the index: %s", docid)
+        if docid in self._docs_by_id:
             self._docs_by_id.pop(doc.docid)
-        if isinstance(doc, str):
-            # annoying case : we can't know which labels were on it
-            # so we can't roll back the label guesser training ...
-            self._delete_doc_from_index(self.index_writer, doc)
-            return
-        self._delete_doc_from_index(self.index_writer, doc.docid)
-        self.label_guesser_updater.del_doc(doc)
+        self.label_guesser_updater.del_doc(docid)
+        self._delete_doc_from_index(self.index_writer, docid)
 
     def commit(self, index_update=True, label_guesser_update=True):
         """

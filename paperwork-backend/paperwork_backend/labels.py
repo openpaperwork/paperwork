@@ -153,25 +153,21 @@ class Label(object):
 
 
 class LabelGuessUpdater(object):
-    def __init__(self, guesser):
+    def __init__(self, guesser, index):
+        self.index = index
         self.guesser = guesser
-        self.updated_docs = set()
-
-    def _get_doc_txt(self, doc):
-        if doc.nb_pages <= 0:
-            return u""
-        # document is added page per page --> the first page only
-        # is used for evaluation
-        # For consistency, we do the same thing even for documents that are not
-        # scanned
-        txt = doc.pages[0].text
-        txt = u"\n".join(txt)
-        txt = txt.strip()
-        return txt
 
     def add_doc(self, doc):
-        doc_txt = self._get_doc_txt(doc)
+        logger.info("Label guessing: Take into account new document"
+                    " {}".format(doc.docid))
+        self._add_doc(doc)
+
+    def _add_doc(self, doc):
+        doc_txt = self.index.get_doc_content(doc)
         if doc_txt == "":
+            logger.warning("Label guessing (add): Doc {} has no text".format(
+                doc.docid
+            ))
             return
 
         labels = {label.name for label in doc.labels}
@@ -181,71 +177,45 @@ class LabelGuessUpdater(object):
             self.guesser.load(label)
 
         for (label, guesser) in self.guesser._bayes.items():
+            label = strip_accents(label)
             value = "yes" if label in labels else "no"
             guesser.train(value, doc_txt)
 
-        self.updated_docs.add(doc)
-
     def upd_doc(self, doc):
-        doc_txt = self._get_doc_txt(doc)
+        logger.info("Label guessing: Take into account updated"
+                    " document {}".format(doc.docid))
+
+        self._del_doc(doc.docid)
+        self._add_doc(doc)
+
+    def del_doc(self, docid):
+        logger.info("Label guessing: Take into account deleted document"
+                    " {}".format(docid))
+        self._del_doc(docid)
+
+    def _del_doc(self, docid):
+        doc = self.index.get_raw_doc_from_index(docid)
+        doc_txt = doc['content']
+        doc_labels = doc['labels']
         if doc_txt == "":
+            logger.warning("Label guessing (del): Doc {} has no text".format(
+                doc
+            ))
             return
-
-        new_labels = {label.name for label in doc.labels}
-        old_labels = {label.name for label in doc._previous_labels}
-
-        for new_label in new_labels:
-            if new_label in old_labels:
-                # unchanged
-                continue
-            # just in case, make sure all the labels are loaded
-            self.guesser.load(new_label)
-            guesser = self.guesser._bayes[new_label]
-            guesser.untrain("no", doc_txt)
-            guesser.train("yes", doc_txt)
-
-        for old_label in old_labels:
-            if old_label in new_labels:
-                # unchanged
-                continue
-            # just in case, make sure all the labels are loaded
-            self.guesser.load(old_label)
-            guesser = self.guesser._bayes[old_label]
-            guesser.untrain("yes", doc_txt)
-            guesser.train("no", doc_txt)
-
-        self.updated_docs.add(doc)
-
-    def del_doc(self, doc):
-        doc_txt = self._get_doc_txt(doc)
-        if doc_txt == "":
-            return
-
-        labels = {label.name for label in doc._previous_labels}
-
-        # just in case, make sure all the labels are loaded
-        for label in labels:
-            self.guesser.load(label)
 
         for (label, guesser) in self.guesser._bayes.items():
-            value = "yes" if label in labels else "no"
+            label = strip_accents(label)
+            value = "yes" if label in doc_labels else "no"
             guesser.untrain(value, doc_txt)
-
-        self.updated_docs.add(doc)
 
     def commit(self):
         for baye in self.guesser._bayes.values():
             baye.cache_persist()
-        for doc in self.updated_docs:
-            # Acknowledge the new labels
-            doc._previous_labels = doc.labels[:]
-        self.updated_docs = set()
 
     def cancel(self):
         names = [x for x in self.guesser._bayes.keys()]  # copy
         for label_name in names:
             self.guesser.load(label_name, force_reload=True)
-        self.updated_docs = set()
 
 
 class LabelGuesser(object):
@@ -302,8 +272,8 @@ class LabelGuesser(object):
         ))
         os.rename(old_baye_dir, new_baye_dir)
 
-    def get_updater(self):
-        return LabelGuessUpdater(self)
+    def get_updater(self, index):
+        return LabelGuessUpdater(self, index)
 
     def score(self, doc):
         doc_txt = doc.text

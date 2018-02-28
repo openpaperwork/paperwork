@@ -240,7 +240,7 @@ class PaperworkIndex(object):
 
         doc = self.__inst_doc(result['docid'], result['doctype'])
         if doc is None:
-            return
+            return True
 
         self._docs_by_id[result['docid']] = doc
         for label in doc.labels:

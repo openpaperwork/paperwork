@@ -216,7 +216,7 @@ class PdfImporter(BaseImporter):
 
 class PdfDirectoryImporter(BaseImporter):
     """
-    Import many PDF files as many documents
+    Import a directory containing many PDF files as many documents
     """
 
     def __init__(self, fs):
@@ -229,6 +229,11 @@ class PdfDirectoryImporter(BaseImporter):
         """
         if len(file_uris) <= 0:
             return False
+
+        for file_uri in file_uris:
+            if not self.fs.isdir(file_uri):
+                return False
+
         try:
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
@@ -315,6 +320,11 @@ class ImageDirectoryImporter(BaseImporter):
         """
         if len(file_uris) <= 0:
             return False
+
+        for file_uri in file_uris:
+            if not self.fs.isdir(file_uri):
+                return False
+
         try:
             for file_uri in file_uris:
                 file_uri = self.fs.safe(file_uri)
@@ -494,4 +504,6 @@ def get_possible_importers(file_uris, current_doc=None):
     for importer in IMPORTERS:
         if importer.can_import(file_uris, current_doc):
             importers.append(importer)
+    logger.debug("Files {}: {} possible importers".format(
+        file_uris, len(importers)))
     return importers

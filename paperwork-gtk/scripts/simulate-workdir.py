@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 
-import os
 import tempfile
 
 import gi
 gi.require_version('Gdk', '3.0')
 gi.require_version('Poppler', '0.18')
+gi.require_version('PangoCairo', '1.0')
 
 from paperwork_backend import config  # noqa: E402
 from paperwork_backend import docimport  # noqa: E402
 from paperwork_backend import docsearch  # noqa: E402
+from paperwork_backend import fs  # noqa: E402
 from paperwork_backend.util import rm_rf  # noqa: E402
 
 """
@@ -26,6 +27,7 @@ for each document:
     - user scans the remaining pages of the document
 """
 
+g_fs = fs.GioFileSystem()
 
 g_correct_guess = 0
 g_missing_guess = 0
@@ -39,10 +41,10 @@ g_perfect = 0
 def upd_index(dst_dsearch, doc, new):
     index_updater = dst_dsearch.get_index_updater(optimize=False)
     if new:
-        index_updater.add_doc(doc, index_update=False)
+        index_updater.add_doc(doc)
     else:
-        index_updater.upd_doc(doc, index_update=False)
-    index_updater.commit(index_update=False)
+        index_updater.upd_doc(doc)
+    index_updater.commit()
 
 
 def label_guess(dst_dsearch, src_doc, dst_doc):
@@ -99,7 +101,7 @@ def fix_labels(dst_dsearch, src_doc, dst_doc):
             changed = True
 
     for label in to_add:
-        if label not in dst_dsearch.labels.values():
+        if label not in dst_dsearch.label_list:
             dst_dsearch.create_label(label)
         dst_dsearch.add_label(dst_doc, label, update_index=False)
 
@@ -158,13 +160,22 @@ def print_stats():
     ))
 
 
+def enable_logging():
+    import logging
+    l = logging.getLogger()
+    s = logging.StreamHandler()
+    l.addHandler(s)
+    l.setLevel(logging.DEBUG)
+
+
 def main():
+    # enable_logging()
     pconfig = config.PaperworkConfig()
     pconfig.read()
 
     src_dir = pconfig.settings['workdir'].value
     print("Source work directory : {}".format(src_dir))
-    src_dsearch = docsearch.DocSearch(src_dir)
+    src_dsearch = docsearch.DocSearch(src_dir, use_default_index_client=False)
     src_dsearch.reload_index()
 
     dst_doc_dir = tempfile.mkdtemp(suffix="paperwork-simulate-docs")
@@ -172,41 +183,51 @@ def main():
     print(
         "Destination directories : {} | {}".format(dst_doc_dir, dst_index_dir)
     )
-    dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir)
+    dst_dsearch = docsearch.DocSearch(dst_doc_dir, indexdir=dst_index_dir,
+                                      use_default_index_client=False)
     dst_dsearch.reload_index()
+
+    print("Testing ...")
 
     try:
         documents = [x for x in src_dsearch.docs]
         documents.sort(key=lambda doc: doc.docid)
 
+        print("Number of documents: {}".format(len(documents)))
+
         for src_doc in documents:
-            print("Document [{}]".format(src_doc.docid))
-            files = os.listdir(src_doc.path)
+            print("Document [{}] | [{}]".format(src_doc.docid, src_doc.path))
+            files = [x for x in g_fs.listdir(src_doc.path)]
             files.sort()
 
             current_doc = None
-            for filename in files:
-                if "thumb" in filename:
+            for filepath in files:
+                print("File: {}".format(filepath))
+                filename = g_fs.basename(filepath)
+                if "thumb" in filename or "labels" == filename:
                     continue
-                filepath = os.path.join(src_doc.path, filename)
-                fileuri = "file://" + filepath
                 importers = docimport.get_possible_importers(
-                    fileuri, current_doc=current_doc
+                    [filepath], current_doc=current_doc
                 )
                 if len(importers) <= 0:
                     continue
+                print("Importer(s): {}".format(", ".join([
+                    str(x) for x in importers
+                ])))
                 assert(len(importers) == 1)
                 importer = importers[0]
-                (docs, page, new) = importer.import_doc(
-                    fileuri, dst_dsearch, current_doc
+                result = importer.import_doc(
+                    [filepath], dst_dsearch, current_doc
                 )
-                dst_doc = docs[0]
+                if current_doc is None:
+                    dst_doc = result.new_docs[0]
+                else:
+                    dst_doc = current_doc
 
                 for page_nb in range(0, dst_doc.nb_pages):
                     if dst_doc.can_edit:
                         dst_doc.pages[page_nb].boxes = \
                             src_doc.pages[page_nb].boxes
-                        dst_doc.pages[page_nb].drop_cache()
 
                 if current_doc is None:
                     # first page --> guess labels and see if it matchs
@@ -216,9 +237,10 @@ def main():
                     # just update the index
                     upd_index(dst_dsearch, dst_doc, new=False)
 
-                current_doc = docs[0]
+                current_doc = dst_doc
 
     finally:
+        print("---")
         rm_rf(dst_doc_dir)
         rm_rf(dst_index_dir)
         print_stats()

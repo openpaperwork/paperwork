@@ -266,11 +266,11 @@ class DocSearch(object):
         self.rootdir = self.fs.safe(rootdir)
 
         localdir = os.path.expanduser("~/.local")
+        base_data_dir = os.getenv(
+            "XDG_DATA_HOME",
+            os.path.join(localdir, "share")
+        )
         if indexdir is None:
-            base_data_dir = os.getenv(
-                "XDG_DATA_HOME",
-                os.path.join(localdir, "share")
-            )
             indexdir = os.path.join(base_data_dir, "paperwork")
 
         indexdir = os.path.join(indexdir, "index")
@@ -378,8 +378,8 @@ class DocSearch(object):
             doc --- first document on which the label must be added (required
                     for now)
         """
-        if doc:
-            clone = doc.clone()  # make sure it's serializable
+        # make sure it's serializable
+        clone = doc.clone() if doc is not None else None
         r = self.index.create_label(label, doc=clone)
         return r
 

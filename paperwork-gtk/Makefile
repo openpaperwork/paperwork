@@ -46,7 +46,7 @@ ifeq (${RELEASE}, )
 else
 	@echo "Will release: ${RELEASE}"
 	@echo "Checking release is in ChangeLog ..."
-	grep ${RELEASE} ChangeLog
+	grep ${RELEASE} ChangeLog | grep -v "/xx"
 	@echo "Checking release is in data/work.openpaper.Paperwork.appdata.xml ..."
 	grep ${RELEASE} data/work.openpaper.Paperwork.appdata.xml
 	@echo "Checking Flatpak files ..."

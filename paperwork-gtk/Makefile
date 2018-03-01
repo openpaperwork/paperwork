@@ -18,6 +18,8 @@ ${VERSION_FILE}:
 	echo "# -*- coding: utf-8 -*-" >| $@
 	echo -n "version = \"" >> $@
 	echo -n $(shell git describe --always) >> $@
+	$(eval branch_name = $(shell git symbolic-ref HEAD 2>/dev/null))
+	if [ "${branch_name}" != "refs/heads/master" ] ; then echo -n "-${branch_name}" >> $@ ; fi
 	echo "\"" >> $@
 	echo "authors_code = \"\"\"" >> $@
 	echo "    Code contributors:" >> $@
@@ -44,21 +46,18 @@ ifeq (${RELEASE}, )
 else
 	@echo "Will release: ${RELEASE}"
 	@echo "Checking release is in ChangeLog ..."
-	grep ${RELEASE} ChangeLog
+	grep ${RELEASE} ChangeLog | grep -v "/xx"
 	@echo "Checking release is in data/work.openpaper.Paperwork.appdata.xml ..."
 	grep ${RELEASE} data/work.openpaper.Paperwork.appdata.xml
 	@echo "Checking Flatpak files ..."
 	[ -e flatpak/${RELEASE}.json ]
 	grep ${RELEASE} flatpak/release.json
-	@echo "Releasing ..."
-	git tag -a ${RELEASE} -m ${RELEASE}
-	git push origin ${RELEASE}
-	make clean
-	make version
+endif
+
+release_pypi:
+	@echo "Releasing paperwork-gtk (paperwork) ..."
 	${PYTHON} ./setup.py sdist upload
 	@echo "All done"
-	@echo "IMPORTANT: Don't forgot to update the latest release on Flathub !"
-endif
 
 clean:
 	rm -f ${VERSION_FILE}

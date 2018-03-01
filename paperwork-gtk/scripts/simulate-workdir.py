@@ -219,7 +219,11 @@ def main():
                 result = importer.import_doc(
                     [filepath], dst_dsearch, current_doc
                 )
+                print("Import result: {}".format(str(result.get())))
                 if current_doc is None:
+                    if result.new_docs == []:
+                        print("Nothing imported ?!")
+                        continue
                     dst_doc = result.new_docs[0]
                 else:
                     dst_doc = current_doc
@@ -238,6 +242,7 @@ def main():
                     upd_index(dst_dsearch, dst_doc, new=False)
 
                 current_doc = dst_doc
+            print("")
 
     finally:
         print("---")

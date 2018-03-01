@@ -36,15 +36,13 @@ ifeq (${RELEASE}, )
 else
 	@echo "Will release: ${RELEASE}"
 	@echo "Checking release is in ChangeLog ..."
-	grep ${RELEASE} ChangeLog
-	@echo "Releasing ..."
-	git tag -a ${RELEASE} -m ${RELEASE}
-	git push origin ${RELEASE}
-	make clean
-	make version
+	grep ${RELEASE} ChangeLog | grep -v "/xx"
+endif
+
+release_pypi:
+	@echo "Releasing paperwork-backend ..."
 	${PYTHON} ./setup.py sdist upload
 	@echo "All done"
-endif
 
 clean:
 	rm -f ${VERSION_FILE}

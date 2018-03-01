@@ -26,6 +26,18 @@ test: $(ALL_COMPONENTS:%=%_test)
 doc: $(ALL_COMPONENTS:%=%_doc)
 
 release: $(ALL_COMPONENTS:%=%_release)
+ifeq (${RELEASE}, )
+	@echo "You must specify a release version (make release RELEASE=1.2.3)"
+else
+	@echo "Will release: ${RELEASE}"
+	git tag -a ${RELEASE} -m ${RELEASE}
+	git push origin ${RELEASE}
+	make clean
+	make version
+	make release_pypi
+	@echo "All done"
+	@echo "IMPORTANT: Don't forgot to add the latest release in the Flatpak repo and on Flathub !"
+endif
 
 linux_exe: $(ALL_COMPONENTS:%=%_linux_exe)
 

@@ -171,8 +171,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://pypi.python.org/packages/6b/5e/0eaa5c939426b0f6a51f9fc883a1d756ad54ac9568faab129440a1dbca24/pyocr-0.4.6.tar.gz",
-                    "sha256": "3626ea30ca3d52c8282da672692b216f28cca62fe0e5f97e58f57b7b1d38d56f"
+                    "url": "https://pypi.python.org/packages/08/ba/2f3a9f05db05826831b7df5d3c5b3b6d0705819414b2bb5ecfb10c737cf1/pyocr-0.5.1.tar.gz",
+                    "sha256": "9ee8b5f38dd966ca531115fc5fe4715f7fa8961a9f14cd5109c2d938c17a2043"
                 },
                 {
                     "type": "file",
@@ -188,8 +188,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://pypi.python.org/packages/c6/89/a32d817e56314ca8c1532bce4553ba2ca8c93d75766bfd748730841f2cf5/pypillowfight-0.2.1.tar.gz",
-                    "sha256": "57bb003ff66979b9b3d5e1e32189f6cd23bb63f2a659f3b97c84ad05ba07992a"
+                    "url": "https://pypi.python.org/packages/fb/bf/1716de65f4ef463f9297c61426c0fcba8193a529074450babc407412ccd8/pypillowfight-0.2.3.tar.gz",
+                    "sha256": "83653eecf4d58278ab3e01c5188d9a2b33dcaf9603c613d3c8160b31e542d8c9"
                 },
                 {
                     "type": "file",

@@ -171,8 +171,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://pypi.python.org/packages/6b/5e/0eaa5c939426b0f6a51f9fc883a1d756ad54ac9568faab129440a1dbca24/pyocr-0.4.6.tar.gz",
-                    "sha256": "3626ea30ca3d52c8282da672692b216f28cca62fe0e5f97e58f57b7b1d38d56f"
+                    "url": "https://pypi.python.org/packages/08/ba/2f3a9f05db05826831b7df5d3c5b3b6d0705819414b2bb5ecfb10c737cf1/pyocr-0.5.1.tar.gz",
+                    "sha256": "9ee8b5f38dd966ca531115fc5fe4715f7fa8961a9f14cd5109c2d938c17a2043"
                 },
                 {
                     "type": "file",

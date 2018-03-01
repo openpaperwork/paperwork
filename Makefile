@@ -25,6 +25,8 @@ test: $(ALL_COMPONENTS:%=%_test)
 
 doc: $(ALL_COMPONENTS:%=%_doc)
 
+release_pypi: $(ALL_COMPONENTS:%=%_release_pypi)
+
 release: $(ALL_COMPONENTS:%=%_release)
 ifeq (${RELEASE}, )
 	@echo "You must specify a release version (make release RELEASE=1.2.3)"

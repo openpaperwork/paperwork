@@ -226,7 +226,7 @@ class LabelGuesser(object):
 
         self.set_language(lang)
 
-        self.min_yes = 0.195
+        self.min_yes = 0.195  # betwen 0.0 and 1.0 (min ratio: yes / (yes+no))
 
     def set_language(self, language):
         # Not used yet

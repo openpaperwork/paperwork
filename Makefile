@@ -25,6 +25,8 @@ test: $(ALL_COMPONENTS:%=%_test)
 
 doc: $(ALL_COMPONENTS:%=%_doc)
 
+release_pypi: $(ALL_COMPONENTS:%=%_release_pypi)
+
 release: $(ALL_COMPONENTS:%=%_release)
 ifeq (${RELEASE}, )
 	@echo "You must specify a release version (make release RELEASE=1.2.3)"
@@ -111,6 +113,10 @@ help:
 %_release:
 	echo "Releasing $(@:%_release=%)"
 	$(MAKE) -C $(@:%_release=%) release
+
+%_release_pypi:
+	echo "Releasing $(@:%_release_pypi=%)"
+	$(MAKE) -C $(@:%_release_pypi=%) release_pypi
 
 %_linux_exe:
 	echo "Building Linux exe for $(@:%_linux_exe=%)"

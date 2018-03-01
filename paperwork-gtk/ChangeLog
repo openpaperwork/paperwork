@@ -1,7 +1,7 @@
 xxxx/xx/xx - 1.3:
 - Remove documentations 'hacking' and 'translating'. They are in the Wiki now.
 
-2018/xx/xx - 1.2.4:
+2018/03/01 - 1.2.4:
 - Main window/pages/mouse handlers: Fix infinite loop in signal handling when
   the mouse goes over buttons drawn over pages.
 

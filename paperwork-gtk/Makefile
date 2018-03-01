@@ -49,9 +49,6 @@ else
 	grep ${RELEASE} ChangeLog | grep -v "/xx"
 	@echo "Checking release is in data/work.openpaper.Paperwork.appdata.xml ..."
 	grep ${RELEASE} data/work.openpaper.Paperwork.appdata.xml
-	@echo "Checking Flatpak files ..."
-	[ -e flatpak/${RELEASE}.json ]
-	grep ${RELEASE} flatpak/release.json
 endif
 
 release_pypi:

@@ -188,8 +188,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://pypi.python.org/packages/c6/89/a32d817e56314ca8c1532bce4553ba2ca8c93d75766bfd748730841f2cf5/pypillowfight-0.2.1.tar.gz",
-                    "sha256": "57bb003ff66979b9b3d5e1e32189f6cd23bb63f2a659f3b97c84ad05ba07992a"
+                    "url": "https://pypi.python.org/packages/fb/bf/1716de65f4ef463f9297c61426c0fcba8193a529074450babc407412ccd8/pypillowfight-0.2.3.tar.gz",
+                    "sha256": "83653eecf4d58278ab3e01c5188d9a2b33dcaf9603c613d3c8160b31e542d8c9"
                 },
                 {
                     "type": "file",

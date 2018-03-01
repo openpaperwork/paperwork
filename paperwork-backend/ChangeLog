@@ -1,4 +1,4 @@
-2018/xx/xx - 1.2.4:
+2018/03/01 - 1.2.4:
 - Import: Remove ambiguity: Importers designed for import of directory
   will not try to import individual files. They will just let the importers
   designed for importing single file take care of it.

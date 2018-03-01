@@ -18,6 +18,8 @@ ${VERSION_FILE}:
 	echo "# -*- coding: utf-8 -*-" >| $@
 	echo -n "version = \"" >> $@
 	echo -n $(shell git describe --always) >> $@
+	$(eval branch_name = $(shell git symbolic-ref HEAD 2>/dev/null))
+	if [ "${branch_name}" != "refs/heads/master" ] ; then echo -n "-${branch_name}" >> $@ ; fi
 	echo "\"" >> $@
 	echo "authors_code = \"\"\"" >> $@
 	echo "    Code contributors:" >> $@

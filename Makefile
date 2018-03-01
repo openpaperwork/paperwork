@@ -114,6 +114,10 @@ help:
 	echo "Releasing $(@:%_release=%)"
 	$(MAKE) -C $(@:%_release=%) release
 
+%_release_pypi:
+	echo "Releasing $(@:%_release_pypi=%)"
+	$(MAKE) -C $(@:%_release_pypi=%) release_pypi
+
 %_linux_exe:
 	echo "Building Linux exe for $(@:%_linux_exe=%)"
 	$(MAKE) -C $(@:%_linux_exe=%) linux_exe

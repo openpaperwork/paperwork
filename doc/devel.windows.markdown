@@ -11,7 +11,8 @@ It's hard to list all the dependencies here. Currently, the main ones are:
 * [Pillow](http://www.lfd.uci.edu/~gohlke/pythonlibs/#pillow)
 * [Python-levenshtein](www.lfd.uci.edu/~gohlke/pythonlibs/#python-levenshtein)
 * [GObject Introspection, Gtk, Gdk, Libpoppler, & friends](https://sourceforge.net/projects/pygobjectwin32/)
-* etc
+* Msys2 or Mingw shell
+* GNU Makefile
 
 They must be installed *before* the rest of Paperwork. Once everything is installed:
 
@@ -32,7 +33,7 @@ and run ```python paperwork\src\launcher.py```. Tesseract must be in your PATH.
 
 ```
 cd git\paperwork
-pyinstaller pyinstaller\win64.spec
+make windows_exe
 ```
 
 It should create a directory 'paperwork' with all the required files, except Tesseract.

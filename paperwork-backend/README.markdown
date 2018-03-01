@@ -10,9 +10,9 @@ This is the backend part of Paperwork. It manages:
 - Import
 - Export
 
-There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork .
+There is no GUI here. The GUI is https://github.com/openpaperwork/paperwork/tree/master/paperwork-gtk .
 
-Regarding the name "Paperwork", it can refer to both the GUI or the backend. If you want to be specific, you can call the gui "paperwork-gui" instead of just Paperwork.
+Regarding the name "Paperwork", it can refer to both the GUI or the backend. If you want to be specific, you can call the gui "paperwork-gtk" instead of just Paperwork.
 
 ## Dependencies
 

@@ -11,8 +11,8 @@ from paperwork_backend.util import find_language
 
 
 DOWNLOAD_URI = (
-    "https://download.openpaper.work/${PRODUCT_SHORT_VERSION}/"
-    "paperwork_${PRODUCT_VERSION}_win64.zip"
+    "https://download.openpaper.work/windows/amd64/"
+    "paperwork-master-${PRODUCT_VERSION}.zip"
 )
 
 ALL_LANGUAGES = [

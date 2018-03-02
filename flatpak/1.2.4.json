@@ -373,6 +373,11 @@
                     "type": "archive",
                     "url": "https://pypi.python.org/packages/e6/3c/ba77e8c087e32e2ef1f34b2eff28f7ce0e3f04989e390bfad0a411530345/paperwork-backend-1.2.4.tar.gz",
                     "sha256": "cfd54f739e1fb8d7acc5ae4f7ff484cb03be8b2c73be185ec3ea30dc1219c0bb"
+                },
+                {
+                    "type": "file",
+                    "path": "pip-Makefile",
+                    "dest-filename": "Makefile"
                 }
             ]
         },
@@ -390,6 +395,11 @@
                     "type": "archive",
                     "url": "https://pypi.python.org/packages/e1/ee/83ed1ebe896ce4f135a204c8a632a80a931840603f2321ab76287f78db65/paperwork-1.2.4.tar.gz",
                     "sha256": "9045d297076dfc219b62bb994ca46fff53b5a990b2f077946d279f366ae3ab4d"
+                },
+                {
+                    "type": "file",
+                    "path": "pip-Makefile",
+                    "dest-filename": "Makefile"
                 }
             ]
         }

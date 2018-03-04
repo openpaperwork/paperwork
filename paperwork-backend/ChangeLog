@@ -1,3 +1,11 @@
+xxxx/xx/xx - 1.3.0:
+- PDF export: Generated PDF now store images as JPEG inside the PDF instead of PNG.
+  File size is much smaller.
+- PDF export: PDFs can now be regenerated when exporting. Regenerated versions will
+  include words from the OCR, but some metadata may be lost.
+- Optimization: Speed up conversions from PIL image to GdkPixbuf (used for
+  export previews and thumbnail display)
+
 2018/03/01 - 1.2.4:
 - Import: Remove ambiguity: Importers designed for import of directory
   will not try to import individual files. They will just let the importers

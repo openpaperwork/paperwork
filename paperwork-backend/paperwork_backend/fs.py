@@ -223,9 +223,29 @@ class GioUTF8FileAdapter(io.RawIOBase):
         self.close()
 
 
-class GioFileSystem(object):
+class CommonFs(object):
     def __init__(self):
         pass
+
+    def join(self, base, url):
+        if not base.endswith("/"):
+            base += "/"
+        return urllib.parse.urljoin(base, url)
+
+    def basename(self, url):
+        url = urllib.parse.urlparse(url)
+        basename = os.path.basename(url.path)
+        # Base name can be safely unquoted
+        return urllib.parse.unquote(basename)
+
+    def dirname(self, url):
+        # dir name should not be unquoted. It could mess up the URI
+        return os.path.dirname(url)
+
+
+class GioFileSystem(CommonFs):
+    def __init__(self):
+        super().__init__()
 
     def safe(self, uri):
         logger.debug("safe: %s", uri)
@@ -272,21 +292,6 @@ class GioFileSystem(object):
         except GLib.GError as exc:
             logger.warning("Gio.Gerror", exc_info=exc)
             raise IOError(str(exc))
-
-    def join(self, base, url):
-        if not base.endswith("/"):
-            base += "/"
-        return urllib.parse.urljoin(base, url)
-
-    def basename(self, url):
-        url = urllib.parse.urlparse(url)
-        basename = os.path.basename(url.path)
-        # Base name can be safely unquoted
-        return urllib.parse.unquote(basename)
-
-    def dirname(self, url):
-        # dir name should not be unquoted. It could mess up the URI
-        return os.path.dirname(url)
 
     def exists(self, url):
         try:

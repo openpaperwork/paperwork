@@ -16,6 +16,7 @@
 
 import io
 
+from gi.repository import GLib
 from gi.repository import GdkPixbuf
 import PIL.ImageDraw
 
@@ -39,6 +40,15 @@ def image2pixbuf(img):
     """
     if img is None:
         return None
+    img = img.convert("RGB")
+
+    if hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes'):
+        data = GLib.Bytes.new(img.tobytes())
+        (width, height) = img.size
+        return GdkPixbuf.Pixbuf.new_from_bytes(
+            data, GdkPixbuf.Colorspace.RGB, False, 8, width, height, width * 3
+        )
+
     file_desc = io.BytesIO()
     try:
         img.save(file_desc, "ppm")

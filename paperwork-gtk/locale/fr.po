@@ -586,7 +586,7 @@ msgstr "Vérifier les mises à jour"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:14
 msgid "Send anonymous usage statistics"
-msgstr "Envoyer des statistics anonymes d'utilisation"
+msgstr "Envoyer des statistiques anonymes d'utilisation"
 
 #: src/paperwork/frontend/settingswindow/settingswindow.glade.h:15
 msgid "<b>Network</b>"

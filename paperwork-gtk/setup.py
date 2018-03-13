@@ -158,7 +158,7 @@ Main features are:
         "python-Levenshtein",
         "Pillow",
         "pycountry",
-        "pyinsane2",
+        "pyinsane2 >= 2.0.12",
         "pyocr >= 0.3.0",
         "pypillowfight",
         "pyxdg >= 0.25",

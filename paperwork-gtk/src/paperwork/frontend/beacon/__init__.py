@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 import os
 import platform
+import ssl
 import re
 import threading
 import urllib
@@ -21,18 +22,21 @@ class Beacon(object):
     UPDATE_CHECK_INTERVAL = datetime.timedelta(days=7)
     POST_STATISTICS_INTERVAL = datetime.timedelta(days=7)
 
+    SSL_CONTEXT = ssl._create_unverified_context()
+
     GITHUB_RELEASES = {
         'host': 'api.github.com',
         'path': '/repos/openpaperwork/paperwork/releases',
     }
     OPENPAPERWORK_RELEASES = {
-        'host': 'openpaper.work',
+        'host': os.getenv("OPENPAPER_SERVER", 'openpaper.work'),
         'path': '/beacon/latest',
     }
     OPENPAPERWORK_STATS = {
-        'host': 'openpaper.work',
+        'host': os.getenv("OPENPAPER_SERVER", 'openpaper.work'),
         'path': '/beacon/post_statistics',
     }
+    PROTOCOL = os.getenv("OPENPAPER_PROTOCOL", "https")
 
     def __init__(self, config, flatpak):
         super().__init__()
@@ -65,9 +69,15 @@ class Beacon(object):
 
     def get_version_openpaperwork(self):
         logger.info("Querying OpenPaper.work ...")
-        h = http.client.HTTPSConnection(
-            host=self.OPENPAPERWORK_RELEASES['host'],
-        )
+        if self.PROTOCOL == "http":
+            h = http.client.HTTPConnection(
+                host=self.OPENPAPERWORK_RELEASES['host'],
+            )
+        else:
+            h = http.client.HTTPSConnection(
+                host=self.OPENPAPERWORK_RELEASES['host'],
+                context=self.SSL_CONTEXT
+            )
         h.request('GET', url=self.OPENPAPERWORK_RELEASES['path'], headers={
             'User-Agent': self.USER_AGENT
         })
@@ -146,6 +156,9 @@ class Beacon(object):
         last_post = self.config['last_statistics_post'].value
 
         logger.info("Statistics were last posted: {}".format(last_post))
+        logger.info("Next post date: {}".format(
+            last_post + self.POST_STATISTICS_INTERVAL))
+        logger.info("Now: {}".format(now))
         if (last_post is not None and
                 last_post + self.POST_STATISTICS_INTERVAL >= now):
             logger.info("No need to post statistics")
@@ -156,9 +169,15 @@ class Beacon(object):
         logger.info("Statistics: {}".format(stats))
 
         logger.info("Posting statistics on openpaper.work ...")
-        h = http.client.HTTPSConnection(
-            host=self.OPENPAPERWORK_STATS['host'],
-        )
+        if self.PROTOCOL == "http":
+            h = http.client.HTTPConnection(
+                host=self.OPENPAPERWORK_STATS['host'],
+            )
+        else:
+            h = http.client.HTTPSConnection(
+                host=self.OPENPAPERWORK_STATS['host'],
+                context=self.SSL_CONTEXT
+            )
         h.request('POST', url=self.OPENPAPERWORK_STATS['path'], headers={
             "Content-type": "application/x-www-form-urlencoded",
             "Accept": "text/plain",

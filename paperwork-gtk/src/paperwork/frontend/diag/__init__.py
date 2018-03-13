@@ -85,6 +85,7 @@ class JobInfoGetter(Job):
         self.emit('scan-progression', self.STEP_PAPERWORK, 0.0)
         logger.info("====== START OF PAPERWORK INFO ======")
         logger.info("Paperwork version: {}".format(self.main_win.version))
+        logger.info("Scan library: Pyinsane2 {}".format(pyinsane2.__version__))
 
         nb_docs = 0
         nb_pages = 0

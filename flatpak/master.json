@@ -149,6 +149,7 @@
         },
         {
             "name": "python-pyinsane2",
+            "make-install-args": ["PIP_ARGS=--prefix=/app"],
             "no-autogen": true,
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [

@@ -153,14 +153,9 @@
             "ensure-writable": ["/lib/python*/site-packages/easy-install.pth"],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://pypi.python.org/packages/89/02/d516f6676ce668626275207e1bb4567404c900854157ea2d1b9b1f2bc2b6/pyinsane2-2.0.9.tar.gz",
-                    "sha256": "879cecc7679acac0129b5e3e297236197cbd6991a89faa6dadfae89ce10f8abc"
-                },
-                {
-                    "type": "file",
-                    "path": "pip-Makefile",
-                    "dest-filename": "Makefile"
+                    "type": "git",
+                    "url": "https://github.com/openpaperwork/pyinsane.git",
+                    "branch": "master"
                 }
             ]
         },

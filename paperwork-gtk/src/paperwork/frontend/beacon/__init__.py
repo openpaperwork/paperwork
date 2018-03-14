@@ -103,19 +103,19 @@ class Beacon(object):
         logger.info("Checking for updates ...")
         version = None
         try:
-            version = self.get_version_github()
+            version = self.get_version_openpaperwork()
         except Exception as exc:
             logger.exception(
-                "Failed to get latest Paperwork release from GitHub. "
-                "Falling back on openpaper.work ...",
+                "Failed to get latest Paperwork release from OpenPaper.work. "
+                "Falling back to Github ...",
                 exc_info=exc
             )
         if version is None:
             try:
-                version = self.get_version_openpaperwork()
+                version = self.get_version_github()
             except Exception as exc:
                 logger.exception(
-                    "Failed to get latest Paperwork from Openpaper.work",
+                    "Failed to get latest Paperwork from Github",
                     exc_info=exc
                 )
         if version is None:

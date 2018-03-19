@@ -271,9 +271,12 @@ class JobResolutionFinder(Job):
             # sometimes as a range (-> tuple). So if it is a range, we turn
             # it into an array
             if isinstance(resolutions, tuple):
-                interval = resolutions[2]
-                if interval < 50:
-                    interval = 50
+                if len(resolutions) <= 2:
+                    interval = 25
+                else:
+                    interval = resolutions[2]
+                if interval < 25:
+                    interval = 25
                 res_array = []
                 for res in range(resolutions[0], resolutions[1] + 1,
                                  interval):

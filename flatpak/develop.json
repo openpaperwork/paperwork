@@ -156,7 +156,7 @@
                 {
                     "type": "git",
                     "url": "https://github.com/openpaperwork/pyinsane.git",
-                    "branch": "develop"
+                    "branch": "master"
                 }
             ]
         },

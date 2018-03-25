@@ -521,10 +521,10 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
             r['guessed_labels'].append(
                 {
                     "docid": doc.docid,
-                    "labels": [label.name for label in labels],
+                    "labels": [label.name for (label, scores) in labels],
                 }
             )
-            for label in labels:
+            for (label, scores) in labels:
                 dsearch.add_label(doc, label, update_index=False)
         verbose("Document {} (labels: {})".format(
             doc.docid,

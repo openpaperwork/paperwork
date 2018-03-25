@@ -85,13 +85,11 @@ class JobInfoGetter(Job):
         self.emit('scan-progression', self.STEP_PAPERWORK, 0.0)
         logger.info("====== START OF PAPERWORK INFO ======")
         logger.info("Paperwork version: {}".format(self.main_win.version))
+        logger.info("Scan library: Pyinsane2 {}".format(pyinsane2.__version__))
 
         nb_docs = 0
         nb_pages = 0
         max_pages = 0
-        nb_words = 0
-        max_word_len = 0
-        total_word_len = 0
         doc_types = {}
 
         docs = self.main_win.docsearch.docs
@@ -111,15 +109,6 @@ class JobInfoGetter(Job):
 
             try:
                 max_pages = max(max_pages, doc.nb_pages)
-                for page in doc.pages:
-                    if not self.can_run:
-                        return
-                    nb_pages += 1
-                    for line in page.boxes:
-                        for word in line.word_boxes:
-                            nb_words += 1
-                            max_word_len = max(max_word_len, len(word.content))
-                            total_word_len += len(word.content)
                 doc_idx += 1
             except:
                 logger.exception(
@@ -134,14 +123,6 @@ class JobInfoGetter(Job):
         logger.info("Maximum number of pages in one document: {}".format(
             max_pages
         ))
-        logger.info("Total number of words: {} (average: {}/page)".format(
-            nb_words, nb_words / (nb_pages if nb_pages else -1)
-        ))
-        logger.info("Average word length: {}".format(
-            total_word_len / (nb_words if nb_words else -1)
-        ))
-        logger.info("Max word length: {}".format(max_word_len))
-
         logger.info("====== END OF PAPERWORK INFO ======")
 
     def _get_scanner_info(self):

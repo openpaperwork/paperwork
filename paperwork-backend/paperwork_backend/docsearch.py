@@ -265,9 +265,9 @@ class DocSearch(object):
         self.fs = fs.GioFileSystem()
         self.rootdir = self.fs.safe(rootdir)
         localdir = os.path.expanduser("~/.local")
+        base_data_dir = self.fs.unsafe(rootdir)
 
         if index_in_workdir:
-            base_data_dir = self.fs.unsafe(rootdir)
             localdir = base_data_dir
             indexdir = os.path.join(base_data_dir, "index")
 

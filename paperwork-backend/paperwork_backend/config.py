@@ -140,7 +140,8 @@ class PaperworkConfig(object):
                 "OCR", "Lang", get_default_ocr_lang
             ),
             'index_in_workdir': PaperworkSetting(
-                "Global", "index_in_workdir", lambda: False, paperwork_cfg_boolean
+                "Global", "index_in_workdir",
+                lambda: False, paperwork_cfg_boolean
             ),
         }
 

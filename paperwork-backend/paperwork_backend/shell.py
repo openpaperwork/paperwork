@@ -52,7 +52,8 @@ def get_docsearch():
 
     verbose("Work directory: {}".format(pconfig.settings['workdir'].value))
 
-    dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value)
+    dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value,
+                index_in_workdir=pconfig.settings['index_in_workdir'].value)
     dsearch.reload_index()
     return dsearch
 

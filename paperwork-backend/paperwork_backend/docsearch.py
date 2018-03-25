@@ -253,7 +253,7 @@ class DocSearch(object):
     LABEL_STEP_DESTROYING = "label deletion"
 
     def __init__(self, rootdir, indexdir=None, language=None,
-                 use_default_index_client=True):
+                 use_default_index_client=True, index_in_workdir=False):
         """
         Index files in rootdir (see constructor)
         """
@@ -264,16 +264,20 @@ class DocSearch(object):
 
         self.fs = fs.GioFileSystem()
         self.rootdir = self.fs.safe(rootdir)
-
         localdir = os.path.expanduser("~/.local")
-        base_data_dir = os.getenv(
-            "XDG_DATA_HOME",
-            os.path.join(localdir, "share")
-        )
-        if indexdir is None:
-            indexdir = os.path.join(base_data_dir, "paperwork")
+        base_data_dir = self.fs.unsafe(rootdir)
 
-        indexdir = os.path.join(indexdir, "index")
+        if index_in_workdir:
+            localdir = base_data_dir
+            indexdir = os.path.join(base_data_dir, "index")
+
+        elif indexdir is None:
+            base_data_dir = os.getenv(
+                "XDG_DATA_HOME",
+                os.path.join(localdir, "share")
+            )
+            indexdir = os.path.join(base_data_dir, "paperwork/index")
+
         label_guesser_dir = os.path.join(indexdir, "label_guessing")
         self.index.open(localdir, base_data_dir, indexdir, label_guesser_dir,
                         rootdir, language=language)

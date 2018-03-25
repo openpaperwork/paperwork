@@ -172,7 +172,7 @@ class JobIndexLoader(Job):
             if not self.can_run:
                 return
 
-            docsearch = DocSearch(self.__config['workdir'].value)
+            docsearch = DocSearch(self.__config['workdir'].value, index_in_workdir=self.__config['index_in_workdir'].value)
             docsearch.set_language(self.__config['ocr_lang'].value)
             docsearch.reload_index(progress_cb=self.__progress_cb)
 

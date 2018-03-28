@@ -295,10 +295,10 @@ def image2surface(img, intermediate="pixbuf", quality=90):
     assert(CAIRO_AVAILABLE)
     with g_lock:
         if intermediate == "pixbuf" and (
-                    not GDK_AVAILABLE or
-                    not hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') or
-                    img.getbands() != ('R', 'G', 'B')
-                ):
+            not GDK_AVAILABLE or
+            not hasattr(GdkPixbuf.Pixbuf, 'new_from_bytes') or
+            img.getbands() != ('R', 'G', 'B')
+        ):
             intermediate = "png"
 
         if intermediate == "pixbuf":

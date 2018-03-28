@@ -52,8 +52,10 @@ def get_docsearch():
 
     verbose("Work directory: {}".format(pconfig.settings['workdir'].value))
 
-    dsearch = docsearch.DocSearch(pconfig.settings['workdir'].value,
-                index_in_workdir=pconfig.settings['index_in_workdir'].value)
+    dsearch = docsearch.DocSearch(
+        pconfig.settings['workdir'].value,
+        index_in_workdir=pconfig.settings['index_in_workdir'].value
+    )
     dsearch.reload_index()
     return dsearch
 
@@ -450,9 +452,9 @@ def _do_ocr(empty_only, ocr_lang, ocr, pages):
 
     for i in range(num_threads):
         worker = Thread(
-                target=_do_ocr_thread,
-                args=(ocr_lang, ocr, input_queue, output_queue)
-                )
+            target=_do_ocr_thread,
+            args=(ocr_lang, ocr, input_queue, output_queue)
+        )
         worker.setDaemon(True)
         worker.start()
 
@@ -509,9 +511,9 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
 
     if ocr is not None:
         pages = itertools.chain(
-                import_result.new_docs_pages,
-                import_result.upd_docs_pages
-                )
+            import_result.new_docs_pages,
+            import_result.upd_docs_pages
+        )
         pages = _do_ocr(True, ocr_lang, ocr, pages)
         for page in pages:
             r['ocr'].append(page.pageid)

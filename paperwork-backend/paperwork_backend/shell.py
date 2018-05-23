@@ -835,7 +835,7 @@ def cmd_rename(old_docid, new_docid):
     verbose("Document {} renamed into {}".format(old_docid, new_docid))
     reply({
         "old_docid": old_docid,
-        "new_docid": new_docid
+        "new_docid": doc.docid
     })
 
 

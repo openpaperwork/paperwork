@@ -486,7 +486,7 @@ def _do_ocr_thread(ocr_lang, ocr, input_queue, output_queue):
 
 
 def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
-               guess_labels=True):
+               guess_labels=True, name=None, labels=[]):
     index_updater = dsearch.get_index_updater(optimize=False)
 
     fileuris = [FS.safe(f) for f in filepaths]
@@ -504,7 +504,6 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
 
     verbose("{}:".format(fileuris))
     r = {
-        "imports": import_result.get(),
         "ocr": [],
         "guessed_labels": [],
     }
@@ -518,17 +517,34 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
         for page in pages:
             r['ocr'].append(page.pageid)
 
+    labels_object = []
+    for label_name, color in labels:
+        label = None
+        for clabel in dsearch.label_list:
+            if clabel.name == label_name:
+                label = clabel
+                break
+        else:
+            label = Label(label_name, color)
+            dsearch.create_label(label)
+        labels_object.append(label)
     for doc in import_result.new_docs:
         if guess_labels:
-            labels = dsearch.guess_labels(doc)
+            guessed_labels = dsearch.guess_labels(doc)
             r['guessed_labels'].append(
                 {
                     "docid": doc.docid,
-                    "labels": [label.name for (label, scores) in labels],
+                    "labels": [
+                        label.name for (label, scores) in guessed_labels
+                    ],
                 }
             )
-            for (label, scores) in labels:
+            for (label, scores) in guessed_labels:
                 dsearch.add_label(doc, label, update_index=False)
+        for label in labels_object:
+            dsearch.add_label(doc, label, update_index=False)
+        if name is not None:
+            doc.docid = name
         verbose("Document {} (labels: {})".format(
             doc.docid,
             ", ".join([label.name for label in doc.labels])
@@ -536,6 +552,10 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
         index_updater.add_doc(doc)
 
     for doc in import_result.upd_docs:
+        for label in labels_object:
+            dsearch.add_label(doc, label)
+        if name is not None:
+            doc.docid = name
         verbose("Document {} (labels: {})".format(
             doc.docid,
             ", ".join([label.name for label in doc.labels])
@@ -544,6 +564,8 @@ def _do_import(filepaths, dsearch, doc, ocr=None, ocr_lang=None,
 
     verbose("Updating index ...")
     index_updater.commit()
+    r["imports"] = import_result.get()
+
     verbose("Done")
     reply(r)
 
@@ -552,7 +574,9 @@ def cmd_import(*args):
     """
     Arguments:
         <file_or_folder> [<file_or_folder> [...]]
-            [-- [--no_ocr] [--no_label_guessing] [--append <document_id>]]
+            [-- [--no_ocr] [--no_label_guessing] [--append <document_id>]
+            [--name <new document_id>]
+            [--label <label_name> <label_color> [--label ...]]]
 
     Import a file or a PDF folder. OCR is run by default on images
     and on PDF pages without text (PDF containing only images)
@@ -615,6 +639,9 @@ def cmd_import(*args):
     ocr = pyocr.get_available_tools()
     docid = None
     doc = None
+    name = None
+    labels = []
+    dsearch = get_docsearch()
 
     args = list(args)
 
@@ -631,6 +658,17 @@ def cmd_import(*args):
     if "--append" in args:
         idx = args.index("--append")
         docid = args[idx + 1]
+        args.pop(idx)
+        args.pop(idx)
+    if "--name" in args:
+        idx = args.index("--name")
+        name = args[idx + 1]
+        args.pop(idx)
+        args.pop(idx)
+    while "--label" in args:
+        idx = args.index("--label")
+        labels.append((args[idx + 1], args[idx + 2]))
+        args.pop(idx)
         args.pop(idx)
         args.pop(idx)
     if len(args) <= 0:
@@ -650,7 +688,9 @@ def cmd_import(*args):
         pconfig = config.PaperworkConfig()
         pconfig.read()
         ocr_lang = pconfig.settings['ocr_lang'].value
-    return _do_import(args, dsearch, doc, ocr, ocr_lang, guess_labels)
+    return _do_import(
+        args, dsearch, doc, ocr, ocr_lang, guess_labels, name, labels
+    )
 
 
 def cmd_ocr(*args):

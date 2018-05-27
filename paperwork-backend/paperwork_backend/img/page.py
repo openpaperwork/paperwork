@@ -19,9 +19,10 @@
 Code relative to page handling.
 """
 
-import PIL.Image
-
 import logging
+import re
+
+import PIL.Image
 import pyocr
 import pyocr.builders
 
@@ -39,8 +40,11 @@ class ImgPage(BasicPage):
     """
 
     EXT_IMG = "jpg"
-
     KEYWORD_HIGHLIGHT = 3
+    FILE_REGEX = re.compile(
+        BasicPage.FILE_PREFIX + "[1-9][0-9]*\." + EXT_IMG,
+        re.IGNORECASE
+    )
 
     can_edit = True
 

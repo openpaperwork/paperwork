@@ -348,10 +348,7 @@ class ImgDoc(BasicDoc):
             count = 0
             for filepath in filelist:
                 filename = self.fs.basename(filepath)
-                if (filename[-4:].lower() != "." + ImgPage.EXT_IMG or
-                    (filename[-10:].lower() == "." + ImgPage.EXT_THUMB) or
-                    (filename[:len(ImgPage.FILE_PREFIX)].lower() !=
-                        ImgPage.FILE_PREFIX)):
+                if not ImgPage.FILE_REGEX.match(filename):
                     continue
                 count += 1
             return count

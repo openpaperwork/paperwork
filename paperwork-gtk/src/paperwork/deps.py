@@ -11,7 +11,7 @@ try:
     gi.require_version('Poppler', '0.18')
     gi.require_version('PangoCairo', '1.0')
     gi.require_version('Notify', '0.7')
-except:
+except:  # noqa: E722
     pass
 
 g_gtk_available = False
@@ -199,7 +199,7 @@ def find_missing_dict(lang):
     missing = []
     try:
         enchant.request_dict(lang['aspell'])
-    except:
+    except:  # noqa: E722
         missing.append(
             (
                 'Dictionary', '(none)',
@@ -285,7 +285,7 @@ def check_sane():
     try:
         pyinsane2.init()
         pyinsane2.exit()
-    except:
+    except:  # noqa: E722
         missing.append(
             (
                 'libsane', '(none)',

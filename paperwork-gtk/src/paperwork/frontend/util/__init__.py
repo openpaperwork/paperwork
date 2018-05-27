@@ -238,23 +238,23 @@ def get_documentation(doc_name):
     lang = "en"
     try:
         lang = locale.getdefaultlocale()[0][:2]
-    except:
-        logger.exception(
+    except Exception as exc:
+        logger.error(
             "get_documentation(): Failed to figure out locale. Will default"
-            " to English"
+            " to English",
+            exc_info=exc
         )
-        pass
 
     default = doc_name + ".pdf"
     localized = "{}_{}.pdf".format(doc_name, lang)
     try:
         return _get_resource_path(localized, pkg="paperwork.frontend.doc")
-    except:
+    except:  # noqa: E722
         pass
 
     try:
         return _get_resource_path(default, pkg="paperwork.frontend.doc")
-    except:
+    except:  # noqa: E722
         pass
 
     if os.path.exists(localized):
@@ -344,7 +344,7 @@ def connect_actions(actions):
                 logger.error("MISSING BUTTON: %s" % (action))
         try:
             actions[action][1].connect(actions[action][0])
-        except:
+        except:  # noqa: E722
             logger.error("Failed to connect action '%s'" % action)
             raise
 

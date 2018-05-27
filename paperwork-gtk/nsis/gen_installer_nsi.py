@@ -10,7 +10,7 @@ import sys
 from paperwork_backend.util import find_language
 
 
-DOWNLOAD_URI = (
+DEFAULT_DOWNLOAD_URI = (
     "https://download.openpaper.work/windows/amd64/"
     "paperwork-master-${PRODUCT_VERSION}.zip"
 )
@@ -120,11 +120,11 @@ ALL_LANGUAGES = [
 UNKNOWN_LANGUAGE = {
     'download_section': """
         Section /o "{long}" SEC_{upper}
-          inetc::get "https://github.com/tesseract-ocr/tessdata/raw/3.04.00/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
-          Pop $0
-          StrCmp $0 "OK" +3
-             MessageBox MB_OK "Download of {lower}.traineddata failed"
-             Quit
+            inetc::get "https://download.openpaper.work/tesseract/3.05.00/tessdata/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
+            Pop $0
+            StrCmp $0 "OK" +3
+                MessageBox MB_OK "Download of {lower}.traineddata failed: $0"
+                Quit
         SectionEnd
 """,
     'lang_strings': """
@@ -138,10 +138,10 @@ KNOWN_LANGUAGES = {
     'deu': {
         "download_section": """
         Section /o "German / Deutsch" SEC_DEU
-          inetc::get "https://github.com/tesseract-ocr/tessdata/raw/3.04.00/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
+          inetc::get "https://download.openpaper.work/tesseract/3.05.00/tessdata/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
           Pop $0
           StrCmp $0 "OK" +3
-             MessageBox MB_OK "Download of {lower}.traineddata failed"
+        MessageBox MB_OK "Download of {lower}.traineddata failed: $0"
              Quit
         SectionEnd
 """,
@@ -154,14 +154,14 @@ LangString DESC_SEC_DEU ${{LANG_GERMAN}} "Data files required to run OCR on Germ
     'eng': {
         "download_section": """
         Section "English / English" SEC_ENG
-          SectionIn RO ; Mandatory section
+            SectionIn RO ; Mandatory section
 
-          inetc::get "https://jflesch.github.io/windows/paperwork_1.0/tessdata_eng_3_05_00dev.zip" "$PLUGINSDIR\\tess_eng.zip" /END
-          Pop $0
-          StrCmp $0 "OK" +3
-             MessageBox MB_OK "Download of {lower}.traineddata failed"
-             Quit
-          nsisunz::UnzipToLog "$PLUGINSDIR\\tess_eng.zip" "$INSTDIR\\Data\\Tessdata"
+            inetc::get "https://download.openpaper.work/tesseract/3.05.00/tessdata_eng_3_05_00dev.zip" "$PLUGINSDIR\\tess_eng.zip" /END
+            Pop $0
+            StrCmp $0 "OK" +3
+                MessageBox MB_OK "Download of {lower}.traineddata failed: $0"
+                Quit
+            nsisunz::UnzipToLog "$PLUGINSDIR\\tess_eng.zip" "$INSTDIR\\Data\\Tessdata"
         SectionEnd
 """,
         "lang_strings": """
@@ -173,11 +173,11 @@ LangString DESC_SEC_ENG ${{LANG_GERMAN}} "Data files required to run OCR on Engl
     'fra': {
         "download_section": """
         Section /o "French / Français" SEC_FRA
-          inetc::get "https://github.com/tesseract-ocr/tessdata/raw/3.04.00/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
-          Pop $0
-          StrCmp $0 "OK" +3
-             MessageBox MB_OK "Download of {lower}.traineddata failed"
-             Quit
+            inetc::get "https://download.openpaper.work/tesseract/3.05.00/tessdata/{lower}.traineddata" "$INSTDIR\\Data\\Tessdata\\{lower}.traineddata" /END
+            Pop $0
+            StrCmp $0 "OK" +3
+                MessageBox MB_OK "Download of {lower}.traineddata failed: $0"
+                Quit
         SectionEnd
 """,
         "lang_strings": """
@@ -260,19 +260,19 @@ Section "Paperwork" SEC_PAPERWORK
   inetc::get "${PRODUCT_DOWNLOAD_URI}" "$PLUGINSDIR\\paperwork.zip" /END
   Pop $0
   StrCmp $0 "OK" +3
-    MessageBox MB_OK "Download failed"
+    MessageBox MB_OK "Download of ${PRODUCT_DOWNLOAD_URI} failed: $0"
     Quit
 
-  inetc::get "https://jflesch.github.io/windows/paperwork_1.0/tesseract_3_05_00dev.zip" "$PLUGINSDIR\\tesseract.zip" /END
+  inetc::get "https://download.openpaper.work/tesseract/3.05.00/tesseract_3_05_00dev.zip" "$PLUGINSDIR\\tesseract.zip" /END
   Pop $0
   StrCmp $0 "OK" +3
-    MessageBox MB_OK "Download failed"
+  MessageBox MB_OK "Download failed: $0"
     Quit
 
-  inetc::get "https://jflesch.github.io/windows/paperwork_1.0/tessconfig_3_05_00dev.zip" "$PLUGINSDIR\\tessconfig.zip" /END
+  inetc::get "https://download.openpaper.work/tesseract/3.05.00/tessconfig_3_05_00dev.zip" "$PLUGINSDIR\\tessconfig.zip" /END
   Pop $0
   StrCmp $0 "OK" +3
-    MessageBox MB_OK "Download failed"
+  MessageBox MB_OK "Download failed: $0"
     Quit
 
   CreateDirectory "$INSTDIR"
@@ -424,7 +424,7 @@ def main(args):
         print ("ARGS: {} <version> [<download URI>]".format(args[0]))
         return
 
-    download_uri = DOWNLOAD_URI
+    download_uri = DEFAULT_DOWNLOAD_URI
 
     if len(args) == 3:
         version = short_version = args[1]
@@ -433,13 +433,11 @@ def main(args):
         version = args[1]
         m = re.match("([\d\.]+)", version)  # match everything but the suffix
         short_version = m.string[m.start():m.end()]
-        download_uri = DOWNLOAD_URI
+        download_uri = DEFAULT_DOWNLOAD_URI
 
     with open("out.nsi", "w") as out_fd:
         out_fd.write(VERSION.format(version=version, short_version=short_version, download_uri=download_uri))
         out_fd.write(HEADER)
-
-
         out_fd.write("""
 SectionGroup /e "Tesseract OCR data files" SEC_OCR_FILES
 """)
@@ -454,8 +452,6 @@ SectionGroup /e "Tesseract OCR data files" SEC_OCR_FILES
         out_fd.write("""
 SectionGroupEnd
 """)
-
-
         out_fd.write(MIDDLE)
 
         for lang_name in ALL_LANGUAGES:

@@ -432,7 +432,7 @@ class Canvas(Gtk.DrawingArea, Gtk.Scrollable):
             try:
                 mouse_cursor = Gdk.Cursor.new_from_name(display, "all-scroll")
                 origin_cursor = Gdk.Cursor.new_from_name(display, "crosshair")
-            except:
+            except:  # noqa: E722
                 mouse_cursor = Gdk.Cursor.new_for_display(
                     display, Gdk.CursorType.FLEUR
                 )

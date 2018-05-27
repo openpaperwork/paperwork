@@ -50,8 +50,8 @@ class JobInfoGetter(Job):
         if hasattr(os, 'uname'):
             try:
                 logger.info("os.uname: {}".format(os.uname()))
-            except:
-                pass
+            except Exception as exc:
+                logger.info("os.uname: {}".format(str(exc)))
         try:
             logger.info("platform.architecture: {}".format(
                 platform.architecture()
@@ -110,9 +110,10 @@ class JobInfoGetter(Job):
             try:
                 max_pages = max(max_pages, doc.nb_pages)
                 doc_idx += 1
-            except:
-                logger.exception(
-                    "Exception while examining document {}".format(doc.docid)
+            except Exception as exc:
+                logger.error(
+                    "Exception while examining document {}".format(doc.docid),
+                    exc_info=exc
                 )
 
         logger.info("Total number of documents: {}".format(nb_docs))

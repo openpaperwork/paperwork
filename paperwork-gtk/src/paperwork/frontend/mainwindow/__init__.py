@@ -832,7 +832,7 @@ class JobPageImgRenderer(Job):
             self.emit("rendered",
                       self.page.page_nb, self.page.doc.nb_pages,
                       self.page.img, self.page.boxes)
-        except:  # NOQA
+        except:  # noqa: E722
             # TODO(Jflesch)
             # We get "MemoryError" sometimes ? oO
             self.emit("rendering-error")

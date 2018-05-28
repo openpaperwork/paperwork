@@ -61,6 +61,7 @@ def __cleanup_word_array(keywords):
     """
     Yield all the keywords long enough to be used
     """
+    global MIN_KEYWORD_LEN
     for word in keywords:
         if len(word) >= MIN_KEYWORD_LEN:
             yield word

@@ -8,7 +8,7 @@ class Exporter(object):
         self.export_format = str(export_format)
         self.can_change_quality = False
 
-    def set_quality(quality_pourcent):
+    def set_quality(self, quality_pourcent):
         raise NotImplementedError()
 
     def set_postprocess_func(self, postprocess_func):

@@ -156,12 +156,13 @@ class ImgPage(BasicPage):
 
     size = property(__get_size)
 
+    ORIENTATION_PORTRAIT = 0
+    ORIENTATION_LANDSCAPE = 1
+
     def print_page_cb(self, print_op, print_context, keep_refs={}):
         """
         Called for printing operation by Gtk
         """
-        ORIENTATION_PORTRAIT = 0
-        ORIENTATION_LANDSCAPE = 1
         scaling = 2.0
 
         img = self.img
@@ -169,13 +170,13 @@ class ImgPage(BasicPage):
 
         # take care of rotating the image if required
         if print_context.get_width() <= print_context.get_height():
-            print_orientation = ORIENTATION_PORTRAIT
+            print_orientation = self.ORIENTATION_PORTRAIT
         else:
-            print_orientation = ORIENTATION_LANDSCAPE
+            print_orientation = self.ORIENTATION_LANDSCAPE
         if width <= height:
-            img_orientation = ORIENTATION_PORTRAIT
+            img_orientation = self.ORIENTATION_PORTRAIT
         else:
-            img_orientation = ORIENTATION_LANDSCAPE
+            img_orientation = self.ORIENTATION_LANDSCAPE
         if print_orientation != img_orientation:
             logger.info("Rotating the page ...")
             img = img.rotate(90, expand=True)

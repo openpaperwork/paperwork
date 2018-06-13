@@ -1,4 +1,0 @@
-recursive-include src *.py
-include AUTHORS
-include *.markdown
-include LICENSE

@@ -46,9 +46,13 @@ class Plugin(openpaperwork_core.PluginBase):
             isdir = self.core.call_success("fs_isdir", doc_url)
             if not isdir:
                 continue
-            nb_pages = self.core.call_success(
-                "doc_get_nb_pages_by_url", doc_url
-            )
+            try:
+                nb_pages = self.core.call_success(
+                    "doc_get_nb_pages_by_url", doc_url
+                )
+            except Exception:
+                # handled by 'paperwork_backend.chkworkdir.corrupted_page_map'
+                continue
             if nb_pages is not None and nb_pages > 0:
                 continue
             out_problems.append({

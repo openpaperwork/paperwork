@@ -34,6 +34,7 @@ DEFAULT_PLUGINS = (
         'paperwork_backend.cairo.cache',
         'paperwork_backend.cairo.pillow',
         'paperwork_backend.cairo.poppler',
+        'paperwork_backend.chkworkdir.corrupted_page_map',
         'paperwork_backend.chkworkdir.empty_doc',
         'paperwork_backend.chkworkdir.file_at_workdir_root',
         'paperwork_backend.chkworkdir.label_color',

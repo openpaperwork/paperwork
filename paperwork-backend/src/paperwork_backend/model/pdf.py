@@ -105,15 +105,15 @@ class PdfPageMapping(object):
 
         if target_page_idx is not None:
             old_original = self.reverse_mapping.get(target_page_idx, None)
-            if old_original is not None:
+            if old_original is not None and old_original in self.mapping:
                 self.mapping.pop(old_original)
 
         old_target = self.mapping.get(original_page_idx, None)
-        if old_target is not None:
+        if old_target is not None and old_target in self.reverse_mapping:
             self.reverse_mapping.pop(old_target)
             self.page_mtimes[old_target] = now
 
-        if target_page_idx is None:
+        if target_page_idx is None and original_page_idx in self.mapping:
             self.mapping.pop(original_page_idx)
         else:
             self.mapping[original_page_idx] = target_page_idx
@@ -131,33 +131,40 @@ class PdfPageMapping(object):
                 self.nb_pages = v + 1
 
     def load(self):
-        self.real_nb_pages = self.plugin._doc_internal_get_nb_pages_by_url(
-            self.doc_url, mapping=False
-        )
+        try:
+            self.real_nb_pages = self.plugin._doc_internal_get_nb_pages_by_url(
+                self.doc_url, mapping=False
+            )
 
-        self.mapping = {p: p for p in range(0, self.real_nb_pages)}
-        self.reverse_mapping = {p: p for p in range(0, self.real_nb_pages)}
-        now = datetime.datetime.now().timestamp()
-        self.page_mtimes = {p: now for p in range(0, self.real_nb_pages)}
-        if self.core.call_success("fs_exists", self.map_url) is None:
+            self.mapping = {p: p for p in range(0, self.real_nb_pages)}
+            self.reverse_mapping = {p: p for p in range(0, self.real_nb_pages)}
+            now = datetime.datetime.now().timestamp()
+            self.page_mtimes = {p: now for p in range(0, self.real_nb_pages)}
+            if self.core.call_success("fs_exists", self.map_url) is None:
+                self.update_nb_pages()
+                return
+
+            with self.core.call_success("fs_open", self.map_url, "r") as fd:
+                # drop the first line
+                lines = fd.readlines()[1:]
+                lines = [line.split(",", 1) for line in lines]
+                lines = [
+                    (int(orig_page_idx), int(target_page_idx))
+                    for (orig_page_idx, target_page_idx) in lines
+                ]
+                lines.sort()
+                for (orig_page_idx, target_page_idx) in lines:
+                    if target_page_idx < 0:
+                        target_page_idx = None
+                    self.set_mapping(orig_page_idx, target_page_idx)
+
             self.update_nb_pages()
-            return
-
-        with self.core.call_success("fs_open", self.map_url, "r") as fd:
-            # drop the first line
-            lines = fd.readlines()[1:]
-            lines = [line.split(",", 1) for line in lines]
-            lines = [
-                (int(orig_page_idx), int(target_page_idx))
-                for (orig_page_idx, target_page_idx) in lines
-            ]
-            lines.sort()
-            for (orig_page_idx, target_page_idx) in lines:
-                if target_page_idx < 0:
-                    target_page_idx = None
-                self.set_mapping(orig_page_idx, target_page_idx)
-
-        self.update_nb_pages()
+        except Exception as exc:
+            LOGGER.critical(
+                "Failed to load page mapping for doc %s !",
+                self.doc_url, exc_info=exc
+            )
+            raise
 
     def load_reverse_only(self):
         """
@@ -338,6 +345,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def get_interfaces(self):
         return [
             "doc_hash",
+            "doc_pdf",
             "doc_pdf_import",
             "doc_pdf_url",
             "doc_text",
@@ -503,6 +511,12 @@ class Plugin(openpaperwork_core.PluginBase):
         nb_pages = pdf.get_n_pages()
         return nb_pages
 
+    def doc_pdf_get_real_nb_pages_by_url(self, doc_url):
+        # Poppler is not thread-safe
+        return self.core.call_one(
+            "mainloop_execute", self._doc_get_real_nb_pages_by_url, doc_url
+        )
+
     def _doc_internal_get_nb_pages_by_url(
             self, doc_url, mapping=True):
         if mapping:
@@ -517,10 +531,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if doc_url in self.cache_nb_pages:
             r = self.cache_nb_pages[doc_url]
         else:
-            # Poppler is not thread-safe
-            r = self.core.call_one(
-                "mainloop_execute", self._doc_get_real_nb_pages_by_url, doc_url
-            )
+            r = self.doc_pdf_get_real_nb_pages_by_url(doc_url)
             if r is not None:
                 self.cache_nb_pages[doc_url] = r
         return r if r is not None else 0

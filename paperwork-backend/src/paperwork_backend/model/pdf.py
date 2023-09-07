@@ -131,33 +131,39 @@ class PdfPageMapping(object):
                 self.nb_pages = v + 1
 
     def load(self):
-        self.real_nb_pages = self.plugin._doc_internal_get_nb_pages_by_url(
-            self.doc_url, mapping=False
-        )
+        try:
+            self.real_nb_pages = self.plugin._doc_internal_get_nb_pages_by_url(
+                self.doc_url, mapping=False
+            )
 
-        self.mapping = {p: p for p in range(0, self.real_nb_pages)}
-        self.reverse_mapping = {p: p for p in range(0, self.real_nb_pages)}
-        now = datetime.datetime.now().timestamp()
-        self.page_mtimes = {p: now for p in range(0, self.real_nb_pages)}
-        if self.core.call_success("fs_exists", self.map_url) is None:
+            self.mapping = {p: p for p in range(0, self.real_nb_pages)}
+            self.reverse_mapping = {p: p for p in range(0, self.real_nb_pages)}
+            now = datetime.datetime.now().timestamp()
+            self.page_mtimes = {p: now for p in range(0, self.real_nb_pages)}
+            if self.core.call_success("fs_exists", self.map_url) is None:
+                self.update_nb_pages()
+                return
+
+            with self.core.call_success("fs_open", self.map_url, "r") as fd:
+                # drop the first line
+                lines = fd.readlines()[1:]
+                lines = [line.split(",", 1) for line in lines]
+                lines = [
+                    (int(orig_page_idx), int(target_page_idx))
+                    for (orig_page_idx, target_page_idx) in lines
+                ]
+                lines.sort()
+                for (orig_page_idx, target_page_idx) in lines:
+                    if target_page_idx < 0:
+                        target_page_idx = None
+                    self.set_mapping(orig_page_idx, target_page_idx)
+
             self.update_nb_pages()
-            return
-
-        with self.core.call_success("fs_open", self.map_url, "r") as fd:
-            # drop the first line
-            lines = fd.readlines()[1:]
-            lines = [line.split(",", 1) for line in lines]
-            lines = [
-                (int(orig_page_idx), int(target_page_idx))
-                for (orig_page_idx, target_page_idx) in lines
-            ]
-            lines.sort()
-            for (orig_page_idx, target_page_idx) in lines:
-                if target_page_idx < 0:
-                    target_page_idx = None
-                self.set_mapping(orig_page_idx, target_page_idx)
-
-        self.update_nb_pages()
+        except Exception as exc:
+            LOGGER.critical(
+                "Failed to load page mapping for doc %s !", exc_info=exc
+            )
+            raise
 
     def load_reverse_only(self):
         """

@@ -625,7 +625,7 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Export settings defined. Opening file chooser dialog")
 
         dialog = Gtk.FileChooserNative.new(
-            _("Select a file or a directory to import"),
+            _("Select a file to which export the document"),
             self.windows[-1],
             Gtk.FileChooserAction.SAVE,
             None, None

@@ -1,4 +1,5 @@
 import logging
+import random
 
 try:
     import gi
@@ -123,6 +124,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def init(self, core):
         super().init(core)
+
+        opt = self.core.call_success(
+            "config_build_simple", "GUI", "last_export_uri",
+            lambda: None
+        )
+        self.core.call_all("config_register", "last_export_uri", opt)
 
         self.widget_tree = self.core.call_success(
             "gtk_load_widget_tree",
@@ -645,6 +652,14 @@ class Plugin(openpaperwork_core.PluginBase):
         dialog.add_filter(file_filter)
         dialog.set_filter(file_filter)
 
+        last_export_uri = self.core.call_success(
+            "config_get", "last_export_uri"
+        )
+        if last_export_uri is not None:
+            # this filename does not exist, but the parent directory
+            # will be selected. A hack inspired by what firefox does.
+            dialog.set_uri(last_export_uri + str(random.randint(0, 10000)))
+
         dialog.connect("response", self._on_dialog_response)
         dialog.run()
         dialog.hide()
@@ -668,6 +683,8 @@ class Plugin(openpaperwork_core.PluginBase):
                 break
         else:
             selected += "." + file_extensions[0]
+
+        self.core.call_all("config_put", "last_export_uri", selected)
 
         promise = openpaperwork_core.promise.Promise(
             self.core, lambda: self.export_input

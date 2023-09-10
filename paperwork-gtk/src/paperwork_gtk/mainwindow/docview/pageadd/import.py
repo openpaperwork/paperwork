@@ -1,4 +1,5 @@
 import logging
+import random
 
 try:
     import gi
@@ -60,6 +61,12 @@ class Plugin(openpaperwork_core.PluginBase):
         super().init(core)
         if not GTK_AVAILABLE:
             return
+        opt = self.core.call_success(
+            "config_build_simple", "GUI", "last_import_uri",
+            lambda: None
+        )
+        self.core.call_all("config_register", "last_import_uri", opt)
+
         self.core.call_all(
             "mainloop_schedule", self.core.call_all,
             "pageadd_sources_refresh"
@@ -137,6 +144,13 @@ class Plugin(openpaperwork_core.PluginBase):
 
         dialog.set_filter(filter_all)
 
+        last_import_uri = self.core.call_success(
+            "config_get", "last_import_uri"
+        )
+        if last_import_uri is not None:
+            # this filename does not exist, but the parent directory
+            # will be selected. A hack inspired by what firefox does.
+            dialog.set_uri(last_import_uri + str(random.randint(0, 10000)))
         dialog.connect("response", self._on_dialog_response)
 
         self.core.call_all("pageadd_busy_add")
@@ -156,5 +170,9 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         selected = dialog.get_uris()
+
         dialog.destroy()
+
+        self.core.call_all("config_put", "last_import_uri", selected[0])
+
         self.core.call_all("gtk_doc_import", selected)

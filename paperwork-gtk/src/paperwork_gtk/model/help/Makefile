@@ -11,6 +11,8 @@ l10n_extract:
 
 l10n_compile: l10n_extract
 
+out/translated_%.tex: l10n_compile
+
 out/translated_%.pdf: out/translated_%.tex l10n_compile screenshots out/paperwork_going_up.png
 	# run pdflatex twice because of the TOC
 	pdflatex --output-directory=out ../$<
@@ -31,12 +33,11 @@ clean:
 data:
 	rm -f $(CURDIR)/out/*.pdf
 	rm -f $(CURDIR)/out/*.toc
-	$(MAKE) \
-		out/intro.pdf \
-		out/translated_intro_de.pdf \
-		out/translated_intro_fr.pdf \
-		out/usage.pdf \
-		out/translated_usage_de.pdf \
-		out/translated_usage_fr.pdf
+	$(MAKE) out/intro.pdf
+	$(MAKE) out/translated_intro_de.pdf
+	$(MAKE) out/translated_intro_fr.pdf
+	$(MAKE) out/usage.pdf
+	$(MAKE) out/translated_usage_de.pdf
+	$(MAKE) out/translated_usage_fr.pdf
 
 .PHONY: all clean screenshots data l10n_extract l10n_compile

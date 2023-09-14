@@ -33,11 +33,12 @@ clean:
 data:
 	rm -f $(CURDIR)/out/*.pdf
 	rm -f $(CURDIR)/out/*.toc
-	$(MAKE) out/intro.pdf
-	$(MAKE) out/translated_intro_de.pdf
-	$(MAKE) out/translated_intro_fr.pdf
-	$(MAKE) out/usage.pdf
-	$(MAKE) out/translated_usage_de.pdf
-	$(MAKE) out/translated_usage_fr.pdf
+	$(MAKE) \
+		out/intro.pdf \
+		out/translated_intro_de.pdf \
+		out/translated_intro_fr.pdf \
+		out/usage.pdf \
+		out/translated_usage_de.pdf \
+		out/translated_usage_fr.pdf
 
 .PHONY: all clean screenshots data l10n_extract l10n_compile

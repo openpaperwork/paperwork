@@ -1,6 +1,6 @@
 """
 module 'http' contains all the code to communicate using HTTP+JSON with
-https://openpaper.work/:
+https://www.openpaper.work/:
 - update notification
 - anonymous statistics
 - etc
@@ -23,7 +23,7 @@ if os.name == "nt":
 
 
 LOGGER = logging.getLogger(__name__)
-DEFAULT_SERVER = "openpaper.work"
+DEFAULT_SERVER = "www.openpaper.work"
 DEFAULT_PROTOCOL = "https"
 
 

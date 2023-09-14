@@ -8,7 +8,7 @@
     <property name="program_name">Paperwork</property>
     <property name="copyright" translatable="yes">©2023</property>
     <property name="comments" translatable="yes">Sorting documents is a machine's job.</property>
-    <property name="website">https://openpaper.work/</property>
+    <property name="website">https://www.openpaper.work/</property>
     <property name="logo_icon_name">image-missing</property>
     <property name="license_type">gpl-3-0</property>
     <child type="titlebar">

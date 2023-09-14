@@ -1,6 +1,6 @@
 """
 openpaperwork_core.beacon contains everything related to the communication
-with the website https://openpaper.work/
+with the website https://www.openpaper.work/
 """
 
 import datetime

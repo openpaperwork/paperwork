@@ -109,7 +109,7 @@ def get_category_name(file_path):
         for component in file_path:
             if component == category_pattern:
                 return category_name
-    assert()
+    assert False
 
 
 def count_lines(line_counts, file_path):
@@ -119,7 +119,7 @@ def count_lines(line_counts, file_path):
     )
     if output.returncode != os.EX_OK:
         sys.stderr.write(
-            "WARNING: git blame {} failed ! (returncode={})".format(
+            "WARNING: git blame {} failed ! (returncode={})\n".format(
                 file_path, output.returncode
             )
         )

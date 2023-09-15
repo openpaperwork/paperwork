@@ -16,9 +16,9 @@ script:
   - make l10n_compile -C ../paperwork-gtk
   - make -C ../sub/libinsane clean
   - unset DESTDIR && make install PREFIX="$(pwd)/AppDir/usr" -C ../sub/libinsane
-  # We install PyOCR from pypi because it's much easier
   - pip3 install --ignore-installed --prefix=/usr --root=AppDir
     ../sub/libpillowfight
+    ../sub/pyocr
     ../openpaperwork-core
     ../openpaperwork-gtk
     ../paperwork-backend

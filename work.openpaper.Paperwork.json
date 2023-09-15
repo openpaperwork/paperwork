@@ -265,8 +265,10 @@
         },
         {
             "name": "python-pyocr",
-            "make-install-args": ["PIP_ARGS=--prefix=/app --root=/"],
-            "no-autogen": true,
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --prefix=${FLATPAK_DEST} --no-build-isolation ."
+            ],
             "ensure-writable": [
                 "/lib/python*/site-packages/easy-install.pth",
                 "/lib/python*/site-packages/setuptools.pth"

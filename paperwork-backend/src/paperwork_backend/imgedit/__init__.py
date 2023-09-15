@@ -23,4 +23,4 @@ class AbstractImgEditor(object):
         return frame
 
     def __eq__(self, o):
-        return type(self) == type(o)
+        return type(self) is type(o)

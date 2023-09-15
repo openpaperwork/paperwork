@@ -265,13 +265,8 @@
         },
         {
             "name": "python-pyocr",
-            "buildsystem": "simple",
-            "build-options": {
-                "env": {
-                    "ENABLE_SETUPTOOLS_SCM": "0"
-                }
-            },
-            "build-commands": ["python3 ./setup.py install --prefix=/app --root=/"],
+            "make-install-args": ["PIP_ARGS=--prefix=/app --root=/"],
+            "no-autogen": true,
             "ensure-writable": [
                 "/lib/python*/site-packages/easy-install.pth",
                 "/lib/python*/site-packages/setuptools.pth"

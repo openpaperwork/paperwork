@@ -1,4 +1,4 @@
-2023/07/30 - 2.2.0:
+2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - doclist: optimization: Now that Gtk.Template are available. Use them
   instead of reloading Gtk widget trees.
@@ -13,6 +13,10 @@
 - doclist thumbnails: handle gracefully corrupted thumbnails/documents.
 - Flatpak workaround: when running in Flatpak, always run first 'fc-cache -f'
   to make sure that text will be rendered correctly in PDF pages.
+- Import dialog: remember last import location
+  (thanks to Guillaume Girol)
+- Export dialog: fix title
+  (thanks to Guillaume Girol)
 
 2023/01/08 - 2.1.2:
 - Optim: mainwindow.docproperties: optim reload doc properties only if the doc properties are actually visible (it was a huge CPU waste) (thanks to pie@#openpaperwork)

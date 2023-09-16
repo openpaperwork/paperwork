@@ -54,9 +54,12 @@ endif
 
 release_pypi:
 	@echo "Releasing openpaperwork-gtk ..."
-	pip install build
-	${PYTHON} -m build -s
-	twine upload --repository openpaperwork-gtk $(CURDIR)/dist/*.tar.gz
+	rm -rf /tmp/venv
+	virtualenv /tmp/venv
+	. /tmp/venv/bin/activate && pip install build
+	. /tmp/venv/bin/activate && ${PYTHON} -m build -s
+	rm -rf /tmp/venv
+	twine upload $(CURDIR)/dist/*.tar.gz
 	@echo "All done"
 
 clean:

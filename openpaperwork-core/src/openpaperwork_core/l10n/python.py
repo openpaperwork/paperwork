@@ -60,7 +60,10 @@ class Plugin(PluginBase):
             libintl_path = os.path.abspath(os.path.join(
                 sys._MEIPASS, "libintl-8.dll"
             ))
-            self.libintl = ctypes.cdll.LoadLibrary(libintl_path)
+            if not os.path.exits(libintl_path):
+                LOGGER.warning("Failed to find library libintl-8.dll")
+            else:
+                self.libintl = ctypes.cdll.LoadLibrary(libintl_path)
 
         self.l10n_load('openpaperwork_core.l10n', 'openpaperwork_core')
 

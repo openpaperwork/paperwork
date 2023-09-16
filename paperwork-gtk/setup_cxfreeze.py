@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-import codecs
 import glob
 import os
 import sys
-
-import setuptools
 
 import cx_Freeze
 
@@ -27,6 +24,7 @@ required_dlls = [
     'libhandy-1-0.dll',
     'libinsane.dll',
     'libinsane_gobject.dll',
+    'libintl-8.dll',
     'libnotify-4.dll',
     'libpango-1.0-0.dll',
     'libpangocairo-1.0-0.dll',

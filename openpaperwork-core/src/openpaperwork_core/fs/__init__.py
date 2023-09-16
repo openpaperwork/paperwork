@@ -55,12 +55,17 @@ class CommonFsPluginBase(openpaperwork_core.PluginBase):
         uri = urllib.parse.unquote(uri)
         return uri
 
+    # It seems urllib.parse.urljoin doesn't work any protocol. For instance,
+    # it doesn't play nice with smb:// and davs://
+    URLLIB_SUPPORTED_PROTOCOLS = {"http", "https", "file", "ftp"}
+
     def fs_join(self, base, url):
         if not base.endswith("/"):
             base += "/"
-        if base.startswith('smb'):
-            return base + url
-        return urllib.parse.urljoin(base, url)
+        protocol = base.split("://", 1)[0].lower()
+        if protocol in self.URLLIB_SUPPORTED_PROTOCOLS:
+            return urllib.parse.urljoin(base, url)
+        return base + url
 
     def fs_basename(self, url):
         parsed_url = urllib.parse.urlparse(url)

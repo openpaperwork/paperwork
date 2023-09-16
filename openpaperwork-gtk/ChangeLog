@@ -1,4 +1,4 @@
-2023/07/30 - 2.2.0:
+2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - fs.gio.fs_get_mtime(): do not trust Gio.File.query_info(TIME_CHANGED) on
   Windows. Prefer os.stat()

@@ -1,4 +1,4 @@
-2023/07/30 - 2.2.0:
+2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - fix various depreciation warnings
 - beacon: if openpaper.work is unreachable, catch the exception to not bother
@@ -8,6 +8,9 @@
   based on the output file name instead of assuming JPEG.
 - config: do not crash on empty values (shouldn't happen unless the
   configuration file has been manually edited)
+- FS: Fix use of URLs like `davs://` or `dav://`
+- Take into account that `openpaper.work` has become `www.openpaper.work`
+  (there is a HTTP 301 not taken into account correctly)
 
 2023/01/08 - 2.1.2:
 - Fine-tune sqlite settings

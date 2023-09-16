@@ -1,4 +1,4 @@
-2023/07/30 - 2.2.0:
+2023/09/16 - 2.2.0:
 - By default, use PNG instead of JPEG (See issue #1021 for rationale).
 - setup.py has been replaced by pyproject.toml
 - drop dependency on python-Levenshtein.
@@ -19,6 +19,12 @@
 - PDF: Handle gracefully UnicodeDecodeError that happen sometimes on Windows.
 - Handle images too big for pillow as gracefully as possible: do not crash
   but replace them by a tile with a text explaining the image is too big.
+- Libinsane: Make it possible to specify custom scan option values
+  (thanks to auriocus on forum.openpaper.work)
+- PDF: in case a page_map.csv is corrupted, log which one.
+- PDF: Make the readign of page_map.csv more resilient.
+- chkworkdir: in case page_map.csv is corrupted, fix the document by deleting
+  the page_map.csv and moving the pages around
 
 2023/01/08 - 2.1.2:
 - Cairo renderers (Image/PDF): optimisation: add a cache

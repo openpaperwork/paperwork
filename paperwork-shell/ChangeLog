@@ -1,4 +1,4 @@
-2023/07/30 - 2.2.0:
+2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - paperwork-cli: Use Python Rich to prettify the output of some commands
 - paperwork-cli export: Make sure export pipelines make sense, otherwise

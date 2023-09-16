@@ -207,6 +207,22 @@ class Source(object):
                     )
                     # will try to scan anyway
 
+            extrasettings = self.core.call_success(
+                "config_get", "scanner_extra_settings"
+            )
+
+            for (setting, value) in extrasettings.items():
+                if setting in opts:
+                    try:
+                        opts[setting].set_value(value)
+                    except Exception as exc:
+                        LOGGER.warning(
+                            "Failed to set scan setting %s=%s",
+                            setting, value, exc_info=exc
+                        )
+                else:
+                    LOGGER.warning("No such scanner setting: " + setting)
+
             imgs = self._scan(scan_id, resolution, max_pages, close_on_end)
             return (self, scan_id, imgs)
 
@@ -613,6 +629,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 "config_build_simple", "scanner",
                 "mode", lambda: "Color"
             ),
+            'scanner_extra_settings': self.core.call_success(
+                "config_build_simple", "scanner",
+                "extrasettings", lambda: {}
+            ),
+
         }
         for (k, setting) in settings.items():
             self.core.call_all(

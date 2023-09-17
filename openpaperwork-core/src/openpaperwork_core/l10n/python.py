@@ -60,7 +60,7 @@ class Plugin(PluginBase):
             libintl_path = os.path.abspath(os.path.join(
                 sys._MEIPASS, "libintl-8.dll"
             ))
-            if not os.path.exits(libintl_path):
+            if not os.path.exists(libintl_path):
                 LOGGER.warning("Failed to find library libintl-8.dll")
             else:
                 self.libintl = ctypes.cdll.LoadLibrary(libintl_path)

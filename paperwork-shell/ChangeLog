@@ -1,3 +1,6 @@
+2023/09/17 - 2.2.1:
+- Add build-system.build-backend to pyproject.toml
+
 2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - paperwork-cli: Use Python Rich to prettify the output of some commands

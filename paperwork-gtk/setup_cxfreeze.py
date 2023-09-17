@@ -76,6 +76,7 @@ required_gi_namespaces = [
     "Pango-1.0",
     "PangoCairo-1.0",
     "Poppler-0.18",
+    "freetype2-2.0",
 
     "Libinsane-1.0",
 ]

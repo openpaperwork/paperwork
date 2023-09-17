@@ -69,10 +69,27 @@ if ! [ -d paperwork ] ; then
 	fi
 fi
 cd paperwork
+# reinit work.openpaper.Paperwork.json (only file we modify later)
+if ! git checkout work.openpaper.Paperwork.json ; then
+	echo "Git checkout work.openpaper.Paperwork.json failed !"
+	exit 1
+fi
 if ! git checkout "${branch}" || ! git pull ; then
 	echo "Git pull failed !"
 	exit 1
 fi
+
+# Set the branches correctly
+jq \
+	--arg branch "${branch}" \
+	'.branch |= $branch' \
+	work.openpaper.Paperwork.json \
+	| sponge work.openpaper.Paperwork.json
+jq \
+	--arg branch "${branch}" \
+	'(((.modules[] | select(type == "object")) | select(.name == "python-paperwork")).sources[] | select(.type == "git")).branch |= $branch' \
+	work.openpaper.Paperwork.json \
+	| sponge work.openpaper.Paperwork.json
 
 mkdir -p ~/flatpak  # directory that contains the repository directory
 

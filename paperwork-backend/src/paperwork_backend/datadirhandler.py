@@ -86,7 +86,7 @@ class Plugin(openpaperwork_core.PluginBase):
                     LOGGER.info(
                         "Removing directory %s as it is older than %i days."
                         % (file, days_to_data_dir_deletion))
-                    self.core.call_success("fs_rm_rf", file)
+                    self.core.call_success("fs_rm_rf", file, trash=False)
 
     def data_dir_handler_get_individual_data_dir(self):
         work_dir = self.core.call_success("storage_get_id")

@@ -31,7 +31,7 @@ required_dlls = [
     'libpangoft2-1.0-0.dll',
     'libpangowin32-1.0-0.dll',
     'libpoppler-*.dll',
-    'libpoppler-glib-*.dll',
+    'libpoppler-glib-8.dll',
     'librsvg-2-2.dll',
     'libsqlite3-0.dll',
     'libxml2-2.dll',
@@ -110,8 +110,7 @@ kwargs['executables'] = [
     cx_Freeze.Executable(
         script="src/paperwork_gtk/main.py",
         target_name="paperwork.exe",
-        # base=("Console" if os.name != "nt" else "Win32GUI"),
-        base="Console",
+        base=("Console" if os.name != "nt" else "Win32GUI"),
     ),
     cx_Freeze.Executable(
         # UGLY

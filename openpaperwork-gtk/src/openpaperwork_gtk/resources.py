@@ -8,6 +8,8 @@ if os.name == "nt":
     import xml.etree.ElementTree
 
 
+LOGGER = logging.getLogger(__name__)
+
 GI_AVAILABLE = False
 GDK_PIXBUF_AVAILABLE = False
 GTK_AVAILABLE = False
@@ -17,16 +19,16 @@ HDY_AVAILABLE = False
 try:
     import gi
     GI_AVAILABLE = True
-except (ValueError, ImportError):
-    pass
+except (ValueError, ImportError) as exc:
+    LOGGER.error("Failed to load Gobject-Introspection", exc_info=exc)
 
 if GI_AVAILABLE:
     try:
         gi.require_version('GdkPixbuf', '2.0')
         from gi.repository import GdkPixbuf
         GDK_PIXBUF_AVAILABLE = True
-    except (ValueError, ImportError):
-        pass
+    except (ValueError, ImportError) as exc:
+        LOGGER.error("Failed to load GDK-Pixbuf", exc_info=exc)
 
     try:
         gi.require_version('Gdk', '3.0')
@@ -34,23 +36,21 @@ if GI_AVAILABLE:
         from gi.repository import Gdk
         from gi.repository import Gtk
         GTK_AVAILABLE = True
-    except (ImportError, ValueError):
-        pass
+    except (ImportError, ValueError) as exc:
+        LOGGER.error("Failed to load Gtk", exc_info=exc)
 
     try:
         gi.require_version('Handy', '1')
         from gi.repository import Handy
         HDY_AVAILABLE = True
-    except (ImportError, ValueError):
-        pass
+    except (ImportError, ValueError) as exc:
+        LOGGER.error("Failed to load Handy", exc_info=exc)
 
 
 import openpaperwork_core  # noqa: E402
 
 from . import deps  # noqa: E402
 
-
-LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):

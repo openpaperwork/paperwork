@@ -35,3 +35,4 @@ write_to = "paperwork-backend/src/paperwork_backend/_version.py"
 
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"

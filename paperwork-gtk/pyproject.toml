@@ -37,3 +37,4 @@ write_to = "paperwork-gtk/src/paperwork_gtk/_version.py"
 
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"

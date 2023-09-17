@@ -27,7 +27,9 @@ lint = [
   "flake8",
 ]
 
-[project.gui-scripts]
+# Jflesch(2023/09/17):
+# Don't use gui-scripts here: it breaks the Windows build
+[project.scripts]
 paperwork-gtk = 'paperwork_gtk.main:main'
 
 [tool.setuptools_scm]

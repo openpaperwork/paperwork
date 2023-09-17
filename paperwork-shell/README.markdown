@@ -303,7 +303,7 @@ generated.
 
 ### edit
 
-![paperwork-cli edit -m rotate_clockwise](http://storage.sbg.cloud.ovh.net/v1/AUTH_6c4273c748b243c58df3f6942075e0c9/gitlab.gnome.org/paperwork-shell/edit.gif)
+![paperwork-cli edit -m rotate\_clockwise](http://storage.sbg.cloud.ovh.net/v1/AUTH_6c4273c748b243c58df3f6942075e0c9/gitlab.gnome.org/paperwork-shell/edit.gif)
 
 Basic editing of page images.
 
@@ -387,3 +387,10 @@ For instances:
 ## Shell scripts
 
 You can have a look at [some examples of Bash scripts](../scripts).
+
+
+## paperwork-cli and stdout redirection
+
+In case you want to redirect stdout but also want to keep the ANSI output,
+you can set
+[the environment variable `FORCE_COLOR=1`](https://rich.readthedocs.io/en/stable/console.html#environment-variables).

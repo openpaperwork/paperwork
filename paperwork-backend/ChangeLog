@@ -1,3 +1,8 @@
+2023/09/17 - 2.2.1:
+- Add build-system.build-backend to pyproject.toml
+- datadirhandler: when removing a directory, don't move it to the trash.
+  Instead delete it entirely
+
 2023/09/16 - 2.2.0:
 - By default, use PNG instead of JPEG (See issue #1021 for rationale).
 - setup.py has been replaced by pyproject.toml

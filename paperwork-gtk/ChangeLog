@@ -1,3 +1,7 @@
+2023/09/17 - 2.2.1:
+- Add build-system.build-backend to pyproject.toml
+- Fix Windows executable build
+
 2023/09/16 - 2.2.0:
 - setup.py has been replaced by pyproject.toml
 - doclist: optimization: Now that Gtk.Template are available. Use them

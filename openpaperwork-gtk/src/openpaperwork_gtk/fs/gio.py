@@ -530,7 +530,10 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
         """
         try:
             children = parent.enumerate_children(
-                Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+                (
+                    Gio.FILE_ATTRIBUTE_STANDARD_NAME
+                    + "," + Gio.FILE_ATTRIBUTE_STANDARD_IS_SYMLINK
+                ),
                 Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS,
                 None
             )
@@ -541,9 +544,12 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
 
         for child in children:
             name = child.get_name()
-            if child.get_is_symlink() and not follow_symlinks:
-                yield parent.get_child(name)
-                continue
+            if not follow_symlinks:
+                is_symlink = child.has_attribute("standard::is-symlink")
+                is_symlink = is_symlink and child.get_is_symlink()
+                if is_symlink:
+                    yield parent.get_child(name)
+                    continue
             child = parent.get_child(name)
             try:
                 for sub in self._recurse(

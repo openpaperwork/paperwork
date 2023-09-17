@@ -52,7 +52,6 @@ import openpaperwork_core  # noqa: E402
 from . import deps  # noqa: E402
 
 
-
 class Plugin(openpaperwork_core.PluginBase):
     def __init__(self):
         super().__init__()

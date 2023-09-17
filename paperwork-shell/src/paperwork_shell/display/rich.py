@@ -13,7 +13,6 @@
 #
 #    You should have received a copy of the GNU General Public License
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
-import os
 import rich.text
 
 import openpaperwork_core
@@ -21,7 +20,6 @@ import openpaperwork_core
 
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
-    NB_LINES_FOR_PAGER = 50
 
     def __init__(self):
         self.output = []
@@ -49,13 +47,6 @@ class Plugin(openpaperwork_core.PluginBase):
             rich.text.Text.from_ansi(line)
             for line in self.output
         ])
-        if len(self.output) >= self.NB_LINES_FOR_PAGER:
-            # 'less -r' is pretty much one of the only pager for which
-            # we are sure that ANSI escape codes will work
-            os.environ['PAGER'] = 'less -r'
-            with self.console.console.pager(styles=True):
-                self.console.console.print(output)
-        else:
-            self.console.console.print(output)
+        self.console.console.print(output)
         self.output = []
         return True

@@ -67,6 +67,8 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         width /= scale
         height /= scale
+        width = max(width, 1)
+        height = max(height, 1)
         return img.resize(
             (int(width), int(height)),
             getattr(PIL.Image, 'Resampling', PIL.Image).LANCZOS

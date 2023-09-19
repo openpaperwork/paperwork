@@ -46,6 +46,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
+                'interface': 'pillow_util',
+                'defaults': ['openpaperwork_core.pillow.util'],
+            },
+            {
                 'interface': 'thread',
                 'defaults': ['openpaperwork_core.thread.simple'],
             },
@@ -67,6 +71,8 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         width /= scale
         height /= scale
+        width = max(width, 1)
+        height = max(height, 1)
         return img.resize(
             (int(width), int(height)),
             getattr(PIL.Image, 'Resampling', PIL.Image).LANCZOS
@@ -118,7 +124,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
         LOGGER.info("Generating thumbnail for %s page %d", doc_url, page_idx)
         start = time.time()
-        page = self.core.call_success("url_to_pillow", page_url)
+        try:
+            page = self.core.call_success("url_to_pillow", page_url)
+        except Exception as exc:
+            LOGGER.error("Failed to load page %s", page_url, exc_info=exc)
+            page = self.core.call_success("pillow_get_error", "invalid")
 
         thumbnail = self.thumbnail_from_img(page)
 

@@ -1,18 +1,19 @@
 import logging
 
+LOGGER = logging.getLogger(__name__)
+
 try:
     import gi
     gi.require_version('Notify', '0.7')
     from gi.repository import Notify
     NOTIFY_AVAILABLE = True
-except (ImportError, ValueError):
+except (ImportError, ValueError) as exc:
+    LOGGER.error("Failed to import Notify", exc_info=exc)
     NOTIFY_AVAILABLE = False
 
-import openpaperwork_core
-import openpaperwork_gtk.deps
 
-
-LOGGER = logging.getLogger(__name__)
+import openpaperwork_core  # noqa E402
+import openpaperwork_gtk.deps  # noqa E402
 
 
 class NotifyBuilder(object):
@@ -87,9 +88,11 @@ class Plugin(openpaperwork_core.PluginBase):
             out['notify'].update(openpaperwork_gtk.deps.NOTIFY)
 
     def get_notification_builder(self, title, need_actions=False):
-        caps = Notify.get_server_caps()
-        if len(caps) <= 0:
-            return None
+        caps = []
+        if NOTIFY_AVAILABLE:
+            caps = Notify.get_server_caps()
+            if len(caps) <= 0:
+                return None
         if not need_actions or "actions" in caps:
             r = NotifyBuilder(title)
             self.notification_refs.append(r)

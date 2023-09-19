@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Plugin(PluginBase):
     ID_TO_MSG = {
+        'invalid': "Invalid image",
         'too_big': "Image too big.\nImage not loaded.",
     }
 

@@ -1,0 +1,2 @@
+[flake8]
+exclude = src/paperwork_gtk/_version.py

@@ -24,7 +24,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/paperwork_backend
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_backend
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]

@@ -23,7 +23,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/openpaperwork_core
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/openpaperwork_core
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]

@@ -19,7 +19,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/paperwork_shell
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_shell
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]

@@ -36,14 +36,12 @@ RUN apt-get update \
         pycodestyle \
         python3 \
         python3-dev \
-        python3-flake8 \
         python3-gi \
         python3-importlib-metadata \
         python3-pefile \
         python3-pil \
         python3-pip \
         python3-pkg-resources \
-        python3-pytest \
         python3-recommonmark \
         python3-scipy \
         python3-sphinx \

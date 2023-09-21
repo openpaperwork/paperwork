@@ -135,7 +135,7 @@ linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gcc
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gobject-introspection
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-meson
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-gobject
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-gobject
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-vala
     # Paperwork build dependencies
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S git  # for 'make version'
@@ -149,33 +149,38 @@ linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-nsis
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-nsis-nsisunz
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-poppler
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-levenshtein
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-cairo
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-cx-freeze
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-psutil
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pillow
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pip
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-scikit-learn
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-cairo
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-cx_Freeze
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-pillow
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-pip
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-setuptools
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-setuptools
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip
-    # Workaround for pycountry and Cx_freeze
-    # See https://github.com/marcelotduarte/cx_Freeze/issues/930
-    - c:\msys64\usr\bin\bash -lc "pip3 uninstall -y pycountry"
-    - c:\msys64\usr\bin\bash -lc "pip3 install --no-cache --use-pep517 pycountry==20.7.3"
     - git submodule init
     - git submodule update --recursive --remote
     - c:\msys64\usr\bin\bash -lc "make clean"
     - c:\msys64\usr\bin\bash -lc "make uninstall"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall || true"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libpillowfight uninstall || true"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/pyocr uninstall || true"
+    # libinsane is not a Python library and therefore is installed system-wide
+    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
     # a 2nd time just to be really sure
     # (that's the problem when can't use containers ..)
     - c:\msys64\usr\bin\bash -lc "make uninstall"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall || true"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libpillowfight uninstall || true"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/pyocr uninstall || true"
+    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
+    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane clean PREFIX=/mingw64 || true"
+    # actual install
+    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane install PREFIX=/mingw64"
+    - c:\msys64\usr\bin\bash -lc "rm -rf /tmp/venv"
+    - c:\msys64\usr\bin\bash -lc "virtualenv --system-site-packages /tmp/venv"
+    # Workaround for pycountry and Cx_freeze
+    # See https://github.com/marcelotduarte/cx_Freeze/issues/930
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip3 uninstall -y pycountry"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip3 install --no-cache --use-pep517 pycountry==20.7.3"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make -C sub/libpillowfight install_py"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make -C sub/pyocr install_py"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make install"
 
 
 windows_tests:
@@ -190,12 +195,12 @@ windows_tests:
   script:
     # Tesseract (required for unit tests)
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libarchive  # missing tesseract dependency
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python3-pytest
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pytest
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-ocr
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-eng
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-fra
     # Build
-    - c:\msys64\usr\bin\bash -lc "export TESSDATA_PREFIX=/mingw64/share/tessdata && export PIP_IGNORE_INSTALLED=0 && make test"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
     - c:\msys64\usr\bin\bash -lc "make uninstall"
 
 
@@ -216,6 +221,7 @@ windows_exe:
     - c:\msys64\usr\bin\unzip rclone-v1.53.3-windows-386.zip
     - c:\msys64\usr\bin\cp rclone-v1.53.3-windows-386/rclone.exe /usr/bin
     # Build
-    - c:\msys64\usr\bin\bash -lc "export PIP_IGNORE_INSTALLED=0 && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip install cx_Freeze"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make windows_exe"
     - c:\msys64\usr\bin\bash -lc "./ci/deliver.sh dist/paperwork.zip windows .zip"
     - c:\msys64\usr\bin\bash -lc "make uninstall"

@@ -25,7 +25,7 @@ upload_doc: doc/_build/html/index.html
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/openpaperwork_gtk
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/openpaperwork_gtk
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]

@@ -1,0 +1,2 @@
+[flake8]
+exclude = src/paperwork_shell/_version.py

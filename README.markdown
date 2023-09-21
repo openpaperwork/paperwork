@@ -63,22 +63,12 @@ Papers are organized into documents. Each document contains pages.
 
 ## Installation
 
-Note regarding updates:
-If you're upgrading from a previous version installed with pip, it is strongly recommended you uninstall
-it first before installing the new version.
+See [OpenPaper.work](https://openpaper.work/)
 
-* GNU/Linux:
-  * Distribution-specific methods:
-    * [GNU/Linux Archlinux](doc/install.archlinux.markdown)
-    * [GNU/Linux Debian](doc/install.debian.markdown)
-    * [GNU/Linux Fedora](doc/install.fedora.markdown)
-    * [GNU/Linux Gentoo](doc/install.gentoo.markdown)
-    * [GNU/Linux Ubuntu](doc/install.debian.markdown)
-  * [Using Flatpak](doc/install.flatpak.markdown)
-  * [GNU/Linux Development](doc/install.devel.markdown)
-* Microsoft Windows:
-  * [Installer](https://openpaper.work)
-  * [Development](doc/devel.windows.markdown)
+## Development
+
+* [GNU/Linux](doc/install.devel.markdown)
+* [Microsoft Windows](doc/devel.windows.markdown)
 
 
 ## Uninstallation

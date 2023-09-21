@@ -30,7 +30,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 --exclude=_version.py src/paperwork_gtk
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_gtk
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]

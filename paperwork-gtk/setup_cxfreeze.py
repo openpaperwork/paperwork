@@ -127,5 +127,9 @@ kwargs['options'] = {
         "excludes": ["tkinter", "tk", "tcl"],
     },
 }
+kwargs["setup_requires"] = [
+    "setuptools_scm",
+]
+kwargs["use_scm_version"] = True
 
 cx_Freeze.setup(**kwargs)

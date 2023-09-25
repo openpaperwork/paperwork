@@ -4,6 +4,7 @@ image: registry.gitlab.gnome.org/world/openpaperwork/paperwork/build:latest
 variables:
   GIT_STRATEGY: clone
   GIT_SUBMODULE_STRATEGY: none
+  GIT_FETCH_EXTRA_FLAGS: --tags
 
 stages:
   # no point in waiting for the tests to end before generating the data files

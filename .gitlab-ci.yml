@@ -160,31 +160,33 @@ linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip
-    - c:\msys64\usr\bin\bash -lc "pwd"
-    - c:\msys64\usr\bin\bash -lc "git fetch --all"
-    - c:\msys64\usr\bin\bash -lc "git describe --tags --always"
-    - c:\msys64\usr\bin\bash -lc "git submodule init"
-    - c:\msys64\usr\bin\bash -lc "git submodule update --recursive --remote"
-    - c:\msys64\usr\bin\bash -lc "make clean"
-    - c:\msys64\usr\bin\bash -lc "make uninstall"
+    # do not use the checkout from gitlab-runner. For some unknown reason, it mess up
+    # setuptools_scm
+    - c:\msys64\usr\bin\bash -lc "rm -rf /tmp/paperwork"
+    - c:\msys64\usr\bin\bash -lc "rm -rf /tmp/venv"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp && git clone https://gitlab.gnome.org/World/OpenPaperwork/paperwork.git -b $CI_COMMIT_REF_NAME"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git describe --tags --always"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule init"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule update --recursive --remote"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make clean"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
     # libinsane is not a Python library and therefore is installed system-wide
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
     # a 2nd time just to be really sure
     # (that's the problem when can't use containers ..)
-    - c:\msys64\usr\bin\bash -lc "make uninstall"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane clean PREFIX=/mingw64 || true"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane clean PREFIX=/mingw64 || true"
     # actual install
-    - c:\msys64\usr\bin\bash -lc "make -C sub/libinsane install PREFIX=/mingw64"
-    - c:\msys64\usr\bin\bash -lc "rm -rf /tmp/venv"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane install PREFIX=/mingw64"
     - c:\msys64\usr\bin\bash -lc "virtualenv --system-site-packages /tmp/venv"
     # Workaround for pycountry and Cx_freeze
     # See https://github.com/marcelotduarte/cx_Freeze/issues/930
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip3 uninstall -y pycountry"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip3 install --no-cache --use-pep517 pycountry==20.7.3"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make -C sub/libpillowfight install_py"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make -C sub/pyocr install_py"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make install"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip3 uninstall -y pycountry"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip3 install --no-cache --use-pep517 pycountry==20.7.3"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make -C sub/libpillowfight install_py"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make -C sub/pyocr install_py"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make install"
 
 
 windows_tests:
@@ -204,8 +206,8 @@ windows_tests:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-eng
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-fra
     # Build
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
-    - c:\msys64\usr\bin\bash -lc "make uninstall"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
 
 
 windows_exe:
@@ -229,7 +231,7 @@ windows_exe:
     - c:\msys64\usr\bin\unzip rclone-v1.53.3-windows-386.zip
     - c:\msys64\usr\bin\cp rclone-v1.53.3-windows-386/rclone.exe /usr/bin
     # Build
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip install cx_Freeze"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && export  && make windows_exe"
-    - c:\msys64\usr\bin\bash -lc "./ci/deliver.sh dist/paperwork.zip windows .zip"
-    - c:\msys64\usr\bin\bash -lc "make uninstall"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export  && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"

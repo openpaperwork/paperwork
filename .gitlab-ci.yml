@@ -160,8 +160,11 @@ linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip
-    - git submodule init
-    - git submodule update --recursive --remote
+    - c:\msys64\usr\bin\bash -lc "pwd"
+    - c:\msys64\usr\bin\bash -lc "git fetch --all"
+    - c:\msys64\usr\bin\bash -lc "git describe --tags --always"
+    - c:\msys64\usr\bin\bash -lc "git submodule init"
+    - c:\msys64\usr\bin\bash -lc "git submodule update --recursive --remote"
     - c:\msys64\usr\bin\bash -lc "make clean"
     - c:\msys64\usr\bin\bash -lc "make uninstall"
     # libinsane is not a Python library and therefore is installed system-wide
@@ -214,6 +217,10 @@ windows_exe:
     - windows
     - msys2
   <<: *windows
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - dist/paperwork.zip
   script:
     # We need rclone to upload the files on OVH object storage
     - c:\msys64\usr\bin\rm -f rclone-v1.53.3-windows-386.zip
@@ -223,6 +230,6 @@ windows_exe:
     - c:\msys64\usr\bin\cp rclone-v1.53.3-windows-386/rclone.exe /usr/bin
     # Build
     - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && pip install cx_Freeze"
-    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc ". /tmp/venv/bin/activate && export  && make windows_exe"
     - c:\msys64\usr\bin\bash -lc "./ci/deliver.sh dist/paperwork.zip windows .zip"
     - c:\msys64\usr\bin\bash -lc "make uninstall"

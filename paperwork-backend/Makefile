@@ -61,6 +61,7 @@ release_pypi:
 
 clean:
 	rm -rf build dist *.egg-info
+	rm -f src/paperwork_backend/_version.py
 	$(MAKE) -C $(CURDIR)/src/paperwork_backend/authors clean
 
 # PIP_ARGS is used by Flatpak build

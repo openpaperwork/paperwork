@@ -62,6 +62,7 @@ clean:
 	rm -rf AppDir appimage-build
 	rm -f *.AppImage
 	rm -rf build dist *.egg-info
+	rm -f src/paperwork_shell/_version.py
 
 # PIP_ARGS is used by Flatpak build
 install_py: l10n_compile

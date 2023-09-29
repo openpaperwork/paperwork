@@ -61,6 +61,7 @@ release_pypi:
 clean:
 	rm -rf doc/_build
 	rm -rf build dist *.egg-info
+	rm -f src/openpaperwork_core/_version.py
 
 # PIP_ARGS is used by Flatpak build
 install_py: l10n_compile

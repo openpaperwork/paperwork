@@ -127,6 +127,8 @@ class PdfPageMapping(object):
         if len(self.mapping) <= 0:
             return
         for v in self.mapping.values():
+            if v is None:
+                continue
             if v >= self.nb_pages:
                 self.nb_pages = v + 1
 
@@ -230,9 +232,7 @@ class PdfPageMapping(object):
                 self.load()
         # Keep in mind we may have loaded only the mapping --> we don't know
         # how many pages there are in the PDF, so the mapping may be incomplete
-        original_page_idx = self.reverse_mapping.get(
-            target_page_idx, None
-        )
+        original_page_idx = self.reverse_mapping.get(target_page_idx, None)
         return original_page_idx
 
     def get_target_page_mtime(self, target_page_idx):
@@ -561,10 +561,9 @@ class Plugin(openpaperwork_core.PluginBase):
             page_idx, reverse_only=(page_idx == 0)
         )
         if original_page_idx is None:
-            if page_idx != 0:
+            if page_idx != 0 and page_idx >= mapping.nb_pages:
                 return None
-            else:
-                original_page_idx = page_idx
+            original_page_idx = page_idx
 
         password = self._get_pdf_password(doc_url)
         if password is not None:

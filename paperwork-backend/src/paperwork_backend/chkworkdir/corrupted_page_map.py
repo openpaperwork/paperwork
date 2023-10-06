@@ -22,6 +22,9 @@ class Plugin(openpaperwork_core.PluginBase):
     If this process is interrupted, we end up with 2 colors for the same
     label.
     """
+
+    PRIORITY = 10000
+
     def get_interfaces(self):
         return ['chkworkdir']
 

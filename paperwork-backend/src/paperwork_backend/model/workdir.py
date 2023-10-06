@@ -70,6 +70,9 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Loading document list from %s", workdir)
         nb = 0
         for doc_url in self.core.call_success('fs_listdir', workdir):
+            doc_id = self.core.call_success("fs_basename", doc_url)
+            if doc_id.startswith("."):
+                continue
             if only_valid and not self.core.call_success("fs_isdir", doc_url):
                 LOGGER.warning(
                     "Ignoring document '%s': not a directory", doc_url
@@ -83,9 +86,7 @@ class Plugin(openpaperwork_core.PluginBase):
                     doc_url
                 )
                 continue
-            out.append((
-                self.core.call_success("fs_basename", doc_url), doc_url
-            ))
+            out.append((doc_id, doc_url))
             nb += 1
         LOGGER.info("%d documents found in %s", nb, workdir)
 

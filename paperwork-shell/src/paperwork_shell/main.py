@@ -18,36 +18,36 @@ from paperwork_shell import _
 
 
 DEFAULT_SHELL_PLUGINS = paperwork_backend.DEFAULT_PLUGINS + [
-    'paperwork_backend.guesswork.cropping.libpillowfight',
-    'paperwork_shell.cmd.chkworkdir',
-    'paperwork_shell.cmd.delete',
-    'paperwork_shell.cmd.edit',
-    'paperwork_shell.cmd.export',
-    'paperwork_shell.cmd.extra_text',
-    'paperwork_shell.cmd.import',
-    'paperwork_shell.cmd.label',
-    'paperwork_shell.cmd.move',
-    'paperwork_shell.cmd.ocr',
-    'paperwork_shell.cmd.rename',
-    'paperwork_shell.cmd.reset',
-    'paperwork_shell.cmd.scan',
-    'paperwork_shell.cmd.scanner',
-    'paperwork_shell.cmd.search',
-    'paperwork_shell.cmd.show',
-    'paperwork_shell.cmd.sync',
-    'paperwork_shell.logs.print',
-    'paperwork_shell.display.docrendering.extra_text',
-    'paperwork_shell.display.docrendering.img',
-    'paperwork_shell.display.docrendering.labels',
-    'paperwork_shell.display.docrendering.text',
-    'paperwork_shell.l10n',
+    "paperwork_backend.guesswork.cropping.libpillowfight",
+    "paperwork_shell.cmd.chkworkdir",
+    "paperwork_shell.cmd.delete",
+    "paperwork_shell.cmd.edit",
+    "paperwork_shell.cmd.export",
+    "paperwork_shell.cmd.extra_text",
+    "paperwork_shell.cmd.import",
+    "paperwork_shell.cmd.label",
+    "paperwork_shell.cmd.move",
+    "paperwork_shell.cmd.ocr",
+    "paperwork_shell.cmd.rename",
+    "paperwork_shell.cmd.reset",
+    "paperwork_shell.cmd.scan",
+    "paperwork_shell.cmd.scanner",
+    "paperwork_shell.cmd.search",
+    "paperwork_shell.cmd.show",
+    "paperwork_shell.cmd.sync",
+    "paperwork_shell.display.docrendering.extra_text",
+    "paperwork_shell.display.docrendering.img",
+    "paperwork_shell.display.docrendering.labels",
+    "paperwork_shell.display.docrendering.text",
+    "paperwork_shell.l10n",
+    "paperwork_shell.logs.print",
 ]
 
 DEFAULT_CLI_PLUGINS = DEFAULT_SHELL_PLUGINS + [
     "paperwork_shell.cmd.about",
+    "paperwork_shell.display.progress",
     "paperwork_shell.display.rich",
     "paperwork_shell.display.scan",
-    'paperwork_shell.display.progress',
 ]
 DEFAULT_JSON_PLUGINS = DEFAULT_SHELL_PLUGINS
 
@@ -62,7 +62,7 @@ class RichConsole:
         self.console.print(line)
 
     def input(self, prompt=""):
-        return self.console.input(rich.text.Text(prompt))
+        return self.console.input(rich.text.Text(prompt + "\n"))
 
 
 def main_main(in_args, application_name, default_plugins, interactive):
@@ -74,6 +74,7 @@ def main_main(in_args, application_name, default_plugins, interactive):
     core = openpaperwork_core.Core()
     # plugin 'uncaught_exceptions' requires a mainloop plugin
     core.load('openpaperwork_core.mainloop.asyncio')
+    core.load('paperwork_shell.logs.print')
     for module_name in paperwork_backend.DEFAULT_CONFIG_PLUGINS:
         core.load(module_name)
     core.init()

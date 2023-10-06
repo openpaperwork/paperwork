@@ -24,6 +24,7 @@ DEFAULT_GUI_PLUGINS = (
     paperwork_backend.DEFAULT_PLUGINS +
     openpaperwork_gtk.GUI_PLUGINS +
     [
+        'openpaperwork_core.display.print',
         'openpaperwork_core.logs.print',
         'openpaperwork_core.spatial.rtree',
         'openpaperwork_gtk.drawer.pillow',

@@ -320,10 +320,12 @@ class Plugin(PluginBase):
         )
         console.print("-" * total)
         for d in deps:
-            self._print_columns([
-                (column_sizes[idx], column_value)
-                for (idx, column_value) in enumerate(d)
-            ])
+            self._print_columns(
+                console, [
+                    (column_sizes[idx], column_value)
+                    for (idx, column_value) in enumerate(d)
+                ]
+            )
 
         return {
             'interface': plugin.get_interfaces(),

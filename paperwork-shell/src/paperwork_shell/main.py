@@ -74,6 +74,7 @@ def main_main(in_args, application_name, default_plugins, interactive):
     core = openpaperwork_core.Core()
     # plugin 'uncaught_exceptions' requires a mainloop plugin
     core.load('openpaperwork_core.mainloop.asyncio')
+    core.load('paperwork_shell.logs.print')
     for module_name in paperwork_backend.DEFAULT_CONFIG_PLUGINS:
         core.load(module_name)
     core.init()

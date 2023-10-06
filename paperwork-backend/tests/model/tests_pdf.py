@@ -124,6 +124,61 @@ class TestHocr(unittest.TestCase):
         self.assertEqual(lines[1].word_boxes[2].content, "Jflesch.")
 
 
+class TestMapping(unittest.TestCase):
+    def setUp(self):
+        self.core = openpaperwork_core.Core(auto_load_dependencies=True)
+        self.core.load("paperwork_backend.model.pdf")
+        self.core.init()
+
+        self.pdf = self.core.call_success(
+            "fs_safe",
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "doc.pdf"
+            )
+        )
+
+        self.work_dir = tempfile.mkdtemp(prefix="paperwork_tests_all_")
+        self.work_dir_url = self.core.call_success("fs_safe", self.work_dir)
+        self.doc_url = self.core.call_success(
+            "fs_join", self.work_dir_url, "20200525_1241_05"
+        )
+        self.core.call_success("fs_mkdir_p", self.doc_url)
+        self.core.call_success(
+            "fs_copy", self.pdf,
+            self.core.call_success("fs_join", self.doc_url, "doc.pdf")
+        )
+        self.mapping = self.doc_url + "/page_map.csv"
+
+    def tearDown(self):
+        shutil.rmtree(self.work_dir)
+
+    def test_crappy_mapping(self):
+        with self.core.call_success("fs_open", self.mapping, "w") as fd:
+            fd.write("original_page_index,target_page_index\n")
+            fd.write("0,-1\n")
+            fd.write("1,2\n")
+            fd.write("2,-1\n")
+            fd.write("3,-1\n")
+        self.assertEqual(
+            self.core.call_success(
+                "doc_get_nb_pages_by_url", self.doc_url
+            ), 3
+        )
+        self.assertIsNotNone(
+            self.core.call_success("page_get_img_url", self.doc_url, 0)
+        )
+        self.assertIsNotNone(
+            self.core.call_success("page_get_img_url", self.doc_url, 1)
+        )
+        self.assertIsNotNone(
+            self.core.call_success("page_get_img_url", self.doc_url, 2)
+        )
+        self.assertIsNone(
+            self.core.call_success("page_get_img_url", self.doc_url, 3)
+        )
+
+
 class TestPassword(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)

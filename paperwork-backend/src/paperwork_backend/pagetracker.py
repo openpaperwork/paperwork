@@ -86,7 +86,7 @@ class PageTracker(object):
 
         fs_nb_pages = self.core.call_success(
             "doc_get_nb_pages_by_url", doc_url
-        )
+        ) or 0
         fs_pages = {}
         for page_idx in range(0, fs_nb_pages):
             fs_pages[page_idx] = self.core.call_success(

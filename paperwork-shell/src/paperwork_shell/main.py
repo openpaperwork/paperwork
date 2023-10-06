@@ -62,7 +62,7 @@ class RichConsole:
         self.console.print(line)
 
     def input(self, prompt=""):
-        return self.console.input(rich.text.Text(prompt))
+        return self.console.input(rich.text.Text(prompt + "\n"))
 
 
 def main_main(in_args, application_name, default_plugins, interactive):

@@ -100,44 +100,29 @@
 
   <screenshots>
     <screenshot type="default">
-      <caption>Home screen</caption>
-      <image type="default">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/paperwork_home.png</image>
-    </screenshot>
     <screenshot>
       <caption>Paperwork document view</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/paperwork_doc.png</image>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_doc_grid.png</image>
     </screenshot>
     <screenshot>
-      <caption>Paperwork page view</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/paperwork_page.png</image>
+      <caption>Paperwork new document</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_doc_new.png</image>
     </screenshot>
     <screenshot>
-      <caption>Paperwork import</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/paperwork_import.png</image>
+      <caption>Paperwork doc properties</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_doc_properties.png</image>
     </screenshot>
     <screenshot>
-      <caption>Paperwork export</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/paperwork_export.png</image>
+      <caption>Paperwork search suggestion</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_search_suggestion.png</image>
     </screenshot>
     <screenshot>
-      <caption>Paperwork document list</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/doclist.png</image>
+      <caption>Paperwork settings</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_settings.png</image>
     </screenshot>
     <screenshot>
-      <caption>Paperwork main windows</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/main_window.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Paperwork label properties</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/multiple_labels.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Paperwork settings window</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/settings.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Paperwork suggestions</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.0/suggestions.png</image>
+      <caption>Paperwork dark</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_dark.png</image>
     </screenshot>
   </screenshots>
 

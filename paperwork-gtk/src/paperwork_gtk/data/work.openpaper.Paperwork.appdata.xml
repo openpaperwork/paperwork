@@ -100,6 +100,9 @@
 
   <screenshots>
     <screenshot type="default">
+      <caption>Paperwork search suggestion</caption>
+      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_search_suggestion.png</image>
+    </screenshot>
     <screenshot>
       <caption>Paperwork document view</caption>
       <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_doc_grid.png</image>
@@ -111,10 +114,6 @@
     <screenshot>
       <caption>Paperwork doc properties</caption>
       <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_doc_properties.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Paperwork search suggestion</caption>
-      <image type="source">https://gitlab.gnome.org/World/OpenPaperwork/paperwork-screenshots/-/raw/master/2.1/paperwork_search_suggestion.png</image>
     </screenshot>
     <screenshot>
       <caption>Paperwork settings</caption>

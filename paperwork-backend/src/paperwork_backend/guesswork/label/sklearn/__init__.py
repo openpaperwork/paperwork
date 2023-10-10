@@ -215,7 +215,7 @@ class UpdatableVectorizer(object):
         """
         Drop features that are unused anymore.
 
-        IMPORTANT: After this call, the vectorizer must no be used
+        IMPORTANT: After this call, the vectorizer must not be used anymore
         (this method doesn't update the internal state of the vectorizer)
         """
         # we work in the main thread so we don't have to load all the feature

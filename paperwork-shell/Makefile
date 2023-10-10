@@ -19,7 +19,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/paperwork_shell
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_shell
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]
@@ -62,6 +62,7 @@ clean:
 	rm -rf AppDir appimage-build
 	rm -f *.AppImage
 	rm -rf build dist *.egg-info
+	rm -f src/paperwork_shell/_version.py
 
 # PIP_ARGS is used by Flatpak build
 install_py: l10n_compile

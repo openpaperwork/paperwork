@@ -23,7 +23,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/openpaperwork_core
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/openpaperwork_core
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]
@@ -61,6 +61,7 @@ release_pypi:
 clean:
 	rm -rf doc/_build
 	rm -rf build dist *.egg-info
+	rm -f src/openpaperwork_core/_version.py
 
 # PIP_ARGS is used by Flatpak build
 install_py: l10n_compile

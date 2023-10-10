@@ -24,7 +24,7 @@ data:
 
 check:
 	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
-	flake8 src/paperwork_backend
+	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_backend
 
 test: install
 	${PYTHON} -m pip install ${PIP_ARGS} .[dev]
@@ -61,6 +61,7 @@ release_pypi:
 
 clean:
 	rm -rf build dist *.egg-info
+	rm -f src/paperwork_backend/_version.py
 	$(MAKE) -C $(CURDIR)/src/paperwork_backend/authors clean
 
 # PIP_ARGS is used by Flatpak build

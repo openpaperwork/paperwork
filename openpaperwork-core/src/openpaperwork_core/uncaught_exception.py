@@ -23,8 +23,8 @@ class Plugin(PluginBase):
         super().init(core)
         sys.excepthook = self._on_uncaught_exception
 
-    def _on_uncaught_exception(self, exc_type, exc_value, exc_tb):
-        exc_info = (exc_type, exc_value, exc_tb)
+    def _on_uncaught_exception(self, exc_type, exc_instance, exc_tb):
+        exc_info = (exc_type, exc_instance, exc_tb)
         try:
             self.core.call_one(
                 "mainloop_execute", self._broadcast_exception, exc_info
@@ -33,7 +33,7 @@ class Plugin(PluginBase):
             if getattr(sys, 'frozen', False):
                 # Assumes that cx_freeze has put a specific handler
                 # for uncatched exceptions (popup and stuff)
-                self.original_hook(exc_type, exc_value, exc_tb)
+                self.original_hook(exc_type, exc_instance, exc_tb)
 
     def _broadcast_exception(self, exc_info):
         # make sure we don't loop

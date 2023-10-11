@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 try:
     import gi
@@ -77,8 +76,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         LOGGER.info("Uncaught exception. Showing error dialog")
 
-        content = traceback.format_exception(*exc_info)
-        content = ''.join(content)
+        content = repr(exc_info[1])
 
         widget_tree = self.core.call_success(
             "gtk_load_widget_tree", "openpaperwork_gtk.uncaught_exception",

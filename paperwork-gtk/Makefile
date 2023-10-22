@@ -29,11 +29,11 @@ data:
 	$(MAKE) -C src/paperwork_gtk/model/help data
 
 check:
-	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
+	if ! hash flake8 ; then PIP_DEPS=[lint] $(MAKE) install_py ; fi
 	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_gtk
 
-test: install
-	${PYTHON} -m pip install ${PIP_ARGS} .[dev]
+test:
+	if ! hash pytest ; then PIP_DEPS=[dev] $(MAKE) install_py ; fi
 	python3 -m pytest -xv tests/
 
 windows_exe: install
@@ -91,7 +91,7 @@ clean:
 
 # PIP_ARGS is used by Flatpak build
 install_py: ${VERSION_FILE} l10n_compile
-	${PYTHON} -m pip install ${PIP_ARGS} .
+	${PYTHON} -m pip install ${PIP_ARGS} .${PIP_DEPS}
 
 install_c:
 

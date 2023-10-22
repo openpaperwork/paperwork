@@ -216,13 +216,11 @@ class CustomFlowLayout(Gtk.Box):
         return Gtk.SizeRequestMode.WIDTH_FOR_HEIGHT
 
     def do_get_preferred_width(self):
-        min_width = 0
         nat_width = 0
         for widget in self.widgets.values():
             widget.update_widget_size()
-            min_width = max(widget.size[0], min_width)
             nat_width += widget.size[0]
-        return (min_width, nat_width)
+        return (0, nat_width)
 
     def do_get_preferred_height_for_width(self, width):
         requested_height = recompute_height_for_width(

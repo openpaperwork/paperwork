@@ -24,11 +24,11 @@ upload_doc: doc/_build/html/index.html
 	cd .. && ./ci/deliver_doc.sh ${CURDIR}/doc/_build/html openpaperwork_gtk
 
 check:
-	${PYTHON} -m pip install ${PIP_ARGS} .[lint]
+	if ! hash flake8 ; then PIP_DEPS=[lint] $(MAKE) install_py ; fi
 	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/openpaperwork_gtk
 
-test: install
-	${PYTHON} -m pip install ${PIP_ARGS} .[dev]
+test:
+	if ! hash pytest ; then PIP_DEPS=[dev] $(MAKE) install_py ; fi
 	python3 -m pytest -xv tests/
 
 linux_exe:
@@ -69,7 +69,7 @@ clean:
 
 # PIP_ARGS is used by Flatpak build
 install_py: l10n_compile
-	${PYTHON} -m pip install ${PIP_ARGS} .
+	${PYTHON} -m pip install ${PIP_ARGS} .${PIP_DEPS}
 
 install_c:
 

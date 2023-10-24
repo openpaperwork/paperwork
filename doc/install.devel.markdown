@@ -182,9 +182,8 @@ paperwork-gtk chkdeps
 
 ```sh
 cd ~/git/paperwork
-
 source ./activate_test_env.sh
-# you're now in a virtualenv
+# you're now in a Python virtualenv
 
 # Running Paperwork
 paperwork-gtk
@@ -194,6 +193,16 @@ paperwork-cli --help
 
 # or
 paperwork-json --help
+```
+
+### Running lint and unit tests
+
+```sh
+cd ~/git/paperwork
+source ./activate_test_env.sh
+
+make check  # lint
+make install && make test  # unit test
 ```
 
 

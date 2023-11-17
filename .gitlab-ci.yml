@@ -46,6 +46,7 @@ check:
 test:
   stage: tests
   script:
+    - apt-get update
     - source ./activate_test_env.sh && pip3 install -U setuptools
     - source ./activate_test_env.sh && make install
     - source ./activate_test_env.sh && paperwork-gtk chkdeps -y
@@ -80,6 +81,7 @@ test_chkdeps:
 generate_data:
   stage: data
   script:
+    - apt-get update
     - source ./activate_test_env.sh && pip3 install -U setuptools
     - source ./activate_test_env.sh && make install
     - source ./activate_test_env.sh && xvfb-run paperwork-gtk chkdeps -y

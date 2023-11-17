@@ -1,4 +1,4 @@
-FROM debian:sid
+FROM debian:trixie
 
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get update \

@@ -48,6 +48,7 @@ if GI_AVAILABLE:
 
 
 import openpaperwork_core  # noqa: E402
+import openpaperwork_core.deps  # noqa: E402
 
 from . import deps  # noqa: E402
 
@@ -90,6 +91,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GDK_PIXBUF_AVAILABLE:
             out['gdk_pixbuf'].update(deps.GDK_PIXBUF)
         if not GTK_AVAILABLE:
+            out['cairo'].update(openpaperwork_core.deps.CAIRO)
             out['gtk'].update(deps.GTK)
         if not HDY_AVAILABLE:
             out['hdy'].update(deps.HDY)

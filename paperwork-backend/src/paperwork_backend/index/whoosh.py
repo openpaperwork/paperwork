@@ -9,6 +9,7 @@ import whoosh.query
 import whoosh.sorting
 
 import openpaperwork_core
+import openpaperwork_core.util
 
 from .. import (_, sync)
 
@@ -186,7 +187,10 @@ class WhooshTransaction(sync.BaseTransaction):
         )
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     def __init__(self):
         super().__init__()
         self.obs_callbacks = []

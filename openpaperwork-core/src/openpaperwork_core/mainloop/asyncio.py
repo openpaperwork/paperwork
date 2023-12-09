@@ -4,12 +4,16 @@ import sys
 import threading
 
 import openpaperwork_core
+import openpaperwork_core.util
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     """
     A main loop based on asyncio. Not as complete as GLib main loop, but
     good enough for shell commands.

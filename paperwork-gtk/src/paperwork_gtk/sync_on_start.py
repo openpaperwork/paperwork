@@ -6,9 +6,13 @@ import openpaperwork_core
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     def __init__(self):
         super().__init__()
+        self.sync_started = False
 
     def get_interfaces(self):
         return ['sync_on_start']
@@ -38,6 +42,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_all("config_register", "sync_on_start", setting)
 
     def on_gtk_initialized(self):
+        if self.sync_started:
+            # in case we have many main windows opened / many cores started
+            return
+        self.sync_started = True
         r = self.core.call_success("config_get", "sync_on_start")
         if r:
             LOGGER.info("Starting synchronization ...")

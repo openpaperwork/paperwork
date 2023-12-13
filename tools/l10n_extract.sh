@@ -17,13 +17,13 @@ if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	exit 1
 fi
 
-if ! which intltool-extract > /dev/null 2>&1 ; then
+if ! command -v intltool-extract > /dev/null ; then
 	echo "intl-tool-extract is missing"
 	echo "--> sudo apt install intltool"
 	exit 2
 fi
 
-if ! which xgettext > /dev/null 2>&1 ; then
+if ! command -v xgettext > /dev/null ; then
 	echo "xgettext is missing"
 	echo "--> sudo apt install gettext"
 	exit 2

@@ -17,7 +17,7 @@ if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	exit 1
 fi
 
-if ! which msgfmt > /dev/null 2>&1 ; then
+if ! command -v msgfmt > /dev/null ; then
 	echo "msgfmt is missing"
 	echo "--> sudo apt install gettext"
 	exit 2

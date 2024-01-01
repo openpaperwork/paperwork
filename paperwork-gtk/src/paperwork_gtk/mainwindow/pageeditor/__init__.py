@@ -337,6 +337,7 @@ class Plugin(openpaperwork_core.PluginBase):
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
     def gtk_open_page_editor(self, doc_id, doc_url, page_idx):
+        LOGGER.info("Opening page editor on %s %d", doc_id, page_idx)
         self.active_doc = (doc_id, doc_url)
 
         page_url = self.core.call_success(

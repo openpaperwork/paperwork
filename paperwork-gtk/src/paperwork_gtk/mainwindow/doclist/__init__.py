@@ -366,7 +366,7 @@ class Plugin(openpaperwork_core.PluginBase):
         (doc_id, doc_url) = self.active_doc
 
         if doc_id not in {doc[0] for doc in self.docs}:
-            LOGGER.info(
+            LOGGER.warning(
                 "Document %s not found in the document list", doc_id
             )
             self.vadj.set_value(self.vadj.get_lower())

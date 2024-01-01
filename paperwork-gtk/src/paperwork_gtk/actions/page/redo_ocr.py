@@ -115,6 +115,6 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.core.call_success(
-            "transaction_simple_promise", (('upd', doc_id),)
+            "transaction_simple_promise", [('upd', doc_id),]
         ))
         self.core.call_success("transaction_schedule", promise)

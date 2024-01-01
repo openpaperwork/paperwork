@@ -178,6 +178,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         with self.core.call_success("fs_open", page_url, 'w') as file_desc:
             pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
+        return True
 
     def page_delete_by_url(self, doc_url, page_idx):
         return util.delete_page_file(

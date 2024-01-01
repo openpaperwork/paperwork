@@ -236,7 +236,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.core.call_success(
             "transaction_simple_promise",
-            {("upd", self.plugin.active_doc[0])}
+            [("upd", self.plugin.active_doc[0])]
         ))
         self.core.call_success("transaction_schedule", promise)
 
@@ -337,6 +337,7 @@ class Plugin(openpaperwork_core.PluginBase):
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
     def gtk_open_page_editor(self, doc_id, doc_url, page_idx):
+        LOGGER.info("Opening page editor on %s %d", doc_id, page_idx)
         self.active_doc = (doc_id, doc_url)
 
         page_url = self.core.call_success(

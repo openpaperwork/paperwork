@@ -1,3 +1,5 @@
+from typing import Optional
+
 import collections
 import logging
 
@@ -225,7 +227,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.defaults[side].sort(reverse=True)
         return True
 
-    def mainwindow_show(self, side: str, name: str = None):
+    def mainwindow_show(self, side: str, name: Optional[str] = None):
         self.widget_tree.get_object(
             "mainwindow_box_titlebar"
         ).set_visible_child(

@@ -4,6 +4,7 @@ import logging
 
 import openpaperwork_core
 import openpaperwork_core.promise
+import paperwork_backend.model.pdf
 
 from ... import _
 
@@ -18,6 +19,11 @@ class Plugin(openpaperwork_core.PluginBase):
         super().__init__()
         self.doc_urls_to_names_to_urls = {}
         self.doc_urls_to_names = {}
+
+        # in case document is edited by user
+        self.new_docs = []
+        self.doc_urls_to_new_docs = {}
+
         self.thumbnails = {}
         # At this point, translations are not yet available
         self.help_files = ()
@@ -33,6 +39,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def get_deps(self):
         return [
+            # Dependency not declared to avoid dependency loop
+            # {
+            #     'interface': 'new_doc',
+            #     'defaults': ['paperwork_gtk.new_doc'],
+            # },
             {
                 'interface': 'fs',
                 'defaults': ['openpaperwork_gtk.fs.gio'],
@@ -153,6 +164,63 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         return img
 
+    def _get_doc_url(self, doc_url, write=False):
+        # HACK(Jflesch):
+        # This document is read-only, but Paperwork doesn't really
+        # support read-only documents.
+        # --> discretely copy the document and switch to the new document.
+        new_doc_url = self.doc_urls_to_new_docs.get(doc_url, None)
+        if new_doc_url is not None:
+            return new_doc_url
+        if not write:
+            return doc_url
+        (new_doc_id, new_doc_url) = self.core.call_success("get_new_doc")
+        assert new_doc_url not in self.doc_urls_to_names
+        self.doc_urls_to_new_docs[doc_url] = new_doc_url
+        self.new_docs.append(new_doc_id)
+        self.core.call_success("fs_mkdir_p", new_doc_url)
+        self.core.call_success(
+            "fs_copy",
+            doc_url,  # reminder: doc_url points directly to a PDF here
+            self.core.call_success(
+                "fs_join",
+                new_doc_url, paperwork_backend.model.pdf.PDF_FILENAME
+            )
+        )
+        self.core.call_success(
+            "doc_add_label_by_url", new_doc_url, *self.label
+        )
+        self.core.call_success(
+            "mainloop_schedule", self.core.call_all,
+            "doc_open", new_doc_id, new_doc_url
+        )
+        return new_doc_url
+
+    def page_get_img_url(self, doc_url, page_idx, write=False, **kwargs):
+        if doc_url not in self.doc_urls_to_names:
+            return None
+        doc_url = self._get_doc_url(doc_url, write)
+        if doc_url in self.doc_urls_to_names:
+            return None
+        return self.core.call_success(
+            "page_get_img_url", doc_url, page_idx,
+            write=write, **kwargs
+        )
+
+    def page_set_boxes_by_url(self, doc_url, page_idx, *args, **kwargs):
+        if doc_url not in self.doc_urls_to_names:
+            return None
+        doc_url = self._get_doc_url(doc_url, write=True)
+        return self.core.call_success(
+            "page_set_boxes_by_url", doc_url, page_idx,
+            *args, **kwargs
+        )
+
+    def transaction_simple_promise(self, changes: list):
+        for new_doc_id in self.new_docs:
+            changes.append(('add', new_doc_id))
+        self.new_docs = []
+
     def doc_get_mtime_by_url(self, doc_url):
         if doc_url not in self.doc_urls_to_names:
             return
@@ -183,18 +251,29 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         out.append(promise)
 
-    def doc_add_label_by_url(self, doc_url, label, color=None):
+    def doc_remove_label_by_url(self, doc_url, *args, **kwargs):
         if doc_url not in self.doc_urls_to_names:
             return None
-        return True
+        doc_url = self._get_doc_url(doc_url, write=True)
+        return self.core.call_success(
+            "doc_remove_label_by_url", doc_url, *args, **kwargs
+        )
 
-    def doc_is_readonly_by_url(self, doc_url):
-        print("#####")
-        print(doc_url)
-        print(self.doc_urls_to_names)
-        if doc_url in self.doc_urls_to_names:
-            return True
-        return None
+    def doc_add_label_by_url(self, doc_url, *args, **kwargs):
+        if doc_url not in self.doc_urls_to_names:
+            return None
+        doc_url = self._get_doc_url(doc_url, write=True)
+        return self.core.call_success(
+            "doc_add_label_by_url", doc_url, *args, **kwargs
+        )
+
+    def doc_set_extra_text_by_url(self, doc_url, *args, **kwargs):
+        if doc_url not in self.doc_urls_to_names:
+            return None
+        doc_url = self._get_doc_url(doc_url, write=True)
+        return self.core.call_success(
+            "doc_set_extra_text_by_url", doc_url, *args, **kwargs
+        )
 
     def help_labels_get_all(self, out: set):
         out.add(self.label)

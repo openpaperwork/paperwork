@@ -689,7 +689,6 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             )
             if self.nb_changes <= 0:
                 assert self.cursor is None
-                self.notify_done(ID)
                 self.core.call_success(
                     "mainloop_schedule", self.core.call_all,
                     'on_label_guesser_commit_end'
@@ -712,7 +711,6 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             self.cursor.execute("COMMIT")
             self.core.call_success("sqlite_close", self.cursor)
 
-            self.notify_done(ID)
             self.core.call_success(
                 "mainloop_schedule", self.core.call_all,
                 'on_label_guesser_commit_end'
@@ -721,6 +719,7 @@ class LabelGuesserTransaction(sync.BaseTransaction):
 
             self.plugin.reload_label_guessers()
         finally:
+            self.notify_done(ID)
             if self.lock_acquired:
                 self.plugin.classifiers_cond.release()
                 self.lock_acquired = False

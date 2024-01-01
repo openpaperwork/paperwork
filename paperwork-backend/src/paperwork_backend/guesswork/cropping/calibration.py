@@ -172,8 +172,6 @@ class Plugin(openpaperwork_core.PluginBase):
             "Cropping page %d of %s (calibration=%s)",
             page_idx, doc_url, frame
         )
-        if self.core.call_success("doc_is_readonly_by_url", doc_url):
-            raise Exception("Doc %s is read-only, can't crop", doc_url)
 
         doc_id = self.core.call_success("doc_url_to_id", doc_url)
 

@@ -297,7 +297,7 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
         """
         return self.transaction_schedule(
-            self.transaction_simple_promise(changes)
+            self.core.call_success("transaction_simple_promise", changes)
         )
 
     def transaction_sync_all(self):

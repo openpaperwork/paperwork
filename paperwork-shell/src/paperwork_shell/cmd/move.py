@@ -88,10 +88,10 @@ class Plugin(openpaperwork_core.PluginBase):
             dest_doc_url, dest_page_idx
         )
 
-        self.core.call_success("transaction_simple", (
+        self.core.call_success("transaction_simple", [
             ("upd", source_doc_id),
             ("upd", dest_doc_id),
-        ))
+        ])
         self.core.call_success("mainloop_quit_graceful")
         self.core.call_success("mainloop")
 

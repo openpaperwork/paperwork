@@ -162,7 +162,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         console.print(_("Committing ...") + " ")
 
-        self.core.call_success("transaction_simple", (("upd", doc_id),))
+        self.core.call_success("transaction_simple", [("upd", doc_id),])
         self.core.call_success("mainloop_quit_graceful")
         self.core.call_success("mainloop")
 

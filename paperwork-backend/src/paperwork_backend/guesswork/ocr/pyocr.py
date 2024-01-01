@@ -188,7 +188,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 img, lang="+".join(ocr_langs),
                 builder=pyocr.builders.LineBoxBuilder()
             )
-            self.core.call_all(
+            self.core.call_success(
                 "page_set_boxes_by_url", doc_url, page_idx, boxes
             )
         except Exception as exc:

@@ -111,7 +111,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self.show_page(doc_url, page_idx)
             console.print("")
 
-        self.core.call_success("transaction_simple", (("upd", doc_id),))
+        self.core.call_success("transaction_simple", [("upd", doc_id),])
         self.core.call_success("mainloop_quit_graceful")
         self.core.call_success("mainloop")
 

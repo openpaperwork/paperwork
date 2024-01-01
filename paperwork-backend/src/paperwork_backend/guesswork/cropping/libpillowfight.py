@@ -146,9 +146,6 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def crop_page_borders_by_url(self, doc_url, page_idx):
         LOGGER.info("Cropping page %d of %s", page_idx, doc_url)
-        if self.core.call_success("doc_is_readonly_by_url", doc_url):
-            LOGGER.warning("Doc %s is read-only, can't crop", doc_url)
-            return
 
         doc_id = self.core.call_success("doc_url_to_id", doc_url)
 

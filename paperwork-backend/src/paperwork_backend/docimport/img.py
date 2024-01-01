@@ -30,13 +30,6 @@ class SingleImgImporter(object):
         else:
             # update existing one
             doc_url = self.core.call_success("doc_id_to_url", doc_id)
-            if self.core.call_success("doc_is_readonly_by_url", doc_url):
-                LOGGER.warning(
-                    "Doc %s is read-only, using a new one instead", doc_url
-                )
-                (doc_id, doc_url) = self.core.call_success(
-                    "storage_get_new_doc"
-                )
 
         nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
         if nb_pages is None:

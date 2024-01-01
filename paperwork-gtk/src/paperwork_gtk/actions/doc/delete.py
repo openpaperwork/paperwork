@@ -115,4 +115,4 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_all("storage_delete_doc_id", doc_id)
         self.core.call_all("search_update_document_list")
 
-        self.core.call_success("transaction_simple", (('del', doc_id),))
+        self.core.call_success("transaction_simple", [('del', doc_id),])

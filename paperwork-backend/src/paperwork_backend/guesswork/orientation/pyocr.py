@@ -149,9 +149,6 @@ class Plugin(openpaperwork_core.PluginBase):
             "Using OCR to guess orientation of page %d of %s",
             page_idx, doc_url
         )
-        if self.core.call_success("doc_is_readonly_by_url", doc_url):
-            LOGGER.warning("Doc %s is read-only, can't OCR", doc_url)
-            return
 
         doc_id = self.core.call_success("doc_url_to_id", doc_url)
 

@@ -129,11 +129,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 "on_progress", "fixworkdir_label_color",
                 idx / total, _("Fixing label on doc %s") % (problem['doc_id'],)
             )
-            self.core.call_all(
+            self.core.call_success(
                 "doc_remove_label_by_url", problem['doc_url'],
                 problem['current_label'][0]
             )
-            self.core.call_all(
+            self.core.call_success(
                 "doc_add_label_by_url", problem['doc_url'],
                 problem['fixed_label'][0], problem['fixed_label'][1]
             )

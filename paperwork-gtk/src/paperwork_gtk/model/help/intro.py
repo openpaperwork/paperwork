@@ -90,7 +90,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.deleted = True
         # make sure the index is up-to-date
         self.core.call_success(
-            "transaction_simple", (("del", DOC_ID),)
+            "transaction_simple", [("del", DOC_ID),]
         )
 
     def doc_transaction_start(self, out: list, total_expected=-1):

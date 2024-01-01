@@ -72,10 +72,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_all("doc_rename_by_url", source_doc_url, dest_doc_url)
         self.core.call_success(
             "transaction_simple",
-            (
+            [
                 ('del', source_doc_id),
                 ('add', dest_doc_id),
-            )
+            ]
         )
         self.core.call_success("mainloop_quit_graceful")
         self.core.call_success("mainloop")

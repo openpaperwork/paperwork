@@ -236,7 +236,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.core.call_success(
             "transaction_simple_promise",
-            {("upd", self.plugin.active_doc[0])}
+            [("upd", self.plugin.active_doc[0])]
         ))
         self.core.call_success("transaction_schedule", promise)
 

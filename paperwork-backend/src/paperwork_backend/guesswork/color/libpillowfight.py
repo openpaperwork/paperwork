@@ -149,9 +149,6 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def adjust_page_colors_by_url(self, doc_url, page_idx):
         LOGGER.info("Adjusting colors of page %d of %s", page_idx, doc_url)
-        if self.core.call_success("doc_is_readonly_by_url", doc_url):
-            LOGGER.warning("Doc %s is read-only, can't adjust colors", doc_url)
-            return
         doc_id = self.core.call_success("doc_url_to_id", doc_url)
 
         if doc_id is not None:

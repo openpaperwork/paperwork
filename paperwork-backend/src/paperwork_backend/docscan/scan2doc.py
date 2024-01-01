@@ -66,16 +66,10 @@ class Plugin(openpaperwork_core.PluginBase):
         scan (or scanner lookup).
         """
         if doc_id is not None and doc_url is not None:
-            if self.core.call_success("doc_is_readonly_by_url", doc_url):
-                (doc_id, doc_url) = self.core.call_success(
-                    "storage_get_new_doc"
-                )
-                new = True
-            else:
-                nb_pages = self.core.call_success(
-                    "doc_get_nb_pages_by_url", doc_url
-                )
-                new = (nb_pages <= 0) if nb_pages is not None else True
+            nb_pages = self.core.call_success(
+                "doc_get_nb_pages_by_url", doc_url
+            )
+            new = (nb_pages <= 0) if nb_pages is not None else True
         else:
             (doc_id, doc_url) = self.core.call_success("storage_get_new_doc")
             new = True
@@ -135,7 +129,7 @@ class Plugin(openpaperwork_core.PluginBase):
             )
             promise = promise.then(self.core.call_success(
                 "transaction_simple_promise",
-                (("add" if new else "upd", doc_id),)
+                [("add" if new else "upd", doc_id),]
             ))
             promise = promise.then(notify_end, scan_id, doc_id)
             promise = promise.catch(cancel, scan_id, doc_id)

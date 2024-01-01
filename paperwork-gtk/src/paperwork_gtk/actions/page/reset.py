@@ -84,4 +84,4 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_success(
             "mainloop_schedule", self.core.call_all, "doc_goto_page", page_idx
         )
-        self.core.call_success("transaction_simple", (("upd", doc_id),))
+        self.core.call_success("transaction_simple", [("upd", doc_id),])

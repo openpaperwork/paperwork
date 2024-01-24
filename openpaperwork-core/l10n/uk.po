@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 16:59+0000\n"
+"PO-Revision-Date: 2024-01-24 17:03+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/uk/>\n"
@@ -62,7 +62,7 @@ msgstr "%3.1f КіБ"
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
 #, python-format
 msgid "%3.1f MiB"
-msgstr "%3.1f МБ"
+msgstr "%3.1f МіБ"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
 #, python-format
@@ -72,78 +72,78 @@ msgstr "%3.1f ГіБ"
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
 #, python-format
 msgid "%3.1f TiB"
-msgstr ""
+msgstr "%3.1f ТіБ"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:10
 msgid "Y/n"
-msgstr ""
+msgstr "Y/n"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:13
 msgid "y/N"
-msgstr ""
+msgstr "y/N"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:52
 msgid "Check that all required dependencies are installed"
-msgstr ""
+msgstr "Впевніться, що усі необхідні залежності встановлені"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:73
 msgid "Missing dependencies:"
-msgstr ""
+msgstr "Відсутні залежності:"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
 #, python-brace-format
 msgid "- {dep_name} (package: {pkg_name})"
-msgstr ""
+msgstr "- {dep_name} (пакунок: {pkg_name})"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:80
 msgid "UNKNOWN"
-msgstr ""
+msgstr "НЕВІДОМО"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:100
 msgid "Suggested command:"
-msgstr ""
+msgstr "Запропонована команда:"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:105
 msgid "Do you want to run this command now ?"
-msgstr ""
+msgstr "Ви дійсно бажаєте запустити цю команду зараз?"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:119
 msgid "Don't know how to install missing dependencies. Sorry."
-msgstr ""
+msgstr "Не вдалося встановити відсутні залежності."
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:122
 msgid "Nothing to do."
-msgstr ""
+msgstr "Нічого робити."
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
 #, python-format
 msgid "Manage %s plugins"
-msgstr ""
+msgstr "Керування %s плагінами(ом)"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:49
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:69
 msgid "sub-command"
-msgstr ""
+msgstr "підкоманда"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:54
 #, python-format
 msgid "Show plugins enabled for %s"
-msgstr ""
+msgstr "Показати ввімкнені плагіни для %s"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:60
 #, python-format
 msgid "Add plugin in %s"
-msgstr ""
+msgstr "Додати плагін у %s"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:66
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:77
 msgid "Do not correct dependencies automatically"
-msgstr ""
+msgstr "Не виправляти залежності автоматично"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:71
 #, python-format
 msgid "Remove plugin from %s"
-msgstr ""
+msgstr "Видалити плагін з %s"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:82
 msgid "Clean up your mess by reseting the plugin list to its default value"

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:18+0000\n"
+"PO-Revision-Date: 2024-01-24 17:23+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/uk/>\n"
@@ -246,23 +246,23 @@ msgstr "Пересунути сторінку до"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
 msgid "Reset page"
-msgstr ""
+msgstr "Скинути сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
 msgid "Copy selected text"
-msgstr ""
+msgstr "Скопіювати обраний текст"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
 msgid "Export page"
-msgstr ""
+msgstr "Експортувати сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
 msgid "Print page"
-msgstr ""
+msgstr "Роздрукувати сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
 msgid "Delete page"
-msgstr ""
+msgstr "Видалити сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:50
 msgid "Another position"
@@ -271,32 +271,32 @@ msgstr ""
 #: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
 #: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
 msgid "Redo OCR on page"
-msgstr ""
+msgstr "Повторити ОРС на цій сторінці"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:64
 msgid "Help"
-msgstr ""
+msgstr "Допомога"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
 msgid "About"
-msgstr ""
+msgstr "Про додаток"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
 msgid "Shortcuts"
-msgstr ""
+msgstr "Клавіатурні скорочення"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
 msgid "Report bug"
-msgstr ""
+msgstr "Повідомити про помилку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
 #: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
 msgid "Settings"
-msgstr ""
+msgstr "Налаштування"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
 msgid "Document properties"
-msgstr ""
+msgstr "Властивості документу"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
 msgid "Add to selection"
@@ -304,19 +304,19 @@ msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
 msgid "Open folder"
-msgstr ""
+msgstr "Відкрити теку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
 msgid "Export document"
-msgstr ""
+msgstr "Експортувати документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
 msgid "Print document"
-msgstr ""
+msgstr "Роздрукувати документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
 msgid "Delete document"
-msgstr ""
+msgstr "Видалити документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
 msgid "Redo OCR on document"

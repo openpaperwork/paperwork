@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:08+0000\n"
+"PO-Revision-Date: 2024-01-24 17:13+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/uk/>\n"
@@ -80,76 +80,76 @@ msgstr ""
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:405
 #, python-format
 msgid "Estimated file size: %s"
-msgstr ""
+msgstr "Приблизний розмір файлу: %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:628
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:108
 msgid "Select a file or a directory to import"
-msgstr ""
+msgstr "Оберіть файл або теку для імпортування"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:637
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:128
 msgid "Any files"
-msgstr ""
+msgstr "Будь-який файл"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:715
 msgid "Export has failed"
-msgstr ""
+msgstr "Не вдалося експортувати"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
 msgid "New document"
-msgstr ""
+msgstr "Новий документ"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:622
 #, python-format
 msgid "%d documents"
-msgstr ""
+msgstr "%d документ(ів)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:116
 msgid "Loading document thumbnails"
-msgstr ""
+msgstr "Завантажуємо попередній перегляд для документів"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:77
 msgid "Import document or image file(s)"
-msgstr ""
+msgstr "Імпортувати документ або файл(и) зображень"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:78
 msgid "Import file(s)"
-msgstr ""
+msgstr "Імпортувати файл(и)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:122
 msgid "All supported file formats"
-msgstr ""
+msgstr "Усі підтримувані формати файлів"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
 #, python-format
 msgid "Scan from %s"
-msgstr ""
+msgstr "Сканувати з %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
 msgid "Empty"
-msgstr ""
+msgstr "Порожньо"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:93
 msgid "Loading page {}/{} ..."
-msgstr ""
+msgstr "Завантажуємо сторінку {}/{}…"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:88
 msgid "Loading text ..."
-msgstr ""
+msgstr "Завантажуємо текст…"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:81
 msgid "Keyword(s)"
-msgstr ""
+msgstr "Ключові слова"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:102
 msgid "No labels"
-msgstr ""
+msgstr "Немає міток"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:142
 msgid "Label"
-msgstr ""
+msgstr "Мітка"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
 msgid "From:"

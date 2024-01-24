@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:08+0000\n"
+"PO-Revision-Date: 2024-01-24 17:13+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/uk/>\n"
@@ -113,7 +113,7 @@ msgstr ""
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:67
 msgid "Import file(s)"
-msgstr ""
+msgstr "Імпортувати файл(и)"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:72
 msgid "Target document for import"

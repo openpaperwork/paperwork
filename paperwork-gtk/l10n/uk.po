@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:23+0000\n"
+"PO-Revision-Date: 2024-01-24 17:28+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/uk/>\n"
@@ -320,11 +320,11 @@ msgstr "Видалити документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
 msgid "Redo OCR on document"
-msgstr ""
+msgstr "Повторити ОРС в документі"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
 msgid "Change labels"
-msgstr ""
+msgstr "Змінити мітки"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
 msgid "Select all"

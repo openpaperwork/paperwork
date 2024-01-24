@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 16:59+0000\n"
+"PO-Revision-Date: 2024-01-24 17:18+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-gtk/uk/>\n"
@@ -148,7 +148,7 @@ msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:5
 msgid "File"

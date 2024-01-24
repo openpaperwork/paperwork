@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:03+0000\n"
+"PO-Revision-Date: 2024-01-24 17:08+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/uk/>\n"
@@ -54,7 +54,7 @@ msgstr ""
 
 #: paperwork-shell/src/paperwork_shell/main.py:68
 msgid "command"
-msgstr ""
+msgstr "комнада"
 
 #: paperwork-shell/src/paperwork_shell/cmd/show.py:51
 msgid "Show the content of a document"

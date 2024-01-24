@@ -8,53 +8,55 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2020-05-03 15:27+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-01-24 17:28+0000\n"
+"Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
+"Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-gtk/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:33
 msgid "Now with 10% more freedom in it !"
-msgstr ""
+msgstr "Тепер на 10% вільніше!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:34
 #, python-format
 msgid "Buy it now and get a 100% discount !"
-msgstr ""
+msgstr "Купуйте прямо зараз і отримайте знижку в 100%!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:35
 msgid "New features and bugs available !"
-msgstr ""
+msgstr "Доступні нові функції та недоліки!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:36
 msgid "New taste !"
-msgstr ""
+msgstr "Новий смак!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:37
 msgid "We replaced your old bugs with new bugs. Enjoy."
-msgstr ""
+msgstr "Ми замінили старі помилки новими, насолоджуйтесь!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:38
 msgid "Smarter, Better, Stronger"
-msgstr ""
+msgstr "Розумніше, краще, сильніше"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:40
 msgid "It's better when it's free."
-msgstr ""
+msgstr "Краще коли він безкоштовний."
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
 #, python-brace-format
 msgid "A new version of Paperwork is available: {new_version}"
-msgstr ""
+msgstr "Доступна нова версія Paperwork: {new_version}"
 
 #: paperwork-gtk/src/paperwork_gtk/main.py:203
 msgid "command"
-msgstr ""
+msgstr "комнада"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
 msgid "Renaming label"
@@ -78,189 +80,189 @@ msgstr ""
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:405
 #, python-format
 msgid "Estimated file size: %s"
-msgstr ""
+msgstr "Приблизний розмір файлу: %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:628
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:108
 msgid "Select a file or a directory to import"
-msgstr ""
+msgstr "Оберіть файл або теку для імпортування"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:637
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:128
 msgid "Any files"
-msgstr ""
+msgstr "Будь-який файл"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:715
 msgid "Export has failed"
-msgstr ""
+msgstr "Не вдалося експортувати"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
 msgid "New document"
-msgstr ""
+msgstr "Новий документ"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:622
 #, python-format
 msgid "%d documents"
-msgstr ""
+msgstr "%d документ(ів)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:116
 msgid "Loading document thumbnails"
-msgstr ""
+msgstr "Завантажуємо попередній перегляд для документів"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:77
 msgid "Import document or image file(s)"
-msgstr ""
+msgstr "Імпортувати документ або файл(и) зображень"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:78
 msgid "Import file(s)"
-msgstr ""
+msgstr "Імпортувати файл(и)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:122
 msgid "All supported file formats"
-msgstr ""
+msgstr "Усі підтримувані формати файлів"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
 #, python-format
 msgid "Scan from %s"
-msgstr ""
+msgstr "Сканувати з %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
 msgid "Empty"
-msgstr ""
+msgstr "Порожньо"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:93
 msgid "Loading page {}/{} ..."
-msgstr ""
+msgstr "Завантажуємо сторінку {}/{}…"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:88
 msgid "Loading text ..."
-msgstr ""
+msgstr "Завантажуємо текст…"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:81
 msgid "Keyword(s)"
-msgstr ""
+msgstr "Ключові слова"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:102
 msgid "No labels"
-msgstr ""
+msgstr "Немає міток"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:142
 msgid "Label"
-msgstr ""
+msgstr "Мітка"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
 msgid "From:"
-msgstr ""
+msgstr "Із:"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:160
 msgid "to:"
-msgstr ""
+msgstr "до:"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:270
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:302
 msgid "and"
-msgstr ""
+msgstr "і"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:303
 msgid "or"
-msgstr ""
+msgstr "або"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:320
 msgid "not"
-msgstr ""
+msgstr "не"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:344
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
 msgctxt "keyboard shortcut categories"
 msgid "Page"
-msgstr ""
+msgstr "Сторінка"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:31
 msgctxt "keyboard shortcut names"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:32
 msgctxt "keyboard shortcut names"
 msgid "Copy selected text to clipboard"
-msgstr ""
+msgstr "Копіювати обраний текст у буфер обміну"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
 msgid "Global"
-msgstr ""
+msgstr "Загальні"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
 msgid "Find"
-msgstr ""
+msgstr "Пошук"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
 msgid "Document"
-msgstr ""
+msgstr "Документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
 msgid "Edit document properties"
-msgstr ""
+msgstr "Редагувати властивості документу"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
 msgid "Create new document"
-msgstr ""
+msgstr "Створити новий документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
 msgid "Print"
-msgstr ""
+msgstr "Друкувати"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
 msgid "Document list"
-msgstr ""
+msgstr "Список документів"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
 msgid "Open next document"
-msgstr ""
+msgstr "Відкрити наступний документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
 msgid "Open previous document"
-msgstr ""
+msgstr "Відкрити попередній документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:50
 msgid "Another document"
-msgstr ""
+msgstr "Інший документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:53
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:53
 msgid "Move page to"
-msgstr ""
+msgstr "Пересунути сторінку до"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
 msgid "Reset page"
-msgstr ""
+msgstr "Скинути сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
 msgid "Copy selected text"
-msgstr ""
+msgstr "Скопіювати обраний текст"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
 msgid "Export page"
-msgstr ""
+msgstr "Експортувати сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
 msgid "Print page"
-msgstr ""
+msgstr "Роздрукувати сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
 msgid "Delete page"
-msgstr ""
+msgstr "Видалити сторінку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:50
 msgid "Another position"
@@ -269,32 +271,32 @@ msgstr ""
 #: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
 #: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
 msgid "Redo OCR on page"
-msgstr ""
+msgstr "Повторити ОРС на цій сторінці"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:64
 msgid "Help"
-msgstr ""
+msgstr "Допомога"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
 msgid "About"
-msgstr ""
+msgstr "Про додаток"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
 msgid "Shortcuts"
-msgstr ""
+msgstr "Клавіатурні скорочення"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
 msgid "Report bug"
-msgstr ""
+msgstr "Повідомити про помилку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
 #: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
 msgid "Settings"
-msgstr ""
+msgstr "Налаштування"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
 msgid "Document properties"
-msgstr ""
+msgstr "Властивості документу"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
 msgid "Add to selection"
@@ -302,27 +304,27 @@ msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
 msgid "Open folder"
-msgstr ""
+msgstr "Відкрити теку"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
 msgid "Export document"
-msgstr ""
+msgstr "Експортувати документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
 msgid "Print document"
-msgstr ""
+msgstr "Роздрукувати документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
 msgid "Delete document"
-msgstr ""
+msgstr "Видалити документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
 msgid "Redo OCR on document"
-msgstr ""
+msgstr "Повторити ОРС в документі"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
 msgid "Change labels"
-msgstr ""
+msgstr "Змінити мітки"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
 msgid "Select all"

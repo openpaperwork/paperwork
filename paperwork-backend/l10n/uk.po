@@ -8,15 +8,17 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2020-05-03 15:37+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-01-24 16:59+0000\n"
+"Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
+"Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-backend/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:233
 msgid "Starting scan ..."
@@ -44,7 +46,7 @@ msgstr ""
 
 #: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:750
 msgid "Select to generate"
-msgstr ""
+msgstr "Оберіть щоб згенерувати"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:48
 #, python-brace-format

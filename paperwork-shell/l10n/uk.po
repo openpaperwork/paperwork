@@ -8,15 +8,17 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2020-05-03 15:37+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-01-24 17:13+0000\n"
+"Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
+"Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-shell/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:79
@@ -52,7 +54,7 @@ msgstr ""
 
 #: paperwork-shell/src/paperwork_shell/main.py:68
 msgid "command"
-msgstr ""
+msgstr "комнада"
 
 #: paperwork-shell/src/paperwork_shell/cmd/show.py:51
 msgid "Show the content of a document"
@@ -111,7 +113,7 @@ msgstr ""
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:67
 msgid "Import file(s)"
-msgstr ""
+msgstr "Імпортувати файл(и)"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:72
 msgid "Target document for import"
@@ -362,7 +364,7 @@ msgstr ""
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:48
 #: paperwork-shell/src/paperwork_shell/cmd/scanner.py:62
 msgid "sub-command"
-msgstr ""
+msgstr "підкоманда"
 
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:52
 msgid "Get a document additional text"

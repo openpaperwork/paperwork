@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:13+0000\n"
+"PO-Revision-Date: 2024-01-24 17:18+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/uk/>\n"
@@ -153,96 +153,96 @@ msgstr "Мітка"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
 msgid "From:"
-msgstr ""
+msgstr "Із:"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:160
 msgid "to:"
-msgstr ""
+msgstr "до:"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:270
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:302
 msgid "and"
-msgstr ""
+msgstr "і"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:303
 msgid "or"
-msgstr ""
+msgstr "або"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:320
 msgid "not"
-msgstr ""
+msgstr "не"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:344
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
 msgctxt "keyboard shortcut categories"
 msgid "Page"
-msgstr ""
+msgstr "Сторінка"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:31
 msgctxt "keyboard shortcut names"
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:32
 msgctxt "keyboard shortcut names"
 msgid "Copy selected text to clipboard"
-msgstr ""
+msgstr "Копіювати обраний текст у буфер обміну"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
 msgid "Global"
-msgstr ""
+msgstr "Загальні"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
 msgid "Find"
-msgstr ""
+msgstr "Пошук"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
 msgid "Document"
-msgstr ""
+msgstr "Документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
 msgid "Edit document properties"
-msgstr ""
+msgstr "Редагувати властивості документу"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
 msgid "Create new document"
-msgstr ""
+msgstr "Створити новий документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
 msgid "Print"
-msgstr ""
+msgstr "Друкувати"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
 msgid "Document list"
-msgstr ""
+msgstr "Список документів"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
 msgid "Open next document"
-msgstr ""
+msgstr "Відкрити наступний документ"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
 msgid "Open previous document"
-msgstr ""
+msgstr "Відкрити попередній документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:50
 msgid "Another document"
-msgstr ""
+msgstr "Інший документ"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:53
 #: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:53
 msgid "Move page to"
-msgstr ""
+msgstr "Пересунути сторінку до"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
 msgid "Reset page"

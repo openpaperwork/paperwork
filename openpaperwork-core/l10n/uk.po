@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 17:03+0000\n"
+"PO-Revision-Date: 2024-01-24 17:08+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/uk/>\n"
@@ -151,12 +151,12 @@ msgstr ""
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:89
 msgid "Show information regarding a plugin (must be enabled)"
-msgstr ""
+msgstr "Показувати інформацію про плагін (повинно бути увімкнено)"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:125
 #, python-format
 msgid "Error: Plugin '%s' not found"
-msgstr ""
+msgstr "Помилка: Плагін '%s' не знайдено"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:143
 #, python-brace-format

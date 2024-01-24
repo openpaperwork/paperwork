@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-01-24 16:58+0000\n"
+"PO-Revision-Date: 2024-01-24 16:59+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/uk/>\n"
@@ -67,7 +67,7 @@ msgstr "%3.1f МБ"
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
 #, python-format
 msgid "%3.1f GiB"
-msgstr ""
+msgstr "%3.1f ГіБ"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
 #, python-format

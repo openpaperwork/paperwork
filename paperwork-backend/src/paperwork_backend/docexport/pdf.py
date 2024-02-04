@@ -115,6 +115,8 @@ class PdfCreator(object):
         )
         self.pdf_context = cairo.Context(self.pdf_surface)
 
+        self.gc_protection = []  # WORKAROUND(Jflesch): Cairo crash
+
     def set_page_size(self, img_size):
         # portrait or landscape
         if (img_size[0] < img_size[1]):
@@ -187,6 +189,16 @@ class PdfCreator(object):
             "pillow_to_surface", img,
             intermediate="jpeg", quality=int(self.quality * 100)
         )
+        # WORKAROUND(Jflesch):
+        # If Cairo supports JPEG embedding, we use
+        # cairo.ImageSurface.set_mime_data() instead of the usual Cairo
+        # surface functions to draw the image. It seems this function does
+        # not increment the ref counter of the surface object
+        # --> the Python GC tends to collect it while Cairo is still going
+        # to use it to generate the PDF.
+        # --> we have to keep a reference on it ourselves, until the page has
+        # been generated.
+        self.gc_protection.append(img_surface)
 
         self.pdf_context.save()
         try:
@@ -199,6 +211,7 @@ class PdfCreator(object):
 
     def next_page(self):
         self.pdf_context.show_page()
+        self.gc_protection = []  # WORKAROUND(Jflesch): Cairo crash
 
     def finish(self):
         self.pdf_surface.flush()

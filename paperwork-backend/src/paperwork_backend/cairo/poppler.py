@@ -1,3 +1,6 @@
+from typing import Any
+from typing import Dict
+from typing import Tuple
 import logging
 
 import openpaperwork_core
@@ -22,7 +25,7 @@ try:
     GLIB_AVAILABLE = True
 except (ImportError, ValueError):
     # dummy so chkdeps can still be called
-    class GObject(object):
+    class GObject(object):  # type: ignore[no-redef]
         class SignalFlags(object):
             RUN_LAST = 0
 
@@ -32,7 +35,7 @@ except (ImportError, ValueError):
 
 LOGGER = logging.getLogger(__name__)
 DELAY = 0.01
-POPPLER_DOCS = {}
+POPPLER_DOCS: Dict[str, Tuple[Any, int]] = {}
 
 
 class ImgSurface(object):
@@ -280,6 +283,12 @@ class Plugin(openpaperwork_core.PluginBase):
             "poppler_open", file_url, password=password
         )
         page = doc.get_page(page_idx)
+
+        # WORKAROUND(Jflesch):
+        # Some corrupted PDFs may cause `page = None` here. (PDF declaring
+        # more pages than they actually have).
+        if page is None:
+            return None
 
         base_size = page.get_size()
         size = (  # scale up because default size if too small for reading

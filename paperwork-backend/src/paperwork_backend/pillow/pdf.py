@@ -115,6 +115,9 @@ class Plugin(openpaperwork_core.PluginBase):
         surface = self.core.call_success(
             "pdf_page_to_cairo_surface", file_url, page_idx, password
         )
+        # WORKAROUND(Jflesch): may occur with corrupted PDFs
+        if surface is None:
+            return None
 
         img = surface2image(self.core, surface)
         surface.surface.finish()

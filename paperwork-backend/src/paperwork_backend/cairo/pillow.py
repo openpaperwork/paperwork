@@ -22,7 +22,7 @@ try:
     GLIB_AVAILABLE = True
 except (ImportError, ValueError):
     # dummy so chkdeps can still be called
-    class GObject(object):
+    class GObject(object):  # type: ignore[no-redef]
         class SignalFlags(object):
             RUN_LAST = 0
 

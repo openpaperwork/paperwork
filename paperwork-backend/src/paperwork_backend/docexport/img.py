@@ -48,6 +48,9 @@ class ExportDataPage(ExportData):
         ))
         assert page_url is not None
         img = self.core.call_success("url_to_pillow", page_url)
+        if img is None:
+            # WORKAROUND(Jflesch): may happen with corrupted PDFs
+            return
         boxes = self.core.call_success(
             "page_get_boxes_by_url", self.doc_url, self.page_idx
         ) or []

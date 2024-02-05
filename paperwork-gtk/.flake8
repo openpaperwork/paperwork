@@ -1,2 +1,3 @@
 [flake8]
 exclude = src/paperwork_gtk/_version.py
+max-line-length = 100

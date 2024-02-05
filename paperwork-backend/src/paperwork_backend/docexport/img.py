@@ -1,9 +1,5 @@
 import logging
 
-import openpaperwork_core
-import openpaperwork_core.promise
-
-
 from . import (
     AbstractExportPipe,
     AbstractExportPipePlugin,
@@ -76,49 +72,43 @@ class DocToPillowBoxesExportPipe(AbstractExportPipe):
     def can_export_page(self, doc_url, page_nb):
         return True
 
-    def get_promise(self, result='final', target_file_url=None):
-        def to_img_and_boxes(input_data):
-            assert input_data.dtype == ExportDataType.DOCUMENT_SET
+    def export(self, input_data, result='final', target_file_url=None):
+        assert input_data.dtype == ExportDataType.DOCUMENT_SET
 
-            docs = input_data.iter(ExportDataType.DOCUMENT)
-            docs = list(docs)
+        docs = input_data.iter(ExportDataType.DOCUMENT)
+        docs = list(docs)
 
-            self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_progress", "export", 0.0,
-                _("Exporting ...")
-            )
-
-            total_pages = 0
-            for (doc_set, doc) in docs:
-                assert doc.expanded
-                total_pages += len(doc.get_children())
-
-            nb_pages = 0
-            last_page = None
-            for (doc_set, doc) in docs:
-                assert doc.expanded
-
-                # replace the document page list by objects that will
-                # generate their children (img+boxes) on-the-fly.
-                new_pages = [
-                    ExportDataPage(
-                        self.core, doc.data[0], doc.data[1], page.data,
-                        (nb_pages + idx) / total_pages
-                    )
-                    for (idx, page) in enumerate(doc.get_children())
-                ]
-                doc.set_children(new_pages)
-                nb_pages += len(new_pages)
-                last_page = new_pages[-1]
-            last_page.final = True
-
-            return input_data
-
-        promise = openpaperwork_core.promise.ThreadedPromise(
-            self.core, to_img_and_boxes
+        self.core.call_success(
+            "mainloop_schedule", self.core.call_all,
+            "on_progress", "export", 0.0,
+            _("Exporting ...")
         )
-        return promise
+
+        total_pages = 0
+        for (doc_set, doc) in docs:
+            assert doc.expanded
+            total_pages += len(doc.get_children())
+
+        nb_pages = 0
+        last_page = None
+        for (doc_set, doc) in docs:
+            assert doc.expanded
+
+            # replace the document page list by objects that will
+            # generate their children (img+boxes) on-the-fly.
+            new_pages = [
+                ExportDataPage(
+                    self.core, doc.data[0], doc.data[1], page.data,
+                    (nb_pages + idx) / total_pages
+                )
+                for (idx, page) in enumerate(doc.get_children())
+            ]
+            doc.set_children(new_pages)
+            nb_pages += len(new_pages)
+            last_page = new_pages[-1]
+        last_page.final = True
+
+        return input_data
 
     def __str__(self):
         return _("Split page(s) into image(s) and text(s)")
@@ -137,35 +127,29 @@ class PageToImageExportPipe(AbstractExportPipe):
         self.mime = mime
         self.core = core
 
-    def get_promise(self, result='final', target_file_url=None):
-        def page_to_image(input_data, target_file_url):
-            if target_file_url is None:
-                (target_file_url, file_desc) = self.core.call_success(
-                    "fs_mktemp", prefix="paperwork-export-",
-                    suffix="." + self.file_extensions[0], mode="w"
-                )
-                file_desc.close()
+    def export(self, input_data, result='final', target_file_url=None):
+        if target_file_url is None:
+            (target_file_url, file_desc) = self.core.call_success(
+                "fs_mktemp", prefix="paperwork-export-",
+                suffix="." + self.file_extensions[0], mode="w"
+            )
+            file_desc.close()
 
-            list_img_boxes = input_data.iter(ExportDataType.IMG_BOXES)
+        list_img_boxes = input_data.iter(ExportDataType.IMG_BOXES)
 
-            out_files = []
-            for (doc_set, (doc, (page, img_boxes))) in list_img_boxes:
-                out = target_file_url
-                if len(out_files) != 0:
-                    out = target_file_url.rsplit(".", 1)
-                    out = "{}_{}.{}".format(out[0], len(out_files), out[1])
+        out_files = []
+        for (doc_set, (doc, (page, img_boxes))) in list_img_boxes:
+            out = target_file_url
+            if len(out_files) != 0:
+                out = target_file_url.rsplit(".", 1)
+                out = "{}_{}.{}".format(out[0], len(out_files), out[1])
 
-                self.core.call_success(
-                    "pillow_to_url", img_boxes.data[0], out,
-                    format=self.format, quality=self.quality
-                )
-                out_files.append(out)
-            return out_files
-
-        return openpaperwork_core.promise.ThreadedPromise(
-            self.core, page_to_image,
-            kwargs={'target_file_url': target_file_url}
-        )
+            self.core.call_success(
+                "pillow_to_url", img_boxes.data[0], out,
+                format=self.format, quality=self.quality
+            )
+            out_files.append(out)
+        return out_files
 
     def get_output_mime(self):
         return (self.mime, self.file_extensions)
@@ -220,6 +204,11 @@ class Plugin(AbstractExportPipePlugin):
             PageToImageExportPipe(
                 core, "tiff", "TIFF", ("tiff", "tif"), "image/tiff", False
             ),
+        ]
+
+    def get_interfaces(self):
+        return super().get_interfaces() + [
+            "export_pipes_img",
         ]
 
     def get_deps(self):

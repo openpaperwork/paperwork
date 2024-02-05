@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 PDF_FILENAME = 'doc.pdf'
 PASSWD_FILENAME = 'passwd.txt'
+MAPPING_FILE = "page_map.csv"
 
 PDF_RENDER_FACTOR = 4
 
@@ -71,7 +72,6 @@ class PdfLineBox(object):
 
 
 class PdfPageMapping(object):
-    MAPPING_FILE = "page_map.csv"
     SEPARATOR = ","
 
     def __init__(self, plugin, doc_url):
@@ -80,7 +80,7 @@ class PdfPageMapping(object):
         self.doc_url = doc_url
 
         self.map_url = self.core.call_success(
-            "fs_join", self.doc_url, self.MAPPING_FILE
+            "fs_join", self.doc_url, MAPPING_FILE
         )
 
         self.mapping = None
@@ -436,9 +436,15 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         return True
 
-    def doc_get_pdf_url_by_url(self, doc_url, write=False):
+    def doc_get_pdf_url_by_url(self, doc_url, write=False, allow_mapped=False):
         if write:
             return self.core.call_success("fs_join", doc_url, PDF_FILENAME)
+        if not allow_mapped:
+            mapping_url = self.core.call_success(
+                "fs_join", doc_url, MAPPING_FILE
+            )
+            if self.core.call_success("fs_exists", mapping_url):
+                return None
         return self._get_pdf_url(doc_url)
 
     def flush_doc_cache(self, doc_url):

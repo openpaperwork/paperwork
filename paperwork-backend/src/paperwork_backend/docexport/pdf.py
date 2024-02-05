@@ -63,35 +63,30 @@ class PdfDocUrlToPdfUrlExportPipe(AbstractExportPipe):
         pdf_url = self.core.call_success("doc_get_pdf_url_by_url", doc_url)
         return pdf_url is not None
 
-    def get_promise(self, result='final', target_file_url=None):
-        def do(input_data, target_file_url):
-            if target_file_url is None:
-                (target_file_url, file_desc) = self.core.call_success(
-                    "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
-                    mode="wb", on_disk=True
-                )
-                file_desc.close()
+    def export(self, input_data, result='final', target_file_url=None):
+        if target_file_url is None:
+            (target_file_url, file_desc) = self.core.call_success(
+                "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
+                mode="wb", on_disk=True
+            )
+            file_desc.close()
 
-            list_docs = input_data.iter(ExportDataType.DOCUMENT)
-            out_files = []
-            for (idx, (doc_set, doc)) in enumerate(list_docs):
-                out = target_file_url
-                if idx != 0:
-                    out = target_file_url.rsplit(".", 1)
-                    out = "{}_{}.{}".format(out[0], idx, out[1])
+        list_docs = input_data.iter(ExportDataType.DOCUMENT)
+        out_files = []
+        for (idx, (doc_set, doc)) in enumerate(list_docs):
+            out = target_file_url
+            if idx != 0:
+                out = target_file_url.rsplit(".", 1)
+                out = "{}_{}.{}".format(out[0], idx, out[1])
 
-                assert not doc.expanded
-                pdf_url = self.core.call_success(
-                    "doc_get_pdf_url_by_url", doc.data[1]
-                )
-                assert pdf_url is not None
-                self.core.call_success("fs_copy", pdf_url, out)
-                out_files.append(out)
-            return out_files
-
-        return openpaperwork_core.promise.Promise(
-            self.core, do, kwargs={'target_file_url': target_file_url}
-        )
+            assert not doc.expanded
+            pdf_url = self.core.call_success(
+                "doc_get_pdf_url_by_url", doc.data[1]
+            )
+            assert pdf_url is not None
+            self.core.call_success("fs_copy", pdf_url, out)
+            out_files.append(out)
+        return out_files
 
     def get_output_mime(self):
         return ("application/pdf", ("pdf",))
@@ -233,74 +228,69 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
     def set_page_format(self, page_format):
         self.page_format = page_format
 
-    def get_promise(self, result='final', target_file_url=None):
-        def do(input_data, target_file_url):
-            if target_file_url is None:
-                (target_file_url, file_desc) = self.core.call_success(
-                    "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
-                    mode="w", on_disk=True
-                )
-                # we need the file name, not the file descriptor
-                file_desc.close()
-
-            last_doc = None
-            doc_idx = 0
-            out = target_file_url
-            list_img_boxes = input_data.iter(ExportDataType.IMG_BOXES)
-
-            creator = self.core.call_one(
-                "mainloop_execute", PdfCreator,
-                self.core, target_file_url, self.page_format, self.quality
+    def export(self, input_data, result='final', target_file_url=None):
+        if target_file_url is None:
+            (target_file_url, file_desc) = self.core.call_success(
+                "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
+                mode="w", on_disk=True
             )
+            # we need the file name, not the file descriptor
+            file_desc.close()
 
-            out_files = []
+        last_doc = None
+        doc_idx = 0
+        out = target_file_url
+        list_img_boxes = input_data.iter(ExportDataType.IMG_BOXES)
 
-            for (doc_set, (doc, (page, img_boxes))) in list_img_boxes:
-
-                if doc.data[1] != last_doc and last_doc is not None:
-                    # another doc, another output file, another PDFCreator
-                    self.core.call_one("mainloop_execute", creator.finish)
-                    out_files.append(out)
-                    doc_idx += 1
-                    out = target_file_url.rsplit(".", 1)
-                    out = "{}_{}.{}".format(out[0], doc_idx, out[1])
-                    creator = self.core.call_one(
-                        "mainloop_execute", PdfCreator,
-                        self.core, out, self.page_format, self.quality
-                    )
-                last_doc = doc.data[1]
-
-                # PDFCreator is not thread-safe. We can not keep
-                # the UI blocked for so long --> give some CPU time back to
-                # the UI
-                time.sleep(0.1)
-                (img, boxes) = img_boxes.data
-                self.core.call_one(
-                    "mainloop_execute", creator.set_page_size, img.size
-                )
-                self.core.call_one(
-                    "mainloop_execute", creator.paint_txt, boxes,
-                    img.size
-                )
-                img_size = img.size
-                img_size = (
-                    int(self.quality * img_size[0]),
-                    int(self.quality * img_size[1])
-                )
-                img = img.resize(
-                    img_size,
-                    getattr(PIL.Image, 'Resampling', PIL.Image).LANCZOS
-                )
-                self.core.call_one("mainloop_execute", creator.paint_img, img)
-                self.core.call_one("mainloop_execute", creator.next_page)
-
-            self.core.call_one("mainloop_execute", creator.finish)
-            out_files.append(out)
-            return out_files
-
-        return openpaperwork_core.promise.ThreadedPromise(
-            self.core, do, kwargs={'target_file_url': target_file_url}
+        creator = self.core.call_one(
+            "mainloop_execute", PdfCreator,
+            self.core, target_file_url, self.page_format, self.quality
         )
+
+        out_files = []
+
+        for (doc_set, (doc, (page, img_boxes))) in list_img_boxes:
+
+            if doc.data[1] != last_doc and last_doc is not None:
+                # another doc, another output file, another PDFCreator
+                self.core.call_one("mainloop_execute", creator.finish)
+                out_files.append(out)
+                doc_idx += 1
+                out = target_file_url.rsplit(".", 1)
+                out = "{}_{}.{}".format(out[0], doc_idx, out[1])
+                creator = self.core.call_one(
+                    "mainloop_execute", PdfCreator,
+                    self.core, out, self.page_format, self.quality
+                )
+            last_doc = doc.data[1]
+
+            # PDFCreator is not thread-safe. We can not keep
+            # the UI blocked for so long --> give some CPU time back to
+            # the UI
+            time.sleep(0.1)
+            (img, boxes) = img_boxes.data
+            self.core.call_one(
+                "mainloop_execute", creator.set_page_size, img.size
+            )
+            self.core.call_one(
+                "mainloop_execute", creator.paint_txt, boxes,
+                img.size
+            )
+            img_size = img.size
+            img_size = (
+                int(self.quality * img_size[0]),
+                int(self.quality * img_size[1])
+            )
+            img = img.resize(
+                img_size,
+                getattr(PIL.Image, 'Resampling', PIL.Image).LANCZOS
+            )
+            self.core.call_one("mainloop_execute", creator.paint_img, img)
+            self.core.call_one("mainloop_execute", creator.next_page)
+
+        self.core.call_one("mainloop_execute", creator.finish)
+        out_files.append(out)
+        return out_files
 
     def get_output_mime(self):
         return ("application/pdf", ("pdf",))
@@ -318,7 +308,10 @@ class Plugin(AbstractExportPipePlugin):
         ]
 
     def get_interfaces(self):
-        return super().get_interfaces() + ['chkdeps']
+        return super().get_interfaces() + [
+            "chkdeps",
+            "export_pipes_pdf",
+        ]
 
     def get_deps(self):
         return super().get_deps() + [

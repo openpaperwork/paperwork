@@ -26,11 +26,13 @@ up to ExportDataType.PAGE:
     |-- Document_to_export
     | (...)
 
-It must *not* be expanded any futher either (for instance, no img+boxes if the
-pipe says it expects a ExportDataType.PAGE as input).
+It must *not* be expanded any further either (for instance, no img+boxes
+(ExportDataType.IMG_BOXES) if the pipe says it expects a ExportDataType.PAGE
+as input).
 
 There are pipes dedicated to expanding unexpanded data (see docexport.generic).
 """
+import abc
 import enum
 
 import openpaperwork_core
@@ -47,7 +49,7 @@ class ExportDataType(enum.Enum):
     OUTPUT_URL_FILE = -1
 
 
-class ExportData(object):
+class ExportData:
     def __init__(self, dtype, data):
         self.dtype = dtype
         self.data = data
@@ -104,7 +106,7 @@ class ExportData(object):
         return root
 
 
-class AbstractExportPipe(object):
+class AbstractExportPipe(abc.ABC):
     """
     Pipes are used by the frontend/user to build an export pipeline (a list of
     pipes to apply in a specific order).
@@ -143,6 +145,10 @@ class AbstractExportPipe(object):
     def can_export_page(self, doc_url, page_idx):
         return False
 
+    @abc.abstractmethod
+    def export(self, input_data, result="final", target_file_url=None):
+        ...
+
     def get_promise(self, result='final', target_file_url=None):
         """
         Returns a promise.
@@ -160,7 +166,12 @@ class AbstractExportPipe(object):
           return either an ExportData (if it must be chained to another pipe)
           or a list of str (list of paths)
         """
-        assert False  # must be implemented by subclasses
+        return openpaperwork_core.promise.ThreadedPromise(
+            self.core, self.export, kwargs={
+                "result": result,
+                "target_file_url": target_file_url,
+            }
+        )
 
     def get_estimated_size_factor(self, input_data):
         """
@@ -199,8 +210,9 @@ class AbstractExportPipe(object):
         """
         return None
 
+    @abc.abstractmethod
     def __str__(self):
-        assert False  # must be implemented by subclasses
+        ...
 
 
 class ExportDataTransformedImgBoxes(ExportData):
@@ -238,25 +250,22 @@ class AbstractSimpleTransformExportPipe(AbstractExportPipe):
         # sub-classes must implement it
         assert False
 
-    def get_promise(self, result='final', target_file_url=None):
-        def do(input_data):
-            assert input_data.dtype == ExportDataType.DOCUMENT_SET
+    def export(self, input_data, result='final', target_file_url=None):
+        assert input_data.dtype == ExportDataType.DOCUMENT_SET
 
-            docs = input_data.iter(ExportDataType.DOCUMENT)
-            docs = list(docs)
+        docs = input_data.iter(ExportDataType.DOCUMENT)
+        docs = list(docs)
 
-            # replace the document page list by objects that will
-            # generate their children (img+boxes) on-the-fly.
-            for (doc_set, doc) in docs:
-                assert doc.expanded
-                doc.set_children([
-                    ExportDataTransformedImgBoxes(self, page)
-                    for page in doc.get_children()
-                ])
+        # replace the document page list by objects that will
+        # generate their children (img+boxes) on-the-fly.
+        for (doc_set, doc) in docs:
+            assert doc.expanded
+            doc.set_children([
+                ExportDataTransformedImgBoxes(self, page)
+                for page in doc.get_children()
+            ])
 
-            return input_data
-
-        return openpaperwork_core.promise.ThreadedPromise(self.core, func=do)
+        return input_data
 
 
 class AbstractExportPipePlugin(openpaperwork_core.PluginBase):

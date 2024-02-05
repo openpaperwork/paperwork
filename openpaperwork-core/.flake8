@@ -1,2 +1,3 @@
 [flake8]
 exclude = src/openpaperwork_core/_version.py
+max-line-length = 100

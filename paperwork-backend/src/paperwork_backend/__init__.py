@@ -35,6 +35,7 @@ DEFAULT_PLUGINS = (
         'paperwork_backend.chkworkdir.label_color',
         'paperwork_backend.converter.libreoffice',
         'paperwork_backend.datadirhandler',
+        'paperwork_backend.docexport.automatic',
         'paperwork_backend.docexport.generic',
         'paperwork_backend.docexport.img',
         'paperwork_backend.docexport.pdf',

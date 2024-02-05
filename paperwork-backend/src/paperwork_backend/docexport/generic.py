@@ -1,9 +1,5 @@
 import logging
 
-import openpaperwork_core
-import openpaperwork_core.promise
-
-
 from . import (
     AbstractExportPipe,
     AbstractExportPipePlugin,
@@ -25,22 +21,19 @@ class DocSetToDoc(AbstractExportPipe):
         )
         self.core = core
 
-    def get_promise(self, result='final', target_file_url=None):
-        def do(input_data):
-            assert input_data.dtype == ExportDataType.DOCUMENT_SET
-            assert not input_data.expanded
+    def export(self, input_data, result='final', target_file_url=None):
+        assert input_data.dtype == ExportDataType.DOCUMENT_SET
+        assert not input_data.expanded
 
-            docs = input_data.data
-            if result == 'preview':
-                docs = docs[:1]
-            children = [
-                ExportData(ExportDataType.DOCUMENT, doc)
-                for doc in docs
-            ]
-            input_data.set_children(children)
-            return input_data
-
-        return openpaperwork_core.promise.Promise(self.core, do)
+        docs = input_data.data
+        if result == 'preview':
+            docs = docs[:1]
+        children = [
+            ExportData(ExportDataType.DOCUMENT, doc)
+            for doc in docs
+        ]
+        input_data.set_children(children)
+        return input_data
 
     def get_estimated_size_factor(self, input_data):
         assert input_data.dtype == ExportDataType.DOCUMENT_SET
@@ -63,25 +56,22 @@ class DocToPage(AbstractExportPipe):
     def can_export_doc(self, doc_url):
         return True
 
-    def get_promise(self, result='final', target_file_url=None):
-        def do(input_data):
-            assert input_data.dtype == ExportDataType.DOCUMENT_SET
+    def export(self, input_data, result='final', target_file_url=None):
+        assert input_data.dtype == ExportDataType.DOCUMENT_SET
 
-            docs = input_data.iter(ExportDataType.DOCUMENT)
-            for (doc_set, doc) in docs:
-                assert not doc.expanded
-                nb_pages = self.core.call_success(
-                    "doc_get_nb_pages_by_url", doc.data[1]
-                )
-                pages = [
-                    ExportData(ExportDataType.PAGE, page_idx)
-                    for page_idx in range(0, nb_pages)
-                ]
-                doc.set_children(pages)
+        docs = input_data.iter(ExportDataType.DOCUMENT)
+        for (doc_set, doc) in docs:
+            assert not doc.expanded
+            nb_pages = self.core.call_success(
+                "doc_get_nb_pages_by_url", doc.data[1]
+            )
+            pages = [
+                ExportData(ExportDataType.PAGE, page_idx)
+                for page_idx in range(0, nb_pages)
+            ]
+            doc.set_children(pages)
 
-            return input_data
-
-        return openpaperwork_core.promise.Promise(self.core, do)
+        return input_data
 
     def get_estimated_size_factor(self, input_data):
         # average number of pages per document
@@ -108,6 +98,11 @@ class Plugin(AbstractExportPipePlugin):
                     'paperwork_backend.model.pdf',
                 ],
             },
+        ]
+
+    def get_interfaces(self):
+        return super().get_interfaces() + [
+            "export_pipes_generic",
         ]
 
     def init(self, core):

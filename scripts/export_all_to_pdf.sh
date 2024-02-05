@@ -15,9 +15,7 @@ mkdir -p "$out_dir"
 
 for doc_id in $(paperwork-json search --limit 10000000 "" | jq -r ".[]") ; do
 	echo paperwork-cli export ${doc_id} \
-			-f doc_to_pages \
-			-f img_boxes \
-			-f generated_pdf \
+			-f automatic_pdf \
 			-o "${out_dir}/${doc_id}.pdf"
 done | parallel --halt now,fail=1 sh -c {}
 

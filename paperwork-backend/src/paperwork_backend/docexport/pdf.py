@@ -1,5 +1,4 @@
 import logging
-import time
 
 import PIL
 import PIL.Image
@@ -264,10 +263,6 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
                 )
             last_doc = doc.data[1]
 
-            # PDFCreator is not thread-safe. We can not keep
-            # the UI blocked for so long --> give some CPU time back to
-            # the UI
-            time.sleep(0.1)
             (img, boxes) = img_boxes.data
             self.core.call_one(
                 "mainloop_execute", creator.set_page_size, img.size

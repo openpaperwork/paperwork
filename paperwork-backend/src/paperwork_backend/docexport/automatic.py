@@ -78,7 +78,7 @@ class AutomaticPdfExportPipe(AbstractExportPipe):
         return ("application/pdf", ("pdf",))
 
     def __str__(self):
-        return _("Prefer original PDF if possible, generate one else")
+        return _("Automatic PDF export (original PDF if possible, generated one else)")
 
 
 class Plugin(AbstractExportPipePlugin):

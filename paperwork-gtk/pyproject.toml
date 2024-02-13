@@ -36,6 +36,7 @@ paperwork-gtk = 'paperwork_gtk.main:main'
 root = ".."
 relative_to = "__file__"
 write_to = "paperwork-gtk/src/paperwork_gtk/_version.py"
+version_scheme = "post-release"
 
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]

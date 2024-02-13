@@ -25,6 +25,7 @@ lint = [
 root = ".."
 relative_to = "__file__"
 write_to = "openpaperwork-core/src/openpaperwork_core/_version.py"
+version_scheme = "post-release"
 
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]

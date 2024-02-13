@@ -1,3 +1,9 @@
+2024/02/13 - 2.2.2:
+- paperwork-cli: disable automatic paging of output. This tends to be actually
+  more annoying than helpful.
+- chkworkdir: Fix corrupted PDF mapping detection when running `paperwork-cli chkworkdir`.
+- Fix `paperwork-(json|shell) plugins show`
+
 2023/09/17 - 2.2.1:
 - Add build-system.build-backend to pyproject.toml
 

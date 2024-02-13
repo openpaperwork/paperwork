@@ -1,3 +1,22 @@
+2023/02/13 - 2.2.2:
+- export: Add export pipe to export to PDF by automatically selecting the
+  original PDF if available or generating one else
+- docexport PDF: Workaround Cairo bug that causes occasional crashes when
+  exporting to generated PDF.
+- make it possible to edit help documents: it seems that this is actually
+  often the first thing that people do try in Paperwork.
+- sklearn: Fix stuck progress bar when switching work directories
+- model.pdf: tolerate corrupted PDF page mapping.
+- pagetracker: handle more gracefully invalid documents
+- model.workdir: ignore files and directory with a name starting with ".".
+- model.thumbnail: do not crash if a document is corrupted.
+- model.thumbnail: when computing the size of the thumbnail,
+  make sure neither the width or height ever end up at 0px.
+- Support exporting corrupted PDFs. Some PDFs may declare more pages than they
+  actually contain. It must not block a mass export.
+- docexport/pdf: remove old workaround: call to time.sleep() isn't useful
+  anymore
+
 2023/09/17 - 2.2.1:
 - Add build-system.build-backend to pyproject.toml
 - datadirhandler: when removing a directory, don't move it to the trash.

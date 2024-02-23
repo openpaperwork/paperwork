@@ -32,7 +32,7 @@ class CropImgEditor(AbstractImgEditor):
             if frame[0] >= frame[2] or frame[1] >= frame[3]:
                 LOGGER.info("Failed to guess a cropping frame")
                 # defaulting to the whole image
-                self.frame = (0, 0, img.size[0], img.sixe[1])
+                self.frame = (0, 0, img.size[0], img.size[1])
             else:
                 # if we have found a valid frame
                 LOGGER.info("Guessed cropping frame: %s", frame)

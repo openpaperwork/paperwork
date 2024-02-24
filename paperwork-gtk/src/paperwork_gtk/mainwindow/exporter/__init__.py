@@ -343,6 +343,14 @@ class Plugin(openpaperwork_core.PluginBase):
             if pipe == "":
                 return
             pipe = self.core.call_success("export_get_pipe_by_name", pipe)
+            if len(self.pipeline) > 0:
+                if self.pipeline[-1].output_type != pipe.input_type:
+                    LOGGER.warning(
+                        "Pipe [%s] cannot be followed [%s]. Ignoring"
+                        " remainder of the pipeline",
+                        self.pipeline[-1], pipe
+                    )
+                    break
             self.pipeline.append(pipe)
         LOGGER.info("Pipeline from UI: %s", [p.name for p in self.pipeline])
 

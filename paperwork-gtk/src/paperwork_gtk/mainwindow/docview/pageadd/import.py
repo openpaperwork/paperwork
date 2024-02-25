@@ -173,6 +173,16 @@ class Plugin(openpaperwork_core.PluginBase):
 
         dialog.destroy()
 
+        if len(selected) <= 0:
+            notif = self.core.call_success(
+                "get_notification_builder",
+                _("Nothing to import")
+            )
+            notif.set_message(_("Nothing to import: nothing selected"))
+            notif.set_icon("dialog-error")
+            notif.show()
+            return
+
         self.core.call_all("config_put", "last_import_uri", selected[0])
 
         self.core.call_all("gtk_doc_import", selected)

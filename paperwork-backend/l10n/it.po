@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-26 18:52+0000\n"
+"PO-Revision-Date: 2024-02-26 18:57+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/it/>\n"
@@ -45,21 +45,21 @@ msgstr "Informazioni scanner."
 
 #: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:750
 msgid "Select to generate"
-msgstr ""
+msgstr "Seleziona per generare"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:48
 #, python-brace-format
 msgid "Document {doc_id} p{page_idx} already correctly colorized"
-msgstr ""
+msgstr "Documento {doc_id} p{page_idx} già correttamente colorato"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:64
 #, python-brace-format
 msgid "Adjusting colors of document {doc_id} p{page_idx}"
-msgstr ""
+msgstr "Correzione colori documento {doc_id} p{page_idx}"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:88
 msgid "Adjusting colors of document"
-msgstr ""
+msgstr "Correzione colori documento"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:43
 #, python-brace-format

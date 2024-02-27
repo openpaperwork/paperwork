@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-26 18:57+0000\n"
+"PO-Revision-Date: 2024-02-27 14:19+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/it/>\n"
@@ -71,11 +71,11 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:53
 #, python-brace-format
 msgid "Guessing orientation of document {doc_id} p{page_idx}"
-msgstr ""
+msgstr "Individua l'orientamento del documento {doc_id} p{page_idx}"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:77
 msgid "Guessing page orientation"
-msgstr ""
+msgstr "Individua l'orientamento della pagina"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:48
 #, python-brace-format

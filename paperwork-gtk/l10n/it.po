@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:39+0000\n"
+"PO-Revision-Date: 2024-02-27 13:54+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/it/>\n"
@@ -46,16 +46,16 @@ msgstr "Più intelligente, migliore, più forte"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:40
 msgid "It's better when it's free."
-msgstr ""
+msgstr "È meglio quando è gratuito."
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
 #, python-brace-format
 msgid "A new version of Paperwork is available: {new_version}"
-msgstr ""
+msgstr "È disponibile una nuova versione di Paperwork: {new_version}"
 
 #: paperwork-gtk/src/paperwork_gtk/main.py:203
 msgid "command"
-msgstr ""
+msgstr "Comando"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
 msgid "Renaming label"
@@ -202,7 +202,7 @@ msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
 msgid "Find"
-msgstr ""
+msgstr "Trova"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30

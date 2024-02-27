@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:34+0000\n"
+"PO-Revision-Date: 2024-02-27 13:39+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/it/>\n"
@@ -42,7 +42,7 @@ msgstr "File di registro"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
 msgid "Today"
-msgstr ""
+msgstr "Oggi"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
 msgid "Yesterday"

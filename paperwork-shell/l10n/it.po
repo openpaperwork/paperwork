@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 14:19+0000\n"
+"PO-Revision-Date: 2024-02-27 14:24+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/it/>\n"
@@ -83,10 +83,12 @@ msgstr "Modifica pagina"
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:99
 msgid "List of image modifiers (comma separated, possible values: {})"
 msgstr ""
+"Elenco dei modificatori di immagine (separati da virgole, valori possibili: "
+"{})"
 
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:122
 msgid "Modifying document {} page {} ..."
-msgstr ""
+msgstr "Modifica del documento {} pagina {} ..."
 
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:126
 #: paperwork-shell/src/paperwork_shell/cmd/reset.py:112

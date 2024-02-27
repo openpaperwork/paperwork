@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:24+0000\n"
+"PO-Revision-Date: 2024-02-27 13:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/it/>\n"
@@ -26,11 +26,11 @@ msgstr "Ora con il 10% di libertà in più!"
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:34
 #, python-format
 msgid "Buy it now and get a 100% discount !"
-msgstr ""
+msgstr "Acquistalo ora e ottieni uno sconto del 100%!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:35
 msgid "New features and bugs available !"
-msgstr ""
+msgstr "Nuove funzionalità e bug disponibili!"
 
 #: paperwork-gtk/src/paperwork_gtk/update_notification.py:36
 msgid "New taste !"

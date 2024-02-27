@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-02-27 14:24+0000\n"
+"PO-Revision-Date: 2024-02-27 14:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/it/>\n"
@@ -144,6 +144,12 @@ msgid ""
 "All the keywords you add will be searchable, as if they were directly "
 "written on the paper you scanned."
 msgstr ""
+"Hai risposto a un'e-mail importante e vuoi tenerne traccia? La carta che hai "
+"scansionato era così illeggibile che Paperwork non è riuscito a riconoscere "
+"alcune parole chiave importanti? Aggiungi parole chiave al tuo documento in "
+"modo da non perderti nulla! Tutte le parole chiave che aggiungi saranno "
+"ricercabili, come se fossero scritte direttamente sul foglio che hai "
+"scansionato."
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:89
@@ -153,6 +159,10 @@ msgid ""
 "will learn which labels go on which documents and will automatically apply "
 "them on new documents."
 msgstr ""
+"Vuoi organizzare un po' di più i tuoi documenti? Puoi anche aggiungere "
+"etichette ai tuoi documenti. Ogni etichetta ha il suo colore. Con il tempo, "
+"Paperwork imparerà quali etichette vanno su quali documenti e le applicherà "
+"automaticamente ai nuovi documenti."
 
 #. type: section{#2}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:92

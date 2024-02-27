@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-02-27 14:29+0000\n"
+"PO-Revision-Date: 2024-02-27 14:36+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/it/>\n"
@@ -167,7 +167,7 @@ msgstr ""
 #. type: section{#2}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:92
 msgid "Your first documents"
-msgstr ""
+msgstr "I tuoi primi documenti"
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:102

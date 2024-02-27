@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:24+0000\n"
+"PO-Revision-Date: 2024-02-27 13:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/it/>\n"
@@ -33,11 +33,11 @@ msgstr "Testo aggiuntivo:"
 #: paperwork-shell/src/paperwork_shell/cmd/export.py:250
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:89
 msgid "Done"
-msgstr ""
+msgstr "Fatto"
 
 #: paperwork-shell/src/paperwork_shell/display/scan.py:86
 msgid "Scanning page {} (expected size: {}x{}) ..."
-msgstr ""
+msgstr "Scansione della pagina {} (dimensione attesa: {}x{}) ..."
 
 #: paperwork-shell/src/paperwork_shell/display/scan.py:127
 msgid "Page {} scanned (actual size: {}x{})"

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:54+0000\n"
+"PO-Revision-Date: 2024-02-27 13:59+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/it/>\n"
@@ -63,7 +63,7 @@ msgstr "Visualizzare il contenuto di un documento"
 #: paperwork-shell/src/paperwork_shell/cmd/search.py:93
 #, python-format
 msgid "Document id: %s"
-msgstr ""
+msgstr "ID documento: %s"
 
 #: paperwork-shell/src/paperwork_shell/cmd/show.py:87
 #: paperwork-shell/src/paperwork_shell/cmd/search.py:98

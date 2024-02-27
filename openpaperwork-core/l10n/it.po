@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:24+0000\n"
+"PO-Revision-Date: 2024-02-27 13:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/it/>\n"
@@ -29,7 +29,7 @@ msgstr "Seleziona per generare"
 
 #: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:149
 msgid "Collecting statistics ..."
-msgstr ""
+msgstr "Raccolta statistiche ..."
 
 #: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
 msgid "App. config."

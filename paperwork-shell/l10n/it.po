@@ -8,18 +8,21 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-02-27 13:24+0000\n"
+"Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
+"Language-Team: Italian <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-shell/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:79
 msgid "Additional text:"
-msgstr ""
+msgstr "Testo aggiuntivo:"
 
 #: paperwork-shell/src/paperwork_shell/display/progress.py:39
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:183

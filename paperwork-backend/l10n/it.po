@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 14:29+0000\n"
+"PO-Revision-Date: 2024-02-27 14:36+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/it/>\n"
@@ -96,10 +96,12 @@ msgstr "Esecuzione dell'OCR"
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:235
 msgid "Label guesser: Garbage-collecting unused document features ..."
 msgstr ""
+"Individuatore di etichette: la raccolta dei rifiuti dei documenti "
+"inutilizzati è dotata di ..."
 
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:261
 msgid "Label guesser: Garbage-collecting unused words ..."
-msgstr ""
+msgstr "Individuazione dell'etichetta: Recupero parole inutilizzate ..."
 
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:585
 #, python-format

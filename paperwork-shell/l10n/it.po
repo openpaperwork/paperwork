@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:34+0000\n"
+"PO-Revision-Date: 2024-02-27 13:39+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/it/>\n"
@@ -49,7 +49,7 @@ msgstr "Fine dell'alimentazione della carta"
 
 #: paperwork-shell/src/paperwork_shell/display/scan.py:151
 msgid "Page {} in document {} created"
-msgstr ""
+msgstr "Pagina {} nel documento {} creata"
 
 #: paperwork-shell/src/paperwork_shell/main.py:68
 msgid "command"

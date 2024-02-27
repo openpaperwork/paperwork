@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:59+0000\n"
+"PO-Revision-Date: 2024-02-27 14:14+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-gtk/it/>\n"
@@ -58,7 +58,7 @@ msgstr "Invia automaticamente la segnalazione di bug a OpenPaper.work"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:262
 msgid "Success"
-msgstr ""
+msgstr "Successo"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:278
 #, python-format

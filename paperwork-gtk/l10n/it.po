@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 13:59+0000\n"
+"PO-Revision-Date: 2024-02-27 14:19+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/it/>\n"
@@ -64,12 +64,13 @@ msgstr "Rinominare l'etichetta"
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:294
 #, python-format
 msgid "Are you sure you want to delete label '%s' from ALL documents ?"
-msgstr ""
+msgstr "Sei sicuro di voler eliminare l'etichetta '%s' da TUTTI i documenti?"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:396
 #, python-brace-format
 msgid "Changing label {old_label} into {new_label} on document {doc_id}"
 msgstr ""
+"Modifica dell'etichetta {old_label} in {new_label} nel documento {doc_id}"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:462
 #, python-brace-format
@@ -331,7 +332,7 @@ msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
 msgid "Export"
-msgstr ""
+msgstr "Esporta"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
 msgid "Delete"

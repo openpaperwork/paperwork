@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-02-27 13:24+0000\n"
+"PO-Revision-Date: 2024-02-27 13:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/it/>\n"
@@ -27,7 +27,7 @@ msgstr "\\data{}"
 #. type: title{#1}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
 msgid "Welcome to Paperwork !"
-msgstr ""
+msgstr "Benvenuto in Paperwork !"
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:20
@@ -38,6 +38,12 @@ msgid ""
 "read, classify, and memorize just in case you may need them later. Most of "
 "the time you won't, which means you waste your energy for nothing."
 msgstr ""
+"Ti faranno impazzire. Il tuo operatore telefonico, la tua banca, la scuola "
+"di tua figlia, il veterinario del tuo cane, persino il tuo ISP; Sembra che "
+"tutti stiano cercando di affogarti sotto tonnellate di carte. Documenti che "
+"devi leggere, classificare e memorizzare nel caso in cui tu possa averne "
+"bisogno in seguito. La maggior parte delle volte non lo farai, il che "
+"significa che sprechi la tua energia per niente."
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:24

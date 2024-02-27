@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-02-27 13:29+0000\n"
+"PO-Revision-Date: 2024-02-27 13:34+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/it/>\n"
@@ -52,11 +52,15 @@ msgid ""
 "searchable documents.  It's simple: just scan and forget. Looking for a "
 "specific paper? Just type in a few keywords and tada"
 msgstr ""
+"Paperwork ti aiuterà a sbarazzarti di tutti quei documenti trasformandoli in "
+"documenti ricercabili.\n"
+"È semplice: basta scansionare e dimenticare. Cerchi un documento specifico? "
+"Basta digitare alcune parole chiave e... tada!"
 
 #. type: section{#2}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:28
 msgid "Documents and pages"
-msgstr ""
+msgstr "Documenti e pagine"
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:36

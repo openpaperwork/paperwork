@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 14:24+0000\n"
+"PO-Revision-Date: 2024-02-27 14:29+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/it/>\n"
@@ -85,12 +85,12 @@ msgstr "Dimensione stimata del file: %s"
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:628
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:108
 msgid "Select a file or a directory to import"
-msgstr ""
+msgstr "Selezionare un file o una directory da importare"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:637
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:128
 msgid "Any files"
-msgstr ""
+msgstr "Tutti i file"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:715
 msgid "Export has failed"

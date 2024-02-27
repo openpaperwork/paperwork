@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 14:29+0000\n"
+"PO-Revision-Date: 2024-02-27 14:36+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/it/>\n"
@@ -97,7 +97,7 @@ msgstr "Originale:"
 
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:147
 msgid "Generating in high quality and saving ..."
-msgstr ""
+msgstr "Generando in alta qualità e salvando ..."
 
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:175
 #: paperwork-shell/src/paperwork_shell/cmd/reset.py:123

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-02-27 14:19+0000\n"
+"PO-Revision-Date: 2024-02-27 14:24+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/it/>\n"
@@ -125,12 +125,15 @@ msgid ""
 "Multiple formats are supported: .pdf, .jpg, .txt, etc. And of course, paper "
 "(requires a printer, sold separately)."
 msgstr ""
+"A volte potresti voler esportare un documento per inviarlo a qualcun altro.  "
+"Sono supportati più formati: .pdf, .jpg, .txt, ecc. E, naturalmente, la "
+"carta (richiede una stampante, venduta separatamente)."
 
 #. type: subsection{#2}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:72
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:113
 msgid "Labels and additional keywords"
-msgstr ""
+msgstr "Etichette e parole chiave aggiuntive"
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:84
@@ -1853,7 +1856,7 @@ msgstr ""
 #. type: subsubsection{#2}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:998
 msgid "ZIP file"
-msgstr ""
+msgstr "File ZIP"
 
 #. type: document
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1002

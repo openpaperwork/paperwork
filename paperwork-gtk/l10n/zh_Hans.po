@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 22:01+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-02-06 06:20+0000\n"
 "Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
 "Language-Team: Chinese (Simplified) <http://translations.openpaper.work/"
@@ -19,30 +19,209 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:82
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:45
+msgid "Run Paperwork and import files passed as arguments into a new document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:49
+msgid "URLs or paths of files to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:33
+msgid "Install Paperwork icons and shortcuts"
+msgstr "安装 Paperwork 图标和快捷方式"
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:37
+msgid "Install everything only for the current user"
+msgstr "只为当前用户安装所有内容"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:75
+msgid "Introduction"
+msgstr "介绍"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:76
+msgid "User manual"
+msgstr "用户手册"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:78
+msgid "Documentation"
+msgstr "文档"
+
+#: paperwork-gtk/src/paperwork_gtk/main.py:224
+msgid "command"
+msgstr "命令"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Document list"
+msgstr "文档列表"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+msgid "Open next document"
+msgstr "打开下一文档"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Open previous document"
+msgstr "打开上一文档"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Document"
+msgstr "文档"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+msgid "Print"
+msgstr "打印"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Edit document properties"
+msgstr "编辑文档属性"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Global"
+msgstr "全局"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+msgid "Create new document"
+msgstr "创建新文档"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:32
+msgctxt "keyboard shortcut categories"
+msgid "Page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:34
+msgctxt "keyboard shortcut names"
+msgid "Copy selected text to clipboard"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:33
+msgctxt "keyboard shortcut names"
+msgid "Edit"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Find"
+msgstr "查找"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/delete.py:78
+#, python-format
+msgid "Are you sure you want to delete document %s ?"
+msgstr "你确信要删除文档 %s？"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:97
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:83
+#, python-format
+msgid "OCR on %s"
+msgstr "OCR 于 %s"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:105
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:92
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:100
+#, python-brace-format
+msgid "OCR on {doc_id} p{page_idx}"
+msgstr "OCR {doc_id} 页{page_idx}"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/delete.py:72
+#, python-format
+msgid "Are you sure you want to delete %d documents ?"
+msgstr "您确信要删除 %d 文档 ?"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/delete.py:85
+#, python-brace-format
+msgid "Are you sure you want to delete page {page_idx} of document {doc_id} ?"
+msgstr "确实要删除文档 {doc_id} 的第 {page_idx} 页吗？"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:116
+#, python-format
+msgid "Move the page %d to what position ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:135
+#, python-format
+msgid "Invalid page position: %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:147
+#, python-format
+msgid "Invalid page position: %d. Out of document bounds (1-%d)."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:156
+msgid "Page position unchanged"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
+#: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
+msgid "Redo OCR on page"
+msgstr "重做页面 OCR"
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:87
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "对不起，不知道如何导入“%s”。"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:99
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:106
+msgid "PDF password"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:124
 msgid "No new document to import found"
 msgstr "未发现要导入的新文档"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:139
-msgid "Imported file(s) deleted"
-msgstr "已删除导入的文件"
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:167
+msgctxt "import dialog"
+msgid "Imported file deleted"
+msgid_plural "Imported files deleted"
+msgstr[0] ""
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:146
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:177
 msgid "Imported:\n"
 msgstr "导入:\n"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:152
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:183
 msgid "Import successful"
 msgstr "导入成功"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:161
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:192
 msgid "Delete imported files"
 msgstr "删除导入文件"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:33
+msgid "Now with 10% more freedom in it !"
+msgstr "现在有了 10% 的自由度！"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:34
+#, python-format
+msgid "Buy it now and get a 100% discount !"
+msgstr "现在购买，可以享受100% 的折扣！"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:35
+msgid "New features and bugs available !"
+msgstr "新增功能和 bug！"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:36
+msgid "New taste !"
+msgstr "新体验 !"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:37
+msgid "We replaced your old bugs with new bugs. Enjoy."
+msgstr "我们用新 bug 替换了您的旧 bug。好好享受。"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:38
+msgid "Smarter, Better, Stronger"
+msgstr "更聪明，更好，更强"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:40
+msgid "It's better when it's free."
+msgstr "免费的时候更好。"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
+#, python-brace-format
+msgid "A new version of Paperwork is available: {new_version}"
+msgstr "Paperwork 新版本可用: {new_version}"
 
 #: paperwork-gtk/src/paperwork_gtk/print.py:42
 #, python-brace-format
@@ -59,59 +238,253 @@ msgstr "打印%s"
 msgid "Printing {doc_id} ({page_idx}/{nb_pages})"
 msgstr "打印 {doc_id} ({page_idx}/{nb_pages})"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:9
-msgid "Now with 10% more freedom in it !"
-msgstr "现在有了 10% 的自由度！"
-
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:10
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:420
 #, python-format
-msgid "Buy it now and get a 100% discount !"
-msgstr "现在购买，可以享受100% 的折扣！"
+msgid "Estimated file size: %s"
+msgstr "估计文件大小: %s"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:11
-msgid "New features and bugs available !"
-msgstr "新增功能和 bug！"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:643
+msgid "Select a file to which export the document"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:12
-msgid "It's better when it's free."
-msgstr "免费的时候更好。"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:652
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:135
+msgid "Any files"
+msgstr "所有文件"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:13
-msgid "New taste !"
-msgstr "新体验 !"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:740
+msgid "Export has failed"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:14
-msgid "We replaced your old bugs with new bugs. Enjoy."
-msgstr "我们用新 bug 替换了您的旧 bug。好好享受。"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
+#, python-format
+msgid "Scan from %s"
+msgstr "扫描自 %s"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:15
-msgid "Smarter, Better, Stronger"
-msgstr "更聪明，更好，更强"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:84
+msgid "Import document or image file(s)"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
+msgid "Import file(s)"
+msgstr "导入文件"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:115
+msgid "Select a file or a directory to import"
+msgstr "选择要导入的文件或目录"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:129
+msgid "All supported file formats"
+msgstr "所有支持的格式"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:179
+msgid "Nothing to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:181
+msgid "Nothing to import: nothing selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
+msgid "New document"
+msgstr "新建文档"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
+msgid "Empty"
+msgstr "空白"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:88
+msgid "Loading text ..."
+msgstr "正在加载文本 ..."
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:93
+msgid "Loading page {}/{} ..."
+msgstr "正在加载页面 {}/{} ..."
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:81
+msgid "Keyword(s)"
+msgstr "关键字"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:102
+msgid "No labels"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:142
+msgid "Label"
+msgstr "标签"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
+msgid "From:"
+msgstr "从:"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:160
+msgid "to:"
+msgstr "到:"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:270
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
+msgid "Date"
+msgstr "日期"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:302
+msgid "and"
+msgstr "和"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:303
+msgid "or"
+msgstr "或"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:320
+msgid "not"
+msgstr "不包含"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:344
+msgid "Remove"
+msgstr "移除"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:129
+msgid "Loading document thumbnails"
+msgstr "加载文档缩略图"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:642
+#, python-format
+msgid "%d documents"
+msgstr "%d 个文档"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
+msgid "Renaming label"
+msgstr "重命名标签"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:294
+#, python-format
+msgid "Are you sure you want to delete label '%s' from ALL documents ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:396
 #, python-brace-format
-msgid "A new version of Paperwork is available: {new_version}"
-msgstr "Paperwork 新版本可用: {new_version}"
+msgid "Changing label {old_label} into {new_label} on document {doc_id}"
+msgstr "将文档{doc_id}上的标签{old_label}更改为{new_label}"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
-msgid "Updates"
-msgstr "更新"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:462
+#, python-brace-format
+msgid "Deleting label {old_label} from document {doc_id}"
+msgstr "从文档{doc_id}中删除标签{old_label}"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:84
-msgid "Storage"
-msgstr "存储"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
+msgid "Delete document"
+msgstr "删除文档"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:90
-msgid "Work Directory"
-msgstr "工作目录"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
+msgid "Export document"
+msgstr "导出文档"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:64
-msgid "Optical Character Recognition"
-msgstr "光学字符识别"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
+msgid "Open folder"
+msgstr "打开文件夹"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:76
-msgid "OCR disabled"
-msgstr "已禁用 OCR"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
+msgid "Add to selection"
+msgstr "添加至所选"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
+msgid "Redo OCR on document"
+msgstr "重做文档 OCR"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
+msgid "Print document"
+msgstr "打印文档"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
+msgid "Document properties"
+msgstr "文档属性"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
+msgid "Select all"
+msgstr "全选"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
+msgid "Delete"
+msgstr "删除"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
+msgid "Export"
+msgstr "导出"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/redo_ocr.py:51
+msgid "Redo OCR"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
+msgid "Change labels"
+msgstr "更改标签"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
+msgid "Delete page"
+msgstr "删除页面"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
+msgid "Reset page"
+msgstr "重置页面"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
+msgid "Copy selected text"
+msgstr "复制所选文本"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
+msgid "Export page"
+msgstr "导出页面"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:50
+msgid "Another position"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:53
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:53
+msgid "Move page to"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
+msgid "Print page"
+msgstr "打印页面"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:50
+msgid "Another document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
+msgid "Report bug"
+msgstr "报告 bug"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:64
+msgid "Help"
+msgstr "帮助"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
+#: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
+msgid "Settings"
+msgstr "设置"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
+msgid "About"
+msgstr "关于"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
+msgid "Shortcuts"
+msgstr "快捷方式"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/dev_id_popover.py:67
+msgid "No scanner"
+msgstr "无扫描仪"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:123
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
+msgid "{} dpi"
+msgstr "{} dpi"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:125
+msgid "{} dpi (recommended)"
+msgstr "{} dpi (推荐)"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:15
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/popover_mode.glade.h:1
@@ -128,373 +501,150 @@ msgstr "灰度"
 msgid "Black & White"
 msgstr "黑白"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:27
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:62
 msgid "No scanner selected"
 msgstr "未选择扫描仪"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:31
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
 msgid "No resolution selected"
 msgstr "未选择分辨率"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:31
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:123
-msgid "{} dpi"
-msgstr "{} dpi"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:35
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:70
 msgid "No mode selected"
 msgstr "未选择模式"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:104
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:113
 msgid "Scanner"
 msgstr "扫描仪"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/dev_id_popover.py:67
-msgid "No scanner"
-msgstr "无扫描仪"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.py:154
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.py:168
 msgid "Loading ..."
 msgstr "加载中 ..."
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:125
-msgid "{} dpi (recommended)"
-msgstr "{} dpi (推荐)"
+#: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
+msgid "Updates"
+msgstr "更新"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.py:60
 msgid "Help Improve Paperwork"
 msgstr "帮助改进 Paperwork"
 
-#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:40
-msgid "Install Paperwork icons and shortcuts"
-msgstr "安装 Paperwork 图标和快捷方式"
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:64
+msgid "Optical Character Recognition"
+msgstr "光学字符识别"
 
-#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:44
-msgid "Install everything only for the current user"
-msgstr "只为当前用户安装所有内容"
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:76
+msgid "OCR disabled"
+msgstr "已禁用 OCR"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
-msgid "Page"
-msgstr "页面"
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:101
+msgid "Storage"
+msgstr "存储"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:108
+msgid "Work Directory"
+msgstr "工作目录"
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
+msgid "©2023"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
+msgid "Sorting documents is a machine's job."
+msgstr "整理文件是机器的工作。"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_to_doc/move_to_doc.glade.h:1
+msgid "Select target document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:1
+msgid "Export Steps"
+msgstr "导出步骤"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:2
+msgid "Quality"
+msgstr "质量"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:3
+msgid "Paper format"
+msgstr "页面格式"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:4
+msgid "Export Settings"
+msgstr "导出设置"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:5
+msgid "Send by email"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:6
+msgid "Preview"
+msgstr "预览"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/buttons.glade.h:1
+msgid "Add page"
+msgstr "添加页面"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/layout_settings.glade.h:1
+msgid "Highlight words"
+msgstr "突出显示单词"
+
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/actions.glade.h:1
 msgid "Edit"
 msgstr "编辑"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
-msgid "Copy selected text to clipboard"
-msgstr "将所选文本复制到剪贴板"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.glade.h:1
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:1
+msgid "Search"
+msgstr "搜索"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
-msgid "Global"
-msgstr "全局"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/suggestions.glade.h:1
+msgid "Did you mean ?"
+msgstr "你的意思是 ?"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
-msgid "Find"
-msgstr "查找"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:2
+msgid "Advanced search"
+msgstr "高级搜索"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
-msgid "Document"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:1
+msgid "Documents"
 msgstr "文档"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
-msgid "Print"
-msgstr "打印"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:2
+msgid "Selection"
+msgstr "选择"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
-msgid "Create new document"
-msgstr "创建新文档"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:1
+msgid "Change the label color"
+msgstr "更改标签颜色"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
-msgid "Edit document properties"
-msgstr "编辑文档属性"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:2
+msgid "Delete the label from all documents"
+msgstr "从所有文档中删除标签"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
-msgid "Document list"
-msgstr "文档列表"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/docproperties.glade.h:1
+msgid "Properties"
+msgstr "属性"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
-msgid "Open next document"
-msgstr "打开下一文档"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/extra_text.glade.h:1
+msgid "Additional keywords"
+msgstr "其他关键字"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
-msgid "Open previous document"
-msgstr "打开上一文档"
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:1
+msgid "Flatpak"
+msgstr "Flatpak"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:372
-#, python-format
-msgid "Estimated file size: %s"
-msgstr "估计文件大小: %s"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:593
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:104
-msgid "Select a file or a directory to import"
-msgstr "选择要导入的文件或目录"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:602
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:124
-msgid "Any files"
-msgstr "所有文件"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:613
-#, python-format
-msgid "%d documents"
-msgstr "%d 个文档"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:23
-msgid "New document"
-msgstr "新建文档"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:113
-msgid "Loading document thumbnails"
-msgstr "加载文档缩略图"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:78
-msgid "Keyword(s)"
-msgstr "关键字"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:131
-msgid "Label"
-msgstr "标签"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:143
-msgid "From:"
-msgstr "从:"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:149
-msgid "to:"
-msgstr "到:"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:259
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
-msgid "Date"
-msgstr "日期"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:291
-msgid "and"
-msgstr "和"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:292
-msgid "or"
-msgstr "或"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:309
-msgid "not"
-msgstr "不包含"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:333
-msgid "Remove"
-msgstr "移除"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
-msgid "Renaming label"
-msgstr "重命名标签"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:378
-#, python-brace-format
-msgid "Changing label {old_label} into {new_label} on document {doc_id}"
-msgstr "将文档{doc_id}上的标签{old_label}更改为{new_label}"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:444
-#, python-brace-format
-msgid "Deleting label {old_label} from document {doc_id}"
-msgstr "从文档{doc_id}中删除标签{old_label}"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
-msgid "Empty"
-msgstr "空白"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:88
-msgid "Loading page {}/{} ..."
-msgstr "正在加载页面 {}/{} ..."
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:83
-msgid "Loading text ..."
-msgstr "正在加载文本 ..."
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
-#, python-format
-msgid "Scan from %s"
-msgstr "扫描自 %s"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:75
-msgid "Import image or PDF file(s)"
-msgstr "导入图像或 PDF 文件"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:76
-msgid "Import file(s)"
-msgstr "导入文件"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:118
-msgid "All supported file formats"
-msgstr "所有支持的格式"
-
-#: paperwork-gtk/src/paperwork_gtk/main.py:197
-msgid "command"
-msgstr "命令"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:64
-msgid "Introduction"
-msgstr "介绍"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:65
-msgid "User manual"
-msgstr "用户手册"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:67
-msgid "Documentation"
-msgstr "文档"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/delete.py:85
-#, python-brace-format
-msgid "Are you sure you want to delete page {page_idx} of document {doc_id} ?"
-msgstr "确实要删除文档 {doc_id} 的第 {page_idx} 页吗？"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
-#: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
-msgid "Redo OCR on page"
-msgstr "重做页面 OCR"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:100
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:105
-#, python-brace-format
-msgid "OCR on {doc_id} p{page_idx}"
-msgstr "OCR {doc_id} 页{page_idx}"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/docs/delete.py:72
-#, python-format
-msgid "Are you sure you want to delete %d documents ?"
-msgstr "您确信要删除 %d 文档 ?"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/delete.py:78
-#, python-format
-msgid "Are you sure you want to delete document %s ?"
-msgstr "你确信要删除文档 %s？"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:97
-#, python-format
-msgid "OCR on %s"
-msgstr "OCR 于 %s"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
-msgid "Print page"
-msgstr "打印页面"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
-msgid "Export page"
-msgstr "导出页面"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
-msgid "Delete page"
-msgstr "删除页面"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
-msgid "Reset page"
-msgstr "重置页面"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
-msgid "Copy selected text"
-msgstr "复制所选文本"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:62
-msgid "Help"
-msgstr "帮助"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
-msgid "Report bug"
-msgstr "报告 bug"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
-msgid "Shortcuts"
-msgstr "快捷方式"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
-#: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
-msgid "Settings"
-msgstr "设置"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
-msgid "About"
-msgstr "关于"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
-msgid "Export"
-msgstr "导出"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
-msgid "Select all"
-msgstr "全选"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
-msgid "Delete"
-msgstr "删除"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
-msgid "Change labels"
-msgstr "更改标签"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
-msgid "Print document"
-msgstr "打印文档"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
-msgid "Export document"
-msgstr "导出文档"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
-msgid "Delete document"
-msgstr "删除文档"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
-msgid "Redo OCR on document"
-msgstr "重做文档 OCR"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
-msgid "Document properties"
-msgstr "文档属性"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
-msgid "Add to selection"
-msgstr "添加至所选"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
-msgid "Open folder"
-msgstr "打开文件夹"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:1
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:2
 msgid ""
-"Updates\n"
-"<span foreground=\"gray\">Check periodically for new versions of Paperwork</"
-"span>"
+"You are using Paperwork from a Flatpak container. Paperwork needs Saned to "
+"access your scanners.\n"
+"\n"
+"Important: the following procedure will only work for local (non-network) "
+"scanners !\n"
+"\n"
+"To enable Saned on the host system, you must copy and paste the following "
+"commands in a terminal:"
 msgstr ""
-"更新\n"
-"<span foreground=\"gray\">定期检查 Paperwork 新版本</span>"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:3
-msgid ""
-"<span foreground=\"gray\">Look about once a week for new versions of "
-"Paperwork.\n"
-"You will be notified when a new version is available but it won't be "
-"installed automatically.\n"
-"</span>"
-msgstr ""
-"<span foreground=\"gray\">每周查看一次 Paperwork 新版本。\n"
-"当有新版本可用但不会自动安装时，系统将会通知您。\n"
-"</span>"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:1
-msgid "Work directory"
-msgstr "工作目录"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.glade.h:1
-msgid "Languages"
-msgstr "语言"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:1
 msgid "Maximize"
@@ -532,18 +682,50 @@ msgstr "校准"
 msgid "Re-calibrate"
 msgstr "重新校准"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:1
-msgid "Flatpak"
-msgstr "Flatpak"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:2
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:1
 msgid ""
-"You are using Paperwork from a Flatpak container. Paperwork needs Saned to "
-"access your scanners. To enable Saned on the host system, you must copy and "
-"paste the following commands in a terminal:"
+"Updates\n"
+"<span foreground=\"gray\">Check periodically for new versions of Paperwork</"
+"span>"
 msgstr ""
-"您使用的是 Flatpak 容器的 Paperwork 。它需要使用 Saned 访问你的扫描仪。要在主机系统上启用 "
-"Saned，必须在终端中复制并粘贴以下命令："
+"更新\n"
+"<span foreground=\"gray\">定期检查 Paperwork 新版本</span>"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:3
+msgid ""
+"<span foreground=\"gray\">Look about once a week for new versions of "
+"Paperwork.\n"
+"You will be notified when a new version is available but it won't be "
+"installed automatically.\n"
+"</span>"
+msgstr ""
+"<span foreground=\"gray\">每周查看一次 Paperwork 新版本。\n"
+"当有新版本可用但不会自动安装时，系统将会通知您。\n"
+"</span>"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.glade.h:1
+msgid "Languages"
+msgstr "语言"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:1
+msgid "Work directory"
+msgstr "工作目录"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:2
+msgid ""
+"<b>Do not use an already existing directory !</b>\n"
+"(unless it comes from another Paperwork instance)\n"
+"\n"
+"Paperwork uses a custom file structure to store documents. Unless the "
+"directory you specify has the exact file structure expected by Paperwork, it "
+"won't work !\n"
+"\n"
+"If you want to build a new work directory from existing documents, please "
+"use the import feature instead.\n"
+"\n"
+"<a href=\"https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/wikis/"
+"Work-directory-organization\">[More information]</a>"
+msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:1
 msgid ""
@@ -574,8 +756,9 @@ msgid ""
 "paperwork/statistics\">openpaper.work</a>.\n"
 "</span>"
 msgstr ""
-"<span foreground=\"gray\">这些线索将帮助我们使 Paperwork "
-"成为一个更好的软件，奉献给您。统计数据还将显示，人们实际上在使用我们的作品，使我们保持改进工作的动力。\n"
+"<span foreground=\"gray\">这些线索将帮助我们使 Paperwork 成为一个更好的软件，"
+"奉献给您。统计数据还将显示，人们实际上在使用我们的作品，使我们保持改进工作的"
+"动力。\n"
 "\n"
 "以下是我们收集的数据：\n"
 "-硬件：CPU，RAM，屏幕分辨率。\n"
@@ -583,81 +766,32 @@ msgstr ""
 "-数据指标：文档数、最大和平均页数、标签数。\n"
 "-使用每个功能的次数。\n"
 "\n"
-"我们不收集文件内容或任何其他敏感或个人信息。我们仍然认为请求您的授权是公平的;-)。\n"
+"我们不收集文件内容或任何其他敏感或个人信息。我们仍然认为请求您的授权是公平"
+"的;-)。\n"
 "\n"
-"收集的统计数据位于 <a href=\"https://openpaper.work/paperwork/statistics\">openpaper."
-"work</a>。\n"
+"收集的统计数据位于 <a href=\"https://openpaper.work/paperwork/"
+"statistics\">openpaper.work</a>。\n"
 "</span>"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:1
-msgid "Export Steps"
-msgstr "导出步骤"
+#~ msgid "Imported file(s) deleted"
+#~ msgstr "已删除导入的文件"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:2
-msgid "Quality"
-msgstr "质量"
+#~ msgid "Page"
+#~ msgstr "页面"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:3
-msgid "Paper format"
-msgstr "页面格式"
+#~ msgid "Copy selected text to clipboard"
+#~ msgstr "将所选文本复制到剪贴板"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:4
-msgid "Export Settings"
-msgstr "导出设置"
+#~ msgid "Import image or PDF file(s)"
+#~ msgstr "导入图像或 PDF 文件"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:5
-msgid "Preview"
-msgstr "预览"
+#~ msgid ""
+#~ "You are using Paperwork from a Flatpak container. Paperwork needs Saned "
+#~ "to access your scanners. To enable Saned on the host system, you must "
+#~ "copy and paste the following commands in a terminal:"
+#~ msgstr ""
+#~ "您使用的是 Flatpak 容器的 Paperwork 。它需要使用 Saned 访问你的扫描仪。要"
+#~ "在主机系统上启用 Saned，必须在终端中复制并粘贴以下命令："
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:1
-msgid "Documents"
-msgstr "文档"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:2
-msgid "Selection"
-msgstr "选择"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/suggestions.glade.h:1
-msgid "Did you mean ?"
-msgstr "你的意思是 ?"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:1
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.glade.h:1
-msgid "Search"
-msgstr "搜索"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:2
-msgid "Advanced search"
-msgstr "高级搜索"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/docproperties.glade.h:1
-msgid "Properties"
-msgstr "属性"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:1
-msgid "Change the label color"
-msgstr "更改标签颜色"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:2
-msgid "Delete the label from all documents"
-msgstr "从所有文档中删除标签"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/extra_text.glade.h:1
-msgid "Additional keywords"
-msgstr "其他关键字"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/layout_settings.glade.h:1
-msgid "Highlight words"
-msgstr "突出显示单词"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/buttons.glade.h:1
-msgid "Add page"
-msgstr "添加页面"
-
-#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
-msgid "©2020"
-msgstr "©2020"
-
-#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
-msgid "Sorting documents is a machine's job."
-msgstr "整理文件是机器的工作。"
+#~ msgid "©2020"
+#~ msgstr "©2020"

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2024-02-27 14:34+0000\n"
+"PO-Revision-Date: 2024-02-28 09:19+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/it/>\n"
@@ -56,7 +56,7 @@ msgstr "%3.1f bytes"
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
 #, python-format
 msgid "%3.1f KiB"
-msgstr ""
+msgstr "%3.1f KiB"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
 #, python-format
@@ -96,7 +96,7 @@ msgstr "- {dep_name} (pacchetto: {pkg_name})"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:80
 msgid "UNKNOWN"
-msgstr ""
+msgstr "SCONOSCIUTO"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:100
 msgid "Suggested command:"

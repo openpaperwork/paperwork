@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 23:00+0100\n"
-"PO-Revision-Date: 2024-02-27 14:36+0000\n"
+"PO-Revision-Date: 2024-03-04 21:55+0000\n"
 "Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/it/>\n"
@@ -22,17 +22,17 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:113
 #, python-format
 msgid "Indexing new document %s"
-msgstr ""
+msgstr "Indicizzo nuovo documento %s"
 
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:122
 #, python-format
 msgid "Removing document %s from index"
-msgstr ""
+msgstr "Rimuovo il documento %s da indice"
 
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:132
 #, python-format
 msgid "Indexing updated document %s"
-msgstr ""
+msgstr "Indicizzo dcumento aggiornato %s"
 
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:140
 #: paperwork-backend/src/paperwork_backend/doctracker.py:96

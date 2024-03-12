@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 22:01+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-01-04 15:31+0000\n"
 "Last-Translator: Åke Engelbrektson <eson@svenskasprakfiler.se>\n"
 "Language-Team: Swedish <http://translations.openpaper.work/projects/"
@@ -19,30 +19,210 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:82
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:45
+msgid "Run Paperwork and import files passed as arguments into a new document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:49
+msgid "URLs or paths of files to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:33
+msgid "Install Paperwork icons and shortcuts"
+msgstr "Installera Paperworks ikoner och genvägar"
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:37
+msgid "Install everything only for the current user"
+msgstr "Installera endast för aktuell användare"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:75
+msgid "Introduction"
+msgstr "Introduktion"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:76
+msgid "User manual"
+msgstr "Användarmanual"
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:78
+msgid "Documentation"
+msgstr "Dokumentation"
+
+#: paperwork-gtk/src/paperwork_gtk/main.py:224
+msgid "command"
+msgstr "kommando"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Document list"
+msgstr "Dokumentlista"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+msgid "Open next document"
+msgstr "Öppna nästa dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Open previous document"
+msgstr "Öppna föregående dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Document"
+msgstr "Dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+msgid "Print"
+msgstr "Skriv ut"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Edit document properties"
+msgstr "Redigera dokumentegenskaper"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Global"
+msgstr "Övergripande"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+msgid "Create new document"
+msgstr "Skapa nytt dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:32
+msgctxt "keyboard shortcut categories"
+msgid "Page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:34
+msgctxt "keyboard shortcut names"
+msgid "Copy selected text to clipboard"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:33
+msgctxt "keyboard shortcut names"
+msgid "Edit"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Find"
+msgstr "Sök"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/delete.py:78
+#, python-format
+msgid "Are you sure you want to delete document %s ?"
+msgstr "Vill du verkligen ta bort dokument %s?"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:97
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:83
+#, python-format
+msgid "OCR on %s"
+msgstr "OCR på %s"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:105
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:92
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:100
+#, python-brace-format
+msgid "OCR on {doc_id} p{page_idx}"
+msgstr "OCR på {doc_id} s.{page_idx}"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/delete.py:72
+#, python-format
+msgid "Are you sure you want to delete %d documents ?"
+msgstr "Vill du verkligen ta bort %d dokument?"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/delete.py:85
+#, python-brace-format
+msgid "Are you sure you want to delete page {page_idx} of document {doc_id} ?"
+msgstr "Vill du verkligen ta bort sidan {page_idx} från dokument {doc_id}?"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:116
+#, python-format
+msgid "Move the page %d to what position ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:135
+#, python-format
+msgid "Invalid page position: %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:147
+#, python-format
+msgid "Invalid page position: %d. Out of document bounds (1-%d)."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:156
+msgid "Page position unchanged"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
+#: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
+msgid "Redo OCR on page"
+msgstr "Gör om OCR på sida"
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:87
 #, python-format
 msgid "Don't know how to import '%s'. Sorry."
 msgstr "Vet inte hur man importerar \"%s\", tyvärr."
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:99
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:106
+msgid "PDF password"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:124
 msgid "No new document to import found"
 msgstr "Inga nya dokument för import hittades"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:139
-msgid "Imported file(s) deleted"
-msgstr "Importerad(e) fil(er) borttagna"
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:167
+msgctxt "import dialog"
+msgid "Imported file deleted"
+msgid_plural "Imported files deleted"
+msgstr[0] ""
+msgstr[1] ""
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:146
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:177
 msgid "Imported:\n"
 msgstr "Importerat:\n"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:152
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:183
 msgid "Import successful"
 msgstr "Import slutförd"
 
-#: paperwork-gtk/src/paperwork_gtk/docimport.py:161
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:192
 msgid "Delete imported files"
 msgstr "Ta bort importerade filer"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:33
+msgid "Now with 10% more freedom in it !"
+msgstr "Nu med 10% mer frihet i det!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:34
+#, python-format
+msgid "Buy it now and get a 100% discount !"
+msgstr "Köp den nu och få 100% rabatt!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:35
+msgid "New features and bugs available !"
+msgstr "Nya funktioner och fel tillgängliga!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:36
+msgid "New taste !"
+msgstr "Ny smak!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:37
+msgid "We replaced your old bugs with new bugs. Enjoy."
+msgstr "Vi ersatte dina gamla fel med nya fel. Håll tillgodo."
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:38
+msgid "Smarter, Better, Stronger"
+msgstr "Smartare, Bättre, Starkare"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:40
+msgid "It's better when it's free."
+msgstr "Det är bättre när det är fritt."
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
+#, python-brace-format
+msgid "A new version of Paperwork is available: {new_version}"
+msgstr "En ny version av Paperwork finns tillgänglig: {new_version}"
 
 #: paperwork-gtk/src/paperwork_gtk/print.py:42
 #, python-brace-format
@@ -59,59 +239,253 @@ msgstr "Skriver ut %s"
 msgid "Printing {doc_id} ({page_idx}/{nb_pages})"
 msgstr "Skriver ut {doc_id} ({page_idx}/{nb_pages})"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:9
-msgid "Now with 10% more freedom in it !"
-msgstr "Nu med 10% mer frihet i det!"
-
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:10
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:420
 #, python-format
-msgid "Buy it now and get a 100% discount !"
-msgstr "Köp den nu och få 100% rabatt!"
+msgid "Estimated file size: %s"
+msgstr "Beräknad filstorlek: %s"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:11
-msgid "New features and bugs available !"
-msgstr "Nya funktioner och fel tillgängliga!"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:643
+msgid "Select a file to which export the document"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:12
-msgid "It's better when it's free."
-msgstr "Det är bättre när det är fritt."
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:652
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:135
+msgid "Any files"
+msgstr "Alla filer"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:13
-msgid "New taste !"
-msgstr "Ny smak!"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:740
+msgid "Export has failed"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:14
-msgid "We replaced your old bugs with new bugs. Enjoy."
-msgstr "Vi ersatte dina gamla fel med nya fel. Håll tillgodo."
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
+#, python-format
+msgid "Scan from %s"
+msgstr "Skanna från %s"
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:15
-msgid "Smarter, Better, Stronger"
-msgstr "Smartare, Bättre, Starkare"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:84
+msgid "Import document or image file(s)"
+msgstr ""
 
-#: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
+msgid "Import file(s)"
+msgstr "Importera fil(er)"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:115
+msgid "Select a file or a directory to import"
+msgstr "Välj en fil eller mapp att importera"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:129
+msgid "All supported file formats"
+msgstr "Alla filformat som stöds"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:179
+msgid "Nothing to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:181
+msgid "Nothing to import: nothing selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
+msgid "New document"
+msgstr "Nytt dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
+msgid "Empty"
+msgstr "Tom"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:88
+msgid "Loading text ..."
+msgstr "Läser in text..."
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:93
+msgid "Loading page {}/{} ..."
+msgstr "Läser in sida {}/{}..."
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:81
+msgid "Keyword(s)"
+msgstr "Nyckelord"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:102
+msgid "No labels"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:142
+msgid "Label"
+msgstr "Etikett"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
+msgid "From:"
+msgstr "Från:"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:160
+msgid "to:"
+msgstr "till:"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:270
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
+msgid "Date"
+msgstr "Datum"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:302
+msgid "and"
+msgstr "och"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:303
+msgid "or"
+msgstr "eller"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:320
+msgid "not"
+msgstr "inte"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:344
+msgid "Remove"
+msgstr "Ta bort"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:129
+msgid "Loading document thumbnails"
+msgstr "Läser in dokumentminiatyrer"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:642
+#, python-format
+msgid "%d documents"
+msgstr "%d dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
+msgid "Renaming label"
+msgstr "Byter namn på etikett"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:294
+#, python-format
+msgid "Are you sure you want to delete label '%s' from ALL documents ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:396
 #, python-brace-format
-msgid "A new version of Paperwork is available: {new_version}"
-msgstr "En ny version av Paperwork finns tillgänglig: {new_version}"
+msgid "Changing label {old_label} into {new_label} on document {doc_id}"
+msgstr "Ändrar etikett {old_label} till {new_label} på dokument {doc_id}"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
-msgid "Updates"
-msgstr "Uppdateringar"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:462
+#, python-brace-format
+msgid "Deleting label {old_label} from document {doc_id}"
+msgstr "Tar bort etikett {old_label} från dokument {doc_id}"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:84
-msgid "Storage"
-msgstr "Lagring"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
+msgid "Delete document"
+msgstr "Ta bort dokument"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:90
-msgid "Work Directory"
-msgstr "Arbetsmapp"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
+msgid "Export document"
+msgstr "Exportera dokument"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:64
-msgid "Optical Character Recognition"
-msgstr "Optisk teckenidentifiering"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
+msgid "Open folder"
+msgstr "Öppna mapp"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:76
-msgid "OCR disabled"
-msgstr "OCR inaktiverat"
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
+msgid "Add to selection"
+msgstr "Lägg till samlingen"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
+msgid "Redo OCR on document"
+msgstr "Gör om OCR på dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
+msgid "Print document"
+msgstr "Skriv ut dokument"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
+msgid "Document properties"
+msgstr "Dokumentegenskaper"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
+msgid "Select all"
+msgstr "Markera alla"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
+msgid "Delete"
+msgstr "Ta bort"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
+msgid "Export"
+msgstr "Exportera"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/redo_ocr.py:51
+msgid "Redo OCR"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
+msgid "Change labels"
+msgstr "Ändra etiketter"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
+msgid "Delete page"
+msgstr "Ta bort sida"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
+msgid "Reset page"
+msgstr "Återställ sida"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
+msgid "Copy selected text"
+msgstr "Kopiera markerad text"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
+msgid "Export page"
+msgstr "Exportera sida"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:50
+msgid "Another position"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:53
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:53
+msgid "Move page to"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
+msgid "Print page"
+msgstr "Skriv ut sida"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:50
+msgid "Another document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
+msgid "Report bug"
+msgstr "Rapportera fel"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:64
+msgid "Help"
+msgstr "Hjälp"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
+#: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
+msgid "Settings"
+msgstr "Inställningar"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
+msgid "About"
+msgstr "Om"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
+msgid "Shortcuts"
+msgstr "Genvägar"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/dev_id_popover.py:67
+msgid "No scanner"
+msgstr "Ingen skanner"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:123
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
+msgid "{} dpi"
+msgstr "{} dpi"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:125
+msgid "{} dpi (recommended)"
+msgstr "{} dpi (rekommenderas)"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:15
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/popover_mode.glade.h:1
@@ -128,376 +502,150 @@ msgstr "Gråskala"
 msgid "Black & White"
 msgstr "Svartvit"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:27
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:62
 msgid "No scanner selected"
 msgstr "Ingen skanner vald"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:31
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
 msgid "No resolution selected"
 msgstr "Ingen upplösning vald"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:31
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:123
-msgid "{} dpi"
-msgstr "{} dpi"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:35
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:70
 msgid "No mode selected"
 msgstr "Inget läge valt"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:104
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:113
 msgid "Scanner"
 msgstr "Skanner"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/dev_id_popover.py:67
-msgid "No scanner"
-msgstr "Ingen skanner"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.py:154
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.py:168
 msgid "Loading ..."
 msgstr "Läser in..."
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:125
-msgid "{} dpi (recommended)"
-msgstr "{} dpi (rekommenderas)"
+#: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
+msgid "Updates"
+msgstr "Uppdateringar"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.py:60
 msgid "Help Improve Paperwork"
 msgstr "Hjälp till att förbättra Paperwork"
 
-#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:40
-msgid "Install Paperwork icons and shortcuts"
-msgstr "Installera Paperworks ikoner och genvägar"
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:64
+msgid "Optical Character Recognition"
+msgstr "Optisk teckenidentifiering"
 
-#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:44
-msgid "Install everything only for the current user"
-msgstr "Installera endast för aktuell användare"
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:76
+msgid "OCR disabled"
+msgstr "OCR inaktiverat"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
-msgid "Page"
-msgstr "Sida"
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:101
+msgid "Storage"
+msgstr "Lagring"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:30
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:108
+msgid "Work Directory"
+msgstr "Arbetsmapp"
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
+msgid "©2023"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
+msgid "Sorting documents is a machine's job."
+msgstr "Sortering av dokument är ett maskinjobb."
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_to_doc/move_to_doc.glade.h:1
+msgid "Select target document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:1
+msgid "Export Steps"
+msgstr "Exportsteg"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:2
+msgid "Quality"
+msgstr "Kvalitet"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:3
+msgid "Paper format"
+msgstr "Pappersformat"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:4
+msgid "Export Settings"
+msgstr "Exportera inställningar"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:5
+msgid "Send by email"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:6
+msgid "Preview"
+msgstr "Förhandsvisning"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/buttons.glade.h:1
+msgid "Add page"
+msgstr "Lägg till sida"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/layout_settings.glade.h:1
+msgid "Highlight words"
+msgstr "Markera ord"
+
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/actions.glade.h:1
 msgid "Edit"
 msgstr "Redigera"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:30
-msgid "Copy selected text to clipboard"
-msgstr "Kopiera markerad text till urklipp"
-
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
-msgid "Global"
-msgstr "Övergripande"
-
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:30
-msgid "Find"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.glade.h:1
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:1
+msgid "Search"
 msgstr "Sök"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
-msgid "Document"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/suggestions.glade.h:1
+msgid "Did you mean ?"
+msgstr "Menade du?"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:2
+msgid "Advanced search"
+msgstr "Avancerat sök"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:1
+msgid "Documents"
 msgstr "Dokument"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:30
-msgid "Print"
-msgstr "Skriv ut"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:2
+msgid "Selection"
+msgstr "Markering"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:30
-msgid "Create new document"
-msgstr "Skapa nytt dokument"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:1
+msgid "Change the label color"
+msgstr "Ändra etikettfärg"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:30
-msgid "Edit document properties"
-msgstr "Redigera dokumentegenskaper"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:2
+msgid "Delete the label from all documents"
+msgstr "Ta bort etiketten från alla dokument"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
-msgid "Document list"
-msgstr "Dokumentlista"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/docproperties.glade.h:1
+msgid "Properties"
+msgstr "Egenskaper"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:30
-msgid "Open next document"
-msgstr "Öppna nästa dokument"
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/extra_text.glade.h:1
+msgid "Additional keywords"
+msgstr "Ytterligare nyckelord"
 
-#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:35
-msgid "Open previous document"
-msgstr "Öppna föregående dokument"
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:1
+msgid "Flatpak"
+msgstr "Flatpak"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:372
-#, python-format
-msgid "Estimated file size: %s"
-msgstr "Beräknad filstorlek: %s"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:593
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:104
-msgid "Select a file or a directory to import"
-msgstr "Välj en fil eller mapp att importera"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:602
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:124
-msgid "Any files"
-msgstr "Alla filer"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:613
-#, python-format
-msgid "%d documents"
-msgstr "%d dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:23
-msgid "New document"
-msgstr "Nytt dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:113
-msgid "Loading document thumbnails"
-msgstr "Läser in dokumentminiatyrer"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:78
-msgid "Keyword(s)"
-msgstr "Nyckelord"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:131
-msgid "Label"
-msgstr "Etikett"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:143
-msgid "From:"
-msgstr "Från:"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:149
-msgid "to:"
-msgstr "till:"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:259
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
-msgid "Date"
-msgstr "Datum"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:291
-msgid "and"
-msgstr "och"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:292
-msgid "or"
-msgstr "eller"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:309
-msgid "not"
-msgstr "inte"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:333
-msgid "Remove"
-msgstr "Ta bort"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
-msgid "Renaming label"
-msgstr "Byter namn på etikett"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:378
-#, python-brace-format
-msgid "Changing label {old_label} into {new_label} on document {doc_id}"
-msgstr "Ändrar etikett {old_label} till {new_label} på dokument {doc_id}"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:444
-#, python-brace-format
-msgid "Deleting label {old_label} from document {doc_id}"
-msgstr "Tar bort etikett {old_label} från dokument {doc_id}"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
-msgid "Empty"
-msgstr "Tom"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:88
-msgid "Loading page {}/{} ..."
-msgstr "Läser in sida {}/{}..."
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:83
-msgid "Loading text ..."
-msgstr "Läser in text..."
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
-#, python-format
-msgid "Scan from %s"
-msgstr "Skanna från %s"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:75
-msgid "Import image or PDF file(s)"
-msgstr "Importera bild- eller PDF-fil(er)"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:76
-msgid "Import file(s)"
-msgstr "Importera fil(er)"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:118
-msgid "All supported file formats"
-msgstr "Alla filformat som stöds"
-
-#: paperwork-gtk/src/paperwork_gtk/main.py:197
-msgid "command"
-msgstr "kommando"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:64
-msgid "Introduction"
-msgstr "Introduktion"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:65
-msgid "User manual"
-msgstr "Användarmanual"
-
-#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:67
-msgid "Documentation"
-msgstr "Dokumentation"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/delete.py:85
-#, python-brace-format
-msgid "Are you sure you want to delete page {page_idx} of document {doc_id} ?"
-msgstr "Vill du verkligen ta bort sidan {page_idx} från dokument {doc_id}?"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
-#: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
-msgid "Redo OCR on page"
-msgstr "Gör om OCR på sida"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:100
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:105
-#, python-brace-format
-msgid "OCR on {doc_id} p{page_idx}"
-msgstr "OCR på {doc_id} s.{page_idx}"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/docs/delete.py:72
-#, python-format
-msgid "Are you sure you want to delete %d documents ?"
-msgstr "Vill du verkligen ta bort %d dokument?"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/delete.py:78
-#, python-format
-msgid "Are you sure you want to delete document %s ?"
-msgstr "Vill du verkligen ta bort dokument %s?"
-
-#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:97
-#, python-format
-msgid "OCR on %s"
-msgstr "OCR på %s"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
-msgid "Print page"
-msgstr "Skriv ut sida"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
-msgid "Export page"
-msgstr "Exportera sida"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
-msgid "Delete page"
-msgstr "Ta bort sida"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
-msgid "Reset page"
-msgstr "Återställ sida"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
-msgid "Copy selected text"
-msgstr "Kopiera markerad text"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:62
-msgid "Help"
-msgstr "Hjälp"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
-msgid "Report bug"
-msgstr "Rapportera fel"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
-msgid "Shortcuts"
-msgstr "Genvägar"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
-#: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
-msgid "Settings"
-msgstr "Inställningar"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
-msgid "About"
-msgstr "Om"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
-msgid "Export"
-msgstr "Exportera"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
-msgid "Select all"
-msgstr "Markera alla"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
-msgid "Delete"
-msgstr "Ta bort"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
-msgid "Change labels"
-msgstr "Ändra etiketter"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
-msgid "Print document"
-msgstr "Skriv ut dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
-msgid "Export document"
-msgstr "Exportera dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
-msgid "Delete document"
-msgstr "Ta bort dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
-msgid "Redo OCR on document"
-msgstr "Gör om OCR på dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
-msgid "Document properties"
-msgstr "Dokumentegenskaper"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
-msgid "Add to selection"
-msgstr "Lägg till samlingen"
-
-#: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
-msgid "Open folder"
-msgstr "Öppna mapp"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:1
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:2
 msgid ""
-"Updates\n"
-"<span foreground=\"gray\">Check periodically for new versions of Paperwork</"
-"span>"
+"You are using Paperwork from a Flatpak container. Paperwork needs Saned to "
+"access your scanners.\n"
+"\n"
+"Important: the following procedure will only work for local (non-network) "
+"scanners !\n"
+"\n"
+"To enable Saned on the host system, you must copy and paste the following "
+"commands in a terminal:"
 msgstr ""
-"Uppdateringar\n"
-"<span foreground=\"gray\">Sök med jämna mellanrum efter nya versioner av "
-"Paperwork</span>"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:3
-msgid ""
-"<span foreground=\"gray\">Look about once a week for new versions of "
-"Paperwork.\n"
-"You will be notified when a new version is available but it won't be "
-"installed automatically.\n"
-"</span>"
-msgstr ""
-"<span foreground=\"gray\">Kolla ungefär en gång i veckan efter nya versioner "
-"av Paperwork.\n"
-"Du meddelas när en ny version finns tillgänglig men den installeras inte "
-"automatiskt.\n"
-"</span>"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:1
-msgid "Work directory"
-msgstr "Arbetsmapp"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.glade.h:1
-msgid "Languages"
-msgstr "Språk"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:1
 msgid "Maximize"
@@ -535,19 +683,53 @@ msgstr "Kalibrering"
 msgid "Re-calibrate"
 msgstr "Kalibrera om"
 
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:1
-msgid "Flatpak"
-msgstr "Flatpak"
-
-#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:2
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:1
 msgid ""
-"You are using Paperwork from a Flatpak container. Paperwork needs Saned to "
-"access your scanners. To enable Saned on the host system, you must copy and "
-"paste the following commands in a terminal:"
+"Updates\n"
+"<span foreground=\"gray\">Check periodically for new versions of Paperwork</"
+"span>"
 msgstr ""
-"Du använder Paperwork från en Flatpak-behållare. Paperwork behöver Saned för "
-"åtkomst till dina skannrar. Du måste kopiera och klistra in följande "
-"kommandon, i en terminal, för att aktivera Saned på värdsystemet:"
+"Uppdateringar\n"
+"<span foreground=\"gray\">Sök med jämna mellanrum efter nya versioner av "
+"Paperwork</span>"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:3
+msgid ""
+"<span foreground=\"gray\">Look about once a week for new versions of "
+"Paperwork.\n"
+"You will be notified when a new version is available but it won't be "
+"installed automatically.\n"
+"</span>"
+msgstr ""
+"<span foreground=\"gray\">Kolla ungefär en gång i veckan efter nya versioner "
+"av Paperwork.\n"
+"Du meddelas när en ny version finns tillgänglig men den installeras inte "
+"automatiskt.\n"
+"</span>"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.glade.h:1
+msgid "Languages"
+msgstr "Språk"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:1
+msgid "Work directory"
+msgstr "Arbetsmapp"
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:2
+msgid ""
+"<b>Do not use an already existing directory !</b>\n"
+"(unless it comes from another Paperwork instance)\n"
+"\n"
+"Paperwork uses a custom file structure to store documents. Unless the "
+"directory you specify has the exact file structure expected by Paperwork, it "
+"won't work !\n"
+"\n"
+"If you want to build a new work directory from existing documents, please "
+"use the import feature instead.\n"
+"\n"
+"<a href=\"https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/wikis/"
+"Work-directory-organization\">[More information]</a>"
+msgstr ""
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:1
 msgid ""
@@ -555,8 +737,8 @@ msgid ""
 "<span foreground=\"gray\">Give us clues about how you use Paperwork</span>"
 msgstr ""
 "Skicka mätvärden\n"
-"<span foreground=\"gray\">Ge oss ledtrådar om hur du använder "
-"Paperwork</span>"
+"<span foreground=\"gray\">Ge oss ledtrådar om hur du använder Paperwork</"
+"span>"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:3
 msgid ""
@@ -592,82 +774,33 @@ msgstr ""
 "- Hur många gånger du använder varje funktion.\n"
 "\n"
 "Vi samlar inte in dokumentinnehåll eller någon annan känslig eller personlig "
-"information. Ändå tycker vi att det är rättvist att be om ditt tillstånd. ;-)"
-"\n"
+"information. Ändå tycker vi att det är rättvist att be om ditt "
+"tillstånd. ;-)\n"
 "\n"
 "Insamlad statistik kan ses på <a href=\"https://openpaper.work/paperwork/"
 "statistics\">openpaper.work</a>.\n"
 "</span>"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:1
-msgid "Export Steps"
-msgstr "Exportsteg"
+#~ msgid "Imported file(s) deleted"
+#~ msgstr "Importerad(e) fil(er) borttagna"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:2
-msgid "Quality"
-msgstr "Kvalitet"
+#~ msgid "Page"
+#~ msgstr "Sida"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:3
-msgid "Paper format"
-msgstr "Pappersformat"
+#~ msgid "Copy selected text to clipboard"
+#~ msgstr "Kopiera markerad text till urklipp"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:4
-msgid "Export Settings"
-msgstr "Exportera inställningar"
+#~ msgid "Import image or PDF file(s)"
+#~ msgstr "Importera bild- eller PDF-fil(er)"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:5
-msgid "Preview"
-msgstr "Förhandsvisning"
+#~ msgid ""
+#~ "You are using Paperwork from a Flatpak container. Paperwork needs Saned "
+#~ "to access your scanners. To enable Saned on the host system, you must "
+#~ "copy and paste the following commands in a terminal:"
+#~ msgstr ""
+#~ "Du använder Paperwork från en Flatpak-behållare. Paperwork behöver Saned "
+#~ "för åtkomst till dina skannrar. Du måste kopiera och klistra in följande "
+#~ "kommandon, i en terminal, för att aktivera Saned på värdsystemet:"
 
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:1
-msgid "Documents"
-msgstr "Dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:2
-msgid "Selection"
-msgstr "Markering"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/suggestions.glade.h:1
-msgid "Did you mean ?"
-msgstr "Menade du?"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:1
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.glade.h:1
-msgid "Search"
-msgstr "Sök"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:2
-msgid "Advanced search"
-msgstr "Avancerat sök"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/docproperties.glade.h:1
-msgid "Properties"
-msgstr "Egenskaper"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:1
-msgid "Change the label color"
-msgstr "Ändra etikettfärg"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:2
-msgid "Delete the label from all documents"
-msgstr "Ta bort etiketten från alla dokument"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/extra_text.glade.h:1
-msgid "Additional keywords"
-msgstr "Ytterligare nyckelord"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/layout_settings.glade.h:1
-msgid "Highlight words"
-msgstr "Markera ord"
-
-#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/buttons.glade.h:1
-msgid "Add page"
-msgstr "Lägg till sida"
-
-#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
-msgid "©2020"
-msgstr "©2020"
-
-#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
-msgid "Sorting documents is a machine's job."
-msgstr "Sortering av dokument är ett maskinjobb."
+#~ msgid "©2020"
+#~ msgstr "©2020"

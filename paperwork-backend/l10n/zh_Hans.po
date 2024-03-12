@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 22:01+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-02-06 09:20+0000\n"
 "Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
 "Language-Team: Chinese (Simplified) <http://translations.openpaper.work/"
@@ -19,119 +19,105 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:68
+#: paperwork-backend/src/paperwork_backend/index/whoosh.py:113
 #, python-format
-msgid "Document %s added"
-msgstr "文档 %s 已添加"
+msgid "Indexing new document %s"
+msgstr "索引新文档 %s"
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:73
+#: paperwork-backend/src/paperwork_backend/index/whoosh.py:122
 #, python-format
-msgid "Document %s updated"
-msgstr "文档 %s 已更新"
+msgid "Removing document %s from index"
+msgstr "从索引中移除文档 %s"
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:89
+#: paperwork-backend/src/paperwork_backend/index/whoosh.py:132
 #, python-format
-msgid "Document %s deleted"
-msgstr "文档 %s 已删除"
+msgid "Indexing updated document %s"
+msgstr "文档 %s 索引更新中"
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:99
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:140
+#: paperwork-backend/src/paperwork_backend/doctracker.py:96
 #, python-format
 msgid "Examining document %s: unchanged"
 msgstr "正在检查文档 %s：未更改"
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:104
-msgid "Rolling back changes"
-msgstr "回滚更改"
+#: paperwork-backend/src/paperwork_backend/index/whoosh.py:163
+msgid "Committing changes in the index ..."
+msgstr "正在提交索引中的更改 ..."
 
-#: paperwork-backend/src/paperwork_backend/doctracker.py:110
-msgid "Committing changes"
-msgstr "提交更改"
+#: paperwork-backend/src/paperwork_backend/model/converted.py:111
+#, python-format
+msgid "Converting document %s to PDF ..."
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:32
-msgid "Already imported"
-msgstr "已导入"
+#: paperwork-backend/src/paperwork_backend/model/converted.py:186
+msgid "Checking converted documents"
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:40
-msgid "PDF"
-msgstr "PDF"
-
-#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:41
-#: paperwork-backend/src/paperwork_backend/docimport/img.py:55
-msgid "Documents"
-msgstr "文档"
-
-#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:57
-msgid "Import PDF"
-msgstr "导入 PDF"
-
-#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:105
-msgid "PDF folder"
-msgstr "PDF 文件夹"
-
-#: paperwork-backend/src/paperwork_backend/docimport/img.py:52
-msgid "Images"
-msgstr "图像"
-
-#: paperwork-backend/src/paperwork_backend/docimport/img.py:58
-msgid "Pages"
-msgstr "页面"
-
-#: paperwork-backend/src/paperwork_backend/docimport/img.py:77
-msgid "Append the image to the current document"
-msgstr "将图像追加到当前文档"
-
-#: paperwork-backend/src/paperwork_backend/beacon/stats.py:126
-msgid "App. & system info."
-msgstr "App. 和系统信息。"
-
-#: paperwork-backend/src/paperwork_backend/beacon/stats.py:127
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:690
-msgid "Select to generate"
-msgstr "选择生成"
-
-#: paperwork-backend/src/paperwork_backend/beacon/stats.py:149
-msgid "Collecting statistics ..."
-msgstr "收集统计数据 ..."
-
-#: paperwork-backend/src/paperwork_backend/model/labels.py:47
+#: paperwork-backend/src/paperwork_backend/model/labels.py:72
 msgid "Loading labels of document {}"
 msgstr "加载文档标签 {}"
 
-#: paperwork-backend/src/paperwork_backend/docexport/pdf.py:100
+#: paperwork-backend/src/paperwork_backend/doctracker.py:65
+#, python-format
+msgid "Document %s added"
+msgstr "文档 %s 已添加"
+
+#: paperwork-backend/src/paperwork_backend/doctracker.py:70
+#, python-format
+msgid "Document %s updated"
+msgstr "文档 %s 已更新"
+
+#: paperwork-backend/src/paperwork_backend/doctracker.py:86
+#, python-format
+msgid "Document %s deleted"
+msgstr "文档 %s 已删除"
+
+#: paperwork-backend/src/paperwork_backend/doctracker.py:101
+msgid "Rolling back changes"
+msgstr "回滚更改"
+
+#: paperwork-backend/src/paperwork_backend/doctracker.py:107
+msgid "Committing changes"
+msgstr "提交更改"
+
+#: paperwork-backend/src/paperwork_backend/docexport/pdf.py:94
 msgid "Original PDF(s)"
 msgstr "原始 PDF"
 
-#: paperwork-backend/src/paperwork_backend/docexport/pdf.py:293
+#: paperwork-backend/src/paperwork_backend/docexport/pdf.py:294
 msgid "Generated PDF(s)"
 msgstr "生成的 PDF"
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:41
+#: paperwork-backend/src/paperwork_backend/docexport/automatic.py:81
+msgid "Automatic PDF export (original PDF if possible, generated one else)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:37
 #, python-brace-format
 msgid "Exporting {doc_id} p{page_idx} ..."
 msgstr "正在导出 {doc_id} 页{page_idx} ..."
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:86
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:84
 msgid "Exporting ..."
 msgstr "正在导出 ..."
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:121
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:114
 msgid "Split page(s) into image(s) and text(s)"
 msgstr "将页面拆分为图像和文本"
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:171
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:158
 msgid "Image file ({})"
 msgstr "图像文件 ({})"
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:184
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:171
 msgid "Black & White"
 msgstr "黑白"
 
-#: paperwork-backend/src/paperwork_backend/docexport/img.py:195
+#: paperwork-backend/src/paperwork_backend/docexport/img.py:182
 msgid "Grayscale"
 msgstr "灰度"
 
-#: paperwork-backend/src/paperwork_backend/docexport/generic.py:98
+#: paperwork-backend/src/paperwork_backend/docexport/generic.py:88
 msgid "Page by page processing"
 msgstr "逐页处理"
 
@@ -147,29 +133,165 @@ msgstr ""
 msgid "Extreme simplification"
 msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:208
-msgid "Starting scan ..."
-msgstr "开始扫描 ..."
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:61
+msgid "Microsoft Word template (.dot)"
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:216
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:268
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:279
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:69
+msgid "Microsoft Excel template (.xlt)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:77
+msgid "Microsoft PowerPoint template (.ppt)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:81
+msgid "OpenOffice/LibreOffice Chart (.odc)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:85
+msgid "OpenOffice/LibreOffice Database (.odb)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:89
+msgid "OpenOffice/LibreOffice Formula (.odf)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:93
+msgid "OpenOffice/LibreOffice Graphics (.odg)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:97
+msgid "OpenOffice/LibreOffice Graphics template (.otg)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:101
+msgid "OpenOffice/LibreOffice Image template (.odi)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:105
+msgid "OpenOffice/LibreOffice Presentation (.odp)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:109
+msgid "OpenOffice/LibreOffice Presentation template (.otp)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:113
+msgid "OpenOffice/LibreOffice Spreadsheet (.ods)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:117
+msgid "OpenOffice/LibreOffice Spreadsheet template (.ots)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:121
+msgid "OpenOffice/LibreOffice Text (.odt)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:125
+msgid "OpenOffice/LibreOffice Text master (.odm)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:129
+msgid "OpenOffice/LibreOffice Text template (.ott)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:133
+msgid "OpenOffice/LibreOffice Text web (.oth)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:145
+msgid "Microsoft PowerPoint slide (.sldx)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:151
+msgid "Microsoft PowerPoint slideshow (.ppsx)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:157
+msgid "Microsoft PowerPoint presentation template (.potx)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:169
+msgid "Microsoft Excel template (.xltx)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:181
+msgid "Microsoft Word template (.dotx)"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:58
+#: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:44
+#: paperwork-backend/src/paperwork_backend/chkworkdir/label_color.py:55
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:40
 #, python-format
-msgid "Scanning page %d ..."
-msgstr "扫描页面 %d ..."
+msgid "Checking doc %s"
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:423
+#: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:81
 #, python-format
-msgid "Examining %s"
-msgstr "分析 %s"
+msgid "Page mapping of document %s has been corrupted"
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:494
-msgid "Getting scanner list ..."
-msgstr "正在获取扫描仪列表 ..."
+#: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:87
+#, python-format
+msgid "Page mapping of document %s must be reinitialized"
+msgstr ""
 
-#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:689
-msgid "Scanner info."
-msgstr "扫描仪信息。"
+#: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:107
+#, python-format
+msgid "Fixing page mapping of doc %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:63
+#, python-format
+msgid "Document %s is empty"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:64
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:71
+#, python-format
+msgid "Delete document %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:78
+#, python-format
+msgid "Deleting empty doc %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/label_color.py:87
+#, python-format
+msgid ""
+"Document %s has label \"%s\" with color=%s while document %s has label "
+"\"%s\" with color=%s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/label_color.py:106
+#, python-format
+msgid "Set label color %s on label \"%s\" of document %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/label_color.py:130
+#, python-format
+msgid "Fixing label on doc %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:51
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:68
+#, python-format
+msgid "Document %s is not a directory"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:55
+#, python-format
+msgid "Turn %s into <YYYMMDD_hhmm_ss>/doc.pdf"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:88
+#, python-format
+msgid "Fixing %s"
+msgstr ""
 
 #: paperwork-backend/src/paperwork_backend/i18n/pycountry.py:9
 msgid "English"
@@ -203,6 +325,107 @@ msgstr "左对齐"
 msgid "right aligned"
 msgstr "右对齐"
 
+#: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:48
+#, python-brace-format
+msgid "Document {doc_id} p{page_idx} already correctly colorized"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:64
+#, python-brace-format
+msgid "Adjusting colors of document {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:88
+msgid "Adjusting colors of document"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/libpillowfight.py:51
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/calibration.py:45
+#, python-brace-format
+msgid "Document {doc_id} p{page_idx} already cropped"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/libpillowfight.py:60
+#, python-brace-format
+msgid "Guessing page borders of document {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/libpillowfight.py:85
+msgid "Guessing page borders"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/calibration.py:58
+#, python-brace-format
+msgid "Document {doc_id} p{page_idx} has already some text. Not cropping."
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/cropping/calibration.py:68
+#, python-brace-format
+msgid "Using calibration to crop page borders of document {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:43
+#, python-brace-format
+msgid ""
+"Document {doc_id} p{page_idx} has already some text. Not guessing page "
+"orientation."
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:53
+#, python-brace-format
+msgid "Guessing orientation of document {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:77
+msgid "Guessing page orientation"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:48
+#, python-brace-format
+msgid "Document {doc_id} p{page_idx} has already some text. No OCR run"
+msgstr "文档{doc_id}页面{page_idx}已经有一些文本。无 OCR 运行"
+
+#: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:57
+#, python-brace-format
+msgid "Running OCR on document {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:83
+msgid "Running OCR"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:237
+msgid "Label guesser: Garbage-collecting unused document features ..."
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:263
+msgid "Label guesser: Garbage-collecting unused words ..."
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:587
+#, python-format
+msgid "Label guesser: added document %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:597
+#, python-format
+msgid "Label guesser: updated document %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:612
+#, python-format
+msgid "Label guesser: deleted document %s"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:707
+msgid "Commiting changes for label guessing ..."
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:935
+#: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:991
+msgid "Label guessing: Training ..."
+msgstr ""
+
 #: paperwork-backend/src/paperwork_backend/pageedit/pageeditor.py:80
 msgid "Color equalization"
 msgstr "色彩均衡"
@@ -219,79 +442,103 @@ msgstr "顺时针旋转"
 msgid "Counterclockwise Rotation"
 msgstr "逆时针旋转"
 
-#: paperwork-backend/src/paperwork_backend/guesswork/cropping/calibration.py:53
-#, python-brace-format
-msgid ""
-"Using calibration to crop page borders of document {doc_id} page {page_idx}"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/cropping/libpillowfight.py:57
-#, python-brace-format
-msgid "Guessing page borders of document {doc_id} page {page_idx}"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/orientation/pyocr.py:39
-#, python-brace-format
-msgid "Guessing orientation on document {doc_id} page {page_idx}"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:50
-#, python-brace-format
-msgid "Document {doc_id} p{page_idx} has already some text. No OCR run"
-msgstr "文档{doc_id}页面{page_idx}已经有一些文本。无 OCR 运行"
-
-#: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:58
-#, python-brace-format
-msgid "Running OCR on document {doc_id} page {page_idx}"
-msgstr "正在文档 {doc_id} 页面 {page_idx} 上运行 OCR"
-
-#: paperwork-backend/src/paperwork_backend/guesswork/label/simplebayes.py:92
-#, python-format
-msgid "Training label guesser with added document %s"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/label/simplebayes.py:100
-#, python-format
-msgid "Untraining label guesser due to deleted document %s"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/label/simplebayes.py:107
-#, python-format
-msgid "Training label guesser with updated document %s"
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/label/simplebayes.py:240
-msgid "Training label guesser for label '{}' with all known documents ..."
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/label/simplebayes.py:333
-msgid "Training label guessing ..."
-msgstr ""
-
-#: paperwork-backend/src/paperwork_backend/guesswork/color/libpillowfight.py:53
-#, python-brace-format
-msgid "Adjusting colors of document {doc_id} page {page_idx}"
-msgstr "调整文档 {doc_id} 页面 {page_idx} 的颜色"
-
-#: paperwork-backend/src/paperwork_backend/index/whoosh.py:113
-#, python-format
-msgid "Indexing new document %s"
-msgstr "索引新文档 %s"
-
-#: paperwork-backend/src/paperwork_backend/index/whoosh.py:122
-#, python-format
-msgid "Removing document %s from index"
-msgstr "从索引中移除文档 %s"
-
-#: paperwork-backend/src/paperwork_backend/index/whoosh.py:132
-#, python-format
-msgid "Indexing updated document %s"
-msgstr "文档 %s 索引更新中"
-
-#: paperwork-backend/src/paperwork_backend/index/whoosh.py:163
-msgid "Committing changes in the index ..."
-msgstr "正在提交索引中的更改 ..."
-
 #: paperwork-backend/src/paperwork_backend/authors/translators.py:23
 msgid "[]"
 msgstr "[\"玉堂白鹤\"]"
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:251
+msgid "Starting scan ..."
+msgstr "开始扫描 ..."
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:259
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:311
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:322
+#, python-format
+msgid "Scanning page %d ..."
+msgstr "扫描页面 %d ..."
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:475
+#, python-format
+msgid "Examining %s"
+msgstr "分析 %s"
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:556
+msgid "Getting scanner list ..."
+msgstr "正在获取扫描仪列表 ..."
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:772
+msgid "Scanner info."
+msgstr "扫描仪信息。"
+
+#: paperwork-backend/src/paperwork_backend/docscan/libinsane.py:773
+msgid "Select to generate"
+msgstr "选择生成"
+
+#: paperwork-backend/src/paperwork_backend/docimport/converted.py:33
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:33
+msgid "Already imported"
+msgstr "已导入"
+
+#: paperwork-backend/src/paperwork_backend/docimport/converted.py:41
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:46
+#: paperwork-backend/src/paperwork_backend/docimport/img.py:61
+msgid "Documents"
+msgstr "文档"
+
+#: paperwork-backend/src/paperwork_backend/docimport/converted.py:67
+msgid "Import office document"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/docimport/converted.py:71
+msgid "Import office documents recursively"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/docimport/converted.py:139
+msgid "Office document folder"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:45
+msgid "PDF"
+msgstr "PDF"
+
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:62
+msgid "Import PDF"
+msgstr "导入 PDF"
+
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:66
+msgid "Import PDFs recursively"
+msgstr ""
+
+#: paperwork-backend/src/paperwork_backend/docimport/pdf.py:122
+msgid "PDF folder"
+msgstr "PDF 文件夹"
+
+#: paperwork-backend/src/paperwork_backend/docimport/img.py:58
+msgid "Images"
+msgstr "图像"
+
+#: paperwork-backend/src/paperwork_backend/docimport/img.py:64
+msgid "Pages"
+msgstr "页面"
+
+#: paperwork-backend/src/paperwork_backend/docimport/img.py:83
+msgid "Append the image to the current document"
+msgstr "将图像追加到当前文档"
+
+#: paperwork-backend/src/paperwork_backend/docimport/img.py:88
+msgid "Find the images recursively and import them to the current document"
+msgstr ""
+
+#~ msgid "App. & system info."
+#~ msgstr "App. 和系统信息。"
+
+#~ msgid "Collecting statistics ..."
+#~ msgstr "收集统计数据 ..."
+
+#, python-brace-format
+#~ msgid "Running OCR on document {doc_id} page {page_idx}"
+#~ msgstr "正在文档 {doc_id} 页面 {page_idx} 上运行 OCR"
+
+#, python-brace-format
+#~ msgid "Adjusting colors of document {doc_id} page {page_idx}"
+#~ msgstr "调整文档 {doc_id} 页面 {page_idx} 的颜色"

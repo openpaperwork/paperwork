@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 22:01+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-01-04 15:31+0000\n"
 "Last-Translator: Åke Engelbrektson <eson@svenskasprakfiler.se>\n"
 "Language-Team: Swedish <http://translations.openpaper.work/projects/"
@@ -19,6 +19,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4\n"
 
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
+msgid "App. screenshots"
+msgstr "App. skärmklipp"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
+msgid "Select to generate"
+msgstr "Välj för att generera"
+
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
 msgid "ZIP file"
 msgstr "ZIP-fil"
@@ -27,12 +36,13 @@ msgstr "ZIP-fil"
 #, python-format
 msgid ""
 "Build a ZIP file containing all the attachments.\n"
-" If you want, you can then submit a bug report manually on <a href=\"%s"
-"\">Paperwork's bug tracker</a> and attach this ZIP file to the ticket."
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
 msgstr ""
 "Skapa en ZIP-fil innehållande alla bilagor.\n"
-"Om du vill kan du sedan manuellt skicka in en felrapport på<a href=\"%s\""
-">Paperwork's bug tracker</a> och bifoga ZIP-filen i ärendet."
+"Om du vill kan du sedan manuellt skicka in en felrapport på<a "
+"href=\"%s\">Paperwork's bug tracker</a> och bifoga ZIP-filen i ärendet."
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
 msgid "Creating bug report ..."
@@ -81,55 +91,19 @@ msgstr "Totalt: {}"
 msgid "Total"
 msgstr "Totalt"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
-msgid "App. screenshots"
-msgstr "App. skärmklipp"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
-msgid "Select to generate"
-msgstr "Välj för att generera"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
-msgid "Please select where to save the ZIP file"
-msgstr "Välj var ZIP-filen skall sparas"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:1
-msgid "Bug description"
-msgstr "Felbeskrivning"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:2
-msgid "Anonymous"
-msgstr "Anonymt"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:3
-msgid "Bug Report Author"
-msgstr "Felrapportförfattare"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:4
-msgid ""
-"Bug report successfully submitted.\n"
-"\n"
-"You can find below the private link to your bug report.\n"
-"\n"
-"<b>Be careful before sharing it.</b> Bug report attachments (logs, "
-"screenshots, …) do not contain any private information. Still you're "
-"strongly advised to check them all before sharing this link.\n"
-"\n"
-"You can request deletion of your bug report by sending an email to <a href="
-"\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
+msgid "Background tasks"
 msgstr ""
-"Felrapport skickad.\n"
-"\n"
-"Du hittar den privata länken till felrapporten nedan.\n"
-"\n"
-"<b>Var försiktig med att dela den.</b> Felrapportbilagor (loggar, skärmklipp "
-"m.m.) innehåller ingen personlig information. Ändå rekommenderas du starkt "
-"att kontrollera dem alla innan du delar denna länk.\n"
-"\n"
-"Du kan begära radering av din felrapport genom att skicka ett e-"
-"postmeddelande till <a href=\"mailto:jflesch@openpaper.work\""
-">jflesch@openpaper.work</a>."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
+msgid "Force quit now"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
+msgid ""
+"Some background tasks are still running.\n"
+"Please wait ..."
+msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
@@ -155,6 +129,51 @@ msgstr "För din integritets skull, kan bilagor delvis censureras när de väljs
 msgid "Attachments to include in the bug report"
 msgstr "Bilagor att inkludera i felrapporten"
 
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
+msgid "Please select where to save the ZIP file"
+msgstr "Välj var ZIP-filen skall sparas"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:1
+msgid "Bug description"
+msgstr "Felbeskrivning"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:2
+msgid "Required if you agree to be contacted regarding this bug report"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:3
+msgid "Your email address"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:4
+msgid ""
+"Bug report successfully submitted.\n"
+"\n"
+"You can find below the private link to your bug report.\n"
+"\n"
+"<b>Be careful before sharing it.</b> Bug report attachments (logs, "
+"screenshots, …) do not contain any private information. Still you're "
+"strongly advised to check them all before sharing this link.\n"
+"\n"
+"You can request deletion of your bug report by sending an email to <a "
+"href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
+msgstr ""
+"Felrapport skickad.\n"
+"\n"
+"Du hittar den privata länken till felrapporten nedan.\n"
+"\n"
+"<b>Var försiktig med att dela den.</b> Felrapportbilagor (loggar, skärmklipp "
+"m.m.) innehåller ingen personlig information. Ändå rekommenderas du starkt "
+"att kontrollera dem alla innan du delar denna länk.\n"
+"\n"
+"Du kan begära radering av din felrapport genom att skicka ett e-"
+"postmeddelande till <a href=\"mailto:jflesch@openpaper."
+"work\">jflesch@openpaper.work</a>."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
+msgstr "Visa bakgrundsåtgärder"
+
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
 msgid "Unexpected Error"
 msgstr "Oväntat fel"
@@ -167,6 +186,8 @@ msgstr "Rapport"
 msgid "An unexpected error occured."
 msgstr "Ett oväntat fel inträffade."
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
-msgid "Show background tasks"
-msgstr "Visa bakgrundsåtgärder"
+#~ msgid "Anonymous"
+#~ msgstr "Anonymt"
+
+#~ msgid "Bug Report Author"
+#~ msgstr "Felrapportförfattare"

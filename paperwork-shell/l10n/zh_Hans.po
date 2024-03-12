@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-10 16:38+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-02-07 12:49+0000\n"
 "Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
 "Language-Team: Chinese (Simplified) <http://translations.openpaper.work/"
@@ -19,283 +19,81 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:50
-msgid "Change a document identifier"
-msgstr "更改文档标识符"
-
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:54
-msgid "Document to rename"
-msgstr "需要重命名的文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:58
-msgid "New name for the document"
-msgstr "新文档名"
-
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:63
-msgid "Search keywords in documents"
-msgstr "搜索文档中的关键字"
-
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:67
-msgid "Maximum number of results (default: 50)"
-msgstr "最大结果数 (默认值: 50)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:71
-msgid "Search keywords (none means all documents)"
-msgstr "搜索关键字 (none 代表所有文档)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:92
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:81
-#, python-format
-msgid "Document id: %s"
-msgstr "文档 id: %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:97
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:87
-#, python-format
-msgid "Document date: %s"
-msgstr "文档日期:%s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:57
-msgid ""
-"Export a document, a page, or a set of pages. Example: paperwork-cli export "
-"20150303_2314_39 -p 2 -f img_boxes -f grayscale -f jpeg -o ~/tmp/pouet.jpg"
-msgstr ""
-"导出文档，页面，或一组页面。示例: paperwork-cli export 20150303_2314_39 -p 2 -f img_boxes -f "
-"grayscale -f jpeg -o ~/tmp/pouet.jpg"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:63
-msgid "Document to export"
-msgstr "导出的文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:67
-msgid ""
-"Pages to export (single integer, range or comma-separated list, default: all "
-"pages)"
-msgstr "要导出的页面 (单个整数，范围或者使用逗号分隔的列表，默认为所有页面)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:76
-msgid ""
-"Export filters. Specify this option once for each filter to apply (ex: '-f "
-"grayscale -f jpeg')."
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:83
-msgid ""
-"Output file/directory. If not specified, will list the filters that could be "
-"chained after those already specified."
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:119
-#, python-format
-msgid "Unknown filters: %s"
-msgstr "未知过滤器 : %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:141
-#, python-format
-msgid "Current filters: %s"
-msgstr "当前过滤器: %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:144
-msgid "Next possible filters:"
-msgstr "下一个可能的过滤器 :"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:149
-#, python-brace-format
-msgid ""
-"'{filter_name}' is an output filter. No other filter can be added after "
-"'{filter_name}'."
-msgstr "'{filter_name}' 是一个输出过滤器。不能在 '{filter_name}' 之后添加其他过滤器。"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:153
-msgid "No possible filters found"
-msgstr "找不到可能的过滤器"
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:170
-#, python-format
-msgid "Exporting to %s ... "
-msgstr "导出到 %s ... "
-
-#: paperwork-shell/src/paperwork_shell/cmd/export.py:175
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:101
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:133
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:183
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:102
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:131
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:89
-#: paperwork-shell/src/paperwork_shell/display/progress.py:39
-msgid "Done"
-msgstr "完成"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scan.py:51
-msgid "Scan pages"
-msgstr "扫描页面"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scan.py:55
-msgid "Document to which the scanned pages must be added"
-msgstr "必须添加扫描页面的文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:58
-msgid "Commands to manage labels"
-msgstr "标签管理命令"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:61
-msgid "label command"
-msgstr "标签命令"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:68
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:74
-msgid "Target documents"
-msgstr "目标文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:72
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:80
-msgid "Target document"
-msgstr "目标文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:73
-msgid "Label to add"
-msgstr "要添加的标签"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:76
-msgid "Label color (ex: '#aa22cc')"
-msgstr "标签颜色 (例如 '#aa22cc')"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:81
-msgid "Label to remove"
-msgstr "要移除的标签"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:85
-msgid "Label to remove on *all* documents"
-msgstr "要在 *所有*文档移除的标签"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:90
-msgid "Loading all labels ... "
-msgstr "加载所有标签 ... "
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:178
-#, python-format
-msgid "Are you sure you want to delete label '%s' from all documents ?"
-msgstr "确定要从所有文档中删除标签'%s' 吗？"
-
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:62
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:55
 msgid "Delete a document or a page"
 msgstr "删除文档或页面"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:67
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:60
 msgid ""
 "Pages to delete (single integer, range or comma-separated list, default: all "
 "pages)"
 msgstr "要删除的页面 (单个整数、范围或使用逗号分隔的列表，默认值为所有页面)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:90
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:67
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:61
+msgid "Target documents"
+msgstr "目标文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:83
 #, python-brace-format
 msgid "Deleting document {doc_id} ..."
 msgstr "删除文档 {doc_id} ..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:91
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:84
 #, python-brace-format
 msgid "Deleting page {page_idx} of document {doc_id} ..."
 msgstr "删除文档 {doc_id}中的{page_idx}页面 ..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:97
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:90
 #, python-format
 msgid "Delete document %s ?"
 msgstr "删除文档 %s ?"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:103
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:97
 #, python-brace-format
 msgid "Delete page(s) {page_indexes} of document {doc_id} ?"
 msgstr "删除文档 {doc_id} 中的 {page_indexes} 页面 ?"
 
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:62
-msgid "Import file(s)"
-msgstr "导入文件"
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:67
+msgid "Reset a page to its original content"
+msgstr "将页面重置为其原始内容"
 
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:67
-msgid "Target document for import"
-msgstr "要导入的目标文档"
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:101
+msgid "Reseting document {} page {} ..."
+msgstr "重置文档 {} 页面 {} ..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:71
-msgid "Files to import"
-msgstr "要导入的文件"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:99
-#, python-format
-msgid "Don't know how to import file(s) %s"
-msgstr "不知道如何导入文件%s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:112
-#, python-format
-msgid "Found many ways to import file(s) %s:"
-msgstr "找到多种导入文件 %s 的方法:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:125
-#, python-format
-msgid "Importing %s ..."
-msgstr "正在导入 %s ..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:134
-msgid "Import result:"
-msgstr "导入结果:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:135
-#, python-format
-msgid "- Imported files: %s"
-msgstr "-导入文件: %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:136
-#, python-format
-msgid "- Non-imported files: %s"
-msgstr "- 未导入的文件 : %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:137
-#, python-format
-msgid "- New documents: %s"
-msgstr "- 新文档: %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/import.py:138
-#, python-format
-msgid "- Updated documents: %s"
-msgstr "- 更新文档: %s"
-
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:95
-msgid "Edit page"
-msgstr "编辑页面"
-
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:99
-msgid "List of image modifiers (comma separated, possible values: {})"
-msgstr ""
-
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:105
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:122
-msgid "Modifying document {} page {} ..."
-msgstr "修改文档 {} 页面 {} ..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:126
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:112
 msgid "Original:"
 msgstr "原件:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:147
-msgid "Generating in high quality and saving ..."
-msgstr "高质量生成并保存 ..."
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:110
+msgid "Reseted:"
+msgstr "重置:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:175
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:123
-msgid "Committing ..."
-msgstr "提交中 ..."
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:118
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:80
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:244
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:169
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:156
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:91
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:92
+msgid "Done"
+msgstr "完成"
 
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:184
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:107
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:132
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:79
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:119
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:73
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:170
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:112
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:96
 msgid "All done !"
 msgstr "全部完成 !"
 
-#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:84
+#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:82
 msgid "Version: "
 msgstr "版本: "
 
-#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:87
+#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:86
 msgid "Because sorting documents is a machine's job."
 msgstr "因为整理文件是机器的工作。"
 
@@ -303,192 +101,502 @@ msgstr "因为整理文件是机器的工作。"
 msgid "About Paperwork"
 msgstr "关于 Paperwork"
 
-#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:211
-msgid "<-- Previous"
-msgstr "<-- 上一位"
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:36
+msgid "Manage additional text attached to documents"
+msgstr "管理附加到文档的其他文本"
 
-#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:213
-msgid "Next -->"
-msgstr "下一位 -->"
-
-#: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:214
-msgid "q: quit"
-msgstr "q: 退出"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:50
-msgid "OCR document or pages"
-msgstr "OCR 文档或页面"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:55
-msgid "Document on which OCR must be run"
-msgstr "必须运行 OCR 的文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:60
-msgid ""
-"Pages to OCR (single integer, range or comma-separated list, default: all "
-"pages)"
-msgstr "OCR 页面 (单个整数、范围或使用逗号分隔的列表，默认值为所有页面)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:91
-#, python-brace-format
-msgid "Running OCR on document {doc_id} page {page_idx} ..."
-msgstr "在文档 {doc_id} 的页面 {page_idx} 上运行 OCR ..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:70
-msgid "Reset a page to its original content"
-msgstr "将页面重置为其原始内容"
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:108
-msgid "Reseting document {} page {} ..."
-msgstr "重置文档 {} 页面 {} ..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:118
-msgid "Reseted:"
-msgstr "重置:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/move.py:58
-msgid "Move a page"
-msgstr "移动页面"
-
-#: paperwork-shell/src/paperwork_shell/cmd/move.py:62
-msgid "Source document"
-msgstr "源文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/move.py:66
-msgid "Page to move"
-msgstr "要移动的页面"
-
-#: paperwork-shell/src/paperwork_shell/cmd/move.py:70
-msgid "Destination document"
-msgstr "目标文档"
-
-#: paperwork-shell/src/paperwork_shell/cmd/move.py:74
-msgid "Target page number"
-msgstr "目标页码"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:55
-msgid "Manage scanner configuration"
-msgstr "管理扫描仪配置"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:58
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:48
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:41
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:60
 msgid "sub-command"
 msgstr "子命令"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:62
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:45
+msgid "Get a document additional text"
+msgstr "获取文档附加文本"
+
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:50
+msgid "Set a document additional text"
+msgstr "设置文档附加文本"
+
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:71
+#: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
+msgid "Additional text:"
+msgstr "附加文本:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:74
+msgid "No additional text"
+msgstr "无附加文本"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scan.py:47
+msgid "Scan pages"
+msgstr "扫描页面"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scan.py:51
+msgid "Document to which the scanned pages must be added"
+msgstr "必须添加扫描页面的文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:62
+msgid ""
+"Export a document, a page, or a set of pages. Example: paperwork-cli export "
+"20150303_2314_39 -p 2 -f img_boxes -f grayscale -f jpeg -o ~/tmp/pouet.jpg"
+msgstr ""
+"导出文档，页面，或一组页面。示例: paperwork-cli export 20150303_2314_39 -p 2 "
+"-f img_boxes -f grayscale -f jpeg -o ~/tmp/pouet.jpg"
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:68
+msgid "Document to export"
+msgstr "导出的文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:72
+msgid ""
+"Pages to export (single integer, range or comma-separated list, default: all "
+"pages)"
+msgstr "要导出的页面 (单个整数，范围或者使用逗号分隔的列表，默认为所有页面)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:81
+msgid ""
+"Export filters. Specify this option once for each filter to apply (ex: '-f "
+"grayscale -f jpeg')."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:88
+msgid ""
+"Output file/directory. If not specified, will list the filters that could be "
+"chained after those already specified."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:97
+msgid "Next possible filters are:"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:105
+msgid "a document list"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:107
+msgid "a document"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:109
+msgid "pages"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:111
+msgid "Images and text boxes"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:127
+msgid "Need at least one filter."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:131
+msgid "First filter cannot be '{}'"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:144
+#, python-brace-format
+msgid "Filter mismatch: {0} expects {1} as input. Got {2} instead"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:160
+msgid "Last filter will output {}."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:201
+#, python-format
+msgid "Unknown filters: %s"
+msgstr "未知过滤器 : %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:206
+msgid ""
+"Run the command without any filter to have a list of possible filters to "
+"start with."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:220
+msgid "Filter list is complete, but no output file specified (-o)"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:240
+#, python-format
+msgid "Exporting to %s ... "
+msgstr "导出到 %s ... "
+
+#: paperwork-shell/src/paperwork_shell/cmd/export.py:247
+msgid "Export failed !"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:53
+msgid "Synchronize the index(es) with the content of the work directory"
+msgstr "将索引与工作目录的内容同步"
+
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:63
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:107
+msgid "Synchronizing with work directory ..."
+msgstr "与工作目录同步 ..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:92
+msgid "Edit page"
+msgstr "编辑页面"
+
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:96
+msgid "List of image modifiers (comma separated, possible values: {})"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:118
+msgid "Modifying document {} page {} ..."
+msgstr "修改文档 {} 页面 {} ..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:139
+msgid "Generating in high quality and saving ..."
+msgstr "高质量生成并保存 ..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:163
+msgid "Committing ..."
+msgstr "提交中 ..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:34
+msgid "Check and fix work directory integrity"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:38
+msgid "Don't ask to fix things, just fix them"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:55
+msgid "Checking work directory ..."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:61
+msgid "No problem found"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:65
+#, python-format
+msgid "%d problems found:"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:80
+msgid "- Problem: "
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:84
+msgid "- Possible solution: "
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:91
+msgid ""
+"Do you want to fix those problems automatically using the indicated "
+"solutions ?"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:104
+msgid "Fixing ..."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:106
+msgid "All fixed !"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:64
+msgid "Import file(s)"
+msgstr "导入文件"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:69
+msgid "Target document for import"
+msgstr "要导入的目标文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:73
+msgid "PDF password"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:77
+msgid "Files to import"
+msgstr "要导入的文件"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:104
+#, python-format
+msgid "Don't know how to import file(s) %s"
+msgstr "不知道如何导入文件%s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:111
+#, python-format
+msgid "Found many ways to import file(s) %s."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:114
+msgid "Please select the way you want:"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:133
+msgid "Loading labels ..."
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:149
+#, python-format
+msgid "Importing %s ..."
+msgstr "正在导入 %s ..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:157
+msgid "Import result:"
+msgstr "导入结果:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:159
+#, python-format
+msgid "- Imported files: %s"
+msgstr "-导入文件: %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:162
+#, python-format
+msgid "- Non-imported files: %s"
+msgstr "- 未导入的文件 : %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:165
+#, python-format
+msgid "- New documents: %s"
+msgstr "- 新文档: %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/import.py:168
+#, python-format
+msgid "- Updated documents: %s"
+msgstr "- 更新文档: %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:56
+msgid "Search keywords in documents"
+msgstr "搜索文档中的关键字"
+
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:60
+msgid "Maximum number of results (default: 50)"
+msgstr "最大结果数 (默认值: 50)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:64
+msgid "Search keywords (none means all documents)"
+msgstr "搜索关键字 (none 代表所有文档)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:82
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:74
+#, python-format
+msgid "Document id: %s"
+msgstr "文档 id: %s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:87
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:80
+#, python-format
+msgid "Document date: %s"
+msgstr "文档日期:%s"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:57
+msgid "Manage scanner configuration"
+msgstr "管理扫描仪配置"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:64
 msgid "List all scanners and their possible settings"
 msgstr "列出所有扫描仪及其可能的设置"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:67
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:69
 msgid "Show the currently selected scanner and its settings"
 msgstr "显示当前选定的扫描仪及其设置"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:72
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:74
 msgid "Define which scanner and which settings to use"
 msgstr "明确要使用的扫描仪和设置"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:75
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:77
 msgid "Scanner to use"
 msgstr "要使用的扫描仪"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:80
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:82
 msgid ""
 "Default source on the scanner to use (if not specified, one will be selected "
 "randomly)"
 msgstr "扫描仪上要使用的默认源 (如果未指定，将随机选择一个)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:86
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:88
 msgid "Default resolution (dpi ; default=300)"
 msgstr "默认分辨率 (dpi ; 默认值=300)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:91
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:92
 msgid "Examining scanner {} ..."
 msgstr "检查扫描仪 {} ..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:131
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:153
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:149
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:171
 msgid "ID:"
 msgstr "ID:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:133
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:154
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:151
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:172
 msgid "Source:"
 msgstr "源:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:135
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:153
 msgid "Resolutions:"
 msgstr "分辨率:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:155
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:173
 msgid "Resolution:"
 msgstr "分辨率:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:183
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:200
 msgid "Source {} not found on device. Using another source"
 msgstr "在设备上找不到源 {}。使用其他源"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:203
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:219
 msgid "Default source:"
 msgstr "默认源:"
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:217
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:233
 msgid "Resolution {} not available. Adjusted to {}."
 msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:51
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:51
+msgid "Commands to manage labels"
+msgstr "标签管理命令"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:54
+msgid "label command"
+msgstr "标签命令"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:65
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:73
+msgid "Target document"
+msgstr "目标文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:66
+msgid "Label to add"
+msgstr "要添加的标签"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:69
+msgid "Label color (ex: '#aa22cc')"
+msgstr "标签颜色 (例如 '#aa22cc')"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:74
+msgid "Label to remove"
+msgstr "要移除的标签"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:78
+msgid "Label to delete from *all* documents"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:82
+msgid "Loading all labels ... "
+msgstr "加载所有标签 ... "
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:171
+#, python-format
+msgid "Are you sure you want to delete label '%s' from all documents ?"
+msgstr "确定要从所有文档中删除标签'%s' 吗？"
+
+#: paperwork-shell/src/paperwork_shell/cmd/move.py:54
+msgid "Move a page"
+msgstr "移动页面"
+
+#: paperwork-shell/src/paperwork_shell/cmd/move.py:58
+msgid "Source document"
+msgstr "源文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/move.py:62
+msgid "Page to move"
+msgstr "要移动的页面"
+
+#: paperwork-shell/src/paperwork_shell/cmd/move.py:66
+msgid "Destination document"
+msgstr "目标文档"
+
+#: paperwork-shell/src/paperwork_shell/cmd/move.py:70
+msgid "Target page number"
+msgstr "目标页码"
+
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:45
 msgid "Show the content of a document"
 msgstr "显示文档的内容"
 
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:99
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:92
 #, python-format
 msgid "Page %d"
 msgstr "页面 %d"
 
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:57
-msgid "Synchronize the index(es) with the content of the work directory"
-msgstr "将索引与工作目录的内容同步"
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:44
+msgid "OCR document or pages"
+msgstr "OCR 文档或页面"
 
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:68
-msgid "Synchronizing with work directory ..."
-msgstr "与工作目录同步 ..."
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:49
+msgid "Document on which OCR must be run"
+msgstr "必须运行 OCR 的文档"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:43
-msgid "Manage additional text attached to documents"
-msgstr "管理附加到文档的其他文本"
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:54
+msgid ""
+"Pages to OCR (single integer, range or comma-separated list, default: all "
+"pages)"
+msgstr "OCR 页面 (单个整数、范围或使用逗号分隔的列表，默认值为所有页面)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:52
-msgid "Get a document additional text"
-msgstr "获取文档附加文本"
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:83
+#, python-brace-format
+msgid "Running OCR on document {doc_id} page {page_idx} ..."
+msgstr "在文档 {doc_id} 的页面 {page_idx} 上运行 OCR ..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:57
-msgid "Set a document additional text"
-msgstr "设置文档附加文本"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:45
+msgid "Change a document identifier"
+msgstr "更改文档标识符"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:79
-#: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
-msgid "Additional text:"
-msgstr "附加文本:"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:49
+msgid "Document to rename"
+msgstr "需要重命名的文档"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:82
-msgid "No additional text"
-msgstr "无附加文本"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:53
+msgid "New name for the document"
+msgstr "新文档名"
 
-#: paperwork-shell/src/paperwork_shell/main.py:67
-msgid "command"
-msgstr "命令"
-
-#: paperwork-shell/src/paperwork_shell/display/scan.py:86
+#: paperwork-shell/src/paperwork_shell/display/scan.py:91
 msgid "Scanning page {} (expected size: {}x{}) ..."
 msgstr "正在扫描页面 {} (预计大小: {}x{}) ..."
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:127
+#: paperwork-shell/src/paperwork_shell/display/scan.py:132
 msgid "Page {} scanned (actual size: {}x{})"
 msgstr "页面 {} 已扫描 (实际大小: {}x{})"
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:135
+#: paperwork-shell/src/paperwork_shell/display/scan.py:139
 msgid "End of paper feed"
 msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:151
+#: paperwork-shell/src/paperwork_shell/display/scan.py:155
 msgid "Page {} in document {} created"
 msgstr "页面 {} 位于文档 {} 中已被创建"
+
+#: paperwork-shell/src/paperwork_shell/main.py:89
+msgid "command"
+msgstr "命令"
+
+#, python-format
+#~ msgid "Current filters: %s"
+#~ msgstr "当前过滤器: %s"
+
+#~ msgid "Next possible filters:"
+#~ msgstr "下一个可能的过滤器 :"
+
+#, python-brace-format
+#~ msgid ""
+#~ "'{filter_name}' is an output filter. No other filter can be added after "
+#~ "'{filter_name}'."
+#~ msgstr ""
+#~ "'{filter_name}' 是一个输出过滤器。不能在 '{filter_name}' 之后添加其他过滤"
+#~ "器。"
+
+#~ msgid "No possible filters found"
+#~ msgstr "找不到可能的过滤器"
+
+#~ msgid "Label to remove on *all* documents"
+#~ msgstr "要在 *所有*文档移除的标签"
+
+#, python-format
+#~ msgid "Found many ways to import file(s) %s:"
+#~ msgstr "找到多种导入文件 %s 的方法:"
+
+#~ msgid "<-- Previous"
+#~ msgstr "<-- 上一位"
+
+#~ msgid "Next -->"
+#~ msgstr "下一位 -->"
+
+#~ msgid "q: quit"
+#~ msgstr "q: 退出"

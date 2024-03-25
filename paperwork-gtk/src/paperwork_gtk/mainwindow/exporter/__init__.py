@@ -37,7 +37,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.combobox_page_format = None
         self.model_page_format = None
 
-        # The reference ('ref_') is what is displayed as example to the user.
+        # The reference ('ref_*') is what is displayed as example to the user.
         # It's always only one page. The exported document size is estimated
         # by multiplying this reference page after post-processing by the
         # number of pages in the document.
@@ -275,7 +275,7 @@ class Plugin(openpaperwork_core.PluginBase):
             previous_input_type, active_pipe
         )
         if len(possible_alternative_pipes) <= 1:
-            # no really a choice
+            # not really a choice
             return
 
         possible_alternative_pipes.sort(key=lambda p: str(p))
@@ -287,7 +287,7 @@ class Plugin(openpaperwork_core.PluginBase):
         combobox = widget_tree.get_object("exporter_pipe")
         choices = widget_tree.get_object("exporter_pipe_model")
         choices.clear()
-        choices.append(("", ""))
+        choices.append((_("Please select the next export step"), ""))
         active_idx = 0
         for (alternative_idx, alternative_pipe) in enumerate(
                 possible_alternative_pipes):

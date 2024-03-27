@@ -52,7 +52,7 @@ class Plugin(openpaperwork_core.PluginBase):
                             doc_id,
                         ),
                         "solution": _(
-                            "Turn %s into <YYYMMDD_hhmm_ss>/doc.pdf"
+                            "Turn %s into <YYYYMMDD_hhmm_ss>/doc.pdf"
                         ) % (
                             doc_id,
                         ),

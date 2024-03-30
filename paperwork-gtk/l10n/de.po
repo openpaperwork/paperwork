@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2024-03-30 13:22+0000\n"
+"PO-Revision-Date: 2024-03-30 13:30+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/de/>\n"
@@ -273,7 +273,7 @@ msgstr "Dokumente oder Bilddateien importieren"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
 msgid "Import file(s)"
-msgstr "Datei(en) importieren"
+msgstr "Importiere Datei(en)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:115
 msgid "Select a file or a directory to import"

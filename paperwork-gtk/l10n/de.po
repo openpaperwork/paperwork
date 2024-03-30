@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2024-03-30 13:21+0000\n"
+"PO-Revision-Date: 2024-03-30 13:22+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/de/>\n"
@@ -39,7 +39,7 @@ msgstr "Alles nur für den aktuellen Benutzer installieren"
 
 #: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:75
 msgid "Introduction"
-msgstr "Einleitung"
+msgstr "Einführung"
 
 #: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:76
 msgid "User manual"
@@ -531,7 +531,7 @@ msgstr "Wird geladen…"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
 msgid "Updates"
-msgstr "Aktualisierungen"
+msgstr "Updates"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.py:60
 msgid "Help Improve Paperwork"

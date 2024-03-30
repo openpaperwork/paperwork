@@ -3,16 +3,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2021-12-21 19:24+0000\n"
-"Last-Translator: Tom F <tom@mb.tu-ilmenau.de>\n"
-"Language-Team: German <http://translations.openpaper.work/projects/paperwork/"
-"paperwork-help-documents/de/>\n"
+"PO-Revision-Date: 2024-03-30 13:16+0000\n"
+"Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
+"Language-Team: German <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-gtk-help/de/>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #. type: Plain text
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
@@ -1495,7 +1495,7 @@ msgstr ""
 #. type: itemize
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679
 msgid "Cropping"
-msgstr "Schneiden"
+msgstr "Zuschneiden"
 
 #. type: itemize
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679

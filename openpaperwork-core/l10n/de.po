@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2024-03-30 13:16+0000\n"
+"PO-Revision-Date: 2024-03-30 13:30+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/de/>\n"
@@ -26,7 +26,7 @@ msgstr "Verwalte die Konfiguration von Paperwork"
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:68
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
 msgid "sub-command"
-msgstr "Unterkommando"
+msgstr "Unterbefehl"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:72
 msgid "Get a value from Paperwork's configuration"

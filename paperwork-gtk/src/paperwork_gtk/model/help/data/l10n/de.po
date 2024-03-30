@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-02-10 18:54+0100\n"
-"PO-Revision-Date: 2024-03-30 13:22+0000\n"
-"Last-Translator: Jannik Wilhelm <jannik.wilhelm@outlook.de>\n"
+"PO-Revision-Date: 2024-03-30 13:25+0000\n"
+"Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/de/>\n"
 "Language: de\n"
@@ -18,9 +18,7 @@ msgstr ""
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:20
 msgid "\\date{}"
-msgstr ""
-"\\date{}\n"
-"\\usepackage[german]{babel}"
+msgstr "\\date{}"
 
 #. type: title{#1}
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
@@ -2399,8 +2397,8 @@ msgid ""
 "For instance, on GNU/Linux Debian or GNU/Linux Ubuntu, the following command "
 "will take care of it:"
 msgstr ""
-"Beispielweise kümmert sich unter unter GNU/Linux Debian oder GNU/Linux "
-"Ubuntu folgende Befehl darum:"
+"Beispielweise kümmert sich unter GNU/Linux Debian oder GNU/Linux Ubuntu "
+"folgender Befehl darum:"
 
 #. type: verbatim
 #: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1034

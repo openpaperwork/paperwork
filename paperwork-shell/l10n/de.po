@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2023-07-31 15:31+0000\n"
-"Last-Translator: Jannik Wilhelm <jannik.wilhelm@outlook.de>\n"
+"PO-Revision-Date: 2024-03-30 13:20+0000\n"
+"Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/de/>\n"
 "Language: de\n"
@@ -314,7 +314,7 @@ msgstr "Alles behoben!"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:64
 msgid "Import file(s)"
-msgstr "Importiere Datei(en)"
+msgstr "Datei(en) importieren"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:69
 msgid "Target document for import"
@@ -322,7 +322,7 @@ msgstr "Zieldokument für Import"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:73
 msgid "PDF password"
-msgstr "PDF Passwort"
+msgstr "PDF-Passwort"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:77
 msgid "Files to import"
@@ -586,7 +586,7 @@ msgstr "Seite {} im Dokument {} erstellt"
 
 #: paperwork-shell/src/paperwork_shell/main.py:89
 msgid "command"
-msgstr "Kommando"
+msgstr "Befehl"
 
 #, python-format
 #~ msgid "Current filters: %s"

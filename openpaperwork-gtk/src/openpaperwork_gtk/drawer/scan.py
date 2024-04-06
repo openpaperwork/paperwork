@@ -2,6 +2,9 @@
 Plugin to draw scan on GTK widgets.
 This code should be on Paperwork-gtk, but Ironscanner needs it to.
 """
+from typing import Any
+from typing import List
+from typing import Tuple
 
 import logging
 
@@ -27,7 +30,14 @@ class Drawer(object):
         self.core = core
         self.drawing_areas = []
         self.draw_connect_ids = {}
+
+        # expected scan size: note that height may be -1 if unknown
         self.scan_size = (0, 0)
+
+        # Cairo surface size preallocated
+        # usually == scan_size unless self.scan_size is weird and smells funny
+        self.cairo_size = (0, 0)
+
         self.last_line = 0
         self.show_scan_border = False
         self.image = None
@@ -67,23 +77,25 @@ class Drawer(object):
             "Scan started: %s (expected: %dx%dpx)",
             self.scan_size, self.scan_size[0], self.scan_size[1]
         )
-        self.scan_size = (
+        self.cairo_size = (
             # WORKAROUND(Jflesch): Some scanners (Fujistu mainly) return an
             # image far too big in height. Cairo only allows a maximum image
             # size of 32767 (see #define MAX_IMAGE_SIZE in
             # cairo-image-surface.c)
             min(self.scan_size[0], 32766),
-            min(self.scan_size[1], 32766),
+            min(self.scan_size[1], 32766)
+            if self.scan_size[1] > 0
+            else 32766
         )
         self.image = cairo.ImageSurface(
-            cairo.FORMAT_RGB24, self.scan_size[0], self.scan_size[1]
+            cairo.FORMAT_RGB24, self.cairo_size[0], self.cairo_size[1]
         )
 
         cairo_ctx = cairo.Context(self.image)
         cairo_ctx.set_source_rgb(
             self.BACKGROUND[0], self.BACKGROUND[1], self.BACKGROUND[2]
         )
-        cairo_ctx.rectangle(0, 0, self.scan_size[0], self.scan_size[1])
+        cairo_ctx.rectangle(0, 0, self.cairo_size[0], self.cairo_size[1])
         cairo_ctx.fill()
 
         self.show_scan_border = True
@@ -116,8 +128,11 @@ class Drawer(object):
     def on_draw(self, drawing_area, cairo_ctx):
         widget_height = drawing_area.get_allocated_height()
         widget_width = drawing_area.get_allocated_width()
-        factor_w = self.scan_size[0] / widget_width
-        factor_h = self.scan_size[1] / widget_height
+        factor_w = self.cairo_size[0] / widget_width
+        if self.scan_size[1] > 0:
+            factor_h = self.cairo_size[1] / widget_height
+        else:
+            factor_h = self.last_line / widget_height
         factor = max(factor_w, factor_h)
 
         # background
@@ -138,7 +153,16 @@ class Drawer(object):
             try:
                 cairo_ctx.scale(1.0 / factor, 1.0 / factor)
                 cairo_ctx.set_source_surface(self.image)
-                cairo_ctx.rectangle(0, 0, self.scan_size[0], self.scan_size[1])
+                if self.scan_size[1] > 0:
+                    cairo_ctx.rectangle(
+                        0, 0,
+                        self.cairo_size[0], self.cairo_size[1]
+                    )
+                else:
+                    cairo_ctx.rectangle(
+                        0, 0,
+                        self.cairo_size[0], self.last_line
+                    )
                 cairo_ctx.clip()
                 cairo_ctx.paint()
             finally:
@@ -215,10 +239,14 @@ class Plugin(openpaperwork_core.PluginBase):
             self.active_drawers.pop(k)
         return drawer
 
-    def draw_scan_get_max_size(self, scan_id):
-        if scan_id not in self.active_drawers:
-            return
-        self.active_drawers[scan_id].scan_size
+    def draw_scan_get_scan_size(self, scan_id):
+        active_drawer = self.active_drawers.get(scan_id, None)
+        if active_drawer is None:
+            return None
+        size = active_drawer.cairo_size
+        if active_drawer.scan_size[1] < 0:
+            size = (size[0], active_drawer.last_line)
+        return size
 
     def on_scan_feed_start(self, scan_id):
         self.core.call_all("on_busy")
@@ -313,7 +341,7 @@ if __name__ == "__main__":
 
     core.call_all("draw_scan_start", drawing_area, scan_id="pouet")
 
-    calls = [
+    calls: List[Tuple[str, str, Any, Any]] = [
         ("on_scan_page_start", "pouet", 0, scan_params),
     ]
     calls += [

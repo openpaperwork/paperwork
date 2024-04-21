@@ -192,7 +192,8 @@ class UpdatableVectorizer(object):
             )
             if required_padding > 0:
                 doc_vector = numpy.hstack([
-                    doc_vector, numpy.zeros((required_padding,))
+                    doc_vector,
+                    numpy.zeros((required_padding,))
                 ])
             if sum_features is None:
                 sum_features = doc_vector
@@ -340,7 +341,7 @@ class Corpus(object):
             if required_padding > 0:
                 doc_vector = scipy.sparse.hstack([
                     scipy.sparse.csr_matrix(doc_vector),
-                    numpy.zeros((required_padding,))
+                    numpy.zeros((1, required_padding))
                 ])
             else:
                 doc_vector = scipy.sparse.csr_matrix(doc_vector)

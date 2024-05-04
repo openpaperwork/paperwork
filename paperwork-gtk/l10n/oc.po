@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2024-04-26 16:55+0000\n"
+"PO-Revision-Date: 2024-05-04 14:20+0000\n"
 "Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
 "Language-Team: Occitan <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/oc/>\n"
@@ -552,7 +552,6 @@ msgid "Work Directory"
 msgstr "Repertòri de trabalh"
 
 #: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
-#, fuzzy
 msgid "©2023"
 msgstr "©2023"
 

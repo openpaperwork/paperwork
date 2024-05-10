@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2020-09-02 17:30+0000\n"
+"PO-Revision-Date: 2024-05-03 16:04+0000\n"
 "Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
-"Language-Team: Occitan <http://translations.openpaper.work/projects/"
+"Language-Team: Occitan <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/oc/>\n"
 "Language: oc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-backend/src/paperwork_backend/index/whoosh.py:113
 #, python-format
@@ -135,91 +135,91 @@ msgstr "Simplificacion extrèma"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:61
 msgid "Microsoft Word template (.dot)"
-msgstr ""
+msgstr "modèl Microsoft Word (.dot)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:69
 msgid "Microsoft Excel template (.xlt)"
-msgstr ""
+msgstr "modèl Microsoft Excel (.xlt)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:77
 msgid "Microsoft PowerPoint template (.ppt)"
-msgstr ""
+msgstr "modèl Microsoft PowerPoint (.ppt)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:81
 msgid "OpenOffice/LibreOffice Chart (.odc)"
-msgstr ""
+msgstr "diagrama OpenOffice/LibreOffice (.odc)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:85
 msgid "OpenOffice/LibreOffice Database (.odb)"
-msgstr ""
+msgstr "basa de donadas OpenOffice/LibreOffice (.odb)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:89
 msgid "OpenOffice/LibreOffice Formula (.odf)"
-msgstr ""
+msgstr "formula OpenOffice/LibreOffice (.odf)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:93
 msgid "OpenOffice/LibreOffice Graphics (.odg)"
-msgstr ""
+msgstr "grafics OpenOffice/LibreOffice (.odg)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:97
 msgid "OpenOffice/LibreOffice Graphics template (.otg)"
-msgstr ""
+msgstr "modèl de grafic OpenOffice/LibreOffice (.otg)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:101
 msgid "OpenOffice/LibreOffice Image template (.odi)"
-msgstr ""
+msgstr "modèl d’imatge OpenOffice/LibreOffice (.odi)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:105
 msgid "OpenOffice/LibreOffice Presentation (.odp)"
-msgstr ""
+msgstr "presentacion OpenOffice/LibreOffice (.odp)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:109
 msgid "OpenOffice/LibreOffice Presentation template (.otp)"
-msgstr ""
+msgstr "modèl de presentacion OpenOffice/LibreOffice (.otp)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:113
 msgid "OpenOffice/LibreOffice Spreadsheet (.ods)"
-msgstr ""
+msgstr "fuèlh de calcul OpenOffice/LibreOffice (.ods)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:117
 msgid "OpenOffice/LibreOffice Spreadsheet template (.ots)"
-msgstr ""
+msgstr "modèl de fuèlh de calcul OpenOffice/LibreOffice (.ots)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:121
 msgid "OpenOffice/LibreOffice Text (.odt)"
-msgstr ""
+msgstr "Tèxte OpenOffice/LibreOffice (.odt)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:125
 msgid "OpenOffice/LibreOffice Text master (.odm)"
-msgstr ""
+msgstr "Tèxte màger OpenOffice/LibreOffice (.odm)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:129
 msgid "OpenOffice/LibreOffice Text template (.ott)"
-msgstr ""
+msgstr "modèl de tèxte OpenOffice/LibreOffice (.ott)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:133
 msgid "OpenOffice/LibreOffice Text web (.oth)"
-msgstr ""
+msgstr "Tèxte web OpenOffice/LibreOffice (.oth)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:145
 msgid "Microsoft PowerPoint slide (.sldx)"
-msgstr ""
+msgstr "diapositiva Microsoft PowerPoint (.sldx)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:151
 msgid "Microsoft PowerPoint slideshow (.ppsx)"
-msgstr ""
+msgstr "diaporama Microsoft PowerPoint (.ppsx)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:157
 msgid "Microsoft PowerPoint presentation template (.potx)"
-msgstr ""
+msgstr "modèl de presentacion Microsoft PowerPoint (.potx)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:169
 msgid "Microsoft Excel template (.xltx)"
-msgstr ""
+msgstr "modèl Microsoft Excel (.xltx)"
 
 #: paperwork-backend/src/paperwork_backend/converter/libreoffice.py:181
 msgid "Microsoft Word template (.dotx)"
-msgstr ""
+msgstr "modèl Microsoft Word (.dotx)"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:58
 #: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:44
@@ -227,7 +227,7 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:40
 #, python-format
 msgid "Checking doc %s"
-msgstr ""
+msgstr "Verificacion del document %s"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/corrupted_page_map.py:81
 #, python-format
@@ -247,18 +247,18 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:63
 #, python-format
 msgid "Document %s is empty"
-msgstr ""
+msgstr "Lo document %s es void"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:64
 #: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:71
 #, python-format
 msgid "Delete document %s"
-msgstr ""
+msgstr "Suprimir lo document %s"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/empty_doc.py:78
 #, python-format
 msgid "Deleting empty doc %s"
-msgstr ""
+msgstr "Supression del document void %s"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/label_color.py:87
 #, python-format
@@ -291,7 +291,7 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:88
 #, python-format
 msgid "Fixing %s"
-msgstr ""
+msgstr "Reglatge de %s"
 
 #: paperwork-backend/src/paperwork_backend/i18n/pycountry.py:9
 msgid "English"
@@ -390,11 +390,11 @@ msgstr ""
 #: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:57
 #, python-brace-format
 msgid "Running OCR on document {doc_id} p{page_idx}"
-msgstr ""
+msgstr "Realizacion de la ROC sul document {doc_id} p{page_idx}"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/ocr/pyocr.py:83
 msgid "Running OCR"
-msgstr ""
+msgstr "Realizacion de la ROC"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/__init__.py:237
 msgid "Label guesser: Garbage-collecting unused document features ..."

@@ -191,7 +191,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "doc_add_label_by_url", new_doc_url, *self.label
         )
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
+            "mainloop_execute", self.core.call_all,
             "doc_open", new_doc_id, new_doc_url
         )
         return new_doc_url

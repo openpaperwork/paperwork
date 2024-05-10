@@ -27,12 +27,17 @@ ID = "doctracker"
 
 
 class DocTrackerTransaction(sync.BaseTransaction):
-    def __init__(self, plugin, sql, total_expected=-1):
+    def __init__(self, plugin, total_expected=-1):
         super().__init__(plugin.core, total_expected)
         self.priority = -10000
 
+        # This transaction uses its own SqlLite connection to avoid issues
+        # when the user switches from one work directory to another while
+        # a transaction is still running.
         self.sql = self.core.call_one(
-            "sqlite_execute", sql.cursor
+            "sqlite_execute",
+            self.core.call_success,
+            "sqlite_open", plugin.sql_file
         )
 
         self.core.call_one(
@@ -159,13 +164,13 @@ class Plugin(openpaperwork_core.PluginBase):
         paperwork_dir = self.core.call_success(
             "data_dir_handler_get_individual_data_dir"
         )
-        sql_file = self.core.call_success(
+        self.sql_file = self.core.call_success(
             "fs_join", paperwork_dir, 'doc_tracking.db'
         )
         self.sql = self.core.call_one(
             "sqlite_execute",
             self.core.call_success,
-            "sqlite_open", sql_file
+            "sqlite_open", self.sql_file
         )
         for query in CREATE_TABLES:
             self.core.call_one("sqlite_execute", self.sql.execute, query)
@@ -221,7 +226,7 @@ class Plugin(openpaperwork_core.PluginBase):
             out.append(transaction_factory(
                 sync=False, total_expected=total_expected
             ))
-        out.append(DocTrackerTransaction(self, self.sql, total_expected))
+        out.append(DocTrackerTransaction(self, total_expected))
 
     def sync(self, promises: list):
         storage_all_docs = []
@@ -261,7 +266,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 for (name, transaction_factory) in self.transaction_factories
             ] + [
                 DocTrackerTransaction(
-                    self, self.sql,
+                    self,
                     total_expected=max(len(storage_all_docs), len(args[1]))
                 )
             ], key=lambda t: -1 * t.priority),

@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2022-01-05 18:30+0000\n"
+"PO-Revision-Date: 2024-05-04 14:20+0000\n"
 "Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
-"Language-Team: Occitan <http://translations.openpaper.work/projects/"
+"Language-Team: Occitan <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/oc/>\n"
 "Language: oc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-gtk/src/paperwork_gtk/cmd/import.py:45
 msgid "Run Paperwork and import files passed as arguments into a new document"
@@ -92,17 +92,17 @@ msgstr "Crear un document novèl"
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:32
 msgctxt "keyboard shortcut categories"
 msgid "Page"
-msgstr ""
+msgstr "Pagina"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:34
 msgctxt "keyboard shortcut names"
 msgid "Copy selected text to clipboard"
-msgstr ""
+msgstr "Copiar lo tèxte seleccionat al quichapapièrs"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:33
 msgctxt "keyboard shortcut names"
 msgid "Edit"
-msgstr ""
+msgstr "Modificar"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
 msgid "Find"
@@ -178,8 +178,8 @@ msgstr "Cap de document novèl d'importar pas trobat"
 msgctxt "import dialog"
 msgid "Imported file deleted"
 msgid_plural "Imported files deleted"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fichièr importat suprimit"
+msgstr[1] "Fichièrs importats suprimits"
 
 #: paperwork-gtk/src/paperwork_gtk/docimport.py:177
 msgid "Imported:\n"
@@ -249,7 +249,7 @@ msgstr "Talha estimada del fichièr : %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:643
 msgid "Select a file to which export the document"
-msgstr ""
+msgstr "Seleccionar un fichièr ont exportar lo document"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:652
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:135
@@ -267,7 +267,7 @@ msgstr "Numerizar a partir de %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:84
 msgid "Import document or image file(s)"
-msgstr ""
+msgstr "Importar un fichièr de document o d’imatge"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
 msgid "Import file(s)"
@@ -283,11 +283,11 @@ msgstr "Totes los formats de fichièrs compatibles"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:179
 msgid "Nothing to import"
-msgstr ""
+msgstr "Pas res a importar"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:181
 msgid "Nothing to import: nothing selected"
-msgstr ""
+msgstr "Res a importar : res pas seleccionat"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
@@ -553,7 +553,7 @@ msgstr "Repertòri de trabalh"
 
 #: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
 msgid "©2023"
-msgstr ""
+msgstr "©2023"
 
 #: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
 msgid "Sorting documents is a machine's job."

@@ -336,6 +336,10 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GTK_AVAILABLE:
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
+    def doc_open(self, doc_id, doc_url):
+        self._on_cancel(None)
+        self.active_doc = (doc_id, doc_url)
+
     def gtk_open_page_editor(self, doc_id, doc_url, page_idx):
         LOGGER.info("Opening page editor on %s %d", doc_id, page_idx)
         self.active_doc = (doc_id, doc_url)
@@ -380,7 +384,9 @@ class Plugin(openpaperwork_core.PluginBase):
         self.ui.save()
 
     def _on_edit_end(self, doc_url, page_idx):
-        self.core.call_all("mainwindow_back", side="right")
+        self.core.call_success(
+            "mainwindow_show", side="right", name="docview"
+        )
         self.core.call_all("doc_reload", *self.active_doc)
         self.core.call_success(
             "mainloop_schedule", self.core.call_all, "doc_goto_page", page_idx

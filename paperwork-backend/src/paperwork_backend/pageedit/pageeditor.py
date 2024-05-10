@@ -192,14 +192,6 @@ class PageEditor(object):
         img = self.original_img
         for e in self.active_modifiers:
             img = e.transform(img, preview=False)
-        # XXX(Jflesch): First go back the doc view. Because when
-        # calling `page_get_img_url` or others, some plugins may do
-        # shady things (see paperwork_gtk.model.help._get_doc_url()
-        # for instance)
-        self.core.call_success(
-            "mainloop_schedule", self.ui.on_edit_end,
-            self.doc_url, self.page_idx
-        )
         page_url = self.core.call_success(
             "page_get_img_url", self.doc_url, self.page_idx, write=True
         )
@@ -207,6 +199,10 @@ class PageEditor(object):
         # Drop the text so the OCR will be run again
         self.core.call_success(
             "page_set_boxes_by_url", self.doc_url, self.page_idx, []
+        )
+        self.core.call_success(
+            "mainloop_schedule", self.ui.on_edit_end,
+            self.doc_url, self.page_idx
         )
 
     def on_save(self):

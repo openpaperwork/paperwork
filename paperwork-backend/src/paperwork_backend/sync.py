@@ -137,7 +137,6 @@ class Syncer(object):
 
     Useful to handle calls to 'sync' (see interface 'syncable').
     """
-
     def __init__(self, core, names, new_all, old_all, transactions):
         self.core = core
         self.names = names
@@ -147,6 +146,8 @@ class Syncer(object):
         self.diff_generator = None
         self.start = None
         self.nb_compared = 0
+
+        self.work_dir_id = self.core.call_success("storage_get_id")
 
     def get_promise(self):
         return openpaperwork_core.promise.ThreadedPromise(
@@ -159,6 +160,18 @@ class Syncer(object):
 
         try:
             for (action, key) in self.diff_generator:
+
+                current_work_dir = self.core.call_success("storage_get_id")
+                if self.work_dir_id != current_work_dir:
+                    LOGGER.warning(
+                        "%s: Work directory has changed during sync."
+                        " Cancelling transactions",
+                        self.names
+                    )
+                    for transaction in self.transactions:
+                        transaction.cancel()
+                    return
+
                 self.nb_compared += 1
                 if action != 'unchanged':
                     LOGGER.info("Sync: %s, %s", action, key)
@@ -215,6 +228,8 @@ class Syncer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
+    PRIORITY = 20000
+
     def get_interfaces(self):
         return ['transaction_manager']
 

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 23:00+0100\n"
-"PO-Revision-Date: 2024-05-20 06:53+0000\n"
+"PO-Revision-Date: 2024-05-20 06:58+0000\n"
 "Last-Translator: hgndrtn651b9ds <hgndrtn651b9ds@protonmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-gtk/it/>\n"
@@ -104,6 +104,8 @@ msgid ""
 "Some background tasks are still running.\n"
 "Please wait ..."
 msgstr ""
+"Alcune attività in background sono ancora in corso.\n"
+"Attendi per favore ..."
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
@@ -124,6 +126,8 @@ msgstr "Apri FIle"
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:8
 msgid "For your privacy, attachments may be partially censored when selected"
 msgstr ""
+"Per rispettare la tua privacy, gli allegati potrebbero essere parzialmente "
+"censurati quando selezionati"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:9
 msgid "Attachments to include in the bug report"
@@ -140,6 +144,7 @@ msgstr "Descrizione bug"
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:2
 msgid "Required if you agree to be contacted regarding this bug report"
 msgstr ""
+"Richiesto se si accetta di essere contattati per questa segnalazione di bug"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:3
 msgid "Your email address"

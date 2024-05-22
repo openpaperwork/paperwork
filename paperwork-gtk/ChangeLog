@@ -1,3 +1,11 @@
+2024/05/12 - 2.2.3:
+- Scan drawer: handle gracefully cases when the scan height is not known
+  from the start.
+- Page editor: fix race-condition
+- export: Fix: if the user modifies a previous element in the pipeline, remove
+  the next elements that are not valid anymore instead of crashing
+- import: Fix: if the user doesn't select any file to import, do not crash
+
 2024/02/13 - 2.2.2:
 - Make it possible to edit help documents
 - doc list layout: do not let a big lengthy label increase the horizontal size

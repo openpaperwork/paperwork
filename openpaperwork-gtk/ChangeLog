@@ -1,3 +1,7 @@
+2024/05/12 - 2.2.3:
+- Scan drawer: handle gracefully cases when the scan height is not known
+  from the start.
+
 2024/02/13 - 2.2.2:
 - dependencies: Make really sure python3-gi-cairo is installed
 

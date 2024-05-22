@@ -1,4 +1,10 @@
-2023/02/13 - 2.2.2:
+2024/05/12 - 2.2.3:
+- backend/guesswork/labels/sklearn: fix crash used by wrong use of
+  scipy.sparse.hstack() + numpy.zeros() (see issue #1111)
+- Page editor: fix race-condition
+- Handle more gracefully work directory changes when the sync is in progress
+
+2024/02/13 - 2.2.2:
 - export: Add export pipe to export to PDF by automatically selecting the
   original PDF if available or generating one else
 - docexport PDF: Workaround Cairo bug that causes occasional crashes when

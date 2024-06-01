@@ -69,7 +69,7 @@ class Plugin(openpaperwork_core.PluginBase):
             (
                 pkg_resources.resource_filename(
                     'paperwork_gtk.data',
-                    'work.openpaper.Paperwork.appdata.xml',
+                    'work.openpaper.Paperwork.metainfo.xml',
                 ),
                 appdata_path
             )

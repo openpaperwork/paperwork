@@ -51,7 +51,7 @@ class Plugin(openpaperwork_core.PluginBase):
             datadir, 'applications', 'work.openpaper.Paperwork.desktop'
         )
         appdata_path = os.path.join(
-            datadir, "metainfo", "work.openpaper.Paperwork.appdata.xml"
+            datadir, "metainfo", "work.openpaper.Paperwork.metainfo.xml"
         )
 
         os.makedirs(os.path.dirname(desktop_path), exist_ok=True)
@@ -69,7 +69,7 @@ class Plugin(openpaperwork_core.PluginBase):
             (
                 pkg_resources.resource_filename(
                     'paperwork_gtk.data',
-                    'work.openpaper.Paperwork.appdata.xml',
+                    'work.openpaper.Paperwork.metainfo.xml',
                 ),
                 appdata_path
             )

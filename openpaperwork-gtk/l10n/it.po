@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 23:00+0100\n"
-"PO-Revision-Date: 2024-02-27 14:34+0000\n"
-"Last-Translator: Angelo Visone <angelovisone71@gmail.com>\n"
+"PO-Revision-Date: 2024-05-20 07:08+0000\n"
+"Last-Translator: hgndrtn651b9ds <hgndrtn651b9ds@protonmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-gtk/it/>\n"
 "Language: it\n"
@@ -93,57 +93,62 @@ msgstr "Totale"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
 msgid "Background tasks"
-msgstr ""
+msgstr "Attività in background"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
 msgid "Force quit now"
-msgstr ""
+msgstr "Esci immediatamente"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
 msgid ""
 "Some background tasks are still running.\n"
 "Please wait ..."
 msgstr ""
+"Alcune attività in background sono ancora in corso.\n"
+"Attendi per favore ..."
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
-msgstr ""
+msgstr "Data"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:5
 msgid "File"
-msgstr ""
+msgstr "File"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:6
 msgid "Size"
-msgstr ""
+msgstr "Dimensione"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:7
 msgid "Open file"
-msgstr ""
+msgstr "Apri FIle"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:8
 msgid "For your privacy, attachments may be partially censored when selected"
 msgstr ""
+"Per rispettare la tua privacy, gli allegati potrebbero essere parzialmente "
+"censurati quando selezionati"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:9
 msgid "Attachments to include in the bug report"
-msgstr ""
+msgstr "Allegati da includere nella segnalazione"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
 msgid "Please select where to save the ZIP file"
-msgstr ""
+msgstr "Seleziona dove salvare il file ZIP"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:1
 msgid "Bug description"
-msgstr ""
+msgstr "Descrizione bug"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:2
 msgid "Required if you agree to be contacted regarding this bug report"
 msgstr ""
+"Richiesto se si accetta di essere contattati per questa segnalazione di bug"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:3
 msgid "Your email address"
-msgstr ""
+msgstr "Il tuo indirizzo email"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:4
 msgid ""
@@ -158,6 +163,17 @@ msgid ""
 "You can request deletion of your bug report by sending an email to <a "
 "href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
 msgstr ""
+"Segnalazione di bug inviata correttamente.\n"
+"\n"
+"Puoi trovare sotto il link privato per la tua segnalazione di bug.\n"
+"\n"
+"<b>Fai attenzione prima di condividerla.</b> Gli allegati della segnalazione "
+"di bug (logs, screenshots, ...) non contengono informazioni private. Si "
+"consiglia vivamente di controllarli tutti comunque, prima di condividere "
+"questo link.\n"
+"\n"
+"Puoi richiedere la cancellazione della tua segnalazione di bug inviando una "
+"email a <a href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
 msgid "Show background tasks"
@@ -169,8 +185,8 @@ msgstr "Errore imprevisto"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:2
 msgid "Report"
-msgstr ""
+msgstr "Segnala"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
 msgid "An unexpected error occured."
-msgstr ""
+msgstr "Si è verificato un errore inaspettato."

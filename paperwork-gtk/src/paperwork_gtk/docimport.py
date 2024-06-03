@@ -146,9 +146,12 @@ class Plugin(openpaperwork_core.PluginBase):
             self.core.call_all("doc_open", doc_id, doc_url)
 
         nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        if nb_pages is None:
+            # may happen with freshly-import .doc/.xsl/.docx/etc files
+            nb_pages = 0
         if nb_pages <= 0:
             # empty PDF ?
-            LOGGER.warning("Document import %s, but no page in it ?!", doc_id)
+            LOGGER.warning("Document import %s, but no page in it yet ?!", doc_id)
             return
         self.core.call_success(
             "mainloop_schedule", self.core.call_all,

@@ -26,6 +26,9 @@ AUTHORS.git.json
 paperwork_repo/
 .buildozer/
 
+# see makefiles
+.installed
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

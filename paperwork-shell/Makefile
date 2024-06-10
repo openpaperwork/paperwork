@@ -1,4 +1,8 @@
 PYTHON ?= python3
+SRC_FILES = \
+	$(shell find . -name '*.py') \
+	$(shell find . -name '*.po') \
+	pyproject.toml
 
 build: build_c build_py
 
@@ -6,8 +10,7 @@ install: install_py install_c
 
 uninstall: uninstall_py
 
-build_py: l10n_compile
-	${PYTHON} ./setup.py build
+build_py:
 
 build_c:
 
@@ -59,14 +62,22 @@ release_pypi:
 	@echo "All done"
 
 clean:
+	rm -f .installed
 	rm -rf AppDir appimage-build
 	rm -f *.AppImage
 	rm -rf build dist *.egg-info
 	rm -f src/paperwork_shell/_version.py
 
 # PIP_ARGS is used by Flatpak build
-install_py: l10n_compile
+install_py: .installed
+
+.installed: $(SRC_FILES)
+	$(CURDIR)/../tools/l10n_compile.sh \
+		"$(CURDIR)/l10n" \
+		"$(CURDIR)/src/paperwork_shell/l10n" \
+		"paperwork_shell"
 	${PYTHON} -m pip install ${PIP_ARGS} .${PIP_DEPS}
+	touch .installed
 
 install_c:
 
@@ -79,10 +90,6 @@ l10n_extract:
 	$(CURDIR)/../tools/l10n_extract.sh "$(CURDIR)/src" "$(CURDIR)/l10n"
 
 l10n_compile:
-	$(CURDIR)/../tools/l10n_compile.sh \
-		"$(CURDIR)/l10n" \
-		"$(CURDIR)/src/paperwork_shell/l10n" \
-		"paperwork_shell"
 
 help:
 	@echo "make build || make build_py"

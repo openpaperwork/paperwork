@@ -53,8 +53,11 @@ upload_data: data
 data.tar.gz:
 	ci/download_data.sh data.tar.gz
 
-download_data: data.tar.gz
+paperwork-gtk/src/paperwork_gtk/model/help/out/usage.pdf: data.tar.gz
 	tar -xvzf data.tar.gz
+	touch paperwork-gtk/src/paperwork_gtk/model/help/out/usage.pdf
+
+download_data: paperwork-gtk/src/paperwork_gtk/model/help/out/usage.pdf
 
 doc: $(ALL_COMPONENTS:%=%_doc)
 

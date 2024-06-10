@@ -1,5 +1,10 @@
 VERSION_FILE = src/paperwork_gtk/_version.py
 PYTHON ?= python3
+SRC_FILES = \
+	$(shell find . -name '*.py') \
+	$(shell find . -name '*.po') \
+	$(shell find . -name '*.glade') \
+	pyproject.toml
 
 build: build_c build_py
 
@@ -7,12 +12,11 @@ install: install_py install_c
 
 uninstall: uninstall_py
 
-build_py: l10n_compile
-	${PYTHON} ./setup.py build
+build_py:
 
 build_c:
 
-${VERSION_FILE}:
+$(VERSION_FILE):
 	echo "# -*- coding: utf-8 -*-" >| $@
 	echo -n "version = \"" >> $@
 	echo -n $(shell git describe --always) >> $@
@@ -82,6 +86,7 @@ release_pypi:
 	@echo "All done"
 
 clean:
+	rm -f .installed
 	rm -rf build dist src/*.egg-info
 	rm -rf AppDir appimage-build
 	rm -f *.AppImage
@@ -90,8 +95,15 @@ clean:
 	$(MAKE) -C src/paperwork_gtk/icon clean
 
 # PIP_ARGS is used by Flatpak build
-install_py: ${VERSION_FILE} l10n_compile
+install_py: .installed
+
+.installed: $(VERSION_FILE) $(SRC_FILES)
+	$(CURDIR)/../tools/l10n_compile.sh \
+		"$(CURDIR)/l10n" \
+		"$(CURDIR)/src/paperwork_gtk/l10n" \
+		"paperwork_gtk"
 	${PYTHON} -m pip install ${PIP_ARGS} .${PIP_DEPS}
+	touch .installed
 
 install_c:
 
@@ -105,10 +117,6 @@ l10n_extract:
 	$(MAKE) -C src/paperwork_gtk/model/help l10n_extract
 
 l10n_compile:
-	$(CURDIR)/../tools/l10n_compile.sh \
-		"$(CURDIR)/l10n" \
-		"$(CURDIR)/src/paperwork_gtk/l10n" \
-		"paperwork_gtk"
 
 help:
 	@echo "make build || make build_py"

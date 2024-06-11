@@ -48,7 +48,7 @@ test:
   script:
     - apt-get update
     - source ./activate_test_env.sh && pip3 install -U setuptools
-    - source ./activate_test_env.sh && make install
+    - source ./activate_test_env.sh && PIP_DEPS=[dev] make install
     - source ./activate_test_env.sh && paperwork-gtk chkdeps -y
     - source ./activate_test_env.sh && paperwork-cli chkdeps -y
     - source ./activate_test_env.sh && make test

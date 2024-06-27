@@ -1,4 +1,3 @@
-import cgi
 import datetime
 import http
 import http.server
@@ -42,12 +41,8 @@ class TestStats(unittest.TestCase):
 
         class TestRequestHandler(http.server.BaseHTTPRequestHandler):
             def do_POST(s):
-                (ctype, pdict) = cgi.parse_header(
-                    s.headers['Content-Type']
-                )
-                if ctype == 'multipart/form-data':
-                    data = cgi.parse_multipart(s.rfile, pdict)
-                elif ctype == 'application/x-www-form-urlencoded':
+                ctype = s.headers.get_content_type()
+                if ctype == 'application/x-www-form-urlencoded':
                     length = int(s.headers['Content-Length'])
                     data = urllib.parse.parse_qs(
                         s.rfile.read(length), keep_blank_values=1
@@ -106,12 +101,8 @@ class TestStats(unittest.TestCase):
 
         class TestRequestHandler(http.server.BaseHTTPRequestHandler):
             def do_POST(s):
-                (ctype, pdict) = cgi.parse_header(
-                    s.headers['Content-Type']
-                )
-                if ctype == 'multipart/form-data':
-                    data = cgi.parse_multipart(s.rfile, pdict)
-                elif ctype == 'application/x-www-form-urlencoded':
+                ctype = s.headers.get_content_type()
+                if ctype == 'application/x-www-form-urlencoded':
                     length = int(s.headers['Content-Length'])
                     data = urllib.parse.parse_qs(
                         s.rfile.read(length), keep_blank_values=1

@@ -2,6 +2,8 @@ FROM debian:sid
 
 RUN mkdir -p /usr/share/man/man1
 RUN apt-get update \
+    && apt-get upgrade -y -q \
+    && apt-get dist-upgrade -y -q \
     && apt-get install -y -q \
         binutils \
         build-essential \

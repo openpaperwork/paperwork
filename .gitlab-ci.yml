@@ -19,7 +19,7 @@ build_img:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "master"
       changes:
       - ci/Dockerfile
     - if: $CI_COMMIT_BRANCH == "testing"

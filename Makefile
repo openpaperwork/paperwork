@@ -10,14 +10,31 @@ RELEASE ?=
 
 build:
 
+
 openpaperwork-core_install_py:
 	echo "Installing openpaperwork-core"
 	$(MAKE) -C openpaperwork-core install_py
 
-%_install_py: openpaperwork-core_install_py
-	echo "Installing $(@:%_install_py=%)"
-	$(MAKE) -C $(@:%_install_py=%) install_py
+openpaperwork-gtk_install_py: openpaperwork-core_install_py
+	echo "Installing openpaperwork-gtk"
+	$(MAKE) -C openpaperwork-gtk install_py
 
+paperwork-backend_install_py: openpaperwork-core_install_py
+	echo "Installing paperwork-backend"
+	$(MAKE) -C paperwork-backend install_py
+
+paperwork-shell_install_py: \
+		openpaperwork-core_install_py \
+		paperwork-backend_install_py
+	echo "Installing paperwork-shell"
+	$(MAKE) -C paperwork-shell install_py
+
+paperwork-gtk_install_py: \
+		openpaperwork-core_install_py \
+		openpaperwork-gtk_install_py \
+		paperwork-backend_install_py
+	echo "Installing paperwork-gtk"
+	$(MAKE) -C paperwork-gtk install_py
 
 clean: $(ALL_COMPONENTS:%=%_clean)
 	rm -rf build dist
@@ -196,10 +213,12 @@ help:
 	echo "Compiling translated strings for $(@:%_l10n_compile=%)"
 	$(MAKE) -C $(@:%_l10n_compile=%) l10n_compile
 
-venv:
+venv/bin/activate:
 	echo "Building virtual env"
 	make -C sub/libinsane build_c
 	virtualenv -p python3 --system-site-packages venv
+
+venv: venv/bin/activate
 
 .PHONY: help build clean test check install install_py install_c uninstall \
 	uninstall_c uninstall_py release release_pypi libinsane_win64 \

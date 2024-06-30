@@ -9,6 +9,8 @@ license = {text = "GPL-3.0-or-later"}
 readme = {file = "README.md", content-type = "text/markdown"}
 
 dependencies = [
+  "openpaperwork-core",
+
   "pygobject",
 ]
 
@@ -23,9 +25,9 @@ lint = [
 [tool.setuptools_scm]
 root = ".."
 relative_to = "__file__"
-write_to = "openpaperwork-gtk/src/openpaperwork_gtk/_version.py"
+version_file = "src/openpaperwork_gtk/_version.py"
 version_scheme = "post-release"
 
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=8"]
 build-backend = "setuptools.build_meta"

@@ -5,7 +5,7 @@ out/paperwork_going_up.png: data/paperwork_going_up.svg
 
 out/main_window.png:
 	# screnshots
-	[ -f $(CURDIR)/${OUT_INTRO_PDF} ] || LANG=C WAYLAND_DISPLAY= xvfb-run -a sh ./screenshot.sh
+	[ -f $(CURDIR)/${OUT_INTRO_PDF} ] || LANG=C WAYLAND_DISPLAY= xvfb-run -a -e /dev/stderr sh ./screenshot.sh
 
 l10n_extract:
 	# will generate out/translated_*_$lang.tex files

@@ -88,8 +88,8 @@ generate_data:
     - source ./activate_test_env.sh
     - pip3 install -U setuptools
     - make install
-    - xvfb-run paperwork-gtk chkdeps -y
-    - xvfb-run paperwork-cli chkdeps -y
+    - xvfb-run -a -e /dev/stderr paperwork-gtk chkdeps -y
+    - xvfb-run -a -e /dev/stderr paperwork-cli chkdeps -y
     - make data upload_data
 
 

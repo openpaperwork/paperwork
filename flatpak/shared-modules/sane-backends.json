@@ -1,0 +1,20 @@
+{
+    "name": "sane-backends",
+    "buildsystem": "autotools",
+    "config-opts": [
+        "--disable-saned"
+    ],
+    "sources": [
+        {
+            "type": "archive",
+            "url": "https://gitlab.com/sane-project/backends/uploads/83bdbb6c9a115184c2d48f1fdc6847db/sane-backends-1.3.1.tar.gz",
+            "sha256": "aa82f76f409b88f8ea9793d4771fce01254d9b6549ec84d6295b8f59a3879a0c"
+        }
+    ],
+    "post-install": [
+        "rm /app/etc/sane.d/dll.conf",
+        "rm /app/etc/sane.d/net.conf",
+        "echo 127.0.0.1 > /app/etc/sane.d/net.conf",
+        "echo net > /app/etc/sane.d/dll.conf"
+    ]
+}

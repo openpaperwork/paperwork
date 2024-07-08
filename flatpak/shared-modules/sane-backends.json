@@ -7,8 +7,8 @@
     "sources": [
         {
             "type": "archive",
-            "url": "https://ftp.osuosl.org/.1/blfs/conglomeration/sane-backends/sane-backends-1.0.27.tar.gz",
-            "sha256": "293747bf37275c424ebb2c833f8588601a60b2f9653945d5a3194875355e36c9"
+            "url": "https://gitlab.com/sane-project/backends/uploads/83bdbb6c9a115184c2d48f1fdc6847db/sane-backends-1.3.1.tar.gz",
+            "sha256": "aa82f76f409b88f8ea9793d4771fce01254d9b6549ec84d6295b8f59a3879a0c"
         }
     ],
     "post-install": [

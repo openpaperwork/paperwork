@@ -2,12 +2,12 @@
     "app-id": "work.openpaper.Paperwork",
     "branch": "develop",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "44",
+    "runtime-version": "46",
     "sdk": "org.gnome.Sdk",
     "command": "paperwork-gtk",
     "copy-icon": true,
     "sdk-extensions": [
-        "org.freedesktop.Sdk.Extension.openjdk11"
+        "org.freedesktop.Sdk.Extension.openjdk21"
     ],
     "finish-args": [
         "--share=ipc",
@@ -25,22 +25,21 @@
         "--env=LIBO_FLATPAK=1"
     ],
     "modules": [
-        "flatpak/shared-modules/libreoffice-7.5.4.2.json",
-        "flatpak/shared-modules/setuptools-65.6.3.json",
-        "flatpak/shared-modules/scikit-learn-1.2.0.json",
-        "flatpak/shared-modules/sane-backends-1.1.1.json",
-        "flatpak/shared-modules/tesseract-5.3.0.json",
+        "flatpak/shared-modules/libreoffice.json",
+        "flatpak/shared-modules/scikit-learn.json",
+        "flatpak/shared-modules/sane-backends.json",
+        "flatpak/shared-modules/tesseract.json",
         {
             "name": "python-distro",
             "buildsystem": "simple",
             "build-commands": [
-                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"distro\" --no-build-isolation"
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"distro\""
             ],
             "sources": [
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/4b/89/eaa3a3587ebf8bed93e45aa79be8c2af77d50790d15b53f6dfc85b57f398/distro-1.8.0.tar.gz",
-                    "sha256": "02e111d1dc6a50abb8eed6bf31c3e48ed8b0830d1ea2a1b78c61765c2513fdd8"
+                    "url": "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz",
+                    "sha256": "2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed"
                 }
             ]
         },
@@ -48,28 +47,25 @@
             "name": "python3-scikit-build",
             "buildsystem": "simple",
             "build-commands": [
-                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"scikit-build\" --no-build-isolation"
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"scikit-build\""
             ],
             "sources": [
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/ed/35/a31aed2993e398f6b09a790a181a7927eb14610ee8bbf02dc14d31677f1c/packaging-23.0-py3-none-any.whl",
-                    "sha256": "714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2"
-                },
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/53/ab/82a39a3a7c16bc5bc3369dff693c52f609efed014833a9a09ea81580374e/scikit_build-0.16.4-py3-none-any.whl",
-                    "sha256": "c7041071d1b75a23754a54688e9cbe7c45b86197e1ac09dc472bd254246fc5ab"
+                    "url": "https://files.pythonhosted.org/packages/24/43/a0b5837cf30db1561a04187edd262bdefaffcb61222cb441eadef35f9103/scikit_build-0.18.0-py3-none-any.whl",
+                    "sha256": "ea171f5529e6e0b5b666193433831af61a28d7edf973b33884ec8c782a15ee38"
                 }
             ]
         },
         {
             "name": "python-fabulous",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"fabulous\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
+                    "type": "file",
                     "url": "https://files.pythonhosted.org/packages/ec/b3/38ce860b1abeb58b998db83a244239dd716308499e359fa077b0a4d0d244/fabulous-0.4.0.tar.gz",
                     "sha256": "d9cee8a97e0d0eea835994394b6053f84fd6120a48779dbc533c5e6812352c84"
                 }
@@ -78,24 +74,28 @@
         {
             "name": "python-pillow",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"pillow\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://files.pythonhosted.org/packages/bc/07/830784e061fb94d67649f3e438ff63cfb902dec6d48ac75aeaaac7c7c30e/Pillow-9.4.0.tar.gz",
-                    "sha256": "a1c2d7780448eb93fbcc3789bf3916aa5720d942e37945f4056680317f1cd23e"
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/cd/74/ad3d526f3bf7b6d3f408b73fde271ec69dfac8b81341a318ce825f2b3812/pillow-10.4.0.tar.gz",
+                    "sha256": "166c1cd4d24309b30d61f79f4a9114b7b2313d7450912277855ff5dfd7cd4a06"
                 }
             ],
             "modules": [
                 {
                     "name": "python-olefile",
                     "buildsystem": "simple",
-                    "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+                    "build-commands": [
+                        "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"olefile\""
+                    ],
                     "sources": [
                         {
-                            "type": "archive",
-                            "url": "https://files.pythonhosted.org/packages/34/81/e1ac43c6b45b4c5f8d9352396a14144bba52c8fec72a80f425f6a4d653ad/olefile-0.46.zip",
-                            "sha256": "133b031eaf8fd2c9399b78b8bc5b8fcbe4c31e85295749bb17a87cba8f3c3964"
+                            "type": "file",
+                            "url": "https://files.pythonhosted.org/packages/69/1b/077b508e3e500e1629d366249c3ccb32f95e50258b231705c09e3c7a4366/olefile-0.47.zip",
+                            "sha256": "599383381a0bf3dfbd932ca0ca6515acd174ed48870cbf7fee123d698c192c1c"
                         }
                     ]
                 }
@@ -104,22 +104,26 @@
         {
             "name": "python-pycountry",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"pycountry\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://files.pythonhosted.org/packages/33/24/033604d30f6cf82d661c0f9dfc2c71d52cafc2de516616f80d3b0600cb7c/pycountry-22.3.5.tar.gz",
-                    "sha256": "b2163a246c585894d808f18783e19137cb70a0c18fb36748dc01fc6f109c1646"
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b1/ec/1fb891d8a2660716aadb2143235481d15ed1cbfe3ad669194690b0604492/pycountry-24.6.1-py3-none-any.whl",
+                    "sha256": "f1a4fb391cd7214f8eefd39556d740adcc233c778a27f8942c8dca351d6ce06f"
                 }
             ]
         },
         {
             "name": "python-pyxdg",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"pyxdg\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
+                    "type": "file",
                     "url": "https://files.pythonhosted.org/packages/b0/25/7998cd2dec731acbd438fbf91bc619603fc5188de0a9a17699a781840452/pyxdg-0.28.tar.gz",
                     "sha256": "3267bb3074e934df202af2ee0868575484108581e6f3cb006af1da35395e88b4"
                 }
@@ -128,10 +132,12 @@
         {
             "name": "python-pydbus",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"pydbus\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
+                    "type": "file",
                     "url": "https://files.pythonhosted.org/packages/58/56/3e84f2c1f2e39b9ea132460183f123af41e3b9c8befe222a35636baa6a5a/pydbus-0.6.0.tar.gz",
                     "sha256": "4207162eff54223822c185da06c1ba8a34137a9602f3da5a528eedf3f78d0f2c"
                 }
@@ -156,18 +162,20 @@
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/42/5c/f44fc88bad850c4a20711a3349ec0e8bc50fece8d8b32c962d2aab70ea2b/rich-13.3.3-py3-none-any.whl",
-                    "sha256": "540c7d6d26a1178e8e8b37e9ba44573a3cd1464ff6348b99ee7061b95d1c6333"
+                    "url": "https://files.pythonhosted.org/packages/87/67/a37f6214d0e9fe57f6ae54b2956d550ca8365857f42a1ce0392bb21d9410/rich-13.7.1-py3-none-any.whl",
+                    "sha256": "4edbae314f59eb482f54e9e30bf00d33350aaa94f4bfcd4e9e3110e64d0d7222"
                 }
             ]
         },
         {
             "name": "python-whoosh",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"whoosh\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
+                    "type": "file",
                     "url": "https://files.pythonhosted.org/packages/25/2b/6beed2107b148edc1321da0d489afc4617b9ed317ef7b72d4993cad9b684/Whoosh-2.7.4.tar.gz",
                     "sha256": "7ca5633dbfa9e0e0fa400d3151a8a0c4bec53bd2ecedc0a67705b17565c31a83"
                 }
@@ -176,12 +184,14 @@
         {
             "name": "python-psutil",
             "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"psutil\""
+            ],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://files.pythonhosted.org/packages/3d/7d/d05864a69e452f003c0d77e728e155a89a2a26b09e64860ddd70ad64fb26/psutil-5.9.4.tar.gz",
-                    "sha256": "3d7f9739eb435d4b1338944abe23f49584bde5395f27487d2ee25ad9a8774a62"
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/90/c7/6dc0a455d111f68ee43f27793971cf03fe29b6ef972042549db29eec39a2/psutil-5.9.8.tar.gz",
+                    "sha256": "6be126e3225486dff286a8fb9a06246a5253f4c7c53b475ea5f5ac934e64194c"
                 }
             ]
         },
@@ -191,8 +201,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://poppler.freedesktop.org/poppler-data-0.4.11.tar.gz",
-                    "sha256": "2cec05cd1bb03af98a8b06a1e22f6e6e1a65b1e2f3816cb3069bb0874825f08c"
+                    "url": "https://poppler.freedesktop.org/poppler-data-0.4.12.tar.gz",
+                    "sha256": "c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74"
                 }
             ]
         },
@@ -208,20 +218,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://poppler.freedesktop.org/poppler-23.01.0.tar.xz",
-                    "sha256": "fae9b88d3d5033117d38477b79220cfd0d8e252c278ec870ab1832501741fd94"
-                }
-            ]
-        },
-        {
-            "name": "libinsane",
-            "buildsystem": "meson",
-            "sources": [
-                {
-                    "type": "git",
-                    "url": "https://gitlab.gnome.org/World/OpenPaperwork/libinsane.git",
-                    "branch": "master",
-                    "disable-shallow-clone": true
+                    "url": "https://poppler.freedesktop.org/poppler-24.07.0.tar.xz",
+                    "sha256": "19eb4f49198e4ae3fd9e5a6cf24d0fc7e674e8802046a7de14baab1e40cc2f1d"
                 }
             ]
         },
@@ -234,18 +232,13 @@
             "sources": [
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/ed/35/a31aed2993e398f6b09a790a181a7927eb14610ee8bbf02dc14d31677f1c/packaging-23.0-py3-none-any.whl",
-                    "sha256": "714ac14496c3e68c99c29b00845f7a2b85f3bb6f1078fd9f72fd20f0570002b2"
+                    "url": "https://files.pythonhosted.org/packages/a0/b9/1906bfeb30f2fc13bb39bf7ddb8749784c05faadbd18a21cf141ba37bff2/setuptools_scm-8.1.0-py3-none-any.whl",
+                    "sha256": "897a3226a6fd4a6eb2f068745e49733261a21f70b1bb28fce0339feb978d9af3"
                 },
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/1d/66/8f42c941be949ef2b22fe905d850c794e7c170a526023612aad5f3a121ad/setuptools_scm-7.1.0-py3-none-any.whl",
-                    "sha256": "73988b6d848709e2af142aa48c986ea29592bbcfca5375678064708205253d8e"
-                },
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/31/25/5abcd82372d3d4a3932e1fa8c3dbf9efac10cc7c0d16e78467460571b404/typing_extensions-4.5.0-py3-none-any.whl",
-                    "sha256": "fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4"
+                    "url": "https://files.pythonhosted.org/packages/26/9f/ad63fc0248c5379346306f8668cda6e2e2e9c95e01216d2b8ffd9ff037d0/typing_extensions-4.12.2-py3-none-any.whl",
+                    "sha256": "04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d"
                 }
             ]
         },
@@ -258,8 +251,20 @@
             "sources": [
                 {
                     "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/71/4c/3db2b8021bd6f2f0ceb0e088d6b2d49147671f25832fb17970e9b583d742/certifi-2022.12.7-py3-none-any.whl",
-                    "sha256": "4ad3232f5e926d6718ec31cfc1fcadfde020920e278684144551c91769c7bc18"
+                    "url": "https://files.pythonhosted.org/packages/1c/d5/c84e1a17bf61d4df64ca866a1c9a913874b4e9bdc131ec689a0ad013fb36/certifi-2024.7.4-py3-none-any.whl",
+                    "sha256": "c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"
+                }
+            ]
+        },
+        {
+            "name": "libinsane",
+            "buildsystem": "meson",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://gitlab.gnome.org/World/OpenPaperwork/libinsane.git",
+                    "branch": "master",
+                    "disable-shallow-clone": true
                 }
             ]
         },
@@ -279,18 +284,6 @@
                     "url": "https://gitlab.gnome.org/World/OpenPaperwork/pyocr.git",
                     "branch": "master",
                     "disable-shallow-clone": true
-                }
-            ]
-        },
-        {
-            "name": "python-nose",
-            "buildsystem": "simple",
-            "build-commands": ["python3 setup.py install --prefix=/app --root=/"],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://pypi.python.org/packages/58/a5/0dc93c3ec33f4e281849523a5a913fa1eea9a3068acfa754d44d88107a44/nose-1.3.7.tar.gz",
-                    "sha256": "f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98"
                 }
             ]
         },

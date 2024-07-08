@@ -19,7 +19,7 @@ build_img:
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
-    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "master"
       changes:
       - ci/Dockerfile
     - if: $CI_COMMIT_BRANCH == "testing"
@@ -40,18 +40,20 @@ build_img:
 check:
   stage: tests
   script:
-    - source ./activate_test_env.sh && make check
+    - source ./activate_test_env.sh
+    - make check
 
 
 test:
   stage: tests
   script:
     - apt-get update
-    - source ./activate_test_env.sh && pip3 install -U setuptools
-    - source ./activate_test_env.sh && PIP_DEPS=[dev] make install
-    - source ./activate_test_env.sh && paperwork-gtk chkdeps -y
-    - source ./activate_test_env.sh && paperwork-cli chkdeps -y
-    - source ./activate_test_env.sh && make test
+    - source ./activate_test_env.sh
+    - pip3 install -U setuptools
+    - PIP_DEPS=[dev] make install
+    - paperwork-gtk chkdeps -y
+    - paperwork-cli chkdeps -y
+    - make test
 
 
 test_chkdeps:
@@ -73,28 +75,31 @@ test_chkdeps:
         python3-virtualenv
         wget
     - virtualenv -p python3 /venv
-    - source /venv/bin/activate && pip3 install -U setuptools
-    - source /venv/bin/activate && make install
-    - source /venv/bin/activate && paperwork-json chkdeps
+    - source /venv/bin/activate
+    - pip3 install -U setuptools
+    - make install
+    - paperwork-json chkdeps
 
 
 generate_data:
   stage: data
   script:
     - apt-get update
-    - source ./activate_test_env.sh && pip3 install -U setuptools
-    - source ./activate_test_env.sh && make install
-    - source ./activate_test_env.sh && xvfb-run paperwork-gtk chkdeps -y
-    - source ./activate_test_env.sh && xvfb-run paperwork-cli chkdeps -y
-    - source ./activate_test_env.sh && make data upload_data
+    - source ./activate_test_env.sh
+    - pip3 install -U setuptools
+    - make install
+    - xvfb-run -a -e /dev/stderr paperwork-gtk chkdeps -y
+    - xvfb-run -a -e /dev/stderr paperwork-cli chkdeps -y
+    - make data upload_data
 
 
 doc_devel:
   stage: data
   script:
-    - source ./activate_test_env.sh && pip3 install -U setuptools
-    - source ./activate_test_env.sh && make doc
-    - source ./activate_test_env.sh && make upload_doc
+    - source ./activate_test_env.sh
+    - pip3 install -U setuptools
+    - make doc
+    - make upload_doc
 
 
 linux_flatpak:
@@ -120,10 +125,11 @@ linux_appimage:
   timeout: 3h
   script:
     - virtualenv -p python3 /venv
-    - source /venv/bin/activate && pip3 install -U setuptools
-    - source /venv/bin/activate && pip3 install appimage-builder
+    - source /venv/bin/activate
+    - pip3 install -U setuptools
+    - pip3 install appimage-builder
     # Build
-    - source /venv/bin/activate && make linux_exe
+    - make linux_exe
     - ./ci/deliver.sh paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage linux .appimage paperwork-gtk
     - ./ci/deliver.sh paperwork-shell/Paperwork-cli-latest-x86_64.AppImage linux .appimage paperwork-cli
     - ./ci/deliver.sh paperwork-shell/Paperwork-json-latest-x86_64.AppImage linux .appimage paperwork-json

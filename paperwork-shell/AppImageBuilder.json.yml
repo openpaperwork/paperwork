@@ -73,7 +73,7 @@ AppDir:
   runtime:
     env:
       PYTHONHOME: '${APPDIR}/usr'
-      PYTHONPATH: '${APPDIR}/usr/lib/python3.11/site-packages'
+      PYTHONPATH: '${APPDIR}/usr/lib/python3.12/site-packages'
   test:
     fedora-30:
       image: appimagecrafters/tests-env:fedora-30

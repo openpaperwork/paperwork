@@ -32,6 +32,9 @@ lint = [
 [project.scripts]
 paperwork-gtk = 'paperwork_gtk.main:main'
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools_scm]
 root = ".."
 relative_to = "__file__"

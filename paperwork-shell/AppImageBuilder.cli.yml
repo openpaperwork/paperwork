@@ -2,6 +2,7 @@ version: 1
 
 script:
   - rm -rf AppDir
+  - mkdir AppDir
   - rm -rf appimage-build
   - git submodule update --recursive --remote --init
   - make download_data -C ..
@@ -31,8 +32,8 @@ AppDir:
     name: Paperwork-cli
     icon: paperwork
     version: latest
-    exec: usr/bin/python3
-    exec_args: "$APPDIR/usr/bin/paperwork-cli $@"
+    exec: runtime/compat/usr/lib64/ld-linux-x86-64.so.2
+    exec_args: "$APPDIR/usr/bin/python3 $APPDIR/usr/bin/paperwork-cli $@"
   apt:
     arch:
     - amd64

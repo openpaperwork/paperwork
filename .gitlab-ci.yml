@@ -124,6 +124,7 @@ linux_appimage:
   stage: deploy
   timeout: 3h
   script:
+    - sudo apt-get install -y libfuse2t64
     - virtualenv -p python3 /venv
     - source /venv/bin/activate
     - pip3 install -U setuptools

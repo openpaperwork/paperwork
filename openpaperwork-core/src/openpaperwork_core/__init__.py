@@ -13,6 +13,7 @@ MINIMUM_CONFIG_PLUGINS = [
     # You also have to provide a plugin providing the interface 'app'
     'openpaperwork_core.archives',
     'openpaperwork_core.cmd.config',
+    'openpaperwork_core.cmd.ping',
     'openpaperwork_core.cmd.plugins',
     'openpaperwork_core.config',
     'openpaperwork_core.config.automatic_plugin_reset',

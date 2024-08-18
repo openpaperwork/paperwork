@@ -130,6 +130,8 @@ linux_appimage:
     - pip3 install appimage-builder
     # Build
     - make linux_exe
+    # test the build
+    - paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage ping
     - ./ci/deliver.sh paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage linux .appimage paperwork-gtk
     - ./ci/deliver.sh paperwork-shell/Paperwork-cli-latest-x86_64.AppImage linux .appimage paperwork-cli
     - ./ci/deliver.sh paperwork-shell/Paperwork-json-latest-x86_64.AppImage linux .appimage paperwork-json

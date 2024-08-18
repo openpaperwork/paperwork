@@ -1,5 +1,4 @@
 import logging
-import os
 try:
     import importlib.resources
     IMPORTLIB_RESOURCES_AVAILABLE = True

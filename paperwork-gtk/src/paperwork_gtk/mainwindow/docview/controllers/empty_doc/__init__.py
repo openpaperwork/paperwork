@@ -160,13 +160,13 @@ class Plugin(openpaperwork_core.PluginBase):
             # chkdeps() must still be callable
             return
 
-        file_path = self.core.call_success(
+        file_path_ctx = self.core.call_success(
             "resources_get_file",
             "paperwork_gtk.mainwindow.docview.controllers.empty_doc",
             "empty_doc.png"
         )
-        file_path = self.core.call_success("fs_unsafe", file_path)
-        self.img = cairo.ImageSurface.create_from_png(file_path)
+        with file_path_ctx as file_path:
+            self.img = cairo.ImageSurface.create_from_png(file_path)
 
     def chkdeps(self, out: dict):
         if not CAIRO_AVAILABLE:

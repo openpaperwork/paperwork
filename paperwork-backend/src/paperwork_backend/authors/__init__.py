@@ -24,22 +24,17 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
 
     def authors_get(self, out: dict):
-        file_path = self.core.call_success(
+        file_path_ctx = self.core.call_success(
             "resources_get_file", "paperwork_backend.authors",
             "AUTHORS.json"
         )
-        if file_path is None:
+        if file_path_ctx is None:
             LOGGER.error("AUTHORS.json is missing !")
             return None
-        try:
+        with file_path_ctx as file_path:
+            file_path = self.core.call_success("fs_safe", file_path)
             with self.core.call_success("fs_open", file_path, 'r') as fd:
                 content = fd.read()
-        except FileNotFoundError as exc:
-            LOGGER.error(
-                "AUTHORS.json is missing ! (expected={})".format(file_path),
-                exc_info=exc
-            )
-            return None
         content = json.loads(content)
 
         for category in content:

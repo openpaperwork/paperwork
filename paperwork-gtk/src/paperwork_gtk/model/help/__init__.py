@@ -102,15 +102,17 @@ class Plugin(openpaperwork_core.PluginBase):
             docs = ['translated_{}_{}.pdf'.format(name, lang), name + ".pdf"]
 
         for doc in docs:
-            url = self.core.call_success(
+            path_ctx = self.core.call_success(
                 "resources_get_file", "paperwork_gtk.model.help.out", doc
             )
-            if url is None:
+            if path_ctx is None:
                 LOGGER.warning("No documentation '%s' found", doc)
             else:
-                LOGGER.info("Documentation '%s': %s", doc, url)
-                self.doc_urls_to_names_to_urls[name] = url
-                self.doc_urls_to_names[url] = name
+                with path_ctx as path:
+                    LOGGER.info("Documentation '%s': %s", doc, path)
+                    url = self.core.call_success("fs_safe", path)
+                    self.doc_urls_to_names_to_urls[name] = url
+                    self.doc_urls_to_names[url] = name
                 return url
         LOGGER.error("Failed to find documentation '%s'", name)
         return None

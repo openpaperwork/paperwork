@@ -53,12 +53,12 @@ class Paperwork(object):
     def show(self, console):
         nb_lines = 0
 
-        logo = self.core.call_success(
+        logo_ctx = self.core.call_success(
             "resources_get_file",
             "paperwork_shell.cmd.about", "logo.png"
         )
-        logo = self.core.call_success("fs_unsafe", logo)
-        logo = fabulous.image.Image(logo, width=60)
+        with logo_ctx as logo:
+            logo = fabulous.image.Image(logo, width=60)
         logo = logo.reduce(logo.convert())
         for line in logo:
             console.print(rich.text.Text.from_ansi((16 * " ") + line))

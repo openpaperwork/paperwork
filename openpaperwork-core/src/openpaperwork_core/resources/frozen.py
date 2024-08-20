@@ -13,6 +13,17 @@ from .. import PluginBase
 LOGGER = logging.getLogger(__name__)
 
 
+class FakePathCtxManager:
+    def __init__(self, file_path):
+        self.file_path = file_path
+
+    def __enter__(self):
+        return self.file_path
+
+    def __exit__(self, type, value, traceback):
+        pass
+
+
 class Plugin(PluginBase):
     PRIORITY = 100
 
@@ -45,7 +56,7 @@ class Plugin(PluginBase):
                 pkg, filename, path
             )
             return None
-        return self.core.call_success("fs_safe", path)
+        return FakePathCtxManager(path)
 
     def resources_get_dir(self, pkg, dirname):
         return self.resources_get_file(pkg, dirname)

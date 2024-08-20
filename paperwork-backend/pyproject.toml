@@ -28,6 +28,9 @@ lint = [
   "flake8",
 ]
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools_scm]
 root = ".."
 relative_to = "__file__"

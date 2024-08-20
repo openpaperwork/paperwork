@@ -68,34 +68,33 @@ class Plugin(PluginBase):
         self.l10n_load('openpaperwork_core.l10n', 'openpaperwork_core')
 
     def l10n_load(self, python_package, text_domain):
-        path = self.core.call_success(
+        path_ctx = self.core.call_success(
             "resources_get_dir", python_package, 'out'
         )
-        if path is None:
-            LOGGER.error(
-                "Failed to access ressources '%s/out'", python_package
-            )
-            return None
+        with path_ctx as path:
+            if path is None:
+                LOGGER.error(
+                    "Failed to access ressources '%s/out'", python_package
+                )
+                return None
 
-        path = self.core.call_success("fs_unsafe", path)
+            mo_file = gettext.find(text_domain, path)
+            if mo_file is None:
+                # expected if we don't have translation for the user language
+                LOGGER.info(
+                    "Failed to find valid locale for '%s' (path=%s)",
+                    text_domain, path
+                )
+                # we still try to keep going
 
-        mo_file = gettext.find(text_domain, path)
-        if mo_file is None:
-            # expected if we don't have translation for the user language
-            LOGGER.info(
-                "Failed to find valid locale for '%s' (path=%s)",
-                text_domain, path
-            )
-            # we still try to keep going
+            LOGGER.info("Binding text domain %s to '%s'", text_domain, path)
 
-        LOGGER.info("Binding text domain %s to '%s'", text_domain, path)
+            if self.libintl is not None:
+                self.libintl.bindtextdomain(text_domain, path)
+                self.libintl.bind_textdomain_codeset(text_domain, 'UTF-8')
 
-        if self.libintl is not None:
-            self.libintl.bindtextdomain(text_domain, path)
-            self.libintl.bind_textdomain_codeset(text_domain, 'UTF-8')
-
-        for module in (gettext, locale):
-            if hasattr(module, 'bindtextdomain'):
-                module.bindtextdomain(text_domain, path)
-            if hasattr(module, 'textdomain'):
-                module.textdomain(text_domain)
+            for module in (gettext, locale):
+                if hasattr(module, 'bindtextdomain'):
+                    module.bindtextdomain(text_domain, path)
+                if hasattr(module, 'textdomain'):
+                    module.textdomain(text_domain)

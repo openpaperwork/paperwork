@@ -1,10 +1,9 @@
 import logging
-import os
 try:
-    import pkg_resources
-    PKG_RESOURCES_AVAILABLE = True
+    import importlib.resources
+    IMPORTLIB_RESOURCES_AVAILABLE = True
 except Exception:
-    PKG_RESOURCES_AVAILABLE = False
+    IMPORTLIB_RESOURCES_AVAILABLE = False
 
 from .. import PluginBase
 
@@ -25,28 +24,13 @@ class Plugin(PluginBase):
         ]
 
     def resources_get_file(self, pkg, filename):
-        if not PKG_RESOURCES_AVAILABLE:
+        if not IMPORTLIB_RESOURCES_AVAILABLE:
+            LOGGER.warning("importlib.resources not available !")
             return
 
-        try:
-            path = pkg_resources.resource_filename(pkg, filename)
-        except KeyError:
-            LOGGER.warning(
-                "Failed to find resource file %s/%s,"
-                " unknown to pkg_resources.",
-                pkg, filename
-            )
-            return None
-
-        if not os.access(path, os.R_OK):
-            LOGGER.warning(
-                "Failed to find resource file %s/%s,"
-                " tried at path %s.", pkg, filename, path
-            )
-            return None
-
+        path = importlib.resources.files(pkg).joinpath(filename)
         LOGGER.debug("%s:%s --> %s", pkg, filename, path)
-        return self.core.call_success("fs_safe", path)
+        return importlib.resources.as_file(path)
 
     def resources_get_dir(self, pkg, dirname):
         return self.resources_get_file(pkg, dirname)

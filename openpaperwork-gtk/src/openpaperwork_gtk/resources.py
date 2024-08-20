@@ -165,11 +165,13 @@ class Plugin(openpaperwork_core.PluginBase):
         k = (pkg, filename)
         if k not in self.cache:
             try:
-                filepath = self.core.call_success(
+                file_path_ctx = self.core.call_success(
                     "resources_get_file", pkg, filename
                 )
-                with self.core.call_success("fs_open", filepath, 'r') as fd:
-                    xml = fd.read()
+                with file_path_ctx as file_path:
+                    file_url = self.core.call_success("fs_safe", file_path)
+                    with self.core.call_success("fs_open", file_url, 'r') as fd:
+                        xml = fd.read()
                 if os.name == "nt":
                     # WORKAROUND(Jflesch):
                     # for some reason,
@@ -212,11 +214,13 @@ class Plugin(openpaperwork_core.PluginBase):
 
         if k not in self.cache:
             try:
-                filepath = self.core.call_success(
+                file_path_ctx = self.core.call_success(
                     "resources_get_file", pkg, filename
                 )
-                with self.core.call_success("fs_open", filepath, 'rb') as fd:
-                    self.cache[k] = fd.read()
+                with file_path_ctx as file_path:
+                    file_url = self.core.call_success("fs_safe", file_path)
+                    with self.core.call_success("fs_open", file_url, 'rb') as fd:
+                        self.cache[k] = fd.read()
             except Exception:
                 LOGGER.error("Failed to load CSS file %s:%s", pkg, filename)
                 raise
@@ -246,11 +250,11 @@ class Plugin(openpaperwork_core.PluginBase):
         return True
 
     def gtk_load_pixbuf(self, pkg, filename):
-        filepath = self.core.call_success("resources_get_file", pkg, filename)
-        if filepath is None:
+        file_path_ctx = self.core.call_success("resources_get_file", pkg, filename)
+        if file_path_ctx is None:
             return None
-        filepath = self.core.call_success("fs_unsafe", filepath)
-        return GdkPixbuf.Pixbuf.new_from_file(filepath)
+        with file_path_ctx as file_path:
+            return GdkPixbuf.Pixbuf.new_from_file(str(file_path.resolve()))
 
     def gtk_fix_headerbar_buttons(self, headerbar):
         settings = Gtk.Settings.get_default()

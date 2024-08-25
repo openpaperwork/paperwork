@@ -190,15 +190,8 @@ linux_appimage:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git describe --tags --always"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule init"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule update --recursive --remote"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make clean"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
     # libinsane is not a Python library and therefore is installed system-wide
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
-    # a 2nd time just to be really sure
-    # (that's the problem when can't use containers ..)
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane clean PREFIX=/mingw64 || true"
     # actual install
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane install PREFIX=/mingw64"
     - c:\msys64\usr\bin\bash -lc "virtualenv --system-site-packages /tmp/venv"
@@ -229,7 +222,6 @@ windows_tests:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-fra
     # Build
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"
 
 
 windows_exe:
@@ -256,4 +248,3 @@ windows_exe:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export  && make windows_exe"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make uninstall"

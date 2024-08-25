@@ -70,7 +70,7 @@ clean:
 
 # PIP_ARGS is used by Flatpak build
 
-.installed:
+.installed: $(SRC_FILES)
 	$(CURDIR)/../tools/l10n_compile.sh \
 		"$(CURDIR)/l10n" \
 		"$(CURDIR)/src/openpaperwork_core/l10n" \

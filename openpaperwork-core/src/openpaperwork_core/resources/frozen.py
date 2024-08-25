@@ -5,6 +5,7 @@ with Msys2 + cx_freeze ...
 
 import logging
 import os
+import pathlib
 import sys
 
 from .. import PluginBase
@@ -56,7 +57,7 @@ class Plugin(PluginBase):
                 pkg, filename, path
             )
             return None
-        return FakePathCtxManager(path)
+        return FakePathCtxManager(pathlib.Path(path).resolve())
 
     def resources_get_dir(self, pkg, dirname):
         return self.resources_get_file(pkg, dirname)

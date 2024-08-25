@@ -78,6 +78,8 @@ class Plugin(PluginBase):
                 )
                 return None
 
+            path = str(path)
+
             mo_file = gettext.find(text_domain, path)
             if mo_file is None:
                 # expected if we don't have translation for the user language

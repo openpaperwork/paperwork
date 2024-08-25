@@ -110,7 +110,7 @@ kwargs['executables'] = [
     cx_Freeze.Executable(
         script="src/paperwork_gtk/main.py",
         target_name="paperwork.exe",
-        base=("Console" if os.name != "nt" else "Win32GUI"),
+        base="Console",
     ),
     cx_Freeze.Executable(
         # UGLY

@@ -1,5 +1,7 @@
 import datetime
 import logging
+import os
+import os.path
 import sys
 import tempfile
 
@@ -26,8 +28,7 @@ def _get_tmp_file():
         prefix="openpaperwork_{}_".format(date),
         encoding='utf-8'
     )
-    if sys.stderr is not None:
-        sys.stderr.write("Temporary file = {}\n".format(t.name))
+    sys.stderr.write("Temporary file = {}\n".format(t.name))
     g_tmp_file = t
     return t
 
@@ -38,8 +39,7 @@ class _LogHandler(logging.Handler):
         self.log_level = logging.DEBUG
         self.formatter = logging.Formatter(Plugin.DEFAULT_LOG_FORMAT)
         self.out_fds = set()
-        if sys.stderr is not None:
-            self.out_fds.add(sys.stderr)
+        self.out_fds.add(sys.stderr)
 
     def emit(self, record):
         if record.levelno < self.log_level:
@@ -94,6 +94,9 @@ class Plugin(PluginBase):
         ]
 
     def init_logs(self, app_name, default_log_level):
+        self._fix_std('stdout')
+        self._fix_std('stderr')
+
         section_name = "logging:" + app_name
 
         s = self.core.call_success(
@@ -128,6 +131,16 @@ class Plugin(PluginBase):
 
         self._reload_config()
 
+    def _fix_std(self, std_stream_name: str):
+        if getattr(sys, std_stream_name, None) is not None:
+            return
+        # When frozen, sys.stderr / sys.stdout == None which is a problem
+        if os.path.exists("/dev/null"):
+            std_stream = open("/dev/null", "w")  # Linux / MacOS
+        else:
+            std_stream = open("NULL", "w")  # Windows
+        setattr(sys, std_stream_name, std_stream)
+
     def _disable_logging(self):
         for fd in self.log_handler.out_fds:
             if fd != sys.stdout and fd != sys.stderr and fd != g_tmp_file:
@@ -143,8 +156,7 @@ class Plugin(PluginBase):
                 self.log_handler.out_fds.add(fd)
             else:
                 fd = self.SPECIAL_FILES[file_path.lower()]()
-                if fd is not None:  # stderr doesn't exist when frozen
-                    self.log_handler.out_fds.add(fd)
+                self.log_handler.out_fds.add(fd)
             if first is None and fd is not None:
                 first = fd
 

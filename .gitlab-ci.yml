@@ -246,5 +246,6 @@ windows_exe:
     - c:\msys64\usr\bin\cp rclone-v1.53.3-windows-386/rclone.exe /usr/bin
     # Build
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export  && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && paperwork-gtk ping"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"

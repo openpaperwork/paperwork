@@ -236,7 +236,7 @@ windows_exe:
   artifacts:
     expire_in: 2 days
     paths:
-      - c:\msys64\tmp\paperwork\dist\paperwork.zip
+      - paperwork.zip
   script:
     # We need rclone to upload the files on OVH object storage
     - c:\msys64\usr\bin\rm -f rclone-v1.53.3-windows-386.zip
@@ -249,3 +249,4 @@ windows_exe:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && paperwork-gtk ping"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"
+    - c:\msys64\usr\bin\bash -lc "mv /tmp/paperwork/dist/paperwork.zip ."

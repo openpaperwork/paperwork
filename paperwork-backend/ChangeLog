@@ -1,3 +1,6 @@
+2024/08/27 - 2.2.4:
+- No changes
+
 2024/05/12 - 2.2.3:
 - backend/guesswork/labels/sklearn: fix crash used by wrong use of
   scipy.sparse.hstack() + numpy.zeros() (see issue #1111)

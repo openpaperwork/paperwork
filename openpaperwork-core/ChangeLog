@@ -1,3 +1,10 @@
+2024/08/27 - 2.2.4:
+- Windows: make sure sys.stderr / sys.stdout point to an actual file
+  descriptor even when frozen.
+- Switch from pkg_resources (deprecated) to importlib.resources
+- Fix building sdist (thanks to Elliott Sales de Andrade)
+- Add command "ping" (used to do basic validation of builds)
+
 2024/05/12 - 2.2.3:
 - No changes
 

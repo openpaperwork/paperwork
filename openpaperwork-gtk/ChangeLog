@@ -1,3 +1,6 @@
+2024/08/27 - 2.2.4:
+- No changes
+
 2024/05/12 - 2.2.3:
 - Scan drawer: handle gracefully cases when the scan height is not known
   from the start.

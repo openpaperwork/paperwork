@@ -1,5 +1,5 @@
 [project]
-name = "paperwork-gtk"
+name = "paperwork"
 description = "Paperwork's GTK interface"
 dynamic = ["version"]
 authors = [

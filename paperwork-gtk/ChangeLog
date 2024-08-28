@@ -1,3 +1,7 @@
+2024/08/28 - 2.2.5:
+- Rename the Python package from `paperwork-gtk` to `paperwork`
+  (for historical reasons: see https://pypi.org/project/paperwork/)
+
 2024/08/27 - 2.2.4:
 - GTK: fix crash when importing .docx/.xslx/etc.
 - App manifest: add urls for translations and vcs-browser (thanks to Balló

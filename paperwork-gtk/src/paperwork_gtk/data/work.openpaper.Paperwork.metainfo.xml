@@ -66,6 +66,7 @@
   <launchable type="desktop-id">work.openpaper.Paperwork.desktop</launchable>
 
   <releases>
+    <release version="2.2.5" date="2024-08-28" urgency="low" />
     <release version="2.2.4" date="2024-08-27" urgency="low" />
     <release version="2.2.3" date="2024-05-12" urgency="low" />
     <release version="2.2.2" date="2024-02-13" urgency="low" />

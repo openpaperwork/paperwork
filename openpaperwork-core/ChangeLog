@@ -1,3 +1,6 @@
+2024/08/28 - 2.2.5:
+- No changes
+
 2024/08/27 - 2.2.4:
 - Windows: make sure sys.stderr / sys.stdout point to an actual file
   descriptor even when frozen.

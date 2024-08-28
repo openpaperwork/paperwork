@@ -57,14 +57,20 @@ class Plugin(openpaperwork_core.PluginBase):
     def init(self, core):
         super().init(core)
 
-        file_types = set()
+        file_types = []
         self.core.call_all("converter_get_file_types", file_types)
-        self.file_types_by_ext = {
-            ext: mime for (mime, ext, human_name) in file_types
-        }
-        self.file_types_by_mime = {
-            mime: ext for (mime, ext, human_name) in file_types
-        }
+
+        self.file_types_by_ext = {}
+        for (mime, ext, human_name) in file_types:  # order matters !
+            if ext in self.file_types_by_ext:
+                continue
+            self.file_types_by_ext[ext] = mime
+
+        self.file_types_by_mime = {}
+        for (mime, ext, human_name) in file_types:  # order matters !
+            if mime in self.file_types_by_ext:
+                continue
+            self.file_types_by_mime[mime] = ext
 
     def _is_converted(self, doc_url):
         if not self.core.call_success("fs_isdir", doc_url):
@@ -206,14 +212,15 @@ class Plugin(openpaperwork_core.PluginBase):
         promises.insert(0, promise)
 
     def doc_convert_and_import(self, file_url):
-        mime = self.core.call_success("fs_get_mime", file_url)
-        if mime is not None:
-            file_ext = self.file_types_by_mime[mime]
-        elif "." in file_url:
+        if "." in file_url:
             file_ext = file_url.rsplit(".", 1)[-1].lower()
         else:
-            LOGGER.error("Failed to figure out file type of '%s'", file_url)
-            return (None, None)
+            mime = self.core.call_success("fs_get_mime", file_url)
+            if mime is not None:
+                file_ext = self.file_types_by_mime[mime]
+            else:
+                LOGGER.error("Failed to figure out file type of '%s'", file_url)
+                return (None, None)
 
         file_name = "doc." + file_ext
         (doc_id, doc_url) = self.core.call_success("storage_get_new_doc")

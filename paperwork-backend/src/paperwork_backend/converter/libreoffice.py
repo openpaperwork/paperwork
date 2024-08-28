@@ -51,7 +51,7 @@ def which(program):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    FILE_TYPES = {
+    FILE_TYPES = [
         (
             "application/msword", "doc",
             "Microsoft Word (.doc)",
@@ -180,7 +180,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "dotx",
             _("Microsoft Word template (.dotx)"),
         ),
-    }
+    ]
 
     def __init__(self):
         self.libreoffice = None
@@ -211,17 +211,19 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.libreoffice is None:
             out['libreoffice'] = paperwork_backend.deps.LIBREOFFICE
 
-    def converter_get_file_types(self, out: set):
+    def converter_get_file_types(self, out: list):
         if self.libreoffice is None:
             return
-        out.update(self.FILE_TYPES)
+        out += self.FILE_TYPES
 
     def convert_file_to_pdf(self, doc_file_uri, mime_type, out_pdf_file_url):
         if self.libreoffice is None:
             return None
 
-        file_types = {mime: ext for (mime, ext, desc) in self.FILE_TYPES}
-        if mime_type not in file_types:
+        for (mime, ext, desc) in self.FILE_TYPES:
+            if mime_type == mime:
+                break
+        else:
             return None
 
         LOGGER.info(

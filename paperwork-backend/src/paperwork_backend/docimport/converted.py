@@ -121,16 +121,20 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def init(self, core):
         super().init(core)
-        file_types = set()
+        file_types = []
         self.core.call_all("converter_get_file_types", file_types)
-        self.file_types_by_ext = {
-            file_ext: (mime_type, human_name)
-            for (mime_type, file_ext, human_name) in file_types
-        }
-        self.file_types_by_mime = {
-            mime_type: human_name
-            for (mime_type, file_ext, human_name) in file_types
-        }
+
+        self.file_types_by_ext = {}
+        for (mime, ext, human_name) in file_types:  # order matters !
+            if ext in self.file_types_by_ext:
+                continue
+            self.file_types_by_ext[ext] = (mime, human_name)
+
+        self.file_types_by_mime = {}
+        for (mime, ext, human_name) in file_types:  # order matters !
+            if mime in self.file_types_by_mime:
+                continue
+            self.file_types_by_mime[mime] = human_name
 
     def get_import_mime_types(self, out: list):
         for (mime, human_desc) in self.file_types_by_ext.values():

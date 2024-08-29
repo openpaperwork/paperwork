@@ -1,0 +1,192 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"PO-Revision-Date: 2024-05-20 07:08+0000\n"
+"Last-Translator: hgndrtn651b9ds <hgndrtn651b9ds@protonmail.com>\n"
+"Language-Team: Italian <https://translations.openpaper.work/projects/"
+"paperwork/openpaperwork-gtk/it/>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.18.2\n"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
+msgid "App. screenshots"
+msgstr "Schermate dell'app"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
+msgid "Select to generate"
+msgstr "Seleziona per generare"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
+msgid "ZIP file"
+msgstr "File ZIP"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
+#, python-format
+msgid ""
+"Build a ZIP file containing all the attachments.\n"
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
+msgstr ""
+"Crea un file ZIP contenente tutti gli allegati.\n"
+" Se lo desideri, puoi inviare manualmente una segnalazione di bug sul bug "
+"tracker di <a href=\"%s\">Paperwork</a> e allega questo file ZIP al ticket."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
+msgid "Creating bug report ..."
+msgstr "Creazione di una segnalazione di bug ..."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:42
+msgid "Sending bug report attachment ..."
+msgstr "Invio dell'allegato di segnalazione bug ..."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:161
+msgid "Send automatically"
+msgstr "Invia automaticamente"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:162
+msgid "Send the bug report automatically to OpenPaper.work"
+msgstr "Invia automaticamente la segnalazione di bug a OpenPaper.work"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:262
+msgid "Success"
+msgstr "Successo"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:278
+#, python-format
+msgid ""
+"Transfer failed:\n"
+"\n"
+"%s"
+msgstr ""
+"Trasferimento fallito:\n"
+"\n"
+"%s"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:284
+msgid "FAILED"
+msgstr "FALLITO"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
+msgid "Now"
+msgstr "Adesso"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
+msgid "Total: {}"
+msgstr "Totale: {}"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
+msgid "Total"
+msgstr "Totale"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
+msgid "Background tasks"
+msgstr "Attività in background"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
+msgid "Force quit now"
+msgstr "Esci immediatamente"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
+msgid ""
+"Some background tasks are still running.\n"
+"Please wait ..."
+msgstr ""
+"Alcune attività in background sono ancora in corso.\n"
+"Attendi per favore ..."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
+msgid "Date"
+msgstr "Data"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:5
+msgid "File"
+msgstr "File"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:6
+msgid "Size"
+msgstr "Dimensione"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:7
+msgid "Open file"
+msgstr "Apri FIle"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:8
+msgid "For your privacy, attachments may be partially censored when selected"
+msgstr ""
+"Per rispettare la tua privacy, gli allegati potrebbero essere parzialmente "
+"censurati quando selezionati"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:9
+msgid "Attachments to include in the bug report"
+msgstr "Allegati da includere nella segnalazione"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
+msgid "Please select where to save the ZIP file"
+msgstr "Seleziona dove salvare il file ZIP"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:1
+msgid "Bug description"
+msgstr "Descrizione bug"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:2
+msgid "Required if you agree to be contacted regarding this bug report"
+msgstr ""
+"Richiesto se si accetta di essere contattati per questa segnalazione di bug"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:3
+msgid "Your email address"
+msgstr "Il tuo indirizzo email"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:4
+msgid ""
+"Bug report successfully submitted.\n"
+"\n"
+"You can find below the private link to your bug report.\n"
+"\n"
+"<b>Be careful before sharing it.</b> Bug report attachments (logs, "
+"screenshots, …) do not contain any private information. Still you're "
+"strongly advised to check them all before sharing this link.\n"
+"\n"
+"You can request deletion of your bug report by sending an email to <a "
+"href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
+msgstr ""
+"Segnalazione di bug inviata correttamente.\n"
+"\n"
+"Puoi trovare sotto il link privato per la tua segnalazione di bug.\n"
+"\n"
+"<b>Fai attenzione prima di condividerla.</b> Gli allegati della segnalazione "
+"di bug (logs, screenshots, ...) non contengono informazioni private. Si "
+"consiglia vivamente di controllarli tutti comunque, prima di condividere "
+"questo link.\n"
+"\n"
+"Puoi richiedere la cancellazione della tua segnalazione di bug inviando una "
+"email a <a href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
+msgstr "Mostrare le attività in background"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
+msgid "Unexpected Error"
+msgstr "Errore imprevisto"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:2
+msgid "Report"
+msgstr "Segnala"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
+msgid "An unexpected error occured."
+msgstr "Si è verificato un errore inaspettato."

@@ -1,10 +1,17 @@
 #!/bin/bash
 
-LANGS="de_DE.UTF-8:de
-es_ES.UTF-8:es
-fr_FR.UTF-8:fr
-oc_FR.UTF-8:oc
-uk_UA.UTF-8:uk"
+LANGS="
+ca
+de
+es
+fr
+it
+jam
+oc
+sv
+uk
+zh_Hans
+"
 
 if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	echo "Usage:"
@@ -17,7 +24,7 @@ if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	exit 1
 fi
 
-if ! which msgfmt > /dev/null 2>&1 ; then
+if ! command -v msgfmt > /dev/null ; then
 	echo "msgfmt is missing"
 	echo "--> sudo apt install gettext"
 	exit 2
@@ -31,10 +38,8 @@ mkdir -p "${dst_dir}"
 touch "${dst_dir}/__init__.py"
 rm -rf "${dst_dir}/out"
 
-for lang in ${LANGS}
+for short_locale in ${LANGS}
 do
-	long_locale=$(echo $lang | cut -d: -f1)
-	short_locale=$(echo $lang | cut -d: -f2)
 	po_file="${src_dir}/${short_locale}.po"
 	locale_dir="${dst_dir}/out/${short_locale}/LC_MESSAGES"
 

@@ -23,6 +23,7 @@ import sklearn.naive_bayes
 
 import openpaperwork_core
 import openpaperwork_core.promise
+import openpaperwork_core.util
 
 from .... import (_, sync)
 
@@ -725,7 +726,10 @@ class LabelGuesserTransaction(sync.BaseTransaction):
                 self.lock_acquired = False
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     PRIORITY = 100
 
     def __init__(self):

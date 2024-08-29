@@ -13,11 +13,15 @@ except (ImportError, ValueError):
 
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.util
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     PRIORITY = 1000
 
     """

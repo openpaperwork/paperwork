@@ -24,6 +24,7 @@ if GI_AVAILABLE:
 
 import openpaperwork_core  # noqa: E402
 import openpaperwork_core.deps  # noqa: E402
+import openpaperwork_core.util  # noqa: E402
 
 from . import deps  # noqa: E402
 
@@ -31,7 +32,10 @@ from . import deps  # noqa: E402
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     def __init__(self):
         super().__init__()
         self.activated = False

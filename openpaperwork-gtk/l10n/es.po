@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-28 18:09+0200\n"
+"POT-Creation-Date: 2024-02-28 22:55+0100\n"
 "PO-Revision-Date: 2023-02-24 02:42+0000\n"
 "Last-Translator: andres felipe santamaria <ingenierosantamaria@gmail.com>\n"
 "Language-Team: Spanish <https://translations.openpaper.work/projects/"
@@ -19,14 +19,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.15.2\n"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
-msgid "Total: {}"
-msgstr "Total: {}"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
-msgid "Total"
-msgstr "Total"
-
 #: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
 #: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
 msgid "App. screenshots"
@@ -36,9 +28,22 @@ msgstr "Captura de pantalla"
 msgid "Select to generate"
 msgstr "Selecciona para generar"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
-msgid "Now"
-msgstr "Ahora"
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
+msgid "ZIP file"
+msgstr "archivo ZIP"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
+#, python-format
+msgid ""
+"Build a ZIP file containing all the attachments.\n"
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
+msgstr ""
+"Construye un archivo ZIP con todos los anexos.\n"
+" Si quiere, puede remitir un informe de bugs manualmente en <a "
+"href=\"%s\">Seguidor de bugs de Paperwork</a> y anexar este archivo ZIP al "
+"formulario."
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
 msgid "Creating bug report ..."
@@ -75,38 +80,17 @@ msgstr ""
 msgid "FAILED"
 msgstr "HA FALLADO"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
-msgid "ZIP file"
-msgstr "archivo ZIP"
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
+msgid "Now"
+msgstr "Ahora"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
-#, python-format
-msgid ""
-"Build a ZIP file containing all the attachments.\n"
-" If you want, you can then submit a bug report manually on <a "
-"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
-"ticket."
-msgstr ""
-"Construye un archivo ZIP con todos los anexos.\n"
-" Si quiere, puede remitir un informe de bugs manualmente en <a "
-"href=\"%s\">Seguidor de bugs de Paperwork</a> y anexar este archivo ZIP al "
-"formulario."
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
+msgid "Total: {}"
+msgstr "Total: {}"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
-msgid "Show background tasks"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
-msgid "Unexpected Error"
-msgstr "Error inesperado"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:2
-msgid "Report"
-msgstr "Informar"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
-msgid "An unexpected error occured."
-msgstr "Apareció un error inesperado."
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
+msgid "Total"
+msgstr "Total"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
 msgid "Background tasks"
@@ -120,6 +104,36 @@ msgstr ""
 msgid ""
 "Some background tasks are still running.\n"
 "Please wait ..."
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
+msgid "Date"
+msgstr "Fecha"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:5
+msgid "File"
+msgstr "Fichero"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:6
+msgid "Size"
+msgstr "Tamaño"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:7
+msgid "Open file"
+msgstr "Abre el fichero"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:8
+msgid "For your privacy, attachments may be partially censored when selected"
+msgstr ""
+"Para respetar tu privacidad, los archivos adjuntos que selecciones pueden "
+"ser censurados"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:9
+msgid "Attachments to include in the bug report"
+msgstr "Fichero a adjuntar en el informe"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
+msgid "Please select where to save the ZIP file"
 msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_http.glade.h:1
@@ -148,32 +162,18 @@ msgid ""
 "href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report_zip.glade.h:1
-msgid "Please select where to save the ZIP file"
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
-msgid "Date"
-msgstr "Fecha"
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
+msgid "Unexpected Error"
+msgstr "Error inesperado"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:5
-msgid "File"
-msgstr "Fichero"
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:2
+msgid "Report"
+msgstr "Informar"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:6
-msgid "Size"
-msgstr "Tamaño"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:7
-msgid "Open file"
-msgstr "Abre el fichero"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:8
-msgid "For your privacy, attachments may be partially censored when selected"
-msgstr ""
-"Para respetar tu privacidad, los archivos adjuntos que selecciones pueden "
-"ser censurados"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:9
-msgid "Attachments to include in the bug report"
-msgstr "Fichero a adjuntar en el informe"
+#: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
+msgid "An unexpected error occured."
+msgstr "Apareció un error inesperado."

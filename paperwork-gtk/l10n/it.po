@@ -1,0 +1,753 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"PO-Revision-Date: 2024-05-20 06:48+0000\n"
+"Last-Translator: hgndrtn651b9ds <hgndrtn651b9ds@protonmail.com>\n"
+"Language-Team: Italian <https://translations.openpaper.work/projects/"
+"paperwork/paperwork-gtk/it/>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.18.2\n"
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:45
+msgid "Run Paperwork and import files passed as arguments into a new document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/import.py:49
+msgid "URLs or paths of files to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:33
+msgid "Install Paperwork icons and shortcuts"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/cmd/install.py:37
+msgid "Install everything only for the current user"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:75
+msgid "Introduction"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:76
+msgid "User manual"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/model/help/__init__.py:78
+msgid "Documentation"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/main.py:224
+msgid "command"
+msgstr "Comando"
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Document list"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:32
+msgid "Open next document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/prev_next.py:37
+msgid "Open previous document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/print.py:32
+msgid "Print"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/properties.py:32
+msgid "Edit document properties"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Global"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/doc/new.py:32
+msgid "Create new document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:32
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:32
+msgctxt "keyboard shortcut categories"
+msgid "Page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/copy_text.py:34
+msgctxt "keyboard shortcut names"
+msgid "Copy selected text to clipboard"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/page/edit.py:33
+msgctxt "keyboard shortcut names"
+msgid "Edit"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
+msgid "Find"
+msgstr "Trova"
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/delete.py:78
+#, python-format
+msgid "Are you sure you want to delete document %s ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:97
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:83
+#, python-format
+msgid "OCR on %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/doc/redo_ocr.py:105
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/redo_ocr.py:92
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:100
+#, python-brace-format
+msgid "OCR on {doc_id} p{page_idx}"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/docs/delete.py:72
+#, python-format
+msgid "Are you sure you want to delete %d documents ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/delete.py:85
+#, python-brace-format
+msgid "Are you sure you want to delete page {page_idx} of document {doc_id} ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:116
+#, python-format
+msgid "Move the page %d to what position ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:135
+#, python-format
+msgid "Invalid page position: %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:147
+#, python-format
+msgid "Invalid page position: %d. Out of document bounds (1-%d)."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_inside_doc.py:156
+msgid "Page position unchanged"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/redo_ocr.py:62
+#: paperwork-gtk/src/paperwork_gtk/menus/page/redo_ocr.py:50
+msgid "Redo OCR on page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:87
+#, python-format
+msgid "Don't know how to import '%s'. Sorry."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:106
+msgid "PDF password"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:124
+msgid "No new document to import found"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:167
+msgctxt "import dialog"
+msgid "Imported file deleted"
+msgid_plural "Imported files deleted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:177
+msgid "Imported:\n"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:183
+msgid "Import successful"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/docimport.py:192
+msgid "Delete imported files"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:33
+msgid "Now with 10% more freedom in it !"
+msgstr "Ora con il 10% di libertà in più!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:34
+#, python-format
+msgid "Buy it now and get a 100% discount !"
+msgstr "Acquistalo ora e ottieni uno sconto del 100%!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:35
+msgid "New features and bugs available !"
+msgstr "Nuove funzionalità e bug disponibili!"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:36
+msgid "New taste !"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:37
+msgid "We replaced your old bugs with new bugs. Enjoy."
+msgstr "Abbiamo sostituito i vecchi bug con nuovi bug. Buon divertimento."
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:38
+msgid "Smarter, Better, Stronger"
+msgstr "Più intelligente, migliore, più forte"
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:40
+msgid "It's better when it's free."
+msgstr "È meglio quando è gratuito."
+
+#: paperwork-gtk/src/paperwork_gtk/update_notification.py:45
+#, python-brace-format
+msgid "A new version of Paperwork is available: {new_version}"
+msgstr "È disponibile una nuova versione di Paperwork: {new_version}"
+
+#: paperwork-gtk/src/paperwork_gtk/print.py:42
+#, python-brace-format
+msgid "Loading {doc_id} p{page_idx} for printing"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/print.py:144
+#, python-format
+msgid "Printing %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/print.py:179
+#, python-brace-format
+msgid "Printing {doc_id} ({page_idx}/{nb_pages})"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:420
+#, python-format
+msgid "Estimated file size: %s"
+msgstr "Dimensione stimata del file: %s"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:643
+msgid "Select a file to which export the document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:652
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:135
+msgid "Any files"
+msgstr "Tutti i file"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:740
+msgid "Export has failed"
+msgstr "L'esportazione non è riuscita"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/scan.py:118
+#, python-format
+msgid "Scan from %s"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:84
+msgid "Import document or image file(s)"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
+msgid "Import file(s)"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:115
+msgid "Select a file or a directory to import"
+msgstr "Selezionare un file o una directory da importare"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:129
+msgid "All supported file formats"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:179
+msgid "Nothing to import"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:181
+msgid "Nothing to import: nothing selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
+msgid "New document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/empty_doc/__init__.py:89
+msgid "Empty"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/boxes/__init__.py:88
+msgid "Loading text ..."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageview/__init__.py:93
+msgid "Loading page {}/{} ..."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:81
+msgid "Keyword(s)"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:102
+msgid "No labels"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:142
+msgid "Label"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:154
+msgid "From:"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:160
+msgid "to:"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:270
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/name.glade.h:1
+msgid "Date"
+msgstr "Data"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:302
+msgid "and"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:303
+msgid "or"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:320
+msgid "not"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.py:344
+msgid "Remove"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/thumbnailer.py:129
+msgid "Loading document thumbnails"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/__init__.py:642
+#, python-format
+msgid "%d documents"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:247
+msgid "Renaming label"
+msgstr "Rinominare l'etichetta"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:294
+#, python-format
+msgid "Are you sure you want to delete label '%s' from ALL documents ?"
+msgstr "Sei sicuro di voler eliminare l'etichetta '%s' da TUTTI i documenti?"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:396
+#, python-brace-format
+msgid "Changing label {old_label} into {new_label} on document {doc_id}"
+msgstr ""
+"Modifica dell'etichetta {old_label} in {new_label} nel documento {doc_id}"
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/labels.py:462
+#, python-brace-format
+msgid "Deleting label {old_label} from document {doc_id}"
+msgstr "Eliminazione dell'etichetta {old_label} dal documento {doc_id}"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/delete.py:40
+msgid "Delete document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/export.py:38
+msgid "Export document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/open_external.py:36
+msgid "Open folder"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/add_to_selection.py:41
+msgid "Add to selection"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/redo_ocr.py:40
+msgid "Redo OCR on document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/print.py:41
+msgid "Print document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/doc/properties.py:43
+msgid "Document properties"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/select_all.py:51
+msgid "Select all"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/delete.py:51
+msgid "Delete"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/export.py:51
+msgid "Export"
+msgstr "Esporta"
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/redo_ocr.py:51
+msgid "Redo OCR"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/docs/properties.py:56
+msgid "Change labels"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/delete.py:49
+msgid "Delete page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/reset.py:49
+msgid "Reset page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/copy_text.py:50
+msgid "Copy selected text"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/export.py:49
+msgid "Export page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:50
+msgid "Another position"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_inside_doc.py:53
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:53
+msgid "Move page to"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/print.py:49
+msgid "Print page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/page/move_to_doc.py:50
+msgid "Another document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_bug_report.py:49
+msgid "Report bug"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/help.py:64
+msgid "Help"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_settings.py:43
+#: paperwork-gtk/src/paperwork_gtk/settings/settings.glade.h:1
+msgid "Settings"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
+msgid "About"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
+msgid "Shortcuts"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/dev_id_popover.py:67
+msgid "No scanner"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:123
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
+msgid "{} dpi"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/resolution_popover.py:125
+msgid "{} dpi (recommended)"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:15
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/popover_mode.glade.h:1
+msgid "Color"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:16
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/popover_mode.glade.h:2
+msgid "Grayscale"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:17
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/popover_mode.glade.h:3
+msgid "Black & White"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:62
+msgid "No scanner selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:66
+msgid "No resolution selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:70
+msgid "No mode selected"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.py:113
+msgid "Scanner"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.py:168
+msgid "Loading ..."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/update.py:60
+msgid "Updates"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/stats.py:60
+msgid "Help Improve Paperwork"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:64
+msgid "Optical Character Recognition"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.py:76
+msgid "OCR disabled"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:101
+msgid "Storage"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.py:108
+msgid "Work Directory"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
+msgid "©2023"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
+msgid "Sorting documents is a machine's job."
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/actions/page/move_to_doc/move_to_doc.glade.h:1
+msgid "Select target document"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:1
+msgid "Export Steps"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:2
+msgid "Quality"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:3
+msgid "Paper format"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:4
+msgid "Export Settings"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:5
+msgid "Send by email"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/exporter.glade.h:6
+msgid "Preview"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/buttons.glade.h:1
+msgid "Add page"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/layout_settings.glade.h:1
+msgid "Highlight words"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageinfo/actions.glade.h:1
+msgid "Edit"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/advanced.glade.h:1
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:1
+msgid "Search"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/suggestions.glade.h:1
+msgid "Did you mean ?"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/search/field.glade.h:2
+msgid "Advanced search"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:1
+msgid "Documents"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/doclist.glade.h:2
+msgid "Selection"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:1
+msgid "Change the label color"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/label.glade.h:2
+msgid "Delete the label from all documents"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/docproperties.glade.h:1
+msgid "Properties"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/mainwindow/docproperties/extra_text.glade.h:1
+msgid "Additional keywords"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:1
+msgid "Flatpak"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/flatpak.glade.h:2
+msgid ""
+"You are using Paperwork from a Flatpak container. Paperwork needs Saned to "
+"access your scanners.\n"
+"\n"
+"Important: the following procedure will only work for local (non-network) "
+"scanners !\n"
+"\n"
+"To enable Saned on the host system, you must copy and paste the following "
+"commands in a terminal:"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:1
+msgid "Maximize"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:2
+msgid "Automatic"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:3
+msgid "Scan"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/calibration.glade.h:4
+msgid "Scanner Calibration"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.glade.h:1
+msgid "Device"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.glade.h:2
+msgid "Resolution"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.glade.h:3
+msgid "Mode"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.glade.h:4
+msgid "Calibration"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/scanner/settings.glade.h:5
+msgid "Re-calibrate"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:1
+msgid ""
+"Updates\n"
+"<span foreground=\"gray\">Check periodically for new versions of Paperwork</"
+"span>"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/update.glade.h:3
+msgid ""
+"<span foreground=\"gray\">Look about once a week for new versions of "
+"Paperwork.\n"
+"You will be notified when a new version is available but it won't be "
+"installed automatically.\n"
+"</span>"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/ocr/settings.glade.h:1
+msgid "Languages"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:1
+msgid "Work directory"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/storage.glade.h:2
+msgid ""
+"<b>Do not use an already existing directory !</b>\n"
+"(unless it comes from another Paperwork instance)\n"
+"\n"
+"Paperwork uses a custom file structure to store documents. Unless the "
+"directory you specify has the exact file structure expected by Paperwork, it "
+"won't work !\n"
+"\n"
+"If you want to build a new work directory from existing documents, please "
+"use the import feature instead.\n"
+"\n"
+"<a href=\"https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/wikis/"
+"Work-directory-organization\">[More information]</a>"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:1
+msgid ""
+"Send metrics\n"
+"<span foreground=\"gray\">Give us clues about how you use Paperwork</span>"
+msgstr ""
+
+#: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:3
+msgid ""
+"<span foreground=\"gray\">Those clues will help us to make Paperwork an even "
+"better piece of software, for you. Statistics also show us that people are "
+"actually using our work, keeping us motivated to improve it.\n"
+"\n"
+"Here are the data we gather:\n"
+"- Hardware: CPU, RAM, screen resolution.\n"
+"- Software: Version of Paperwork, Operating system, desktop environment, "
+"system language.\n"
+"- Data metrics: number of documents, maximum and average number of pages, "
+"number of labels.\n"
+"- Number of times you used each feature.\n"
+"\n"
+"We do not collect document content nor any other sensitive or personal "
+"information. Still we think it's fair to request your authorization ;-).\n"
+"\n"
+"Collected statistics are visible on <a href=\"https://openpaper.work/"
+"paperwork/statistics\">openpaper.work</a>.\n"
+"</span>"
+msgstr ""

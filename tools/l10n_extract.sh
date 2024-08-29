@@ -1,10 +1,16 @@
 #!/bin/bash
 
-LANGS="de_DE.UTF-8:de
+LANGS="
+ca_ES.UTF-8:ca
+de_DE.UTF-8:de
 es_ES.UTF-8:es
 fr_FR.UTF-8:fr
+it_IT.UTF-8:it
 oc_FR.UTF-8:oc
-uk_UA.UTF-8:uk"
+sv_SE.utf8:sv
+uk_UA.UTF-8:uk
+zh_CN.UTF-8:zh_Hans
+"
 
 if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	echo "Usage:"
@@ -17,13 +23,13 @@ if [ -z "$1" ] || [ -z "$2" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
 	exit 1
 fi
 
-if ! which intltool-extract > /dev/null 2>&1 ; then
+if ! command -v intltool-extract > /dev/null ; then
 	echo "intl-tool-extract is missing"
 	echo "--> sudo apt install intltool"
 	exit 2
 fi
 
-if ! which xgettext > /dev/null 2>&1 ; then
+if ! command -v xgettext > /dev/null ; then
 	echo "xgettext is missing"
 	echo "--> sudo apt install gettext"
 	exit 2

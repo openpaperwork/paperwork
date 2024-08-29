@@ -11,7 +11,7 @@ if [ -z "$RCLONE_CONFIG_OPENPAPERWORK_ACCESS_KEY_ID" ] ; then
   exit 0
 fi
 
-if ! which rclone; then
+if ! command -v rclone; then
   echo "rclone not available."
   exit 1
 fi

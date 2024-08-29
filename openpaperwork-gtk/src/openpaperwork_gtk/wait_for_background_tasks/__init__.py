@@ -5,6 +5,7 @@ import time
 
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.util
 
 
 # TODO(Jflesch): refactor with openpaperwork_gtk.widgets.progress
@@ -128,11 +129,15 @@ class ProgressDialog:
         sys.exit(0)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+            openpaperwork_core.PluginBase,
+            metaclass=openpaperwork_core.util.Singleton
+        ):
     def __init__(self):
         self.dialog = None
         self.progresses = {}
         self.lock = threading.Lock()
+        self.nb_main_windows = 0
 
     def get_interfaces(self):
         return [
@@ -151,11 +156,16 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
+    def on_gtk_initialized(self):
+        self.nb_main_windows += 1
+
     def _mainloop_quit_graceful(self):
         self.dialog = ProgressDialog(self)
 
     def mainloop_quit_graceful(self):
-        self.core.call_one("mainloop_execute", self._mainloop_quit_graceful)
+        self.nb_main_windows -= 1
+        if self.nb_main_windows <= 0:
+            self.core.call_one("mainloop_execute", self._mainloop_quit_graceful)
 
     def on_progress(self, upd_type, progress, description=None):
         with self.lock:

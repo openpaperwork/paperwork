@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-09-01 22:01+0200\n"
+"POT-Creation-Date: 2024-02-28 23:00+0100\n"
 "PO-Revision-Date: 2021-01-04 15:31+0000\n"
 "Last-Translator: Åke Engelbrektson <eson@svenskasprakfiler.se>\n"
 "Language-Team: Swedish <http://translations.openpaper.work/projects/"
@@ -19,122 +19,117 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:123
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:134
-msgid "Log file"
-msgstr "Loggfil"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:10
-msgid "Y/n"
-msgstr "J/n"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:13
-msgid "y/N"
-msgstr "j/N"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:50
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:64
 msgid "Manage Paperwork configuration"
 msgstr "Hantera Paperwork-konfigurationen"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:54
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:49
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:68
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
 msgid "sub-command"
 msgstr "underkommando"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:58
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:72
 msgid "Get a value from Paperwork's configuration"
 msgstr "Hämta ett värde från Paperworks konfiguration"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:63
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:77
 msgid "Set a value in Paperwork's configuration"
 msgstr "Ange ett värde i Paperworks konfiguration"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:66
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:80
 msgid "See 'config list_type'"
 msgstr "See \"config list_type\""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:70
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:84
 msgid "Show Paperwork's configuration"
 msgstr "Visa Paperworks konfiguration"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:75
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:89
 msgid "Show value types you can use from command line"
 msgstr "Visa värdetyper du kan använda i kommandoraden"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:52
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:9
+msgid "Y/n"
+msgstr "J/n"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:11
+msgid "y/N"
+msgstr "j/N"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
 msgid "Check that all required dependencies are installed"
 msgstr "Kolla om alla beroenden är installerade"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:73
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
 msgid "Missing dependencies:"
 msgstr "Saknade beroenden:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:77
 #, python-brace-format
 msgid "- {dep_name} (package: {pkg_name})"
 msgstr "- {dep_name} (package: {pkg_name})"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:80
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:82
 msgid "UNKNOWN"
 msgstr "OKÄND"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:100
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:101
 msgid "Suggested command:"
 msgstr "Föreslaget kommando:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:105
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:107
 msgid "Do you want to run this command now ?"
 msgstr "Vill du köra det här kommandot?"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:119
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:123
 msgid "Don't know how to install missing dependencies. Sorry."
 msgstr "Vet inte hur man installerar saknade beroenden, tyvärr."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:122
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:126
 msgid "Nothing to do."
 msgstr "Inget att göra."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:41
 #, python-format
 msgid "Manage %s plugins"
 msgstr "Hantera %s insticksmoduler"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:54
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:50
 #, python-format
 msgid "Show plugins enabled for %s"
 msgstr "Visa insticksmoduler aktiverade för %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:60
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:56
 #, python-format
 msgid "Add plugin in %s"
 msgstr "Lägg till insticksmodul %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:66
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:77
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:62
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:73
 msgid "Do not correct dependencies automatically"
 msgstr "Korrigera inte beroenden automatiskt"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:71
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:67
 #, python-format
 msgid "Remove plugin from %s"
 msgstr "Ta bort insticksmodul från %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:82
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:78
 msgid "Clean up your mess by reseting the plugin list to its default value"
 msgstr ""
 "Städa upp din röra genom att återställa instickslistan till dess "
 "standardvärde"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:89
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:85
 msgid "Show information regarding a plugin (must be enabled)"
 msgstr "Visa information rörande en insticksmodul (måste vara aktiverat)"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:125
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:124
 #, python-format
 msgid "Error: Plugin '%s' not found"
 msgstr "Fel: Insticksmodul \"%s\" hittades inte"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:143
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:141
 #, python-brace-format
 msgid ""
 "Adding plugin '{plugin_name}' to satisfy dependency of '{other_plugin_name}' "
@@ -143,91 +138,108 @@ msgstr ""
 "Lägger till insticksmodul \"{plugin_name}\" för att tillfredsställa beroende "
 "för \"{other_plugin_name}\" eller gränssnittet \"{interface}\""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:162
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:159
 msgid "Plugin {} added"
 msgstr "Insticksmodul {} tillagd"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:184
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:180
 #, python-brace-format
 msgid "Removing plugin '{plugin_name}' due to missing dependency '{interface}'"
 msgstr ""
-"Tar bort insticksmodul \"{plugin_name}\" på grund av saknat beroende \""
-"{interface}\""
+"Tar bort insticksmodul \"{plugin_name}\" på grund av saknat beroende "
+"\"{interface}\""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:196
 msgid "Plugin {} removed"
 msgstr "Insticksmodul {} borttagen"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:207
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
 msgid "Active plugins:"
 msgstr "Aktiva insticksmoduler:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:293
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:284
 #, python-format
 msgid "Plugin '%s' not enabled."
 msgstr "Insticksmodul \"%s\" är inte aktiverad."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:298
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:287
 #, python-format
 msgid "Plugin '%s':"
 msgstr "Insticksmodul \"%s\":"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:300
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:288
 msgid "Implements:"
 msgstr "Implementerar:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:291
 msgid "Depends on:"
 msgstr "Beroende av:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:309
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:295
 #, python-format
 msgid "suggested: %s"
 msgstr "föreslaget: %s"
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:302
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:317
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:330
 msgid "Plugin name"
 msgstr "Insticksnamn"
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:318
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:331
 msgid "Interface"
 msgstr "Gränssnitt"
 
-#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:333
-msgid "App. config."
-msgstr "App. config."
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:31
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
 msgid "Today"
 msgstr "Idag"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:32
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
 msgid "Yesterday"
 msgstr "I går"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:34
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
 #, python-format
 msgid "%3.1f bytes"
 msgstr "%3.1f bytes"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:35
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
 #, python-format
 msgid "%3.1f KiB"
 msgstr "%3.1f KiB"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:36
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
 #, python-format
 msgid "%3.1f MiB"
 msgstr "%3.1f MiB"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:37
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
 #, python-format
 msgid "%3.1f GiB"
 msgstr "%3.1f GiB"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
 #, python-format
 msgid "%3.1f TiB"
 msgstr "%3.1f TiB"
+
+#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
+msgid "App. config."
+msgstr "App. config."
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
+msgid "App. & system info."
+msgstr ""
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
+msgid "Select to generate"
+msgstr ""
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
+msgid "Collecting statistics ..."
+msgstr ""
+
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:135
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:147
+msgid "Log file"
+msgstr "Loggfil"

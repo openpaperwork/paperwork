@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-28 18:09+0200\n"
+"POT-Creation-Date: 2024-02-28 22:55+0100\n"
 "PO-Revision-Date: 2022-03-19 11:45+0000\n"
 "Last-Translator: Víctor Fancelli Capdevila <vfc@uber.space>\n"
 "Language-Team: Spanish <http://translations.openpaper.work/projects/"
@@ -19,26 +19,177 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.9\n"
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:126
-msgid "App. & system info."
-msgstr "Info de la Ap & del sistema."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:64
+msgid "Manage Paperwork configuration"
+msgstr "Gestionar la configuración de Paperwork"
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:127
-msgid "Select to generate"
-msgstr "Selecciona para generar"
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:68
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
+msgid "sub-command"
+msgstr "sub-comando"
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:149
-msgid "Collecting statistics ..."
-msgstr "Reuniendo estadísticas..."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:72
+msgid "Get a value from Paperwork's configuration"
+msgstr "Obtener un valor de la configuración de Paperwork"
 
-#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
-msgid "App. config."
-msgstr "Config. de la Ap."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:77
+msgid "Set a value in Paperwork's configuration"
+msgstr "Establece un valor en la configuración de Paperwork"
 
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:134
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:145
-msgid "Log file"
-msgstr "Registro de datos"
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:80
+msgid "See 'config list_type'"
+msgstr "Ver \"config list_type\""
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:84
+msgid "Show Paperwork's configuration"
+msgstr "Muestra la configuración de Paperwork"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:89
+msgid "Show value types you can use from command line"
+msgstr ""
+"Muestra los posibles valores que se pueden utilizar en la línea de comandos"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:9
+msgid "Y/n"
+msgstr "S/n"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:11
+msgid "y/N"
+msgstr "s/N"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
+msgid "Check that all required dependencies are installed"
+msgstr "Compruebe que todas las dependencias necesarias están instaladas"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
+msgid "Missing dependencies:"
+msgstr "Faltan estas dependencias:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:77
+#, python-brace-format
+msgid "- {dep_name} (package: {pkg_name})"
+msgstr "- {dep_name} (paquete: {pkg_name})"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:82
+msgid "UNKNOWN"
+msgstr "Desconocido"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:101
+msgid "Suggested command:"
+msgstr "Comando de terminal sugerido:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:107
+msgid "Do you want to run this command now ?"
+msgstr "¿Quiere ejecutar el comando de terminal ahora?"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:123
+msgid "Don't know how to install missing dependencies. Sorry."
+msgstr "No se pueden instalar las dependencias necesarias. Lo sientimos."
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:126
+msgid "Nothing to do."
+msgstr "No queda nada por hacer."
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:41
+#, python-format
+msgid "Manage %s plugins"
+msgstr "Gestiona los complementos de %s"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:50
+#, python-format
+msgid "Show plugins enabled for %s"
+msgstr "Muestra los complementos activados de %s"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:56
+#, python-format
+msgid "Add plugin in %s"
+msgstr "Añade complementos a %s"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:62
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:73
+msgid "Do not correct dependencies automatically"
+msgstr "No corregir automáticamente las dependencias"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:67
+#, python-format
+msgid "Remove plugin from %s"
+msgstr "Elimina el complemento de %s"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:78
+msgid "Clean up your mess by reseting the plugin list to its default value"
+msgstr ""
+"Limpia este follón que has creado restableciendo la lista de complementos "
+"que viene por defecto"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:85
+msgid "Show information regarding a plugin (must be enabled)"
+msgstr "Muestra información de los complementos (debe estar activado)"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:124
+#, python-format
+msgid "Error: Plugin '%s' not found"
+msgstr "Error: No se ha encontrado el complemento \"%s\""
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:141
+#, python-brace-format
+msgid ""
+"Adding plugin '{plugin_name}' to satisfy dependency of '{other_plugin_name}' "
+"on interface '{interface}'"
+msgstr ""
+"Añadiendo el complemento \"{plugin_name}\" para satisface la dependencia de "
+"\"{other_plugin_name}\" en la interfaz \"{interface}\""
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:159
+msgid "Plugin {} added"
+msgstr "Complemento {} añadido"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:180
+#, python-brace-format
+msgid "Removing plugin '{plugin_name}' due to missing dependency '{interface}'"
+msgstr ""
+"Eliminando el complemento \"{plugin_name}\" por la falta de dependencia con "
+"\"{interface}\""
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:196
+msgid "Plugin {} removed"
+msgstr "Complemento {} eliminado"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
+msgid "Active plugins:"
+msgstr "Comlementos activos:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:284
+#, python-format
+msgid "Plugin '%s' not enabled."
+msgstr "El complemento \"%s\" no está activado."
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:287
+#, python-format
+msgid "Plugin '%s':"
+msgstr "Complemento \"%s\":"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:288
+msgid "Implements:"
+msgstr "Implementa:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:291
+msgid "Depends on:"
+msgstr "Depende de:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:295
+#, python-format
+msgid "suggested: %s"
+msgstr "recomendado: %s"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:302
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:317
+msgid "Plugin name"
+msgstr "Nombre del complemento"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:318
+msgid "Interface"
+msgstr "Interfaz"
 
 #: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
 msgid "Today"
@@ -73,174 +224,23 @@ msgstr "%3.1f GiB"
 msgid "%3.1f TiB"
 msgstr "%3.1f TiB"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:10
-msgid "Y/n"
-msgstr "S/n"
+#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
+msgid "App. config."
+msgstr "Config. de la Ap."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:13
-msgid "y/N"
-msgstr "s/N"
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
+msgid "App. & system info."
+msgstr "Info de la Ap & del sistema."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:52
-msgid "Check that all required dependencies are installed"
-msgstr "Compruebe que todas las dependencias necesarias están instaladas"
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
+msgid "Select to generate"
+msgstr "Selecciona para generar"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:73
-msgid "Missing dependencies:"
-msgstr "Faltan estas dependencias:"
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
+msgid "Collecting statistics ..."
+msgstr "Reuniendo estadísticas..."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
-#, python-brace-format
-msgid "- {dep_name} (package: {pkg_name})"
-msgstr "- {dep_name} (paquete: {pkg_name})"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:80
-msgid "UNKNOWN"
-msgstr "Desconocido"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:100
-msgid "Suggested command:"
-msgstr "Comando de terminal sugerido:"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:105
-msgid "Do you want to run this command now ?"
-msgstr "¿Quiere ejecutar el comando de terminal ahora?"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:119
-msgid "Don't know how to install missing dependencies. Sorry."
-msgstr "No se pueden instalar las dependencias necesarias. Lo sientimos."
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:122
-msgid "Nothing to do."
-msgstr "No queda nada por hacer."
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
-#, python-format
-msgid "Manage %s plugins"
-msgstr "Gestiona los complementos de %s"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:49
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:69
-msgid "sub-command"
-msgstr "sub-comando"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:54
-#, python-format
-msgid "Show plugins enabled for %s"
-msgstr "Muestra los complementos activados de %s"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:60
-#, python-format
-msgid "Add plugin in %s"
-msgstr "Añade complementos a %s"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:66
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:77
-msgid "Do not correct dependencies automatically"
-msgstr "No corregir automáticamente las dependencias"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:71
-#, python-format
-msgid "Remove plugin from %s"
-msgstr "Elimina el complemento de %s"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:82
-msgid "Clean up your mess by reseting the plugin list to its default value"
-msgstr ""
-"Limpia este follón que has creado restableciendo la lista de complementos "
-"que viene por defecto"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:89
-msgid "Show information regarding a plugin (must be enabled)"
-msgstr "Muestra información de los complementos (debe estar activado)"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:125
-#, python-format
-msgid "Error: Plugin '%s' not found"
-msgstr "Error: No se ha encontrado el complemento \"%s\""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:143
-#, python-brace-format
-msgid ""
-"Adding plugin '{plugin_name}' to satisfy dependency of '{other_plugin_name}' "
-"on interface '{interface}'"
-msgstr ""
-"Añadiendo el complemento \"{plugin_name}\" para satisface la dependencia de "
-"\"{other_plugin_name}\" en la interfaz \"{interface}\""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:162
-msgid "Plugin {} added"
-msgstr "Complemento {} añadido"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:184
-#, python-brace-format
-msgid "Removing plugin '{plugin_name}' due to missing dependency '{interface}'"
-msgstr ""
-"Eliminando el complemento \"{plugin_name}\" por la falta de dependencia con "
-"\"{interface}\""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
-msgid "Plugin {} removed"
-msgstr "Complemento {} eliminado"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:207
-msgid "Active plugins:"
-msgstr "Comlementos activos:"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:293
-#, python-format
-msgid "Plugin '%s' not enabled."
-msgstr "El complemento \"%s\" no está activado."
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:298
-#, python-format
-msgid "Plugin '%s':"
-msgstr "Complemento \"%s\":"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:300
-msgid "Implements:"
-msgstr "Implementa:"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
-msgid "Depends on:"
-msgstr "Depende de:"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:309
-#, python-format
-msgid "suggested: %s"
-msgstr "recomendado: %s"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:317
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:330
-msgid "Plugin name"
-msgstr "Nombre del complemento"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:318
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:331
-msgid "Interface"
-msgstr "Interfaz"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:65
-msgid "Manage Paperwork configuration"
-msgstr "Gestionar la configuración de Paperwork"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:73
-msgid "Get a value from Paperwork's configuration"
-msgstr "Obtener un valor de la configuración de Paperwork"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:78
-msgid "Set a value in Paperwork's configuration"
-msgstr "Establece un valor en la configuración de Paperwork"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:81
-msgid "See 'config list_type'"
-msgstr "Ver \"config list_type\""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:85
-msgid "Show Paperwork's configuration"
-msgstr "Muestra la configuración de Paperwork"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:90
-msgid "Show value types you can use from command line"
-msgstr ""
-"Muestra los posibles valores que se pueden utilizar en la línea de comandos"
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:135
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:147
+msgid "Log file"
+msgstr "Registro de datos"

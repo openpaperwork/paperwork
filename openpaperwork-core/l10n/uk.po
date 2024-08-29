@@ -7,232 +7,234 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-28 18:09+0200\n"
-"PO-Revision-Date: 2020-05-03 15:35+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"POT-Creation-Date: 2024-02-28 22:55+0100\n"
+"PO-Revision-Date: 2024-01-24 17:08+0000\n"
+"Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
+"Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
+"paperwork/openpaperwork-core/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ASCII\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.18.2\n"
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:126
-msgid "App. & system info."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:64
+msgid "Manage Paperwork configuration"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:127
-msgid "Select to generate"
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:68
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
+msgid "sub-command"
+msgstr "підкоманда"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:72
+msgid "Get a value from Paperwork's configuration"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:149
-msgid "Collecting statistics ..."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:77
+msgid "Set a value in Paperwork's configuration"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
-msgid "App. config."
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:80
+msgid "See 'config list_type'"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:134
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:145
-msgid "Log file"
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:84
+msgid "Show Paperwork's configuration"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
-msgid "Today"
+#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:89
+msgid "Show value types you can use from command line"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
-msgid "Yesterday"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
-#, python-format
-msgid "%3.1f bytes"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
-#, python-format
-msgid "%3.1f KiB"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
-#, python-format
-msgid "%3.1f MiB"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
-#, python-format
-msgid "%3.1f GiB"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
-#, python-format
-msgid "%3.1f TiB"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:10
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:9
 msgid "Y/n"
-msgstr ""
+msgstr "Y/n"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:13
+#: openpaperwork-core/src/openpaperwork_core/cmd/util.py:11
 msgid "y/N"
-msgstr ""
+msgstr "y/N"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:52
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
 msgid "Check that all required dependencies are installed"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:73
-msgid "Missing dependencies:"
-msgstr ""
+msgstr "Впевніться, що усі необхідні залежності встановлені"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
+msgid "Missing dependencies:"
+msgstr "Відсутні залежності:"
+
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:77
 #, python-brace-format
 msgid "- {dep_name} (package: {pkg_name})"
-msgstr ""
+msgstr "- {dep_name} (пакунок: {pkg_name})"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:80
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:82
 msgid "UNKNOWN"
-msgstr ""
+msgstr "НЕВІДОМО"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:100
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:101
 msgid "Suggested command:"
-msgstr ""
+msgstr "Запропонована команда:"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:105
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:107
 msgid "Do you want to run this command now ?"
-msgstr ""
+msgstr "Ви дійсно бажаєте запустити цю команду зараз?"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:119
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:123
 msgid "Don't know how to install missing dependencies. Sorry."
-msgstr ""
+msgstr "Не вдалося встановити відсутні залежності."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:122
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:126
 msgid "Nothing to do."
-msgstr ""
+msgstr "Нічого робити."
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:45
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:41
 #, python-format
 msgid "Manage %s plugins"
-msgstr ""
+msgstr "Керування %s плагінами(ом)"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:49
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:69
-msgid "sub-command"
-msgstr ""
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:54
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:50
 #, python-format
 msgid "Show plugins enabled for %s"
-msgstr ""
+msgstr "Показати ввімкнені плагіни для %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:60
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:56
 #, python-format
 msgid "Add plugin in %s"
-msgstr ""
+msgstr "Додати плагін у %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:66
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:77
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:62
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:73
 msgid "Do not correct dependencies automatically"
-msgstr ""
+msgstr "Не виправляти залежності автоматично"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:71
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:67
 #, python-format
 msgid "Remove plugin from %s"
-msgstr ""
+msgstr "Видалити плагін з %s"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:82
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:78
 msgid "Clean up your mess by reseting the plugin list to its default value"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:89
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:85
 msgid "Show information regarding a plugin (must be enabled)"
-msgstr ""
+msgstr "Показувати інформацію про плагін (повинно бути увімкнено)"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:125
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:124
 #, python-format
 msgid "Error: Plugin '%s' not found"
-msgstr ""
+msgstr "Помилка: Плагін '%s' не знайдено"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:143
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:141
 #, python-brace-format
 msgid ""
 "Adding plugin '{plugin_name}' to satisfy dependency of '{other_plugin_name}' "
 "on interface '{interface}'"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:162
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:159
 msgid "Plugin {} added"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:184
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:180
 #, python-brace-format
 msgid "Removing plugin '{plugin_name}' due to missing dependency '{interface}'"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:196
 msgid "Plugin {} removed"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:207
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:201
 msgid "Active plugins:"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:293
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:284
 #, python-format
 msgid "Plugin '%s' not enabled."
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:298
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:287
 #, python-format
 msgid "Plugin '%s':"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:300
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:288
 msgid "Implements:"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:291
 msgid "Depends on:"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:309
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:295
 #, python-format
 msgid "suggested: %s"
 msgstr ""
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:302
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:317
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:330
 msgid "Plugin name"
 msgstr ""
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:303
 #: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:318
-#: openpaperwork-core/src/openpaperwork_core/cmd/plugins.py:331
 msgid "Interface"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:65
-msgid "Manage Paperwork configuration"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
+msgid "Today"
+msgstr "Сьогодні"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:73
-msgid "Get a value from Paperwork's configuration"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
+msgid "Yesterday"
+msgstr "Учора"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:78
-msgid "Set a value in Paperwork's configuration"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
+#, python-format
+msgid "%3.1f bytes"
+msgstr "%3.1f байтів"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:81
-msgid "See 'config list_type'"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
+#, python-format
+msgid "%3.1f KiB"
+msgstr "%3.1f КіБ"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:85
-msgid "Show Paperwork's configuration"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
+#, python-format
+msgid "%3.1f MiB"
+msgstr "%3.1f МіБ"
 
-#: openpaperwork-core/src/openpaperwork_core/cmd/config.py:90
-msgid "Show value types you can use from command line"
-msgstr ""
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
+#, python-format
+msgid "%3.1f GiB"
+msgstr "%3.1f ГіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
+#, python-format
+msgid "%3.1f TiB"
+msgstr "%3.1f ТіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
+msgid "App. config."
+msgstr "Налаштування додатку."
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
+msgid "App. & system info."
+msgstr "Додаток та системна інформація."
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
+msgid "Select to generate"
+msgstr "Оберіть щоб згенерувати"
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
+msgid "Collecting statistics ..."
+msgstr "Збираємо статистику…"
+
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:135
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:147
+msgid "Log file"
+msgstr "Файл журналу"

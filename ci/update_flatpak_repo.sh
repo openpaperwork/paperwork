@@ -11,7 +11,7 @@ branch="${CI_COMMIT_REF_NAME}"
 
 echo "Branch: ${branch}"
 
-if [ "${branch}" != "master" ] && [ "${branch}" != "testing" ] && [ "${branch}" != "develop" ]; then
+if [ "${branch}" != "master" ] ; then
 	echo Nothing to do
 	exit 0
 fi

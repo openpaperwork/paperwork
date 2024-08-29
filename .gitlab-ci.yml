@@ -22,12 +22,6 @@ build_img:
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
       - ci/Dockerfile
-    - if: $CI_COMMIT_BRANCH == "testing"
-      changes:
-      - ci/Dockerfile
-    - if: $CI_COMMIT_BRANCH == "develop"
-      changes:
-      - ci/Dockerfile
   tags:
     - openpaper-flatpak
   script:

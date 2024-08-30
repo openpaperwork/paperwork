@@ -32,14 +32,14 @@ build_img:
     - docker build -t $CI_REGISTRY_IMAGE/build:latest ci
     - docker push $CI_REGISTRY_IMAGE/build:latest
 
-check:
+tests_static_analysis:
   stage: tests
   script:
     - source ./activate_test_env.sh
     - make check
 
 
-test:
+tests_linux:
   stage: tests
   script:
     - apt-get update
@@ -51,7 +51,7 @@ test:
     - make test
 
 
-test_chkdeps:
+tests_linux_chkdeps:
   image: debian:testing
   stage: tests
   script:
@@ -76,7 +76,7 @@ test_chkdeps:
     - paperwork-json chkdeps
 
 
-generate_data:
+data_generate:
   stage: data
   script:
     - apt-get update
@@ -88,7 +88,7 @@ generate_data:
     - make data upload_data
 
 
-doc_devel:
+data_doc_devel:
   stage: data
   script:
     - source ./activate_test_env.sh
@@ -97,7 +97,7 @@ doc_devel:
     - make upload_doc
 
 
-linux_flatpak:
+deploy_linux_flatpak:
   stage: deploy
   timeout: 48h
   only:
@@ -116,7 +116,7 @@ linux_flatpak:
     - ./ci/update_flatpak_repo.sh
 
 
-linux_appimage:
+build_linux_appimage:
   stage: build
   timeout: 3h
   script:
@@ -134,11 +134,11 @@ linux_appimage:
       - paperwork-shell/Paperwork-json-latest-x86_64.AppImage
 
 
-linux_appimage_deploy:
+deploy_linux_appimage:
   stage: deploy
   timeout: 30m
   dependencies:
-    - linux_appimage
+    - build_linux_appimage
   only:
     - branches@World/OpenPaperwork/paperwork
     - tags@World/OpenPaperwork/paperwork
@@ -156,7 +156,7 @@ linux_appimage_deploy:
     - ./ci/deliver.sh paperwork-shell/Paperwork-json-latest-x86_64.AppImage linux .appimage paperwork-json
 
 
-.windows: &windows
+.base_windows: &base_windows
   variables:
     MSYSTEM: "MINGW64"
     CHERE_INVOKING: "yes"
@@ -214,7 +214,7 @@ linux_appimage_deploy:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make install"
 
 
-windows_tests:
+tests_windows:
   stage: tests
   only:
     - branches@World/OpenPaperwork/paperwork
@@ -222,7 +222,7 @@ windows_tests:
   tags:
     - windows
     - msys2
-  <<: *windows
+  <<: *base_windows
   script:
     # Tesseract (required for unit tests)
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libarchive  # missing tesseract dependency
@@ -234,7 +234,7 @@ windows_tests:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
 
 
-windows_exe:
+deploy_windows:
   stage: deploy
   only:
     - branches@World/OpenPaperwork/paperwork
@@ -242,7 +242,7 @@ windows_exe:
   tags:
     - windows
     - msys2
-  <<: *windows
+  <<: *base_windows
   artifacts:
     expire_in: 2 days
     paths:

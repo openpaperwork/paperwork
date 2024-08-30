@@ -12,6 +12,7 @@ stages:
   - build_img
   - tests
   - data
+  - build
   - deploy
 
 build_img:
@@ -114,30 +115,45 @@ linux_flatpak:
     # - apt-get install -y -q rsync flatpak-builder make jq moreutils
     - ./ci/update_flatpak_repo.sh
 
+
 linux_appimage:
-  stage: deploy
+  stage: build
   timeout: 3h
-  tags:
-    - fuse
   script:
-    - apt-get install -y libfuse2t64
     - virtualenv -p python3 /venv
     - source /venv/bin/activate
     - pip3 install -U setuptools
     - pip3 install appimage-builder
     # Build
     - make linux_exe
-    # test the build
-    - paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage ping
-    - ./ci/deliver.sh paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage linux .appimage paperwork-gtk
-    - ./ci/deliver.sh paperwork-shell/Paperwork-cli-latest-x86_64.AppImage linux .appimage paperwork-cli
-    - ./ci/deliver.sh paperwork-shell/Paperwork-json-latest-x86_64.AppImage linux .appimage paperwork-json
   artifacts:
     expire_in: 2 days
     paths:
       - paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage
       - paperwork-shell/Paperwork-cli-latest-x86_64.AppImage
       - paperwork-shell/Paperwork-json-latest-x86_64.AppImage
+
+
+linux_appimage_deploy:
+  stage: deploy
+  timeout: 30m
+  dependencies:
+    - linux_appimage
+  only:
+    - branches@World/OpenPaperwork/paperwork
+    - tags@World/OpenPaperwork/paperwork
+  tags:
+    - fuse
+  script:
+    - apt-get update
+    - apt-get install -y libfuse2t64
+    # test the builds
+    - paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage ping
+    - paperwork-shell/Paperwork-cli-latest-x86_64.AppImage ping
+    - paperwork-shell/Paperwork-json-latest-x86_64.AppImage ping
+    - ./ci/deliver.sh paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage linux .appimage paperwork-gtk
+    - ./ci/deliver.sh paperwork-shell/Paperwork-cli-latest-x86_64.AppImage linux .appimage paperwork-cli
+    - ./ci/deliver.sh paperwork-shell/Paperwork-json-latest-x86_64.AppImage linux .appimage paperwork-json
 
 
 .windows: &windows

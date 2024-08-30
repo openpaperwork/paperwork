@@ -90,6 +90,12 @@ uninstall_c:
 l10n_extract:
 	$(CURDIR)/../tools/l10n_extract.sh "$(CURDIR)/src" "$(CURDIR)/l10n"
 
+l10n_compile:
+	$(CURDIR)/../tools/l10n_compile.sh \
+		"$(CURDIR)/l10n" \
+		"$(CURDIR)/src/openpaperwork_core/l10n" \
+		"openpaperwork_core"
+
 help:
 	@echo "make build || make build_py"
 	@echo "make check"

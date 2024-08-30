@@ -90,6 +90,10 @@ l10n_extract:
 	$(CURDIR)/../tools/l10n_extract.sh "$(CURDIR)/src" "$(CURDIR)/l10n"
 
 l10n_compile:
+	$(CURDIR)/../tools/l10n_compile.sh \
+		"$(CURDIR)/l10n" \
+		"$(CURDIR)/src/paperwork_shell/l10n" \
+		"paperwork_shell"
 
 help:
 	@echo "make build || make build_py"

@@ -117,6 +117,10 @@ l10n_extract:
 	$(MAKE) -C src/paperwork_gtk/model/help l10n_extract
 
 l10n_compile:
+	$(CURDIR)/../tools/l10n_compile.sh \
+		"$(CURDIR)/l10n" \
+		"$(CURDIR)/src/paperwork_gtk/l10n" \
+		"paperwork_gtk"
 
 help:
 	@echo "make build || make build_py"

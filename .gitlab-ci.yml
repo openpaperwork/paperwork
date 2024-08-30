@@ -241,6 +241,7 @@ windows_exe:
     # Build
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && paperwork-gtk ping"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && ./paperwork.exe ping"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && ./paperwork-json.exe ping"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"
     - c:\msys64\usr\bin\bash -lc "mv /tmp/paperwork/dist/paperwork.zip ."

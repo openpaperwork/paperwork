@@ -192,6 +192,11 @@ deploy_linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip
+
+
+.base_windows_install: &base_windows_install
+  <<: *base_windows
+  script:
     # do not use the checkout from gitlab-runner. For some unknown reason, it mess up
     # setuptools_scm
     - c:\msys64\usr\bin\bash -lc "rm -rf /tmp/paperwork"
@@ -222,16 +227,34 @@ tests_windows:
   tags:
     - windows
     - msys2
-  <<: *base_windows
-  script:
+  <<: *base_windows_install
+  after_script:
     # Tesseract (required for unit tests)
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libarchive  # missing tesseract dependency
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pytest
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-ocr
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-eng
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-fra
-    # Build
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
+
+
+build_windows:
+  stage: build
+  only:
+    - branches@World/OpenPaperwork/paperwork
+    - tags@World/OpenPaperwork/paperwork
+  tags:
+    - windows
+    - msys2
+  <<: *base_windows_install
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - paperwork.zip
+  after_script:
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
+    - c:\msys64\usr\bin\bash -lc "mv /tmp/paperwork/dist/paperwork.zip ."
 
 
 deploy_windows:
@@ -242,11 +265,9 @@ deploy_windows:
   tags:
     - windows
     - msys2
+  dependencies:
+    - build_windows
   <<: *base_windows
-  artifacts:
-    expire_in: 2 days
-    paths:
-      - paperwork.zip
   script:
     # We need rclone to upload the files on OVH object storage
     - c:\msys64\usr\bin\rm -f rclone-v1.53.3-windows-386.zip
@@ -255,9 +276,7 @@ deploy_windows:
     - c:\msys64\usr\bin\unzip rclone-v1.53.3-windows-386.zip
     - c:\msys64\usr\bin\cp rclone-v1.53.3-windows-386/rclone.exe /usr/bin
     # Build
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && ./paperwork.exe ping"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork/build/exe && ./paperwork-json.exe ping"
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && ./ci/deliver.sh dist/paperwork.zip windows .zip"
-    - c:\msys64\usr\bin\bash -lc "mv /tmp/paperwork/dist/paperwork.zip ."
+    - c:\msys64\usr\bin\unzip paperwork.zip
+    - c:\msys64\usr\bin\bash -lc "./paperwork.exe ping"
+    - c:\msys64\usr\bin\bash -lc "./paperwork-json.exe ping"
+    - c:\msys64\usr\bin\bash -lc "/tmp/paperwork/ci/deliver.sh paperwork.zip windows .zip"

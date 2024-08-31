@@ -196,3 +196,16 @@ class Plugin(openpaperwork_core.PluginBase):
             dst_url = "{}_{}".format(dst_doc_url, idx)
         self.core.call_success("fs_rename", src_doc_url, dst_url)
         return dst_url
+
+    def doc_copy_by_url(self, src_doc_url):
+        if not self.core.call_success("fs_isdir", src_doc_url):
+            # likely one of the integrated documentation PDF
+            (dst_doc_id, dst_doc_url) = self.core.call_success(
+                "doc_pdf_import", src_doc_url
+            )
+        else:
+            (dst_doc_id, dst_doc_url) = self.storage_get_new_doc()
+            LOGGER.info("Copying %s --> %s", src_doc_url, dst_doc_url)
+            self.core.call_success("fs_copytree", src_doc_url, dst_doc_url)
+
+        return dst_doc_url

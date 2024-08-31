@@ -72,6 +72,14 @@ class Plugin(openpaperwork_core.PluginBase):
                 continue
             self.file_types_by_mime[mime] = ext
 
+        self.active_doc = None
+
+    def doc_open(self, doc_id, doc_url):
+        self.active_doc = (doc_id, doc_url)
+
+    def doc_close(self):
+        self.active_doc = None
+
     def doc_is_converted(self, doc_url):
         if not self.core.call_success("fs_isdir", doc_url):
             return None
@@ -168,6 +176,18 @@ class Plugin(openpaperwork_core.PluginBase):
             except Exception:
                 for transaction in transactions:
                     transaction.cancel()
+
+            if doc_url == self.active_doc[1]:
+                self.core.call_one(
+                    "mainloop_schedule",
+                    self.core.call_all,
+                    "doc_close",
+                )
+                self.core.call_one(
+                    "mainloop_schedule",
+                    self.core.call_all,
+                    "doc_open", doc_id, doc_url
+                )
 
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, do_transaction

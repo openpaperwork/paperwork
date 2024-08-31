@@ -189,6 +189,7 @@ deploy_linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pip
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-scikit-learn
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-setuptools
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-six
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip

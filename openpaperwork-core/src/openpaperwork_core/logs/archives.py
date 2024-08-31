@@ -3,6 +3,7 @@ import logging
 import os
 
 from .. import (_, PluginBase)
+from openpaperwork_core.logs import UnixTimeStampLogFormatter
 
 
 LOGGER = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class LogLine(object):
 
 
 class LogHandler(logging.Handler):
-    LOG_FORMAT = '[%(levelname)-6s] [%(name)-30s] %(message)s'
+    LOG_FORMAT = '%(asctime)s [%(levelname)-6s] [%(name)-30s] %(message)s'
     MAX_LINES = 5000
     MAX_UNCAUGHT_LOGGUED = 20
 
@@ -33,7 +34,7 @@ class LogHandler(logging.Handler):
         self.nb_uncaught_loggued = 0
 
         self.out_file_url = self.archiver.get_new()
-        self.formatter = logging.Formatter(self.LOG_FORMAT)
+        self.formatter = UnixTimeStampLogFormatter(self.LOG_FORMAT)
         self.out_fd = self.core.call_success(
             "fs_open", self.out_file_url, 'w',
             needs_fileno=True

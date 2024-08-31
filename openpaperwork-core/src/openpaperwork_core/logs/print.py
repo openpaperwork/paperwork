@@ -6,6 +6,7 @@ import sys
 import tempfile
 
 from .. import PluginBase
+from openpaperwork_core.logs import UnixTimeStampLogFormatter
 
 
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ class _LogHandler(logging.Handler):
     def __init__(self):
         super().__init__()
         self.log_level = logging.DEBUG
-        self.formatter = logging.Formatter(Plugin.DEFAULT_LOG_FORMAT)
+        self.formatter = UnixTimeStampLogFormatter(Plugin.DEFAULT_LOG_FORMAT)
         self.out_fds = set()
         self.out_fds.add(sys.stderr)
 
@@ -53,7 +54,9 @@ class Plugin(PluginBase):
     CONFIG_FILE_SEPARATOR = ","
 
     DEFAULT_LOG_FILES = 'stderr'
-    DEFAULT_LOG_FORMAT = '[%(levelname)-6s] [%(name)-30s] %(message)s'
+    DEFAULT_LOG_FORMAT = (
+        '%(asctime)s [%(levelname)-6s] [%(name)-30s] %(message)s'
+    )
 
     LOG_LEVELS = {
         'none': logging.CRITICAL,
@@ -169,7 +172,7 @@ class Plugin(PluginBase):
             self.log_file_paths = self.core.call_success(
                 'config_get', "log_files",
             ).split(self.CONFIG_FILE_SEPARATOR)
-            self.log_handler.formatter = logging.Formatter(
+            self.log_handler.formatter = UnixTimeStampLogFormatter(
                 self.core.call_success('config_get', "log_format")
             )
         finally:

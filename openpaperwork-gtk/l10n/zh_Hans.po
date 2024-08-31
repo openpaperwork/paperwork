@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: 2021-02-06 07:20+0000\n"
 "Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
 "Language-Team: Chinese (Simplified) <http://translations.openpaper.work/"
@@ -19,30 +19,13 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
-msgid "App. screenshots"
-msgstr "App. 截屏"
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
+msgid "Total: {}"
+msgstr "总计: {}"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
-msgid "Select to generate"
-msgstr "选择生成"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
-msgid "ZIP file"
-msgstr "ZIP 文件"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
-#, python-format
-msgid ""
-"Build a ZIP file containing all the attachments.\n"
-" If you want, you can then submit a bug report manually on <a "
-"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
-"ticket."
-msgstr ""
-"构建包含所有附件的ZIP文件。\n"
-"如果需要，您可以在<a href=\"%s\">Paperwork 追踪系统</a>上手动提交 bug 报告，"
-"并将此 ZIP 文件附加到报告。"
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
+msgid "Total"
+msgstr "总计"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
 msgid "Creating bug report ..."
@@ -79,31 +62,38 @@ msgstr ""
 msgid "FAILED"
 msgstr "失败"
 
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
+msgid "ZIP file"
+msgstr "ZIP 文件"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
+#, python-format
+msgid ""
+"Build a ZIP file containing all the attachments.\n"
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
+msgstr ""
+"构建包含所有附件的ZIP文件。\n"
+"如果需要，您可以在<a href=\"%s\">Paperwork 追踪系统</a>上手动提交 bug 报告，"
+"并将此 ZIP 文件附加到报告。"
+
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
 msgid "Now"
 msgstr "现在"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
-msgid "Total: {}"
-msgstr "总计: {}"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
+msgid "App. screenshots"
+msgstr "App. 截屏"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
-msgid "Total"
-msgstr "总计"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
+msgid "Select to generate"
+msgstr "选择生成"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
-msgid "Background tasks"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
-msgid "Force quit now"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
-msgid ""
-"Some background tasks are still running.\n"
-"Please wait ..."
-msgstr ""
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
+msgstr "显示后台任务"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
@@ -168,10 +158,6 @@ msgstr ""
 "您可以通过向<a href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper."
 "work</a>发送电子邮件请求删除此 bug 报告。"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
-msgid "Show background tasks"
-msgstr "显示后台任务"
-
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
 msgid "Unexpected Error"
 msgstr "意外错误"
@@ -183,6 +169,20 @@ msgstr "报告"
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
 msgid "An unexpected error occured."
 msgstr "发生意外错误。"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
+msgid "Background tasks"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
+msgid "Force quit now"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
+msgid ""
+"Some background tasks are still running.\n"
+"Please wait ..."
+msgstr ""
 
 #~ msgid "Anonymous"
 #~ msgstr "匿名"

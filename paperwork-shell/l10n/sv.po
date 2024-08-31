@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: 2021-01-05 10:31+0000\n"
 "Last-Translator: Åke Engelbrektson <eson@svenskasprakfiler.se>\n"
 "Language-Team: Swedish <http://translations.openpaper.work/projects/"
@@ -19,77 +19,140 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4\n"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:55
-msgid "Delete a document or a page"
-msgstr "Ta bort dokument eller en sida"
+#: paperwork-shell/src/paperwork_shell/main.py:90
+msgid "command"
+msgstr "kommando"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:60
+#: paperwork-shell/src/paperwork_shell/display/scan.py:91
+msgid "Scanning page {} (expected size: {}x{}) ..."
+msgstr "Skannar sida {} (förväntad storlek: {}x{})..."
+
+#: paperwork-shell/src/paperwork_shell/display/scan.py:132
+msgid "Page {} scanned (actual size: {}x{})"
+msgstr "Sida {} skannad (egentlig storlek: {}x{})"
+
+#: paperwork-shell/src/paperwork_shell/display/scan.py:139
+msgid "End of paper feed"
+msgstr "Slut på pappersmatning"
+
+#: paperwork-shell/src/paperwork_shell/display/scan.py:155
+msgid "Page {} in document {} created"
+msgstr "Sida {} i dokument {} skapad"
+
+#: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:71
+msgid "Additional text:"
+msgstr "Ytterligare text:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:44
+msgid "OCR document or pages"
+msgstr "OCR-dokument eller -sidor"
+
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:49
+msgid "Document on which OCR must be run"
+msgstr "Dokument som OCR måste köras på"
+
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:54
 msgid ""
-"Pages to delete (single integer, range or comma-separated list, default: all "
+"Pages to OCR (single integer, range or comma-separated list, default: all "
 "pages)"
 msgstr ""
-"Sidor att ta bort (enkelt heltal, intervall eller kommaseparerad lista. "
+"Sidor till OCR (enkelt heltal, intervall eller kommaseparerad lista. "
 "Standard: Alla sidor)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:67
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:61
-msgid "Target documents"
-msgstr "Måldokument"
-
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:83
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:83
 #, python-brace-format
-msgid "Deleting document {doc_id} ..."
-msgstr "Tar bort dokument {doc_id}..."
+msgid "Running OCR on document {doc_id} page {page_idx} ..."
+msgstr "Kör OCR på dokument {doc_id} sida {page_idx}..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:84
-#, python-brace-format
-msgid "Deleting page {page_idx} of document {doc_id} ..."
-msgstr "Tar bort sida {page_idx} från dokument {doc_id}..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:90
-#, python-format
-msgid "Delete document %s ?"
-msgstr "Vill du ta bort dokument %s?"
-
-#: paperwork-shell/src/paperwork_shell/cmd/delete.py:97
-#, python-brace-format
-msgid "Delete page(s) {page_indexes} of document {doc_id} ?"
-msgstr "Vill du ta bort sida/sidor {page_indexes} från dokument {doc_id}?"
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:67
-msgid "Reset a page to its original content"
-msgstr "Återställ en sida till ursprungligt innehåll"
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:101
-msgid "Reseting document {} page {} ..."
-msgstr "Återställer dokument {} sida {}..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:105
-#: paperwork-shell/src/paperwork_shell/cmd/edit.py:122
-msgid "Original:"
-msgstr "Original:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:110
-msgid "Reseted:"
-msgstr "Återställt:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/reset.py:118
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:80
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:92
 #: paperwork-shell/src/paperwork_shell/cmd/export.py:244
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:118
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:91
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:169
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:156
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:91
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:92
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:80
 msgid "Done"
 msgstr "Klart"
 
+#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:96
 #: paperwork-shell/src/paperwork_shell/cmd/reset.py:119
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:73
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:170
 #: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:112
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:96
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:73
 msgid "All done !"
 msgstr "Klart!"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:57
+msgid "Manage scanner configuration"
+msgstr "Hantera skannerkonfiguration"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:60
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:41
+msgid "sub-command"
+msgstr "underkommando"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:64
+msgid "List all scanners and their possible settings"
+msgstr "Lista alla skannrar och dess eventuella inställningar"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:69
+msgid "Show the currently selected scanner and its settings"
+msgstr "Visa aktuell skanner och dess inställningar"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:74
+msgid "Define which scanner and which settings to use"
+msgstr "Ange vilken skanner och vilka inställningar som skall användas"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:77
+msgid "Scanner to use"
+msgstr "Skanner att använda"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:82
+msgid ""
+"Default source on the scanner to use (if not specified, one will be selected "
+"randomly)"
+msgstr ""
+"Standardkälla att använda på skanner (om inget specificeras kommer en att "
+"väljas slumpmässigt)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:88
+msgid "Default resolution (dpi ; default=300)"
+msgstr "Standardupplösning (dpi ; standard=300)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:92
+msgid "Examining scanner {} ..."
+msgstr "Undersöker skanner {}..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:149
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:171
+msgid "ID:"
+msgstr "ID:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:151
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:172
+msgid "Source:"
+msgstr "Källa:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:153
+msgid "Resolutions:"
+msgstr "Upplösningar:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:173
+msgid "Resolution:"
+msgstr "Upplösning:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:200
+msgid "Source {} not found on device. Using another source"
+msgstr "Källa {} inte hittad på enheten. Använder annan källa."
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:219
+msgid "Default source:"
+msgstr "Standardkälla:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:233
+msgid "Resolution {} not available. Adjusted to {}."
+msgstr "Upplösning {} inte tillgänglig. Justerad till {}."
 
 #: paperwork-shell/src/paperwork_shell/cmd/about/__init__.py:82
 msgid "Version: "
@@ -103,39 +166,17 @@ msgstr "Eftersom sortering av dokument är ett maskinjobb."
 msgid "About Paperwork"
 msgstr "Om Paperwork"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:36
-msgid "Manage additional text attached to documents"
-msgstr "Hantera ytterligare text bifogad till dokument"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:45
+msgid "Change a document identifier"
+msgstr "Ändra en dokumentidentifierare"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:41
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:60
-msgid "sub-command"
-msgstr "underkommando"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:49
+msgid "Document to rename"
+msgstr "Dokument att byta namn på"
 
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:45
-msgid "Get a document additional text"
-msgstr "Hämta ett dokuments ytterligare text"
-
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:50
-msgid "Set a document additional text"
-msgstr "Ange ytterligare text i ett dokument"
-
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:71
-#: paperwork-shell/src/paperwork_shell/display/docrendering/extra_text.py:32
-msgid "Additional text:"
-msgstr "Ytterligare text:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:74
-msgid "No additional text"
-msgstr "Ingen ytterligare text"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scan.py:47
-msgid "Scan pages"
-msgstr "Skanna sidor"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scan.py:51
-msgid "Document to which the scanned pages must be added"
-msgstr "Dokument som de skannade sidorna måste läggas till"
+#: paperwork-shell/src/paperwork_shell/cmd/rename.py:53
+msgid "New name for the document"
+msgstr "Nytt namn på dokumentet"
 
 #: paperwork-shell/src/paperwork_shell/cmd/export.py:62
 msgid ""
@@ -235,14 +276,73 @@ msgstr "Exporterar till %s... "
 msgid "Export failed !"
 msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:53
-msgid "Synchronize the index(es) with the content of the work directory"
-msgstr "Synkronisera index med innehållet i arbetsmappen"
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:67
+msgid "Reset a page to its original content"
+msgstr "Återställ en sida till ursprungligt innehåll"
 
-#: paperwork-shell/src/paperwork_shell/cmd/sync.py:63
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:107
-msgid "Synchronizing with work directory ..."
-msgstr "Synkroniserar med arbetsmapp..."
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:101
+msgid "Reseting document {} page {} ..."
+msgstr "Återställer dokument {} sida {}..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:105
+#: paperwork-shell/src/paperwork_shell/cmd/edit.py:122
+msgid "Original:"
+msgstr "Original:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/reset.py:110
+msgid "Reseted:"
+msgstr "Återställt:"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scan.py:47
+msgid "Scan pages"
+msgstr "Skanna sidor"
+
+#: paperwork-shell/src/paperwork_shell/cmd/scan.py:51
+msgid "Document to which the scanned pages must be added"
+msgstr "Dokument som de skannade sidorna måste läggas till"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:51
+msgid "Commands to manage labels"
+msgstr "Kommando för att hantera etiketter"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:54
+msgid "label command"
+msgstr "etikettkommando"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:61
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:67
+msgid "Target documents"
+msgstr "Måldokument"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:65
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:73
+msgid "Target document"
+msgstr "Måldokument"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:66
+msgid "Label to add"
+msgstr "Etikett att lägga till"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:69
+msgid "Label color (ex: '#aa22cc')"
+msgstr "Etikettfärg (exempel: #aa22cc)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:74
+msgid "Label to remove"
+msgstr "Etikett att ta bort"
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:78
+msgid "Label to delete from *all* documents"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:82
+msgid "Loading all labels ... "
+msgstr "Läser in alla etiketter... "
+
+#: paperwork-shell/src/paperwork_shell/cmd/label.py:171
+#, python-format
+msgid "Are you sure you want to delete label '%s' from all documents ?"
+msgstr "Vill du verkligen ta bort etiketten \"%s\" från alla dokumen?"
 
 #: paperwork-shell/src/paperwork_shell/cmd/edit.py:92
 msgid "Edit page"
@@ -264,48 +364,26 @@ msgstr "Genererar i hög kvalitet och sparar..."
 msgid "Committing ..."
 msgstr "Tillämpar..."
 
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:34
-msgid "Check and fix work directory integrity"
-msgstr ""
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:45
+msgid "Show the content of a document"
+msgstr "Visa innehållet i ett dokument"
 
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:38
-msgid "Don't ask to fix things, just fix them"
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:55
-msgid "Checking work directory ..."
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:61
-msgid "No problem found"
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:65
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:74
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:82
 #, python-format
-msgid "%d problems found:"
-msgstr ""
+msgid "Document id: %s"
+msgstr "Dokument-ID: %s"
 
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:80
-msgid "- Problem: "
-msgstr ""
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:80
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:87
+#, python-format
+msgid "Document date: %s"
+msgstr "Dokumentdatum: %s"
 
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:84
-msgid "- Possible solution: "
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:91
-msgid ""
-"Do you want to fix those problems automatically using the indicated "
-"solutions ?"
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:104
-msgid "Fixing ..."
-msgstr ""
-
-#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:106
-msgid "All fixed !"
-msgstr ""
+#: paperwork-shell/src/paperwork_shell/cmd/show.py:92
+#, python-format
+msgid "Page %d"
+msgstr "Sida %d"
 
 #: paperwork-shell/src/paperwork_shell/cmd/import.py:64
 msgid "Import file(s)"
@@ -370,139 +448,92 @@ msgstr "- Nya dokument: %s"
 msgid "- Updated documents: %s"
 msgstr "- Uppdaterade dokument: %s"
 
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:56
-msgid "Search keywords in documents"
-msgstr "Sök nyckelord i dokument"
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:34
+msgid "Check and fix work directory integrity"
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:60
-msgid "Maximum number of results (default: 50)"
-msgstr "Max antal träffar (standard: 50)"
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:38
+msgid "Don't ask to fix things, just fix them"
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:64
-msgid "Search keywords (none means all documents)"
-msgstr "Sök nyckelord (inget innebär alla dokument)"
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:55
+msgid "Checking work directory ..."
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:82
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:74
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:61
+msgid "No problem found"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:65
 #, python-format
-msgid "Document id: %s"
-msgstr "Dokument-ID: %s"
+msgid "%d problems found:"
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/search.py:87
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:80
-#, python-format
-msgid "Document date: %s"
-msgstr "Dokumentdatum: %s"
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:80
+msgid "- Problem: "
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:57
-msgid "Manage scanner configuration"
-msgstr "Hantera skannerkonfiguration"
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:84
+msgid "- Possible solution: "
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:64
-msgid "List all scanners and their possible settings"
-msgstr "Lista alla skannrar och dess eventuella inställningar"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:69
-msgid "Show the currently selected scanner and its settings"
-msgstr "Visa aktuell skanner och dess inställningar"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:74
-msgid "Define which scanner and which settings to use"
-msgstr "Ange vilken skanner och vilka inställningar som skall användas"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:77
-msgid "Scanner to use"
-msgstr "Skanner att använda"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:82
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:91
 msgid ""
-"Default source on the scanner to use (if not specified, one will be selected "
-"randomly)"
-msgstr ""
-"Standardkälla att använda på skanner (om inget specificeras kommer en att "
-"väljas slumpmässigt)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:88
-msgid "Default resolution (dpi ; default=300)"
-msgstr "Standardupplösning (dpi ; standard=300)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:92
-msgid "Examining scanner {} ..."
-msgstr "Undersöker skanner {}..."
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:149
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:171
-msgid "ID:"
-msgstr "ID:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:151
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:172
-msgid "Source:"
-msgstr "Källa:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:153
-msgid "Resolutions:"
-msgstr "Upplösningar:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:173
-msgid "Resolution:"
-msgstr "Upplösning:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:200
-msgid "Source {} not found on device. Using another source"
-msgstr "Källa {} inte hittad på enheten. Använder annan källa."
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:219
-msgid "Default source:"
-msgstr "Standardkälla:"
-
-#: paperwork-shell/src/paperwork_shell/cmd/scanner.py:233
-msgid "Resolution {} not available. Adjusted to {}."
-msgstr "Upplösning {} inte tillgänglig. Justerad till {}."
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:51
-msgid "Commands to manage labels"
-msgstr "Kommando för att hantera etiketter"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:54
-msgid "label command"
-msgstr "etikettkommando"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:65
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:73
-msgid "Target document"
-msgstr "Måldokument"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:66
-msgid "Label to add"
-msgstr "Etikett att lägga till"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:69
-msgid "Label color (ex: '#aa22cc')"
-msgstr "Etikettfärg (exempel: #aa22cc)"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:74
-msgid "Label to remove"
-msgstr "Etikett att ta bort"
-
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:78
-msgid "Label to delete from *all* documents"
+"Do you want to fix those problems automatically using the indicated "
+"solutions ?"
 msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:82
-msgid "Loading all labels ... "
-msgstr "Läser in alla etiketter... "
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:104
+msgid "Fixing ..."
+msgstr ""
 
-#: paperwork-shell/src/paperwork_shell/cmd/label.py:171
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:106
+msgid "All fixed !"
+msgstr ""
+
+#: paperwork-shell/src/paperwork_shell/cmd/chkworkdir.py:107
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:63
+msgid "Synchronizing with work directory ..."
+msgstr "Synkroniserar med arbetsmapp..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:55
+msgid "Delete a document or a page"
+msgstr "Ta bort dokument eller en sida"
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:60
+msgid ""
+"Pages to delete (single integer, range or comma-separated list, default: all "
+"pages)"
+msgstr ""
+"Sidor att ta bort (enkelt heltal, intervall eller kommaseparerad lista. "
+"Standard: Alla sidor)"
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:83
+#, python-brace-format
+msgid "Deleting document {doc_id} ..."
+msgstr "Tar bort dokument {doc_id}..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:84
+#, python-brace-format
+msgid "Deleting page {page_idx} of document {doc_id} ..."
+msgstr "Tar bort sida {page_idx} från dokument {doc_id}..."
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:90
 #, python-format
-msgid "Are you sure you want to delete label '%s' from all documents ?"
-msgstr "Vill du verkligen ta bort etiketten \"%s\" från alla dokumen?"
+msgid "Delete document %s ?"
+msgstr "Vill du ta bort dokument %s?"
+
+#: paperwork-shell/src/paperwork_shell/cmd/delete.py:97
+#, python-brace-format
+msgid "Delete page(s) {page_indexes} of document {doc_id} ?"
+msgstr "Vill du ta bort sida/sidor {page_indexes} från dokument {doc_id}?"
 
 #: paperwork-shell/src/paperwork_shell/cmd/move.py:54
 msgid "Move a page"
 msgstr "Flytta en sida"
 
 #: paperwork-shell/src/paperwork_shell/cmd/move.py:58
+#: paperwork-shell/src/paperwork_shell/cmd/copy.py:50
 msgid "Source document"
 msgstr "Källdokument"
 
@@ -518,67 +549,41 @@ msgstr "Destination"
 msgid "Target page number"
 msgstr "Målsidans nummer"
 
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:45
-msgid "Show the content of a document"
-msgstr "Visa innehållet i ett dokument"
-
-#: paperwork-shell/src/paperwork_shell/cmd/show.py:92
-#, python-format
-msgid "Page %d"
-msgstr "Sida %d"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:44
-msgid "OCR document or pages"
-msgstr "OCR-dokument eller -sidor"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:49
-msgid "Document on which OCR must be run"
-msgstr "Dokument som OCR måste köras på"
-
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:54
-msgid ""
-"Pages to OCR (single integer, range or comma-separated list, default: all "
-"pages)"
+#: paperwork-shell/src/paperwork_shell/cmd/copy.py:46
+msgid "Copy a document"
 msgstr ""
-"Sidor till OCR (enkelt heltal, intervall eller kommaseparerad lista. "
-"Standard: Alla sidor)"
 
-#: paperwork-shell/src/paperwork_shell/cmd/ocr.py:83
-#, python-brace-format
-msgid "Running OCR on document {doc_id} page {page_idx} ..."
-msgstr "Kör OCR på dokument {doc_id} sida {page_idx}..."
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:36
+msgid "Manage additional text attached to documents"
+msgstr "Hantera ytterligare text bifogad till dokument"
 
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:45
-msgid "Change a document identifier"
-msgstr "Ändra en dokumentidentifierare"
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:45
+msgid "Get a document additional text"
+msgstr "Hämta ett dokuments ytterligare text"
 
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:49
-msgid "Document to rename"
-msgstr "Dokument att byta namn på"
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:50
+msgid "Set a document additional text"
+msgstr "Ange ytterligare text i ett dokument"
 
-#: paperwork-shell/src/paperwork_shell/cmd/rename.py:53
-msgid "New name for the document"
-msgstr "Nytt namn på dokumentet"
+#: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:74
+msgid "No additional text"
+msgstr "Ingen ytterligare text"
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:91
-msgid "Scanning page {} (expected size: {}x{}) ..."
-msgstr "Skannar sida {} (förväntad storlek: {}x{})..."
+#: paperwork-shell/src/paperwork_shell/cmd/sync.py:53
+msgid "Synchronize the index(es) with the content of the work directory"
+msgstr "Synkronisera index med innehållet i arbetsmappen"
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:132
-msgid "Page {} scanned (actual size: {}x{})"
-msgstr "Sida {} skannad (egentlig storlek: {}x{})"
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:56
+msgid "Search keywords in documents"
+msgstr "Sök nyckelord i dokument"
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:139
-msgid "End of paper feed"
-msgstr "Slut på pappersmatning"
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:60
+msgid "Maximum number of results (default: 50)"
+msgstr "Max antal träffar (standard: 50)"
 
-#: paperwork-shell/src/paperwork_shell/display/scan.py:155
-msgid "Page {} in document {} created"
-msgstr "Sida {} i dokument {} skapad"
-
-#: paperwork-shell/src/paperwork_shell/main.py:89
-msgid "command"
-msgstr "kommando"
+#: paperwork-shell/src/paperwork_shell/cmd/search.py:64
+msgid "Search keywords (none means all documents)"
+msgstr "Sök nyckelord (inget innebär alla dokument)"
 
 #, python-format
 #~ msgid "Current filters: %s"

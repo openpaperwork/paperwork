@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 22:55+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: 2024-04-26 17:29+0000\n"
 "Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
 "Language-Team: Occitan <https://translations.openpaper.work/projects/"
@@ -18,6 +18,56 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.18.2\n"
+
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:136
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:148
+msgid "Log file"
+msgstr "Fichièr d'istoric"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
+msgid "Today"
+msgstr "Uèi"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
+msgid "Yesterday"
+msgstr "Ièr"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
+#, python-format
+msgid "%3.1f bytes"
+msgstr "%3.1f octets"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
+#, python-format
+msgid "%3.1f KiB"
+msgstr "%3.1f Kio"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
+#, python-format
+msgid "%3.1f MiB"
+msgstr "%3.1f MiO"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
+#, python-format
+msgid "%3.1f GiB"
+msgstr "%3.1f Gio"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
+#, python-format
+msgid "%3.1f TiB"
+msgstr "%3.1f Tio"
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
+msgid "App. & system info."
+msgstr "Aplicacion e info sistèma."
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
+msgid "Select to generate"
+msgstr "Seleccionar per generar"
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
+msgid "Collecting statistics ..."
+msgstr "Reculhida d’estatisticas..."
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:64
 msgid "Manage Paperwork configuration"
@@ -50,6 +100,11 @@ msgstr ""
 "Mostrar los tipes de valors que podètz utilizar a partir de la linha de "
 "comanda"
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/ping.py:17
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
+msgid "Check that all required dependencies are installed"
+msgstr "Verificar que totas las dependéncias requeridas son installadas"
+
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:9
 msgid "Y/n"
 msgstr "O/n"
@@ -57,10 +112,6 @@ msgstr "O/n"
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:11
 msgid "y/N"
 msgstr "o/N"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
-msgid "Check that all required dependencies are installed"
-msgstr "Verificar que totas las dependéncias requeridas son installadas"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
 msgid "Missing dependencies:"
@@ -190,56 +241,6 @@ msgstr "Nom modul"
 msgid "Interface"
 msgstr "Interfàcia"
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
-msgid "Today"
-msgstr "Uèi"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
-msgid "Yesterday"
-msgstr "Ièr"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
-#, python-format
-msgid "%3.1f bytes"
-msgstr "%3.1f octets"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
-#, python-format
-msgid "%3.1f KiB"
-msgstr "%3.1f Kio"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
-#, python-format
-msgid "%3.1f MiB"
-msgstr "%3.1f MiO"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
-#, python-format
-msgid "%3.1f GiB"
-msgstr "%3.1f Gio"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
-#, python-format
-msgid "%3.1f TiB"
-msgstr "%3.1f Tio"
-
 #: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
 msgid "App. config."
 msgstr "Config. de l'ap."
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
-msgid "App. & system info."
-msgstr "Aplicacion e info sistèma."
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
-msgid "Select to generate"
-msgstr "Seleccionar per generar"
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
-msgid "Collecting statistics ..."
-msgstr "Reculhida d’estatisticas..."
-
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:135
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:147
-msgid "Log file"
-msgstr "Fichièr d'istoric"

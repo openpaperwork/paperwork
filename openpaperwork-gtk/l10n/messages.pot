@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
-msgid "App. screenshots"
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
+msgid "Total: {}"
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
-msgid "Select to generate"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
-msgid "ZIP file"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
-#, python-format
-msgid ""
-"Build a ZIP file containing all the attachments.\n"
-" If you want, you can then submit a bug report manually on <a "
-"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
-"ticket."
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
+msgid "Total"
 msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
@@ -71,30 +57,34 @@ msgstr ""
 msgid "FAILED"
 msgstr ""
 
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
+msgid "ZIP file"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
+#, python-format
+msgid ""
+"Build a ZIP file containing all the attachments.\n"
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
+msgstr ""
+
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
 msgid "Now"
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
-msgid "Total: {}"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
+msgid "App. screenshots"
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
-msgid "Total"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
+msgid "Select to generate"
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
-msgid "Background tasks"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
-msgid "Force quit now"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
-msgid ""
-"Some background tasks are still running.\n"
-"Please wait ..."
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
 msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
@@ -151,10 +141,6 @@ msgid ""
 "href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper.work</a>."
 msgstr ""
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
-msgid "Show background tasks"
-msgstr ""
-
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
 msgid "Unexpected Error"
 msgstr ""
@@ -165,4 +151,18 @@ msgstr ""
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
 msgid "An unexpected error occured."
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
+msgid "Background tasks"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
+msgid "Force quit now"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
+msgid ""
+"Some background tasks are still running.\n"
+"Please wait ..."
 msgstr ""

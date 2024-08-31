@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 23:00+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: 2022-03-19 08:45+0000\n"
 "Last-Translator: Víctor Fancelli Capdevila <vfc@uber.space>\n"
 "Language-Team: Catalan <http://translations.openpaper.work/projects/"
@@ -19,31 +19,13 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.9\n"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
-msgid "App. screenshots"
-msgstr "Captura de pantalla"
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
+msgid "Total: {}"
+msgstr "Total: {}"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
-msgid "Select to generate"
-msgstr "Selecciona per generar"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
-msgid "ZIP file"
-msgstr "Fitxer ZIP"
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
-#, python-format
-msgid ""
-"Build a ZIP file containing all the attachments.\n"
-" If you want, you can then submit a bug report manually on <a "
-"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
-"ticket."
-msgstr ""
-"Genera un fitxer ZIP amb tots els adjunts.\n"
-"Si voleu, podeu enviar l'informe d'errors manualment al <a href=\"%s\"> "
-"Sistema de seguiment d'errors del Paperwork</a> i adjuntar aquest ZIP a la "
-"vostra incidència."
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
+msgid "Total"
+msgstr "Total"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/http.py:40
 msgid "Creating bug report ..."
@@ -80,31 +62,39 @@ msgstr ""
 msgid "FAILED"
 msgstr "HA FALLAT"
 
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:56
+msgid "ZIP file"
+msgstr "Fitxer ZIP"
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/zip.py:61
+#, python-format
+msgid ""
+"Build a ZIP file containing all the attachments.\n"
+" If you want, you can then submit a bug report manually on <a "
+"href=\"%s\">Paperwork's bug tracker</a> and attach this ZIP file to the "
+"ticket."
+msgstr ""
+"Genera un fitxer ZIP amb tots els adjunts.\n"
+"Si voleu, podeu enviar l'informe d'errors manualment al <a href=\"%s\"> "
+"Sistema de seguiment d'errors del Paperwork</a> i adjuntar aquest ZIP a la "
+"vostra incidència."
+
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/__init__.py:77
 msgid "Now"
 msgstr "Ara"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:417
-msgid "Total: {}"
-msgstr "Total: {}"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:258
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:266
+msgid "App. screenshots"
+msgstr "Captura de pantalla"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/charts/lines.py:427
-msgid "Total"
-msgstr "Total"
+#: openpaperwork-gtk/src/openpaperwork_gtk/screenshots.py:267
+msgid "Select to generate"
+msgstr "Selecciona per generar"
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
-msgid "Background tasks"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
-msgid "Force quit now"
-msgstr ""
-
-#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
-msgid ""
-"Some background tasks are still running.\n"
-"Please wait ..."
-msgstr ""
+#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
+msgid "Show background tasks"
+msgstr "Mostra les tasques en segon pla"
 
 #: openpaperwork-gtk/src/openpaperwork_gtk/bug_report/bug_report.glade.h:3
 msgid "Date"
@@ -175,10 +165,6 @@ msgstr ""
 "electrònic a <a href=\"mailto:jflesch@openpaper.work\">jflesch@openpaper."
 "work</a>."
 
-#: openpaperwork-gtk/src/openpaperwork_gtk/widgets/progress/progress_button.glade.h:1
-msgid "Show background tasks"
-msgstr "Mostra les tasques en segon pla"
-
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:1
 msgid "Unexpected Error"
 msgstr "Error inesperat"
@@ -190,3 +176,17 @@ msgstr "Informa"
 #: openpaperwork-gtk/src/openpaperwork_gtk/uncaught_exception/uncaught_exception.glade.h:3
 msgid "An unexpected error occured."
 msgstr "Ha aparegut un error inesperat."
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:1
+msgid "Background tasks"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:2
+msgid "Force quit now"
+msgstr ""
+
+#: openpaperwork-gtk/src/openpaperwork_gtk/wait_for_background_tasks/wait_for_background_tasks.glade.h:3
+msgid ""
+"Some background tasks are still running.\n"
+"Please wait ..."
+msgstr ""

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-28 22:55+0100\n"
+"POT-Creation-Date: 2024-08-31 22:19+0200\n"
 "PO-Revision-Date: 2024-01-24 17:08+0000\n"
 "Last-Translator: volkov <d2oo1dle2x@gmail.com>\n"
 "Language-Team: Ukrainian <https://translations.openpaper.work/projects/"
@@ -19,6 +19,56 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Weblate 4.18.2\n"
+
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:136
+#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:148
+msgid "Log file"
+msgstr "Файл журналу"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
+msgid "Today"
+msgstr "Сьогодні"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
+msgid "Yesterday"
+msgstr "Учора"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
+#, python-format
+msgid "%3.1f bytes"
+msgstr "%3.1f байтів"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
+#, python-format
+msgid "%3.1f KiB"
+msgstr "%3.1f КіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
+#, python-format
+msgid "%3.1f MiB"
+msgstr "%3.1f МіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
+#, python-format
+msgid "%3.1f GiB"
+msgstr "%3.1f ГіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
+#, python-format
+msgid "%3.1f TiB"
+msgstr "%3.1f ТіБ"
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
+msgid "App. & system info."
+msgstr "Додаток та системна інформація."
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
+msgid "Select to generate"
+msgstr "Оберіть щоб згенерувати"
+
+#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
+msgid "Collecting statistics ..."
+msgstr "Збираємо статистику…"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:64
 msgid "Manage Paperwork configuration"
@@ -49,6 +99,11 @@ msgstr ""
 msgid "Show value types you can use from command line"
 msgstr ""
 
+#: openpaperwork-core/src/openpaperwork_core/cmd/ping.py:17
+#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
+msgid "Check that all required dependencies are installed"
+msgstr "Впевніться, що усі необхідні залежності встановлені"
+
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:9
 msgid "Y/n"
 msgstr "Y/n"
@@ -56,10 +111,6 @@ msgstr "Y/n"
 #: openpaperwork-core/src/openpaperwork_core/cmd/util.py:11
 msgid "y/N"
 msgstr "y/N"
-
-#: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:54
-msgid "Check that all required dependencies are installed"
-msgstr "Впевніться, що усі необхідні залежності встановлені"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:75
 msgid "Missing dependencies:"
@@ -185,56 +236,6 @@ msgstr ""
 msgid "Interface"
 msgstr ""
 
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:38
-msgid "Today"
-msgstr "Сьогодні"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:39
-msgid "Yesterday"
-msgstr "Учора"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:41
-#, python-format
-msgid "%3.1f bytes"
-msgstr "%3.1f байтів"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:42
-#, python-format
-msgid "%3.1f KiB"
-msgstr "%3.1f КіБ"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:43
-#, python-format
-msgid "%3.1f MiB"
-msgstr "%3.1f МіБ"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:44
-#, python-format
-msgid "%3.1f GiB"
-msgstr "%3.1f ГіБ"
-
-#: openpaperwork-core/src/openpaperwork_core/i18n/python.py:45
-#, python-format
-msgid "%3.1f TiB"
-msgstr "%3.1f ТіБ"
-
 #: openpaperwork-core/src/openpaperwork_core/config/backend/configparser.py:363
 msgid "App. config."
 msgstr "Налаштування додатку."
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:130
-msgid "App. & system info."
-msgstr "Додаток та системна інформація."
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:131
-msgid "Select to generate"
-msgstr "Оберіть щоб згенерувати"
-
-#: openpaperwork-core/src/openpaperwork_core/beacon/stats.py:153
-msgid "Collecting statistics ..."
-msgstr "Збираємо статистику…"
-
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:135
-#: openpaperwork-core/src/openpaperwork_core/logs/archives.py:147
-msgid "Log file"
-msgstr "Файл журналу"

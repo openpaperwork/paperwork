@@ -217,7 +217,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 for transaction in transactions:
                     transaction.cancel()
 
-            if doc_url == self.active_doc[1]:
+            if self.active_doc is not None and doc_url == self.active_doc[1]:
                 self.core.call_one(
                     "mainloop_schedule",
                     self.core.call_all,

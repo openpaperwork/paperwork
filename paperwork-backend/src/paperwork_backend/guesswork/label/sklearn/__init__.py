@@ -830,6 +830,12 @@ class Plugin(
             "work_queue_create", "label_sklearn", stop_on_quit=True
         )
 
+        self.core.call_all(
+            "doc_tracker_register",
+            "label_guesser",
+            self._build_transaction
+        )
+
         self._init()
 
     def _init(self):
@@ -852,7 +858,7 @@ class Plugin(
                 "fs_join", self.bayes_dir, "model.pickle"
             )
         )
-        LOGGER.info("Opening guesswork.label.sklearn database")
+        LOGGER.info("Opening guesswork.label.sklearn database %s", self.sql_url)
         self.sql = self.core.call_one(
             "sqlite_execute",
             self.core.call_success,
@@ -863,12 +869,6 @@ class Plugin(
         )
         for query in CREATE_TABLES:
             self.sql.execute(query)
-
-        self.core.call_all(
-            "doc_tracker_register",
-            "label_guesser",
-            self._build_transaction
-        )
 
     def _build_transaction(self, sync, total_expected):
         return LabelGuesserTransaction(

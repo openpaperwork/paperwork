@@ -3,6 +3,8 @@ Takes of various document format that are actually converted to PDF files
 so Paperwork can read them quickly
 """
 import logging
+import threading
+import time
 
 import openpaperwork_core
 import openpaperwork_core.promise
@@ -11,6 +13,30 @@ from .. import _
 
 
 LOGGER = logging.Logger(__name__)
+
+__all__ = [
+    "Plugin",
+]
+
+
+class MonitoringThread:
+    def __init__(self, plugin, doc_url):
+        self.plugin = plugin
+        self.doc_url = doc_url
+        self.running = True
+
+        LOGGER.info("Starting monitoring of converted document %s", self.doc_url)
+        thread = threading.Thread(target=self.run, name="doc_converted_monitoring")
+        thread.start()
+
+    def stop(self):
+        self.running = False
+        LOGGER.info("Stopping monitoring of converted document %s", self.doc_url)
+
+    def run(self):
+        while self.running:
+            time.sleep(2)
+            self.plugin.doc_converted_check(self.doc_url)
 
 
 class Plugin(openpaperwork_core.PluginBase):
@@ -73,12 +99,23 @@ class Plugin(openpaperwork_core.PluginBase):
             self.file_types_by_mime[mime] = ext
 
         self.active_doc = None
+        self.monitoring_thread = None
 
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
+        if self.monitoring_thread is not None:
+            self.monitoring_thread.stop()
+        if self.doc_is_converted(doc_url):
+            self.monitoring_thread = MonitoringThread(self, doc_url)
 
     def doc_close(self):
         self.active_doc = None
+        if self.monitoring_thread is not None:
+            self.monitoring_thread.stop()
+        self.monitoring_thread = None
+
+    def on_quit(self):
+        self.doc_close()
 
     def doc_is_converted(self, doc_url):
         if not self.core.call_success("fs_isdir", doc_url):
@@ -138,6 +175,9 @@ class Plugin(openpaperwork_core.PluginBase):
     def page_get_img_url(self, doc_url, page_idx, write=False, **kwargs):
         if page_idx != 0:
             return
+        self.doc_converted_check(doc_url)
+
+    def doc_converted_check(self, doc_url):
         # prevent double conversion
         if doc_url in self.pending_doc_urls:
             LOGGER.debug("Doc %s has already been checked", doc_url)
@@ -170,7 +210,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
             try:
                 for transaction in transactions:
-                    transaction.del_doc(doc_id)
+                    transaction.upd_doc(doc_id)
                 for transaction in transactions:
                     transaction.commit()
             except Exception:

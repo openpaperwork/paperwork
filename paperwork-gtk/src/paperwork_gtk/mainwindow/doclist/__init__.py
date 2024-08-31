@@ -365,6 +365,8 @@ class Plugin(openpaperwork_core.PluginBase):
     def _reselect_current_doc(self, scroll=True):
         (doc_id, doc_url) = self.active_doc
 
+        if doc_id is None:
+            return
         if doc_id not in {doc[0] for doc in self.docs}:
             LOGGER.warning(
                 "Document %s not found in the document list", doc_id

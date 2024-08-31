@@ -25,7 +25,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def get_interfaces(self):
         return [
-            "doc_convert_and_import",
+            "doc_converted",
             "doc_hash",
             "sync",
         ]
@@ -72,9 +72,9 @@ class Plugin(openpaperwork_core.PluginBase):
                 continue
             self.file_types_by_mime[mime] = ext
 
-    def _is_converted(self, doc_url):
+    def doc_is_converted(self, doc_url):
         if not self.core.call_success("fs_isdir", doc_url):
-            return (None, None)
+            return None
         for doc_file_url in self.core.call_success("fs_listdir", doc_url):
             doc_filename = self.core.call_success("fs_basename", doc_file_url)
             if "." not in doc_filename:
@@ -84,10 +84,9 @@ class Plugin(openpaperwork_core.PluginBase):
             doc_ext = doc_ext.lower()
             if doc_filename == "doc" and doc_ext in self.file_types_by_ext:
                 return (doc_file_url, doc_ext)
-            return (None, None)
         else:
             # not a converted document
-            return (None, None)
+            return None
 
     def _update_pdf(self, doc_id, doc_url, doc_file_url, doc_ext):
         LOGGER.debug(
@@ -137,10 +136,11 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         self.pending_doc_urls.add(doc_url)
 
-        (doc_file_url, doc_ext) = self._is_converted(doc_url)
-        if doc_file_url is None:
+        doc_info = self.doc_is_converted(doc_url)
+        if doc_info is None:
             self.pending_doc_urls.remove(doc_url)
             return
+        (doc_file_url, doc_ext) = doc_info
 
         doc_id = self.core.call_success("doc_url_to_id", doc_url)
 
@@ -193,9 +193,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_all("on_progress", "converted_check", 0.0, msg)
         total = len(all_docs)
         for (idx, (doc_id, doc_url)) in enumerate(all_docs):
-            (doc_file_url, doc_ext) = self._is_converted(doc_url)
-            if doc_file_url is None:
+            doc_info = self.doc_is_converted(doc_url)
+            if doc_info is None:
                 continue
+            (doc_file_url, doc_ext) = doc_info
             self._update_pdf(doc_id, doc_url, doc_file_url, doc_ext)
             self.pending_doc_urls.remove(doc_url)
             if idx % 100 == 0:
@@ -235,9 +236,10 @@ class Plugin(openpaperwork_core.PluginBase):
             raise
 
     def doc_get_hash_by_url(self, doc_url):
-        (doc_file_url, doc_ext) = self._is_converted(doc_url)
-        if doc_file_url is None:
+        doc_info = self.doc_is_converted(doc_url)
+        if doc_info is None:
             return None
+        (doc_file_url, doc_ext) = doc_info
         if doc_url not in self.cache_hash:
             h = self.core.call_success("fs_hash", doc_file_url)
             self.cache_hash[doc_url] = h

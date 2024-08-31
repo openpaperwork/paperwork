@@ -98,7 +98,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def get_deps(self):
         return [
             {
-                "interface": "doc_convert_and_import",
+                "interface": "doc_converted",
                 "defaults": ["paperwork_backend.model.converted"],
             },
             {

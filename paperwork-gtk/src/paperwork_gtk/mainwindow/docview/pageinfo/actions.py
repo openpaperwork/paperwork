@@ -30,6 +30,14 @@ class Plugin(openpaperwork_core.PluginBase):
     def get_deps(self):
         return [
             {
+                'interface': 'doc_converted',
+                'defaults': [],
+            },
+            {
+                'interface': 'external_apps',
+                'defaults': ['openpaperwork_core.external_apps.xdg'],
+            },
+            {
                 'interface': 'gtk_docview_pageinfo',
                 'defaults': ['paperwork_gtk.mainwindow.docview.pageinfo'],
             },
@@ -88,9 +96,15 @@ class Plugin(openpaperwork_core.PluginBase):
         self.active_page = page_idx
 
     def _on_edit(self, button):
-        self.core.call_all(
-            "gtk_open_page_editor", *self.active_doc, self.active_page
-        )
+        doc_url = self.active_doc[1]
+        converted_info = self.core.call_success("doc_is_converted", doc_url)
+        if converted_info is not None:
+            original_doc_url = converted_info[0]
+            self.core.call_success("external_app_open_file", original_doc_url)
+        else:
+            self.core.call_all(
+                "gtk_open_page_editor", *self.active_doc, self.active_page
+            )
 
     def page_menu_open(self):
         self.widget_tree.get_object("page_actions_other").clicked()

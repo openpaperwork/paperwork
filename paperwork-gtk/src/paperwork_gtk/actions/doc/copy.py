@@ -1,6 +1,4 @@
-import gc
 import logging
-import os
 
 try:
     from gi.repository import Gio
@@ -10,8 +8,6 @@ except (ImportError, ValueError):
 
 import openpaperwork_core
 import openpaperwork_core.deps
-
-from ... import _
 
 
 LOGGER = logging.getLogger(__name__)

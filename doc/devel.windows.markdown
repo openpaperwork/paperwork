@@ -56,7 +56,7 @@ gdb python3 --args python3 paperwork-gtk/src/paperwork_gtk/main.py
 In GDB:
 
 ```
-source c:\msys64\mingw64\share\gdb\python3\python_gdb.py
+source c:\msys64\ucrt64\share\gdb\python3\python_gdb.py
 r
 ```
 

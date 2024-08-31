@@ -163,33 +163,33 @@ deploy_linux_appimage:
   before_script:
     # Libinsane build dependencies
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S make
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-cunit
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-doxygen
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gcc
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gobject-introspection
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-meson
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-gobject
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-vala
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-cunit
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-doxygen
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-gcc
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-gobject-introspection
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-meson
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-gobject
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-vala
     # Paperwork build dependencies
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S git  # for 'make version'
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-ca-certificates
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-cairo
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gdk-pixbuf2
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gettext
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-gtk3
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libhandy
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libnotify
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-nsis
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-nsis-nsisunz
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-poppler
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-cairo
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-cx-freeze
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-psutil
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pillow
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pip
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-scikit-learn
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-setuptools
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-virtualenv
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-ca-certificates
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-cairo
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-gdk-pixbuf2
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-gettext
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-gtk3
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-libhandy
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-libnotify
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-nsis
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-nsis-nsisunz
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-poppler
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-cairo
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-cx-freeze
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-psutil
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pillow
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pip
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-scikit-learn
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-setuptools
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-virtualenv
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S wget  # for downloading data files
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S zip unzip
 
@@ -230,11 +230,11 @@ tests_windows:
   <<: *base_windows_install
   after_script:
     # Tesseract (required for unit tests)
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-libarchive  # missing tesseract dependency
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-python-pytest
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-ocr
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-eng
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-x86_64-tesseract-data-fra
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-libarchive  # missing tesseract dependency
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pytest
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-ocr
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-data-eng
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-data-fra
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
 
 

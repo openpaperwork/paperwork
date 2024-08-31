@@ -138,7 +138,7 @@ class Plugin(PluginBase):
         if os.path.exists("/dev/null"):
             std_stream = open("/dev/null", "w")  # Linux / MacOS
         else:
-            std_stream = open("NULL", "w")  # Windows
+            std_stream = open("NUL", "w")  # Windows
         setattr(sys, std_stream_name, std_stream)
 
     def _disable_logging(self):

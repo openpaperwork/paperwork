@@ -117,6 +117,15 @@ class Plugin(CommonFsPluginBase):
         shutil.copy(old_path, new_path)
         return True
 
+    def fs_copytree(self, old_uri, new_uri):
+        old_path = self._uri_to_path(old_uri)
+        new_path = self._uri_to_path(new_uri)
+        if old_path is None or new_path is None:
+            return None
+
+        shutil.copytree(old_path, new_path)
+        return True
+
     def fs_mkdir_p(self, uri):
         path = self._uri_to_path(uri)
         if path is None:

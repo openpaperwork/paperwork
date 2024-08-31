@@ -492,6 +492,9 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             raise IOError(str(exc))
 
     def fs_copy(self, old_url, new_url):
+        if not GLIB_AVAILABLE:
+            return None
+
         try:
             old = self.vfs.get_file_for_uri(old_url)
             new = self.vfs.get_file_for_uri(new_url)
@@ -502,6 +505,43 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
             return None
+
+    def fs_copytree(self, src_url, dst_url):
+        if not GLIB_AVAILABLE:
+            return None
+        src = self.vfs.get_file_for_uri(src_url)
+        dst = self.vfs.get_file_for_uri(dst_url)
+        assert not dst.query_exists()
+        return self._fs_copytree(src, dst)
+
+    def _fs_copytree(self, src, dst):
+        src_type = src.query_file_type(Gio.FileQueryInfoFlags.NOFOLLOW_SYMLINKS)
+        if src_type == Gio.FileType.DIRECTORY:
+            out = 1
+            dst.make_directory()
+
+            src_children = src.enumerate_children(
+                Gio.FILE_ATTRIBUTE_STANDARD_NAME,
+                Gio.FileQueryInfoFlags.NONE,
+                None
+            )
+
+            for src_child in src_children:
+                src_child = src_child.get_name()
+                self._fs_copytree(
+                    src.get_child(src_child),
+                    dst.get_child(src_child),
+                )
+                out += 1
+            return out
+
+        elif src_type == Gio.FileType.SYMBOLIC_LINK:
+            # TODO
+            return 0
+        else:
+            assert src_type == Gio.FileType.REGULAR
+            src.copy(dst, Gio.FileCopyFlags.ALL_METADATA)
+            return 1
 
     def fs_mkdir_p(self, url):
         if not GLIB_AVAILABLE:

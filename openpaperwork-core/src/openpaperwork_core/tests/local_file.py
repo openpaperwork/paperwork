@@ -1,4 +1,5 @@
 import os
+import pathlib
 import tempfile
 import time
 import unittest
@@ -429,6 +430,27 @@ class AbstractTestCopy(unittest.TestCase):
                 os.unlink(src_file_name)
             if os.path.exists(dst_file_name):
                 os.unlink(dst_file_name)
+
+    def test_copytree(self):
+        with tempfile.TemporaryDirectory() as root:
+            root = pathlib.Path(root)
+            (root / "src").mkdir()
+            (root / "src" / "sub").mkdir()
+            with (root / "src" / "test.txt").open("w") as fd:
+                fd.write("CONTENT1\n")
+            with (root / "src" / "sub" / "test.txt").open("w") as fd:
+                fd.write("CONTENT2\n")
+
+            self.core.call_success(
+                "fs_copytree",
+                self.core.call_success("fs_safe", (root / "src")),
+                self.core.call_success("fs_safe", (root / "dst")),
+            )
+
+            with (root / "dst" / "test.txt").open() as fd:
+                self.assertEqual(fd.read(), "CONTENT1\n")
+            with (root / "dst" / "sub" / "test.txt").open() as fd:
+                self.assertEqual(fd.read(), "CONTENT2\n")
 
 
 class AbstractTestMkdirP(unittest.TestCase):

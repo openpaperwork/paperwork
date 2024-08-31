@@ -226,6 +226,9 @@ class Plugin(CommonFsPluginBase):
     def fs_copy(self, old_url, new_url):
         raise NotImplementedError()
 
+    def fs_copytree(self, old_url, new_url):
+        raise NotImplementedError()
+
     def fs_mkdir_p(self, url):
         path = self._get_path(url)
         f = self.fs

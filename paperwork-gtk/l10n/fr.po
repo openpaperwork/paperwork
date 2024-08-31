@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-28 22:55+0100\n"
-"PO-Revision-Date: 2023-03-28 16:19+0000\n"
+"PO-Revision-Date: 2024-08-31 20:15+0000\n"
 "Last-Translator: Jérôme Flesch <jflesch@openpaper.work>\n"
 "Language-Team: French <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/fr/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.16.4\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: paperwork-gtk/src/paperwork_gtk/cmd/import.py:45
 msgid "Run Paperwork and import files passed as arguments into a new document"
@@ -270,7 +270,7 @@ msgstr "Scanner depuis %s"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:84
 msgid "Import document or image file(s)"
-msgstr ""
+msgstr "Importer un document ou une ou des image(s)"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:85
 msgid "Import file(s)"
@@ -286,11 +286,11 @@ msgstr "Tous les formats de fichiers supportés"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:179
 msgid "Nothing to import"
-msgstr ""
+msgstr "Rien à importer"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/pageadd/import.py:181
 msgid "Nothing to import: nothing selected"
-msgstr ""
+msgstr "Rien à importer : rien de sélectionné"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/docview/controllers/title.py:33
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/doclist/name.py:59
@@ -556,7 +556,7 @@ msgstr "Répertoire de travail"
 
 #: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:1
 msgid "©2023"
-msgstr ""
+msgstr "©2023"
 
 #: paperwork-gtk/src/paperwork_gtk/about/about.glade.h:2
 msgid "Sorting documents is a machine's job."
@@ -746,6 +746,19 @@ msgid ""
 "<a href=\"https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/wikis/"
 "Work-directory-organization\">[More information]</a>"
 msgstr ""
+"<b>N'utilisez pas de répertoire déjà existant !</b>\n"
+"(à moins qu'il vienne d'une autre instance de Paperwork)\n"
+"\n"
+"Paperwork utilise une structure de fichiers spécifique pour stocker les "
+"documents. À moins que le répertoire spécifié ait exactement la structure "
+"attendue par Paperwork, cela ne marchera pas !\n"
+"\n"
+"Si vous voulez construire un nouveau répertoire de travail avec des "
+"documents existants, veuillez utiliser la fonctionnalité d'import à la place."
+"\n"
+"\n"
+"<a href=\"https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/wikis/"
+"Work-directory-organization\">[Plus d'informations]</a>"
 
 #: paperwork-gtk/src/paperwork_gtk/settings/stats.glade.h:1
 msgid ""

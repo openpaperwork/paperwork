@@ -96,9 +96,12 @@ class Plugin(openpaperwork_core.PluginBase):
             thumbnail_mtime = self.core.call_success(
                 "fs_get_mtime", thumbnail_url
             )
-            if not self.core.call_success("fs_iswritable", thumbnail_url):
+            if self.core.call_success("fs_iswritable", thumbnail_url) is not None:
                 page_mtime = self.core.call_success("fs_get_mtime", page_url)
                 if thumbnail_mtime < page_mtime:
+                    LOGGER.info(
+                        "Thumbnail %s is obsolete. Regenerating", thumbnail_url
+                    )
                     self.core.call_success("fs_unlink", thumbnail_url)
 
         if self.core.call_success("fs_exists", thumbnail_url) is not None:

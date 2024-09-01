@@ -225,6 +225,7 @@ tests_windows:
   only:
     - branches@World/OpenPaperwork/paperwork
     - tags@World/OpenPaperwork/paperwork
+  timeout: 1h
   tags:
     - windows
     - msys2
@@ -244,6 +245,7 @@ build_windows:
   only:
     - branches@World/OpenPaperwork/paperwork
     - tags@World/OpenPaperwork/paperwork
+  timeout: 2h
   tags:
     - windows
     - msys2
@@ -263,6 +265,7 @@ deploy_windows:
   only:
     - branches@World/OpenPaperwork/paperwork
     - tags@World/OpenPaperwork/paperwork
+  timeout: 1h
   tags:
     - windows
     - msys2

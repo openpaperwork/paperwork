@@ -160,6 +160,7 @@ deploy_linux_appimage:
   variables:
     MSYSTEM: "MINGW64"
     CHERE_INVOKING: "yes"
+    RUNNER_AFTER_SCRIPT_TIMEOUT: 30m
   before_script:
     # Libinsane build dependencies
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S make

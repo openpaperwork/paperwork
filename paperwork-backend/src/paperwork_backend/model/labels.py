@@ -83,6 +83,8 @@ class LabelLoader(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
+    PRIORITY = 20000
+
     def __init__(self):
         # {label_name: color, label_name: color, ...}
         self.all_labels = {}

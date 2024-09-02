@@ -50,7 +50,7 @@ class _LogHandler(logging.Handler):
             for fd in self.out_fds:
                 fd.write(line + "\n")
         except UnicodeDecodeError as exc:
-            LOGGER.error("UnicodeDecodeError: %s", repr(exc), exc_info=exc)
+            print(f"WARNING: {__file__}: UnicodeDecodeError: {repr(exc)}")
 
 
 class Plugin(PluginBase):

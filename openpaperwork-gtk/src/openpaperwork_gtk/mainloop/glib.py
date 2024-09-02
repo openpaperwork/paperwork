@@ -38,7 +38,6 @@ class Plugin(
         self.task_count = 0
 
         self.lock = threading.RLock()
-        self.active_tasks = collections.defaultdict(lambda: 0)
 
     def get_interfaces(self):
         return [
@@ -102,8 +101,6 @@ class Plugin(
                 LOGGER.info(
                     "Quit graceful: Remaining tasks: %d", self.task_count - 1
                 )
-                for (k, v) in self.active_tasks.items():
-                    LOGGER.info("Quit graceful: Remaining: %s = %d", k, v)
 
         if not quit_now:
             self.mainloop_schedule(
@@ -117,7 +114,6 @@ class Plugin(
 
         with self.lock:
             self.task_count = 1  # we are actually the one task still running
-            self.active_tasks = collections.defaultdict(lambda: 0)
 
     def mainloop_quit_now(self):
         if self.loop is None:
@@ -127,24 +123,15 @@ class Plugin(
             self.loop.quit()
             self.loop = None
             self.task_count = 0
-            self.active_tasks = collections.defaultdict(lambda: 0)
 
     def mainloop_ref(self, obj):
         with self.lock:
             self.task_count += 1
-            self.active_tasks[str(obj)] += 1
 
     def mainloop_unref(self, obj):
         with self.lock:
             self.task_count -= 1
             assert self.task_count >= 0
-            try:
-                s = str(obj)
-                self.active_tasks[s] -= 1
-                if self.active_tasks[s] <= 0:
-                    self.active_tasks.pop(s)
-            except KeyError:
-                pass
 
     def mainloop_schedule(self, func, *args, delay_s=0, **kwargs):
         if not GLIB_AVAILABLE:
@@ -156,7 +143,6 @@ class Plugin(
             self._check_mainloop_instantiated()
 
             self.task_count += 1
-            self.active_tasks[str(func)] += 1
 
         def decorator(func, args):
             (args, kwargs) = args
@@ -183,13 +169,6 @@ class Plugin(
             finally:
                 with self.lock:
                     self.task_count -= 1
-                    try:
-                        s = str(func)
-                        self.active_tasks[s] -= 1
-                        if self.active_tasks[s] <= 0:
-                            self.active_tasks.pop(s)
-                    except KeyError:
-                        pass
             return False
 
         args = (args, kwargs)

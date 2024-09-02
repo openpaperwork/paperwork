@@ -45,9 +45,12 @@ class _LogHandler(logging.Handler):
     def emit(self, record):
         if record.levelno < self.log_level:
             return
-        line = self.formatter.format(record)
-        for fd in self.out_fds:
-            fd.write(line + "\n")
+        try:
+            line = self.formatter.format(record)
+            for fd in self.out_fds:
+                fd.write(line + "\n")
+        except UnicodeDecodeError as exc:
+            LOGGER.error("UnicodeDecodeError: %s", repr(exc), exc_info=exc)
 
 
 class Plugin(PluginBase):

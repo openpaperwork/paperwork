@@ -43,7 +43,11 @@ class LogHandler(logging.Handler):
         faulthandler.enable(file=self.out_fd)
 
     def emit(self, record):
-        line = self.formatter.format(record) + "\n"
+        try:
+            line = self.formatter.format(record) + "\n"
+        except UnicodeDecodeError as exc:
+            LOGGER.error("UnicodeDecodeError: %s", repr(exc), exc_info=exc)
+            return
         self.out_fd.write(line)
 
         line = LogLine(line)

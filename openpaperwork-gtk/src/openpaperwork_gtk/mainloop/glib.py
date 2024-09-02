@@ -1,4 +1,3 @@
-import collections
 import faulthandler
 import logging
 import sys

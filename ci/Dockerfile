@@ -54,9 +54,7 @@ RUN apt-get update \
         squashfs-tools \
         strace \
         texlive \
-        texlive-lang-english \
-        texlive-lang-french \
-        texlive-lang-german \
+        texlive-lang-all \
         texlive-latex-extra \
         texlive-latex-recommended \
         tox \

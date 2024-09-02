@@ -35,10 +35,14 @@ data:
 	rm -f $(CURDIR)/out/*.pdf
 	rm -f $(CURDIR)/out/*.toc
 	$(MAKE) out/intro.pdf
+	$(MAKE) out/translated_intro_ca.pdf
 	$(MAKE) out/translated_intro_de.pdf
 	$(MAKE) out/translated_intro_fr.pdf
-	$(MAKE) out/usage.pdf
+	$(MAKE) out/translated_intro_sv.pdf
+	$(MAKE) out/translated_usage_ca.pdf
 	$(MAKE) out/translated_usage_de.pdf
 	$(MAKE) out/translated_usage_fr.pdf
+	$(MAKE) out/translated_usage_sv.pdf
+	$(MAKE) out/usage.pdf
 
 .PHONY: all clean data l10n_extract l10n_compile

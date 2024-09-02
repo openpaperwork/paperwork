@@ -1,17 +1,14 @@
 import random
 
-import fabulous.image
 import fabulous.text
 
+import rich.padding
 import rich.text
+import rich_pixels
 
 import openpaperwork_core
 
 from ... import _
-
-
-# XXX(Jflesch): crappy workaround for an unmaintained library ...
-fabulous.image.basestring = str
 
 
 VALIDATED_FONTS = """
@@ -58,11 +55,10 @@ class Paperwork(object):
             "paperwork_shell.cmd.about", "logo.png"
         )
         with logo_ctx as logo:
-            logo = fabulous.image.Image(logo, width=60)
-        logo = logo.reduce(logo.convert())
-        for line in logo:
-            console.print(rich.text.Text.from_ansi((16 * " ") + line))
-            nb_lines += 1
+            logo = rich_pixels.Pixels.from_image_path(logo, resize=(60, 60))
+        logo = rich.padding.Padding(logo, (0, 16))
+        console.print(logo)
+        nb_lines += 60
 
         font = "FreeSans"
         if font not in self.fonts:

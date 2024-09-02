@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 class BaseTransaction(object):
     def __init__(self, core, total_expected):
+        self.priority = 0
         self.core = core
         self.processed = 0
         self.total = total_expected

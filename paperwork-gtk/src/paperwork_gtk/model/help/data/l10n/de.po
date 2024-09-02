@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-10 18:54+0100\n"
+"POT-Creation-Date: 2024-09-02 23:55+0200\n"
 "PO-Revision-Date: 2024-03-30 13:25+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
@@ -15,18 +15,17 @@ msgstr ""
 "X-Generator: Weblate 4.18.2\n"
 
 #. type: Plain text
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:20
+#: data/intro.tex:11 data/usage.tex:21
 msgid "\\date{}"
 msgstr "\\date{}"
 
 #. type: title{#1}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:11
+#: data/intro.tex:11
 msgid "Welcome to Paperwork !"
 msgstr "Willkommen bei Paperwork!"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:20
+#: data/intro.tex:20
 msgid ""
 "They are going to drive you crazy. Your phone operator, your bank, your "
 "daughter's school, your dog's veterinarian, even your ISP; it seems like all "
@@ -43,7 +42,7 @@ msgstr ""
 "umsonst."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:24
+#: data/intro.tex:24
 msgid ""
 "Paperwork will help you get rid of all those papers by turning them into "
 "searchable documents.  It's simple: just scan and forget. Looking for a "
@@ -55,12 +54,12 @@ msgstr ""
 "Schlüsselworte eintippen und tada"
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:28
+#: data/intro.tex:28
 msgid "Documents and pages"
 msgstr "Dokumente und Seiten"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:36
+#: data/intro.tex:36
 msgid ""
 "Paperwork's interface is composed of two panels. On the left (green) is the "
 "list of all your documents sorted by the date they were imported. On the "
@@ -72,7 +71,7 @@ msgstr ""
 "ausgewählte Dokument angezeigt."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:41
+#: data/intro.tex:41
 msgid ""
 "You can add papers from several sources, depending on the devices connected "
 "to your computer: scanner flatbed, scanner feeder, camera, etc. You have no "
@@ -86,17 +85,17 @@ msgstr ""
 "bereits existierende PDF- und Bilddateien."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:44
+#: data/intro.tex:44
 msgid "Find"
 msgstr "Suchen"
 
 #. type: wrapfigure
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:50
+#: data/intro.tex:50
 msgid "{r}{0.5\\textwidth}"
 msgstr "{r}{0.5\\textwidth}"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:56
+#: data/intro.tex:56
 msgid ""
 "Find what you need, when you need it. Type a few keywords in the search bar "
 "and the list of papers will shrink to only the relevant content. This is "
@@ -111,12 +110,12 @@ msgstr ""
 "Dokumente in einfache, durchsuchbare Textdateien umzuwandeln."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:59
+#: data/intro.tex:59
 msgid "Export"
 msgstr "Exportieren"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:69
+#: data/intro.tex:69
 msgid ""
 "Sometimes you may want to export a document to send it to someone else.  "
 "Multiple formats are supported: .pdf, .jpg, .txt, etc. And of course, paper "
@@ -128,13 +127,12 @@ msgstr ""
 "Lieferumfang enthalten)."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:72
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:113
+#: data/intro.tex:72 data/usage.tex:114
 msgid "Labels and additional keywords"
 msgstr "Labels und zusätzliche Schlüsselworte"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:84
+#: data/intro.tex:84
 msgid ""
 "You answered an important email and you want to keep track of it? The paper "
 "you scanned was so unreadable that Paperwork failed to recognize some "
@@ -149,7 +147,7 @@ msgstr ""
 "werden suchbar, als ob sie auf dem gescannten Dokument stehen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:89
+#: data/intro.tex:89
 msgid ""
 "You would like to organize your documents a bit more? You can also add "
 "labels to your documents. Each label has its own color. With time, Paperwork "
@@ -162,12 +160,12 @@ msgstr ""
 "neuer Dokumente selbstständig ergänzen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:92
+#: data/intro.tex:92
 msgid "Your first documents"
 msgstr "Ihre ersten Dokumente"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:102
+#: data/intro.tex:102
 msgid ""
 "Click the + button, the scan button, and that's all folks! You are now aware "
 "of the main features of Paperwork. You can start using it by adding your "
@@ -178,7 +176,7 @@ msgstr ""
 "Benutzung direkt starten, indem Sie das erste Dokument hinzufügen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:105
+#: data/intro.tex:105
 msgid ""
 "This document will automatically disappear from your document list as soon "
 "as you have created or imported your first document."
@@ -187,12 +185,12 @@ msgstr ""
 "sobald Sie Ihr erstes Dokument erstellt oder importiert haben."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:108
+#: data/intro.tex:108
 msgid "Need more help ?"
 msgstr "Benötigen Sie mehr Hilfe?"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:116
+#: data/intro.tex:116
 msgid ""
 "If you need more help, there is a comprehensive manual you can find in the "
 "help section of Paperwork."
@@ -201,7 +199,7 @@ msgstr ""
 "Handbuch. Sie finden es im Menü »Hilfe« von Paperwork."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/intro.tex:119
+#: data/intro.tex:119
 msgid ""
 "We hope that you'll enjoy this piece of software. If you like it please tell "
 "us, and if you don't please tell us why!"
@@ -211,7 +209,7 @@ msgstr ""
 "nicht!"
 
 #. type: hypersetup{#1}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:20
+#: data/usage.tex:21
 msgid ""
 "colorlinks, citecolor=black, filecolor=black, linkcolor=black, "
 "urlcolor=black, linktoc=all,"
@@ -220,17 +218,17 @@ msgstr ""
 "urlcolor=black, linktoc=all,"
 
 #. type: title{#1}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:20
+#: data/usage.tex:21
 msgid "Paperwork manual"
 msgstr "Paperwork-Handbuch"
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:32
+#: data/usage.tex:33
 msgid "Introduction"
 msgstr "Einführung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:41
+#: data/usage.tex:42
 msgid ""
 "Most personal documents are fairly recurrent: earning statements, rent "
 "bills, electricity bills, etc. For most unorganized people, having to find "
@@ -244,7 +242,7 @@ msgstr ""
 "Benennen und Sortieren so mühsam, wie Farbe beim Trocknen zuzusehen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:45
+#: data/usage.tex:46
 msgid ""
 "The main idea behind Paperwork is that managing documents is a computer "
 "job.  Humans should do as little as possible while machines do most of the "
@@ -256,7 +254,7 @@ msgstr ""
 "Vergessen«."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:49
+#: data/usage.tex:50
 msgid ""
 "If you're looking for a software that will let you name each document "
 "individually, organize them in complex hierachy, tag them manually each "
@@ -267,18 +265,17 @@ msgstr ""
 "kleinere OCR-Probleme beheben usw. können, dann ist Paperwork nichts für Sie."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:52
+#: data/usage.tex:53
 msgid "Definitions"
 msgstr "Definitionen"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:54
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:158
+#: data/usage.tex:55 data/usage.tex:159
 msgid "Work directory"
 msgstr "Arbeitsverzeichnis"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:57
+#: data/usage.tex:58
 msgid ""
 "Paperwork stores all your documents in a single directory: the work "
 "directory.  In this directory, each document has its own sub-directory."
@@ -288,7 +285,7 @@ msgstr ""
 "Unterverzeichnis."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:61
+#: data/usage.tex:62
 msgid ""
 "While this makes Paperwork hard to use with other tools, it has one major "
 "advantage: You don't have to worry about file names and directory structures "
@@ -299,12 +296,12 @@ msgstr ""
 "Verzeichnisstrukturen kümmern."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:63
+#: data/usage.tex:64
 msgid "Document"
 msgstr "Dokument"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:71
+#: data/usage.tex:72
 msgid ""
 "In Paperwork, a document is a set of pages. On disk, it can either be a set "
 "of JPEG files or a PDF file."
@@ -313,7 +310,7 @@ msgstr ""
 "kann dies entweder eine Ansammlung von JPEG-Dateien oder eine PDF-Datei sein."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:74
+#: data/usage.tex:75
 msgid ""
 "Documents are identified only by a date. It can either be the date you "
 "imported them (default) or some date of your choosing."
@@ -323,7 +320,7 @@ msgstr ""
 "oder ein von Ihnen gewähltes Datum."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:77
+#: data/usage.tex:78
 msgid ""
 "They are displayed on the left side of the main window (green part on the "
 "screenshot above)."
@@ -332,19 +329,19 @@ msgstr ""
 "dem Screenshot oben)."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:80
+#: data/usage.tex:81
 msgid "Page"
 msgstr "Seite"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:82
+#: data/usage.tex:83
 msgid ""
 "In Paperwork, a page is just an image and the word positions on this image."
 msgstr ""
 "In Paperwork ist eine Seite nur ein Bild und Wortpositionen auf diesem Bild."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:88
+#: data/usage.tex:89
 msgid ""
 "Images can come from a scanner or be imported. In those cases, it is stored "
 "as a JPEG files and text is extracted using OCR (Optical Character "
@@ -360,7 +357,7 @@ msgstr ""
 "neben den JPEG-Dateien gespeichert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:91
+#: data/usage.tex:92
 msgid ""
 "Pages can also be the pages from a PDF file. In that case, by default, "
 "Paperwork just stores a copy of the PDF file."
@@ -369,7 +366,7 @@ msgstr ""
 "speichert Paperwork standardmäßig nur eine Kopie der PDF-Datei."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:95
+#: data/usage.tex:96
 msgid ""
 "Paperwork does not track whether a page is recto or verso.  Paperwork does "
 "not track the paper size corresponding to a page (A4, Letter, etc)."
@@ -379,7 +376,7 @@ msgstr ""
 "Letter, usw.)."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:98
+#: data/usage.tex:99
 msgid ""
 "Pages are displayed on the right side of the main window (blue part on the "
 "screenshot above)."
@@ -388,12 +385,12 @@ msgstr ""
 "Teil auf dem Screenshot oben)."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:101
+#: data/usage.tex:102
 msgid "Indexation and Keywords"
 msgstr "Indexierung und Schlüsselworte"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:108
+#: data/usage.tex:109
 msgid ""
 "Of course, you need a way to find back your documents. Paperwork manages an "
 "index with all the keywords found in your documents."
@@ -403,14 +400,14 @@ msgstr ""
 "Dokumenten gefunden wurden."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:110
+#: data/usage.tex:111
 msgid "Just type in a few keywords, and you will get your documents back."
 msgstr ""
 "Geben Sie einfach ein paar Schlüsselwörter ein, und Sie erhalten Ihre "
 "Dokumente zurück."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:128
+#: data/usage.tex:129
 msgid ""
 "Unfortunately, sometimes, documents don't contain the keywords needed to "
 "find them back. Also OCR is not a perfectly realiable process and may not "
@@ -421,7 +418,7 @@ msgstr ""
 "zuverlässiger Prozess und funktioniert möglicherweise nicht."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:131
+#: data/usage.tex:132
 msgid ""
 "To mitigate those issues, you can add labels (or tags) on your documents and "
 "provide additional keywords. Both are added to the index."
@@ -431,7 +428,7 @@ msgstr ""
 "aufgenommen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:134
+#: data/usage.tex:135
 msgid ""
 "Labels are displayed beside documents. Additional keywords are almost never "
 "displayed."
@@ -440,17 +437,17 @@ msgstr ""
 "werden fast nie angezeigt."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:137
+#: data/usage.tex:138
 msgid "Settings"
 msgstr "Einstellungen"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:139
+#: data/usage.tex:140
 msgid "Accessing the settings"
 msgstr "Zugriff auf die Einstellungen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:166
+#: data/usage.tex:167
 msgid ""
 "The work directory is the directory where you want all your documents "
 "stored.  It can be a standard folder, a folder synchronized across multiple "
@@ -461,7 +458,7 @@ msgstr ""
 "synchronisierter Ordner oder eine Netzwerkfreigabe sein."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:169
+#: data/usage.tex:170
 msgid ""
 "Once you close the settings dialog, the work directory will be scanned and "
 "Paperwork index will be updated according to its index."
@@ -471,7 +468,7 @@ msgstr ""
 "Index aktualisiert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:172
+#: data/usage.tex:173
 msgid ""
 "Each time Paperwork starts, it will look for changes in this folder and "
 "synchronize its index accordingly."
@@ -480,17 +477,17 @@ msgstr ""
 "und synchronisiert seinen Index entsprechend."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:175
+#: data/usage.tex:176
 msgid "Scanner"
 msgstr "Scanner"
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:182
+#: data/usage.tex:183
 msgid "Device"
 msgstr "Gerät"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:189
+#: data/usage.tex:190
 msgid ""
 "When starting, Paperwork looks for scanners. The scanner to use can be "
 "selected in the settings."
@@ -499,18 +496,18 @@ msgstr ""
 "den Einstellungen ausgewählt werden."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:191
+#: data/usage.tex:192
 msgid "Webcams, file storage, etc, cannot be used. Only paper-eaters."
 msgstr ""
 "Webcams, Dateispeicher usw. können nicht verwendet werden. Nur Papierfresser."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:194
+#: data/usage.tex:195
 msgid "Scan Mode"
 msgstr "Scanmodus"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:202
+#: data/usage.tex:203
 msgid ""
 "Most modern scanners scan in color in a reasonable time. However some older "
 "scanners scan much faster in grayscale or even in black\\&white. Here you "
@@ -521,12 +518,12 @@ msgstr ""
 "in Schwarz-Weiß. Hier können Sie den zu verwendenden Modus auswählen."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:205
+#: data/usage.tex:206
 msgid "Scan Resolution"
 msgstr "Scan-Auflösung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:212
+#: data/usage.tex:213
 msgid ""
 "Scanner resolution defines how detailed the images coming from your scanner "
 "must be."
@@ -535,72 +532,72 @@ msgstr ""
 "kommenden Bilder sein müssen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "Higher resolutions mean"
 msgstr "Höhere Auflösungen bedeuten"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "longer scans,"
 msgstr "längere Scans,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "longer OCR,"
 msgstr "längere OCR,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "more time to display,"
 msgstr "mehr Zeit für die Anzeige,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "more space used on disk,"
 msgstr "mehr Speicherplatz auf der Festplatte verwendet,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:221
+#: data/usage.tex:222
 msgid "but also better OCR."
 msgstr "aber auch eine bessere OCR."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "Lower resolutions mean"
 msgstr "Niedrigere Auflösungen bedeuten"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "shorter scans,"
 msgstr "kürzere Scans,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "shorter OCR,"
 msgstr "kürzere OCR,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "less time to display,"
 msgstr "weniger Zeit für die Anzeige,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "less space used on disk,"
 msgstr "weniger Speicherplatz auf der Festplatte,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "but also inferior OCR,"
 msgstr "aber auch eine minderwertige OCR,"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:231
+#: data/usage.tex:232
 msgid "and possibly unreadable image (even by a human)."
 msgstr "und ein möglicherweise unlesbares (auch von einem Menschen) Bild."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:234
+#: data/usage.tex:235
 msgid ""
 "300 dpi is considered a good trade-off. You may want to reduce it to 200 dpi "
 "on slow computers."
@@ -609,12 +606,12 @@ msgstr ""
 "Sie eventuell auf 200 dpi reduzieren."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:237
+#: data/usage.tex:238
 msgid "Scanner calibration"
 msgstr "Scanner-Kalibrierung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:247
+#: data/usage.tex:248
 msgid ""
 "Scanners tend to provide images actually bigger than the scanned pages.  "
 "Since most of the time, you will always scan pages having the same size (A4 "
@@ -630,12 +627,12 @@ msgstr ""
 "ausgeschnitten wird."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:250
+#: data/usage.tex:251
 msgid "OCR"
 msgstr "OCR (optical character recognition, englisch für Texterkennung)"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:257
+#: data/usage.tex:258
 msgid ""
 "By default, Paperwork uses Tesseract for the OCR. If unavailable, it falls "
 "back on Cuneiform."
@@ -644,7 +641,7 @@ msgstr ""
 "verfügbar ist, greift es auf Cuneiform zurück."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:260
+#: data/usage.tex:261
 msgid ""
 "On Linux, if installed with Flatpak, Paperwork is always provided with "
 "Tesseract. On Windows, Paperwork is always provided with Tesseract."
@@ -654,7 +651,7 @@ msgstr ""
 "installiert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:263
+#: data/usage.tex:264
 msgid ""
 "To get better results, OCR tool need to know the language used in the "
 "document(s)."
@@ -663,7 +660,7 @@ msgstr ""
 "Dokumenten verwendete Sprache kennen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:268
+#: data/usage.tex:269
 msgid ""
 "The language available in the settings dialog of Paperwork are those "
 "understood by the OCR tool. If your language is not in the list, it means "
@@ -677,17 +674,17 @@ msgstr ""
 "müssen."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:271
+#: data/usage.tex:272
 msgid "Adding languages"
 msgstr "Sprachen hinzufügen"
 
 #. type: paragraph{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:273
+#: data/usage.tex:274
 msgid "Flatpak"
 msgstr "Flatpak"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:279
+#: data/usage.tex:280
 #, no-wrap
 msgid ""
 "# <langs> is a list of 2-letters language codes separated ';'\n"
@@ -701,13 +698,12 @@ msgstr ""
 "flatpak update --user"
 
 #. type: paragraph{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:283
+#: data/usage.tex:284
 msgid "Debian"
 msgstr "Debian"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:288
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:304
+#: data/usage.tex:289 data/usage.tex:305
 #, no-wrap
 msgid ""
 "# <lang> is a 3-letter language code\n"
@@ -719,12 +715,12 @@ msgstr ""
 "$ sudo apt-get install tesseract-ocr tesseract-ocr-<lang>"
 
 #. type: paragraph{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:291
+#: data/usage.tex:292
 msgid "Fedora"
 msgstr "Fedora"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:296
+#: data/usage.tex:297
 #, no-wrap
 msgid ""
 "# <lang> is a 3-letter language code\n"
@@ -736,18 +732,17 @@ msgstr ""
 "$ sudo dnf install tesseract tesseract-langpack-<lang>"
 
 #. type: paragraph{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:299
+#: data/usage.tex:300
 msgid "Ubuntu"
 msgstr "Ubuntu"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:307
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:815
+#: data/usage.tex:308 data/usage.tex:816
 msgid "Windows"
 msgstr "Windows"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:310
+#: data/usage.tex:311
 msgid ""
 "Tesseract and all its data files are provided by Paperwork's installer.  You "
 "can rerun the installer to install other languages."
@@ -757,7 +752,7 @@ msgstr ""
 "ausführen, um andere Sprachen zu installieren."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:314
+#: data/usage.tex:315
 msgid ""
 "If a language is not available in the installer, it either means it hasn't "
 "been packaged (in which case you can request it), or there is no data file "
@@ -769,12 +764,12 @@ msgstr ""
 "verfügbar."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:317
+#: data/usage.tex:318
 msgid "Disabling OCR"
 msgstr "OCR deaktivieren"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:323
+#: data/usage.tex:324
 msgid ""
 "When you scan a page using Paperwork, Paperwork will immediately run the OCR "
 "on it. This process may take a while for each page. In case you want to scan "
@@ -790,12 +785,12 @@ msgstr ""
 "abwählen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:326
+#: data/usage.tex:327
 msgid "Updates"
 msgstr "Updates"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:334
+#: data/usage.tex:335
 msgid ""
 "If you enable this option, when Paperwork starts, Paperwork will look for "
 "updates if it hasn't done so for a week or more. To know if a new version is "
@@ -807,19 +802,19 @@ msgstr ""
 "gesendet."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:336
+#: data/usage.tex:337
 msgid "If an update is found, it will notify you but it won't install it."
 msgstr ""
 "Sie werden benachrichtigt, wenn ein Update gefunden wurde, aber es wird "
 "nicht installiert."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:339
+#: data/usage.tex:340
 msgid "New document"
 msgstr "Neues Dokument"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:345
+#: data/usage.tex:346
 msgid ""
 "By default, in the document list, Paperwork includes a document called \"New "
 "document\". If you open it, it always appears empty. This document actually "
@@ -835,7 +830,7 @@ msgstr ""
 "anderen Datei darin ablegen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:350
+#: data/usage.tex:351
 msgid ""
 "As soon as you put any content in it, this document will get its own date "
 "(the current one by default). In the document list, \"New document\" will be "
@@ -848,7 +843,7 @@ msgstr ""
 "Dokument\"{} wird der Dokumentenliste hinzugefügt."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:359
+#: data/usage.tex:360
 msgid ""
 "If you are currently searching something (see the chapter \"Searching\"), "
 "only search results are displayed and therefore this \"New document\" isn't "
@@ -861,12 +856,12 @@ msgstr ""
 "\"{} in der linken oberen Ecke des Hauptfensters klicken."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:362
+#: data/usage.tex:363
 msgid "Scanning"
 msgstr "Scannen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:368
+#: data/usage.tex:369
 msgid ""
 "If a scanner has been selected in the settings, you can use it to scan pages."
 msgstr ""
@@ -874,7 +869,7 @@ msgstr ""
 "zum Scannen von Seiten verwenden."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:372
+#: data/usage.tex:373
 msgid ""
 "In the header bar, there is a button to add pages. The small arrow on the "
 "right gives access to possible page sources. Those page sources include your "
@@ -886,7 +881,7 @@ msgstr ""
 "(Flachbett, Einzug)."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:375
+#: data/usage.tex:376
 msgid ""
 "Once you've selected the scanner source you want to use, you can click on "
 "the button \"Scan from ...\"."
@@ -895,12 +890,12 @@ msgstr ""
 "die Schaltfläche »Scannen von…« klicken."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:377
+#: data/usage.tex:378
 msgid "This will start a scan session:"
 msgstr "Dadurch wird eine Scan-Sitzung gestartet:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:386
+#: data/usage.tex:387
 msgid ""
 "Scanned pages are appended at the end of the current document.  If you use a "
 "feeder, Paperwork will scan pages until the feeder is empty."
@@ -910,23 +905,23 @@ msgstr ""
 "der Einzug leer ist."
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:386
+#: data/usage.tex:387
 msgid "Paperwork will then crop them according to scanner calibration."
 msgstr ""
 "Die Papiere werden dann entsprechend der Scannerkalibrierung beschnitten."
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:386
+#: data/usage.tex:387
 msgid "Paperwork will run OCR on them"
 msgstr "Paperwork lässt die OCR laufen"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:386
+#: data/usage.tex:387
 msgid "Paperwork will index them"
 msgstr "Paperwork wird sie indizieren"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:389
+#: data/usage.tex:390
 msgid ""
 "If this scan session creates a new document, Paperwork will try to set "
 "labels automatically on the document."
@@ -935,17 +930,17 @@ msgstr ""
 "Paperwork, automatisch Labels im Dokument zu setzen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:392
+#: data/usage.tex:393
 msgid "Importing"
 msgstr "Import"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:399
+#: data/usage.tex:400
 msgid "Images"
 msgstr "Bilder"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:402
+#: data/usage.tex:403
 msgid ""
 "Paperwork supports a lot of file formats. It supports JPEG, PNG, GIF, BMP, "
 "TIFF, etc."
@@ -954,12 +949,12 @@ msgstr ""
 "PNG, GIF, BMP, TIFF, usw."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:404
+#: data/usage.tex:405
 msgid "Each image file is considered as a page."
 msgstr "Jede Bilddatei wird als eine Seite behandelt."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:408
+#: data/usage.tex:409
 msgid ""
 "Images are always appended to the document currently opened. Simply select "
 "an empty document (\"New document\") to create a new document while "
@@ -970,7 +965,7 @@ msgstr ""
 "ein neues Dokument zu erstellen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:412
+#: data/usage.tex:413
 msgid ""
 "OCR is always run on imported images. If the imported image is the first "
 "page of a new document, Paperwork will automatically apply documents labels."
@@ -980,7 +975,7 @@ msgstr ""
 "Paperwork automatisch Labels."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:416
+#: data/usage.tex:417
 msgid ""
 "Note that Paperwork is a document manager. While it can, it is not designed "
 "to handle images with only very little text or photos. Automatic labeling "
@@ -992,7 +987,7 @@ msgstr ""
 "korrekt funktionieren."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:420
+#: data/usage.tex:421
 msgid ""
 "The OCR (Tesseract) works very well with black text on white background.  "
 "Automatic labeling uses recognized text and requires as many keywords on the "
@@ -1003,12 +998,12 @@ msgstr ""
 "und benötigt so viele Schlüsselwörter auf der ersten Seite wie möglich."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:423
+#: data/usage.tex:424
 msgid "PDF"
 msgstr "PDF"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:429
+#: data/usage.tex:430
 msgid ""
 "Each PDF is always considered as a whole document. They are never appended "
 "to existing document. They are copied and renamed in the work directory, but "
@@ -1024,7 +1019,7 @@ msgstr ""
 "Datei gespeichert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:434
+#: data/usage.tex:435
 msgid ""
 "Paperwork will look for pages with no text attached. On those pages, it will "
 "automatically run OCR. Once all the pages have been examined, it will "
@@ -1037,7 +1032,7 @@ msgstr ""
 "dieser Vorgang bei großen PDF-Dateien einige Minuten dauern kann."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:437
+#: data/usage.tex:438
 msgid ""
 "If the PDF is already part of your documents, Paperwork will simply ignore "
 "it."
@@ -1046,12 +1041,12 @@ msgstr ""
 "einfach ignoriert."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:440
+#: data/usage.tex:441
 msgid "Many PDFs in one shot"
 msgstr "Viele PDFs auf einen Schlag"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:445
+#: data/usage.tex:446
 msgid ""
 "When importing, if you select a folder, Paperwork will browse this folder "
 "and look for PDFs to import. Already-imported PDFs are simply ignored. "
@@ -1064,12 +1059,12 @@ msgstr ""
 "durchsucht (alle Ordner innerhalb des Ordners werden ebenfalls abgearbeitet)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:448
+#: data/usage.tex:449
 msgid "Labels"
 msgstr "Labels"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:464
+#: data/usage.tex:465
 msgid ""
 "There is currently one constraint in Paperwork: Each label must be on at "
 "least one document. Otherwise, when you will restart Paperwork, labels "
@@ -1080,12 +1075,12 @@ msgstr ""
 "Neustart von Paperwork verschwinden."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:467
+#: data/usage.tex:468
 msgid "Creating new labels"
 msgstr "Neue Labels erstellen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:475
+#: data/usage.tex:476
 msgid ""
 "You can click on the gray rectangle on the left side to pick the label "
 "color.  You can enter the label name in text field between the gray "
@@ -1096,7 +1091,7 @@ msgstr ""
 "dem grauen Rechteck und der Schaltfläche »+« eingeben."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:478
+#: data/usage.tex:479
 msgid ""
 "Once you click on the button \"+\", the label will be added to the current "
 "document."
@@ -1105,7 +1100,7 @@ msgstr ""
 "Dokument hinzugefügt."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:481
+#: data/usage.tex:482
 msgid ""
 "The label is actually added once you close document properties. Paperwork "
 "will then update its index accordingly."
@@ -1114,12 +1109,12 @@ msgstr ""
 "schließen. Paperwork wird dann seinen Index entsprechend aktualisieren."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:484
+#: data/usage.tex:485
 msgid "Setting labels on documents"
 msgstr "Labels für Dokumente setzen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:488
+#: data/usage.tex:489
 msgid ""
 "When you open document properties, the label list appears. On the left side "
 "of each label color, you have a button. This button allows you to add or "
@@ -1131,7 +1126,7 @@ msgstr ""
 "davon entfernen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:491
+#: data/usage.tex:492
 msgid ""
 "The changes are actually written on disk once you close the document "
 "properties. Paperwork will update its index accordinly."
@@ -1141,12 +1136,12 @@ msgstr ""
 "entsprechend aktualisieren."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:494
+#: data/usage.tex:495
 msgid "Modifying a label color"
 msgstr "Ändern der Labelfarbe"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:497
+#: data/usage.tex:498
 msgid ""
 "When you open document properties, you can click on a label color to change "
 "it. A dialog will let you pick the new color."
@@ -1156,7 +1151,7 @@ msgstr ""
 "auswählen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:501
+#: data/usage.tex:502
 msgid ""
 "Label color will actually be changed on disk when you close the document "
 "properties. Paperwork will then update the label on all the documents that "
@@ -1167,12 +1162,12 @@ msgstr ""
 "alle Dokumente, die es verwenden."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:504
+#: data/usage.tex:505
 msgid "Modifying a label name"
 msgstr "Ändern eines Labelnamens"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:507
+#: data/usage.tex:508
 msgid ""
 "When you open document properties, you can click on a label string to change "
 "it. A dialog will let you type in the new name."
@@ -1182,7 +1177,7 @@ msgstr ""
 "eingeben."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:511
+#: data/usage.tex:512
 msgid ""
 "Label name will actually be changed on disk when you close the document "
 "properties. Paperwork will then update the label on all the documents that "
@@ -1193,12 +1188,12 @@ msgstr ""
 "alle Dokumente, die es verwenden, und indiziert sie dann alle neu."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:514
+#: data/usage.tex:515
 msgid "Deleting a label"
 msgstr "Löschen eines Labels"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:517
+#: data/usage.tex:518
 msgid ""
 "To the right of each label is white-on-black cross button. Clicking on it "
 "will allow you to delete a label."
@@ -1207,7 +1202,7 @@ msgstr ""
 "darauf klicken, können Sie das Label löschen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:520
+#: data/usage.tex:521
 msgid ""
 "Once you will close the document properties, the label will be removed from "
 "all the documents having it. Paperwork will then update its index "
@@ -1218,7 +1213,7 @@ msgstr ""
 "seinen Index entsprechend aktualisieren."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:523
+#: data/usage.tex:524
 msgid ""
 "Beware: Once you have closed document properties, there is no way to put "
 "back the deleted label."
@@ -1227,12 +1222,12 @@ msgstr ""
 "Möglichkeit, das gelöschte Label wiederherzustellen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:526
+#: data/usage.tex:527
 msgid "Automatic label guessing"
 msgstr "Automatische Labelzuordnung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:531
+#: data/usage.tex:532
 msgid ""
 "Paperwork does use artificial intelligence. It uses a fairly simple method "
 "actually: \\href{https://en.wikipedia.org/wiki/Naive_Bayes_classifier}{Naive "
@@ -1246,7 +1241,7 @@ msgstr ""
 "als Spam/Nicht-Spam zu klassifizieren."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:537
+#: data/usage.tex:538
 msgid ""
 "Based on all the keywords in all your documents that have (or haven't) a "
 "label, it can estimate a probability that a document containing the same "
@@ -1261,7 +1256,7 @@ msgstr ""
 "Dokument beim Importieren oder Scannen automagisch mit dem Label versehen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:541
+#: data/usage.tex:542
 msgid ""
 "Of course, this approach means that Paperwork needs enough samples to work "
 "reliably. You can expect it to start working once you have about 100 "
@@ -1274,17 +1269,17 @@ msgstr ""
 "Dokumente oder mehr gesetzt sind)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:544
+#: data/usage.tex:545
 msgid "Searching"
 msgstr "Suchen"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:546
+#: data/usage.tex:547
 msgid "Simple search"
 msgstr "Einfache Suche"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:553
+#: data/usage.tex:554
 msgid ""
 "You simply enter keywords in the search field. In a few seconds, you will "
 "get all the documents containing those keywords."
@@ -1293,7 +1288,7 @@ msgstr ""
 "erhalten Sie alle Dokumente, die diese Schlüsselwörter enthalten."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:557
+#: data/usage.tex:558
 msgid ""
 "Paperwork does a \"fuzzy\" search: documents with keywords close to the one "
 "you gave but not identical are also returned (for instance, 'flech' instead "
@@ -1304,7 +1299,7 @@ msgstr ""
 "aber nicht identisch sind (z. B. »flech« statt »flesch«)."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:562
+#: data/usage.tex:563
 msgid ""
 "You can also use \\href{https://whoosh.readthedocs.io/en/latest/querylang."
 "html}{Whoosh query language} to make more complex queries. If you want "
@@ -1316,12 +1311,12 @@ msgstr ""
 "Dialog für die erweiterte Suche verwenden."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:565
+#: data/usage.tex:566
 msgid "Advanced search"
 msgstr "Erweiterte Suche"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:582
+#: data/usage.tex:583
 msgid ""
 "The advanced search dialog helps creating complex search queries. You can "
 "specify various criterias and once you click on the apply button, it will "
@@ -1335,17 +1330,17 @@ msgstr ""
 "aktualisiert."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:585
+#: data/usage.tex:586
 msgid "Viewing"
 msgstr "Anzeigen"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:591
+#: data/usage.tex:592
 msgid "Zoom level"
 msgstr "Zoomstufe"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:597
+#: data/usage.tex:598
 msgid ""
 "You can change the scale at which pages are displayed using this control."
 msgstr ""
@@ -1353,12 +1348,12 @@ msgstr ""
 "Seiten angezeigt werden."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:600
+#: data/usage.tex:601
 msgid "View pages as grid"
 msgstr "Seiten im Raster anordnen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:608
+#: data/usage.tex:609
 msgid ""
 "When clicking this button, Paperwork will try to display pages on 3 "
 "columns.  In this mode, you can drag'n'drop pages to move them inside the "
@@ -1369,12 +1364,12 @@ msgstr ""
 "innerhalb des Dokuments oder in ein anderes Dokument verschieben."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:611
+#: data/usage.tex:612
 msgid "View pages as list"
 msgstr "Seiten in Listenform anordnen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:619
+#: data/usage.tex:620
 msgid ""
 "When clicking this button, pages will be scaled so their width is the "
 "maximum width allowed by the main window. In this mode, you can select text "
@@ -1385,12 +1380,12 @@ msgstr ""
 "diesem Modus können Sie Text auf der Seite auswählen (und dann kopieren)."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:621
+#: data/usage.tex:622
 msgid "Highlight all words"
 msgstr "Alle Wörter hervorheben"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:629
+#: data/usage.tex:630
 msgid ""
 "This option allows to see quickly all the words identified by OCR. Sometimes "
 "(rarely) OCR misses entire chunk in a page. This option allow to see such "
@@ -1401,63 +1396,62 @@ msgstr ""
 "dieser Option können Sie solche Abschnitte schnell erkennen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:631
+#: data/usage.tex:632
 msgid "Moving pages"
 msgstr "Seiten verschieben"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:633
+#: data/usage.tex:634
 msgid "Inside a document"
 msgstr "Innerhalb eines Dokuments"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:635
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:644
+#: data/usage.tex:636 data/usage.tex:645
 msgid "You must display the document pages as a grid (See \\ref{layout:grid})."
 msgstr ""
 "Sie müssen die Dokumentseiten als Raster anordnen (siehe \\ref{layout:grid})."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:640
+#: data/usage.tex:641
 msgid ""
 "You can then grab a page (hold the left click button), drag it and drop it "
 "wherever you want in a document. While dragging, a blue marker will show you "
 "where the page would drop if you release the left click button of your mouse."
 msgstr ""
-"Dann können Sie eine Seite greifen (halten Sie die linke Maustaste gedrückt)"
-", ziehen und an einer beliebigen Stelle im Dokument ablegen. Während des "
-"Ziehens zeigt Ihnen eine blaue Markierung an, wo die Seite landen würde, "
-"wenn Sie die linke Maustaste loslassen."
+"Dann können Sie eine Seite greifen (halten Sie die linke Maustaste "
+"gedrückt), ziehen und an einer beliebigen Stelle im Dokument ablegen. "
+"Während des Ziehens zeigt Ihnen eine blaue Markierung an, wo die Seite "
+"landen würde, wenn Sie die linke Maustaste loslassen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:642
+#: data/usage.tex:643
 msgid "From a document to another"
 msgstr "Zwischen Dokumenten"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:647
+#: data/usage.tex:648
 msgid ""
 "You can then grab a page (hold the left click button), drag it and drop it "
 "in the document list, on the document in which you want the page to go."
 msgstr ""
-"Dann können Sie eine Seite greifen (halten Sie die linke Maustaste gedrückt)"
-", ziehen und in der Dokumentenliste auf dem Dokument ablegen, in dem die "
-"Seite erscheinen soll."
+"Dann können Sie eine Seite greifen (halten Sie die linke Maustaste "
+"gedrückt), ziehen und in der Dokumentenliste auf dem Dokument ablegen, in "
+"dem die Seite erscheinen soll."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:649
+#: data/usage.tex:650
 msgid "Copying text"
 msgstr "Text kopieren"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:655
+#: data/usage.tex:656
 msgid ""
 "You must display the document pages as a list (See \\ref{layout:paged})."
 msgstr ""
 "Sie müssen die Dokumentseiten als Liste anordnen (siehe \\ref{layout:paged})."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:658
+#: data/usage.tex:659
 msgid ""
 "You can then select text in a page. Hold the left click button to start "
 "selecting, mouse the mouse cursor to select more words, then release it."
@@ -1467,7 +1461,7 @@ msgstr ""
 "um weitere Wörter auszuwählen, und lassen Sie dann die Taste los."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:662
+#: data/usage.tex:663
 msgid ""
 "You can then copy the selected text, either by pressing Ctrl-C or by using "
 "the page menu at the bottom right of the main window. Once copied, you can "
@@ -1479,33 +1473,33 @@ msgstr ""
 "einfügen (Strg-V)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:664
+#: data/usage.tex:665
 msgid "Editing a page"
 msgstr "Eine Seite bearbeiten"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:670
+#: data/usage.tex:671
 msgid "Paperwork includes a very simple image editor. It provides 4 functions:"
 msgstr ""
 "Paperwork enthält einen sehr einfachen Bildeditor. Er bietet 4 Funktionen:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679
+#: data/usage.tex:680
 msgid "Cropping"
 msgstr "Zuschneiden"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679
+#: data/usage.tex:680
 msgid "Rotating the page by 90\\degree (can be rotated multiple times)"
 msgstr "Drehen der Seite um 90\\degree (es kann mehrfach gedreht werden)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679
+#: data/usage.tex:680
 msgid "Rotating the page by -90\\degree (can be rotated multiple times)"
 msgstr "Drehen der Seite um -90\\degree (es kann mehrfach gedreht werden)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:679
+#: data/usage.tex:680
 msgid ""
 "Automatic Color Equalization: An algorithm that adjust the image brightness, "
 "contrast and colors to make it as readable as possible."
@@ -1514,12 +1508,12 @@ msgstr ""
 "Kontrast und die Farben an, um das Bild so lesbar wie möglich zu machen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:681
+#: data/usage.tex:682
 msgid "Reseting a page"
 msgstr "Eine Seite zurücksetzen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:684
+#: data/usage.tex:685
 msgid ""
 "Reseting a page returns it to its state when it was scanned or imported, "
 "before any pre-processing did occur."
@@ -1529,7 +1523,7 @@ msgstr ""
 "stattfand."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:688
+#: data/usage.tex:689
 msgid ""
 "This can be helpful if you made a bad modification on the page (cropped a "
 "wrong area for instance), if the calibration settings weren't appropriate or "
@@ -1541,12 +1535,12 @@ msgstr ""
 "Vorverarbeitungsalgorithmen die Seite verkorkst haben."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:691
+#: data/usage.tex:692
 msgid "Deleting"
 msgstr "Löschen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:694
+#: data/usage.tex:695
 msgid ""
 "When deleting either documents or pages, they are actually moved in the "
 "trash bin of your computer."
@@ -1555,7 +1549,7 @@ msgstr ""
 "Papierkorb Ihres Computers verschoben."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:698
+#: data/usage.tex:699
 msgid ""
 "\\textbf{Important note regarding Flatpak:} A bug may prevent Paperwork from "
 "moving files to the trash (we are working on it). In that case, Paperwork "
@@ -1567,17 +1561,17 @@ msgstr ""
 "Wiederherstellung möglich)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:701
+#: data/usage.tex:702
 msgid "Exporting"
 msgstr "Exportieren"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:703
+#: data/usage.tex:704
 msgid "You can export both documents or single pages."
 msgstr "Sie können sowohl Dokumente als auch einzelne Seiten exportieren."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:707
+#: data/usage.tex:708
 msgid ""
 "In both cases, various transformations can be applied before actually "
 "exporting them. For instance, you can turn color pages into grayscale pages "
@@ -1589,17 +1583,17 @@ msgstr ""
 "die resultierende PDF-Datei kleiner wird)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:710
+#: data/usage.tex:711
 msgid "Printing"
 msgstr "Drucken"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:712
+#: data/usage.tex:713
 msgid "You can print both documents or single pages."
 msgstr "Sie können sowohl Dokumente als auch einzelne Seiten drucken."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:715
+#: data/usage.tex:716
 msgid ""
 "Beware that pages are always sent as images to your printer. So for very big "
 "documents, a few minutes may go by before the actual printing start."
@@ -1609,17 +1603,17 @@ msgstr ""
 "eigentliche Druckvorgang beginnt."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:718
+#: data/usage.tex:719
 msgid "Backup"
 msgstr "Sicherung"
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:720
+#: data/usage.tex:721
 msgid "Synchronisation between multiple computers"
 msgstr "Synchronisation zwischen mehreren Computern"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:726
+#: data/usage.tex:727
 msgid ""
 "While Paperwork is a personal document manager, it is not a file "
 "synchronization application. They are applications dedicated to file "
@@ -1634,7 +1628,7 @@ msgstr ""
 "OneDrive, SparkleShare, etc.) konzipiert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:733
+#: data/usage.tex:734
 msgid ""
 "When you start Paperwork, one of the first things it does is check the "
 "content of the work directory. It looks for any changes and updates its "
@@ -1651,12 +1645,12 @@ msgstr ""
 "das andere Paperwork diese Änderung beim Start automatisch übernehmen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:736
+#: data/usage.tex:737
 msgid "USB key / USB drive"
 msgstr "USB-Stick / USB-Platte"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:739
+#: data/usage.tex:740
 msgid ""
 "This is the simplest way to share documents. Simply copy your work directory "
 "to an USB key, tell Paperwork to use it, and you're done."
@@ -1666,7 +1660,7 @@ msgstr ""
 "es zu verwenden, und schon sind Sie fertig."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:741
+#: data/usage.tex:742
 msgid ""
 "Beware: You should backup your USB key from time to time on another one."
 msgstr ""
@@ -1674,12 +1668,12 @@ msgstr ""
 "Gerät sichern."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:744
+#: data/usage.tex:745
 msgid "File Synchronization applications"
 msgstr "Anwendungen zur Dateisynchronisation"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:750
+#: data/usage.tex:751
 msgid ""
 "Those applications synchronize a local directory with a remote server (or "
 "cloud). All the changes you do in your folder are applied on the server. All "
@@ -1690,11 +1684,11 @@ msgstr ""
 "entfernten Server (oder einer Cloud). Alle Änderungen, die Sie in Ihrem "
 "Ordner vornehmen, werden auch auf dem Server vorgenommen. Alle Änderungen, "
 "die auf dem Server angewenden wurden, werden auch auf allen verbundenen "
-"Computern angewendet. Der Server kann Ihnen oder einer anderen Person ("
-"normalerweise einer Firma) gehören."
+"Computern angewendet. Der Server kann Ihnen oder einer anderen Person "
+"(normalerweise einer Firma) gehören."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:754
+#: data/usage.tex:755
 msgid ""
 "Beware: If you choose to host your documents on someone else server "
 "(DropBox, OneDrive, etc), they can access all your documents. Paperwork does "
@@ -1705,7 +1699,7 @@ msgstr ""
 "Dokumente zugreifen. Paperwork verschlüsselt diese nicht."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:758
+#: data/usage.tex:759
 msgid ""
 "Paperwork is tested daily with Nextcloud. While this is not the easiest one "
 "to install, Nextcloud let you host your files yourself. There are other self-"
@@ -1717,7 +1711,7 @@ msgstr ""
 "SparkleShare, Syncthing, usw."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:761
+#: data/usage.tex:762
 msgid ""
 "Using DropBox or OneDrive can make sense if you're sharing not-so-"
 "confidential documents with others (associations, etc)."
@@ -1726,12 +1720,12 @@ msgstr ""
 "so vertrauliche Dokumente mit anderen teilen (Vereine usw.)."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:764
+#: data/usage.tex:765
 msgid "Shared folder"
 msgstr "Gemeinsamer Ordner"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:769
+#: data/usage.tex:770
 msgid ""
 "If all your computers are on the same network, you can share your work "
 "directory. However, be really careful regarding permissions.  Being too "
@@ -1745,7 +1739,7 @@ msgstr ""
 "Berechtigungen richtig einzustellen ist knifflig."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:772
+#: data/usage.tex:773
 msgid ""
 "Beware: Using a shared folder means having a single copy of your work "
 "directory. You should do regular backups of your work directory."
@@ -1755,18 +1749,17 @@ msgstr ""
 "Sicherungen Ihres Arbeitsverzeichnisses erstellen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:775
+#: data/usage.tex:776
 msgid "Encryption"
 msgstr "Verschlüsselung"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:777
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1024
+#: data/usage.tex:778 data/usage.tex:1049
 msgid "GNU/Linux"
 msgstr "GNU/Linux"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:779
+#: data/usage.tex:780
 msgid ""
 "GNU/Linux distributions include many tools to encrypt whole directories."
 msgstr ""
@@ -1774,7 +1767,7 @@ msgstr ""
 "Verzeichnisse."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:789
+#: data/usage.tex:790
 msgid ""
 "With Paperwork, there are 2 directories that should be encrypted to protect "
 "your privacy:"
@@ -1783,7 +1776,7 @@ msgstr ""
 "verschlüsselt werden:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:789
+#: data/usage.tex:790
 msgid ""
 "Your work directory (by default \\textasciitilde /papers, can be changed in "
 "the settings)"
@@ -1792,7 +1785,7 @@ msgstr ""
 "kann aber in den Einstellungen geändert werden)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:789
+#: data/usage.tex:790
 msgid ""
 "The cache directory (\\textasciitilde /.local/share/paperwork2, cannot be "
 "changed) (it contains index files from which the content of your documents "
@@ -1803,7 +1796,7 @@ msgstr ""
 "Dokumente teilweise wiederhergestellt werden könnte"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:793
+#: data/usage.tex:794
 msgid ""
 "Note that if you want to be sure that your data are always encrypted, it's "
 "recommended to encrypt your whole home directory or even your whole system "
@@ -1814,12 +1807,12 @@ msgstr ""
 "Ordner oder sogar Ihr gesamtes System zu verschlüsseln."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:795
+#: data/usage.tex:796
 msgid "cryptsetup"
 msgstr "cryptsetup"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:799
+#: data/usage.tex:800
 msgid ""
 "Most GNU/Linux distribution installer now provide an optio4n to encrypt your "
 "whole system or your whole /home with cryptsetup . This is the recommended "
@@ -1830,19 +1823,19 @@ msgstr ""
 "Dies ist die empfohlene Methode, um Ihre Dokumente zu schützen."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:801
+#: data/usage.tex:802
 msgid "Encfs"
 msgstr "Encfs"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:803
+#: data/usage.tex:804
 msgid "Encfs can also be used to create encrypted directories easily."
 msgstr ""
 "Zur einfachen Erstellung verschlüsselter Verzeichnisse kann auch encfs "
 "verwendet werden."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:807
+#: data/usage.tex:808
 msgid ""
 "Beware that Encfs seems to have some security weaknesses. So, while it's "
 "probably enough to prevent a laptop thief from accessing your documents, "
@@ -1855,7 +1848,7 @@ msgstr ""
 "die NSA oder die Polizei zu stoppen ;-)."
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:811
+#: data/usage.tex:812
 #, no-wrap
 msgid ""
 "$ encfs ~/.local/share/.paperwork2 ~/.local/share/paperwork2\n"
@@ -1865,7 +1858,7 @@ msgstr ""
 "$ encfs ~/.papers ~/papers"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:818
+#: data/usage.tex:819
 msgid ""
 "On Windows, you're strongly advised to enable BitLocker to protect your "
 "documents. If unavailable, there are other applications (Veracrypt, etc)."
@@ -1875,12 +1868,12 @@ msgstr ""
 "usw.)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:821
+#: data/usage.tex:822
 msgid "Keyboard shortcuts"
 msgstr "Tastenkürzel"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:832
+#: data/usage.tex:833
 msgid ""
 "Keyboard shortcuts can be seen by opening the application menu, selecting "
 "\"Help\" and then \"Shortcuts\"."
@@ -1889,32 +1882,32 @@ msgstr ""
 "»Hilfe« und dann »Tastenkürzel« wählen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:835
+#: data/usage.tex:836
 msgid "Paperwork's files locations"
 msgstr "Dateispeicherorte von Paperwork"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:844
+#: data/usage.tex:845
 msgid "By default:"
 msgstr "Voreingestellt:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:844
+#: data/usage.tex:845
 msgid "Configuration: \\textasciitilde /.config/paperwork2.conf"
 msgstr "Konfiguration: \\textasciitilde /.config/paperwork2.conf"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:844
+#: data/usage.tex:845
 msgid "Index: \\textasciitilde /.local/share/paperwork2"
 msgstr "Index: \\textasciitilde /.local/share/paperwork2"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:844
+#: data/usage.tex:845
 msgid "Documents: \\textasciitilde /papers"
 msgstr "Dokumente: \\textasciitilde /papers"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:844
+#: data/usage.tex:845
 msgid ""
 "(same paths are used on Windows; \\textasciitilde{} = C:\\textbackslash "
 "Users{[}login{]} ; folders are hidden)"
@@ -1923,7 +1916,7 @@ msgstr ""
 "\\textbackslash Users{[}login{]} ; Ordner sind ausgeblendet)"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:848
+#: data/usage.tex:849
 msgid ""
 "The index is always updated according based on the documents in the work "
 "directory. When Paperwork starts, the modification time of each file is used "
@@ -1934,27 +1927,27 @@ msgstr ""
 "verwendet, um Änderungen an den Dokumenten zu erkennen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:850
+#: data/usage.tex:851
 msgid "Work directory layout"
 msgstr "Innere Struktur des Arbeitsverzeichnisses"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:852
+#: data/usage.tex:853
 msgid "workdir$|$rootdir = \\textasciitilde /papers (by default)"
 msgstr "workdir$|$rootdir = \\textasciitilde /papers (voreingestellt)"
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:854
+#: data/usage.tex:855
 msgid "Global organisation"
 msgstr "Globale Struktur"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:856
+#: data/usage.tex:857
 msgid "In the work directory, you have folders, one per document."
 msgstr "Im Arbeitsverzeichnis gibt es pro Dokument einen separaten Ordner."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:860
+#: data/usage.tex:861
 msgid ""
 "The folder names are (usually) the scan/import date of the document: "
 "YYYYMMDD\\_hhmm\\_ss{[}\\_<idx>{]}. The suffix 'idx' is optional and is just "
@@ -1965,23 +1958,22 @@ msgstr ""
 "einfach eine Zahl, die im Falle einer Namenskollision hinzugefügt wird."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
+#: data/usage.tex:876
 msgid "In every folder you have:"
 msgstr "In jedem Ordner gibt es:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
+#: data/usage.tex:876
 msgid "For image documents:"
 msgstr "Für Bilddokumente:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
+#: data/usage.tex:876
 msgid "paper.$<$X$>$.jpg: The original page in JPG format (X starts at 1)"
 msgstr "paper.$<$X$>$.jpg: Die Originalseite im JPG-Format (X beginnt bei 1)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:876 data/usage.tex:893
 msgid ""
 "paper.$<$X$>$.edited.jpg (optional): The page as edited by the user (X "
 "starts at 1)"
@@ -1990,7 +1982,7 @@ msgstr ""
 "beginnt bei 1)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
+#: data/usage.tex:876
 msgid ""
 "paper.$<$X$>$.words (optional): A hOCR file, containing all the words found "
 "on the page using the OCR (optional, but required for indexing ; can be "
@@ -2001,7 +1993,7 @@ msgstr ""
 "erforderlich; kann mit der Option »OCR wiederholen« neu erzeugt werden)."
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
+#: data/usage.tex:876
 msgid ""
 "paper.1.thumb.jpg (optional, generated automatically): A thumbnail version "
 "of the page (faster to load)"
@@ -2010,8 +2002,7 @@ msgstr ""
 "Miniaturversion der Seite (lädt schneller)"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:876 data/usage.tex:893
 msgid ""
 "labels (optional): a text file containing the labels applied on this document"
 msgstr ""
@@ -2019,24 +2010,23 @@ msgstr ""
 "Labels enthält"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:875
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:876 data/usage.tex:893
 msgid "extra.txt (optional): extra keywords added by the user"
 msgstr ""
 "extra.txt (optional): Vom Benutzer hinzugefügte, zusätzliche Schlüsselwörter"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:893
 msgid "For PDF documents:"
 msgstr "Für PDF-Dokumente:"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:893
 msgid "doc.pdf: the document"
 msgstr "doc.pdf: Das Dokument"
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:893
 msgid ""
 "paper.$<$X$>$.words (optional): A hOCR file, containing all the words found "
 "on the page using the OCR. Some PDF contains crap instead of the real text, "
@@ -2048,13 +2038,13 @@ msgstr ""
 "sie anzuwenden."
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:893
 msgid "passwd.txt (optional): PDF password, if the PDF is password-protected."
 msgstr ""
 "passwd.txt (optional): PDF-Passwort, falls das PDF passwortgeschützt ist."
 
 #. type: itemize
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:892
+#: data/usage.tex:893
 msgid ""
 "doc.docx / doc.odt / ... (optional): Original file.  Converted into PDF (doc."
 "pdf) so Paperwork can parse and display it more quickly."
@@ -2063,12 +2053,12 @@ msgstr ""
 "pdf), damit Paperwork sie schneller verarbeiten und anzeigen kann."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:894
+#: data/usage.tex:895
 msgid "Here is an example a work directory organisation:"
 msgstr "Hier finden Sie ein Beispiel für eine Arbeitsverzeichnisorganisation:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:926
+#: data/usage.tex:927
 #, no-wrap
 msgid ""
 "$ find ~/papers\n"
@@ -2136,50 +2126,50 @@ msgstr ""
 "/home/jflesch/papers/20130520_1309_44/labels"
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:929
+#: data/usage.tex:930
 msgid "hOCR files"
 msgstr "hOCR-Dateien"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:931
+#: data/usage.tex:932
 msgid "With Tesseract, the hOCR file can be obtained with following command:"
 msgstr "Sie können die hOCR-Datei mit folgendem Befehl erhalten:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:933
+#: data/usage.tex:934
 #, no-wrap
 msgid "tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words"
 msgstr "tesseract paper.<X>.jpg paper.<X> -l <lang> hocr && mv paper.<X>.html paper.<X>.words"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:935
+#: data/usage.tex:936
 msgid "For example:"
 msgstr "Zum Beispiel:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:937
+#: data/usage.tex:938
 #, no-wrap
 msgid "tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words"
 msgstr "tesseract paper.1.jpg paper.1 -l fra hocr && mv paper.1.html paper.1.words"
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:940
+#: data/usage.tex:941
 msgid "Label files"
 msgstr "Label-Dateien"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:942
+#: data/usage.tex:943
 msgid "Here is an example of content of a label file:"
 msgstr "Beispiel für den Inhalt einer Label-Datei:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:944
+#: data/usage.tex:945
 #, no-wrap
 msgid "facture,#0000b1588c61 logement,#f6b6ffff0000"
 msgstr "Rechnung,#0000b1588c61 Wohnung,#f6b6ffff0000"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:947
+#: data/usage.tex:948
 msgid ""
 "It's always $[$label$]$,$[$color$]$. For a same label, the color should "
 "always be the same."
@@ -2188,12 +2178,57 @@ msgstr ""
 "immer gleich sein."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:950
+#: data/usage.tex:951
+msgid "Shell hooks"
+msgstr ""
+
+#. type: document
+#: data/usage.tex:955
+msgid ""
+"It is possible to have custom commands executed when some events happen.  "
+"Those hook can only be set using the command line interface, but they will "
+"be executed when using the GTK interface too."
+msgstr ""
+
+#. type: document
+#: data/usage.tex:958
+msgid ""
+"You can get a complete list of all the existing hooks by examining Paperwork "
+"configuration:"
+msgstr ""
+
+#. type: verbatim
+#: data/usage.tex:961
+#, no-wrap
+msgid "paperwork-cli config show | grep shell_hook"
+msgstr ""
+
+#. type: document
+#: data/usage.tex:964
+msgid "For instance, if you want a executed every time a document is added:"
+msgstr ""
+
+#. type: verbatim
+#: data/usage.tex:967
+#, no-wrap
+msgid "paperwork-cli config put shell_hook_on_doc_add str \"echo doc added:\""
+msgstr ""
+
+#. type: document
+#: data/usage.tex:972
+msgid ""
+"Some of those hooks may receive extra arguments when executed. For instance, "
+"the corresponding document ID is passed to shell\\_hook\\_on\\_doc\\_add, "
+"shell\\_hook\\_on\\_doc\\_del, and shell\\_hook\\_on\\_doc\\_upd."
+msgstr ""
+
+#. type: section{#2}
+#: data/usage.tex:975
 msgid "Getting support"
 msgstr "Unterstützung bekommen"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:953
+#: data/usage.tex:978
 msgid ""
 "A forum dedicated to Paperwork exists: \\href{https://forum.openpaper.work}"
 "{https://forum.openpaper.work}."
@@ -2202,16 +2237,16 @@ msgstr ""
 "{https://forum.openpaper.work}."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:956
+#: data/usage.tex:981
 msgid ""
 "There is also an IRC channel for live discussions: \\href{https://web.libera."
 "chat/}{Liberachat}, channel \\#paperwork"
 msgstr ""
-"Es gibt auch einen IRC-Kanal für Live-Diskussionen: \\href{https://web.libera"
-".chat/}{Liberachat}, channel \\#paperwork"
+"Es gibt auch einen IRC-Kanal für Live-Diskussionen: \\href{https://web."
+"libera.chat/}{Liberachat}, channel \\#paperwork"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:959
+#: data/usage.tex:984
 msgid ""
 "If you have questions regarding Paperwork or simply want to chat, those are "
 "the places to go."
@@ -2220,12 +2255,12 @@ msgstr ""
 "nur plaudern wollen."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:961
+#: data/usage.tex:986
 msgid "Reporting issues"
 msgstr "Probleme melden"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:964
+#: data/usage.tex:989
 msgid ""
 "If you noticed a bug in Paperwork (and you are sure it's a bug), you can "
 "make a bug report."
@@ -2234,12 +2269,12 @@ msgstr ""
 "dass es ein Fehler ist), können Sie einen Fehlerbericht erstellen."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:966
+#: data/usage.tex:991
 msgid "Bug Tracker"
 msgstr "Fehlerverfolgung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:969
+#: data/usage.tex:994
 msgid ""
 "One way to create bug reports is to create tickets on \\href{https://gitlab."
 "gnome.org/World/OpenPaperwork/paperwork/issues}{Paperwork bug tracker: "
@@ -2251,7 +2286,7 @@ msgstr ""
 "paperwork/issues}."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:972
+#: data/usage.tex:997
 msgid ""
 "This is the recommended way to submit a bug report if you would like to "
 "discuss it with Paperwork developpers."
@@ -2260,7 +2295,7 @@ msgstr ""
 "ihn mit den Entwicklern von Paperwork besprechen möchten."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:975
+#: data/usage.tex:1000
 msgid ""
 "To make sure you include all the required informations, you can use the tool "
 "integrated in Paperwork (see below)."
@@ -2269,12 +2304,12 @@ msgstr ""
 "können Sie das in Paperwork integrierte Werkzeug verwenden (siehe unten)."
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:978
+#: data/usage.tex:1003
 msgid "Automatic bug report"
 msgstr "Automatischer Fehlerbericht"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:985
+#: data/usage.tex:1010
 msgid ""
 "Paperwork includes a tool to make reporting bugs easier. It allows you to "
 "get easily all the required information to make a perfect bug report."
@@ -2285,7 +2320,7 @@ msgstr ""
 "erstellen."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:989
+#: data/usage.tex:1014
 msgid ""
 "All attachments are automatically censored to protect your privacy: Document "
 "contents are blurred in screenshots and logs are censored to remove your "
@@ -2296,16 +2331,16 @@ msgstr ""
 "Protokolldateien werden durch Entfernen Ihres Benutzernamens anonymisiert."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:992
+#: data/usage.tex:1017
 msgid ""
 "If the bug you want to report is related to scanners, please include "
 "\"Scanner info.\" in the bug report files."
 msgstr ""
-"Falls der zu meldende Fehler mit Scannern zusammenhängt, fügen Sie bitte »"
-"Scanner info.« in den Fehlerbericht ein."
+"Falls der zu meldende Fehler mit Scannern zusammenhängt, fügen Sie bitte "
+"»Scanner info.« in den Fehlerbericht ein."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:995
+#: data/usage.tex:1020
 msgid ""
 "If te bug you want to report is related to a display problem, please include "
 "\"App. screenshots\" in the bug report files."
@@ -2314,12 +2349,12 @@ msgstr ""
 "fügen Sie den Fehlerberichtsdateien bitte »App. screenshots« bei."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:998
+#: data/usage.tex:1023
 msgid "ZIP file"
 msgstr "ZIP-Datei"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1002
+#: data/usage.tex:1027
 msgid ""
 "You can then obtain a ZIP file with all the data. Please make sure the "
 "content of the ZIP file does not contain private information (it shouldn't, "
@@ -2332,12 +2367,12 @@ msgstr ""
 "Datei einem Ticket auf Gitlab beifügen."
 
 #. type: subsubsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1005
+#: data/usage.tex:1030
 msgid "Automatic submission"
 msgstr "Automatische Übertragung"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1009
+#: data/usage.tex:1034
 msgid ""
 "You can also let the tool submit the bug report to openpaper.work "
 "automatically. In that case, you won't be able to discuss the bug with "
@@ -2349,7 +2384,7 @@ msgstr ""
 "zur Kontaktaufnahme mit Ihnen hinterlassen)."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1016
+#: data/usage.tex:1041
 msgid ""
 "If you use the automatic submission , the tool will give you an URL to see "
 "the submitted bug report. This URL is private and shouldn't be shared until "
@@ -2368,12 +2403,12 @@ msgstr ""
 "derjenige sind, der den Fehlerbericht eingereicht hat)."
 
 #. type: section{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1019
+#: data/usage.tex:1044
 msgid "Uninstalling"
 msgstr "Deinstallation"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1022
+#: data/usage.tex:1047
 msgid ""
 "Paperwork can be uninstalled. Uninstalling Paperwork \\emph{will never} "
 "remove your work directory or your documents."
@@ -2382,7 +2417,7 @@ msgstr ""
 "werden Ihr Arbeitsverzeichnis oder Ihre Dokumente niemals entfernt."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1028
+#: data/usage.tex:1053
 msgid ""
 "If you installed Paperwork using the package manager from your distribution "
 "(the recommended way), the uninstallation method depends on the package "
@@ -2392,7 +2427,7 @@ msgstr ""
 "(der empfohlene Weg), hängt die Deinstallationsmethode vom Paketmanager ab."
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1031
+#: data/usage.tex:1056
 msgid ""
 "For instance, on GNU/Linux Debian or GNU/Linux Ubuntu, the following command "
 "will take care of it:"
@@ -2401,31 +2436,31 @@ msgstr ""
 "folgender Befehl darum:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1034
+#: data/usage.tex:1059
 #, no-wrap
 msgid "sudo apt remove --purge paperwork-\\*"
 msgstr "sudo apt remove --purge paperwork-\\*"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1037
+#: data/usage.tex:1062
 msgid "If you installed it using Flatpak, you can use the following command:"
 msgstr ""
 "Wenn Sie es mit Flatpak installiert haben, können Sie den folgenden Befehl "
 "verwenden:"
 
 #. type: verbatim
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1040
+#: data/usage.tex:1065
 #, no-wrap
 msgid "flatpak --user uninstall work.openpaper.Paperwork"
 msgstr "flatpak --user uninstall work.openpaper.Paperwork"
 
 #. type: subsection{#2}
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1043
+#: data/usage.tex:1068
 msgid "Windows 10"
 msgstr "Windows 10"
 
 #. type: document
-#: /home/jflesch/git/paperwork/paperwork-gtk/src/paperwork_gtk/model/help/data/usage.tex:1047
+#: data/usage.tex:1072
 msgid ""
 "Paperwork can be uninstalled as any Windows applications, by going in "
 "Windows Control Panel, clicking on \"Applications\", finding Paperwork in "

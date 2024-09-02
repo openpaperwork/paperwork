@@ -947,6 +947,30 @@ It's always $[$label$]$,$[$color$]$. For a same label, the color should
 always be the same.
 
 
+\section{Shell hooks}
+
+It is possible to have custom commands executed when some events happen.
+Those hook can only be set using the command line interface, but they
+will be executed when using the GTK interface too.
+
+You can get a complete list of all the existing hooks by examining Paperwork
+configuration:
+
+\begin{verbatim}
+paperwork-cli config show | grep shell_hook
+\end{verbatim}
+
+For instance, if you want a executed every time a document is added:
+
+\begin{verbatim}
+paperwork-cli config put shell_hook_on_doc_add str "echo doc added:"
+\end{verbatim}
+
+Some of those hooks may receive extra arguments when executed. For instance,
+the corresponding document ID is passed to shell\_hook\_on\_doc\_add,
+shell\_hook\_on\_doc\_del, and shell\_hook\_on\_doc\_upd.
+
+
 \section{Getting support}
 
 A forum dedicated to Paperwork exists:

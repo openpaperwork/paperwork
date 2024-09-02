@@ -13,7 +13,7 @@ l10n_extract:
 
 l10n_compile: l10n_extract
 
-out/%.tex:
+out/%.tex: data/intro.tex data/usage.tex
 	rm -f out/*.tex
 	cp data/intro.tex out/intro.tex
 	cp data/usage.tex out/usage.tex

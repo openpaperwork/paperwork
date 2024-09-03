@@ -1,42 +1,17 @@
-try:
-    import fabulous.color
-    FABULOUS_AVAILABLE = True
-except (ValueError, ImportError):
-    FABULOUS_AVAILABLE = False
-
 import openpaperwork_core
 
+import rich.style
 import rich.text
 
 
 def color_labels(core, labels):
-    labels = [
-        (label, core.call_success("label_color_to_rgb", color))
-        for (label, color) in labels
-    ]
-    labels = [
-        (label, (
-            int(color[0] * 0xFF),
-            int(color[1] * 0xFF),
-            int(color[2] * 0xFF)
-        ))
-        for (label, color) in labels
-    ]
-
-    for (label, bg_color) in labels:
-        fg_color = core.call_success(
-            "label_get_foreground_color",
-            (
-                bg_color[0] / 0xFF,
-                bg_color[1] / 0xFF,
-                bg_color[2] / 0xFF,
-            )
-        )
-        fg_color = (fg_color[0] * 0xFF, fg_color[1] * 0xFF, fg_color[2] * 0xFF)
-        l_label = len(label)
-        label = fabulous.color.fg256(fg_color, label)
-        label = fabulous.color.bg256(bg_color, label)
-        yield (l_label, str(label))
+    for label, color in labels:
+        bg_color = core.call_success("label_color_to_rgb", color)
+        fg_color = core.call_success("label_get_foreground_color", bg_color)
+        style = rich.style.Style(color='#%02x%02x%02x' % tuple(int(c * 0xFF) for c in fg_color),
+                                 bgcolor='#%02x%02x%02x' % tuple(int(c * 0xFF) for c in bg_color))
+        label = rich.text.Text(label, style=style)
+        yield label
 
 
 class LabelsRenderer(object):
@@ -50,16 +25,9 @@ class LabelsRenderer(object):
         return labels
 
     def _rearrange_labels(self, labels, terminal_width):
-        out = []
-        line = ""
-        for (len_label, label) in labels:
-            if len(line) + len_label + 1 >= terminal_width:
-                out.append(line)
-                line = ""
-            line += " " + label
-        if len(line.strip()) > 0:
-            out.append(line)
-        return [line.strip() for line in out]
+        text = rich.text.Text(" ").join(labels)
+        text = text.wrap(None, terminal_width)
+        return text
 
     def get_preview_output(
                 self, doc_id, doc_url, terminal_size=(80, 25),
@@ -70,15 +38,14 @@ class LabelsRenderer(object):
             out = self.parent.get_preview_output(
                 doc_id, doc_url, terminal_size, page_idx
             )
-        if not FABULOUS_AVAILABLE:
-            return out
         if page_idx != 0:
             return out
 
         labels = self._get_labels(doc_url)
         labels = color_labels(self.core, labels)
         labels = self._rearrange_labels(labels, terminal_size[0])
-        return labels + out
+        labels.append(rich.text.Text("\n").join([rich.text.Text.from_ansi(line) for line in out]))
+        return labels
 
     def get_doc_output(self, doc_id, doc_url, terminal_size=(80, 25)):
         out = []
@@ -86,13 +53,12 @@ class LabelsRenderer(object):
             out = self.parent.get_doc_output(
                 doc_id, doc_url, terminal_size
             )
-        if not FABULOUS_AVAILABLE:
-            return out
 
         labels = self._get_labels(doc_url)
         labels = color_labels(self.core, labels)
         labels = self._rearrange_labels(labels, terminal_size[0])
-        return labels + out
+        labels.append(rich.text.Text("\n").join([rich.text.Text.from_ansi(line) for line in out]))
+        return labels
 
     def get_page_output(
                 self, doc_id, doc_url, page_nb, terminal_size=(80, 25)
@@ -138,15 +104,8 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
 
     def format_labels(self, labels, separator='\n'):
-        if FABULOUS_AVAILABLE:
-            labels = color_labels(self.core, labels)
-            labels = [label for (l_label, label) in labels]
-            labels = separator.join(labels)
-            labels = rich.text.Text.from_ansi(labels)
-        else:
-            labels = [label for (label, color) in labels]
-            labels = separator.join(labels)
-        return labels
+        labels = color_labels(self.core, labels)
+        return rich.text.Text(separator).join(labels)
 
     def doc_renderer_get(self, out):
         r = LabelsRenderer(self.core)

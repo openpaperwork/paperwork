@@ -58,20 +58,6 @@
             ]
         },
         {
-            "name": "python-fabulous",
-            "buildsystem": "simple",
-            "build-commands": [
-                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"fabulous\""
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/ec/b3/38ce860b1abeb58b998db83a244239dd716308499e359fa077b0a4d0d244/fabulous-0.4.0.tar.gz",
-                    "sha256": "d9cee8a97e0d0eea835994394b6053f84fd6120a48779dbc533c5e6812352c84"
-                }
-            ]
-        },
-        {
             "name": "python-pillow",
             "buildsystem": "simple",
             "build-commands": [
@@ -164,6 +150,20 @@
                     "type": "file",
                     "url": "https://files.pythonhosted.org/packages/87/67/a37f6214d0e9fe57f6ae54b2956d550ca8365857f42a1ce0392bb21d9410/rich-13.7.1-py3-none-any.whl",
                     "sha256": "4edbae314f59eb482f54e9e30bf00d33350aaa94f4bfcd4e9e3110e64d0d7222"
+                }
+            ]
+        },
+        {
+            "name": "python3-rich-pixels",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"rich-pixels\""
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/08/72/7264494bc0944db1166b73c88f19d9ddfc584dbbc77c210cd0f52f59c511/rich_pixels-3.0.1-py3-none-any.whl",
+                    "sha256": "e82c5aa0d00885609675494f16e1ef814c68fa795634f1d6917cae9159b755e1"
                 }
             ]
         },

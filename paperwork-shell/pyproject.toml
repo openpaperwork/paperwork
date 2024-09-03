@@ -12,8 +12,8 @@ dependencies = [
   "openpaperwork-core",
   "paperwork-backend",
 
-  "fabulous",
   "rich",
+  "rich-pixels",
 ]
 
 [project.optional-dependencies]

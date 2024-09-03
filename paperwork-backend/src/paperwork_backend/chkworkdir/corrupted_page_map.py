@@ -60,7 +60,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
             page_map_url = self.core.call_success(
                 "fs_join", doc_url,
-                paperwork_backend.model.pdf.PdfPageMapping.MAPPING_FILE
+                paperwork_backend.model.pdf.MAPPING_FILE
             )
             if not self.core.call_success("fs_exists", page_map_url):
                 continue

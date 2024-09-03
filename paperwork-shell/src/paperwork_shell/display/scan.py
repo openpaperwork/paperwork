@@ -106,7 +106,7 @@ class Plugin(openpaperwork_core.PluginBase):
             shutil.get_terminal_size()[1]
         )
         ratio = scan_params.get_width() / self.terminal_size[0]
-        # When Fabulous resizes an image to turn it into terminal characters,
+        # When rich-pixels resizes an image to turn it into terminal characters,
         # it assumes that each characters is 1 pixel wide and 2 pixels high.
         self.txt_line_height = int(2 * ratio) + 1
 

@@ -58,20 +58,6 @@
             ]
         },
         {
-            "name": "python-fabulous",
-            "buildsystem": "simple",
-            "build-commands": [
-                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"fabulous\""
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/ec/b3/38ce860b1abeb58b998db83a244239dd716308499e359fa077b0a4d0d244/fabulous-0.4.0.tar.gz",
-                    "sha256": "d9cee8a97e0d0eea835994394b6053f84fd6120a48779dbc533c5e6812352c84"
-                }
-            ]
-        },
-        {
             "name": "python-pillow",
             "buildsystem": "simple",
             "build-commands": [

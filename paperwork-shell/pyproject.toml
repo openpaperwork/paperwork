@@ -12,7 +12,6 @@ dependencies = [
   "openpaperwork-core",
   "paperwork-backend",
 
-  "fabulous",
   "rich",
   "rich-pixels",
 ]

@@ -1,12 +1,4 @@
-try:
-    # Fabulous is available and installed on GNU/Linux systems, but not on
-    # Windows. Still this command can be called on Windows systems using
-    # "paperwork-json"
-    import fabulous
-    import fabulous.color
-    FABULOUS_AVAILABLE = True
-except (ImportError, ValueError):
-    FABULOUS_AVAILABLE = False
+import rich.text
 
 import openpaperwork_core
 import openpaperwork_core.cmd.util
@@ -40,13 +32,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
     @staticmethod
     def _color(color):
-        assert FABULOUS_AVAILABLE
-        color = "#%1X%1X%1X" % (
-            int(color[0] * 0xF),
-            int(color[1] * 0xF),
-            int(color[2] * 0xF),
+        color = "#%02X%02X%02X" % (
+            int(color[0] * 0xFF),
+            int(color[1] * 0xFF),
+            int(color[2] * 0xFF),
         )
-        return fabulous.color.bg256(color, "  ") + " "
+        return rich.text.Text("  ", rich.style.Style(bgcolor=color)) + " "
 
     def cmd_run(self, console, args):
         if args.command != 'chkworkdir':
@@ -77,12 +68,14 @@ class Plugin(openpaperwork_core.PluginBase):
 
             console.print("[{}]".format(problem['problem']))
             console.print(
-                _("- Problem: ") + problem_color +
-                problem['human_description']['problem']
+                rich.text.Text.from_ansi(_("- Problem: ")) +
+                problem_color +
+                rich.text.Text.from_ansi(problem['human_description']['problem'])
             )
             console.print(
-                _("- Possible solution: ") + solution_color +
-                problem['human_description']['solution']
+                rich.text.Text.from_ansi(_("- Possible solution: ")) +
+                solution_color +
+                rich.text.Text.from_ansi(problem['human_description']['solution'])
             )
             console.print("")
 

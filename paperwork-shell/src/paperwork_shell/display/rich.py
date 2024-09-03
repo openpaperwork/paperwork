@@ -43,10 +43,8 @@ class Plugin(openpaperwork_core.PluginBase):
     def print_flush(self):
         if self.console is None:
             return None
-        output = rich.text.Text("\n").join([
-            rich.text.Text.from_ansi(line)
-            for line in self.output
-        ])
-        self.console.console.print(output)
+        for line in self.output:
+            richer = rich.text.Text.from_ansi(line) if isinstance(line, str) else line
+            self.console.console.print(richer)
         self.output = []
         return True

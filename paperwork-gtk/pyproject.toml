@@ -20,6 +20,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+doc = [
+]
 dev = [
   "pytest",
 ]

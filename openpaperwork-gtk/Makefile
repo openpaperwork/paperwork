@@ -17,6 +17,7 @@ build_c:
 version:
 
 doc: install_py
+	if ! pip list | grep sphinx ; then pip install .[doc] ; fi
 	$(MAKE) -C doc html
 
 doc/_build/html/index.html: doc
@@ -27,11 +28,11 @@ upload_doc: doc/_build/html/index.html
 	cd .. && ./ci/deliver_doc.sh ${CURDIR}/doc/_build/html openpaperwork_gtk
 
 check:
-	if ! hash flake8 ; then PIP_DEPS=[lint] $(MAKE) install_py ; fi
+	if ! hash flake8 ; then pip install .[lint] ; fi
 	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/openpaperwork_gtk
 
 test:
-	if ! hash pytest ; then PIP_DEPS=[dev] $(MAKE) install_py ; fi
+	if ! hash pytest ; then pip install .[dev] ; fi
 	python3 -m pytest -xv tests/
 
 linux_exe:

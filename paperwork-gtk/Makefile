@@ -33,11 +33,11 @@ data:
 	$(MAKE) -C src/paperwork_gtk/model/help data
 
 check:
-	if ! hash flake8 ; then PIP_DEPS=[lint] $(MAKE) install_py ; fi
+	if ! hash flake8 ; then pip install .[lint] ; fi
 	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_gtk
 
 test:
-	if ! hash pytest ; then PIP_DEPS=[dev] $(MAKE) install_py ; fi
+	if ! hash pytest ; then pip install .[dev] ; fi
 	python3 -m pytest -xv tests/
 
 windows_exe: install

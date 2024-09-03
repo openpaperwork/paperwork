@@ -15,6 +15,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+doc = [
+  "plantuml",
+  "sphinx",
+  "sphinxcontrib-plantuml",
+]
 dev = [
   "pytest",
 ]

@@ -16,6 +16,7 @@ build_py:
 build_c:
 
 doc: install_py
+	if ! pip list | grep sphinx ; then pip install .[doc] ; fi
 	$(MAKE) -C doc html
 
 doc/_build/html/index.html: doc
@@ -27,11 +28,11 @@ data:
 	$(MAKE) -C $(CURDIR)/src/paperwork_backend/authors data
 
 check:
-	if ! hash flake8 ; then PIP_DEPS=[lint] $(MAKE) install_py ; fi
+	if ! hash flake8 ; then pip install .[lint] ; fi
 	flake8 --append-config $(CURDIR)/.flake8 $(CURDIR)/src/paperwork_backend
 
 test:
-	if ! hash pytest ; then PIP_DEPS=[dev] $(MAKE) install_py ; fi
+	if ! hash pytest ; then pip install .[dev] ; fi
 	python3 -m pytest -xv tests/
 
 linux_exe:

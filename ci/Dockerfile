@@ -38,18 +38,8 @@ RUN apt-get update \
         pycodestyle \
         python3 \
         python3-dev \
-        python3-gi \
-        python3-importlib-metadata \
-        python3-pefile \
-        python3-pil \
         python3-pip \
-        python3-pkg-resources \
-        python3-recommonmark \
-        python3-scipy \
-        python3-sphinx \
-        python3-sphinxcontrib.plantuml \
         python3-virtualenv \
-        python3-wheel \
         rclone \
         squashfs-tools \
         strace \
@@ -76,6 +66,5 @@ RUN apt-get install --no-install-recommends -y -q \
         doxygen \
         graphviz \
         gtk-doc-tools \
-        plantuml \
         && apt-get clean
 

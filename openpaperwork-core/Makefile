@@ -84,6 +84,7 @@ install_c:
 
 uninstall_py:
 	pip3 uninstall -y openpaperwork-core
+	rm -f .installed
 
 uninstall_c:
 

@@ -109,6 +109,7 @@ install_c:
 
 uninstall_py:
 	pip3 uninstall -y paperwork
+	rm -f .installed
 
 uninstall_c:
 

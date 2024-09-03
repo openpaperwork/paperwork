@@ -5,6 +5,7 @@ fi
 
 make venv && \
 source venv/bin/activate && \
+pip install setuptools && \
 cd sub/libinsane && \
 source ./activate_test_env.sh && \
 cd ../.. && \

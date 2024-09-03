@@ -216,7 +216,7 @@ help:
 venv/bin/activate:
 	echo "Building virtual env"
 	make -C sub/libinsane build_c
-	virtualenv -p python3 --system-site-packages venv
+	virtualenv venv
 
 venv: venv/bin/activate
 

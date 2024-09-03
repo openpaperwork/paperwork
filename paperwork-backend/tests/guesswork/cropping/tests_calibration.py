@@ -25,17 +25,17 @@ class TestCropping(unittest.TestCase):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.config.fake")
         self.core.load("paperwork_backend.model.fake")
-        self.core.load("paperwork_backend.doctracker")
-        self.core.load("paperwork_backend.pagetracker")
+        self.core.load("paperwork_backend.sync.doctracker")
+        self.core.load("paperwork_backend.sync.pagetracker")
         self.core.load("paperwork_backend.guesswork.cropping.calibration")
 
         self.core.get_by_name(
-            "paperwork_backend.pagetracker"
+            "paperwork_backend.sync.pagetracker"
         ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
             self.tmp_paperwork_dir
         )
         self.core.get_by_name(
-            "paperwork_backend.doctracker"
+            "paperwork_backend.sync.doctracker"
         ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
             self.tmp_paperwork_dir
         )

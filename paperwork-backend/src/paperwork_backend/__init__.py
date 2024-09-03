@@ -45,7 +45,6 @@ DEFAULT_PLUGINS = (
         'paperwork_backend.docimport.pdf',
         'paperwork_backend.docscan.libinsane',
         'paperwork_backend.docscan.scan2doc',
-        'paperwork_backend.doctracker',
         # ACE is disabled by default: it's slow, and actually makes some scans
         # harder to read.
         # 'paperwork_backend.guesswork.color.libpillowfight',
@@ -70,12 +69,13 @@ DEFAULT_PLUGINS = (
         'paperwork_backend.model.thumbnail',
         'paperwork_backend.model.workdir',
         'paperwork_backend.pageedit.pageeditor',
-        'paperwork_backend.pagetracker',
         'paperwork_backend.pillow.pdf',
         'paperwork_backend.poppler.file',
         'paperwork_backend.poppler.memory',
         'paperwork_backend.pyocr',
         'paperwork_backend.shell_hooks',
         'paperwork_backend.sync',
+        'paperwork_backend.sync.doctracker',
+        'paperwork_backend.sync.pagetracker',
     ]
 )

@@ -37,8 +37,8 @@ class TestPyocr(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule)
         self.core.load("openpaperwork_core.config.fake")
         self.core.load("paperwork_backend.model.fake")
-        self.core.load("paperwork_backend.doctracker")
-        self.core.load("paperwork_backend.pagetracker")
+        self.core.load("paperwork_backend.sync.doctracker")
+        self.core.load("paperwork_backend.sync.pagetracker")
         self.core.load("paperwork_backend.guesswork.ocr.pyocr")
         self.core.init()
 

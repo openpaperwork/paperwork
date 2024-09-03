@@ -24,7 +24,7 @@ class TestPageTracker(unittest.TestCase):
 
         self.core._load_module("fake_module", FakeModule)
         self.core.load("paperwork_backend.model.fake")
-        self.core.load("paperwork_backend.pagetracker")
+        self.core.load("paperwork_backend.sync.pagetracker")
 
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"

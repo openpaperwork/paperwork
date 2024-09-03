@@ -11,7 +11,9 @@ import whoosh.sorting
 import openpaperwork_core
 import openpaperwork_core.util
 
-from .. import (_, sync)
+from paperwork_backend import _
+import paperwork_backend.sync
+import paperwork_backend.sync.doctracker
 
 
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +40,7 @@ class CustomFuzzySearch(whoosh.qparser.query.FuzzyTerm):
         )
 
 
-class WhooshTransaction(sync.BaseTransaction):
+class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
     """
     Transaction to apply on the index. Methods may be slow but they
     are thread-safe.
@@ -442,7 +444,7 @@ class Plugin(
         promise = promise.then(
             lambda: (
                 [
-                    sync.StorageDoc(self.core, doc[0], doc[1])
+                    paperwork_backend.sync.doctracker.ComparableDoc(self.core, doc[0], doc[1])
                     for doc in storage_all_docs
                 ],
                 get_index_docs()
@@ -456,10 +458,10 @@ class Plugin(
                 )]
             )
         )
-        promise = promise.then(lambda args: sync.Syncer(
+        promise = promise.then(lambda args: paperwork_backend.sync.doctracker.DocDiff(
             self.core, ["whoosh"], args[0], args[1], args[2]
         ))
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
-            self.core, lambda syncer: syncer.run()
+            self.core, lambda doc_diff: doc_diff.run()
         ))
         promises.append(promise)

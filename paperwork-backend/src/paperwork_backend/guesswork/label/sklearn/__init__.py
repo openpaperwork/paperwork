@@ -156,7 +156,7 @@ class Plugin(
             },
             {
                 'interface': 'doc_tracking',
-                'defaults': ['paperwork_backend.doctracker'],
+                'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
                 'interface': 'document_storage',

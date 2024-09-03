@@ -6,10 +6,13 @@ directory.
 
 import datetime
 import logging
+import time
 
 import openpaperwork_core
 
-from . import (_, sync)
+import paperwork_backend.sync
+from paperwork_backend import _
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +29,169 @@ CREATE_TABLES = [
 ID = "doctracker"
 
 
-class DocTrackerTransaction(sync.BaseTransaction):
+def diff_lists(list_old, list_new):
+    """
+    Returns a dictionary giving the differences between both lists.
+
+    Objects in the list must have 2 attributes:
+    - `key`
+    - `extra`
+    (see ComparableDoc for instance)
+
+    `key` values identify each object in both lists.
+    Comparisons are done on `key` + `extra`.
+
+    `list_old` will be unrolled immediately.
+
+    Arguments:
+        `list_old` -- [a, b, c, ...]
+        `list_new` -- [a, c_modified, d, ...]
+
+    Returns:
+        [
+            ('same', a.key),
+            ('del', b.key),
+            ('upd', c.key),
+            ('add', d.key),
+        ]
+
+        list_old + diff => list_new
+    """
+    list_old = {obj.key: obj for obj in list_old}
+    examined_new = set()
+
+    for obj_new in list_new:
+        examined_new.add(obj_new.key)
+
+        if obj_new.key not in list_old:
+            yield ('added', obj_new.key)
+            continue
+
+        obj_old = list_old[obj_new.key]
+        if obj_new.extra != obj_old.extra:
+            yield ('updated', obj_new.key)
+        else:
+            yield ('unchanged', obj_new.key)
+
+    for obj_old in list_old.values():
+        if obj_old.key not in examined_new:
+            yield ('deleted', obj_old.key)
+
+
+class ComparableDoc:
+    def __init__(self, core, doc_id, doc_url):
+        self.core = core
+        self.key = doc_id
+        self.doc_url = doc_url
+
+    def get_mtime(self):
+        mtime = self.core.call_success("doc_get_mtime_by_url", self.doc_url)
+        if mtime is None:
+            mtime = 0
+        return datetime.datetime.fromtimestamp(mtime)
+
+    extra = property(get_mtime)
+
+
+class DocDiff:
+    """
+    This object allows to compare mtimes progressively. It then calls
+    the methods `add_doc`, `del_doc`, `upd_doc` and `commit` on the given
+    transaction object.
+
+    Useful to handle calls to 'sync' (see interface 'syncable').
+    """
+    def __init__(self, core, names, new_all, old_all, transactions):
+        self.core = core
+        self.names = names
+        self.new_all = new_all
+        self.old_all = old_all
+        self.transactions = transactions
+        self.diff_generator = None
+        self.start = None
+        self.nb_compared = 0
+
+        self.work_dir_id = self.core.call_success("storage_get_id")
+
+    def get_promise(self):
+        return openpaperwork_core.promise.ThreadedPromise(
+            self.core, self.run
+        )
+
+    def run(self):
+        self.start = time.time()
+        self.diff_generator = diff_lists(self.old_all, self.new_all)
+
+        try:
+            for (action, key) in self.diff_generator:
+
+                current_work_dir = self.core.call_success("storage_get_id")
+                if self.work_dir_id != current_work_dir:
+                    LOGGER.warning(
+                        "%s: Work directory has changed during sync."
+                        " Cancelling transactions",
+                        self.names
+                    )
+                    for transaction in self.transactions:
+                        transaction.cancel()
+                    return
+
+                self.nb_compared += 1
+                if action != 'unchanged':
+                    LOGGER.info("Sync: %s, %s", action, key)
+                    for name in self.names:
+                        self.core.call_one(
+                            "mainloop_schedule", self.core.call_all,
+                            "on_sync", name, action, key
+                        )
+                if action == "added":
+                    for transaction in self.transactions:
+                        LOGGER.debug(
+                            "transaction.add_doc<%s>(%s)",
+                            transaction.add_doc, key
+                        )
+                        transaction.add_doc(key)
+                elif action == "updated":
+                    for transaction in self.transactions:
+                        LOGGER.debug(
+                            "transaction.upd_doc<%s>(%s)",
+                            transaction.upd_doc, key
+                        )
+                        transaction.upd_doc(key)
+                elif action == "deleted":
+                    for transaction in self.transactions:
+                        LOGGER.debug(
+                            "transaction.del_doc<%s>(%s)",
+                            transaction.del_doc, key
+                        )
+                        transaction.del_doc(key)
+                else:
+                    for transaction in self.transactions:
+                        LOGGER.debug(
+                            "transaction.unchanged_doc<%s>(%s)",
+                            transaction.unchanged_doc, key
+                        )
+                        transaction.unchanged_doc(key)
+
+            LOGGER.info("Sync: Committing ...")
+            for transaction in self.transactions:
+                transaction.commit()
+            LOGGER.info("Sync: Committed")
+            stop = time.time()
+            LOGGER.info(
+                "%s: Has compared %d objects in %.3fs",
+                self.names, self.nb_compared, stop - self.start
+            )
+        except Exception as exc:
+            LOGGER.error(
+                "%s: Fail to sync. Cancelling transactions",
+                self.names, exc_info=exc
+            )
+            for transaction in self.transactions:
+                transaction.cancel()
+
+
+class DocTrackerTransaction(paperwork_backend.sync.BaseTransaction):
     def __init__(self, plugin, total_expected=-1):
         super().__init__(plugin.core, total_expected)
         self.priority = -10000
@@ -248,7 +413,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = promise.then(self.sql.cursor)
         promise = promise.then(lambda cursor: (
             [
-                sync.StorageDoc(self.core, doc[0], doc[1])
+                ComparableDoc(self.core, doc[0], doc[1])
                 for doc in storage_all_docs
             ],
             [
@@ -271,7 +436,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 )
             ], key=lambda t: -1 * t.priority),
         ))
-        promise = promise.then(lambda args: sync.Syncer(
+        promise = promise.then(lambda args: DocDiff(
             self.core, names, args[0], args[1], args[2]
         ))
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(

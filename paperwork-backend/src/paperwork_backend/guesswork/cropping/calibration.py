@@ -126,11 +126,11 @@ class Plugin(openpaperwork_core.PluginBase):
             },
             {
                 'interface': 'doc_tracking',
-                'defaults': ['paperwork_backend.doctracker'],
+                'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
                 'interface': 'page_tracking',
-                'defaults': ['paperwork_backend.pagetracker'],
+                'defaults': ['paperwork_backend.sync.pagetracker'],
             },
             {
                 'interface': 'pillow',

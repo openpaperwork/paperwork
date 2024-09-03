@@ -15,10 +15,10 @@ class TestLabelGuesser(unittest.TestCase):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.config.fake")
         self.core.load("paperwork_backend.model.fake")
-        self.core.load("paperwork_backend.doctracker")
+        self.core.load("paperwork_backend.sync.doctracker")
         self.core.load("paperwork_backend.guesswork.label.sklearn")
         self.core.get_by_name(
-            "paperwork_backend.doctracker"
+            "paperwork_backend.sync.doctracker"
         ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
             self.tmp_bayes_dir
         )

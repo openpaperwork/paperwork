@@ -1,18 +1,11 @@
-import os
-import tempfile
-
-try:
-    import fabulous.image
-    # XXX(Jflesch): crappy workaround for an unmaintained library ...
-    fabulous.image.basestring = str
-    FABULOUS_AVAILABLE = True
-except (ValueError, ImportError):
-    FABULOUS_AVAILABLE = False
+import rich.layout
+import rich.padding
+import rich_pixels
 
 import openpaperwork_core
 
 
-class FabulousRenderer(object):
+class RichPixelsRenderer(object):
     def __init__(self, plugin):
         self.plugin = plugin
         self.core = plugin.core
@@ -35,22 +28,20 @@ class FabulousRenderer(object):
         thumbnail = self.core.call_success(
             "thumbnail_get_page", doc_url, page_idx
         )
-        if thumbnail is None:
-            thumbnail = []
-        else:
+        if thumbnail is not None:
             thumbnail = self.plugin.img_render(thumbnail, w_split)
+            parent = rich.padding.Padding(parent, (0, 0, 0, 1))
 
-        if len(parent) < len(thumbnail):
-            parent.extend([""] * (len(thumbnail) - len(parent)))
-        elif len(parent) > len(thumbnail):
-            parent = parent[:len(thumbnail)]
+        out = rich.layout.Layout()
+        out.split_row(
+            rich.layout.Layout(thumbnail, name="thumbnail"),
+            rich.layout.Layout(parent, name="parent"),
+        )
+        out["parent"].ratio = 2
 
-        out = [
-            (i + " " + t)
-            for (i, t) in zip(thumbnail, parent)
-        ]
+        out["thumbnail"].visible = bool(thumbnail)
 
-        return out
+        return [out]
 
     def get_doc_output(self, doc_id, doc_url, terminal_size=(80, 25)):
         out = []
@@ -60,9 +51,7 @@ class FabulousRenderer(object):
             )
         return out
 
-    def get_page_output(
-                self, doc_id, doc_url, page_nb, terminal_size=(80, 25)
-            ):
+    def get_page_output(self, doc_id, doc_url, page_nb, terminal_size=(80, 25)):
         parent_out = []
         if self.parent is not None:
             parent_out = self.parent.get_page_output(
@@ -71,10 +60,8 @@ class FabulousRenderer(object):
 
         img_url = self.core.call_success("page_get_img_url", doc_url, page_nb)
         img = self.core.call_success("url_to_pillow", img_url)
-        img = self.plugin.img_render(
-            img, terminal_width=(terminal_size[0] - 1)
-        )
-        return [img_url] + list(img) + [""] + parent_out
+        img = self.plugin.img_render(img, terminal_width=(terminal_size[0] - 1))
+        return [img_url, img, "", *parent_out]
 
     def get_doc_infos(self, doc_id, doc_url):
         out = {}
@@ -124,25 +111,12 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
 
     def doc_renderer_get(self, out):
-        if not FABULOUS_AVAILABLE:
-            return
-        r = FabulousRenderer(self)
+        r = RichPixelsRenderer(self)
         if len(out) > 0:
             r.parent = out[-1]
         out.append(r)
 
     def img_render(self, img, terminal_width=80):
-        if not FABULOUS_AVAILABLE:
-            return
-        with tempfile.NamedTemporaryFile(
-                    prefix='paperwork-shell', suffix='.jpeg',
-                    delete=False
-                ) as fd:
-            img.save(fd, format="JPEG")
-            img_file = fd.name
-        try:
-            img = fabulous.image.Image(img_file, width=terminal_width)
-            img = img.reduce(img.convert())
-        finally:
-            os.unlink(img_file)
-        return list(img)
+        height = int(terminal_width * img.size[1] / img.size[0])
+        img = rich_pixels.Pixels.from_image(img, resize=(terminal_width, height))
+        return img

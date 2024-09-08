@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2024-03-30 13:16+0000\n"
+"PO-Revision-Date: 2024-09-08 13:12+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-backend/de/>\n"
@@ -248,7 +248,7 @@ msgstr "Label-Bestimmer: Dokument %s wurde gelöscht"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/util.py:633
 msgid "Committing changes for label guessing ..."
-msgstr ""
+msgstr "Änderungen für Label-Bestimmer werden eingebracht …"
 
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/util.py:694
 #: paperwork-backend/src/paperwork_backend/guesswork/label/sklearn/util.py:750
@@ -416,7 +416,7 @@ msgstr "Dokument %s ist kein Verzeichnis"
 #: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:55
 #, python-format
 msgid "Turn %s into <YYYYMMDD_hhmm_ss>/doc.pdf"
-msgstr ""
+msgstr "»%s« zu <JJJJMMTT_hhmm_ss/doc.pdf> umwandeln"
 
 #: paperwork-backend/src/paperwork_backend/chkworkdir/file_at_workdir_root.py:88
 #, python-format

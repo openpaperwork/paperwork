@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2024-03-30 13:30+0000\n"
+"PO-Revision-Date: 2024-09-08 13:12+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk/de/>\n"
@@ -305,7 +305,7 @@ msgstr "Neues Dokument"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:290
 msgid "Please select the next export step"
-msgstr ""
+msgstr "Bitte wählen Sie den nächsten Export-Schritt"
 
 #: paperwork-gtk/src/paperwork_gtk/mainwindow/exporter/__init__.py:420
 #, python-format
@@ -475,7 +475,7 @@ msgstr "Dokument löschen"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/doc/copy.py:40
 msgid "Duplicate document"
-msgstr ""
+msgstr "Dokument duplizieren"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_about.py:45
 msgid "About"
@@ -492,7 +492,7 @@ msgstr "Einstellungen"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/new_window.py:45
 msgid "New window"
-msgstr ""
+msgstr "Neues Fenster"
 
 #: paperwork-gtk/src/paperwork_gtk/menus/app/open_shortcuts.py:45
 msgid "Shortcuts"

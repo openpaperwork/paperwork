@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2024-03-30 13:30+0000\n"
+"PO-Revision-Date: 2024-09-08 13:12+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-shell/de/>\n"
@@ -558,7 +558,7 @@ msgstr "Nummer der Zielseite"
 
 #: paperwork-shell/src/paperwork_shell/cmd/copy.py:46
 msgid "Copy a document"
-msgstr ""
+msgstr "Ein Dokument kopieren"
 
 #: paperwork-shell/src/paperwork_shell/cmd/extra_text.py:36
 msgid "Manage additional text attached to documents"

@@ -5,6 +5,7 @@ Welcome to Paperwork-Backend's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   sync
 
 
 Indices and tables

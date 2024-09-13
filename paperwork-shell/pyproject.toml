@@ -10,6 +10,7 @@ readme = {file = "README.markdown", content-type = "text/markdown"}
 
 dependencies = [
   "openpaperwork-core",
+  "openpaperwork-gtk",  # mainly for Poppler (GLib)
   "paperwork-backend",
 
   "rich",

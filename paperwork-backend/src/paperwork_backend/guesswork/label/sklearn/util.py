@@ -682,7 +682,7 @@ def _load_classifiers(plugin, model_path, cursor, vectorizer):
                 (reductor, classifiers) = pickle.load(fd)
             return (reductor, classifiers)
         except Exception as exc:
-            LOGGER.error("Failed to load pre-tained model: %s. Retraining", repr(exc), exc_info=exc)
+            LOGGER.error("Failed to load pre-trained model: %s. Retraining", repr(exc), exc_info=exc)
 
     LOGGER.info("Pre-trained model not available. Re-training one")
 

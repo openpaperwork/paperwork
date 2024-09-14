@@ -676,10 +676,13 @@ def _reload_label_guessers(plugin):
 
 def _load_classifiers(plugin, model_path, cursor, vectorizer):
     if os.path.exists(model_path):
-        with open(model_path, "rb") as fd:
-            LOGGER.info("Pre-trained model available. Using it")
-            (reductor, classifiers) = pickle.load(fd)
-        return (reductor, classifiers)
+        try:
+            with open(model_path, "rb") as fd:
+                LOGGER.info("Pre-trained model available. Using it")
+                (reductor, classifiers) = pickle.load(fd)
+            return (reductor, classifiers)
+        except Exception as exc:
+            LOGGER.error("Failed to load pre-tained model: %s. Retraining", repr(exc), exc_info=exc)
 
     LOGGER.info("Pre-trained model not available. Re-training one")
 

@@ -99,6 +99,11 @@ class Plugin(PluginBase):
             return self.core.call_success(
                 "pillow_get_error", "too_big"
             )
+        except Exception as exc:
+            LOGGER.warning("Image %s corrupted", file_url, exc_info=exc)
+            return self.core.call_success(
+                "pillow_get_error", "invalid"
+            )
         finally:
             self.core.call_all("on_perfcheck_stop", task, size=size)
 

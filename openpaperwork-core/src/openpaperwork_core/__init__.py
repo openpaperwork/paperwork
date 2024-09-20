@@ -31,6 +31,7 @@ MINIMUM_CONFIG_PLUGINS = [
 
 
 RECOMMENDED_PLUGINS = [
+    'openpaperwork_core.crypto.certificates.selfsigned',
     'openpaperwork_core.external_apps.dbus',
     'openpaperwork_core.external_apps.windows',
     'openpaperwork_core.external_apps.xdg',

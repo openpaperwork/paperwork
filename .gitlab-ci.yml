@@ -184,10 +184,11 @@ deploy_linux_appimage:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-nsis-nsisunz
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-poppler
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-cairo
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-cryptography
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-cx-freeze
-    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-psutil
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pillow
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-pip
+    - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-psutil
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-scikit-learn
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-setuptools
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-python-six

@@ -158,7 +158,7 @@ deploy_linux_appimage:
 
 .base_windows: &base_windows
   variables:
-    MSYSTEM: "MINGW64"
+    MSYSTEM: "UCRT64"
     CHERE_INVOKING: "yes"
     RUNNER_AFTER_SCRIPT_TIMEOUT: 30m
   before_script:
@@ -208,9 +208,9 @@ deploy_linux_appimage:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule init"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && git submodule update --recursive --remote"
     # libinsane is not a Python library and therefore is installed system-wide
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/mingw64 || true"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane uninstall PREFIX=/ucrt64 || true"
     # actual install
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane install PREFIX=/mingw64"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && make -C sub/libinsane install PREFIX=/ucrt64"
     - c:\msys64\usr\bin\bash -lc "virtualenv --system-site-packages /tmp/venv"
     # Workaround for pycountry and Cx_freeze
     # See https://github.com/marcelotduarte/cx_Freeze/issues/930
@@ -238,7 +238,7 @@ tests_windows:
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-ocr
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-data-eng
     - c:\msys64\usr\bin\pacman --needed --noconfirm -S mingw-w64-ucrt-x86_64-tesseract-data-fra
-    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/mingw64/share/tessdata && make test"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && export TESSDATA_PREFIX=/ucrt64/share/tessdata && make install && make test"
 
 
 build_windows:

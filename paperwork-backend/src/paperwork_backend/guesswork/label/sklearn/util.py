@@ -237,7 +237,7 @@ class FeatureReductor(object):
         return numpy.delete(features, self.features_to_drop)
 
 
-class DummyFeatureReductor(object):
+class DummyFeatureReductor:
     def reduce_features(self, features):
         return features
 

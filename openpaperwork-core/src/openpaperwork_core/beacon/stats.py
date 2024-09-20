@@ -47,7 +47,7 @@ class Plugin(openpaperwork_core.PluginBase):
             },
             {
                 'interface': 'http_json',
-                'defaults': ['openpaperwork_core.http'],
+                'defaults': ['openpaperwork_core.http.client'],
             },
             {
                 'interface': 'mainloop',

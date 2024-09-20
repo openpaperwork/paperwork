@@ -14,8 +14,8 @@ import os
 import ssl
 import urllib
 
-from . import PluginBase
-from . import promise
+from openpaperwork_core import PluginBase
+from openpaperwork_core import promise
 
 
 if os.name == "nt":

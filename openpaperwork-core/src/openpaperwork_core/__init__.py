@@ -36,7 +36,7 @@ RECOMMENDED_PLUGINS = [
     'openpaperwork_core.external_apps.xdg',
     'openpaperwork_core.flatpak',
     'openpaperwork_core.fs.memory',
-    'openpaperwork_core.http',
+    'openpaperwork_core.http.client',
     'openpaperwork_core.i18n.python',
     'openpaperwork_core.l10n.python',
     'openpaperwork_core.perfcheck.log',

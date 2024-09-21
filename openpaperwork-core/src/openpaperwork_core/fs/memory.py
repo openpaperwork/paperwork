@@ -272,3 +272,8 @@ class Plugin(CommonFsPluginBase):
             suffix if suffix is not None else ""
         )
         return ("memory://" + name, _MemoryFileAdapter(self, name, mode))
+
+    def fs_resolve(self, uri):
+        if not uri.startswith("memory://"):
+            return None
+        return uri

@@ -203,3 +203,11 @@ class Plugin(CommonFsPluginBase):
                 os.unlink(tmp_file)
             except FileNotFoundError:
                 pass
+
+    def fs_resolve(self, uri):
+        path = self._uri_to_path(uri)
+        if path is None:
+            return None
+        return self.fs_safe(
+            os.path.realpath(path)
+        )

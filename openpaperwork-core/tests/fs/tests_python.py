@@ -72,3 +72,8 @@ class TestBasename(openpaperwork_core.tests.local_file.AbstractTestBasename):
 class TestTemp(openpaperwork_core.tests.local_file.AbstractTestTemp):
     def get_plugin_name(self):
         return PLUGIN_NAME
+
+
+class TestResolve(openpaperwork_core.tests.local_file.AbstractTestResolve):
+    def get_plugin_name(self):
+        return PLUGIN_NAME

@@ -8,7 +8,7 @@ import openpaperwork_core
 
 
 class AbstractTestSafe(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -37,7 +37,7 @@ class AbstractTestSafe(unittest.TestCase):
 
 
 class AbstractTestUnsafe(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -71,7 +71,7 @@ class AbstractTestUnsafe(unittest.TestCase):
 
 
 class AbstractTestOpen(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -142,7 +142,7 @@ class AbstractTestOpen(unittest.TestCase):
 
 
 class AbstractTestExists(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -169,7 +169,7 @@ class AbstractTestExists(unittest.TestCase):
 
 
 class AbstractTestListDir(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -217,7 +217,7 @@ class AbstractTestListDir(unittest.TestCase):
 
 
 class AbstractTestRename(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -258,7 +258,7 @@ class AbstractTestRename(unittest.TestCase):
 
 
 class AbstractTestUnlink(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -287,7 +287,7 @@ class AbstractTestUnlink(unittest.TestCase):
 
 
 class AbstractTestGetMtime(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -324,7 +324,7 @@ class AbstractTestGetMtime(unittest.TestCase):
 
 
 class AbstractTestGetsize(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -351,7 +351,7 @@ class AbstractTestGetsize(unittest.TestCase):
 
 
 class AbstractTestIsdir(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -388,7 +388,7 @@ class AbstractTestIsdir(unittest.TestCase):
 
 
 class AbstractTestCopy(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -454,7 +454,7 @@ class AbstractTestCopy(unittest.TestCase):
 
 
 class AbstractTestMkdirP(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -481,7 +481,7 @@ class AbstractTestMkdirP(unittest.TestCase):
 
 
 class AbstractTestBasename(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -502,7 +502,7 @@ class AbstractTestBasename(unittest.TestCase):
 
 
 class AbstractTestTemp(unittest.TestCase):
-    def get_plugin_name(self):
+    def get_plugin_name(self) -> str:
         """
         must be subclassed
         """
@@ -529,3 +529,20 @@ class AbstractTestTemp(unittest.TestCase):
         self.assertEqual(
             self.core.call_success("fs_exists", tmp_url), None
         )
+
+
+class AbstractTestResolve(unittest.TestCase):
+    def get_plugin_name(self) -> str:
+        """
+        must be subclassed
+        """
+        assert False
+
+    def setUp(self):
+        self.core = openpaperwork_core.Core(auto_load_dependencies=True)
+        self.core.load(self.get_plugin_name())
+        self.core.init()
+
+    def test_resolve(self):
+        uri = self.core.call_success("fs_resolve", "file:///var/www/../../etc/passwd")
+        self.assertEqual(uri, "file:///etc/passwd")

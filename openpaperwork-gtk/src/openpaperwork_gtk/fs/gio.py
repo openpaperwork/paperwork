@@ -39,7 +39,7 @@ class _GioFileAdapter(io.RawIOBase):
                 )
             except GLib.GError as exc:
                 LOGGER.warning("Gio.Gerror", exc_info=exc)
-                raise IOError(str(exc))
+                raise IOError(repr(exc))
 
         self.gfd = None
         self.gin = None
@@ -287,7 +287,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
             raise IOError("fs_open({}, mode={}): {}".format(
-                uri, mode, str(exc)
+                uri, mode, repr(exc)
             ))
 
     def fs_exists(self, url):
@@ -304,7 +304,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return True
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_listdir(self, url):
         if not GLIB_AVAILABLE:
@@ -323,7 +323,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
                 yield child.get_uri()
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_rename(self, old_url, new_url):
         try:
@@ -336,7 +336,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return True
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_unlink(self, url, trash=True, **kwargs):
         try:
@@ -383,7 +383,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return True
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_rm_rf(self, url, trash=True, **kwargs):
         if self.fs_exists(url) is None:
@@ -424,7 +424,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return True
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def _rm_rf(self, gfile):
         try:
@@ -440,7 +440,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
                     raise IOError("Failed to delete %s" % f.get_uri())
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_get_mtime(self, url):
         try:
@@ -471,7 +471,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return fi.get_attribute_uint64(Gio.FILE_ATTRIBUTE_STANDARD_SIZE)
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_isdir(self, url):
         if not GLIB_AVAILABLE:
@@ -489,7 +489,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             return None
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def fs_copy(self, old_url, new_url):
         if not GLIB_AVAILABLE:
@@ -560,7 +560,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
                 f.make_directory_with_parents()
         except GLib.GError as exc:
             LOGGER.warning("Gio.GError", exc_info=exc)
-            raise IOError("fs_mkdir_p({}): {}".format(url, str(exc)))
+            raise IOError("fs_mkdir_p({}): {}".format(url, repr(exc)))
 
         return True
 
@@ -658,7 +658,7 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
             )
         except GLib.GError as exc:
             LOGGER.warning("Gio.Gerror", exc_info=exc)
-            raise IOError(str(exc))
+            raise IOError(repr(exc))
 
     def on_quit(self):
         for tmp_file in self.tmp_files:
@@ -666,3 +666,11 @@ class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
                 os.unlink(tmp_file)
             except FileNotFoundError:
                 pass
+
+    def fs_resolve(self, uri):
+        try:
+            f = self.vfs.get_file_for_uri(uri)
+            return self.fs_safe(f.get_path())
+        except GLib.GError as exc:
+            LOGGER.warning("Gio.Gerror", exc_info=exc)
+            raise IOError(repr(exc))

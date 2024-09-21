@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import gettext
 import importlib
@@ -84,7 +86,7 @@ class PluginBase(object):
         possible. Most of the work should be done in `init()`.
         You *must* *not* rely on any dependencies here.
         """
-        self.core = None
+        self.core: Core = None  # type: ignore
 
     def get_interfaces(self):
         """

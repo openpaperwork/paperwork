@@ -45,9 +45,6 @@ TO_JSON = {
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-
     def get_interfaces(self):
         return ['shell']
 

@@ -42,6 +42,7 @@ RECOMMENDED_PLUGINS = [
     'openpaperwork_core.http.server',
     'openpaperwork_core.i18n.python',
     'openpaperwork_core.l10n.python',
+    'openpaperwork_core.networking',
     'openpaperwork_core.perfcheck.log',
     'openpaperwork_core.resources.frozen',
     'openpaperwork_core.resources.setuptools',

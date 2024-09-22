@@ -25,6 +25,7 @@ DEFAULT_SHELL_PLUGINS = paperwork_backend.DEFAULT_PLUGINS + [
     "paperwork_shell.cmd.edit",
     "paperwork_shell.cmd.export",
     "paperwork_shell.cmd.extra_text",
+    "paperwork_shell.cmd.https",
     "paperwork_shell.cmd.import",
     "paperwork_shell.cmd.label",
     "paperwork_shell.cmd.move",

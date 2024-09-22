@@ -12,6 +12,7 @@ dependencies = [
   "certifi",
   "cryptography",
   "distro",
+  "netifaces",
 ]
 
 [project.optional-dependencies]

@@ -209,3 +209,11 @@ class Plugin(openpaperwork_core.PluginBase):
             self.core.call_success("fs_copytree", src_doc_url, dst_doc_url)
 
         return dst_doc_url
+
+    def doc_get_size_by_url(self, doc_url):
+        size = 0
+        for child in self.core.call_success("fs_recurse", doc_url):
+            if self.core.call_success("fs_isdir", child):
+                continue
+            size += self.core.call_success("fs_getsize", child)
+        return size

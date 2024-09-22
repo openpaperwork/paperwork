@@ -349,6 +349,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "doc_pdf_import",
             "doc_pdf_url",
             "doc_text",
+            "doc_title",
             "doc_type",
             "page_boxes",
             "page_img",
@@ -649,6 +650,19 @@ class Plugin(openpaperwork_core.PluginBase):
         return self.core.call_one(
             "mainloop_execute",
             self._doc_get_text_by_url, out, doc_url
+        )
+
+    def _doc_get_title_by_url(self, doc_url):
+        (pdf_url, pdf) = self._open_pdf(doc_url)
+        if pdf is None:
+            return None
+        return pdf.get_title()
+
+    def doc_get_title_by_url(self, doc_url):
+        # Poppler is not thread-safe
+        return self.core.call_one(
+            "mainloop_execute",
+            self._doc_get_title_by_url, doc_url
         )
 
     def _page_has_text_by_url(self, doc_url, page_idx):

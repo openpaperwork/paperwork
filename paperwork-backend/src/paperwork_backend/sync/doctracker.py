@@ -280,6 +280,12 @@ class DocTrackerTransaction(paperwork_backend.sync.BaseTransaction):
         self.notify_done(ID)
 
 
+class DbDoc:
+    def __init__(self, result):
+        self.key = result[0]
+        self.extra = datetime.datetime.fromtimestamp(result[1])
+
+
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
@@ -404,11 +410,6 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(storage_all_docs.sort)
-
-        class DbDoc(object):
-            def __init__(self, result):
-                self.key = result[0]
-                self.extra = datetime.datetime.fromtimestamp(result[1])
 
         promise = promise.then(self.sql.cursor)
         promise = promise.then(lambda cursor: (

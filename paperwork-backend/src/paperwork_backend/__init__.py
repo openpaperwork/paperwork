@@ -61,7 +61,7 @@ DEFAULT_PLUGINS += [
     'paperwork_backend.guesswork.ocr.pyocr',
     'paperwork_backend.guesswork.orientation.pyocr',
     'paperwork_backend.http',
-    'paperwork_backend.http.index',
+    'paperwork_backend.http.openpaperview',
     'paperwork_backend.http.workdir',
     'paperwork_backend.i18n.pycountry',
     'paperwork_backend.i18n.scanner',

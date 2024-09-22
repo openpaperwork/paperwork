@@ -59,7 +59,7 @@ class Plugin(openpaperwork_core.PluginBase):
         encoded_hash = base64.urlsafe_b64encode(dir_hash).decode()[:8]
         return encoded_hash
 
-    def get_dir_mtime(self, dir_url):
+    def _get_dir_mtime(self, dir_url):
         mtime = 0
         file_urls = self.core.call_success(
             "fs_recurse", dir_url, dir_included=True
@@ -79,7 +79,7 @@ class Plugin(openpaperwork_core.PluginBase):
         now = datetime.datetime.now()
         for file in folder_content:
             if self.core.call_success("fs_isdir", file):
-                mtime = self.get_dir_mtime(file)
+                mtime = self._get_dir_mtime(file)
                 modified = datetime.datetime.fromtimestamp(mtime)
                 time_diff = now - modified
                 if time_diff.days >= days_to_data_dir_deletion:

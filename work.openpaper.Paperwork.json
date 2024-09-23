@@ -7,7 +7,8 @@
     "command": "paperwork-gtk",
     "copy-icon": true,
     "sdk-extensions": [
-        "org.freedesktop.Sdk.Extension.openjdk21"
+        "org.freedesktop.Sdk.Extension.openjdk21",
+        "org.freedesktop.Sdk.Extension.rust-stable"
     ],
     "finish-args": [
         "--share=ipc",
@@ -192,6 +193,61 @@
                     "type": "file",
                     "url": "https://files.pythonhosted.org/packages/90/c7/6dc0a455d111f68ee43f27793971cf03fe29b6ef972042549db29eec39a2/psutil-5.9.8.tar.gz",
                     "sha256": "6be126e3225486dff286a8fb9a06246a5253f4c7c53b475ea5f5ac934e64194c"
+                }
+            ]
+        },
+        {
+            "name": "python-maturin",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"maturin\""
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/ad/1c/1d0fd54bb2d068d0f9d513b0fdfb089a0fe8d20f020e673de0a0cda4f485/maturin-1.7.1-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl",
+                    "sha256": "0df0a6aaf7e9ab92cce2490b03d80b8f5ecbfa0689747a2ea4dfb9e63877b79c",
+                    "only-arches": ["x86_64"]
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/6c/a3/a4841dddb81e1855b57acf393ba72c405f097a3c6d7d5078e4d7105a4735/maturin-1.7.1-py3-none-manylinux_2_12_i686.manylinux2010_i686.musllinux_1_1_i686.whl",
+                    "sha256": "6eec984d26f707b18765478f4892e58ac72e777287cd2ba721d6e2ef6da1f66e",
+                    "only-arches": ["x86"]
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/61/f4/6f4023c9653256fbcf2ef1ab6926f9fd4260390d25c258108ddfd45978d3/maturin-1.7.1-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.musllinux_1_1_aarch64.whl",
+                    "sha256": "09cca3491c756d1bce6ffff13f004e8a10e67c72a1cba9579058f58220505881",
+                    "only-arches": ["aarch64"]
+                }
+            ]
+        },
+        {
+            "name": "python-cryptography",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"cryptography\""
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/de/ba/0664727028b37e249e73879348cc46d45c5c1a2a2e81e8166462953c5755/cryptography-43.0.1.tar.gz",
+                    "sha256": "203e92a75716d8cfb491dc47c79e17d0d9207ccffcbcb35f598fbe463ae3444d"
+                }
+            ]
+        },
+        {
+            "name": "python-netifaces",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"netifaces\""
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/a6/91/86a6eac449ddfae239e93ffc1918cf33fd9bab35c04d1e963b311e347a73/netifaces-0.11.0.tar.gz",
+                    "sha256": "043a79146eb2907edf439899f262b3dfe41717d34124298ed281139a8b93ca32"
                 }
             ]
         },

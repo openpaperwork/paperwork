@@ -258,6 +258,7 @@ build_windows:
       - paperwork.zip
   after_script:
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && pip install cx_Freeze"
+    - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make install"
     - c:\msys64\usr\bin\bash -lc "cd /tmp/paperwork && . /tmp/venv/bin/activate && make windows_exe"
     - c:\msys64\usr\bin\bash -lc "mv /tmp/paperwork/dist/paperwork.zip ."
 

@@ -148,7 +148,7 @@ class Plugin(PluginBase):
                         )
                     )
                     r = self._cmd_add_plugin(
-                        default, auto=True, added=added, save=False
+                        console, default, auto=True, added=added, save=False
                     )
                     if not r:
                         return r

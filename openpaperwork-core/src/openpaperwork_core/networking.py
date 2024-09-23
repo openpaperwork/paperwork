@@ -18,7 +18,7 @@ class Plugin(openpaperwork_core.PluginBase):
         return [
             socket.gethostname(),
             socket.getfqdn(),
-            f"{socket.gethostname().split(".")[0]}.local",
+            f"{socket.gethostname().split('.')[0]}.local",
         ]
 
     def networking_get_local_ips(self):

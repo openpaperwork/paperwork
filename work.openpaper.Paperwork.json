@@ -366,7 +366,7 @@
                 {
                     "type": "git",
                     "path": ".",
-                    "branch": "develop",
+                    "branch": "master",
                     "disable-shallow-clone": true
                 },
                 {

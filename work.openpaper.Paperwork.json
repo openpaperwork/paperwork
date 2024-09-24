@@ -1,6 +1,6 @@
 {
     "app-id": "work.openpaper.Paperwork",
-    "branch": "develop",
+    "branch": "master",
     "runtime": "org.gnome.Platform",
     "runtime-version": "46",
     "sdk": "org.gnome.Sdk",

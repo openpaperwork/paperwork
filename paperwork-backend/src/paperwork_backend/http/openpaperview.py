@@ -455,6 +455,10 @@ class Plugin(
                 "defaults": ["paperwork_backend.model"],
             },
             {
+                "interface": "sqlite",
+                "defaults": ["openpaperwork_core.sqlite"],
+            },
+            {
                 "interface": "thread",
                 "defaults": ["openpaperwork_core.thread.simple"],
             },

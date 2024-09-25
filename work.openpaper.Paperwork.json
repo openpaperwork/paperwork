@@ -138,6 +138,20 @@
             ]
         },
         {
+            "name": "python3-pygments",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pygments\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/f7/3f/01c8b82017c199075f8f788d0d906b9ffbbc5a47dc9918a945e13d5a2bda/pygments-2.18.0-py3-none-any.whl",
+                    "sha256": "b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a"
+                }
+            ]
+        ]
+        {
             "name": "python3-rich",
             "buildsystem": "simple",
             "build-commands": [

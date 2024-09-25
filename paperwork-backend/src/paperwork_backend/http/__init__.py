@@ -107,15 +107,18 @@ class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
 class BackendHttpsServer:
     def __init__(self, core):
         self.core = core
+        self.port = self.core.call_success("config_get", "https_port")
         self.server = self.core.call_success(
             "https_server_start",
-            self.core.call_success("config_get", "https_port"),
+            self.port,
             BackendRequestHandler(core),
             SERVER_CERT_NAME,
             self.core.call_success("config_get", "https_openpaperview_compatible"),
         )
+        self.core.call_all("networking_announce_service", "paperwork", "https", self.port)
 
     def stop(self):
+        self.core.call_all("networking_unannounce_service", "paperwork", "https", self.port)
         self.server.stop()
 
 

@@ -306,6 +306,20 @@
             ]
         },
         {
+            "name": "python3-poetry-core",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"poetry-core\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/a1/8d/85fcf9bcbfefcc53a1402450f28e5acf39dcfde3aabb996a1d98481ac829/poetry_core-1.9.0-py3-none-any.whl",
+                    "sha256": "4e0c9c6ad8cf89956f03b308736d84ea6ddb44089d16f2adc94050108ec1f5a1"
+                }
+            ]
+        },
+        {
             "name": "python3-ifaddr",
             "buildsystem": "simple",
             "build-commands": [
@@ -316,6 +330,20 @@
                     "type": "file",
                     "url": "https://files.pythonhosted.org/packages/9c/1f/19ebc343cc71a7ffa78f17018535adc5cbdd87afb31d7c34874680148b32/ifaddr-0.2.0-py3-none-any.whl",
                     "sha256": "085e0305cfe6f16ab12d72e2024030f5d52674afad6911bb1eee207177b8a748"
+                }
+            ]
+        },
+        {
+            "name": "python3-zeroconf",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"zeroconf\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/6b/18/fc7cd696bbe46bfab306cfd7fe8111af5c30d7f77204c9e86f5ed2f39e6b/zeroconf-0.135.0.tar.gz",
+                    "sha256": "9424551ef5a8d91fa8296bb1791e83b31afcd17a336a071928d4a978d7b96b72"
                 }
             ]
         },

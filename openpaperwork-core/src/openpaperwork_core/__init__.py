@@ -43,7 +43,6 @@ RECOMMENDED_PLUGINS = [
     'openpaperwork_core.i18n.python',
     'openpaperwork_core.l10n.python',
     'openpaperwork_core.networking',
-    'openpaperwork_core.networking.zeroconf',
     'openpaperwork_core.perfcheck.log',
     'openpaperwork_core.resources.frozen',
     'openpaperwork_core.resources.setuptools',
@@ -56,6 +55,7 @@ RECOMMENDED_PLUGINS = [
 if os.name != 'nt':
     RECOMMENDED_PLUGINS += [
         'openpaperwork_core.cmd.chkdeps',
+        'openpaperwork_core.networking.zeroconf',
     ]
 
 

@@ -245,20 +245,6 @@
             ]
         },
         {
-            "name": "python-netifaces",
-            "buildsystem": "simple",
-            "build-commands": [
-                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"netifaces\""
-            ],
-            "sources": [
-                {
-                    "type": "file",
-                    "url": "https://files.pythonhosted.org/packages/a6/91/86a6eac449ddfae239e93ffc1918cf33fd9bab35c04d1e963b311e347a73/netifaces-0.11.0.tar.gz",
-                    "sha256": "043a79146eb2907edf439899f262b3dfe41717d34124298ed281139a8b93ca32"
-                }
-            ]
-        },
-        {
             "name": "poppler-data",
             "buildsystem": "cmake-ninja",
             "sources": [
@@ -316,6 +302,20 @@
                     "type": "file",
                     "url": "https://files.pythonhosted.org/packages/1c/d5/c84e1a17bf61d4df64ca866a1c9a913874b4e9bdc131ec689a0ad013fb36/certifi-2024.7.4-py3-none-any.whl",
                     "sha256": "c198e21b1289c2ab85ee4e67bb4b4ef3ead0892059901a8d5b622f24a1101e90"
+                }
+            ]
+        },
+        {
+            "name": "python3-ifaddr",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"ifaddr\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/9c/1f/19ebc343cc71a7ffa78f17018535adc5cbdd87afb31d7c34874680148b32/ifaddr-0.2.0-py3-none-any.whl",
+                    "sha256": "085e0305cfe6f16ab12d72e2024030f5d52674afad6911bb1eee207177b8a748"
                 }
             ]
         },

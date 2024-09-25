@@ -150,7 +150,7 @@
                     "sha256": "b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a"
                 }
             ]
-        ]
+        },
         {
             "name": "python3-rich",
             "buildsystem": "simple",

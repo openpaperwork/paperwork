@@ -1,3 +1,5 @@
+import itertools
+import os
 import time
 
 import openpaperwork_core
@@ -27,6 +29,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 "interface": "networking",
                 "defaults": ["openpaperwork_core.networking"],
             },
+            {
+                "interface": "pairing_qrcode",
+                "defaults": ["paperwork_backend.http.pairing"],
+            },
         ]
 
     def cmd_complete_argparse(self, parser):
@@ -55,6 +61,9 @@ class Plugin(openpaperwork_core.PluginBase):
             help=_("Regenerate even if already existing"),
         )
 
+        subparsers.add_parser(
+            "pair", help=_("Start HTTPS server and enable pairing"),
+        )
         subparsers.add_parser(
             "serve", help=_("Start HTTPS server"),
         )
@@ -96,10 +105,7 @@ class Plugin(openpaperwork_core.PluginBase):
         console.print("Certificates and keys regenerated")
         return True
 
-    def _serve(self, console):
-        local_ips = self.core.call_success("networking_get_host_names")
-        local_ips += self.core.call_success("networking_get_local_ips")
-
+    def _start_serve(self, console):
         self.core.call_all("config_put", "https_server", True)
 
         self.core.call_all("transaction_sync_all")
@@ -107,6 +113,9 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_one("mainloop")
 
         self.core.call_all("https_backend_reload")
+
+    def _serve(self, console):
+        self._start_serve(console)
 
         (cert, key) = self.core.call_success("https_backend_get_server_certificate")
         cert = self.core.call_success("fs_unsafe", cert)
@@ -118,11 +127,14 @@ class Plugin(openpaperwork_core.PluginBase):
         console.print(f"  {cert}")
         console.print("")
 
+        local_ips = self.core.call_success("networking_get_host_names")
+        local_ips += self.core.call_success("networking_get_local_ips")
         port = self.core.call_success("config_get", "https_port")
         console.print("Serving on:")
         for local_ip in local_ips:
             console.print(f"    https://{local_ip}:{port}")
         console.print("Ctrl-C to stop")
+
         try:
             while True:
                 time.sleep(1)
@@ -130,6 +142,30 @@ class Plugin(openpaperwork_core.PluginBase):
             pass
         console.print("Server stopped")
         return True
+
+    def _pair(self, console):
+        self._start_serve(console)
+        term_size = os.get_terminal_size()
+        term_size = (term_size.columns, term_size.lines)
+        qrcodes = self.core.call_success("pairing_qrcode_get_ascii", term_size)
+        try:
+            for (qrcode_idx, qrcode) in itertools.cycle(enumerate(qrcodes)):
+                if self.core.call_success("is_pairing_done"):
+                    break
+                console.clear()
+                console.print(
+                    qrcode
+                    + f"{qrcode_idx + 1} / {len(qrcodes)}"
+                )
+                time.sleep(1)
+            console.clear()
+            console.print("Pairing done !")
+            console.print("Waiting for synchronization ...")
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            pass
+        console.print("Server stopped")
 
     def cmd_run(self, console, args):
         if args.command != "https":
@@ -142,3 +178,5 @@ class Plugin(openpaperwork_core.PluginBase):
             return self._generate_certificates(console, args.force)
         elif args.subcommand == "serve":
             return self._serve(console)
+        elif args.subcommand == "pair":
+            return self._pair(console)

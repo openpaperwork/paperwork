@@ -4,7 +4,6 @@ import ssl
 import threading
 
 from typing import Tuple
-from typing import Type
 
 import http.client
 import http.server
@@ -30,13 +29,13 @@ class BaseRequestHandler(abc.ABC):
 
 
 class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
-    def __init__(self, wrapped_requested_handler: BaseRequestHandler, socket_ssl, *args, **kwargs):
+    def __init__(self, wrapped_requested_handler: BaseRequestHandler, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         self.wrapped_requested_handler = wrapped_requested_handler
         super().__init__(*args, **kwargs)
 
-    def _check_client_cert(self):
+    def check_client_cert(self):
         client_cert = self.connection.getpeercert(True)
         if client_cert is None:
             LOGGER.error("Missing client certificate !")
@@ -48,8 +47,6 @@ class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         LOGGER.info("POST %s", self.path)
         try:
-            if not self._check_client_cert():
-                return
             self.wrapped_requested_handler.do_POST(self)
         except Exception as exc:
             LOGGER.error("do_POST() failed: %s", repr(exc), exc_info=exc)
@@ -57,8 +54,6 @@ class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
         LOGGER.info("HEAD %s", self.path)
         try:
-            if not self._check_client_cert():
-                return
             self.wrapped_requested_handler.do_HEAD(self)
         except Exception as exc:
             LOGGER.error("do_HEAD() failed: %s", repr(exc), exc_info=exc)
@@ -66,8 +61,6 @@ class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         LOGGER.info("GET %s", self.path)
         try:
-            if not self._check_client_cert():
-                return
             self.wrapped_requested_handler.do_GET(self)
         except Exception as exc:
             LOGGER.error("do_GET() failed: %s", repr(exc), exc_info=exc)
@@ -78,7 +71,7 @@ class HTTPSServer:
             self,
             core,
             port,
-            request_handler: Type[http.server.BaseHTTPRequestHandler],
+            request_handler: BaseRequestHandler,
             server_cert: Tuple[str, str],
             openpaperview_compatible: bool):
         self.core = core
@@ -110,7 +103,7 @@ class HTTPSServer:
         self.thread.start()
 
     def _build_request_handler(self, *args, **kwargs):
-        return RequestHandlerWrapper(self.request_handler, self.httpd.socket, *args, **kwargs)
+        return RequestHandlerWrapper(self.request_handler, *args, **kwargs)
 
     def _run(self):
         LOGGER.info("HTTPS server running")
@@ -141,7 +134,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def https_server_start(
             self,
             port: int,
-            request_handler: Type[http.server.BaseHTTPRequestHandler],
+            request_handler: BaseRequestHandler,
             server_cert_name,
             openpaperview_compatible=True):
         """

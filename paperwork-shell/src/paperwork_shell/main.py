@@ -58,10 +58,14 @@ class RichConsole:
     def __init__(self):
         self.console = rich.console.Console()
 
-    def print(self, line):
+    def clear(self, *args, **kwargs):
+        self.console.clear()
+
+    def print(self, line, new_line=True):
         if isinstance(line, str):
             line = rich.text.Text(line)
-        self.console.print(line)
+        if new_line:
+            self.console.print(line, end=("\n" if new_line else ""))
 
     def input(self, prompt=""):
         return self.console.input(rich.text.Text(prompt + "\n"))
@@ -84,7 +88,7 @@ def main_main(in_args, application_name, default_plugins, interactive):
     core.call_all("config_load")
     core.call_all("config_load_plugins", application_name, default_plugins)
 
-    core.call_all("init_logs", application_name, "warning")
+    core.call_all("init_logs", application_name, "info")
 
     parser = argparse.ArgumentParser()
     cmd_parser = parser.add_subparsers(

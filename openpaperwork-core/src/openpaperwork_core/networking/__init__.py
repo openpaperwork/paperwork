@@ -27,7 +27,6 @@ class Plugin(openpaperwork_core.PluginBase):
             for adapter in ifaddr.get_adapters()
             for ip in adapter.ips
         ]
-
         ips = [ipaddress.ip_address(ip) for ip in ips]
         ips = [
             ip for ip in ips

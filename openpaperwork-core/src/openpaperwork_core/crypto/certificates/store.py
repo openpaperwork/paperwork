@@ -51,6 +51,14 @@ class Plugin(openpaperwork_core.PluginBase):
             return (cert_uri, None)
         return (cert_uri, key_uri)
 
+    def store_certificate_get_fingerprint(self, name):
+        (cert_uri, key_uri) = self._get_paths(name)
+        if not self.core.call_success("fs_exists", cert_uri):
+            return None
+        with self.core.call_success("fs_open", cert_uri, "rb") as fd:
+            cert = fd.read()
+        return self.core.call_success("crypto_fingerprint_certificate", cert)
+
     def store_certificate_get_promise(self, name):
         return openpaperwork_core.promise.Promise(
             self.core, self.paperwork_certificate_get,

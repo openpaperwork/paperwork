@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     def get_interfaces(self):
         return [
-            "certificates",
+            "crypto_certificates",
         ]
 
     def get_deps(self):

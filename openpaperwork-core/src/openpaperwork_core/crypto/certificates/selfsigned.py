@@ -185,3 +185,7 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Certificate and private key generated")
 
         return (cert_pem, key_pem)
+
+    def crypto_fingerprint_certificate(self, cert: bytes):
+        x509 = cryptography.x509.load_pem_x509_certificate(cert)
+        return x509.fingerprint(cryptography.hazmat.primitives.hashes.SHA256())

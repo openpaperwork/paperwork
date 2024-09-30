@@ -14,6 +14,7 @@ from paperwork_backend import _
 import openpaperwork_core
 import openpaperwork_core.promise
 import openpaperwork_core.util
+import paperwork_backend.http
 import paperwork_backend.index
 import paperwork_backend.sync
 import paperwork_backend.sync.doctracker
@@ -414,7 +415,7 @@ class Plugin(
 
     def get_interfaces(self):
         return [
-            "https_workdir_extension",
+            "http_backend_extension",
             "sync",
         ]
 
@@ -539,14 +540,8 @@ class Plugin(
         ))
         promises.append(promise)
 
-    def http_backend_head(self, path: str) -> Optional[bytes]:
-        if path != QUERY_PATH:
-            return None
-        with DB_LOCK:
-            return (
-                self.core.call_success("fs_get_mtime", self.db_path),
-                self.core.call_success("fs_getsize", self.db_path),
-            )
+    def http_backend_head(self, path: str) -> Optional[paperwork_backend.http.BackendReply]:
+        return self.http_backend_get(path)
 
     # WORKAROUND(Jflesch):
     # OpenPaperView expects us to tell it when it has already downloaded
@@ -554,20 +549,24 @@ class Plugin(
     # If-Modified-Since. So we play a little guessing game here ...
     WORKAROUND_MAX_CACHE_TIME = 3600
 
-    def http_backend_get(self, path: str) -> Optional[bytes]:
-        if path != QUERY_PATH:
+    def http_backend_get(self, request) -> Optional[paperwork_backend.http.BackendReply]:
+        if request.path != QUERY_PATH:
             return None
         with DB_LOCK:
             now = time.perf_counter()
             last = self.last_query
             if last is not None and last + self.WORKAROUND_MAX_CACHE_TIME > now:
-                return (
-                    self.core.call_success("fs_get_mtime", self.db_path),
-                    304
+                return paperwork_backend.http.BackendReply(
+                    http_code=304,
+                    last_modified=self.core.call_success("fs_get_mtime", self.db_path),
+                    content_length=self.core.call_success("fs_getsize", self.db_path),
                 )
             self.last_query = now
-            with self.core.call_success("fs_open", self.db_path, "rb") as fd:
-                return (
-                    self.core.call_success("fs_get_mtime", self.db_path),
-                    fd.read(),
-                )
+
+            fd = self.core.call_success("fs_open", self.db_path, "rb")
+            return paperwork_backend.http.BackendReply(
+                http_code=200,
+                last_modified=self.core.call_success("fs_get_mtime", self.db_path),
+                content_length=self.core.call_success("fs_getsize", self.db_path),
+                content_fd=fd
+            )

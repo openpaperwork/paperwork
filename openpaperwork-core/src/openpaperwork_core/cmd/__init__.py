@@ -1,4 +1,7 @@
 class DummyConsole:
+    def clear(self, *args, **kwargs):
+        pass
+
     def print(self, *args, **kwargs):
         pass
 

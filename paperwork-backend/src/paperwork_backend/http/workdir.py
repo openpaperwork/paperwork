@@ -3,6 +3,7 @@ import logging
 
 import openpaperwork_core
 import openpaperwork_core.util
+import paperwork_backend.http
 
 
 LOGGER = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ class Plugin(
 
     def get_interfaces(self):
         return [
-            "https_workdir_extension",
+            "http_backend_extension",
         ]
 
     def get_deps(self):
@@ -50,34 +51,33 @@ class Plugin(
 
     def _get_real_path(self, verb, query_path):
         if not query_path.startswith(PATH_PREFIX):
-            return (None, None, None)
+            return None
 
         path = query_path.lstrip(PATH_PREFIX)
         path = self.workdir + "/" + path
         path = self.core.call_success("fs_resolve", path)
         if not path.startswith(self.workdir):
-            return (None, None, None)
+            return None
         exists = self.core.call_success("fs_exists", path)
         if not exists:
             LOGGER.error("%s %s (-> %s): doesn't exist", verb, query_path, path)
-            return (None, None, None)
+            return None
         is_dir = self.core.call_success("fs_isdir", path)
         if is_dir:
             LOGGER.error("%s %s (-> %s): directory", verb, query_path, path)
-            return (None, None, None)
-        size = self.core.call_success("fs_getsize", path)
-        mtime = self.core.call_success("fs_get_mtime", path)
-        return (path, size, mtime)
+            return None
+        return path
 
-    def http_backend_head(self, query_path: str) -> Optional[bytes]:
-        (path, size, mtime) = self._get_real_path("HEAD", query_path)
+    def http_backend_head(self, request) -> Optional[paperwork_backend.http.BackendReply]:
+        return self.http_backend_get(request)
+
+    def http_backend_get(self, request) -> Optional[paperwork_backend.http.BackendReply]:
+        path = self._get_real_path("GET", request.path)
         if path is None:
             return None
-        return (mtime, size)
-
-    def http_backend_get(self, query_path: str) -> Optional[bytes]:
-        (path, size, mtime) = self._get_real_path("GET", query_path)
-        if path is None:
-            return None
-        with self.core.call_success("fs_open", path, "rb") as fd:
-            return (mtime, fd.read())
+        return paperwork_backend.http.BackendReply(
+            http_code=200,
+            content_length=self.core.call_success("fs_getsize", path),
+            last_modified=self.core.call_success("fs_get_mtime", path),
+            content_fd=self.core.call_success("fs_open", path, "rb"),
+        )

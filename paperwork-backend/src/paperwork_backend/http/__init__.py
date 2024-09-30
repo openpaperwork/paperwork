@@ -2,7 +2,8 @@
 Run an HTTPS exposing the work directory and a document index (sqlite).
 Designed to be used with OpenPaperview
 """
-from typing import Optional
+from typing import BinaryIO, Optional
+import dataclasses
 import logging
 import ssl
 
@@ -20,88 +21,112 @@ CLIENT_CERT_NAME = "backend_https_client"
 LOGGER = logging.getLogger(__name__)
 
 
+@dataclasses.dataclass
+class BackendReply:
+    HTTP_TEXTS = {
+        200: "OK",
+        304: "Not Modified",
+        401: "Unauthorized",
+        403: "Forbidden",
+        404: "Not found",
+    }
+    BUFSIZE = 64 * 1024
+
+    http_code: int
+    content_type: Optional[str] = None
+    content_length: Optional[int] = None
+    last_modified: Optional[int] = None
+
+    content_fd: Optional[BinaryIO] = None
+    content_raw: Optional[bytes] = None
+
+    def send(self, core, request):
+        try:
+            LOGGER.info(
+                "HTTP %d: %s: %s",
+                self.http_code, self.HTTP_TEXTS[self.http_code], repr(self)
+            )
+            request.send_response(self.http_code, self.HTTP_TEXTS[self.http_code])
+            if self.content_length is not None:
+                request.send_header("Content-Length", self.content_length)
+            elif self.content_raw is not None:
+                request.send_header("Content-Length", len(self.content_raw))
+            if self.content_type is not None:
+                request.send_header("Content-Type", self.content_type)
+            else:
+                request.send_header("Content-Type", "application/octet-stream")
+            if self.last_modified is not None:
+                request.send_header(
+                    "Last-Modified",
+                    request.date_time_string(self.last_modified)
+                )
+            request.end_headers()
+
+            assert self.content_fd is None or self.content_raw is None
+            if self.content_fd is not None:
+                self._send_fd(core, request, self.content_fd)
+            elif self.content_raw is not None:
+                self._send_raw(core, request, self.content_raw)
+        except ssl.SSLEOFError:
+            LOGGER.warning("SSL EOF Error")
+        finally:
+            if self.content_fd is not None:
+                self.content_fd.close()
+
+    def _send_fd(self, core, request, fd):
+        try:
+            sent = 0
+            while buf := fd.read(self.BUFSIZE):
+                core.call_all(
+                    "on_progress", "http_upload",
+                    0 if self.content_length is None else (sent / self.content_length),
+                    _("HTTPS server: Uploading %s") % (request.path)
+                )
+                request.wfile.write(buf)
+                sent += len(buf)
+        finally:
+            core.call_all("on_progress", "http_upload", 1.0)
+
+    def _send_raw(self, core, request, raw):
+        try:
+            for chunk in range(0, len(raw), self.BUFSIZE):
+                start = chunk
+                end = chunk + self.BUFSIZE
+                core.call_all(
+                    "on_progress", "http_upload", chunk / len(raw),
+                    _("HTTPS server: Uploading %s") % (request.path)
+                )
+                request.wfile.write(raw[start:end])
+        finally:
+            core.call_all("on_progress", "http_upload", 1.0)
+
+
 class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
     def __init__(self, core):
         self.core = core
 
-    def do_POST(self, request):
-        LOGGER.error("POST %s: 405", request.path)
-        request.send_response(405, "Method not allowed")
-        request.end_headers()
-
-    def do_HEAD(self, request):
+    def _do(self, request, verb):
+        LOGGER.info("%s %s", verb.upper(), request.path)
         assert self.core is not None
-        r = self.core.call_success("http_backend_head", request.path)
+        if not self.core.call_success("http_backend_ignore_ssl_client_cert", request):
+            if not request.check_client_cert():
+                return
+        r = self.core.call_success(f"http_backend_{verb.lower()}", request)
         if r is None:
-            LOGGER.error("HEAD %s: 404", request.path)
+            LOGGER.error("%s %s: 404", verb.upper(), request.path)
             request.send_response(404, "Not found")
             request.end_headers()
         else:
-            (mtime, size) = r
-            LOGGER.info("HEAD %s: OK (%dB)", request.path, size)
-            request.send_response(200, "OK")
-            request.send_header("Content-Length", size)
-            request.send_header("Content-Type", "application/octet-stream")
-            request.send_header("Last-Modified", request.date_time_string(mtime))
-            request.end_headers()
+            r.send(self.core, request)
 
-    def _return_not_found(self, request):
-        LOGGER.error("GET %s: 404", request.path)
-        request.send_response(404, "Not found")
-        request.end_headers()
+    def do_POST(self, request):
+        self._do(request, "post")
 
-    def _return_simple_code(self, request, http_code, mtime=None):
-        LOGGER.info(
-            "GET %s: %d",
-            request.path, http_code,
-        )
-        request.send_response(http_code, str(http_code))
-        if mtime is not None:
-            request.send_header("Last-Modified", request.date_time_string(mtime))
-        request.end_headers()
-
-    def _return_bytes(self, request, mtime, content):
-        LOGGER.info(
-            "GET %s: OK (total=%dKB)",
-            request.path, len(content) / 1024,
-        )
-        request.send_response(200, "OK")
-        request.send_header("Content-Length", len(content))
-        request.send_header("Content-Type", "application/octet-stream")
-        request.send_header("Last-Modified", request.date_time_string(mtime))
-        request.send_header("Cache-Control", "must-revalidate")
-        request.end_headers()
-        try:
-            bufsize = 64 * 1024
-            for chunk in range(0, len(content), bufsize):
-                start = chunk
-                end = chunk + bufsize
-                LOGGER.debug(
-                    "GET %s: OK (chunk=%d-%d)",
-                    request.path, start, max(len(content), end)
-                )
-                self.core.call_all(
-                    "on_progress", "http_upload", chunk / len(content),
-                    _("HTTPS server: Uploading %s") % (request.path)
-                )
-                request.wfile.write(content[start:end])
-        except ssl.SSLEOFError:
-            LOGGER.warning("SSL EOF Error")
-        finally:
-            self.core.call_all("on_progress", "http_upload", 1.0)
-        LOGGER.info("GET %s: OK (total=%d KB) sent", request.path, len(content) / 1024)
+    def do_HEAD(self, request):
+        self._do(request, "head")
 
     def do_GET(self, request):
-        assert self.core is not None
-        r = self.core.call_success("http_backend_get", request.path)
-        if r is None:
-            self._return_not_found(request)
-        else:
-            (mtime, content) = r
-            if isinstance(content, int):
-                self._return_simple_code(request, content, mtime)
-            else:  # content == bytes
-                self._return_bytes(request, mtime, content)
+        self._do(request, "get")
 
 
 class BackendHttpsServer:
@@ -210,6 +235,9 @@ class Plugin(
 
     def https_backend_get_server_certificate(self):
         return self.core.call_success("store_certificate_get", SERVER_CERT_NAME)
+
+    def https_backend_get_server_certificate_fingerprint(self):
+        return self.core.call_success("store_certificate_get_fingerprint", SERVER_CERT_NAME)
 
     def https_backend_get_client_certificate(self):
         return self.core.call_success("store_certificate_get", CLIENT_CERT_NAME)

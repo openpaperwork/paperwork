@@ -16,6 +16,7 @@ dependencies = [
   "pycountry",
   "pyocr",
   "pypillowfight>=0.3.0",
+  "qrcode[pil]",
   "scikit-learn",
   "Whoosh",
 ]

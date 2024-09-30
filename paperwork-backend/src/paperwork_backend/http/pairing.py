@@ -52,6 +52,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 "defaults": ["openpaperwork_core.crypto.certificates.store"],
             },
             {
+                "interface": "https_backend",
+                "defaults": ["paperwork_backend.http"],
+            },
+            {
                 "interface": "networking",
                 "defaults": ["openpaperwork_core.networking"],
             },
@@ -67,6 +71,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         if self.secret is None:
             self.secret = secrets.token_bytes(nbytes=16)
+        port = self.core.call_success("config_get", "https_port")
         addresses = self.core.call_success("networking_get_host_names")
         addresses += self.core.call_success("networking_get_local_ips")
         addresses = [str(addr).encode("utf-8") for addr in addresses]
@@ -74,6 +79,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         payload = struct.pack("!H", len(cert_fingerprint)) + cert_fingerprint
         payload += struct.pack("!H", len(self.secret)) + self.secret
+        payload += struct.pack("!H", port)
         payload += addresses
         LOGGER.info("Payload: %d bytes", len(payload))
         return payload

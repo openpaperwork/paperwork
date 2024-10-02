@@ -189,10 +189,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 r = ocr_tool.detect_orientation(img, lang="+".join(ocr_langs))
             except pyocr.PyocrException as exc:
                 LOGGER.warning(
-                    "Orientation guessing: Failed to guess orientation. Assuming 0 degres",
+                    "Orientation guessing: Failed to guess orientation",
                     exc_info=exc
                 )
-                return 0
+                return None
 
             angle = r['angle']
             if angle == 0:

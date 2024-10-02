@@ -224,9 +224,10 @@ HEADER = """
 !define PRODUCT_UNINST_KEY "Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
+!addplugindir ".\dll"
+
 !include x64.nsh
 
-!addplugindir ".\dll"
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
@@ -255,7 +256,6 @@ HEADER = """
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\\paperwork.exe"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -410,6 +410,7 @@ Section Uninstall
   RMDir /r "$INSTDIR\\tesseract"
   RMDir /r "$INSTDIR\\tk"
   RMDir /r "$INSTDIR\\*.*"
+  RMDir /r "$PROFILE\\.local"
   Delete "$INSTDIR\\*.*"
   RMDir "$INSTDIR"
 

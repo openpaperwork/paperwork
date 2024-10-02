@@ -28,7 +28,6 @@ paperwork_installer.exe: dll/INetC.dll dll/nsisunz.dll
 	rm -f out.nsi
 	$(MAKE) out.nsi RELEASE=stable DOWNLOAD_URI=https://download.openpaper.work/windows/amd64/paperwork-master-latest.zip
 	makensis ./out.nsi
-	mv -f paperwork_installer.exe paperwork_installer.exe
 
 clean:
 	rm -rf dll

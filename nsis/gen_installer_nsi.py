@@ -313,6 +313,8 @@ Section "Paperwork" SEC_PAPERWORK
   SetOutPath "$INSTDIR\\Data\\Tessdata"
   CreateDirectory "$INSTDIR\\Data\\Tessdata"
   nsisunz::UnzipToLog "$PLUGINSDIR\\tessconfig.zip" "$INSTDIR\\Data\\Tessdata"
+
+  RMDir /r "$PROFILE\\.local"
 SectionEnd
 
 Section "Desktop icon" SEC_DESKTOP_ICON

@@ -29,6 +29,8 @@ class BaseRequestHandler(abc.ABC):
 
 
 class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
     def __init__(self, wrapped_requested_handler: BaseRequestHandler, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs

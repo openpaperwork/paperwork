@@ -63,6 +63,8 @@ class BackendReply:
                 )
             if self.etag is not None:
                 request.send_header("ETag", f'"{self.etag}"')
+            # TODO(Jflesch): Must figure out why we need Connection=Close
+            request.send_header("Connection", "close")
             request.end_headers()
 
             assert self.content_fd is None or self.content_raw is None

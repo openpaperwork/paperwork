@@ -80,4 +80,5 @@ class Plugin(
             content_length=self.core.call_success("fs_getsize", path),
             last_modified=self.core.call_success("fs_get_mtime", path),
             content_fd=self.core.call_success("fs_open", path, "rb"),
+            etag=self.core.call_success("fs_hash", path),
         )

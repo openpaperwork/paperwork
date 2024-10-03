@@ -563,10 +563,10 @@ class Plugin(
                 )
             self.last_query = now
 
-            fd = self.core.call_success("fs_open", self.db_path, "rb")
             return paperwork_backend.http.BackendReply(
                 http_code=200,
                 last_modified=self.core.call_success("fs_get_mtime", self.db_path),
                 content_length=self.core.call_success("fs_getsize", self.db_path),
-                content_fd=fd
+                content_fd=self.core.call_success("fs_open", self.db_path, "rb"),
+                etag=self.core.call_success("fs_hash", self.db_path),
             )

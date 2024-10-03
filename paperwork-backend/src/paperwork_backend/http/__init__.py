@@ -36,6 +36,7 @@ class BackendReply:
     content_type: Optional[str] = None
     content_length: Optional[int] = None
     last_modified: Optional[int] = None
+    etag: Optional[str] = None
 
     content_fd: Optional[BinaryIO] = None
     content_raw: Optional[bytes] = None
@@ -60,6 +61,8 @@ class BackendReply:
                     "Last-Modified",
                     request.date_time_string(self.last_modified)
                 )
+            if self.etag is not None:
+                request.send_header("ETag", f'"{self.etag}"')
             request.end_headers()
 
             assert self.content_fd is None or self.content_raw is None
@@ -106,7 +109,8 @@ class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
         self.core = core
 
     def _do(self, request, verb):
-        LOGGER.info("%s %s", verb.upper(), request.path)
+        headers = ", ".join([f"{k}={v}" for (k, v) in request.headers.items()])
+        LOGGER.info("%s %s (%s)", verb.upper(), request.path, headers)
         assert self.core is not None
         if not self.core.call_success("http_backend_ignore_ssl_client_cert", request):
             if not request.check_client_cert():

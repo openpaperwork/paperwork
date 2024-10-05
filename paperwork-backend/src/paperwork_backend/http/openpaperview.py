@@ -6,6 +6,7 @@ See https://github.com/bwt/OpenPaperView/blob/main/tools/create_viewer_cb.py
 from typing import Optional
 import abc
 import logging
+import os
 import re
 import time
 import threading
@@ -547,7 +548,7 @@ class Plugin(
     # OpenPaperView expects us to tell it when it has already downloaded
     # the latest version of the DB. But it doesn't provide the header
     # If-Modified-Since. So we play a little guessing game here ...
-    WORKAROUND_MAX_CACHE_TIME = 3600
+    WORKAROUND_FORCE_CACHE_TIME = os.getenv("OPENPAPERVIEW_WORKAROUND_FORCE_CACHE_TIME", 3600)
 
     def http_backend_get(self, request) -> Optional[paperwork_backend.http.BackendReply]:
         if request.path != QUERY_PATH:
@@ -555,7 +556,7 @@ class Plugin(
         with DB_LOCK:
             now = time.perf_counter()
             last = self.last_query
-            if last is not None and last + self.WORKAROUND_MAX_CACHE_TIME > now:
+            if last is not None and last + self.WORKAROUND_FORCE_CACHE_TIME > now:
                 return paperwork_backend.http.BackendReply(
                     http_code=304,
                     last_modified=self.core.call_success("fs_get_mtime", self.db_path),

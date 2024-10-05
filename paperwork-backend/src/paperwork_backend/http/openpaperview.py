@@ -548,7 +548,7 @@ class Plugin(
     # OpenPaperView expects us to tell it when it has already downloaded
     # the latest version of the DB. But it doesn't provide the header
     # If-Modified-Since. So we play a little guessing game here ...
-    WORKAROUND_FORCE_CACHE_TIME = os.getenv("OPENPAPERVIEW_WORKAROUND_FORCE_CACHE_TIME", 3600)
+    WORKAROUND_FORCE_CACHE_TIME = int(os.getenv("OPENPAPERVIEW_WORKAROUND_FORCE_CACHE_TIME", 3600))
 
     def http_backend_get(self, request) -> Optional[paperwork_backend.http.BackendReply]:
         if request.path != QUERY_PATH:

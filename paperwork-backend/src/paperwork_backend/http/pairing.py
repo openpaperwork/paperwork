@@ -211,7 +211,7 @@ class Plugin(openpaperwork_core.PluginBase):
             authorization = authorization.encode("utf-8")
             authorization = base64.decodestring(authorization)
         except Exception as exc:
-            LOGGER.warning("Failed to decode Authorization header")
+            LOGGER.warning("Failed to decode Authorization header", exc_info=exc)
             return paperwork_backend.http.BackendReply(http_code=401)
         if authorization != self.secret:
             LOGGER.warning("Authorization doesn't match secret")

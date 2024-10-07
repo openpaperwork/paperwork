@@ -6,7 +6,6 @@ See https://github.com/bwt/OpenPaperView/blob/main/tools/create_viewer_cb.py
 from typing import Optional
 import abc
 import logging
-import os
 import re
 import time
 import threading
@@ -337,8 +336,6 @@ class OpenPaperviewIndexTransaction(paperwork_backend.sync.BaseTransaction):
 
         DB_LOCK.acquire()
 
-        self.plugin.last_query = None
-
         self.sql = self.core.call_success(
             "sqlite_execute",
             self.core.call_success, "sqlite_open", self.db_path
@@ -468,7 +465,6 @@ class Plugin(
 
     def __init__(self):
         self.db_path = None
-        self.last_query = False
 
     def init(self, core):
         super().init(core)
@@ -544,26 +540,10 @@ class Plugin(
     def http_backend_head(self, path: str) -> Optional[paperwork_backend.http.BackendReply]:
         return self.http_backend_get(path)
 
-    # WORKAROUND(Jflesch):
-    # OpenPaperView expects us to tell it when it has already downloaded
-    # the latest version of the DB. But it doesn't provide the header
-    # If-Modified-Since. So we play a little guessing game here ...
-    WORKAROUND_FORCE_CACHE_TIME = int(os.getenv("OPENPAPERVIEW_WORKAROUND_FORCE_CACHE_TIME", 3600))
-
     def http_backend_get(self, request) -> Optional[paperwork_backend.http.BackendReply]:
         if request.path != QUERY_PATH:
             return None
         with DB_LOCK:
-            now = time.perf_counter()
-            last = self.last_query
-            if last is not None and last + self.WORKAROUND_FORCE_CACHE_TIME > now:
-                return paperwork_backend.http.BackendReply(
-                    http_code=304,
-                    last_modified=self.core.call_success("fs_get_mtime", self.db_path),
-                    content_length=self.core.call_success("fs_getsize", self.db_path),
-                )
-            self.last_query = now
-
             return paperwork_backend.http.BackendReply(
                 http_code=200,
                 last_modified=self.core.call_success("fs_get_mtime", self.db_path),

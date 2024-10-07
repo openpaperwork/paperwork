@@ -4,6 +4,7 @@ Designed to be used with OpenPaperview
 """
 from typing import BinaryIO, Optional
 import dataclasses
+import email.utils
 import logging
 import ssl
 
@@ -42,6 +43,47 @@ class BackendReply:
     content_raw: Optional[bytes] = None
 
     def send(self, core, request):
+        self._check_cache_time(core, request)
+        self._check_cache_etag(core, request)
+        self._send(core, request)
+
+    def _set_not_modified(self):
+        self.http_code = 304
+        if self.content_fd is not None:
+            self.content_fd.close()
+            self.content_fd = None
+        if self.content_raw is not None:
+            self.content_raw = None
+
+    def _check_cache_time(self, core, request):
+        if self.http_code != 200:
+            return
+        if self.last_modified is None:
+            return
+        if_modified_since = request.headers["If-Modified-Since"]
+        if if_modified_since is None:
+            return
+        if_modified_since = email.utils.parsedate_to_datetime(if_modified_since)
+        if if_modified_since < self.last_modified:
+            return
+        self._set_not_modified()
+
+    def _check_cache_etag(self, core, request):
+        if self.http_code != 200:
+            return
+        if self.etag is None:
+            return
+        etag = f'"{self.etag}"'
+        if_none_match = request.headers["If-None-Match"]
+        if if_none_match is None:
+            return
+        if_none_match = if_none_match.split(", ")
+        if etag not in if_none_match:
+            return
+
+        self._set_not_modified()
+
+    def _send(self, core, request):
         try:
             LOGGER.info(
                 "HTTP %d: %s: %s",

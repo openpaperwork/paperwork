@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
+import base64
 import io
 import json
 import logging
@@ -197,10 +198,24 @@ class Plugin(openpaperwork_core.PluginBase):
         # basic bruteforce protection (of course, this does assume HTTPS is not multithreaded)
         time.sleep(1)
 
-        if "Authorization" not in request.headers:
+        # We expected: `Authorization: Basic <secret in base64>`
+        authorization = request.headers["Authorization"]
+        if authorization is None:
+            LOGGER.warning("Missing HTTP header Authorization")
             return paperwork_backend.http.BackendReply(http_code=401)
-        if request.headers["Authorization"] != self.secret:
-            return paperwork_backend.http.BackendReply(http_code=403)
+        if not authorization.startswith("Basic "):
+            LOGGER.warning("Authorization header doesn't start with 'Basic'")
+            return paperwork_backend.http.BackendReply(http_code=401)
+        try:
+            authorization = authorization.split(" ", 1)[1]
+            authorization = authorization.encode("utf-8")
+            authorization = base64.decodestring(authorization)
+        except Exception as exc:
+            LOGGER.warning("Failed to decode Authorization header")
+            return paperwork_backend.http.BackendReply(http_code=401)
+        if authorization != self.secret:
+            LOGGER.warning("Authorization doesn't match secret")
+            return paperwork_backend.http.BackendReply(http_code=401)
 
         (cert, key) = self.core.call_success("https_backend_get_server_certificate")
         with self.core.call_success("fs_open", cert, "r") as fd:

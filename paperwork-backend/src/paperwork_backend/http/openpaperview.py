@@ -268,7 +268,7 @@ class DbTableDocumentText(AbstractDbTable):
             ");"
         ),
         # used by Room (see OpenPaperView)
-        "PRAGMA user_version = 1;",
+        "PRAGMA user_version = 2;",
     ]
 
     def __init__(self, db_table_doc: DbTableDocument):

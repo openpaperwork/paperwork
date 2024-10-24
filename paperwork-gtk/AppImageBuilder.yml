@@ -24,6 +24,8 @@ script:
   - mkdir -p AppDir/usr/share/icons/hicolor/scalable
   - cp src/paperwork_gtk/data/paperwork_48.png AppDir/usr/share/icons/hicolor/48x48/paperwork.png
   - cp src/paperwork_gtk/data/paperwork_halo.svg AppDir/usr/share/icons/hicolor/scalable/paperwork.svg
+  - mkdir -p AppDir/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders
+  - ln -s libpixbufloader_svg.so AppDir/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so
 
 AppDir:
   path: ./AppDir
@@ -50,6 +52,7 @@ AppDir:
     - gir1.2-poppler-0.18
     - gobject-introspection
     - libexpat1
+    - libgdk-pixbuf-2.0-0
     - libgirepository1.0-dev
     - librsvg2-common  # for libpixbufloader-svg.so
     - libwayland-cursor0  # missing Debian dependency for GTK ?
@@ -66,8 +69,11 @@ AppDir:
     - zlib1g
   files:
     include:
+    - bin/**/*
     - usr/lib/mime/**/*
     - usr/share/mime/**/*
+    - etc/mime.types
+    - usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so
     exclude:
     - usr/share/doc/*/changelog.*
     - usr/share/doc/*/NEWS.*
@@ -79,6 +85,10 @@ AppDir:
     env:
       PYTHONHOME: '${APPDIR}/usr'
       PYTHONPATH: '${APPDIR}/usr/lib/python3.12/site-packages'
+      APPDIR_LIBRARY_PATH: '$APPDIR/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders:$APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/lib/x86_64-linux-gnu'
+      GDK_PIXBUF_MODULE_FILE: '${APPDIR}/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders.cache'
+      GTK_DATA_PREFIX: '$APPDIR'
+      GTK_EXE_PREFIX: '${APPDIR}/usr'
   test:
     fedora-30:
       image: appimagecrafters/tests-env:fedora-30

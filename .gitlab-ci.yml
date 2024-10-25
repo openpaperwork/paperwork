@@ -148,7 +148,7 @@ deploy_linux_appimage:
     - apt-get update
     - apt-get install -y libfuse2t64
     # test the builds
-    - paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage ping
+    - xvfb-run paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage ping
     - paperwork-shell/Paperwork-cli-latest-x86_64.AppImage ping
     - paperwork-shell/Paperwork-json-latest-x86_64.AppImage ping
     - ./ci/deliver.sh paperwork-gtk/Paperwork-gtk-latest-x86_64.AppImage linux .appimage paperwork-gtk

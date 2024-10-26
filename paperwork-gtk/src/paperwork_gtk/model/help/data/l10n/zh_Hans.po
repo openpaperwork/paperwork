@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:54+0000\n"
+"PO-Revision-Date: 2024-10-26 09:59+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -106,7 +106,7 @@ msgstr ""
 #. type: section{#2}
 #: data/intro.tex:59
 msgid "Export"
-msgstr "导出"
+msgstr "Export 导出"
 
 #. type: document
 #: data/intro.tex:69
@@ -203,7 +203,7 @@ msgstr "Paperwork 手册"
 #. type: section{#2}
 #: data/usage.tex:33
 msgid "Introduction"
-msgstr "介绍"
+msgstr "Introduction 介绍"
 
 #. type: document
 #: data/usage.tex:42
@@ -273,21 +273,22 @@ msgstr "文档"
 msgid ""
 "In Paperwork, a document is a set of pages. On disk, it can either be a set "
 "of JPEG files or a PDF file."
-msgstr ""
+msgstr "在Paperwork中，文档是一组页面。 在磁盘上，它可以是一组 JPEG 文件或 PDF 文件。"
 
 #. type: document
 #: data/usage.tex:75
 msgid ""
 "Documents are identified only by a date. It can either be the date you "
 "imported them (default) or some date of your choosing."
-msgstr ""
+msgstr "文件只能用日期来标识。 "
+"日期可以是您导入文件的日期（默认），也可以是您选择的某个日期。"
 
 #. type: document
 #: data/usage.tex:78
 msgid ""
 "They are displayed on the left side of the main window (green part on the "
 "screenshot above)."
-msgstr ""
+msgstr "它们显示在主窗口的左侧（上图绿色部分）。"
 
 #. type: subsection{#2}
 #: data/usage.tex:81

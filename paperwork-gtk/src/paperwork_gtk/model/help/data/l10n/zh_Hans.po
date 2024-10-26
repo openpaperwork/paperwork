@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:49+0000\n"
+"PO-Revision-Date: 2024-10-26 09:54+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -26,9 +26,7 @@ msgstr ""
 #. type: title{#1}
 #: data/intro.tex:11
 msgid "Welcome to Paperwork !"
-msgstr ""
-"Welcome to Paperwork ! \n"
-"欢迎使用 Paperwork !"
+msgstr "欢迎使用 Paperwork !"
 
 #. type: document
 #: data/intro.tex:20
@@ -215,6 +213,9 @@ msgid ""
 "them back later is worrisome, at best. For most organized people, naming and "
 "sorting them is as tedious as watching paint dry."
 msgstr ""
+"大多数个人文件都是经常性的：收入报表、房租账单、电费账单等。 "
+"对于大多数缺乏条理的人来说，日后再去找这些文件充其量只是一件令人担忧的事。 "
+"对于大多数有条理的人来说，给它们命名和分类就像看油漆干一样乏味。"
 
 #. type: document
 #: data/usage.tex:46
@@ -222,7 +223,8 @@ msgid ""
 "The main idea behind Paperwork is that managing documents is a computer "
 "job.  Humans should do as little as possible while machines do most of the "
 "work.  The end goal here is \"scan \\& forget\"."
-msgstr ""
+msgstr "文书工作的主要理念是，管理文件是一项计算机工作。  "
+"人类应该尽量少做，而机器则要做大部分工作。  最终目标是 \"扫描&遗忘\"。"
 
 #. type: document
 #: data/usage.tex:50
@@ -231,23 +233,26 @@ msgid ""
 "individually, organize them in complex hierachy, tag them manually each "
 "time, fix OCR minor glitches, etc, then Paperwork is not for you."
 msgstr ""
+"如果你正在寻找一款软件，能让你为每份文档单独命名、以复杂的层次结构组织文档、"
+"每次都手动标记文档、修复 OCR 小故障等，那么 Paperwork 并不适合你。"
 
 #. type: section{#2}
 #: data/usage.tex:53
 msgid "Definitions"
-msgstr ""
+msgstr "Definitions 定义"
 
 #. type: subsection{#2}
 #: data/usage.tex:55 data/usage.tex:159
 msgid "Work directory"
-msgstr "工作目录"
+msgstr "Work directory 工作目录"
 
 #. type: document
 #: data/usage.tex:58
 msgid ""
 "Paperwork stores all your documents in a single directory: the work "
 "directory.  In this directory, each document has its own sub-directory."
-msgstr ""
+msgstr "Paperwork 将所有文件存储在一个目录中：工作目录。  "
+"在这个目录中，每个文档都有自己的子目录。"
 
 #. type: document
 #: data/usage.tex:62
@@ -255,7 +260,8 @@ msgid ""
 "While this makes Paperwork hard to use with other tools, it has one major "
 "advantage: You don't have to worry about file names and directory structures "
 "anymore."
-msgstr ""
+msgstr "虽然这使得 Paperwork 难以与其他工具配合使用，但它有一个最大的优点： "
+"你再也不用担心文件名和目录结构了。"
 
 #. type: subsection{#2}
 #: data/usage.tex:64

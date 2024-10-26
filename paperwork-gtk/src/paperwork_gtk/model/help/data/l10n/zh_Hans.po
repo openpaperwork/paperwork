@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:24+0000\n"
+"PO-Revision-Date: 2024-10-26 09:29+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -75,6 +75,9 @@ msgid ""
 "scanner at home? You can still use the scanner you have at work. Paperwork "
 "will easily import PDF and image files."
 msgstr ""
+"您可以添加多种来源的纸张，这具体取决于连接到计算机的设备：扫描仪平板、扫描仪"
+"进纸器、相机等。 等会，家里没有扫描仪？ 您仍然可以使用正在工作中的扫描仪。 "
+"Paperwork 可以轻松导入 PDF 和图像文件。"
 
 #. type: section{#2}
 #: data/intro.tex:44

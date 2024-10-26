@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2024-10-26 09:59+0000\n"
+"PO-Revision-Date: 2024-10-26 10:04+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk/zh_Hans/>\n"
@@ -72,7 +72,7 @@ msgstr "打开上一文档"
 
 #: paperwork-gtk/src/paperwork_gtk/shortcuts/app/find.py:32
 msgid "Find"
-msgstr "查找"
+msgstr "Find 查找"
 
 #: paperwork-gtk/src/paperwork_gtk/print.py:42
 #, python-brace-format

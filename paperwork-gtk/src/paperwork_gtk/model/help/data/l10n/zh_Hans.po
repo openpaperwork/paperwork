@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:39+0000\n"
+"PO-Revision-Date: 2024-10-26 09:49+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -168,7 +168,7 @@ msgstr "点击 \"+\"按钮和扫描按钮，就可以了！ 现在，您已经�
 msgid ""
 "This document will automatically disappear from your document list as soon "
 "as you have created or imported your first document."
-msgstr ""
+msgstr "创建或导入第一个文档后，该文档将自动从文档列表中消失。"
 
 #. type: section{#2}
 #: data/intro.tex:108
@@ -180,14 +180,15 @@ msgstr "需要更多帮助 ?"
 msgid ""
 "If you need more help, there is a comprehensive manual you can find in the "
 "help section of Paperwork."
-msgstr ""
+msgstr "如果您需要更多帮助，可以在 \"Paperwork\"的 \"帮助 \"部分找到一本全面的手册。"
 
 #. type: document
 #: data/intro.tex:119
 msgid ""
 "We hope that you'll enjoy this piece of software. If you like it please tell "
 "us, and if you don't please tell us why!"
-msgstr ""
+msgstr "我们希望您会喜欢这款软件。 "
+"如果您喜欢，请告诉我们；如果您不喜欢，请告诉我们原因！"
 
 #. type: hypersetup{#1}
 #: data/usage.tex:21

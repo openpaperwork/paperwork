@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:34+0000\n"
+"PO-Revision-Date: 2024-10-26 09:39+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -133,6 +133,9 @@ msgid ""
 "All the keywords you add will be searchable, as if they were directly "
 "written on the paper you scanned."
 msgstr ""
+"您回复了一封重要的电子邮件，却想记录下来？ 您扫描的文件无法阅读，以至于 "
+"Paperwork 无法识别一些重要的关键字？ 在纸张上添加关键词，就不会遗漏任何内容！"
+" 您添加的所有关键字都可以搜索，就像直接写在您扫描的纸张上一样。"
 
 #. type: document
 #: data/intro.tex:89
@@ -142,11 +145,14 @@ msgid ""
 "will learn which labels go on which documents and will automatically apply "
 "them on new documents."
 msgstr ""
+"您想进一步整理您的文件吗？ 您还可以为文档添加标签。 每个标签都有自己的颜色。 "
+"随着时间的推移，Paperwork "
+"会了解哪些标签适用于哪些文档，并自动将它们应用到新文档上。"
 
 #. type: section{#2}
 #: data/intro.tex:92
 msgid "Your first documents"
-msgstr ""
+msgstr "Your first documents 你的第一份文件"
 
 #. type: document
 #: data/intro.tex:102
@@ -154,7 +160,8 @@ msgid ""
 "Click the + button, the scan button, and that's all folks! You are now aware "
 "of the main features of Paperwork. You can start using it by adding your "
 "first own paper."
-msgstr ""
+msgstr "点击 \"+\"按钮和扫描按钮，就可以了！ 现在，您已经了解了 Paperwork "
+"的主要功能。 您可以添加自己的第一份文件，开始使用它。"
 
 #. type: document
 #: data/intro.tex:105

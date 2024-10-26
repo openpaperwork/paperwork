@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:59+0000\n"
+"PO-Revision-Date: 2024-10-26 10:04+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -82,7 +82,7 @@ msgstr ""
 #. type: section{#2}
 #: data/intro.tex:44
 msgid "Find"
-msgstr "查找"
+msgstr "Find 查找"
 
 #. type: wrapfigure
 #: data/intro.tex:50
@@ -293,7 +293,7 @@ msgstr "它们显示在主窗口的左侧（上图绿色部分）。"
 #. type: subsection{#2}
 #: data/usage.tex:81
 msgid "Page"
-msgstr "页面"
+msgstr "Page 页面"
 
 #. type: document
 #: data/usage.tex:83

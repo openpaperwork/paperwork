@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-10-26 09:29+0000\n"
+"PO-Revision-Date: 2024-10-26 09:34+0000\n"
 "Last-Translator: PokerFace <PokerFace128@qq.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translations."
 "openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
@@ -26,7 +26,9 @@ msgstr ""
 #. type: title{#1}
 #: data/intro.tex:11
 msgid "Welcome to Paperwork !"
-msgstr "欢迎使用 Paperwork !"
+msgstr ""
+"Welcome to Paperwork ! \n"
+"欢迎使用 Paperwork !"
 
 #. type: document
 #: data/intro.tex:20
@@ -98,6 +100,10 @@ msgid ""
 "to convert your papers into simple text files, so it's easy to search for "
 "text."
 msgstr ""
+"随时随地查找所需内容。 "
+"在搜索栏中输入几个关键字，论文列表就会缩小到只有相关内容。 这就是神奇之处： "
+"Paperwork 使用光学字符识别 (OCR) "
+"技术将文件转换为简单的文本文件，这样就可以轻松搜索文本。"
 
 #. type: section{#2}
 #: data/intro.tex:59
@@ -110,7 +116,8 @@ msgid ""
 "Sometimes you may want to export a document to send it to someone else.  "
 "Multiple formats are supported: .pdf, .jpg, .txt, etc. And of course, paper "
 "(requires a printer, sold separately)."
-msgstr ""
+msgstr "有时，您可能想导出文档发送给其他人。  支持多种格式： PDF、JPG、TXT 等。 "
+"当然还有纸张（这个需要打印机，而且需单独购买）。"
 
 #. type: subsection{#2}
 #: data/intro.tex:72 data/usage.tex:114

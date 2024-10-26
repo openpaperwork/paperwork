@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2021-03-24 23:17+0000\n"
-"Last-Translator: 玉堂白鹤 <yjwork@qq.com>\n"
-"Language-Team: Chinese (Simplified) <http://translations.openpaper.work/"
-"projects/paperwork/paperwork-help-documents/zh_Hans/>\n"
+"PO-Revision-Date: 2024-10-26 09:24+0000\n"
+"Last-Translator: PokerFace <PokerFace128@qq.com>\n"
+"Language-Team: Chinese (Simplified Han script) <https://translations."
+"openpaper.work/projects/paperwork/paperwork-gtk-help/zh_Hans/>\n"
 "Language: zh_Hans\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.4\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #. type: Plain text
 #: data/intro.tex:11 data/usage.tex:21
@@ -37,6 +37,10 @@ msgid ""
 "read, classify, and memorize just in case you may need them later. Most of "
 "the time you won't, which means you waste your energy for nothing."
 msgstr ""
+"他们会把你逼疯的！！！电话接线员、银行、女儿的学校、狗狗的兽医，甚至你的互联"
+"网服务提供商；似乎所有这些人都想把你淹没在成吨的文件中。 "
+"你必须阅读、分类和记忆这些文件，以备日后不时之需。 "
+"大多数时候你都用不上，这意味着你白白浪费了精力和时间。"
 
 #. type: document
 #: data/intro.tex:24
@@ -45,11 +49,14 @@ msgid ""
 "searchable documents.  It's simple: just scan and forget. Looking for a "
 "specific paper? Just type in a few keywords and tada"
 msgstr ""
+"Paperwork 可以帮你将所有文件转化为可搜索文件，从而摆脱这些文件的困扰。  "
+"方法很简单：只需扫描，然后忘记。 想找一篇特定的论文？ "
+"只需输入几个关键字，然后就可以找到"
 
 #. type: section{#2}
 #: data/intro.tex:28
 msgid "Documents and pages"
-msgstr ""
+msgstr "Documents and pages 文档和页面"
 
 #. type: document
 #: data/intro.tex:36
@@ -57,7 +64,8 @@ msgid ""
 "Paperwork's interface is composed of two panels. On the left (green) is the "
 "list of all your documents sorted by the date they were imported. On the "
 "right (blue) are the pages of the currently selected paper."
-msgstr ""
+msgstr "Paperwork 的界面由两个面板组成。 左边（绿色）是按导入日期排序的所有文件列表。"
+" 右侧（蓝色）是当前所选纸张的页面。"
 
 #. type: document
 #: data/intro.tex:41

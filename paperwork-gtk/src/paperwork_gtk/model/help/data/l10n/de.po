@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-09-02 23:55+0200\n"
-"PO-Revision-Date: 2024-03-30 13:25+0000\n"
+"PO-Revision-Date: 2024-11-03 12:59+0000\n"
 "Last-Translator: Philipp Kiemle <m189p4zx2@mozmail.com>\n"
 "Language-Team: German <https://translations.openpaper.work/projects/"
 "paperwork/paperwork-gtk-help/de/>\n"
@@ -2180,7 +2180,7 @@ msgstr ""
 #. type: section{#2}
 #: data/usage.tex:951
 msgid "Shell hooks"
-msgstr ""
+msgstr "Shell-Hooks"
 
 #. type: document
 #: data/usage.tex:955
@@ -2189,6 +2189,9 @@ msgid ""
 "Those hook can only be set using the command line interface, but they will "
 "be executed when using the GTK interface too."
 msgstr ""
+"Sie können bei einigen Ereignissen benutzerdefinierte Befehle ausführen. "
+"Diese \"Hooks\" können zwar nur mithilfe der Befehlszeile angelegt werden, "
+"funktionieren aber auch bei Verwendung der GTK-Oberfläche."
 
 #. type: document
 #: data/usage.tex:958
@@ -2196,23 +2199,26 @@ msgid ""
 "You can get a complete list of all the existing hooks by examining Paperwork "
 "configuration:"
 msgstr ""
+"Eine komplette Liste aller vorhandenen Hooks finden Sie in der Paperwork-"
+"Konfiguration:"
 
 #. type: verbatim
 #: data/usage.tex:961
 #, no-wrap
 msgid "paperwork-cli config show | grep shell_hook"
-msgstr ""
+msgstr "paperwork-cli config show | grep shell_hook"
 
 #. type: document
 #: data/usage.tex:964
 msgid "For instance, if you want a executed every time a document is added:"
-msgstr ""
+msgstr "Zum Beispiel, zur Ausführung wenn ein Dokument hinzugefügt wird:"
 
 #. type: verbatim
 #: data/usage.tex:967
 #, no-wrap
 msgid "paperwork-cli config put shell_hook_on_doc_add str \"echo doc added:\""
 msgstr ""
+"paperwork-cli config put shell_hook_on_doc_add str \"echo doc hinzugefügt:\""
 
 #. type: document
 #: data/usage.tex:972
@@ -2221,6 +2227,10 @@ msgid ""
 "the corresponding document ID is passed to shell\\_hook\\_on\\_doc\\_add, "
 "shell\\_hook\\_on\\_doc\\_del, and shell\\_hook\\_on\\_doc\\_upd."
 msgstr ""
+"Einige dieser Hooks erhalten spezielle Argumente, wenn sie ausgeführt "
+"werden. Beispielsweise wird die jeweilige Dokument-ID an shell\\_hook\\_on"
+"\\_doc\\_add, shell\\_hook\\_on\\_doc\\_del und shell\\_hook\\_on\\_doc\\_upd"
+" weitergegeben."
 
 #. type: section{#2}
 #: data/usage.tex:975

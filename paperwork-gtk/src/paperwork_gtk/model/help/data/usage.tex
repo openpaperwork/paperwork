@@ -950,7 +950,7 @@ always be the same.
 \section{Shell hooks}
 
 It is possible to have custom commands executed when some events happen.
-Those hook can only be set using the command line interface, but they
+Those hooks can only be set using the command line interface, but they
 will be executed when using the GTK interface too.
 
 You can get a complete list of all the existing hooks by examining Paperwork
@@ -960,7 +960,7 @@ configuration:
 paperwork-cli config show | grep shell_hook
 \end{verbatim}
 
-For instance, if you want a executed every time a document is added:
+For instance, if you want a hook executed every time a document is added:
 
 \begin{verbatim}
 paperwork-cli config put shell_hook_on_doc_add str "echo doc added:"

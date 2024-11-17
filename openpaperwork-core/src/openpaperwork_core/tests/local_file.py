@@ -19,6 +19,11 @@ class AbstractTestSafe(unittest.TestCase):
         self.core.load(self.get_plugin_name())
         self.core.init()
 
+    def test_relative(self):
+        # make sure it's turned into an absolute path
+        v = self.core.call_one('fs_safe', 'jerome')
+        self.assertTrue(v.startswith("file:///"))
+
     @unittest.skipUnless(os.name == 'posix', reason="Linux only")
     def test_linux(self):
         v = self.core.call_one('fs_safe', '/home/flesch jerome')

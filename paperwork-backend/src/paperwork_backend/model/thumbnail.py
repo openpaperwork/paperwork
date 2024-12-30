@@ -105,9 +105,9 @@ class Plugin(openpaperwork_core.PluginBase):
                     LOGGER.info(
                         "Thumbnail %s is obsolete. Regenerating", thumbnail_url
                     )
-                    self.core.call_success("fs_unlink", thumbnail_url)
+                    self.core.call_success("fs_unlink", thumbnail_url, trash=False)
 
-        if self.core.call_success("fs_exists", thumbnail_url) is not None:
+        if self.core.call_success("fs_exists", thumbnail_url):
             LOGGER.debug("Loading thumbnail for %s page %d", doc_url, page_idx)
             try:
                 thumbnail = self.core.call_success(
@@ -135,6 +135,12 @@ class Plugin(openpaperwork_core.PluginBase):
         except Exception as exc:
             LOGGER.error("Failed to load page %s", page_url, exc_info=exc)
             page = self.core.call_success("pillow_get_error", "invalid")
+
+        if page is None:
+            # WORKAROUND(Jflesch): unclear what causes this problem. There are
+            # no other log
+            LOGGER.error("Failed to generate thumbail for %s", doc_url)
+            return None
 
         thumbnail = self.thumbnail_from_img(page)
 

@@ -117,6 +117,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         # WORKAROUND(Jflesch): may occur with corrupted PDFs
         if surface is None:
+            LOGGER.error("Failed to convert %s p%d to cairo surface", file_url, page_idx)
             return None
 
         img = surface2image(self.core, surface)

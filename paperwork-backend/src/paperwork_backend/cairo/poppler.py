@@ -288,6 +288,7 @@ class Plugin(openpaperwork_core.PluginBase):
         # Some corrupted PDFs may cause `page = None` here. (PDF declaring
         # more pages than they actually have).
         if page is None:
+            LOGGER.error("Failed to get p%d of file %s", page_idx, file_url)
             return None
 
         base_size = page.get_size()

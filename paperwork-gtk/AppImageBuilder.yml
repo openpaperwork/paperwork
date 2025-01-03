@@ -42,7 +42,7 @@ AppDir:
     allow_unauthenticated: true
     sources:
     - sourceline: deb http://deb.debian.org/debian/ testing main contrib
-    # - sourceline: deb http://deb.debian.org/debian/ sid main contrib
+    - sourceline: deb http://deb.debian.org/debian/ sid main contrib
     include:
     - bash
     - coreutils

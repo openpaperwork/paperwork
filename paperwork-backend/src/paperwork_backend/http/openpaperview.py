@@ -344,6 +344,8 @@ class OpenPaperviewIndexTransaction(paperwork_backend.sync.BaseTransaction):
             "sqlite_execute",
             self.sql.cursor
         )
+        self.cursor.execute("PRAGMA foreign_key_check;")
+        self.cursor.execute("PRAGMA foreign_keys = ON;")
         self.core.call_one(
             "sqlite_execute", self.cursor.execute, "BEGIN TRANSACTION"
         )
@@ -495,6 +497,8 @@ class Plugin(
             "sqlite_execute",
             self.core.call_success, "sqlite_open", self.db_path
         )
+        sql.execute("PRAGMA foreign_key_check;")
+        sql.execute("PRAGMA foreign_keys = ON;")
         comparable_docs = [
             paperwork_backend.sync.doctracker.ComparableDoc(self.core, doc_id, doc_url)
             for (doc_id, doc_url) in storage_docs

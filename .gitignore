@@ -12,6 +12,8 @@ paperwork.egg-info/
 *.traineddata
 *.app/
 .flatpak-builder/
+.mypy_cache/
+.pytest_cache/
 repo/
 *.flatpak
 venv*/

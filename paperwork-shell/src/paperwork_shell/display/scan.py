@@ -92,9 +92,19 @@ class Plugin(openpaperwork_core.PluginBase):
                 page_nb + 1, scan_params.get_width(), scan_params.get_height()
             )
         )
-        self.img = AppendableImage(
-            scan_params.get_width(), scan_params.get_height()
+        self.scan_size = (scan_params.get_width(), scan_params.get_height())
+        self.buffer_size = (
+            # WORKAROUND(Jflesch): Some scanners (Fujistu mainly) return an
+            # image far too big in height. Cairo only allows a maximum image
+            # size of 32767 (see #define MAX_IMAGE_SIZE in
+            # cairo-image-surface.c)
+            min(self.scan_size[0], 32766),
+            min(self.scan_size[1], 32766)
+            if self.scan_size[1] > 0
+            else 32766
         )
+
+        self.img = AppendableImage(self.buffer_size[0], self.buffer_size[1])
         self.last_line_displayed = 0
 
         # We need to figure out how many pixels one line of character will
@@ -105,7 +115,7 @@ class Plugin(openpaperwork_core.PluginBase):
             shutil.get_terminal_size()[0] - 1,
             shutil.get_terminal_size()[1]
         )
-        ratio = scan_params.get_width() / self.terminal_size[0]
+        ratio = self.buffer_size[0] / self.terminal_size[0]
         # When rich-pixels resizes an image to turn it into terminal characters,
         # it assumes that each characters is 1 pixel wide and 2 pixels high.
         self.txt_line_height = int(2 * ratio) + 1

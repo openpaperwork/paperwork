@@ -1,4 +1,5 @@
 import logging
+import os
 try:
     import importlib.resources
     IMPORTLIB_RESOURCES_AVAILABLE = True
@@ -29,6 +30,14 @@ class Plugin(PluginBase):
             return
 
         path = importlib.resources.files(pkg).joinpath(filename)
+
+        if not os.access(path, os.R_OK):
+            LOGGER.warning(
+                "Failed to find resource file %s/%s,"
+                " tried at path %s.", pkg, filename, path
+            )
+            return None
+
         LOGGER.debug("%s:%s --> %s", pkg, filename, path)
         return importlib.resources.as_file(path)
 

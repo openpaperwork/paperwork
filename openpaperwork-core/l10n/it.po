@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2024-05-20 07:08+0000\n"
-"Last-Translator: hgndrtn651b9ds <hgndrtn651b9ds@protonmail.com>\n"
+"PO-Revision-Date: 2025-02-07 17:26+0000\n"
+"Last-Translator: ivano <navib30@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/it/>\n"
 "Language: it\n"
@@ -134,7 +134,7 @@ msgstr "Vuoi eseguire questo comando adesso ?"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:123
 msgid "Don't know how to install missing dependencies. Sorry."
-msgstr ""
+msgstr "Impossibile installare Dipendenze non installate"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:126
 msgid "Nothing to do."

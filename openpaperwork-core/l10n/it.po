@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-08-31 22:19+0200\n"
-"PO-Revision-Date: 2025-02-07 17:26+0000\n"
+"PO-Revision-Date: 2025-02-07 17:36+0000\n"
 "Last-Translator: ivano <navib30@gmail.com>\n"
 "Language-Team: Italian <https://translations.openpaper.work/projects/"
 "paperwork/openpaperwork-core/it/>\n"
@@ -91,8 +91,9 @@ msgid "See 'config list_type'"
 msgstr ""
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:84
+#, fuzzy
 msgid "Show Paperwork's configuration"
-msgstr ""
+msgstr "Visualizza la Documentazione del Programma"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/config.py:89
 msgid "Show value types you can use from command line"
@@ -134,7 +135,7 @@ msgstr "Vuoi eseguire questo comando adesso ?"
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:123
 msgid "Don't know how to install missing dependencies. Sorry."
-msgstr "Impossibile installare Dipendenze non installate"
+msgstr "Impossibile installare, Dipendenze non installate."
 
 #: openpaperwork-core/src/openpaperwork_core/cmd/chkdeps.py:126
 msgid "Nothing to do."

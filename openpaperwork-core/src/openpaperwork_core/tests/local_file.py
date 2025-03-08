@@ -24,6 +24,10 @@ class AbstractTestSafe(unittest.TestCase):
         v = self.core.call_one('fs_safe', 'jerome')
         self.assertTrue(v.startswith("file:///"))
 
+    def test_relative_path(self):
+        v = self.core.call_one('fs_safe', pathlib.Path('jerome'))
+        self.assertTrue(v.startswith("file:///"))
+
     @unittest.skipUnless(os.name == 'posix', reason="Linux only")
     def test_linux(self):
         v = self.core.call_one('fs_safe', '/home/flesch jerome')

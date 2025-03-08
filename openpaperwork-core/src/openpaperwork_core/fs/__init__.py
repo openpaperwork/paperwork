@@ -29,7 +29,7 @@ class CommonFsPluginBase(openpaperwork_core.PluginBase):
             - An URI
         """
         if isinstance(uri, pathlib.Path):
-            return uri.as_uri()
+            return uri.resolve().as_uri()
         LOGGER.debug("safe: %s", uri)
         if uri[:2] == "\\\\" or "://" in uri:
             LOGGER.debug("safe: --> %s", uri)

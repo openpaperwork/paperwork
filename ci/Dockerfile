@@ -17,6 +17,7 @@ RUN apt-get update \
         fuse3 \
         gcc \
         gettext \
+        gir1.2-girepository-2.0 \
         git \
         gobject-introspection \
         graphviz \
@@ -24,7 +25,7 @@ RUN apt-get update \
         imagemagick \
         libcunit1-ncurses-dev \
         libgdk-pixbuf-xlib-2.0-dev \
-        libgirepository1.0-dev \
+        libgirepository-2.0-dev \
         libgtk-3-dev \
         libjpeg-dev \
         libreoffice \

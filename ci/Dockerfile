@@ -23,7 +23,7 @@ RUN apt-get update \
         gtk-doc-tools \
         imagemagick \
         libcunit1-ncurses-dev \
-        libgdk-pixbuf2.0-dev \
+        libgdk-pixbuf-xlib-2.0-dev \
         libgirepository1.0-dev \
         libgtk-3-dev \
         libjpeg-dev \

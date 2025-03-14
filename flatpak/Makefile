@@ -21,7 +21,7 @@ dist-clean: clean
 
 upd_repo:
 	@echo flatpak build-update-repo $(REPO) \($(REPO) ${EXPORT_ARGS} ${ARCH_ARGS}\)
-	flatpak build-update-repo --generate-static-deltas ${EXPORT_ARGS} $(REPO)
+	flatpak build-update-repo --generate-static-deltas --prune ${EXPORT_ARGS} $(REPO)
 
 # Build all branches and tags and update the Flatpak repository $(REPO)
 mk_all: $(patsubst %,%.app,$(ALL_TARGETS))

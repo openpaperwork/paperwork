@@ -1,23 +1,37 @@
 #!/usr/bin/bash
-echo $PWD
 git log -1
 
 USER=gitlab-runner
 
+WORKDIR=/flatpak/build
+MNTDIR=/flatpak/mnt
+
 LOCKDIR=/tmp/build.lock.d
 PIDFILE=${LOCKDIR}/pid
 
+REPO_SSHFS_SERVER=flatpak@flatpak-builder-internal.svc
+REPO_SSHFS_PATH_GPG=/data/gnupg
+REPO_SSHFS_PATH_REPO=/data/repository
+REPO_SSHFS_OPTS="-o IdentityFile=${LOCKDIR}/ssh_key"
+
+EXTENSION_VERSION=22.08
+
 branch="${CI_COMMIT_REF_NAME}"
+if [ -z "${branch}" ] ; then
+	branch=master
+fi
 
 echo "Branch: ${branch}"
 
-if [ "${branch}" != "master" ] ; then
-	echo Nothing to do
+if [ -z "${FLATPAK_BUILDER_SSH_KEY}" ] ; then
+	echo No SSH key. Nothing to do
 	exit 0
 fi
 
+
+
 msg() {
-	echo "#####" "$@" "######"
+	echo "#####" "$@"
 }
 
 download()
@@ -46,52 +60,49 @@ if ! mkdir ${LOCKDIR} ; then
 fi
 
 cleanup() {
+	fusermount -u ${MNTDIR}/gpg
+	fusermount -u ${MNTDIR}/repo
 	msg "Cleaning up ${LOCKDIR}"
 	rm -rf ${LOCKDIR}
+}
+
+runx() {
+	msg "$@"
+	if ! "$@" ; then
+		echo FAILED
+		cleanup
+		exit 1
+	fi
 }
 
 # possible race condition if the other was stopping
 # -> re-mkdir
 mkdir -p ${LOCKDIR}
+chmod 700 ${LOCKDIR}
 
 msg "PID: $$ \> ${PIDFILE}"
 echo $$ > ${PIDFILE}
+echo ${FLATPAK_BUILD_SSH_KEY} | base64 -d > ${LOCKDIR}/ssh_key
+chmod 600 ${LOCKDIR}/ssh_key
 
-# We make our own copy of the repository: there will be a big .flatpak-builder
+mkdir -p ${MNTDIR}/gpg
+runx sshfs ${REPO_SSHFS_SERVER}:${REPO_SSHFS_PATH_GPG} ${MNTDIR}/gpg ${REPO_SSHFS_OPTS}
+
+mkdir -p ${MNTDIR}/repo
+runx sshfs ${REPO_SSHFS_SERVER}:${REPO_SSHFS_PATH_REPO} ${MNTDIR}/repo ${REPO_SSHFS_OPTS}
+
+# We make our own opy of the repository: there will be a big .flatpak-builder
 # created in it with a lot of cache files we want to reuse later.
-mkdir -p ~/git
-cd ~/git
+mkdir -p "${WORKDIR}/git"
+cd "${WORKDIR}/git"
 if ! [ -d paperwork ] ; then
-	if ! git clone https://gitlab.gnome.org/World/OpenPaperwork/paperwork.git ;
-	then
-		echo "Clone failed !"
-		exit 1
-	fi
+	runx git clone https://gitlab.gnome.org/World/OpenPaperwork/paperwork.git ;
 fi
 cd paperwork
-# reinit work.openpaper.Paperwork.json (only file we modify later)
-if ! git checkout work.openpaper.Paperwork.json ; then
-	echo "Git checkout work.openpaper.Paperwork.json failed !"
-	exit 1
-fi
-if ! git checkout "${branch}" || ! git pull ; then
-	echo "Git pull failed !"
-	exit 1
-fi
+runx git checkout "${branch}"
+runx git pull
 
-# Set the branches correctly
-jq \
-	--arg branch "${branch}" \
-	'.branch |= $branch' \
-	work.openpaper.Paperwork.json \
-	| sponge work.openpaper.Paperwork.json
-jq \
-	--arg branch "${branch}" \
-	'(((.modules[] | select(type == "object")) | select(.name == "python-paperwork")).sources[] | select(.type == "git")).branch |= $branch' \
-	work.openpaper.Paperwork.json \
-	| sponge work.openpaper.Paperwork.json
-
-mkdir -p ~/flatpak  # directory that contains the repository directory
+runx flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
 cd flatpak/
 
@@ -100,51 +111,32 @@ rm -f data.tar.gz
 download "https://download.openpaper.work/data/paperwork/${branch}_latest/data.tar.gz" ../data.tar.gz
 
 export EXPORT_ARGS="--gpg-sign=E5ACE6FEA7A6DD48"
-export REPO=/home/${USER}/flatpak/paperwork_repo
+export REPO=${MNTDIR}/repo
 
 for arch in x86_64 ; do
 	msg "=== Architecture: ${arch} ==="
 
 	export ARCH_ARGS=--arch=${arch}
 
-	msg "Cleaning ..."
-	if ! make clean ; then
-		msg "Clean failed"
-		cleanup
-		exit 2
-	fi
+	runtime=$(jq -r "(.runtime + \"/${arch}/\" + .\"runtime-version\")" ../work.openpaper.Paperwork.json)
+	msg "Runtime: $runtime"
+	sdk=$(echo $runtime | sed s/Platform/Sdk/g)
+	msg "SDK: $sdk"
+	runx flatpak install -y --user ${runtime}
+	runx flatpak install -y --user ${sdk}
 
-	if [ -z "${branch}" ]; then
-		msg "Building ..."
-		if ! make ; then
-			msg "Build failed"
-			cleanup
-			exit 2
-		fi
-	else
-		msg "Building branch ${branch} ..."
-		if ! make ${branch}.app ; then
-			msg "Build failed"
-			cleanup
-			exit 2
-		fi
-		if ! make upd_repo ; then
-			msg "Repo update failed"
-			cleanup
-			exit 2
-		fi
-	fi
+	for extension in $(jq -r '."sdk-extensions"[]' ../work.openpaper.Paperwork.json) ; do
+		extension="${extension}/${arch}/${EXTENSION_VERSION}"
+		msg "Extension: ${extension}"
+		runx flatpak install -y --user ${extension}
+	done
 
-	msg "Cleaning ..."
-	if ! make clean ; then
-		msg "Clean failed"
-		cleanup
-		exit 2
-	fi
+	runx make clean
+	runx make ${branch}.app
+	runx make upd_repo
+	runx make clean
 done
 
-cd ..
-
-chmod -R a+rX ${HOME}/flatpak
+chmod -R a+rX ${REPO}
 
 cleanup

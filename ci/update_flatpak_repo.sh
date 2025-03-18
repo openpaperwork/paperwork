@@ -48,17 +48,6 @@ download()
 	echo "OK"
 }
 
-export LANG=C
-
-if ! mkdir ${LOCKDIR} ; then
-	pid=$(cat ${PIDFILE})
-	msg "Lock directory present (PID: ${pid})"
-	if kill -0 ${pid} ; then
-		msg "PID ${pid} alive"
-		exit 1
-	fi
-fi
-
 cleanup() {
 	fusermount -u ${MNTDIR}/gpg
 	fusermount -u ${MNTDIR}/repo
@@ -75,6 +64,17 @@ runx() {
 	fi
 }
 
+export LANG=C
+
+if ! mkdir ${LOCKDIR} ; then
+	pid=$(cat ${PIDFILE})
+	msg "Lock directory present (PID: ${pid})"
+	if kill -0 ${pid} ; then
+		msg "PID ${pid} alive"
+		exit 1
+	fi
+fi
+
 # possible race condition if the other was stopping
 # -> re-mkdir
 mkdir -p ${LOCKDIR}
@@ -82,8 +82,11 @@ chmod 700 ${LOCKDIR}
 
 msg "PID: $$ \> ${PIDFILE}"
 echo $$ > ${PIDFILE}
-echo ${FLATPAK_BUILD_SSH_KEY} | base64 -d > ${LOCKDIR}/ssh_key
+echo ${FLATPAK_BUILDER_SSH_KEY} | base64 -d > ${LOCKDIR}/ssh_key
 chmod 600 ${LOCKDIR}/ssh_key
+
+fusermount -u ${MNTDIR}/gpg
+fusermount -u ${MNTDIR}/repo
 
 mkdir -p ${MNTDIR}/gpg
 runx sshfs ${REPO_SSHFS_SERVER}:${REPO_SSHFS_PATH_GPG} ${MNTDIR}/gpg ${REPO_SSHFS_OPTS}

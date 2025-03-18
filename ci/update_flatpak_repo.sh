@@ -14,7 +14,7 @@ REPO_SSHFS_PATH_GPG=/data/gnupg
 REPO_SSHFS_PATH_REPO=/data/repository
 REPO_SSHFS_OPTS="-o IdentityFile=${LOCKDIR}/ssh_key"
 
-EXTENSION_VERSION=22.08
+EXTENSION_VERSION=24.08
 
 branch="${CI_COMMIT_REF_NAME}"
 if [ -z "${branch}" ] ; then

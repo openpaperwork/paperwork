@@ -50,7 +50,6 @@ download()
 
 cleanup() {
 	fusermount -u ${MNTDIR}/gpg
-	fusermount -u ${MNTDIR}/repo
 	msg "Cleaning up ${LOCKDIR}"
 	rm -rf ${LOCKDIR}
 }
@@ -88,7 +87,7 @@ chmod 600 ${LOCKDIR}/ssh_key
 fusermount -u ${MNTDIR}/gpg
 
 mkdir -p ${MNTDIR}/gpg
-runx sshfs ${REPO_SERVER}:${REMOTE_PATH_GPG} ${MNTDIR}/gpg -o IdentityFile=${LOCKDIR}/ssh_key
+runx sshfs ${REPO_SERVER}:${REMOTE_PATH_GPG} ${MNTDIR}/gpg -o uid=$(id -u),gid=$(id -g),IdentityFile=${LOCKDIR}/ssh_key
 rm -rf ~/.gnupg
 ln -sf ${MNTDIR}/gpg/gnupg ~/.gnupg
 

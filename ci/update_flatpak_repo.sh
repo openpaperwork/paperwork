@@ -126,9 +126,7 @@ download "https://download.openpaper.work/data/paperwork/${branch}_latest/data.t
 export EXPORT_ARGS="--gpg-sign=3E315B83074F71DACF5F3D7D70AFDE9214A2DB56"
 
 msg copying existing repo
-runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found "${REPO_SERVER}:${REMOTE_PATH_REPO}/" "${WORKDIR}/repo"
-
-export REPO="${WORKDIR}/repo"
+runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found "${REPO_SERVER}:${REMOTE_PATH_REPO}/" "paperwork_repo"
 
 for arch in x86_64 ; do
 	msg "=== Architecture: ${arch} ==="
@@ -137,11 +135,11 @@ for arch in x86_64 ; do
 
 	runx make clean
 	runx make ${branch}.app
-	runx make upd_repo REPO=${REPO}
+	runx make upd_repo
 	runx make clean
 done
 
 msg copying back repository
-runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found ${REPO}/ "${REPO_SERVER}:${REMOTE_PATH_REPO}"
+runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found paperwork_repo/ "${REPO_SERVER}:${REMOTE_PATH_REPO}"
 
 cleanup

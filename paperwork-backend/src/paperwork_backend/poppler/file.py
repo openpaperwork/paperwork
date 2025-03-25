@@ -12,22 +12,22 @@ POPPLER_AVAILABLE = False
 try:
     import gi
     GI_AVAILABLE = True
-except (ImportError, ValueError):
-    pass
+except (ImportError, ValueError) as exc:
+    LOGGER.warning("Failed to import gi", exc_info=exc)
 
 if GI_AVAILABLE:
     try:
         from gi.repository import Gio
         GLIB_AVAILABLE = True
-    except (ImportError, ValueError):
-        pass
+    except (ImportError, ValueError) as exc:
+        LOGGER.warning("Failed to import Gio", exc_info=exc)
 
     try:
         gi.require_version('Poppler', '0.18')
         from gi.repository import Poppler
         POPPLER_AVAILABLE = True
-    except (ImportError, ValueError):
-        pass
+    except (ImportError, ValueError) as exc:
+        LOGGER.warning("Failed to import Poppler", exc_info=exc)
 
 
 class Plugin(openpaperwork_core.PluginBase):

@@ -218,6 +218,10 @@ def main_main(in_args):
     core.call_all("config_load")
     core.call_all("config_load_plugins", "paperwork-gtk", DEFAULT_GUI_PLUGINS)
 
+    app = core.call_success("app_get_name")
+    version = core.call_success("app_get_version")
+    LOGGER.info("App: %s, version: %s", app, version)
+
     if len(in_args) <= 0:
         core.call_all("gtk_init", gtk_main, core)
     else:

@@ -1,9 +1,11 @@
+import logging
 import os
 
 import openpaperwork_core
 import openpaperwork_core.deps
 
 
+LOGGER = logging.getLogger(__name__)
 GI_AVAILABLE = False
 GLIB_AVAILABLE = False
 POPPLER_AVAILABLE = False

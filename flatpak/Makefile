@@ -17,7 +17,7 @@ dist-clean: clean
 # Will export to the Flatpak repository $(REPO)
 %.app: ../work.openpaper.Paperwork.json
 	@echo flatpak-builder $< --\> $@ \($(REPO) ${EXPORT_ARGS} ${ARCH_ARGS}\)
-	cd ../ && flatpak-builder --install-deps-from=flathub --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} ${ARCH_ARGS} $(CURDIR)/$@ $(CURDIR)/../work.openpaper.Paperwork.json
+	cd ../ && flatpak-builder --repo=$(REPO) -s "Build of Paperwork $(@:%.app=%) `date`" ${EXPORT_ARGS} ${ARCH_ARGS} $(CURDIR)/$@ $(CURDIR)/../work.openpaper.Paperwork.json
 
 upd_repo:
 	@echo flatpak build-update-repo $(REPO) \($(REPO) ${EXPORT_ARGS} ${ARCH_ARGS}\)

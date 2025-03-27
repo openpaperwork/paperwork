@@ -49,7 +49,7 @@ class _LogHandler(logging.Handler):
             line = self.formatter.format(record)
             for fd in self.out_fds:
                 fd.write(line + "\n")
-        except UnicodeDecodeError as exc:
+        except (UnicodeEncodeError, UnicodeDecodeError) as exc:
             print(f"WARNING: {__file__}: UnicodeDecodeError: {repr(exc)}")
 
 

@@ -2,7 +2,7 @@
     "app-id": "work.openpaper.Paperwork",
     "branch": "master",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "46",
+    "runtime-version": "47",
     "sdk": "org.gnome.Sdk",
     "command": "paperwork-gtk",
     "copy-icon": true,
@@ -31,6 +31,18 @@
             "CARGO_HOME" : "/run/build/rust-flatpak/cargo"
         }
     },
+    "cleanup": [
+        "/include",
+        "/lib/cmake",
+        "/lib/pkgconfig",
+        "/share/doc",
+        "/share/gtk-doc",
+        "/share/man",
+        "/share/pkgconfig",
+        "/share/vala",
+        "*.a",
+        "*.la"
+    ],
     "modules": [
         "flatpak/shared-modules/libreoffice.json",
         "flatpak/shared-modules/scikit-learn.json",
@@ -442,10 +454,17 @@
         },
         {
             "name": "python-paperwork",
-            "make-install-args": ["PIP_ARGS=--verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation"],
+            "make-install-args": [
+                "PIP_ARGS=--verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation"
+            ],
             "no-autogen": true,
-            "ensure-writable": ["/lib/python*/site-packages/easy-install.pth","/lib/python*/site-packages/setuptools.pth"],
-            "post-install": ["paperwork-gtk install --icon_base_dir=/app/share/icons --data_base_dir=/app/share"],
+            "ensure-writable": [
+                "/lib/python*/site-packages/easy-install.pth",
+                "/lib/python*/site-packages/setuptools.pth"
+            ],
+            "post-install": [
+                "paperwork-gtk install --icon_base_dir=/app/share/icons --data_base_dir=/app/share"
+            ],
             "sources": [
                 {
                     "type": "git",
@@ -459,6 +478,5 @@
                 }
             ]
         }
-
     ]
 }

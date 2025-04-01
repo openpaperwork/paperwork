@@ -209,17 +209,8 @@ class PrintJob(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_doc = None
-        self.active_page_idx = None
-        self.windows = []
-
-        # WORKAROUND(Jflesch): keep a ref on the print operation to avoid
-        # premature garbage collecting
-        self._ref = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_open',
@@ -227,7 +218,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'cairo_url',
@@ -242,8 +234,16 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.active_doc = None
+        self.active_page_idx = None
+        self.windows = []
+
+        # WORKAROUND(Jflesch): keep a ref on the print operation to avoid
+        # premature garbage collecting
+        self._ref = None
 
         if not GTK_AVAILABLE:
             return

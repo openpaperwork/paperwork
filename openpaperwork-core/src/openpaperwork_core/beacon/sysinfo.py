@@ -15,7 +15,8 @@ import openpaperwork_core
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['stats']
 
     def stats_get(self, out: dict):

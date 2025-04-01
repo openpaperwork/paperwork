@@ -13,13 +13,15 @@ DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -1000  # see page_delete_by_url() / page_move_by_url()
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "document_storage",
             "stats"
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -31,8 +33,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         setting = self.core.call_success(
             "config_build_simple", "Global", "WorkDirectory",
             lambda: self.core.call_success(

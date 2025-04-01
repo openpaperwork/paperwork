@@ -21,12 +21,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_doc_id = None
-        self.windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_open',
@@ -34,7 +30,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -60,6 +57,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc_id = None
+        self.windows = []
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

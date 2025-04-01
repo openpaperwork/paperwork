@@ -1,4 +1,9 @@
+import logging
+
 from .. import PluginBase
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Setting(object):
@@ -29,9 +34,16 @@ class Plugin(PluginBase):
     Translate values from the configuration into more usable ones.
     Provides default values (except for plugins).
     """
+    @classmethod
+    def get_interfaces(cls):
+        return ['config']
 
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_deps(cls):
+        return []
+
+    def __init__(self, core):
+        super().__init__(core)
         self._settings = {}
 
     def __get_settings(self):
@@ -44,9 +56,6 @@ class Plugin(PluginBase):
         }
 
     settings = property(__get_settings, __set_settings)
-
-    def get_interfaces(self):
-        return ['config']
 
     def config_load(self):
         pass

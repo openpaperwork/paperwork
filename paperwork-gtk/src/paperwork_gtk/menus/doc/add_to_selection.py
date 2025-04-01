@@ -13,14 +13,16 @@ ACTION_NAME = "doc_add_to_selection"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'menu',
             'menu_doc',
             'menu_doc_add_to_selection',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_doc_add_to_selection',

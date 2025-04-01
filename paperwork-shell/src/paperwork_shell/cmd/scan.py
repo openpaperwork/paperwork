@@ -23,14 +23,12 @@ DEFAULT_RESOLUTION = 300
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.out = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "mainloop",
@@ -41,6 +39,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 "defaults": ["paperwork_backend.docscan.scan2doc"],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.out = []
 
     def cmd_complete_argparse(self, parser):
         scan_parser = parser.add_parser(

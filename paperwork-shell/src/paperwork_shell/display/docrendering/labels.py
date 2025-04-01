@@ -92,10 +92,12 @@ class LabelsRenderer(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['doc_renderer']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'page_boxes',

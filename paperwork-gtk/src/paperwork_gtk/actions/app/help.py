@@ -14,7 +14,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'action',
@@ -22,7 +23,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'action_app_help',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app_actions',
@@ -34,18 +36,18 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def chkdeps(self, out: dict):
-        if not GIO_AVAILABLE:
-            out['glib'].update(openpaperwork_core.deps.GLIB)
-
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         if not GIO_AVAILABLE:
             return
         for (title, file_name) in self.core.call_success("help_get_files"):
             action = Gio.SimpleAction.new('open_help.' + file_name, None)
             action.connect("activate", self.doc_open_help, file_name)
             self.core.call_all("app_actions_add", action)
+
+    def chkdeps(self, out: dict):
+        if not GIO_AVAILABLE:
+            out['glib'].update(openpaperwork_core.deps.GLIB)
 
     def doc_open_help(self, action, parameter, file_name):
         doc_url = self.core.call_success("help_get_file", file_name)

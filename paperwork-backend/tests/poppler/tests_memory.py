@@ -11,7 +11,9 @@ class TestMemoryDescriptorLeak(unittest.TestCase):
         self.tracking = False
         self.disposed = False
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def on_dispose(s):
                     self.disposed = True

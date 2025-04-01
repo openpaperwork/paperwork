@@ -29,17 +29,15 @@ INSTRUCTIONS = {
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_settings_scanner_flatpak',
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'flatpak',
@@ -54,6 +52,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_gtk.settings.scanner.settings'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
 
     def settings_scanner_get_extra_widget(self):
         if not self.core.call_success("is_in_flatpak"):

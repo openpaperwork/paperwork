@@ -195,19 +195,12 @@ _TYPE_SEPARATOR = ":"
 class Plugin(PluginBase):
     TEST_FILE_URL = None  # unit tests only
 
-    def __init__(self):
-        self.config = configparser.RawConfigParser()
-        self.base_path = None
-        self.application_name = None
-        self.config_path = None
-        self.observers = collections.defaultdict(set)
-        self.core = None
-        self.default_plugins = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['config_backend']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -219,10 +212,14 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        self.core = core
-        if self.base_path is None:
-            self.base_path = self.core.call_success("paths_get_config_dir")
+    def __init__(self, core):
+        super().__init__(core)
+        self.config = configparser.RawConfigParser()
+        self.application_name = None
+        self.config_path = None
+        self.observers = collections.defaultdict(set)
+        self.default_plugins = []
+        self.base_path = self.core.call_success("paths_get_config_dir")
 
     def _get_filepath(self):
         if self.TEST_FILE_URL is not None:

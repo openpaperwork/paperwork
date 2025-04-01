@@ -6,12 +6,16 @@ import ssl
 import unittest
 
 import openpaperwork_core
+import openpaperwork_core.util
 import paperwork_backend.http
 
 
 class FakeModule:
+    __name__ = "fake_module"
+
     class Plugin(openpaperwork_core.PluginBase):
-        def get_interfaces(self):
+        @classmethod
+        def get_interfaces(cls):
             return [
                 "app",
             ]
@@ -22,6 +26,8 @@ class FakeModule:
 
 class TestHttpsWorkdir(unittest.TestCase):
     def setUp(self):
+        openpaperwork_core.util.reset_singletons()
+
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core._load_module("fake_module", FakeModule())
         self.core.load("openpaperwork_core.config.fake")

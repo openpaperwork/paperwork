@@ -70,7 +70,7 @@ class DependencyException(Exception):
     pass
 
 
-class PluginBase(object):
+class PluginBase:
     """
     Indicates all the methods that must be implemented by any plugin
     managed by OpenPaperwork core. Also provides default implementations
@@ -85,15 +85,16 @@ class PluginBase(object):
     # to enable/disable this plugin in the UI.
     USER_VISIBLE = False
 
-    def __init__(self):
+    def __init__(self, core: Core):
         """
         Called as soon as the module is loaded. Should be as minimal as
         possible. Most of the work should be done in `init()`.
         You *must* *not* rely on any dependencies here.
         """
-        self.core: Core = None  # type: ignore
+        self.core: Core = core  # type: ignore
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         """
         Indicates the list of interfaces implemented by this plugin.
         Interface names are arbitrarily defined. Methods provided by each
@@ -103,7 +104,8 @@ class PluginBase(object):
         """
         return []
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         """
         Return the dependencies required by this plugin.
 
@@ -121,14 +123,6 @@ class PluginBase(object):
         """
         return []
 
-    def init(self, core):
-        """
-        Plugins can initialize whatever they want here. When called, all
-        dependencies have been loaded and initialized, so using them is safe.
-        Does nothing by default.
-        """
-        self.core = core
-
 
 class Core(object):
     """
@@ -140,10 +134,10 @@ class Core(object):
         loaded automatically based on the default plugin list provided by
         plugins. This should be only used for testing.
         """
+        self.modules = {}
         self.plugins = {}
-        self.initialized = False
         self._to_initialize = set()
-        self._initialized = set()  # avoid double-init
+        self._initialized = set()
         self.interfaces = collections.defaultdict(list)
         self.callbacks = collections.defaultdict(list)
         self.auto_load_dependencies = auto_load_dependencies
@@ -156,18 +150,12 @@ class Core(object):
     def load(self, module_name):
         """
         - Load the specified module
-        - Instantiate the class 'Plugin()' of this module
-        - Register all the methods of this plugin object (except those starting
-          by '_' and those from the class PluginBase) as callbacks
 
         BEWARE of dependency loops !
 
         Arguments:
             - module_name: name of the Python module to load
         """
-        if module_name in self.plugins:
-            return self.plugins[module_name]
-
         LOGGER.info("Loading plugin '%s' ...", module_name)
         module = importlib.import_module(module_name)
         return self._load_module(module_name, module)
@@ -176,37 +164,34 @@ class Core(object):
         """
         should be called from outside for testing only
         """
-        if module_name in self.plugins:
-            LOGGER.debug("Module %s already loaded", module_name)
-            return self.plugins[module_name]
+        current_module = self.modules.get(module_name, None)
+        if current_module is not None:
+            return current_module
 
-        self.initialized = False
+        self.modules[module_name] = module
 
-        plugin = module.Plugin()
-        self.plugins[module_name] = plugin
+        for interface in module.Plugin.get_interfaces():
+            LOGGER.debug("- '%s' provides '%s'", str(module), interface)
+            self.interfaces[interface].append(module)
 
-        for interface in plugin.get_interfaces():
-            LOGGER.debug("- '%s' provides '%s'", str(type(plugin)), interface)
-            self.interfaces[interface].append(plugin)
+        self._to_initialize.add(module)
 
-        self._to_initialize.add(plugin)
-
-        LOGGER.info("Plugin '%s' loaded", module_name)
-        return plugin
+        LOGGER.info("Module '%s' loaded", module_name)
+        return module
 
     def _check_deps(self):
         to_examine = [
-            (plugin_name, plugin)
-            for (plugin_name, plugin) in self.plugins.items()
+            (module_name, module)
+            for (module_name, module) in self.modules.items()
         ]
 
         while len(to_examine) > 0:
-            (plugin_name, plugin) = to_examine[0]
+            (module_name, module) = to_examine[0]
             to_examine = to_examine[1:]
 
-            LOGGER.info("Examining dependencies of '%s' ...", plugin_name)
+            LOGGER.info("Examining dependencies of '%s' ...", module_name)
 
-            deps = plugin.get_deps()
+            deps = module.Plugin.get_deps()
             for dep in deps:
                 interface = dep['interface']
                 if len(self.interfaces[interface]) > 0:
@@ -229,11 +214,11 @@ class Core(object):
                         "Plugin '{}' requires interface '{}' but no plugins"
                         " provide this interface (suggested: {}). Plugin '{}'"
                         " will not be initialized.".format(
-                            plugin_name, interface, defaults, plugin_name
+                            module_name, interface, defaults, module_name
                         )
                     )
-                    plugin = self.plugins.pop(plugin_name)
-                    self._to_initialize.remove(plugin)
+                    module = self.modules.pop(module_name)
+                    self._to_initialize.remove(module)
                     # return False to indicate we actually dropped a plugin
                     # and need to reevaluate all the dependencies again.
                     return False
@@ -241,14 +226,15 @@ class Core(object):
                     LOGGER.info(
                         "Loading plugins %s to satisfy dependency."
                         " Required by '%s' for interface '%s'",
-                        defaults, type(plugin), interface
+                        defaults, type(module), interface
                     )
                     for default in defaults:
                         to_examine.append((default, self.load(default)))
 
         return True
 
-    def _register_plugin(self, plugin):
+    def _register_plugin(self, module_name: str, plugin: PluginBase):
+        self.plugins[module_name] = plugin
         for attr_name in dir(plugin):
             if attr_name[0] == "_":
                 continue
@@ -263,14 +249,14 @@ class Core(object):
             ))
             self.callbacks[attr_name].sort(reverse=True)
 
-    def _init(self, plugin, stack=list()):
+    def _init(self, module, stack=list()):
         nb = 0
-        if plugin in self._initialized:
+        if module in self._initialized:
             return nb
 
-        if plugin in stack:
+        if module in stack:
             LOGGER.error("Dependency loop:")
-            for p in itertools.chain(stack, [plugin]):
+            for p in itertools.chain(stack, [module]):
                 LOGGER.error(
                     "- %s %s depends on %s",
                     p, p.get_interfaces(),
@@ -278,28 +264,30 @@ class Core(object):
                 )
             raise DependencyException("Dependency loop: %s" % str(stack))
 
-        stack.append(plugin)
+        stack.append(module)
 
         self.initialized = True
 
-        deps = plugin.get_deps()
+        deps = module.Plugin.get_deps()
         for dep in deps:
-            dep_plugins = self.interfaces[dep['interface']]
-            for dep_plugin in dep_plugins:
-                nb += self._init(dep_plugin, stack)
+            dep_modules = self.interfaces[dep['interface']]
+            for dep_module in dep_modules:
+                nb += self._init(dep_module, stack)
 
-        LOGGER.info("Initializing plugin '%s' ...", type(plugin))
-        stack.remove(plugin)
-        plugin.init(self)
+        LOGGER.info("Initializing plugin '%s' ...", module)
+        stack.remove(module)
+        plugin = module.Plugin(self)
+        LOGGER.debug("Registering plugin '%s' ...", str(type(plugin)))
 
-        self._register_plugin(plugin)
+        self._register_plugin(module.__name__, plugin)
         nb += 1
 
-        self._initialized.add(plugin)
+        self._initialized.add(module)
         return nb
 
     def init(self):
         """
+        - Instantiate the Plugin
         - Make sure all the dependencies of all the plugins are satisfied.
         - Call the method init() of each plugin following the dependency
           order (those without dependencies are called first).
@@ -310,8 +298,8 @@ class Core(object):
         while not self._check_deps():
             pass
         nb = 0
-        for plugin in self._to_initialize:
-            nb += self._init(plugin)
+        for module in self._to_initialize:
+            nb += self._init(module)
         self._to_initialize = set()
         LOGGER.info("%d plugins initialized", nb)
 
@@ -326,16 +314,8 @@ class Core(object):
         """
         return self.plugins[module_name]
 
-    def get_by_interface(self, interface_name):
-        return self.interfaces[interface_name]
-
-    def get_plugins(self):
-        """
-        You shouldn't use this function, except for:
-        - unit tests
-        - configuration (see cmd.plugins)
-        """
-        return dict(self.plugins)
+    def get_by_interface(self, module_name):
+        return self.interfaces.get(module_name, [])
 
     def _check_call_limit(self, callback_name):
         if self.count_limit_per_second <= 0:
@@ -532,7 +512,7 @@ class Core(object):
                 'interface': dep['interface'],
                 'actives': {
                     x.__module__
-                    for x in self.get_by_interface(dep['interface'])
+                    for x in self.interfaces[dep['interface']]
                 },
                 'defaults': set(dep['defaults']),
             }

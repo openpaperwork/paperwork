@@ -10,15 +10,14 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -500
 
-    def __init__(self):
-        super().__init__()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_settings_ocr_langs',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',

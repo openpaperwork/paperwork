@@ -295,25 +295,27 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    def init(self, core):
-        super().init(core)
-        self.pipes = [
-            PdfDocUrlToPdfUrlExportPipe(core),
-            PagesToPdfUrlExportPipe(core),
-        ]
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return super().get_interfaces() + [
             "chkdeps",
             "export_pipes_pdf",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return super().get_deps() + [
             {
                 'interface': 'pillow_to_surface',
                 'defaults': ['paperwork_backend.cairo.pillow'],
             },
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.pipes = [
+            PdfDocUrlToPdfUrlExportPipe(core),
+            PagesToPdfUrlExportPipe(core),
         ]
 
     def chkdeps(self, out: dict):

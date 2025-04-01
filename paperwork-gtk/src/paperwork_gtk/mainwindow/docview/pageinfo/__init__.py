@@ -8,23 +8,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.page_info = None
-        self.active_doc = (None, None)
-        self.nb_pages = None
-        self.current_page = None
-        self.nb_pages = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_open',
             'gtk_docview_pageinfo',
             'syncable',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_docview',
@@ -36,8 +29,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.page_info = None
+        self.active_doc = (None, None)
+        self.nb_pages = None
+        self.current_page = None
+        self.nb_pages = None
 
         self.core.call_success(
             "gtk_load_css",

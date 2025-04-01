@@ -19,9 +19,10 @@ class SpatialIndexer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
-            'spatial_index'
+            'spatial_index',
         ]
 
     def spatial_indexer_get(self, boxes):

@@ -25,10 +25,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             # if there are no doc_renderer loaded, nothing it displayed, which
             # may be fine.

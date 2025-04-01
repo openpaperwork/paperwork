@@ -14,6 +14,8 @@ class TestPageTracker(unittest.TestCase):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999999
 
@@ -26,11 +28,11 @@ class TestPageTracker(unittest.TestCase):
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.sync.pagetracker")
 
+        self.core.init()
+
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
-
-        self.core.init()
 
     def tearDown(self):
         shutil.rmtree(self.tmp_paperwork_dir)

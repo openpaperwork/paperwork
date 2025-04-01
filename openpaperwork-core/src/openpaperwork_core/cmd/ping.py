@@ -5,10 +5,8 @@ from openpaperwork_core import (
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        self.console = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
     def cmd_complete_argparse(self, parser):

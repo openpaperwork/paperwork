@@ -7,10 +7,12 @@ class TestScan2Doc(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.fs.fake")
+        self.core.init()
+        self.fs = self.core.get_by_name("openpaperwork_core.fs.fake")
+
         self.core.load("paperwork_backend.docscan.fake")
         self.core.load("paperwork_backend.docscan.scan2doc")
 
-        self.fs = self.core.get_by_name("openpaperwork_core.fs.fake")
         self.results = []
         self.pillowed = []
         self.transaction_type = None
@@ -37,6 +39,8 @@ class TestScan2Doc(unittest.TestCase):
                 self.nb_commits += 1
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 10000000000
 

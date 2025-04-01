@@ -29,15 +29,17 @@ class Thread(threading.Thread):
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, core):
+        super().__init__(core)
         self.queue = queue.Queue()
         self.pool = None
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['thread']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',

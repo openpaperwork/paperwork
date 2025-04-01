@@ -565,25 +565,8 @@ class BugReportCollector(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-
-        # Looking for devices twice on Linux tends to crash ...
-        self.devices_cache = []
-
-        LOGGER.info("Initializing Libinsane ...")
-        self.libinsane_logger = LibinsaneLogger()
-        self.libinsane = None
-        if LIBINSANE_AVAILABLE:
-            Libinsane.register_logger(self.libinsane_logger)
-            self.libinsane = Libinsane.Api.new_safebet()
-            LOGGER.info(
-                "Libinsane %s initialized", self.libinsane.get_version()
-            )
-
-        self._last_scanner = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "bug_report_attachments",
             "chkdeps",
@@ -591,7 +574,8 @@ class Plugin(openpaperwork_core.PluginBase):
             "stats",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -607,8 +591,23 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        # Looking for devices twice on Linux tends to crash ...
+        self.devices_cache = []
+
+        LOGGER.info("Initializing Libinsane ...")
+        self.libinsane_logger = LibinsaneLogger()
+        self.libinsane = None
+        if LIBINSANE_AVAILABLE:
+            Libinsane.register_logger(self.libinsane_logger)
+            self.libinsane = Libinsane.Api.new_safebet()
+            LOGGER.info(
+                "Libinsane %s initialized", self.libinsane.get_version()
+            )
+
+        self._last_scanner = None
 
         self.core.call_all("work_queue_create", "scanner")
 

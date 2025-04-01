@@ -12,18 +12,16 @@ ACTION_NAME = "doc_properties"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 100
 
-    def __init__(self):
-        super().__init__()
-        self.active_doc = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'menu',
             'menu_doc',
             'menu_doc_properties',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_actions',
@@ -35,8 +33,9 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc = None
         self.core.call_all(
             "add_doc_main_action",
             "document-properties-symbolic",

@@ -8,22 +8,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.default_action = None
-        self.default_action_args = None
-        self.active_doc_id = None
-        self.active_doc_url = None
-        self.busy = 0
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_open',
             'gtk_scan_buttons',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
@@ -43,8 +36,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.default_action = None
+        self.default_action_args = None
+        self.active_doc_id = None
+        self.active_doc_url = None
+        self.busy = 0
 
         self.widget_tree = self.core.call_success(
             "gtk_load_widget_tree",

@@ -114,8 +114,8 @@ class _MemoryFileAdapter(io.RawIOBase):
 class Plugin(CommonFsPluginBase):
     PRIORITY = 100  # to be called first for fs_mktemp
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, core):
+        super().__init__(core)
         # self.fs = {id: (mtime, content), id: (mtime, content), ...}
         self.fs = {}
         self.id_gen = itertools.count()

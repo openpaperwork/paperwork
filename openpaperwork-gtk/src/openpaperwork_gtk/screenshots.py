@@ -20,13 +20,8 @@ MAX_UNCAUGHT_EXCEPTION_SCREENSHOTS = 5
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.windows = []
-        self.archiver = None
-        self.nb_uncaught = 0
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'bug_report_attachments',
             'chkdeps',
@@ -35,7 +30,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'screenshot',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'file_archives',
@@ -54,8 +50,10 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
+        self.nb_uncaught = 0
         self.archiver = self.core.call_success(
             "file_archive_get", storage_name="screenshots",
             file_extension="png"

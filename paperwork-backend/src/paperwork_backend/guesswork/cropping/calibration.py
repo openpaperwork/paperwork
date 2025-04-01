@@ -111,14 +111,16 @@ class CalibrationTransaction(sync.BaseTransaction):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 4000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "cropping",
             "scanner_calibration",
             "syncable",  # actually satisfied by the plugin 'doctracker'
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -141,8 +143,8 @@ class Plugin(openpaperwork_core.PluginBase):
             }
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.core.call_all(
             "config_register", "scanner_calibration",
             self.core.call_success(

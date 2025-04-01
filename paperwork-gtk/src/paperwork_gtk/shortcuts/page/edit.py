@@ -4,14 +4,16 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'shortcuts',
             'shortcuts_page',
             'shortcuts_page_edit',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_page_edit',
@@ -22,9 +24,6 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
         ]
-
-    def init(self, core):
-        super().init(core)
 
     def on_gtk_initialized(self):
         self.core.call_all(

@@ -89,7 +89,8 @@ class DocToPage(AbstractExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'pages',
@@ -100,13 +101,14 @@ class Plugin(AbstractExportPipePlugin):
             },
         ]
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return super().get_interfaces() + [
             "export_pipes_generic",
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.pipes = [
             DocSetToDoc(self.core),
             DocToPage(self.core),

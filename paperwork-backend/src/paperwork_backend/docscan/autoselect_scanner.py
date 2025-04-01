@@ -18,10 +18,12 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return []
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -32,9 +34,6 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
-
-    def init(self, core):
-        super().init(core)
 
     def scan_get_scanner_promise(self, scanner_dev_id=None, autoselect=True):
         """

@@ -85,17 +85,15 @@ class LabelLoader(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 20000
 
-    def __init__(self):
-        # {label_name: color, label_name: color, ...}
-        self.all_labels = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "doc_labels",
             "syncable",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -114,6 +112,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.thread.simple'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        # {label_name: color, label_name: color, ...}
+        self.all_labels = {}
 
     def doc_internal_get_mtime_by_url(self, out: list, doc_url):
         labels_url = self.core.call_success(

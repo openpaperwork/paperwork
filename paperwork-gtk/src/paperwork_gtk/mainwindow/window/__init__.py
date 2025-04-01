@@ -30,19 +30,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.core = None
-        self.stacks = None
-        self.components = collections.defaultdict(dict)
-        self.navigation_stacks = {'left': [], 'right': []}
-
-        self.defaults = collections.defaultdict(list)  # keep track of the prio
-        self.mainwindow = None
-        self._mainwindow_size = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'app_actions',
             'app_shortcuts',
@@ -51,7 +40,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -83,10 +73,17 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
 
-        self.core = core
+        self.widget_tree = None
+        self.stacks = None
+        self.components = collections.defaultdict(dict)
+        self.navigation_stacks = {'left': [], 'right': []}
+
+        self.defaults = collections.defaultdict(list)  # keep track of the prio
+        self.mainwindow = None
+        self._mainwindow_size = None
 
         if not GTK_AVAILABLE:
             LOGGER.warning("not initializing main window without Gtk")

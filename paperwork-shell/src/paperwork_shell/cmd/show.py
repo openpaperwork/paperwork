@@ -22,10 +22,12 @@ from .. import _
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         # if there are no doc_renderer loaded, nothing is displayed, which
         # may be fine.
         # (see paperwork-json)

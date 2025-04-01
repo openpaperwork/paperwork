@@ -44,20 +44,15 @@ class Plugin(openpaperwork_core.PluginBase):
     happening.
     """
 
-    def __init__(self):
-        super().__init__()
-        self.cache = {}
-        self.running_promises = {}
-        self.nb_to_load = 0
-        self.nb_loaded = 0
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_pageview_boxes',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "gtk_pageview",
@@ -72,6 +67,13 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.cache = {}
+        self.running_promises = {}
+        self.nb_to_load = 0
+        self.nb_loaded = 0
 
     def chkdeps(self, out: dict):
         if not PANGO_AVAILABLE:

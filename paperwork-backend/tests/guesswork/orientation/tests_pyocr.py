@@ -34,6 +34,20 @@ class TestPyocr(unittest.TestCase):
         self.core.load("paperwork_backend.sync.pagetracker")
         self.core.load("paperwork_backend.guesswork.orientation.pyocr")
 
+        class FakeModule:
+            __name__ = "fake_module"
+
+            class Plugin(openpaperwork_core.PluginBase):
+                PRIORITY = 10000000000
+
+                def pillow_to_url(s, img, url):
+                    self.pillowed.append(url)
+                    return url
+
+        self.core._load_module("fake_module", FakeModule())
+
+        self.core.init()
+
         self.core.get_by_name(
             "paperwork_backend.sync.pagetracker"
         ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
@@ -46,18 +60,6 @@ class TestPyocr(unittest.TestCase):
         )
 
         self.pillowed = []
-
-        class FakeModule(object):
-            class Plugin(openpaperwork_core.PluginBase):
-                PRIORITY = 10000000000
-
-                def pillow_to_url(s, img, url):
-                    self.pillowed.append(url)
-                    return url
-
-        self.core._load_module("fake_module", FakeModule())
-
-        self.core.init()
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
 

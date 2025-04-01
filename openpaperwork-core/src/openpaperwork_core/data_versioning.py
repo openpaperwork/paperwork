@@ -17,10 +17,12 @@ class Plugin(openpaperwork_core.PluginBase):
     delete ~/.local/share/paperwork2 to force a full synchronisation.
     """
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['data_versioning']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -32,8 +34,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
 
         data_dir = self.core.call_success("paths_get_data_dir")
         data_ver_file = self.core.call_success(

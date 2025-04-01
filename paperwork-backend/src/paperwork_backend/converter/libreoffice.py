@@ -182,16 +182,15 @@ class Plugin(openpaperwork_core.PluginBase):
         ),
     ]
 
-    def __init__(self):
-        self.libreoffice = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "chkdeps",
             "doc_converter",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -199,8 +198,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         for exe in LIBREOFFICE:
             self.libreoffice = which(exe)
             if self.libreoffice is not None:

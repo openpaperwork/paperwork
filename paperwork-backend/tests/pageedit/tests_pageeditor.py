@@ -43,7 +43,9 @@ class TestPageEdit(unittest.TestCase):
         self.core.load("paperwork_backend.imgedit.rotate")
         self.core.load("paperwork_backend.pageedit.pageeditor")
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 

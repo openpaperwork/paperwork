@@ -6,10 +6,12 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ["networking_service_announce"]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "networking",
@@ -17,7 +19,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def __init__(self):
+    def __init__(self, core):
+        super().__init__(core)
         self.service_infos = {}
         self.zeroconf = zeroconf.Zeroconf(ip_version=zeroconf.IPVersion.All)
 

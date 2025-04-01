@@ -36,19 +36,21 @@ class Plugin(
             openpaperwork_core.PluginBase,
             metaclass=openpaperwork_core.util.Singleton
         ):
-    def __init__(self):
-        super().__init__()
-        self.activated = False
-        self.app = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_init',
         ]
 
-    def init(self, core):
-        super().init(core)
+    @classmethod
+    def get_deps(cls):
+        return []
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.activated = False
+        self.app = None
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

@@ -37,13 +37,12 @@ class TitleController(BaseDocViewController):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.controller = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['gtk_docview_controller']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -58,6 +57,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.controller = None
 
     def gtk_docview_get_controllers(self, out: dict, docview):
         self.controller = TitleController(docview)

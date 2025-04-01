@@ -193,26 +193,16 @@ class Plugin(
             openpaperwork_core.PluginBase,
             metaclass=openpaperwork_core.util.Singleton
         ):
-    def __init__(self):
-        super().__init__()
-        self.obs_callbacks = []
-        self.query_parsers = {
-            'strict': [],
-            'fuzzy': [],
-        }
-        self.index = None
-
-        self.local_dir = None
-        self.index_dir = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "index",
             "suggestions",
             "syncable",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_versioning',
@@ -260,8 +250,17 @@ class Plugin(
             # },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.obs_callbacks = []
+        self.query_parsers = {
+            'strict': [],
+            'fuzzy': [],
+        }
+        self.index = None
+
+        self.local_dir = None
+        self.index_dir = None
         self._init()
 
     def _init(self):

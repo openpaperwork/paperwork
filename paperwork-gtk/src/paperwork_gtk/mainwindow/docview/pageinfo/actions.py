@@ -14,20 +14,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_doc = None
-        self.active_page = None
-        self.button_edit = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_open',
             'page_actions',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_converted',
@@ -55,8 +51,11 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc = None
+        self.active_page = None
+        self.button_edit = None
 
         self.widget_tree = self.core.call_success(
             "gtk_load_widget_tree",

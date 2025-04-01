@@ -12,14 +12,16 @@ from . import PluginBase
 
 
 class Plugin(PluginBase):
-    def __init__(self):
+    @classmethod
+    def get_interfaces(cls):
+        return ['frozen']
+
+    def __init__(self, core):
+        super().__init__(core)
         if not getattr(sys, 'frozen', False):
             return
         self._set_meipass()
         multiprocessing.freeze_support()
-
-    def get_interfaces(self):
-        return ['frozen']
 
     def _set_meipass(self):
         # If sys.frozen, then Pyocr (and possibly others) needs MEIPASS to be

@@ -23,27 +23,8 @@ class Plugin(openpaperwork_core.PluginBase):
     }
     MAX_PAGES = max(LAYOUTS.values())
 
-    def __init__(self):
-        super().__init__()
-        self.controllers = {}
-        self.widget_tree = None
-        self.scroll = None
-        self.page_layout = None
-        self.pages = []
-        self.nb_visible_pages = 0
-        self.widget_to_page = {}
-        self.page_to_widget = {}
-        self.nb_columns = self.MAX_PAGES
-
-        self.zoom = 0.0
-        self.layout_name = None
-        self.requested_page_idx = 0
-
-        self.active_page_idx = 0
-        self.active_doc = (None, None)
-        self.active_doc_mtime = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_open',
@@ -51,7 +32,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'gtk_docview',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_mainwindow',
@@ -74,8 +56,25 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.controllers = {}
+        self.widget_tree = None
+        self.scroll = None
+        self.page_layout = None
+        self.pages = []
+        self.nb_visible_pages = 0
+        self.widget_to_page = {}
+        self.page_to_widget = {}
+        self.nb_columns = self.MAX_PAGES
+
+        self.zoom = 0.0
+        self.layout_name = None
+        self.requested_page_idx = 0
+
+        self.active_page_idx = 0
+        self.active_doc = (None, None)
+        self.active_doc_mtime = None
 
         self.core.call_success(
             "gtk_load_css",

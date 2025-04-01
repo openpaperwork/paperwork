@@ -12,20 +12,15 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(PluginBase):
     PRIORITY = 75
 
-    def __init__(self):
-        super().__init__()
-        self.tmp_files = set()
-
-        self.flatpak = False
-        self.tmp_dir = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'flatpak',
             'stats',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_versioning',
@@ -41,8 +36,9 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.tmp_files = set()
         self.flatpak = (os.name == 'posix') and bool(self.core.call_success(
             "fs_isdir", "file:///app"
         ))

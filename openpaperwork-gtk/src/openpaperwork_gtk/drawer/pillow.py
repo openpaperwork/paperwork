@@ -60,23 +60,25 @@ class Drawer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        # drawing area --> Drawer
-        self.active_drawers = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_drawer_pillow',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'pillow_to_surface',
                 'defaults': ['paperwork_backend.cairo.pillow'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        # drawing area --> Drawer
+        self.active_drawers = {}
 
     def draw_pillow_start(self, drawing_area, pil_img):
         drawer = Drawer(self.core, drawing_area, pil_img)

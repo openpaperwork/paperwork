@@ -109,23 +109,15 @@ class Sender(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 100
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.assistant = None
-        self.file_urls = []
-        self.http = None
-        self.progress = None
-        self.prepare_handler_id = None
-        self.description = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'bug_report_method',
             'chkdeps',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app',
@@ -145,8 +137,14 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.widget_tree = None
+        self.assistant = None
+        self.file_urls = []
+        self.progress = None
+        self.prepare_handler_id = None
+        self.description = None
         self.http = self.core.call_success(
             "http_json_get_client", "bug_report"
         )

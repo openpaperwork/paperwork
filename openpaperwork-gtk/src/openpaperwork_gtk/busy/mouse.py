@@ -26,26 +26,28 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.refcount = 0
-        self.windows = []
-        self.realize_handler_id = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'busy',
             'chkdeps',
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_mainwindow',
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.refcount = 0
+        self.windows = []
+        self.realize_handler_id = None
 
     def chkdeps(self, out: dict):
         if not GDK_AVAILABLE:

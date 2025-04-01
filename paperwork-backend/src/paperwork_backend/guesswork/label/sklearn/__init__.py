@@ -95,48 +95,14 @@ class Plugin(
         ):
     PRIORITY = 100
 
-    def __init__(self):
-        self.bayes = None
-        self.config = None
-
-        # If we load the classifiers, we keep the vectorizer that goes with
-        # them, because the vectorizer must return vectors that have the size
-        # that the classifiers expect. If we would train the vectorizer with
-        # new documents, the vector sizes could increase
-        # Since loading the classifiers is a fairly long operations, we only
-        # do it when we actually need them.
-        self.word_reductor = None
-        self.classifiers = None
-        self.vectorizer = None
-
-        # indicates whether the classifiers have been / are
-        # been loaded
-        self.classifiers_loaded = False
-
-        # Do NOT use an RLock() here: The transaction locks this mutex
-        # until commit() (or cancel()) is called. However, add_doc(),
-        # del_doc(), upd_doc() and commit() may be called from different
-        # threads.
-        self.classifiers_cond = threading.Condition(threading.Lock())
-
-        self.bayes_dir = None
-        self.sql_url = None
-        # We pickle the trained model. But pickle and Gio don't work well
-        # together --> therefore we work directly with a path here instead of
-        # an URL and with `os` instead `self.core.call_xxx("fs_xxx")`
-        self.model_path = None
-
-        self._init = False
-        # we lazy-import .util because it imports scientific libs that
-        # takes ages to load on Windows (about 10s if not more)
-        self._util = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'sync',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -184,8 +150,43 @@ class Plugin(
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.bayes = None
+        self.config = None
+
+        # If we load the classifiers, we keep the vectorizer that goes with
+        # them, because the vectorizer must return vectors that have the size
+        # that the classifiers expect. If we would train the vectorizer with
+        # new documents, the vector sizes could increase
+        # Since loading the classifiers is a fairly long operations, we only
+        # do it when we actually need them.
+        self.word_reductor = None
+        self.classifiers = None
+        self.vectorizer = None
+
+        # indicates whether the classifiers have been / are
+        # been loaded
+        self.classifiers_loaded = False
+
+        # Do NOT use an RLock() here: The transaction locks this mutex
+        # until commit() (or cancel()) is called. However, add_doc(),
+        # del_doc(), upd_doc() and commit() may be called from different
+        # threads.
+        self.classifiers_cond = threading.Condition(threading.Lock())
+
+        self.bayes_dir = None
+        self.sql_url = None
+        # We pickle the trained model. But pickle and Gio don't work well
+        # together --> therefore we work directly with a path here instead of
+        # an URL and with `os` instead `self.core.call_xxx("fs_xxx")`
+        self.model_path = None
+
+        self._init = False
+        # we lazy-import .util because it imports scientific libs that
+        # takes ages to load on Windows (about 10s if not more)
+        self._util = None
 
         self.config = PluginConfig(core)
         self.config.register()

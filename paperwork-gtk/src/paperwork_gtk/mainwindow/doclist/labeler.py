@@ -74,21 +74,14 @@ class LabelingTask(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 100
 
-    def __init__(self):
-        super().__init__()
-        self.default_thumbnail = None
-        self.running = False
-        self.tasks = {}
-
-        self.processing_docs = set()
-        self.processed_docs = set()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_doclist_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_labels',
@@ -116,8 +109,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.default_thumbnail = None
+        self.running = False
+        self.tasks = {}
+        self.processing_docs = set()
+        self.processed_docs = set()
         self.core.call_all("work_queue_create", "labeler", stop_on_quit=True)
 
     def chkdeps(self, out: dict):

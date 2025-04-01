@@ -62,18 +62,15 @@ class Drawer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.drawers = {}  # drawing_area --> drawer
-        self.scan_id_to_drawers = {}  # int --> drawer
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_drawer_calibration',
             'gtk_drawer_scan',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -94,6 +91,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 ]
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.drawers = {}  # drawing_area --> drawer
+        self.scan_id_to_drawers = {}  # int --> drawer
 
     def draw_calibration_start(
             self, drawing_area, content_full_size, read_only=False):

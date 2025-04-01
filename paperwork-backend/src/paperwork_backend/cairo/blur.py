@@ -132,13 +132,15 @@ if GLIB_AVAILABLE:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 2000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'cairo_url',
             'chkdeps',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'urls',

@@ -13,10 +13,12 @@ class TestUpdate(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.config.fake")
+        self.core.init()
+        self.config = self.core.get_by_name("openpaperwork_core.config.fake")
+
         self.core.load("paperwork_backend.app")
         self.core.load("paperwork_backend.beacon.update")
 
-        self.config = self.core.get_by_name("openpaperwork_core.config.fake")
         self.received = False
 
     def test_check_update(self):
@@ -48,15 +50,15 @@ class TestUpdate(unittest.TestCase):
             threading.Thread(target=h.handle_request).start()
             time.sleep(0.1)
 
-            class FakeModule(object):
+            class FakeModule:
+                __name__ = "fake_module"
+
                 class Plugin(openpaperwork_core.PluginBase):
                     def on_update_detected(s, current, new):
                         self.assertEqual(new, (999, 1, 2))
                         self.core.call_all("mainloop_quit_graceful")
 
-            self.core._load_module(
-                "fake_module", FakeModule()
-            )
+            self.core._load_module("fake_module", FakeModule())
 
             self.core.init()
 
@@ -89,14 +91,14 @@ class TestUpdate(unittest.TestCase):
             threading.Thread(target=h.handle_request).start()
             time.sleep(0.1)
 
-            class FakeModule(object):
+            class FakeModule:
+                __name__ = "fake_module"
+
                 class Plugin(openpaperwork_core.PluginBase):
                     def on_update_detected(s, current, new):
                         self.update_notified = True
 
-            self.core._load_module(
-                "fake_module", FakeModule()
-            )
+            self.core._load_module("fake_module", FakeModule())
 
             self.core.init()
 

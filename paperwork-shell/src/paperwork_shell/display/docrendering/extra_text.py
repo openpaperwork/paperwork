@@ -56,10 +56,12 @@ class ExtraTextRenderer(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 11000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['doc_renderer']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'extra_text',

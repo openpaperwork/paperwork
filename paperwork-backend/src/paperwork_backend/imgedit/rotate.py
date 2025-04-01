@@ -69,7 +69,8 @@ class RotationImgEditor(AbstractImgEditor):
 class Plugin(openpaperwork_core.PluginBase):
     NAME = 'rotation'
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['img_editor']
 
     def img_editor_get_names(self, out: list):

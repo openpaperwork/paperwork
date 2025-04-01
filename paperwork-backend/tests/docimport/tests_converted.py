@@ -32,7 +32,9 @@ class TestConvertedImport(unittest.TestCase):
                 super().commit()
                 self.nb_commits += 1
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 

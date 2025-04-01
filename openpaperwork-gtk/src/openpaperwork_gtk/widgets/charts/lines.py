@@ -719,15 +719,16 @@ class ChartDrawer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.color_generator = ColorGenerator()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_charts_lines',
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.color_generator = ColorGenerator()
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

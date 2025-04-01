@@ -11,7 +11,21 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def __init__(self):
+    @classmethod
+    def get_interfaces(cls):
+        return ['censor']
+
+    @classmethod
+    def get_deps(cls):
+        return [
+            {
+                'interface': 'fs',
+                'defaults': ['openpaperwork_core.fs.python'],
+            },
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
         self.replacements = (
             (os.path.expanduser("~"), "###HOME_DIR###"),
             (urllib.parse.quote(os.path.expanduser("~")), "###HOME_DIR###"),
@@ -20,17 +34,6 @@ class Plugin(PluginBase):
             (socket.gethostname(), "###HOST_NAME###"),
             (urllib.parse.quote(socket.gethostname()), "###HOST_NAME###"),
         )
-
-    def get_interfaces(self):
-        return ['censor']
-
-    def get_deps(self):
-        return [
-            {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-        ]
 
     def censor_string(self, string):
         """

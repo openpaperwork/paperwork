@@ -82,7 +82,8 @@ class AutomaticPdfExportPipe(AbstractExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return super().get_deps() + [
             {
                 "interface": "export_pipes_generic",
@@ -98,8 +99,8 @@ class Plugin(AbstractExportPipePlugin):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.pipes = [
             AutomaticPdfExportPipe(core),
         ]

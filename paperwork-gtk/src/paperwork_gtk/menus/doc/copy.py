@@ -12,14 +12,16 @@ ACTION_NAME = "doc_copy"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -25
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'menu',
             'menu_doc',
             'menu_doc_copy',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_doc_copy',

@@ -41,19 +41,20 @@ class Zoomer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_interfaces(cls):
+        return [
+            'chkdeps',
+            'gtk_zoomable',
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
         # XXX(Jflesch): Looks like a GObject Introspection bug: if the
         # GtkGesture objects get garbage-collected, the gesture isn't detected
         # anymore. --> We need to keep a reference to those objects as long
         # as we need them.
         self.refs = {}
-
-    def get_interfaces(self):
-        return [
-            'chkdeps',
-            'gtk_zoomable',
-        ]
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

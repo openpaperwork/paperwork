@@ -85,19 +85,16 @@ class LogHandler(logging.Handler):
 class Plugin(PluginBase):
     PRIORITY = -10000
 
-    def __init__(self):
-        super().__init__()
-        logging.getLogger().setLevel(logging.INFO)
-        self.archiver = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'bug_report_attachments',
             'log_archiver',
             'uncaught_exception_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'file_archives',
@@ -113,9 +110,10 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
 
+        logging.getLogger().setLevel(logging.INFO)
         self.archiver = self.core.call_success(
             "file_archive_get", storage_name="logs", file_extension="txt"
         )

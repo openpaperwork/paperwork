@@ -19,7 +19,8 @@ ACTION_NAME = "page_reset"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -80
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'menu',
@@ -27,7 +28,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'menu_page_reset',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_page_reset',

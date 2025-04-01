@@ -4,14 +4,12 @@ from . import PluginBase
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.original_hook = sys.excepthook
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['uncaught_exception']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',
@@ -19,8 +17,9 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.original_hook = sys.excepthook
         sys.excepthook = self._on_uncaught_exception
 
     def _on_uncaught_exception(self, exc_type, exc_instance, exc_tb):

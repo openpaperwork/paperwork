@@ -217,18 +217,16 @@ class ProgressWidget(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.widgets = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_progress_widget',
             'progress_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
@@ -240,8 +238,9 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.widgets = []
         self.core.call_success(
             "gtk_load_css",
             "openpaperwork_gtk.widgets.progress", "progress.css"

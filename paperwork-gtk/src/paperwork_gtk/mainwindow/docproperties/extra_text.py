@@ -9,18 +9,15 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 750
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.active_doc = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_doc_property',
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'extra_text',
@@ -39,6 +36,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.widget_tree = None
+        self.active_doc = None
 
     def _get_widget_text(self):
         text_buffer = self.widget_tree.get_object("doctext_text").get_buffer()

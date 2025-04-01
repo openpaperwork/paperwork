@@ -3,14 +3,22 @@ import unittest
 import openpaperwork_core
 
 
-class MockConfigBackendModule(object):
+class MockConfigBackendModule:
     """
     Plugin paperwork_backend.config uses openpaperwork.config_file.
     This mock mocks openpaperwork.config_file so we can test
     paperwork_backend.config.file
     """
+    __name__ = "openpaperwork_core.config.backend.configparser"
+
     class Plugin(openpaperwork_core.PluginBase):
-        def __init__(self):
+        @classmethod
+        def get_interfaces(cls):
+            return ["config_backend"]
+
+        def __init__(self, core):
+            super().__init__(core)
+
             self.calls = []
             self.rets = {}
             self.config_backend_load = (
@@ -60,9 +68,6 @@ class MockConfigBackendModule(object):
             if len(self.rets[func]) <= 0:
                 self.rets.pop(func)
             return r
-
-        def get_interfaces(self):
-            return ["config_backend"]
 
 
 class TestConfig(unittest.TestCase):

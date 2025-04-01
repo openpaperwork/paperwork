@@ -67,23 +67,26 @@ class DialogBuilder(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_window_listener',
             'notifications',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

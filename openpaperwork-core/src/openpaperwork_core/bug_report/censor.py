@@ -12,10 +12,12 @@ class Plugin(PluginBase):
     """
     PRIORITY = -10000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['bug_report_attachments']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'censor',

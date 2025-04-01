@@ -11,7 +11,9 @@ class TestUtil(unittest.TestCase):
         self.core.load("openpaperwork_core.fs.fake")
         self.core.init()
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def doc_get_nb_pages_by_url(s, doc_url):
                     doc_url = doc_url[len("file:///"):]

@@ -133,18 +133,14 @@ class Plugin(
             openpaperwork_core.PluginBase,
             metaclass=openpaperwork_core.util.Singleton
         ):
-    def __init__(self):
-        self.dialog = None
-        self.progresses = {}
-        self.lock = threading.Lock()
-        self.nb_main_windows = 0
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'progress_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
@@ -155,6 +151,13 @@ class Plugin(
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.dialog = None
+        self.progresses = {}
+        self.lock = threading.Lock()
+        self.nb_main_windows = 0
 
     def on_gtk_initialized(self):
         self.nb_main_windows += 1

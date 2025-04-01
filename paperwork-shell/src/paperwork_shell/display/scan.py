@@ -48,18 +48,8 @@ class AppendableImage(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.img = None
-        self.last_line_displayed = 0  # in pixels
-        self.txt_line_height = 0  # in pixels
-        self.terminal_size = (80, 25)
-        self.doc_id = None
-        self.doc_url = None
-        self.doc_renderer = None
-        self.page_hashes = {}
-        self.console = None
-
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             # if there are no doc_renderer loaded, nothing it displayed, which
             # may be fine.
@@ -78,6 +68,18 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.img = None
+        self.last_line_displayed = 0  # in pixels
+        self.txt_line_height = 0  # in pixels
+        self.terminal_size = (80, 25)
+        self.doc_id = None
+        self.doc_url = None
+        self.doc_renderer = None
+        self.page_hashes = {}
+        self.console = None
 
     def cmd_set_console(self, console):
         self.console = console

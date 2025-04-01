@@ -183,35 +183,14 @@ class GrayscaleExportPipe(AbstractSimpleTransformExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    def init(self, core):
-        super().init(core)
-        self.pipes = [
-            BlackAndWhiteExportPipe(core),
-            DocToPillowBoxesExportPipe(core),
-            GrayscaleExportPipe(core),
-            PageToImageExportPipe(
-                core, "bmp", "BMP", ("bmp",), "image/x-ms.bmp", False
-            ),
-            PageToImageExportPipe(
-                core, "gif", "GIF", ("gif",), "image/gif", False
-            ),
-            PageToImageExportPipe(
-                core, "jpeg", "JPEG", ("jpeg", "jpg"), "image/jpeg", True
-            ),
-            PageToImageExportPipe(
-                core, "png", "PNG", ("png",), "image/png", False
-            ),
-            PageToImageExportPipe(
-                core, "tiff", "TIFF", ("tiff", "tif"), "image/tiff", False
-            ),
-        ]
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return super().get_interfaces() + [
             "export_pipes_img",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_text',
@@ -244,4 +223,27 @@ class Plugin(AbstractExportPipePlugin):
                     'paperwork_backend.pillow.pdf',
                 ],
             },
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.pipes = [
+            BlackAndWhiteExportPipe(core),
+            DocToPillowBoxesExportPipe(core),
+            GrayscaleExportPipe(core),
+            PageToImageExportPipe(
+                core, "bmp", "BMP", ("bmp",), "image/x-ms.bmp", False
+            ),
+            PageToImageExportPipe(
+                core, "gif", "GIF", ("gif",), "image/gif", False
+            ),
+            PageToImageExportPipe(
+                core, "jpeg", "JPEG", ("jpeg", "jpg"), "image/jpeg", True
+            ),
+            PageToImageExportPipe(
+                core, "png", "PNG", ("png",), "image/png", False
+            ),
+            PageToImageExportPipe(
+                core, "tiff", "TIFF", ("tiff", "tif"), "image/tiff", False
+            ),
         ]

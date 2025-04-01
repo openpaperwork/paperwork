@@ -28,10 +28,12 @@ class FakePathCtxManager:
 class Plugin(PluginBase):
     PRIORITY = 100
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['resources']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',

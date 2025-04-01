@@ -12,14 +12,16 @@ ACTION_NAME = "doc_open_external"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -50
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'menu',
             'menu_doc',
             'menu_doc_open_external',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_actions',

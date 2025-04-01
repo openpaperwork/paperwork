@@ -110,13 +110,15 @@ class PillowfightTransaction(sync.BaseTransaction):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 4000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "cropping",
             "syncable",  # actually satisfied by the plugin 'doctracker'
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_tracking',
@@ -135,8 +137,8 @@ class Plugin(openpaperwork_core.PluginBase):
             }
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.core.call_all(
             "doc_tracker_register", ID,
             lambda sync, total_expected=-1: PillowfightTransaction(

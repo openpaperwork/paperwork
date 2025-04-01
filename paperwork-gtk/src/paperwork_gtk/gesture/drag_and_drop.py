@@ -19,19 +19,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_doc = (None, None)
-        self.updated = set()
-        self.promise = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_open',
             'gtk_drag_and_drop'
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -43,8 +39,10 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc = (None, None)
+        self.updated = set()
         self.promise = openpaperwork_core.promise.Promise(self.core)
 
     def chkdeps(self, out: dict):

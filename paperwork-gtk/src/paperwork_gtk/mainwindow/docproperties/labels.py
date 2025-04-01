@@ -519,12 +519,8 @@ class LabelEditor(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def __init__(self):
-        super().__init__()
-        self.windows = []
-        self.editors = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_doc_property',
@@ -533,7 +529,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'syncable',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_labels',
@@ -569,17 +566,19 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
+        self.editors = []
+        if not GTK_AVAILABLE:
+            # chkdeps() must still be callable
+            return
+
     def on_gtk_window_opened(self, window):
         self.windows.append(window)
 
     def on_gtk_window_closed(self, window):
         self.windows.remove(window)
-
-    def init(self, core):
-        super().init(core)
-        if not GTK_AVAILABLE:
-            # chkdeps() must still be callable
-            return
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

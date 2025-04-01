@@ -253,16 +253,17 @@ class Drawer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        # drawing area --> Drawer
-        self.active_drawers = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_drawer_frame',
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        # drawing area --> Drawer
+        self.active_drawers = {}
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

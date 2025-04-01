@@ -29,6 +29,8 @@ class TestConvertedPdf(unittest.TestCase):
                 self.nb_commits += 1
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def doc_transaction_start(s, transactions, expected=-1):
                     transactions.append(TestTransaction(

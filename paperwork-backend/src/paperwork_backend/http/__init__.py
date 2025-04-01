@@ -199,12 +199,14 @@ class Plugin(
         openpaperwork_core.PluginBase,
         metaclass=openpaperwork_core.util.Singleton):
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "https_backend",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "certificate_store",
@@ -220,8 +222,8 @@ class Plugin(
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
 
         self.server: Optional[BackendHttpsServer] = None
 

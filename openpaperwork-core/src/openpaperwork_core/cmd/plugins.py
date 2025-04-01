@@ -23,10 +23,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -124,8 +126,7 @@ class Plugin(PluginBase):
                     _("Error: Plugin '%s' not found") % plugin_name
                 )
                 return False
-            plugin = module.Plugin()
-            deps = plugin.get_deps()
+            deps = module.Plugin.get_deps()
             for dep in deps:
                 try:
                     actives = self.core.get_by_interface(dep['interface'])
@@ -267,7 +268,7 @@ class Plugin(PluginBase):
         plugin_names = set()
         for (idx, dep) in enumerate(deps):
             plugins = self.core.get_by_interface(dep['interface'])
-            plugin_names.update({plugin.__module__ for plugin in plugins})
+            plugin_names.update({plugin.__name__ for plugin in plugins})
             plugin_names.update(dep['defaults'])
 
         plugin_names = list(plugin_names)

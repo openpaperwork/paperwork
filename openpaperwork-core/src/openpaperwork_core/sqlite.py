@@ -12,10 +12,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['sqlite']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',

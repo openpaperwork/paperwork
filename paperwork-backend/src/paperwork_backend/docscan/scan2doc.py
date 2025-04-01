@@ -8,14 +8,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.scan_id_to_doc_id = {}
-        self.doc_id_to_scan_id = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['scan2doc']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -46,6 +44,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.scan_id_to_doc_id = {}
+        self.doc_id_to_scan_id = {}
 
     def scan2doc_scan_id_to_doc_id(self, scan_id):
         try:

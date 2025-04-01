@@ -12,17 +12,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.libintl = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'l10n',
             'l10n_init',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 # if frozen, we need sys._MEIPASS to be set correctly
@@ -39,8 +37,9 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.libintl = None
 
         if os.name == "nt" and os.getenv('LANG') is None:
             (lang, enc) = locale.getdefaultlocale()

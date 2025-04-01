@@ -108,19 +108,22 @@ class WorkQueue(object):
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        self.queues = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['work_queue']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                'interface': 'mainloop',
                'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.queues = {}
 
     def work_queue_create(
             self, queue_name, stop_on_quit=False, hide_uncatched=False):

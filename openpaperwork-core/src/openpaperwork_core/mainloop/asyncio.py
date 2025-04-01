@@ -18,8 +18,18 @@ class Plugin(
     A main loop based on asyncio. Not as complete as GLib main loop, but
     good enough for shell commands.
     """
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_interfaces(cls):
+        return [
+            "mainloop",
+        ]
+
+    @classmethod
+    def get_deps(cls):
+        return []
+
+    def __init__(self, core):
+        super().__init__(core)
         self.halt_on_uncaught_exception = True
         self.loop = None
         self.loop_ident = None
@@ -32,11 +42,6 @@ class Plugin(
             self.loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self.loop)
             self.task_count = 0
-
-    def get_interfaces(self):
-        return [
-            "mainloop",
-        ]
 
     def mainloop(self, halt_on_uncaught_exception=True, log_uncaught=True):
         """

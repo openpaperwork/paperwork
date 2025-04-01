@@ -25,10 +25,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
     PRIORITY = 10000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['chkworkdir']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_labels',

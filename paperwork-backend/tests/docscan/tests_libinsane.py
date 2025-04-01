@@ -50,6 +50,9 @@ class TestLibinsane(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.config.fake")
+        self.core.init()
+        self.config = self.core.get_by_name("openpaperwork_core.config.fake")
+
         self.core.load("openpaperwork_core.thread.simple")
         self.core.load("openpaperwork_core.work_queue.default")
         self.core.load("paperwork_backend.docscan.libinsane")
@@ -57,14 +60,12 @@ class TestLibinsane(unittest.TestCase):
         self.called = False
         self.results = []
 
+    def test_list_devs(self):
+        self.core.init()
+
         # drop warnings logs from Libinsane because they pollute tests output
         plugin = self.core.get_by_name("paperwork_backend.docscan.libinsane")
         plugin.libinsane_logger.min_level = Libinsane.LogLevel.ERROR
-
-        self.config = self.core.get_by_name("openpaperwork_core.config.fake")
-
-    def test_list_devs(self):
-        self.core.init()
 
         def get_devs(devs):
             # not much else we can test: depends on the system on which we are
@@ -95,6 +96,8 @@ class TestLibinsane(unittest.TestCase):
         TEST_DEV_ID = "libinsane:sane:test:0"
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def on_scan_feed_start(s, scan_id):
                     self.results.append("on_scan_feed_start")
@@ -114,6 +117,10 @@ class TestLibinsane(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
 
         self.core.init()
+
+        # drop warnings logs from Libinsane because they pollute tests output
+        plugin = self.core.get_by_name("paperwork_backend.docscan.libinsane")
+        plugin.libinsane_logger.min_level = Libinsane.LogLevel.ERROR
 
         def scan(sources):
             source = sources['flatbed']
@@ -167,6 +174,8 @@ class TestLibinsane(unittest.TestCase):
         }
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def on_scan_feed_start(s, scan_id):
                     self.results.append("on_scan_feed_start")
@@ -186,6 +195,10 @@ class TestLibinsane(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
 
         self.core.init()
+
+        # drop warnings logs from Libinsane because they pollute tests output
+        plugin = self.core.get_by_name("paperwork_backend.docscan.libinsane")
+        plugin.libinsane_logger.min_level = Libinsane.LogLevel.ERROR
 
         (scan_id, promise) = self.core.call_success(
             "scan_promise", source_id="flatbed"

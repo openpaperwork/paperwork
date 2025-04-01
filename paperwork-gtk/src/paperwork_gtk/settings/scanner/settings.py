@@ -17,19 +17,15 @@ class Plugin(openpaperwork_core.PluginBase):
         'Lineart': _("Black & White"),
     }
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.extra_widget = None
-        self.config = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_settings_scanner',
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -53,9 +49,11 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
 
+        self.widget_tree = None
+        self.extra_widget = None
         self.config = [
             (
                 'settings_scanner_name', 'scanner_device_value',

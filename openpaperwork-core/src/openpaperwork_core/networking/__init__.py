@@ -6,12 +6,14 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "networking",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return []
 
     def networking_get_host_names(self):

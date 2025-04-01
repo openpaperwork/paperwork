@@ -23,10 +23,12 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(PluginBase):
     PRIORITY = 50
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['external_apps']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return []
 
     def _get_file_manager_proxy(self):

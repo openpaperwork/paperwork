@@ -12,15 +12,14 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -1000
 
-    def __init__(self):
-        super().__init__()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_settings',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -35,9 +34,6 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
-
-    def init(self, core):
-        super().init(core)
 
     def complete_settings(self, global_widget_tree):
         widget_tree = self.core.call_success(

@@ -187,18 +187,15 @@ class Drawer(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        # scan id --> Drawer (scan id = None ==> any scan)
-        self.active_drawers = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_drawer_scan',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'pillow_to_surface',
@@ -209,6 +206,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             }
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        # scan id --> Drawer (scan id = None ==> any scan)
+        self.active_drawers = {}
 
     def chkdeps(self, out: dict):
         if not CAIRO_AVAILABLE:
@@ -315,9 +317,12 @@ if __name__ == "__main__":
         def get_height(self):
             return self.img.size[1]
 
-    class FakeModule(object):
+    class FakeModule:
+        __name__ = "scan"
+
         class Plugin(openpaperwork_core.PluginBase):
-            def get_interfaces(self):
+            @classmethod
+            def get_interfaces(cls):
                 return ['scan']
 
     scan_params = FakeScanParams(img)

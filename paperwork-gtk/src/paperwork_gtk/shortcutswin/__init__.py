@@ -17,13 +17,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, core):
+        super().__init__(core)
         self.windows = []
         self.groups = collections.defaultdict(list)
         self.widget_tree = None
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'app_shortcuts',
             'chkdeps',
@@ -32,7 +33,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',

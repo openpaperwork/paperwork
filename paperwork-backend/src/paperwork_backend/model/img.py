@@ -22,14 +22,16 @@ PAGE_FILENAME_REGEX = re.compile(
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 100
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "doc_type",
             "page_img",
             'pages',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -46,8 +48,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        self.core = core
+    def __init__(self, core):
+        super().__init__(core)
         setting = self.core.call_success(
             "config_build_simple", "model",
             "img_format", lambda: "PNG"

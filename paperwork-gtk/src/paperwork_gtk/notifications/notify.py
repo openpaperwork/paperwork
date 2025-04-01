@@ -63,23 +63,22 @@ class NotifyBuilder(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def __init__(self):
-        # WORKAROUND(Jflesch): Keep a reference to the notifications.
-        # Otherwise we never get the action from the user.
-        self.notification_refs = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'notifications',
         ]
 
-    def get_deps(self):
-        return [
-        ]
+    @classmethod
+    def get_deps(cls):
+        return []
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        # WORKAROUND(Jflesch): Keep a reference to the notifications.
+        # Otherwise we never get the action from the user.
+        self.notification_refs = []
         if NOTIFY_AVAILABLE:
             Notify.init("Paperwork")
 

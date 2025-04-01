@@ -54,10 +54,12 @@ class CliUI(paperwork_backend.pageedit.AbstractPageEditorUI):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             # optional dependency
             # {

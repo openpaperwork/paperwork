@@ -64,14 +64,12 @@ class ArchiveHandler(object):
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.storage_dirs = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['file_archives']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_versioning',
@@ -87,8 +85,9 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.storage_dirs = []
         data_dir = self.core.call_success("paths_get_data_dir")
         self.base_archive_dir = self.core.call_success(
             "fs_join", data_dir, "openpaperwork"

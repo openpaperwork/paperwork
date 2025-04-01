@@ -2,19 +2,22 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.new_doc = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['new_doc']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
                 'defaults': ['paperwork_backend.model.workdir'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.new_doc = None
 
     def config_put(self, opt, value, *args, **kwargs):
         if opt != "workdir":

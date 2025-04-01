@@ -150,14 +150,12 @@ class DocPropertiesEditor(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.editors = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['gtk_doc_properties']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
@@ -181,8 +179,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.editors = {
             'single_doc': DocPropertiesEditor(
                 "single", self, multiple_docs=False

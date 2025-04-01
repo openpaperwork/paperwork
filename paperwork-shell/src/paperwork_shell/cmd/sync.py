@@ -21,17 +21,12 @@ from .. import _
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.changes = collections.defaultdict(
-            # we cannot use sets here because sets are not JSON-serializable
-            lambda: collections.defaultdict(list)
-        )
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "syncable",
@@ -47,6 +42,13 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.changes = collections.defaultdict(
+            # we cannot use sets here because sets are not JSON-serializable
+            lambda: collections.defaultdict(list)
+        )
 
     def cmd_complete_argparse(self, parser):
         parser.add_parser('sync', help=_(

@@ -3,15 +3,19 @@ import tempfile
 import unittest
 
 import openpaperwork_core
+import openpaperwork_core.util
 
 
 class TestIndex(unittest.TestCase):
     def setUp(self):
+        openpaperwork_core.util.reset_singletons()
+
         self.tmp_index_dir = tempfile.mkdtemp(prefix="paperwork_backend_index")
 
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.index.whoosh")
+        self.core.init()
 
         self.core.get_by_name("paperwork_backend.index.whoosh").index_dir = (
             'file://' + self.tmp_index_dir
@@ -20,8 +24,6 @@ class TestIndex(unittest.TestCase):
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
-
-        self.core.init()
 
     def tearDown(self):
         shutil.rmtree(self.tmp_index_dir)
@@ -75,6 +77,8 @@ class TestIndex(unittest.TestCase):
         core = self.core
 
         class FakeModuleToStopMainLoop(object):
+            __name__ = "mainloop_stopper"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def on_index_commit_end(self):
                     core.call_all("mainloop_quit_graceful")

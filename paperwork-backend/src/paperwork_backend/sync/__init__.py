@@ -68,10 +68,12 @@ class BaseTransaction:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 20000
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['transaction_manager']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'work_queue',
@@ -79,8 +81,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self.core.call_all("work_queue_create", "transactions")
 
     def transaction_schedule(self, promise):

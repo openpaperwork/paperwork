@@ -22,14 +22,16 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 5000  # see page_get_img_url()
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'pages',
             'thumbnail',  # thumbnail_get_path()
             'thumbnailer',  # thumbnail_from_img()
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'page_img',

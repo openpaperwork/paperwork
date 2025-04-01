@@ -32,37 +32,8 @@ NB_DOCS_PER_PAGE = 50
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -100
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.doclist = None
-
-        self.scrollbar = None
-        self._scrollbar_last_value = -1
-
-        self.docs = []
-        self.row_visibles = []
-        self.doc_loaded = 0
-        self.row_to_doc = {}
-        self.docid_to_row = {}
-        self.min_doc_box_height = 1
-
-        self.last_date = datetime.datetime(year=1, month=1, day=1)
-
-        self.active_doc = (None, None)
-        self.previous_doc = (None, None)
-
-        self.main_actions = []
-        self.doc_actions = None
-
-        self.selection_multiple = False
-
-        # the following boolean is a dirty hack to ignore the signal 'toggle'
-        # when we toggle the checkbox ourselves (if another plugin
-        # calls doc_selection_add() for instance)
-        self._toggling = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_actions',
@@ -76,7 +47,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'search_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -112,8 +84,36 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.widget_tree = None
+        self.doclist = None
+
+        self.scrollbar = None
+        self._scrollbar_last_value = -1
+
+        self.docs = []
+        self.row_visibles = []
+        self.doc_loaded = 0
+        self.row_to_doc = {}
+        self.docid_to_row = {}
+        self.min_doc_box_height = 1
+
+        self.last_date = datetime.datetime(year=1, month=1, day=1)
+
+        self.active_doc = (None, None)
+        self.previous_doc = (None, None)
+
+        self.main_actions = []
+        self.doc_actions = None
+
+        self.selection_multiple = False
+
+        # the following boolean is a dirty hack to ignore the signal 'toggle'
+        # when we toggle the checkbox ourselves (if another plugin
+        # calls doc_selection_add() for instance)
+        self._toggling = False
 
         self.core.call_success(
             "gtk_load_css",

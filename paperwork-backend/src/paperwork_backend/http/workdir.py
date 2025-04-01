@@ -16,16 +16,14 @@ class Plugin(
         metaclass=openpaperwork_core.util.Singleton):
     PRIORITY = -100
 
-    def __init__(self):
-        super().__init__()
-        self.workdir = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "http_backend_extension",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "config",
@@ -41,8 +39,9 @@ class Plugin(
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.workdir = None
         self._reload_workdir()
         self.core.call_all("config_add_observer", "workdir", self._reload_workdir)
 

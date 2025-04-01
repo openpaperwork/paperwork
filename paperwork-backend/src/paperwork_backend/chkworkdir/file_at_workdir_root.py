@@ -12,10 +12,12 @@ class Plugin(openpaperwork_core.PluginBase):
     """
     Locates (and optionally deletes) files at the root of the work directory.
     """
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['chkworkdir']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',

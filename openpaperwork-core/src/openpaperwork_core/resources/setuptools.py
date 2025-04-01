@@ -13,10 +13,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['resources']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',

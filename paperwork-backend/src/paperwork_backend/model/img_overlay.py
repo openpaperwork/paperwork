@@ -26,14 +26,16 @@ PAGE_FILENAME_REGEX = re.compile(r"paper\.(\d+)\.edited.(jpg|png)")
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000  # must have a higher priority than model.img / model.pdf
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "page_img",
             "page_reset",
             'pages',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -45,8 +47,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        self.core = core
+    def __init__(self, core):
+        super().__init__(core)
         setting = self.core.call_success(
             "config_build_simple", "model",
             "img_overlay_format", lambda: "PNG"

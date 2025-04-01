@@ -7,9 +7,12 @@ class TestSysinfo(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
 
-        class FakeAppModule(object):
+        class FakeAppModule:
+            __name__ = "fake_app"
+
             class Plugin(openpaperwork_core.PluginBase):
-                def get_interfaces(self):
+                @classmethod
+                def get_interfaces(cls):
                     return ['app']
 
                 def app_get_name(self):

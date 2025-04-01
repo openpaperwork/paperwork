@@ -19,11 +19,13 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.output = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['print']
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.output = []
 
     def print(self, txt):
         self.output.append(txt)

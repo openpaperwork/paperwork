@@ -14,7 +14,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'action',
             'action_app',
@@ -22,7 +23,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'chkdeps',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_shortcut_help',
@@ -30,17 +32,17 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def chkdeps(self, out: dict):
-        if not GLIB_AVAILABLE:
-            out['glib'].update(openpaperwork_core.deps.GLIB)
-
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         if not GLIB_AVAILABLE:
             return
         action = Gio.SimpleAction.new('open_shortcuts', None)
         action.connect("activate", self._open_shortcuts)
         self.core.call_all("app_actions_add", action)
+
+    def chkdeps(self, out: dict):
+        if not GLIB_AVAILABLE:
+            out['glib'].update(openpaperwork_core.deps.GLIB)
 
     def _open_shortcuts(self, *args, **kwargs):
         self.core.call_success("gtk_show_shortcuts")

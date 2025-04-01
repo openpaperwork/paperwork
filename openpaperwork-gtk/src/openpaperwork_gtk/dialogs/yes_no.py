@@ -23,16 +23,17 @@ class Plugin(openpaperwork_core.PluginBase):
     that ?").
     """
 
-    def __init__(self):
-        super().__init__()
-        self.windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_dialog_yes_no',
             'gtk_window_listener',
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

@@ -17,18 +17,15 @@ POST_STATS_PATH = "/beacon/post_statistics"
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.periodic = None
-        self.http = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "bug_report_attachments",
             "stats_post",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app',
@@ -59,9 +56,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
-
+    def __init__(self, core):
+        super().__init__(core)
         self.periodic = PeriodicTask(
             "statistics",
             datetime.timedelta(days=7),

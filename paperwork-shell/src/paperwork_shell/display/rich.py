@@ -21,12 +21,14 @@ import openpaperwork_core
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def __init__(self):
+    @classmethod
+    def get_interfaces(cls):
+        return ['print']
+
+    def __init__(self, core):
+        super().__init__(core)
         self.output = []
         self.console = None
-
-    def get_interfaces(self):
-        return ['print']
 
     def cmd_set_console(self, console):
         self.console = console

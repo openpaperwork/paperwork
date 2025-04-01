@@ -10,12 +10,13 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.tracker = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['memleak_detector']
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.tracker = None
 
     def on_memleak_track_start(self):
         self.tracker = None

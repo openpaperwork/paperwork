@@ -204,7 +204,8 @@ class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
     FILE_EXTENSION = ".pdf"
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'cairo_url',
             'chkdeps',
@@ -212,7 +213,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'pdf_cairo_url',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'poppler',

@@ -97,7 +97,9 @@ class TestSync(unittest.TestCase):
 
         # modify one document
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 9999999999
 

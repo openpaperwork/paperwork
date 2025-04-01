@@ -34,23 +34,25 @@ class Plugin(openpaperwork_core.PluginBase):
         'debug': logging.DEBUG,
     }
 
-    def __init__(self):
-        super().__init__()
-        self.console = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'logs',
             'uncaught_exception_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'uncaught_exception',
                 'defaults': ['openpaperwork_core.uncaught_exception'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.console = None
 
     def cmd_set_console(self, console):
         self.console = console

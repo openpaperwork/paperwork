@@ -13,22 +13,16 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -100
 
-    def __init__(self):
-        super().__init__()
-        self.url_selected = None
-        self.method_radio = None
-        self.method_set_file_urls_callbacks = {}
-        self.windows = []
-        self.widget_tree = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_bug_report_dialog',
             'gtk_window_listener',
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'external_apps',
@@ -55,6 +49,14 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.url_selected = None
+        self.method_radio = None
+        self.method_set_file_urls_callbacks = {}
+        self.windows = []
+        self.widget_tree = None
 
     def on_gtk_window_opened(self, window):
         self.windows.append(window)

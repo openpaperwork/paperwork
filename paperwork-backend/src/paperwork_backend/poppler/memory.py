@@ -32,13 +32,15 @@ if GI_AVAILABLE:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -100
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'poppler',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',

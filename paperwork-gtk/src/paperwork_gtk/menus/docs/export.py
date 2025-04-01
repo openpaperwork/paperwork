@@ -19,7 +19,8 @@ ACTION_NAME = "doc_export_many"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -50
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'menu',
@@ -27,7 +28,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'menu_docs_export',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_docs_export',

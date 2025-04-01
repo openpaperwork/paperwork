@@ -289,17 +289,15 @@ class DbDoc:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def __init__(self):
-        self.sql = None
-        self.transaction_factories = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_tracking',
             'syncable',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_versioning',
@@ -327,8 +325,12 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.sql = None
+        self.transaction_factories = []
+
         self._init()
 
     def _init(self):

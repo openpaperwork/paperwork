@@ -21,19 +21,15 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -100
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.file_urls = []
-        self.apply_handler_id = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'bug_report_method',
             'chkdeps',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -44,6 +40,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.widget_tree = None
+        self.file_urls = []
+        self.apply_handler_id = None
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

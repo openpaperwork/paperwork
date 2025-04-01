@@ -111,10 +111,12 @@ class JsonHttp(object):
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['http_json']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app',

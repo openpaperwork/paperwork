@@ -26,21 +26,16 @@ class Plugin(openpaperwork_core.PluginBase):
         },
     }
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.layout_icon = None
-        self.layout_button = None
-        self.notify = True
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_layout_settings',
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_docview',
@@ -60,12 +55,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def chkdeps(self, out: dict):
-        if not GTK_AVAILABLE:
-            out['gtk'].update(openpaperwork_gtk.deps.GTK)
+    def __init__(self, core):
+        super().__init__(core)
 
-    def init(self, core):
-        super().init(core)
+        self.widget_tree = None
+        self.layout_icon = None
+        self.layout_button = None
+        self.notify = True
 
         self.core.call_success(
             "gtk_load_css",
@@ -111,6 +107,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
         scroll = self.core.call_success("docview_get_scrollwindow")
         self.core.call_all("on_zoomable_widget_new", scroll, self.zoom)
+
+    def chkdeps(self, out: dict):
+        if not GTK_AVAILABLE:
+            out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
     def on_layout_change(self, layout_name):
         if self.layout_icon is None:

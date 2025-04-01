@@ -39,7 +39,9 @@ class TestImgImport(unittest.TestCase):
             def commit(s):
                 self.nb_commits += 1
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 
@@ -70,12 +72,12 @@ class TestImgImport(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.img")
+        self.core.init()
 
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
 
-        self.core.init()
 
     def test_import_new_doc(self):
         self.fake_storage.docs = [

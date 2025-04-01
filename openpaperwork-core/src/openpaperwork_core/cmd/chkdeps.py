@@ -23,16 +23,19 @@ PACKAGE_TOOLS = {
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        self.console = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['shell']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         # will call method from interface 'chkdeps', but we can still
         # work if no other plugin implement 'chkdeps'.
         return []
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.console = None
 
     def _get_distribution(self):
         distribution = distro.linux_distribution(full_distribution_name=False)

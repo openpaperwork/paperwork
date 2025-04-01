@@ -4,7 +4,8 @@ from . import _version
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['app']
 
     def app_get_name(self):

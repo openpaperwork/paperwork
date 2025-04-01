@@ -6,8 +6,8 @@ class Plugin(PluginBase):
     Plugin implementing the interface 'app' just provide some very basic
     information regarding the application we are building.
     """
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['app']
 
     def app_get_name(self):

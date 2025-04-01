@@ -26,19 +26,15 @@ TARGET_ENTRY_URI = 0
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -10000
 
-    def __init__(self):
-        super().__init__()
-        self.pages = []
-        self.active_doc = None
-        self.enabled = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_pageview',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'page_img',
@@ -48,6 +44,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.pages = []
+        self.active_doc = None
+        self.enabled = False
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

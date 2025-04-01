@@ -125,25 +125,27 @@ if GLIB_AVAILABLE:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -1000
 
-    def __init__(self):
-        super().__init__()
-        self.wrappers = []
-        self.active_doc_id = None
-        self.active_pages = set()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_pageview',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_resources',
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.wrappers = []
+        self.active_doc_id = None
+        self.active_pages = set()
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:

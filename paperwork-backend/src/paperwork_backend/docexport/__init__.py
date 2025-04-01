@@ -269,13 +269,12 @@ class AbstractSimpleTransformExportPipe(AbstractExportPipe):
 
 
 class AbstractExportPipePlugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.pipes = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['export_pipes']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',
@@ -286,6 +285,10 @@ class AbstractExportPipePlugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.thread.simple'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.pipes = []
 
     def export_get_pipe_by_name(self, name):
         for pipe in self.pipes:

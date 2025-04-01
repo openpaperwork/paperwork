@@ -52,23 +52,14 @@ class ProxyCore(object):
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.has_quit = False
-
-        # used for wait():
-        self.progress_condition = threading.Condition()
-        self.progresses = {}
-        self._previous_progresses = {}
-
-        self.nb_windows_to_realize = 0
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_window_listener'
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_versioning',
@@ -88,8 +79,16 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.has_quit = False
+
+        # used for wait():
+        self.progress_condition = threading.Condition()
+        self.progresses = {}
+        self._previous_progresses = {}
+
+        self.nb_windows_to_realize = 0
         data_dir = self.core.call_success("paths_get_data_dir")
         base_hist_dir = self.core.call_success(
             "fs_join", data_dir, "openpaperwork"

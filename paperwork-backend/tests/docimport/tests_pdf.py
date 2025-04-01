@@ -35,7 +35,9 @@ class TestPdfImport(unittest.TestCase):
             def commit(s):
                 self.nb_commits += 1
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 
@@ -77,12 +79,11 @@ class TestPdfImport(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
+        self.core.init()
 
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
-
-        self.core.init()
 
     def test_import_pdf(self):
         self.hash_to_docid = {}
@@ -210,7 +211,9 @@ class TestRecursivePdfImport(unittest.TestCase):
             def commit(s):
                 self.nb_commits += 1
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 
@@ -252,12 +255,11 @@ class TestRecursivePdfImport(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
+        self.core.init()
 
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
-
-        self.core.init()
 
     def test_import_pdf(self):
         self.hash_to_docid = {}
@@ -376,7 +378,9 @@ class TestPasswordPdfImport(unittest.TestCase):
             def commit(s):
                 self.nb_commits += 1
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999
 
@@ -431,12 +435,11 @@ class TestPasswordPdfImport(unittest.TestCase):
         self.core._load_module("fake_module", FakeModule())
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
+        self.core.init()
 
         self.fake_storage = self.core.get_by_name(
             "paperwork_backend.model.fake"
         )
-
-        self.core.init()
 
     def test_import_password_pdf(self):
         self.hash_to_docid = {}

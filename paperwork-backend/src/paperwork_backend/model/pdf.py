@@ -331,18 +331,8 @@ class PdfPageMapping(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 20
 
-    def __init__(self):
-        super().__init__()
-        # we cache the hash of PDF files since they never change
-        self.cache_hash = {}
-        # we cache the number of pages in PDF files since they never change
-        # (real number before mapping)
-        self.cache_nb_pages = {}
-
-        self.cache_mappings = {}
-        self.cache_passwords = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "doc_hash",
             "doc_pdf",
@@ -357,7 +347,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'pages',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -389,6 +380,17 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.urls'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        # we cache the hash of PDF files since they never change
+        self.cache_hash = {}
+        # we cache the number of pages in PDF files since they never change
+        # (real number before mapping)
+        self.cache_nb_pages = {}
+
+        self.cache_mappings = {}
+        self.cache_passwords = {}
 
     def _get_pdf_url(self, doc_url):
         if doc_url.endswith(".pdf"):

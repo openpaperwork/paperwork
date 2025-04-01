@@ -215,19 +215,15 @@ if GLIB_AVAILABLE:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def __init__(self):
-        super().__init__()
-        self.pages = []
-        self.nb_to_load = 0
-        self.active_doc = (None, None)
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_pageview',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'cairo_url',
@@ -253,15 +249,18 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def chkdeps(self, out: dict):
-        if not GLIB_AVAILABLE:
-            out['glib'].update(openpaperwork_core.deps.GLIB)
-
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.pages = []
+        self.nb_to_load = 0
+        self.active_doc = (None, None)
         self.core.call_all(
             "work_queue_create", "page_loader", stop_on_quit=True
         )
+
+    def chkdeps(self, out: dict):
+        if not GLIB_AVAILABLE:
+            out['glib'].update(openpaperwork_core.deps.GLIB)
 
     def doc_close(self):
         self.core.call_success("work_queue_cancel_all", "page_loader")

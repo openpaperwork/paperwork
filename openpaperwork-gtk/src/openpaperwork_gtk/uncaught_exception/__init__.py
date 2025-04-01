@@ -18,20 +18,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.nb_dialogs = 3
-        self.windows = []
-        self.visible = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_uncaught_exception',
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_bug_report_dialog',
@@ -46,6 +42,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.uncaught_exception'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.nb_dialogs = 3
+        self.windows = []
+        self.visible = False
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

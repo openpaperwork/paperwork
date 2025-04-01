@@ -15,21 +15,8 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def __init__(self):
-        super().__init__()
-        self.doc_urls_to_names_to_urls = {}
-        self.doc_urls_to_names = {}
-
-        # in case document is edited by user
-        self.new_docs = []
-        self.doc_urls_to_new_docs = {}
-
-        self.thumbnails = {}
-        # At this point, translations are not yet available
-        self.help_files = ()
-        self.label = ()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_labels',
             'document_storage',
@@ -37,7 +24,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'thumbnail',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             # Dependency not declared to avoid dependency loop
             # {
@@ -69,8 +57,17 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.doc_urls_to_names_to_urls = {}
+        self.doc_urls_to_names = {}
+
+        # in case document is edited by user
+        self.new_docs = []
+        self.doc_urls_to_new_docs = {}
+
+        self.thumbnails = {}
+        # At this point, translations are not yet available
         self.help_files = (
             (_("Introduction"), "intro"),
             (_("User manual"), "usage"),

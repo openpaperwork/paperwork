@@ -12,13 +12,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CommonFsPluginBase(openpaperwork_core.PluginBase):
-    def __init__(self):
-        """
-        Should be used only by sub-classes
-        """
-        super().__init__()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['fs']
 
     @staticmethod

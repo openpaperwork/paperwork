@@ -17,7 +17,8 @@ class Plugin(PluginBase):
         'too_big': "Image too big.\nImage not loaded.",
     }
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['pillow_util']
 
     def pillow_get_error(self, error_id):

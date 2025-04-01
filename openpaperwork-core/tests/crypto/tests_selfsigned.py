@@ -9,10 +9,12 @@ import cryptography.x509.verification  # noqa E402
 import openpaperwork_core  # noqa E402
 
 
-
 class FakeAppModule:
+    __name__ = "fake_app_module"
+
     class Plugin(openpaperwork_core.PluginBase):
-        def get_interfaces(self):
+        @classmethod
+        def get_interfaces(cls):
             return [
                 "app",
             ]

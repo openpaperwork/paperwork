@@ -16,8 +16,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(CommonFsPluginBase):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, core):
+        super().__init__(core)
         self.tmp_files = set()
 
     def _uri_to_path(self, uri):

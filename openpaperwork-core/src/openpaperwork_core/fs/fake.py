@@ -108,7 +108,7 @@ class FakeFileAdapter(io.RawIOBase):
 
 
 class Plugin(CommonFsPluginBase):
-    def __init__(self, fs=None):
+    def __init__(self, core, fs=None):
         """
         Test implementation.
 
@@ -124,7 +124,7 @@ class Plugin(CommonFsPluginBase):
             }
         }
         """
-        super().__init__()
+        super().__init__(core)
         if fs is None:
             self.fs = {}
         else:

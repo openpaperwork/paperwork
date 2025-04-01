@@ -28,6 +28,7 @@ class TestAce(unittest.TestCase):
         self.core.load("paperwork_backend.sync.doctracker")
         self.core.load("paperwork_backend.sync.pagetracker")
         self.core.load("paperwork_backend.guesswork.color.libpillowfight")
+        self.core.init()
 
         self.core.get_by_name(
             "paperwork_backend.sync.pagetracker"
@@ -43,6 +44,8 @@ class TestAce(unittest.TestCase):
         self.pillowed = []
 
         class FakeModule(object):
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 10000000000
 

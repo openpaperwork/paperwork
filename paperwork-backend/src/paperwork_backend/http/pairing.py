@@ -40,13 +40,15 @@ class Plugin(openpaperwork_core.PluginBase):
         (41, 41),
     ]
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "http_backend_extension",
             "pairing_qrcode",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "certificate_store",
@@ -62,7 +64,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def __init__(self):
+    def __init__(self, core):
+        super().__init__(core)
         self.secret = None
         self.pairing_done = False
 

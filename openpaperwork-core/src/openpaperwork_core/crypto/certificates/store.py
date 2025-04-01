@@ -9,12 +9,14 @@ class Plugin(openpaperwork_core.PluginBase):
     # regenerate them.
     CERTIFICATE_VALIDITY_TIME_S = 100 * 365 * 24 * 3600
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "certificate_store",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "crypto_certificates",

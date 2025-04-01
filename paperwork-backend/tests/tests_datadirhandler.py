@@ -14,7 +14,9 @@ class TestDirHandler(unittest.TestCase):
 
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999999999999
 
@@ -28,11 +30,11 @@ class TestDirHandler(unittest.TestCase):
 
         self.core._load_module("fake_module", FakeModule)
 
+        self.core.init()
+
         self.datadirhandler = self.core.get_by_name(
             "paperwork_backend.datadirhandler"
         )
-
-        self.core.init()
 
     def tearDown(self):
         shutil.rmtree(self.tmp_paperwork_dir)

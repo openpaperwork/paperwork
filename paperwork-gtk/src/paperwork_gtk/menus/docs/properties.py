@@ -18,13 +18,8 @@ ACTION_NAME = "doc_change_labels"
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.menu_add = None
-        self.menu_remove = None
-        self.idx_generator = itertools.count()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'menu',
@@ -32,7 +27,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'menu_docs_properties',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'action_docs_properties',
@@ -47,6 +43,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_gtk.mainwindow.doclist'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.menu_add = None
+        self.menu_remove = None
+        self.idx_generator = itertools.count()
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:

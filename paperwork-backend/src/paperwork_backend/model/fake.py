@@ -9,8 +9,25 @@ from . import workdir
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_interfaces(cls):
+        return [
+            "doc_hash",
+            "doc_labels",
+            "doc_text",
+            "doc_type",
+            "document_storage",
+            "page_boxes",
+            "page_paper",
+            "pillow",
+        ]
+
+    @classmethod
+    def get_deps(cls):
+        return []
+
+    def __init__(self, core):
+        super().__init__(core)
         # expected in self.docs:
         # [
         #   {
@@ -46,21 +63,6 @@ class Plugin(openpaperwork_core.PluginBase):
         # ]
         self.docs = []
         self.new_doc_idx = 0
-
-    def get_interfaces(self):
-        return [
-            "doc_hash",
-            "doc_labels",
-            "doc_text",
-            "doc_type",
-            "document_storage",
-            "page_boxes",
-            "page_paper",
-            "pillow",
-        ]
-
-    def get_deps(self):
-        return []
 
     def storage_get_id(self):
         return "file:///home/jflesch/papers"

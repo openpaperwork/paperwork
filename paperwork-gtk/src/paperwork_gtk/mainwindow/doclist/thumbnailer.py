@@ -67,25 +67,15 @@ class ThumbnailTask(object):
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 100
 
-    def __init__(self):
-        super().__init__()
-        self.default_thumbnail = None
-        self.running = False
-
-        self.nb_loaded = 0
-        self.nb_to_load = 0
-        self._progress_str = None
-
-        self.processing_docs = set()
-        self.processed_docs = set()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_doclist_listener',
             'gtk_thumbnailer',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',
@@ -113,8 +103,18 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.running = False
+
+        self.nb_loaded = 0
+        self.nb_to_load = 0
+        self._progress_str = None
+
+        self.processing_docs = set()
+        self.processed_docs = set()
+
         img = PIL.Image.new(
             "RGB",
             (THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT),

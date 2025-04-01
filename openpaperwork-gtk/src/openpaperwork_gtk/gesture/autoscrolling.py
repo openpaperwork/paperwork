@@ -121,13 +121,15 @@ class AutoScrollingHandler(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_gesture_autoscrolling',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return []
 
     def chkdeps(self, out: dict):

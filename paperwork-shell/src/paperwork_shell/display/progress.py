@@ -26,15 +26,17 @@ TIME_BETWEEN_PROGRESS = 0.3
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        self.console = None
-        self.progress = None
-        self.tasks = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'progress_listener',
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.console = None
+        self.progress = None
+        self.tasks = {}
 
     def cmd_set_console(self, console):
         if console is None:

@@ -20,13 +20,12 @@ WORK_DIR_NAME = "workdir_data"
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ["data_dir_handler"]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',
@@ -43,8 +42,8 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         self._delete_old_directories()
 
     def on_storage_changed(self):

@@ -87,15 +87,12 @@ class SingleDocImporterFactory(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.file_types_by_ext = {}
-        self.file_types_by_mime = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ["import"]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "doc_converted",
@@ -119,9 +116,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.file_types_by_ext = {}
+        self.file_types_by_mime = {}
         file_types = []
+
         self.core.call_all("converter_get_file_types", file_types)
 
         self.file_types_by_ext = {}

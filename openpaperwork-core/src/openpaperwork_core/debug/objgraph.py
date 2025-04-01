@@ -12,13 +12,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_interfaces(cls):
+        return ['memleak_detector']
+
+    def __init__(self, core):
+        super().__init__(core)
         self.objs = []
         self.graph_path = tempfile.mktemp(suffix='.png')
-
-    def get_interfaces(self):
-        return ['memleak_detector']
 
     def on_objref_track(self, obj):
         assert obj is not None

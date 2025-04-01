@@ -52,7 +52,8 @@ class CropImgEditor(AbstractImgEditor):
 class Plugin(openpaperwork_core.PluginBase):
     NAME = 'cropping'
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['img_editor']
 
     def img_editor_get_names(self, out: list):

@@ -11,12 +11,15 @@ MIN_TIME_MS = 200
 
 
 class Plugin(PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.pending = {}
+    @classmethod
+    def get_interfaces(cls):
+        return [
+            'perfcheck',
+        ]
 
-    def get_interfaces(self):
-        return ['perfcheck']
+    def __init__(self, core):
+        super().__init__(core)
+        self.pending = {}
 
     def on_perfcheck_start(self, task_name):
         k = (task_name, threading.get_ident())

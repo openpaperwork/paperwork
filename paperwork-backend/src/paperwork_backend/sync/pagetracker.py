@@ -139,13 +139,12 @@ class PageTracker(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        pass
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['page_tracking']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'data_dir_handler',

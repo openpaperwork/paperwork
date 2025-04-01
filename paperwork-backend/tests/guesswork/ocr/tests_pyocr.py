@@ -25,7 +25,9 @@ class TestPyocr(unittest.TestCase):
 
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
 
-        class FakeModule(object):
+        class FakeModule:
+            __name__ = "fake_module"
+
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = 999999999999999999999
 

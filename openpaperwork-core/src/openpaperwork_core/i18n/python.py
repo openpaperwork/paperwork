@@ -12,20 +12,12 @@ class Plugin(PluginBase):
         oc="%b",  # Occitan
     )
 
-    def __init__(self):
-        self.today = datetime.date.today()
-        self.yesterday = self.today - datetime.timedelta(days=1)
-
-        # Need the l10n plugin to be loaded first before getting the
-        # translations
-        self.i18n_today = None
-        self.i18n_yesterday = None
-        self.i18n_sizes = ()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['i18n']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'l10n',
@@ -33,8 +25,10 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.today = datetime.date.today()
+        self.yesterday = self.today - datetime.timedelta(days=1)
         self.i18n_today = _("Today")
         self.i18n_yesterday = _("Yesterday")
         self.i18n_sizes = (

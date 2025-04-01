@@ -4,10 +4,12 @@ from .. import PluginBase
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['paths']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app',

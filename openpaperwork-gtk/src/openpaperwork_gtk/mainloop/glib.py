@@ -21,28 +21,29 @@ class Plugin(
             openpaperwork_core.PluginBase,
             metaclass=openpaperwork_core.util.Singleton
         ):
-    PRIORITY = 1000
-
     """
     A main loop based on GLib's mainloop.
     See `openpaperwork_core.mainloop.asyncio` for doc.
     """
-    def __init__(self):
-        super().__init__()
+
+    PRIORITY = 1000
+
+    @classmethod
+    def get_interfaces(cls):
+        return [
+            "chkdeps",
+            "mainloop",
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
         self.halt_on_uncaught_exception = True
         self.log_uncaught = True
         self.loop = None
         self.loop_ident = None
         self.halt_cause = None
         self.task_count = 0
-
         self.lock = threading.RLock()
-
-    def get_interfaces(self):
-        return [
-            "chkdeps",
-            "mainloop",
-        ]
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:

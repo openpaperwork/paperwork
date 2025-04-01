@@ -12,19 +12,16 @@ ACTION_NAME = "doc_print"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -10
 
-    def __init__(self):
-        super().__init__()
-        self.active_doc = None
-        self.active_windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'menu',
             'menu_doc',
             'menu_doc_print',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_actions',
@@ -35,6 +32,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_gtk.mainwindow.doclist'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc = None
+        self.active_windows = []
 
     def on_doclist_initialized(self):
         self.core.call_all(

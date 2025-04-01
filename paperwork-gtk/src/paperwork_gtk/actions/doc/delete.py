@@ -19,11 +19,8 @@ ACTION_NAME = "doc_delete"
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_doc = (None, None)
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'action',
             'action_doc',
@@ -32,7 +29,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'doc_open',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app_actions',
@@ -52,8 +50,9 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_doc = (None, None)
         if not GLIB_AVAILABLE:
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)

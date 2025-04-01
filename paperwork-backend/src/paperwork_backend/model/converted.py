@@ -42,21 +42,16 @@ class MonitoringThread:
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 200
 
-    def __init__(self):
-        super().__init__()
-        self.pending_doc_urls = set()
-        self.file_types_by_ext = {}
-        self.file_types_by_mime = {}
-        self.cache_hash = {}
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "doc_converted",
             "doc_hash",
             "sync",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_converter',
@@ -80,8 +75,13 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+
+        self.pending_doc_urls = set()
+        self.file_types_by_ext = {}
+        self.file_types_by_mime = {}
+        self.cache_hash = {}
 
         file_types = []
         self.core.call_all("converter_get_file_types", file_types)

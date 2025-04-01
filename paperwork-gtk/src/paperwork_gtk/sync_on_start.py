@@ -10,14 +10,12 @@ class Plugin(
             openpaperwork_core.PluginBase,
             metaclass=openpaperwork_core.util.Singleton
         ):
-    def __init__(self):
-        super().__init__()
-        self.sync_started = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['sync_on_start']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -33,8 +31,9 @@ class Plugin(
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.sync_started = False
         setting = self.core.call_success(
             "config_build_simple", "GUI", "sync_on_start",
             default_value_func=lambda: True

@@ -9,10 +9,12 @@ class Plugin(PluginBase):
     Simply create a thread for each task to run. Less efficient than a thread
     pool, but may be useful for testing or debugging.
     """
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['thread']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',

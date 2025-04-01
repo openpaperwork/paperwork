@@ -13,7 +13,8 @@ LANGUAGES = {
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['i18n_lang']
 
     def i18n_lang_iso639_3_to_full(self, iso):

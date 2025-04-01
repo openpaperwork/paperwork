@@ -17,7 +17,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'action',
@@ -25,7 +26,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'action_app_new_window',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app_actions',
@@ -33,17 +35,17 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def chkdeps(self, out: dict):
-        if not GIO_AVAILABLE:
-            out['glib'].update(openpaperwork_core.deps.GLIB)
-
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
         if not GIO_AVAILABLE:
             return
         action = Gio.SimpleAction.new('new_window', None)
         action.connect("activate", self._make_new_window)
         self.core.call_all("app_actions_add", action)
+
+    def chkdeps(self, out: dict):
+        if not GIO_AVAILABLE:
+            out['glib'].update(openpaperwork_core.deps.GLIB)
 
     def _make_new_window(self, *args, **kwargs):
         core = openpaperwork_core.Core()

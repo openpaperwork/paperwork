@@ -2,7 +2,8 @@ from . import PluginBase
 
 
 class Plugin(PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['urls']
 
     def url_args_join(self, *args, **kwargs):

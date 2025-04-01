@@ -12,15 +12,16 @@ from . import deps
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def chkdeps(self, out: dict):
-        if not GTK_AVAILABLE:
-            out['gtk'].update(deps.GTK)
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_colors',
         ]
+
+    def chkdeps(self, out: dict):
+        if not GTK_AVAILABLE:
+            out['gtk'].update(deps.GTK)
 
     def gtk_entry_set_colors(self, gtk_entry, fg="black", bg="#CC3030"):
         css = """

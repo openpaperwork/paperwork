@@ -11,6 +11,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -47,6 +48,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -67,6 +69,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -105,6 +108,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -155,6 +159,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -199,6 +204,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
         ).base_path = "file://" + tempfile.mkdtemp(
@@ -252,6 +258,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
 
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'
@@ -281,6 +288,7 @@ class TestReadWrite(unittest.TestCase):
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         core.load('openpaperwork_core.config.backend.configparser')
+        core.init()
 
         core.get_by_name(
             'openpaperwork_core.config.backend.configparser'

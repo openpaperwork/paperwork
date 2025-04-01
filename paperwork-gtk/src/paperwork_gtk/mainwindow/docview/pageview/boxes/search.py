@@ -17,18 +17,15 @@ class Plugin(openpaperwork_core.PluginBase):
     # point in highlighting them
     IGNORE_LIST = {"and", "or"}
 
-    def __init__(self):
-        super().__init__()
-        self.re_split = re.compile(SPLIT)
-        self.keywords = set()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_pageview_boxes_listener',
             'search_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_pageview',
@@ -45,6 +42,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.re_split = re.compile(SPLIT)
+        self.keywords = set()
 
     def on_search_start(self, query):
         query = self.re_split.split(

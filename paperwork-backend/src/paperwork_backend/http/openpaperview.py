@@ -413,13 +413,15 @@ class Plugin(
 
     PRIORITY = 100
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "http_backend_extension",
             "sync",
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 "interface": "extra_text",
@@ -465,11 +467,9 @@ class Plugin(
             },
         ]
 
-    def __init__(self):
+    def __init__(self, core):
+        super().__init__(core)
         self.db_path = None
-
-    def init(self, core):
-        super().init(core)
         self.on_data_dir_changed()
         self.core.call_all("config_add_observer", "https_server", self.on_data_dir_changed)
 

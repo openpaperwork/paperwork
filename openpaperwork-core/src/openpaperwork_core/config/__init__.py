@@ -54,20 +54,12 @@ class Plugin(PluginBase):
     Provides default values (except for plugins).
     """
 
-    def __init__(self):
-        self.core = None
-        self.settings = {}
-        self.values = {}
-        # applicatiom here is a bit more specific: paperwork-gtk,
-        # paperwork-shell, etc.
-        # It is used to known which plugin list must be loaded
-        self.plugin_list_name = None
-        self.observers = collections.defaultdict(set)
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['config']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'app',
@@ -79,8 +71,15 @@ class Plugin(PluginBase):
             },
         ]
 
-    def init(self, core):
-        self.core = core
+    def __init__(self, core):
+        super().__init__(core)
+        self.settings = {}
+        self.values = {}
+        # applicatiom here is a bit more specific: paperwork-gtk,
+        # paperwork-shell, etc.
+        # It is used to known which plugin list must be loaded
+        self.plugin_list_name = None
+        self.observers = collections.defaultdict(set)
         self.settings = {}
 
     def config_load(self):

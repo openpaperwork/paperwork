@@ -13,8 +13,11 @@ class AbstractTestThread(unittest.TestCase):
 
     def setUp(self):
         class DummyMainloop(object):
+            __name__ = "dummy_mainloop"
+
             class Plugin(PluginBase):
-                def get_interfaces(s):
+                @classmethod
+                def get_interfaces(cls):
                     return ['mainloop']
 
                 def mainloop_ref(s, r):

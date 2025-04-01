@@ -7,13 +7,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.active_windows = []
-        self.sections = {}
-        self.widget_tree = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_settings_dialog',
@@ -21,7 +16,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -40,6 +36,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.active_windows = []
+        self.sections = {}
+        self.widget_tree = None
 
     def on_gtk_window_opened(self, window):
         self.active_windows.append(window)

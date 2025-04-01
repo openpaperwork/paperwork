@@ -59,13 +59,15 @@ def surface2image(core, surface):
 class Plugin(openpaperwork_core.PluginBase):
     FILE_EXTENSION = ".pdf"
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'page_img_size',
             'pillow',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'pdf_cairo_url',

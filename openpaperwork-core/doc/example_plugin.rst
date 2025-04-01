@@ -11,12 +11,8 @@ Plugin Example
         # but after those of priority >= 23
         PRIORITY = 22
 
-        def __init__(self):
-            # do something, but the least possible
-            # cannot rely on any dependencies here.
-            pass
-
-        def get_interfaces(self):
+        @classmethod
+        def get_interfaces(cls):
            # indicates which interfaces this plugin satisfies.
            # note that this is only used for controlling that dependencies are
            # satisfied (see get_deps()). There are no checks at all to ensure
@@ -24,7 +20,8 @@ Plugin Example
            # implemented.
            return ['interface_name_toto', 'interface_name_tutu']
 
-        def get_deps(self):
+        @classmethod
+        def get_deps(cls):
             # specify that we are looking for plugins implementing the
             # specified interface(s).
             # Provide also some default plugins to load if no plugins provide
@@ -51,10 +48,10 @@ Plugin Example
                 }
             ]
 
-        def init(self, core):
+        def __init__(self, core):
+            super().__init__(core)
             # all the dependencies have loaded and initialized.
             # we can safely rely on them here.
-            super().init(core)
 
         def some_method_a(self, arg_a):
             # do something

@@ -254,18 +254,15 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.ui = None
-        self.active_doc = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_page_editor',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_drawer_frame',
@@ -301,8 +298,10 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.ui = None
+        self.active_doc = None
 
         self.widget_tree = self.core.call_success(
             "gtk_load_widget_tree",

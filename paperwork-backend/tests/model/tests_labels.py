@@ -106,6 +106,8 @@ class TestLabels(unittest.TestCase):
         core = self.core
 
         class FakeModule(object):
+            __name__ = "mainloop_stopper"
+
             class Plugin(openpaperwork_core.PluginBase):
                 def is_doc(self, doc_url):
                     return True

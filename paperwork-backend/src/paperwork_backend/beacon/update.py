@@ -17,15 +17,12 @@ UPDATE_PATH = "/beacon/latest"
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.periodic = None
-        self.http = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ["update_detection"]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -44,6 +41,21 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_core.thread.simple'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.periodic = openpaperwork_core.beacon.PeriodicTask(
+            "update",
+            UPDATE_CHECK_INTERVAL,
+            self.update_check,
+            self.update_compare
+        )
+        self.http = self.core.call_success("http_json_get_client", "update")
+        self._register_config(core)
+        self.periodic.register_config(core)
+
+        if self.core.call_success("config_get", "check_for_update"):
+            self.core.call_all("mainloop_schedule", self.periodic.do, core)
 
     def _register_config(self, core):
         setting = self.core.call_success(
@@ -103,18 +115,3 @@ class Plugin(openpaperwork_core.PluginBase):
             self.core.call_all(
                 "on_update_detected", local_version, remote_version
             )
-
-    def init(self, core):
-        super().init(core)
-        self.periodic = openpaperwork_core.beacon.PeriodicTask(
-            "update",
-            UPDATE_CHECK_INTERVAL,
-            self.update_check,
-            self.update_compare
-        )
-        self.http = self.core.call_success("http_json_get_client", "update")
-        self._register_config(core)
-        self.periodic.register_config(core)
-
-        if self.core.call_success("config_get", "check_for_update"):
-            self.core.call_all("mainloop_schedule", self.periodic.do, core)

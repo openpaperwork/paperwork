@@ -77,18 +77,15 @@ class Plugin(PluginBase):
         'temp': _get_tmp_file,
     }
 
-    def __init__(self):
-        super().__init__()
-        self.log_file_paths = set()
-        self.log_handler = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'logs',
             'uncaught_exception_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'uncaught_exception',
@@ -99,6 +96,11 @@ class Plugin(PluginBase):
                 'defaults': ['openpaperwork_core.config'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.log_file_paths = set()
+        self.log_handler = None
 
     def init_logs(self, app_name, default_log_level):
         self._fix_std('stdout')

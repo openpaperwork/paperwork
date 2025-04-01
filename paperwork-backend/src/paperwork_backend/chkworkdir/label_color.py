@@ -15,10 +15,12 @@ class Plugin(openpaperwork_core.PluginBase):
     If this process is interrupted, we end up with 2 colors for the same
     label.
     """
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['chkworkdir']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_labels',

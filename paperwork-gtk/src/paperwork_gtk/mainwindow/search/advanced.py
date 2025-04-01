@@ -463,15 +463,8 @@ class SearchLine(object):
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.windows = []
-        self.search_element_box = None
-        self.search_elements = []
-        self.dialog = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_advanced_search_dialog',
@@ -479,7 +472,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_labels',
@@ -498,6 +492,14 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.widget_tree = None
+        self.windows = []
+        self.search_element_box = None
+        self.search_elements = []
+        self.dialog = None
 
     def on_gtk_window_opened(self, window):
         self.windows.append(window)

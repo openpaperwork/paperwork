@@ -22,41 +22,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.ui = None
-        self.active_doc = None
-        self.active_page_idx = None
-        self.windows = []
-
-        self.button_validate = None
-        self.button_send_email = None
-        self.preciew = None
-        self.zoom = None
-        self.quality = None
-        self.combobox_page_format = None
-        self.model_page_format = None
-
-        # The reference ('ref_*') is what is displayed as example to the user.
-        # It's always only one page. The exported document size is estimated
-        # by multiplying this reference page after post-processing by the
-        # number of pages in the document.
-
-        # Inputs (export_input_*) refer to export pipe inputs
-        # (see paperwork_backend.docexport)
-
-        self.ref_input_page = None
-        self.ref_input_doc = None
-        self.export_input_type = None
-        self.export_input = None
-        self.export_input_doc_urls = None
-        self.need_zoom_auto = True
-
-        self.pipeline = []
-        self.renderer = None
-        self.tmp_file_url = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'doc_open',
@@ -64,7 +31,8 @@ class Plugin(openpaperwork_core.PluginBase):
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'cairo_url',
@@ -122,8 +90,39 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.ui = None
+        self.active_doc = None
+        self.active_page_idx = None
+        self.windows = []
+
+        self.button_validate = None
+        self.button_send_email = None
+        self.preciew = None
+        self.zoom = None
+        self.quality = None
+        self.combobox_page_format = None
+        self.model_page_format = None
+
+        # The reference ('ref_*') is what is displayed as example to the user.
+        # It's always only one page. The exported document size is estimated
+        # by multiplying this reference page after post-processing by the
+        # number of pages in the document.
+
+        # Inputs (export_input_*) refer to export pipe inputs
+        # (see paperwork_backend.docexport)
+
+        self.ref_input_page = None
+        self.ref_input_doc = None
+        self.export_input_type = None
+        self.export_input = None
+        self.export_input_doc_urls = None
+        self.need_zoom_auto = True
+
+        self.pipeline = []
+        self.renderer = None
+        self.tmp_file_url = None
 
         opt = self.core.call_success(
             "config_build_simple", "GUI", "last_export_uri",

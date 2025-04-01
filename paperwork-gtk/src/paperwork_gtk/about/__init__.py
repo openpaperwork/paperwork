@@ -7,17 +7,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def __init__(self):
-        super().__init__()
-        self.windows = []
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_about',
             'gtk_window_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'authors',
@@ -36,6 +34,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['paperwork_gtk.icon'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.windows = []
 
     def on_gtk_window_opened(self, window):
         self.windows.append(window)

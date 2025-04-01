@@ -17,22 +17,15 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
-    def __init__(self):
-        super().__init__()
-        self.widget_tree = None
-        self.settings_widget_tree = None
-        self.size_allocate_connect_id = None
-        self.scan_height = 0
-        self.scan_width = 0
-        self.scan_img = None
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_settings_calibration',
             'screenshot_provider',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'config',
@@ -82,6 +75,15 @@ class Plugin(openpaperwork_core.PluginBase):
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.widget_tree = None
+        self.settings_widget_tree = None
+        self.size_allocate_connect_id = None
+        self.scan_height = 0
+        self.scan_width = 0
+        self.scan_img = None
 
     def complete_settings(self, settings_widget_tree):
         self.settings_widget_tree = settings_widget_tree

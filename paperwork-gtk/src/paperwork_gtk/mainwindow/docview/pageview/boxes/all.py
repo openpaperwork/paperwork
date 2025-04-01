@@ -9,17 +9,15 @@ LOGGER = logging.getLogger(__name__)
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 1000
 
-    def __init__(self):
-        super().__init__()
-        self.visible = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'gtk_pageview_boxes_all',
             'gtk_pageview_boxes_listener',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'gtk_pageview',
@@ -32,6 +30,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
         ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.visible = False
 
     def set_all_boxes_visible(self, visible):
         self.visible = visible

@@ -2,7 +2,8 @@ import openpaperwork_core
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['nb_pages']
 
     def doc_get_nb_pages_by_url(self, doc_url):

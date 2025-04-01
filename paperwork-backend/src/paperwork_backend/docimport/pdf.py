@@ -92,12 +92,14 @@ class Plugin(openpaperwork_core.PluginBase):
     FILE_EXTENSION = ".pdf"
     MIME_TYPE = "application/pdf"
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             "import"
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'doc_pdf_import',

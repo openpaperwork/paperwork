@@ -257,15 +257,16 @@ class _GioUTF8FileAdapter(io.RawIOBase):
 class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
     PRIORITY = 50
 
-    def __init__(self):
-        super().__init__()
+    @classmethod
+    def get_interfaces(cls):
+        return super().get_interfaces() + ['chkdeps']
+
+    def __init__(self, core):
+        super().__init__(core)
         self.vfs = None
         if GLIB_AVAILABLE:
             self.vfs = Gio.Vfs.get_default()
         self.tmp_files = set()
-
-    def get_interfaces(self):
-        return super().get_interfaces() + ['chkdeps']
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:

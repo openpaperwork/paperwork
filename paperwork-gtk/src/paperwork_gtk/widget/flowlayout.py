@@ -280,7 +280,8 @@ if GTK_AVAILABLE:
 
 
 class Plugin(openpaperwork_core.PluginBase):
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'chkdeps',
             'gtk_widget_flowlayout',

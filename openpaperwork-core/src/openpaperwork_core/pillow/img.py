@@ -23,13 +23,15 @@ class Plugin(PluginBase):
         "tiff",
     ]
 
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'page_img_size',
             'pillow',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'fs',

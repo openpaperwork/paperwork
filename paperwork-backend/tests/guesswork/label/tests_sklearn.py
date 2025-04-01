@@ -4,10 +4,13 @@ import unittest
 
 import openpaperwork_core
 import openpaperwork_core.fs
+import openpaperwork_core.util
 
 
 class TestLabelGuesser(unittest.TestCase):
     def setUp(self):
+        openpaperwork_core.util.reset_singletons()
+
         self.tmp_bayes_dir = tempfile.mkdtemp(
             prefix="paperwork_backend_labels"
         )
@@ -17,22 +20,10 @@ class TestLabelGuesser(unittest.TestCase):
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.sync.doctracker")
         self.core.load("paperwork_backend.guesswork.label.sklearn")
-        self.core.get_by_name(
-            "paperwork_backend.sync.doctracker"
-        ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
-            self.tmp_bayes_dir
-        )
-        self.core.get_by_name(
-            "paperwork_backend.guesswork.label.sklearn"
-        ).bayes_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
-            self.tmp_bayes_dir
-        )
 
-        self.fake_storage = self.core.get_by_name(
-            "paperwork_backend.model.fake"
-        )
+        class FakeModule:
+            __name__ = "fake_module"
 
-        class FakeModule(object):
             class Plugin(openpaperwork_core.PluginBase):
                 PRIORITY = -9999999
 
@@ -43,8 +34,21 @@ class TestLabelGuesser(unittest.TestCase):
                     return None
 
         self.core._load_module("fake_module", FakeModule())
-
         self.core.init()
+
+        self.core.get_by_name(
+            "paperwork_backend.sync.doctracker"
+        ).paperwork_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
+            self.tmp_bayes_dir
+        )
+        self.core.get_by_name(
+            "paperwork_backend.guesswork.label.sklearn"
+        ).bayes_dir = openpaperwork_core.fs.CommonFsPluginBase.fs_safe(
+            self.tmp_bayes_dir
+        )
+        self.fake_storage = self.core.get_by_name(
+            "paperwork_backend.model.fake"
+        )
 
         self.core.call_all("reload_label_guessers")
         self.core.call_all("config_put", "label_guessing_min_features", 1)

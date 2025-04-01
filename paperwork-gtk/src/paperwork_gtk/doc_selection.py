@@ -10,12 +10,13 @@ class Plugin(openpaperwork_core.PluginBase):
     # so we can report an accurate document count
     PRIORITY = 1000
 
-    def __init__(self):
-        super().__init__()
-        self.selection = set()
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['doc_selection']
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.selection = set()
 
     def doc_selection_reset(self):
         self.selection = set()

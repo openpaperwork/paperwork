@@ -13,10 +13,12 @@ class Plugin(openpaperwork_core.PluginBase):
     Locates (and optionnally deletes) empty directories in the work
     directory.
     """
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return ['chkworkdir']
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'document_storage',

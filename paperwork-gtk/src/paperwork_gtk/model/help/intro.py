@@ -12,21 +12,16 @@ DOC_ID = "help_intro"
 class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = -100000  # see storage_get_all_docs()
 
-    def __init__(self):
-        super().__init__()
-        self.doc_url = None
-        self.thumbnail_url = None
-        self.opened = False
-        self.deleted = False
-
-    def get_interfaces(self):
+    @classmethod
+    def get_interfaces(cls):
         return [
             'doc_labels',
             'document_storage',
             'syncable',
         ]
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'help_documents',
@@ -34,8 +29,12 @@ class Plugin(openpaperwork_core.PluginBase):
             },
         ]
 
-    def init(self, core):
-        super().init(core)
+    def __init__(self, core):
+        super().__init__(core)
+        self.doc_url = None
+        self.thumbnail_url = None
+        self.opened = False
+        self.deleted = False
 
     def storage_get_all_docs(self, out: list, only_valid=True):
         if self.deleted or len(out) > 0:

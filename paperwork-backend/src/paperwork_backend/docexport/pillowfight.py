@@ -53,18 +53,23 @@ class SwtExportPipe(AbstractSimpleTransformExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    def init(self, core):
-        super().init(core)
-        self.pipes = [
-            UnpaperExportPipe(core),
-            SwtExportPipe(core, pillowfight.SWT_OUTPUT_ORIGINAL_BOXES),
-            SwtExportPipe(core, pillowfight.SWT_OUTPUT_BW_TEXT),
-        ]
+    @classmethod
+    def get_interfaces(cls):
+        return []
 
-    def get_deps(self):
+    @classmethod
+    def get_deps(cls):
         return [
             {
                 'interface': 'mainloop',
                 'defaults': 'openpaperwork_gtk.mainloop.glib',
             },
+        ]
+
+    def __init__(self, core):
+        super().__init__(core)
+        self.pipes = [
+            UnpaperExportPipe(core),
+            SwtExportPipe(core, pillowfight.SWT_OUTPUT_ORIGINAL_BOXES),
+            SwtExportPipe(core, pillowfight.SWT_OUTPUT_BW_TEXT),
         ]

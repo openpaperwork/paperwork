@@ -2,7 +2,8 @@ import logging
 import threading
 import time
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -10,13 +11,10 @@ LOGGER = logging.getLogger(__name__)
 MIN_TIME_MS = 200
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'perfcheck',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Perfcheck,
+):
     def __init__(self, core):
         super().__init__(core)
         self.pending = {}

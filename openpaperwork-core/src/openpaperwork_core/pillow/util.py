@@ -5,21 +5,21 @@ import PIL.Image
 import PIL.ImageDraw
 import PIL.ImageFont
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.pillow import PillowUtil
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PillowUtil,
+):
     ID_TO_MSG = {
         'invalid': "Invalid image",
         'too_big': "Image too big.\nImage not loaded.",
     }
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['pillow_util']
 
     def pillow_get_error(self, error_id):
         msg = self.ID_TO_MSG[error_id]

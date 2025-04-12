@@ -6,26 +6,17 @@ try:
 except Exception:
     IMPORTLIB_RESOURCES_AVAILABLE = False
 
-from .. import PluginBase
+from openpaperwork_core import PluginBase
+from openpaperwork_core.interfaces.resources import Resources
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['resources']
-
-    @classmethod
-    def get_deps(cls):
-        return [
-            {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-        ]
-
+class Plugin(
+    PluginBase,
+    Resources,
+):
     def resources_get_file(self, pkg, filename):
         if not IMPORTLIB_RESOURCES_AVAILABLE:
             LOGGER.warning("importlib.resources not available !")

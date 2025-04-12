@@ -7,13 +7,20 @@ import configparser
 import datetime
 import logging
 
-from ... import (_, PluginBase)
+from openpaperwork_core import _
+from openpaperwork_core.interfaces.bug_report_attachment import (
+    BugReportAttachment
+)
+from openpaperwork_core.interfaces.config_backend import ConfigBackend
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.paths import Paths
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ConfigBool(object):
+class ConfigBool:
     def __init__(self, value=False):
         if isinstance(value, str):
             self.value = (value.lower() == 'true')
@@ -33,7 +40,7 @@ class ConfigBool(object):
         return self.value
 
 
-class ConfigDate(object):
+class ConfigDate:
     DATE_FORMAT = "%Y-%m-%d"
 
     def __init__(self, value=datetime.datetime(year=1971, month=1, day=1)):
@@ -56,7 +63,7 @@ class ConfigDate(object):
         return self.value
 
 
-class ConfigList(object):
+class ConfigList:
     SEPARATOR = ";"
 
     def __init__(self, value=None, elements=None):
@@ -114,7 +121,7 @@ class ConfigList(object):
         ]
 
 
-class ConfigDict(object):
+class ConfigDict:
     SEPARATOR_ITEMS = ";"
     SEPARATOR_KEYVALS = "="
 
@@ -192,49 +199,51 @@ _STR_TO_TYPE = {
 _TYPE_SEPARATOR = ":"
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    BugReportAttachment,
+    ConfigBackend,
+):
     TEST_FILE_URL = None  # unit tests only
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['config_backend']
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
             {
-                'interface': 'paths',
+                'interface': Paths,
                 'defaults': ['openpaperwork_core.paths.xdg'],
             },
         ]
 
-    def __init__(self, core):
+    def __init__(self, core, config_path=None, base_path=None):
         super().__init__(core)
         self.config = configparser.RawConfigParser()
         self.application_name = None
-        self.config_path = None
+        self.config_path = config_path
         self.observers = collections.defaultdict(set)
         self.default_plugins = []
-        self.base_path = self.core.call_success("paths_get_config_dir")
+        if base_path is not None:
+            self.base_path = base_path
+        else:
+            self.base_path = self.core.call_success(Paths.paths_get_config_dir)
 
-    def _get_filepath(self):
-        if self.TEST_FILE_URL is not None:
-            return self.TEST_FILE_URL
-        return self.core.call_success(
-            "fs_join", self.base_path, self.application_name + ".conf"
-        )
+    def _set_config_path(self):
+        if self.config_path is None:
+            self.config_path = self.core.call_success(
+                Fs.fs_join, self.base_path, self.application_name + ".conf"
+            )
 
     def config_backend_load(self, application_name):
         self.application_name = application_name
-        self.config_path = self._get_filepath()
+        self._set_config_path()
         self.config = configparser.RawConfigParser()
         LOGGER.info("Loading configuration '%s' ...", self.config_path)
-        if self.core.call_success("fs_exists", self.config_path) is not None:
-            fd = self.core.call_success("fs_open", self.config_path, 'r')
+        if self.core.call_success(Fs.fs_exists, self.config_path) is not None:
+            fd = self.core.call_success(Fs.fs_open, self.config_path, 'r')
             with fd:
                 self.config.read_file(fd)
         else:
@@ -249,9 +258,9 @@ class Plugin(PluginBase):
     def config_backend_save(self, application_name=None):
         if application_name is not None:
             self.application_name = application_name
-        config_path = self._get_filepath()
-        LOGGER.info("Writing configuration '%s' ...", config_path)
-        with self.core.call_success("fs_open", config_path, 'w') as fd:
+        self._set_config_path()
+        LOGGER.info("Writing configuration '%s' ...", self.config_path)
+        with self.core.call_success(Fs.fs_open, self.config_path, 'w') as fd:
             self.config.write(fd)
 
     def config_backend_load_plugins(self, opt_name, default=[]):
@@ -352,12 +361,12 @@ class Plugin(PluginBase):
     def bug_report_get_attachments(self, out: dict):
         if self.config_path is None:
             return
-        if self.core.call_success("fs_exists", self.config_path) is None:
+        if self.core.call_success(Fs.fs_exists, self.config_path) is None:
             return
         out['config'] = {
             'include_by_default': True,
             'date': None,
             'file_type': _("App. config."),
             'file_url': self.config_path,
-            'file_size': self.core.call_success("fs_getsize", self.config_path)
+            'file_size': self.core.call_success(Fs.fs_getsize, self.config_path)
         }

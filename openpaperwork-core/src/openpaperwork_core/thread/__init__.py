@@ -1,5 +1,7 @@
 import logging
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ class Task(object):
         # a graceful shutdown waiting, we don't want it to stop the main
         # loop before our thread is done.
         # --> increment mainloop ref counter before
-        core.call_all("mainloop_ref", self)
+        core.call_all(Mainloop.mainloop_ref, self)
 
     def __str__(self):
         return "Task<{}>({}, {})".format(self.func, self.args, self.kwargs)
@@ -30,4 +32,4 @@ class Task(object):
                 "==== UNCAUGHT EXCEPTION IN THREAD ===", exc_info=exc
             )
         finally:
-            self.core.call_all("mainloop_unref", self)
+            self.core.call_all(Mainloop.mainloop_unref, self)

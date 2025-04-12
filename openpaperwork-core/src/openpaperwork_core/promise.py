@@ -1,12 +1,30 @@
+from typing import Dict
+from typing import List
 import logging
 import threading
 import traceback
+
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.thread import ThreadManager
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BasePromise(object):
+def get_deps() -> List[Dict]:
+    return [
+        {
+            "interface": Mainloop,
+            "defaults": ["openpaperwork_core.mainloop.asyncio"],
+        },
+        {
+            "interface": ThreadManager,
+            "defaults": ["openpaperwork_core.thread.simple"],
+        },
+    ]
+
+
+class BasePromise:
     def __init__(
                 self, core, func=None, args=None, kwargs=None, parent=None,
                 hide_caught_exceptions=False
@@ -101,7 +119,7 @@ class BasePromise(object):
         if len(self._catch) > 0:
             for (c, args, kwargs) in self._catch:
                 self.core.call_one(
-                    "mainloop_schedule", c, exc, *args, **kwargs
+                    Mainloop.mainloop_schedule, c, exc, *args, **kwargs
                 )
             return
 
@@ -131,13 +149,13 @@ class BasePromise(object):
 
         if args == ():
             args = None
-        self.core.call_one("mainloop_schedule", s._do, args)
+        self.core.call_one(Mainloop.mainloop_schedule, s._do, args)
 
     def wait(self):
         assert (
             # must never be called from main loop.
             threading.current_thread().ident !=
-            self.core.call_success("mainloop_get_thread_id")
+            self.core.call_success(Mainloop.mainloop_get_thread_id)
         )
         event = threading.Event()
         out = None
@@ -177,7 +195,7 @@ class Promise(BasePromise):
                 )
 
             for t in self._then:
-                self.core.call_one("mainloop_schedule", t._do, our_r)
+                self.core.call_one(Mainloop.mainloop_schedule, t._do, our_r)
         except Exception as exc:
             self.on_error(exc)
 
@@ -196,12 +214,12 @@ class DelayPromise(BasePromise):
 
     def _call_then(self, parent_r):
         for t in self._then:
-            self.core.call_one("mainloop_schedule", t._do, parent_r)
+            self.core.call_one(Mainloop.mainloop_schedule, t._do, parent_r)
 
     def do(self, parent_r=None):
         LOGGER.debug("Promise: delay: %fs", self.delay_s)
         self.core.call_one(
-            "mainloop_schedule", self._call_then, parent_r,
+            Mainloop.mainloop_schedule, self._call_then, parent_r,
             delay_s=self.delay_s
         )
 
@@ -239,9 +257,9 @@ class ThreadedPromise(BasePromise):
             )
 
             for t in self._then:
-                self.core.call_one("mainloop_schedule", t._do, our_r)
+                self.core.call_one(Mainloop.mainloop_schedule, t._do, our_r)
         except Exception as exc:
-            self.core.call_one("mainloop_schedule", self.on_error, exc)
+            self.core.call_one(Mainloop.mainloop_schedule, self.on_error, exc)
 
     def do(self, parent_r=None):
         self.parent_promise_return = parent_r
@@ -249,10 +267,10 @@ class ThreadedPromise(BasePromise):
             if self.func is None:
                 # no thread, we immediately schedule the next promises
                 for t in self._then:
-                    self.core.call_one("mainloop_schedule", t._do, None)
+                    self.core.call_one(Mainloop.mainloop_schedule, t._do, None)
                 return
 
-            self.core.call_one("thread_start", self._threaded_do, parent_r)
+            self.core.call_one(ThreadManager.thread_start, self._threaded_do, parent_r)
         except Exception as exc:
             self.on_error(exc)
             return

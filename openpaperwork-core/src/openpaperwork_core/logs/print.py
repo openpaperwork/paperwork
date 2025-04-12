@@ -5,8 +5,11 @@ import os.path
 import sys
 import tempfile
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.logs import LogManager
+from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 from openpaperwork_core.logs import UnixTimeStampLogFormatter
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +57,11 @@ class _LogHandler(logging.Handler):
             print(f"WARNING: {__file__}: UnicodeDecodeError: {exc}")
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    LogManager,
+    UncaughtExceptionListener,
+):
     CONFIG_FILE_SEPARATOR = ","
 
     DEFAULT_LOG_FILES = 'stderr'
@@ -78,21 +85,10 @@ class Plugin(PluginBase):
     }
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'logs',
-            'uncaught_exception_listener',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'uncaught_exception',
-                'defaults': ['openpaperwork_core.uncaught_exception'],
-            },
-            {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
         ]
@@ -109,30 +105,30 @@ class Plugin(PluginBase):
         section_name = "logging:" + app_name
 
         s = self.core.call_success(
-            "config_build_simple", section_name, "level",
+            Config.config_build_simple, section_name, "level",
             lambda: default_log_level
         )
-        self.core.call_all("config_register", "log_level", s)
+        self.core.call_all(Config.config_register, "log_level", s)
         self.core.call_all(
-            'config_add_observer', "log_level", self._reload_config
+            Config.config_add_observer, "log_level", self._reload_config
         )
 
         s = self.core.call_success(
-            "config_build_simple", section_name, "files",
+            Config.config_build_simple, section_name, "files",
             lambda: self.DEFAULT_LOG_FILES
         )
-        self.core.call_all("config_register", "log_files", s)
+        self.core.call_all(Config.config_register, "log_files", s)
         self.core.call_all(
-            'config_add_observer', "log_files", self._reload_config
+            Config.config_add_observer, "log_files", self._reload_config
         )
 
         s = self.core.call_success(
-            "config_build_simple", section_name, "format",
+            Config.config_build_simple, section_name, "format",
             lambda: self.DEFAULT_LOG_FORMAT
         )
-        self.core.call_all("config_register", "log_format", s)
+        self.core.call_all(Config.config_register, "log_format", s)
         self.core.call_all(
-            'config_add_observer', "log_format", self._reload_config
+            Config.config_add_observer, "log_format", self._reload_config
         )
 
         self.log_handler = _LogHandler()
@@ -173,13 +169,13 @@ class Plugin(PluginBase):
         self._disable_logging()
         LOGGER.info("Reloading logging configuration")
         try:
-            log_level = self.core.call_success('config_get', "log_level")
+            log_level = self.core.call_success(Config.config_get, "log_level")
             self.set_log_level(log_level)
             self.log_file_paths = self.core.call_success(
-                'config_get', "log_files",
+                Config.config_get, "log_files",
             ).split(self.CONFIG_FILE_SEPARATOR)
             self.log_handler.formatter = UnixTimeStampLogFormatter(
-                self.core.call_success('config_get', "log_format")
+                self.core.call_success(Config.config_get, "log_format")
             )
         finally:
             self._enable_logging()

@@ -134,7 +134,15 @@ class PluginBase:
 
         Returns a list of string.
         """
-        return []
+        return [
+            c
+            for c in cls.mro()
+            if (
+                (c is not abc.ABC)
+                and (c is not cls)
+                and issubclass(c, abc.ABC)
+            )
+        ]
 
     @classmethod
     def get_deps(cls):
@@ -332,10 +340,7 @@ class _Stub:
         return self.name
 
     def __call__(self, *args, **kwargs):
-        LOGGER.debug(
-            "%s(%s, %s) called, but no one is listening",
-            self.name, args, kwargs
-        )
+        LOGGER.debug("%s() called, but no one is listening", self.name)
 
 
 class _CoreProxy:
@@ -625,8 +630,8 @@ class Core:
                         )
 
         dep_tree = _DependencyTree(self._module_repository)
-        dep_tree.log()
         dep_tree.find_dependency_loop()
+        # dep_tree.log()
 
         for module in dep_tree.get_init_order():
             self._plugin_repository.add(module)
@@ -650,10 +655,10 @@ class Core:
     def get_by_interface(self, interface: Type[abc.ABC]) -> List[PluginBase]:
         return self._plugin_repository.get_by_interface(interface)
 
-    def call_all(self, callback_name, *args, **kwargs):
+    def call_all(self, abstract_callback: Callable, *args, **kwargs):
         """
-        Call all the methods of all the plugins that have `callback_name`
-        as name. Arguments are passed as is. Returned values are dropped
+        Call all the methods of all the plugins that have implemented `abstract_callback`.
+        Arguments are passed as is. Returned values are dropped
         (use callbacks for return values if required)
 
         Method call order is defined by the plugin priorities: Plugins with
@@ -680,7 +685,7 @@ class Core:
 
     def call_one(self, abstract_callback, *args, **kwargs):
         """
-        Look for a plugin method called `callback_name` and calls it.
+        Look for a plugin method implementing `abstract_callback` and calls it.
         Raises an error if no such method exists. If many exists,
         call one at random. Returns the value return by the callback.
 
@@ -703,7 +708,7 @@ class Core:
 
     def call_success(self, abstract_callback, *args, **kwargs):
         """
-        Call methods of all the plugins that have `callback_name`
+        Call methods of all the plugins that have implemented `abstract_callback`
         as name until one of them return a value that is not None.
         Arguments are passed as is. First value to be different
         from None is returned. If none of the callbacks returned

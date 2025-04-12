@@ -3,6 +3,11 @@ import logging
 import sys
 import threading
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.mainloop import MainloopListener
+from openpaperwork_core.interfaces.uncaught_exception_listener import (
+    UncaughtExceptionListener
+)
 import openpaperwork_core
 import openpaperwork_core.util
 
@@ -11,22 +16,28 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
+    openpaperwork_core.PluginBase,
+    Mainloop,
+):
     """
     A main loop based on asyncio. Not as complete as GLib main loop, but
     good enough for shell commands.
     """
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "mainloop",
-        ]
 
     @classmethod
     def get_deps(cls):
-        return []
+        return [
+            {
+                "interface": MainloopListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": UncaughtExceptionListener,
+                "defaults": [],
+                "optional": True,
+            },
+        ]
 
     def __init__(self, core):
         super().__init__(core)
@@ -54,7 +65,9 @@ class Plugin(
         self.log_uncaught = log_uncaught
         self.halt_on_uncaught_exception = halt_on_uncaught_exception
 
-        self.mainloop_schedule(self.core.call_all, "on_mainloop_start")
+        self.mainloop_schedule(
+            self.core.call_all, MainloopListener.on_mainloop_start
+        )
 
         self.loop_ident = threading.current_thread().ident
         try:
@@ -62,7 +75,7 @@ class Plugin(
         finally:
             self.loop_ident = None
 
-        self.core.call_all("on_mainloop_quit")
+        self.core.call_all(MainloopListener.on_mainloop_quit)
 
         if self.halt_cause is not None:
             halt_cause = self.halt_cause
@@ -85,6 +98,7 @@ class Plugin(
         Wait for all the scheduled callbacks to be executed and then stops
         the main loop.
         """
+        self.core.call_all(MainloopListener.on_mainloop_quit_graceful_request)
         self.mainloop_schedule(self._mainloop_quit_graceful)
         return True
 
@@ -114,15 +128,6 @@ class Plugin(
         self.task_count = 0
 
     def mainloop_ref(self, obj):
-        """
-        If you run a task independently from the main loop, you may want
-        to increment the reference counter of the main loop so
-        `mainloop_quit_graceful` does not interrupt the main loop while your
-        task is still running.
-
-        ThreadedPromise already takes care of incrementing and decrementing
-        this reference counter.
-        """
         self.task_count += 1
 
     def mainloop_unref(self, obj):
@@ -157,8 +162,10 @@ class Plugin(
                         func, exc_info=exc
                     )
                 self.core.call_all(
-                    "mainloop_schedule",
-                    self.core.call_all, "on_uncaught_exception", exc_info
+                    Mainloop.mainloop_schedule,
+                    self.core.call_all,
+                    UncaughtExceptionListener.on_uncaught_exception,
+                    exc_info,
                 )
             finally:
                 self.task_count -= 1

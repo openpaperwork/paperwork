@@ -2,19 +2,20 @@ import socket
 
 import zeroconf
 
+from openpaperwork_core.interfaces.networking import Networking
+from openpaperwork_core.interfaces.networking import NetworkingServiceAnnounce
 import openpaperwork_core
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["networking_service_announce"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    NetworkingServiceAnnounce,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "networking",
+                "interface": Networking,
                 "defaults": ["openpaperwork_core.networking"],
             },
         ]
@@ -32,7 +33,7 @@ class Plugin(openpaperwork_core.PluginBase):
             f"{service_name}._{protocol}._tcp.local.",
             parsed_addresses=[
                 str(ip)
-                for ip in self.core.call_success("networking_get_local_ips")
+                for ip in self.core.call_success(Networking.networking_get_local_ips)
             ],
             port=int(port),
             properties={},

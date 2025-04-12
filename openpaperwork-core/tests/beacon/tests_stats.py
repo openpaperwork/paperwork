@@ -8,6 +8,13 @@ import time
 import urllib
 
 import openpaperwork_core
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.stats import Stats
+from openpaperwork_core.interfaces.stats import StatsListener
+
+
+SERVER_PORT = 18080
 
 
 class TestStats(unittest.TestCase):
@@ -17,15 +24,10 @@ class TestStats(unittest.TestCase):
         class FakeAppModule:
             __name__ = "fake_app"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['app']
-
-                @classmethod
-                def get_deps(cls):
-                    return []
-
+            class Plugin(
+                    openpaperwork_core.PluginBase,
+                    App,
+            ):
                 def app_get_name(self):
                     return "Paperwork"
 
@@ -35,10 +37,17 @@ class TestStats(unittest.TestCase):
                 def app_get_version(self):
                     return "2.1"
 
-        self.core._load_module("fake_app", FakeAppModule())
-        self.core.load("openpaperwork_core.config.fake")
-        self.core.init()
-        self.config = self.core.get_by_name("openpaperwork_core.config.fake")
+        self.core.load("fake_app", FakeAppModule())  # type: ignore
+        self.core.load(
+            "openpaperwork_core.config.fake",
+            settings={
+                "send_statistics": True,
+                "uuid": 1245,
+                "statistics_last_run": datetime.date(1995, 1, 1),
+                "statistics_protocol": "http",
+                "statistics_server": f"127.0.0.1:{SERVER_PORT}",
+            }
+        )
         self.core.load("openpaperwork_core.beacon.stats")
 
         self.received = []
@@ -67,45 +76,30 @@ class TestStats(unittest.TestCase):
                 s.end_headers()
                 s.wfile.write(b"<html><body><p>OK</p></body></html>")
 
-        with http.server.HTTPServer(('', 0), TestRequestHandler) as h:
-            self.config.settings = {
-                "send_statistics": True,
-                "uuid": 1245,
-                "statistics_last_run": datetime.date(1995, 1, 1),
-                "statistics_protocol": "http",
-                "statistics_server": "127.0.0.1:{}".format(h.server_port),
-            }
-
+        with http.server.HTTPServer(('', SERVER_PORT), TestRequestHandler) as h:
             threading.Thread(target=h.handle_request).start()
             time.sleep(0.1)
 
             class FakeModule:
                 __name__ = "fake_module"
 
-                class Plugin(openpaperwork_core.PluginBase):
-                    @classmethod
-                    def get_interfaces(c):
-                        return []
-
-                    @classmethod
-                    def get_deps(c):
-                        return []
-
-                    def stats_get(self, stats):
-                        stats['nb_documents'] += 122
-                        stats['truck'] = 42
+                class Plugin(
+                    openpaperwork_core.PluginBase,
+                    Stats,
+                    StatsListener,
+                ):
+                    def stats_get(self, out):
+                        out['nb_documents'] += 122
+                        out['truck'] = 42
 
                     def on_stats_sent(s):
                         self.stats_sent = True
 
-            self.core._load_module(
-                "fake_module", FakeModule()
-            )
+            self.core.load("fake_module", FakeModule())  # type: ignore
 
             self.core.init()
-            self.core.call_all("mainloop_quit_graceful")
-
-            self.core.call_one('mainloop')
+            self.core.call_all(Mainloop.mainloop_quit_graceful)
+            self.core.call_one(Mainloop.mainloop)
 
             self.assertTrue(self.stats_sent)
             self.assertEqual(len(self.received), 1)
@@ -137,44 +131,29 @@ class TestStats(unittest.TestCase):
                 s.end_headers()
                 s.wfile.write(b"<html><body><p>KO</p></body></html>")
 
-        with http.server.HTTPServer(('', 0), TestRequestHandler) as h:
-            self.config.settings = {
-                "send_statistics": True,
-                "uuid": 1245,
-                "statistics_last_run": datetime.date(1995, 1, 1),
-                "statistics_protocol": "http",
-                "statistics_server": "127.0.0.1:{}".format(h.server_port),
-            }
-
+        with http.server.HTTPServer(('', SERVER_PORT), TestRequestHandler) as h:
             threading.Thread(target=h.handle_request).start()
             time.sleep(0.1)
 
             class FakeModule:
                 __name__ = "fake_module"
 
-                class Plugin(openpaperwork_core.PluginBase):
-                    @classmethod
-                    def get_interfaces(c):
-                        return []
-
-                    @classmethod
-                    def get_deps(c):
-                        return []
-
-                    def stats_get(self, stats):
-                        stats['nb_documents'] += 122
-                        stats['truck'] = 42
+                class Plugin(
+                    openpaperwork_core.PluginBase,
+                    Stats,
+                    StatsListener,
+                ):
+                    def stats_get(s, out):
+                        out['nb_documents'] += 122
+                        out['truck'] = 42
 
                     def on_stats_sent(s):
                         self.stats_sent = True
 
-            self.core._load_module(
-                "fake_module", FakeModule()
-            )
+            self.core.load("fake_module", FakeModule())  # type: ignore
 
             self.core.init()
-            self.core.call_all("mainloop_quit_graceful")
-
-            self.core.call_one('mainloop')
+            self.core.call_all(Mainloop.mainloop_quit_graceful)
+            self.core.call_one(Mainloop.mainloop)
 
             self.assertFalse(self.stats_sent)

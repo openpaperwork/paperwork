@@ -6,6 +6,8 @@ with the website https://www.openpaper.work/
 import datetime
 import logging
 
+from openpaperwork_core.interfaces.config import Config
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,17 +24,18 @@ class PeriodicTask(object):
 
     def register_config(self, core):
         setting = core.call_success(
-            "config_build_simple", self.config_section_name,
+            Config.config_build_simple, self.config_section_name,
             "last_run", lambda: datetime.date(year=1970, month=1, day=1)
         )
         core.call_all(
-            "config_register", self.config_section_name + "_last_run", setting
+            Config.config_register,
+            self.config_section_name + "_last_run", setting
         )
 
     def do(self, core):
         now = datetime.date.today()
         last_run = core.call_success(
-            "config_get", self.config_section_name + "_last_run"
+            Config.config_get, self.config_section_name + "_last_run"
         )
         if hasattr(last_run, 'value'):
             # ConfigDate object from
@@ -59,6 +62,6 @@ class PeriodicTask(object):
 
         LOGGER.info("[%s] Updating last run date", self.config_section_name)
         core.call_all(
-            "config_put", self.config_section_name + "_last_run", now
+            Config.config_put, self.config_section_name + "_last_run", now
         )
-        core.call_all("config_save")
+        core.call_all(Config.config_save)

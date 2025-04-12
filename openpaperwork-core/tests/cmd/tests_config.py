@@ -1,6 +1,10 @@
 import argparse
 import unittest
 
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.config_backend import ConfigBackend
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.cmd
 
@@ -13,59 +17,54 @@ class MockConfigBackendModule:
     """
     __name__ = "openpaperwork_core.config.backend.configparser"
 
-    class Plugin(openpaperwork_core.PluginBase):
-        @classmethod
-        def get_interfaces(cls):
-            return ["config_backend"]
-
+    class Plugin(
+        openpaperwork_core.PluginBase,
+        ConfigBackend,
+    ):
         def __init__(self, core):
             super().__init__(core)
             self.calls = []
             self.returns = {}
-            self.config_backend_load = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_load', args, kwargs)
+
+        def config_backend_load(self, *args, **kwargs):
+            self._handle_call('config_backend_load', args, kwargs)
+
+        def config_backend_save(self, *args, **kwargs):
+            self._handle_call('config_backend_save', args, kwargs)
+
+        def config_backend_load_plugins(self, *args, **kwargs):
+            self._handle_call('config_backend_load_plugins', args, kwargs)
+
+        def config_backend_add_plugin(self, *args, **kwargs):
+            self._handle_call('config_backend_add_plugin', args, kwargs)
+
+        def config_backend_remove_plugin(self, *args, **kwargs):
+            self._handle_call('config_backend_remove_plugin', args, kwargs)
+
+        def config_backend_put(self, *args, **kwargs):
+            self._handle_call('config_backend_put', args, kwargs)
+
+        def config_backend_get(self, *args, **kwargs):
+            self._handle_call('config_backend_get', args, kwargs)
+
+        def config_backend_add_observer(self, *args, **kwargs):
+            self._handle_call('config_backend_add_observer', args, kwargs)
+
+        def config_backend_remove_observer(self, *args, **kwargs):
+            self._handle_call(
+                'config_backend_remove_observer', args, kwargs
             )
-            self.config_backend_save = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_save', args, kwargs)
+
+        def config_backend_list_active_plugins(self, *args, **kwargs):
+            self._handle_call(
+                'config_backend_list_active_plugins', args, kwargs
             )
-            self.config_backend_load_plugins = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_load_plugins', args, kwargs)
-            )
-            self.config_backend_add_plugin = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_add_plugin', args, kwargs)
-            )
-            self.config_backend_remove_plugin = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_remove_plugin', args, kwargs)
-            )
-            self.config_backend_put = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_put', args, kwargs)
-            )
-            self.config_backend_get = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_get', args, kwargs)
-            )
-            self.config_backend_add_observer = (
-                lambda *args, **kwargs:
-                self._handle_call('config_backend_add_observer', args, kwargs)
-            )
-            self.config_backend_remove_observer = (
-                lambda *args, **kwargs:
-                self._handle_call(
-                    'config_backend_remove_observer', args, kwargs
-                )
-            )
-            self.config_backend_list_active_plugins = (
-                lambda *args, **kwargs:
-                self._handle_call(
-                    'config_backend_list_active_plugins', args, kwargs
-                )
-            )
+
+        def config_backend_del(self, *args, **kwargs):
+            raise NotImplementedError()
+
+        def config_backend_reset_plugins(self, *args, **kwargs):
+            raise NotImplementedError()
 
         def _handle_call(self, func, args, kwargs):
             self.calls.append((func, args, kwargs))
@@ -79,8 +78,25 @@ class MockConfigBackendModule:
 
 class TestConfig(unittest.TestCase):
     def setUp(self):
+        class FakeAppModule:
+            __name__ = "fake_app"
+
+            class Plugin(
+                    openpaperwork_core.PluginBase,
+                    App,
+            ):
+                def app_get_name(self):
+                    return "Paperwork"
+
+                def app_get_fs_name(self):
+                    return "paperwork2"
+
+                def app_get_version(self):
+                    return "2.1"
+
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
-        self.core._load_module(
+        self.core.load("fake_app", FakeAppModule())  # type: ignore
+        self.core.load(
             "openpaperwork_core.config.backend.configparser",
             MockConfigBackendModule()
         )
@@ -88,10 +104,10 @@ class TestConfig(unittest.TestCase):
         self.core.init()
 
         setting = self.core.call_success(
-            "config_build_simple", "Global", "WorkDirectory",
+            Config.config_build_simple, "Global", "WorkDirectory",
             lambda: "file:///home/toto/papers"
         )
-        self.core.call_all("config_register", "workdir", setting)
+        self.core.call_all(Config.config_register, "workdir", setting)
 
     def test_get_put(self):
         self.core.get_by_name(
@@ -106,16 +122,16 @@ class TestConfig(unittest.TestCase):
         cmd_parser = parser.add_subparsers(
             help='command', dest='command', required=True
         )
-        self.core.call_all("cmd_complete_argparse", cmd_parser)
+        self.core.call_all(Shell.cmd_complete_argparse, cmd_parser)
 
         args = parser.parse_args(
             ['config', 'put', 'workdir', 'str', 'file:///pouet/path']
         )
         self.core.call_all(
-            "cmd_set_console", openpaperwork_core.cmd.DummyConsole()
+            Shell.cmd_set_console, openpaperwork_core.cmd.DummyConsole()
         )
         r = self.core.call_success(
-            "cmd_run", openpaperwork_core.cmd.DummyConsole(), args
+            Shell.cmd_run, openpaperwork_core.cmd.DummyConsole(), args
         )
         self.assertTrue(r)
         self.assertEqual(
@@ -134,7 +150,7 @@ class TestConfig(unittest.TestCase):
 
         args = parser.parse_args(['config', 'get', 'workdir'])
         r = self.core.call_success(
-            "cmd_run", openpaperwork_core.cmd.DummyConsole(), args
+            Shell.cmd_run, openpaperwork_core.cmd.DummyConsole(), args
         )
         self.assertEqual(r, {"workdir": "file:///pouet/path"})
         self.assertEqual(

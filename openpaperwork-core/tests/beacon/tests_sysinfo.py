@@ -1,5 +1,7 @@
 import unittest
 
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.stats import Stats
 import openpaperwork_core
 
 
@@ -10,11 +12,10 @@ class TestSysinfo(unittest.TestCase):
         class FakeAppModule:
             __name__ = "fake_app"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['app']
-
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                App,
+            ):
                 def app_get_name(self):
                     return "Paperwork"
 
@@ -24,7 +25,7 @@ class TestSysinfo(unittest.TestCase):
                 def app_get_version(self):
                     return "2.1"
 
-        self.core._load_module("fake_app", FakeAppModule())
+        self.core.load("fake_app", FakeAppModule())
         self.core.load("openpaperwork_core.beacon.sysinfo")
         self.core.init()
 
@@ -32,7 +33,7 @@ class TestSysinfo(unittest.TestCase):
         # just go through the code to make sure it actually runs correctly
         # (we cannot check the output since it's system-dependant)
         out = {}
-        self.core.call_all("stats_get", out)
+        self.core.call_all(Stats.stats_get, out)
         self.assertIn('os_name', out)
         self.assertIn('platform_architecture', out)
         self.assertIn('platform_processor', out)

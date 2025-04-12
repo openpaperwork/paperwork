@@ -10,7 +10,7 @@ import itertools
 import logging
 import time
 
-from . import CommonFsPluginBase
+import openpaperwork_core.fs
 
 
 LOGGER = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class _MemoryFileAdapter(io.RawIOBase):
         self.close()
 
 
-class Plugin(CommonFsPluginBase):
+class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
     PRIORITY = 100  # to be called first for fs_mktemp
 
     def __init__(self, core):
@@ -224,6 +224,9 @@ class Plugin(CommonFsPluginBase):
 
         self.fs[new_mem_id] = self.fs[old_mem_id]
         return new_url
+
+    def fs_copytree(self, old_uri, new_uri):
+        raise NotImplementedError()
 
     def fs_mkdir_p(self, url):
         mem_id = self._get_memory_id(url)

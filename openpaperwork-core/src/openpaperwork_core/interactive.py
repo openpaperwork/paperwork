@@ -7,7 +7,13 @@ import rlcompleter  # noqa: F401
 import time
 import threading
 
-from . import PluginBase
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.paths import Paths
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.quit import QuitListener
+import openpaperwork_core
 
 
 class HistoryConsole(code.InteractiveConsole):
@@ -31,50 +37,48 @@ class HistoryConsole(code.InteractiveConsole):
         readline.write_history_file(histfile)
 
 
-class ProxyCore(object):
+class ProxyCore:
     def __init__(self, core):
         self.core = core
 
     def call_all(self, *args, **kwargs):
         return self.core.call_one(
-            "mainloop_execute", self.core.call_all, *args, **kwargs
+            Mainloop.mainloop_execute, self.core.call_all, *args, **kwargs
         )
 
     def call_success(self, *args, **kwargs):
         return self.core.call_one(
-            "mainloop_execute", self.core.call_success, *args, **kwargs
+            Mainloop.mainloop_execute, self.core.call_success, *args, **kwargs
         )
 
     def call_one(self, *args, **kwargs):
         return self.core.call_one(
-            "mainloop_execute", self.core.call_one, *args, **kwargs
+            Mainloop.mainloop_execute, self.core.call_one, *args, **kwargs
         )
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_window_listener'
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ProgressListener,
+    QuitListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'data_versioning',
+                'interface': DataVersioning,
                 'defaults': ['openpaperwork_core.data_versioning'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                'interface': 'paths',
+                'interface': Paths,
                 'defaults': ['openpaperwork_core.paths.xdg'],
             },
         ]
@@ -88,14 +92,13 @@ class Plugin(PluginBase):
         self.progresses = {}
         self._previous_progresses = {}
 
-        self.nb_windows_to_realize = 0
-        data_dir = self.core.call_success("paths_get_data_dir")
+        data_dir = self.core.call_success(Paths.paths_get_data_dir)
         base_hist_dir = self.core.call_success(
-            "fs_join", data_dir, "openpaperwork"
+            Fs.fs_join, data_dir, "openpaperwork"
         )
-        self.core.call_success("fs_mkdir_p", base_hist_dir)
+        self.core.call_success(Fs.fs_mkdir_p, base_hist_dir)
         histfile = self.core.call_success(
-            "fs_join", base_hist_dir, "interactive_history"
+            Fs.fs_join, base_hist_dir, "interactive_history"
         )
 
         print("Objects provided:")
@@ -109,26 +112,8 @@ class Plugin(PluginBase):
             "core": ProxyCore(core),
             "stop": self._stop,
             "wait": self._wait,
-        }, histfile=self.core.call_success("fs_unsafe", histfile))
+        }, histfile=self.core.call_success(Fs.fs_unsafe, histfile))
         threading.Thread(target=self._interact, args=(console,)).start()
-
-    def on_gtk_window_opened(self, window):
-        with self.progress_condition:
-            if window.get_window() is not None:
-                return
-
-            self.nb_windows_to_realize += 1
-            realize_handler_id = None
-
-            def on_realize():
-                self.nb_windows_to_realize -= 1
-                window.disconnect(realize_handler_id)
-                self.progress_condition.notify_all()
-
-            realize_handler_id = window.connect("realize", on_realize)
-
-    def on_gtk_window_closed(self, window):
-        pass
 
     def _interact(self, console):
         console.interact()
@@ -142,7 +127,9 @@ class Plugin(PluginBase):
             return
         print("Quitting")
         self.core.call_one(
-            "mainloop_execute", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_execute,
+            self.core.call_all,
+            Mainloop.mainloop_quit_graceful
         )
 
     def on_progress(self, upd_type, progress, description=None):
@@ -170,11 +157,9 @@ class Plugin(PluginBase):
         print("Waiting for all background tasks to end")
         time.sleep(3.0)
         with self.progress_condition:
-            while ((len(self.progresses) > 0 or
-                    self.nb_windows_to_realize > 0) and
+            while ((len(self.progresses) > 0) and
                     time_diff <= MAX_TIME):
-                while ((len(self.progresses) > 0 or
-                        self.nb_windows_to_realize > 0) and
+                while ((len(self.progresses) > 0) and
                         time_diff <= MAX_TIME):
                     print("Waiting for all background tasks to end")
                     print("Remaining background tasks:")

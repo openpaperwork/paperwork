@@ -14,8 +14,13 @@ import os
 import ssl
 import urllib
 
-from openpaperwork_core import PluginBase
-from openpaperwork_core import promise
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.http_json import AbstractHttpJsonClient
+from openpaperwork_core.interfaces.http_json import HttpJson
+from openpaperwork_core.interfaces.mainloop import Mainloop
+import openpaperwork_core
+import openpaperwork_core.promise
 
 
 if os.name == "nt":
@@ -27,29 +32,29 @@ DEFAULT_SERVER = "www.openpaper.work"
 DEFAULT_PROTOCOL = "https"
 
 
-class JsonHttp(object):
+class JsonHttp(AbstractHttpJsonClient):
     def __init__(self, core, module_name):
         self.core = core
         self.user_agent = "{} {}".format(
-            core.call_success("app_get_name"),
-            core.call_success("app_get_version")
+            core.call_success(App.app_get_name),
+            core.call_success(App.app_get_version)
         )
         self.config_section_name = module_name
 
         settings = {
             self.config_section_name + "_protocol":
                 core.call_success(
-                    "config_build_simple", self.config_section_name,
+                    Config.config_build_simple, self.config_section_name,
                     "protocol", lambda: DEFAULT_PROTOCOL
                 ),
             self.config_section_name + "_server":
                 core.call_success(
-                    "config_build_simple", self.config_section_name,
+                    Config.config_build_simple, self.config_section_name,
                     "server", lambda: DEFAULT_SERVER
                 ),
         }
         for (k, setting) in settings.items():
-            core.call_all("config_register", k, setting)
+            core.call_all(Config.config_register, k, setting)
 
     def _convert(self, data):
         if isinstance(data, str):
@@ -99,32 +104,34 @@ class JsonHttp(object):
 
     def get_request_promise(self, path):
         protocol = self.core.call_success(
-            "config_get", self.config_section_name + "_protocol"
+            Config.config_get, self.config_section_name + "_protocol"
         )
         server = self.core.call_success(
-            "config_get", self.config_section_name + "_server"
+            Config.config_get, self.config_section_name + "_server"
         )
-
-        return promise.ThreadedPromise(
+        return openpaperwork_core.promise.ThreadedPromise(
             self.core, self._request, args=(protocol, server, path)
         )
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['http_json']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    HttpJson,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'app',
+                'interface': App,
                 'defaults': ['openpaperwork_core.app'],
             },
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
+            },
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_core.mainloop.asyncio"],
             },
         ]
 

@@ -8,14 +8,14 @@ import multiprocessing
 import os
 import sys
 
-from . import PluginBase
+from openpaperwork_core import PluginBase
+from openpaperwork_core.interfaces.frozen import Frozen
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['frozen']
-
+class Plugin(
+    PluginBase,
+    Frozen,
+):
     def __init__(self, core):
         super().__init__(core)
         if not getattr(sys, 'frozen', False):

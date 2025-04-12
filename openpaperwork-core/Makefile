@@ -32,7 +32,7 @@ check:
 
 test:
 	if ! hash pytest ; then pip install .[dev] ; fi
-	python3 -m pytest --log-level INFO -xv tests/
+	python3 -m pytest --log-level DEBUG -xv tests/
 
 linux_exe:
 

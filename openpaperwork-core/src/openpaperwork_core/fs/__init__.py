@@ -5,17 +5,17 @@ import pathlib
 import urllib
 import urllib.parse
 
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class CommonFsPluginBase(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['fs']
-
+class CommonFsPluginBase(
+    openpaperwork_core.PluginBase,
+    Fs,
+):
     @staticmethod
     def fs_safe(uri):
         """
@@ -80,7 +80,7 @@ class CommonFsPluginBase(openpaperwork_core.PluginBase):
         return os.path.dirname(url)
 
     def fs_hash(self, url):
-        with self.core.call_success("fs_open", url, 'rb') as fd:
+        with self.core.call_success(Fs.fs_open, url, 'rb') as fd:
             content = fd.read()
         return int(hashlib.sha256(content).hexdigest(), 16)
 

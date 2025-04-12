@@ -5,17 +5,17 @@ import weakref
 
 import objgraph
 
-from .. import PluginBase
+from openpaperwork_core import PluginBase
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['memleak_detector']
-
+class Plugin(
+    PluginBase,
+    MemleakDetector,
+):
     def __init__(self, core):
         super().__init__(core)
         self.objs = []

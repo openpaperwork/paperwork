@@ -1,26 +1,26 @@
+from typing import Optional
 import logging
 import os
 import subprocess
 import shutil
 
-from typing import Optional
-
-from .. import PluginBase
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+from openpaperwork_core.interfaces.fs import Fs
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['external_apps']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ExternalApps,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
         ]
@@ -43,7 +43,7 @@ class Plugin(PluginBase):
             return None
         LOGGER.info("Sending %s as attachment with xdg-email", file_url)
         assert file_url.startswith("file://")
-        file_path = self.core.call_success("fs_unsafe", file_url)
+        file_path = self.core.call_success(Fs.fs_unsafe, file_url)
         # xdg-email returns immediately, and we are interested in whether is
         # raises an exception
         try:

@@ -3,24 +3,25 @@ import datetime
 import locale
 import unicodedata
 
-from .. import (_, PluginBase)
+from openpaperwork_core import (_, PluginBase)
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.l10n import L10n
 
 
-class Plugin(PluginBase):
+class Plugin(
+    PluginBase,
+    I18n,
+):
     MONTH_FORMATS = collections.defaultdict(
         lambda: "%B",
         oc="%b",  # Occitan
     )
 
     @classmethod
-    def get_interfaces(cls):
-        return ['i18n']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'l10n',
+                'interface': L10n,
                 'defaults': ['openpaperwork_core.l10n.python'],
             },
         ]

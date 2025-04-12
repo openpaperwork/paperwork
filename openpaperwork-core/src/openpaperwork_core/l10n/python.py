@@ -5,34 +5,34 @@ import logging
 import os
 import sys
 
-from .. import PluginBase
+from openpaperwork_core import PluginBase
+from openpaperwork_core.interfaces.frozen import Frozen
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.l10n import L10n
+from openpaperwork_core.interfaces.resources import Resources
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'l10n',
-            'l10n_init',
-        ]
-
+class Plugin(
+    PluginBase,
+    L10n,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
                 # if frozen, we need sys._MEIPASS to be set correctly
-                'interface': 'frozen',
+                'interface': Frozen,
                 'defaults': ['openpaperwork_core.frozen'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
             {
-                'interface': 'resources',
+                'interface': Resources,
                 'defaults': ['openpaperwork_core.resources.setuptools'],
             },
         ]
@@ -68,7 +68,7 @@ class Plugin(PluginBase):
 
     def l10n_load(self, python_package, text_domain):
         path_ctx = self.core.call_success(
-            "resources_get_dir", python_package, 'out'
+            Resources.resources_get_dir, python_package, 'out'
         )
         with path_ctx as path:
             if path is None:

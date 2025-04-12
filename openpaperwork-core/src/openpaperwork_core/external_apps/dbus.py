@@ -14,18 +14,18 @@ try:
 except ImportError:
     PYDBUS_AVAILABLE = False
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ExternalApps,
+):
     PRIORITY = 50
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['external_apps']
 
     @classmethod
     def get_deps(cls):

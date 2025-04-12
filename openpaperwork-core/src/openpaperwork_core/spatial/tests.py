@@ -1,6 +1,7 @@
 import unittest
 
-from .. import Core
+from openpaperwork_core.interfaces.spatial_index import SpatialIndex
+import openpaperwork_core
 
 
 class AbstractTest(unittest.TestCase):
@@ -11,7 +12,7 @@ class AbstractTest(unittest.TestCase):
         assert False
 
     def setUp(self):
-        self.core = Core(auto_load_dependencies=True)
+        self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load(self.get_plugin_name())
         self.core.init()
 
@@ -21,7 +22,7 @@ class AbstractTest(unittest.TestCase):
             (((10, 10), (50, 40)), "b"),
             (((25, 25), (100, 100)), "c"),
         ]
-        indexer = self.core.call_success("spatial_indexer_get", boxes)
+        indexer = self.core.call_success(SpatialIndex.spatial_indexer_get, boxes)
         self.assertEqual(
             list(indexer.get_boxes(5, 5)),
             [
@@ -62,7 +63,7 @@ class AbstractTest(unittest.TestCase):
             (((1028, 437), (1258, 462)), "SECOURISTES"),
             (((724, 675), (911, 718)), "Madame"),
         ]
-        indexer = self.core.call_success("spatial_indexer_get", boxes)
+        indexer = self.core.call_success(SpatialIndex.spatial_indexer_get, boxes)
         self.assertEqual(
             list(indexer.get_boxes(836, 701)),
             [

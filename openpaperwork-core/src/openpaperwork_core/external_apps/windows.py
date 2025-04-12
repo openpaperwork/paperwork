@@ -1,24 +1,25 @@
 import logging
 import os
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+from openpaperwork_core.interfaces.fs import Fs
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ExternalApps,
+):
     PRIORITY = 100
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['external_apps']
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
         ]
@@ -29,7 +30,7 @@ class Plugin(PluginBase):
         # os.startfile() is Windows-only.
         LOGGER.info("Opening %s with os.startfile()", file_url)
         assert file_url.startswith("file://")
-        file_path = self.core.call_success("fs_safe", file_url)
+        file_path = self.core.call_success(Fs.fs_safe, file_url)
         os.startfile(file_path)
         return True
 

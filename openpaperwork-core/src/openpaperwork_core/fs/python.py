@@ -9,13 +9,17 @@ import os.path
 import shutil
 import tempfile
 
-from . import CommonFsPluginBase
+import openpaperwork_core.fs
+from openpaperwork_core.interfaces.quit import QuitListener
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(CommonFsPluginBase):
+class Plugin(
+    openpaperwork_core.fs.CommonFsPluginBase,
+    QuitListener,
+):
     def __init__(self, core):
         super().__init__(core)
         self.tmp_files = set()
@@ -148,6 +152,7 @@ class Plugin(CommonFsPluginBase):
                 p = os.path.join(path, root, f)
                 yield self.fs_safe(p)
 
+    @openpaperwork_core.noop
     def fs_hide(self, uri):
         pass
 

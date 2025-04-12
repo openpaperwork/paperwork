@@ -2,7 +2,10 @@ import logging
 import os
 import sqlite3
 
-from . import PluginBase
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.sqlite import Sqlite
+import openpaperwork_core
 
 LOGGER = logging.getLogger(__name__)
 
@@ -11,23 +14,26 @@ LOGGER = logging.getLogger(__name__)
 # even those in the transactions (which are run in a thread)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['sqlite']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Sqlite,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'mainloop',
+                "interface": Fs,
+                "defaults": ["openpaperwork_core.fs.python"],
+            },
+            {
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
         ]
 
     def sqlite_open(self, db_url, *args, **kwargs):
         LOGGER.info("Opening DB %s ...", db_url)
-        db_path = self.core.call_success("fs_unsafe", db_url)
+        db_path = self.core.call_success(Fs.fs_unsafe, db_url)
         if 'timeout' not in kwargs:
             kwargs['timeout'] = 60
         sql = sqlite3.connect(db_path, *args, **kwargs)
@@ -39,10 +45,10 @@ class Plugin(PluginBase):
         return sql
 
     def sqlite_execute(self, cb, *args, **kwargs):
-        return self.core.call_one("mainloop_execute", cb, *args, **kwargs)
+        return self.core.call_one(Mainloop.mainloop_execute, cb, *args, **kwargs)
 
     def sqlite_schedule(self, cb, *args, **kwargs):
-        return self.core.call_one("mainloop_schedule", cb, *args, **kwargs)
+        return self.core.call_one(Mainloop.mainloop_schedule, cb, *args, **kwargs)
 
     def sqlite_close(self, db, optimize=True):
         if optimize:

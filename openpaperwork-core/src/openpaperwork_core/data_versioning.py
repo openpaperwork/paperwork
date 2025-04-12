@@ -1,5 +1,9 @@
 import logging
 
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.data_versioning import DataVersioningListener
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.paths import Paths
 import openpaperwork_core
 
 
@@ -10,7 +14,10 @@ LOGGER = logging.getLogger(__name__)
 DATA_VERSION = 2
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DataVersioning,
+):
     """
     Keep a version number in ~/.local/share/paperwork2/data_version.
     If the version doesn't match 'DATA_VERSION', right before syncing,
@@ -18,18 +25,19 @@ class Plugin(openpaperwork_core.PluginBase):
     """
 
     @classmethod
-    def get_interfaces(cls):
-        return ['data_versioning']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                "interface": DataVersioningListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
             {
-                'interface': 'paths',
+                'interface': Paths,
                 'defaults': ['openpaperwork_core.paths.xdg'],
             },
         ]
@@ -37,14 +45,14 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
 
-        data_dir = self.core.call_success("paths_get_data_dir")
+        data_dir = self.core.call_success(Paths.paths_get_data_dir)
         data_ver_file = self.core.call_success(
-            "fs_join", data_dir, "data_version"
+            Fs.fs_join, data_dir, "data_version"
         )
 
         data_version = -1
-        if self.core.call_success("fs_exists", data_ver_file):
-            with self.core.call_success("fs_open", data_ver_file, 'r') as fd:
+        if self.core.call_success(Fs.fs_exists, data_ver_file):
+            with self.core.call_success(Fs.fs_open, data_ver_file, 'r') as fd:
                 data_version = int(fd.read().strip())
 
         LOGGER.info(
@@ -58,11 +66,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 data_version, DATA_VERSION
             )
 
-            self.core.call_success("fs_rm_rf", data_dir, trash=False)
+            self.core.call_success(Fs.fs_rm_rf, data_dir, trash=False)
             # call 'paths_get_data_dir' again to recreate the data directory
-            data_dir = self.core.call_success("paths_get_data_dir")
+            data_dir = self.core.call_success(Paths.paths_get_data_dir)
 
-            with self.core.call_success("fs_open", data_ver_file, 'w') as fd:
+            with self.core.call_success(Fs.fs_open, data_ver_file, 'w') as fd:
                 fd.write(str(DATA_VERSION))
 
-            self.core.call_all("on_data_files_deleted")
+            self.core.call_all(DataVersioningListener.on_data_files_deleted)

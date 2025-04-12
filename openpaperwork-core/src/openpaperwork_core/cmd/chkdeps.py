@@ -4,8 +4,11 @@ import logging
 import os
 import sys
 
-from . import util
-from .. import (_, PluginBase)
+from openpaperwork_core.cmd import util
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.shell import Shell
+from openpaperwork_core import _
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -22,16 +25,18 @@ PACKAGE_TOOLS = {
 }
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
-        # will call method from interface 'chkdeps', but we can still
-        # work if no other plugin implement 'chkdeps'.
-        return []
+        return [
+            {
+                "interface": Chkdeps,
+                "defaults": [],
+            },
+        ]
 
     def __init__(self, core):
         super().__init__(core)
@@ -72,7 +77,7 @@ class Plugin(PluginBase):
         distribution = self._get_distribution()
 
         missing = collections.defaultdict(dict)
-        self.core.call_all("chkdeps", missing)
+        self.core.call_all(Chkdeps.chkdeps, missing)
 
         if len(missing) > 0:
             console.print(_("Missing dependencies:"))

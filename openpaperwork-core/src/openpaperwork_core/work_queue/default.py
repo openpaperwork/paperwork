@@ -3,13 +3,16 @@ import heapq
 import threading
 import traceback
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.work_queue import WorkQueue
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Task(object):
+class Task:
     def __init__(self, work_queue, priority, insert_number, promise):
         self.work_queue = work_queue
         self.priority = priority
@@ -41,7 +44,7 @@ class Task(object):
         return False
 
 
-class WorkQueue(object):
+class _WorkQueue:
     def __init__(self, name, stop_on_quit, hide_uncatched):
         self.insert_number = 0
 
@@ -107,16 +110,16 @@ class WorkQueue(object):
             self.all_tasks = {}
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['work_queue']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    WorkQueue,
+    QuitListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-               'interface': 'mainloop',
+               'interface': Mainloop,
                'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
         ]
@@ -131,7 +134,7 @@ class Plugin(PluginBase):
             "Creating work queue [%s] (stop_on_quit=%s)",
             queue_name, stop_on_quit
         )
-        self.queues[queue_name] = WorkQueue(
+        self.queues[queue_name] = _WorkQueue(
             queue_name, stop_on_quit, hide_uncatched
         )
         return True
@@ -154,15 +157,7 @@ class Plugin(PluginBase):
         self.queues[queue_name].cancel_all()
         return True
 
-    def mainloop_quit(self):
-        # violent quit (does it ever happen ?)
-        for queue in self.queues.values():
-            queue.cancel_all()
-
-    def mainloop_quit_graceful(self):
+    def on_quit(self):
         for queue in self.queues.values():
             if queue.stop_on_quit:
                 queue.cancel_all()
-
-    def on_quit(self):
-        self.mainloop_quit_graceful()

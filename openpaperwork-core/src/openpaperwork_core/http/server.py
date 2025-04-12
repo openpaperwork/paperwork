@@ -1,4 +1,3 @@
-import abc
 import logging
 import ssl
 import threading
@@ -8,30 +7,20 @@ from typing import Tuple
 import http.client
 import http.server
 
+from openpaperwork_core.interfaces.certificate_store import CertificateStore
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.https_server import AbstractRequestHandler
+from openpaperwork_core.interfaces.https_server import HttpsServer
 import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BaseRequestHandler(abc.ABC):
-    @abc.abstractmethod
-    def do_HEAD(self, request):
-        ...
-
-    @abc.abstractmethod
-    def do_POST(self, request):
-        ...
-
-    @abc.abstractmethod
-    def do_GET(self, request):
-        ...
-
-
 class RequestHandlerWrapper(http.server.BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
-    def __init__(self, wrapped_requested_handler: BaseRequestHandler, *args, **kwargs):
+    def __init__(self, wrapped_requested_handler: AbstractRequestHandler, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         self.wrapped_requested_handler = wrapped_requested_handler
@@ -73,7 +62,7 @@ class HTTPSServer:
             self,
             core,
             port,
-            request_handler: BaseRequestHandler,
+            request_handler: AbstractRequestHandler,
             server_cert: Tuple[str, str],
             openpaperview_compatible: bool):
         self.core = core
@@ -88,11 +77,11 @@ class HTTPSServer:
 
         self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         self.ssl_context.load_cert_chain(
-            self.core.call_success("fs_unsafe", server_cert[0]),
-            keyfile=self.core.call_success("fs_unsafe", server_cert[1]),
+            self.core.call_success(Fs.fs_unsafe, server_cert[0]),
+            keyfile=self.core.call_success(Fs.fs_unsafe, server_cert[1]),
         )
         self.ssl_context.load_verify_locations(
-            cafile=self.core.call_success("fs_unsafe", server_cert[0])
+            cafile=self.core.call_success(Fs.fs_unsafe, server_cert[0])
         )
         self.ssl_context.verify_mode = (
             ssl.CERT_OPTIONAL
@@ -121,24 +110,27 @@ class HTTPSServer:
         self.thread = None
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["https_server"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    HttpsServer,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'certificate_store',
+                'interface': CertificateStore,
                 'defaults': ['openpaperwork_core.crypto.certificates.store'],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_core.fs.python"],
             },
         ]
 
     def https_server_start(
             self,
             port: int,
-            request_handler: BaseRequestHandler,
+            request_handler: AbstractRequestHandler,
             server_cert_name,
             openpaperview_compatible=True):
         """
@@ -148,7 +140,9 @@ class Plugin(openpaperwork_core.PluginBase):
         This HTTPS server will only accept connections from certificates
         signed by the server certificate.
         """
-        server_cert = self.core.call_success("store_certificate_get", server_cert_name)
+        server_cert = self.core.call_success(
+            CertificateStore.store_certificate_get, server_cert_name
+        )
         if server_cert is None:
             LOGGER.warning("Couldn't find server certificate '%s' !", server_cert)
             return None

@@ -2,7 +2,12 @@ import faulthandler
 import logging
 import os
 
-from .. import (_, PluginBase)
+from openpaperwork_core import (_, PluginBase)
+from openpaperwork_core.interfaces.archives import FileArchives
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachment
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.logs import LogArchiver
+from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 from openpaperwork_core.logs import UnixTimeStampLogFormatter
 
 
@@ -11,7 +16,7 @@ LOG_DATE_FORMAT = "%Y%m%d_%H%M_%S"
 MAX_DAYS = 31
 
 
-class LogLine(object):
+class LogLine:
     def __init__(self, line):
         self.line = line
         self.next = None
@@ -36,7 +41,7 @@ class LogHandler(logging.Handler):
         self.out_file_url = self.archiver.get_new()
         self.formatter = UnixTimeStampLogFormatter(self.LOG_FORMAT)
         self.out_fd = self.core.call_success(
-            "fs_open", self.out_file_url, 'w',
+            Fs.fs_open, self.out_file_url, 'w',
             needs_fileno=True
         )
         faulthandler.disable()
@@ -75,38 +80,31 @@ class LogHandler(logging.Handler):
         )
         self.formatter = logging.Formatter(self.LOG_FORMAT)
 
-        with self.core.call_success("fs_open", out_file_url, 'w') as fd:
+        with self.core.call_success(Fs.fs_open, out_file_url, 'w') as fd:
             line = self.first_line
             while line is not None:
                 fd.write(line.line)
                 line = line.next
 
 
-class Plugin(PluginBase):
+class Plugin(
+    PluginBase,
+    BugReportAttachment,
+    LogArchiver,
+    UncaughtExceptionListener,
+):
     PRIORITY = -10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'bug_report_attachments',
-            'log_archiver',
-            'uncaught_exception_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'file_archives',
+                'interface': FileArchives,
                 'defaults': ['openpaperwork_core.archives'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
-            },
-            {
-                'interface': 'uncaught_exception',
-                'defaults': ['openpaperwork_core.uncaught_exception'],
             },
         ]
 
@@ -115,7 +113,7 @@ class Plugin(PluginBase):
 
         logging.getLogger().setLevel(logging.INFO)
         self.archiver = self.core.call_success(
-            "file_archive_get", storage_name="logs", file_extension="txt"
+            FileArchives.file_archive_get, storage_name="logs", file_extension="txt"
         )
         self.log_handler = LogHandler(core, self.archiver)
         logging.getLogger().addHandler(self.log_handler)
@@ -137,7 +135,7 @@ class Plugin(PluginBase):
                 'include_by_default': nb <= 2,
                 'file_type': _("Log file"),
                 'file_url': file_url,
-                'file_size': self.core.call_success("fs_getsize", file_url),
+                'file_size': self.core.call_success(Fs.fs_getsize, file_url),
             }
 
         LOGGER.info("Flushing logs to disk")
@@ -149,5 +147,5 @@ class Plugin(PluginBase):
             'include_by_default': True,
             'file_type': _("Log file"),
             'file_url': file_url,
-            'file_size': self.core.call_success("fs_getsize", file_url),
+            'file_size': self.core.call_success(Fs.fs_getsize, file_url),
         }

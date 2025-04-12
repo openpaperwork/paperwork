@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,20 +15,24 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 
+from openpaperwork_core.interfaces.print import Print
 import openpaperwork_core
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['print']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Print,
+):
     def __init__(self, core):
         super().__init__(core)
         self.output = []
 
     def print(self, txt):
         self.output.append(txt)
+
+    @openpaperwork_core.noop
+    def print_isatty(self):
+        pass
 
     def print_flush(self):
         output = "\n".join(self.output)

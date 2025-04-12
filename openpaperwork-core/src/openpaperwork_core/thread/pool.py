@@ -3,8 +3,11 @@ import multiprocessing
 import queue
 import threading
 
-from . import Task
-from .. import PluginBase
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.mainloop import MainloopListener
+from openpaperwork_core.interfaces.thread import ThreadManager
+import openpaperwork_core
+import openpaperwork_core.thread
 
 
 LOGGER = logging.getLogger(__name__)
@@ -28,21 +31,21 @@ class Thread(threading.Thread):
         LOGGER.info("Thread %s stopped", self.name)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    MainloopListener,
+    ThreadManager,
+):
     def __init__(self, core):
         super().__init__(core)
         self.queue = queue.Queue()
         self.pool = None
 
     @classmethod
-    def get_interfaces(cls):
-        return ['thread']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
         ]
@@ -56,6 +59,10 @@ class Plugin(PluginBase):
             for t in self.pool:
                 t.start()
 
+    @openpaperwork_core.noop
+    def on_mainloop_quit_graceful_request(self):
+        pass
+
     def on_mainloop_quit(self):
         if self.pool is not None:
             for t in self.pool:
@@ -67,5 +74,5 @@ class Plugin(PluginBase):
     def thread_start(self, func, *args, **kwargs):
         if self.pool is None:
             self.on_mainloop_start()
-        task = Task(self.core, func, args, kwargs)
+        task = openpaperwork_core.thread.Task(self.core, func, args, kwargs)
         self.queue.put(task)

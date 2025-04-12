@@ -1,3 +1,4 @@
+import abc
 import unittest
 import unittest.mock
 
@@ -7,18 +8,15 @@ import openpaperwork_core
 class TestLoading(unittest.TestCase):
     @unittest.mock.patch("importlib.import_module")
     def test_simple_loading(self, import_module):
+        class TestInterface(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
         class TestModule:
             __name__ = "whatever_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
-
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 def __init__(self, core):
                     super().__init__(core)
                     self.init_called = True
@@ -36,7 +34,7 @@ class TestLoading(unittest.TestCase):
         core.init()
         self.assertTrue(core.get_by_name('whatever_module').init_called)
 
-        core.call_all('test_method')
+        core.call_all(TestInterface.test_method)
         self.assertTrue(core.get_by_name('whatever_module').test_method_called)
 
 
@@ -46,37 +44,34 @@ class TestInit(unittest.TestCase):
         global g_idx
         g_idx = 0
 
-        class TestModuleA(object):
+        class InterfaceA(abc.ABC):
+            pass
+
+        class InterfaceB(abc.ABC):
+            pass
+
+        class InterfaceC(abc.ABC):
+            pass
+
+        class TestModuleA:
             __name__ = "module_a"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['module_a']
-
-                @classmethod
-                def get_deps(cls):
-                    return []
-
+            class Plugin(openpaperwork_core.PluginBase, InterfaceA):
                 def __init__(self, core):
                     super().__init__(core)
                     global g_idx
-                    self.init_called_a = g_idx
+                    self.init_called_a = True
                     g_idx += 1
 
-        class TestModuleB(object):
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['module_b']
-
+            class Plugin(openpaperwork_core.PluginBase, InterfaceB):
                 @classmethod
                 def get_deps(cls):
                     return [
                         {
-                            'interface': 'module_a',
+                            'interface': InterfaceA,
                             'defaults': ['module_a'],
                         }
                     ]
@@ -84,34 +79,29 @@ class TestInit(unittest.TestCase):
                 def __init__(self, core):
                     super().__init__(core)
                     global g_idx
-                    self.init_called_b = g_idx
+                    self.init_called_b = True
                     g_idx += 1
 
-        class TestModuleC(object):
+        class TestModuleC:
             __name__ = "module_c"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
+            class Plugin(openpaperwork_core.PluginBase, InterfaceC):
                 @classmethod
                 def get_deps(cls):
                     return [
                         {
-                            'interface': 'module_b',
+                            'interface': InterfaceB,
                             'defaults': ['module_b'],
-                            'expected_already_satisfied': False,
                         }
                     ]
 
                 def __init__(self, core):
                     super().__init__(core)
                     global g_idx
-                    self.init_called_c = g_idx
+                    self.init_called_c = True
                     g_idx += 1
 
-        core = openpaperwork_core.Core()
+        core = openpaperwork_core.Core(auto_load_dependencies=True)
 
         import_module.return_value = TestModuleA()
         core.load('module_a')
@@ -127,26 +117,29 @@ class TestInit(unittest.TestCase):
         core.init()  # will load 'module_b' because of dependencies
         import_module.assert_called_once_with('module_b')
 
-        self.assertEqual(core.get_by_name('module_a').init_called_a, 0)
-        self.assertEqual(core.get_by_name('module_b').init_called_b, 1)
-        self.assertEqual(core.get_by_name('module_c').init_called_c, 2)
+        self.assertEqual(core.get_by_name('module_a').init_called_a, True)
+        self.assertEqual(core.get_by_name('module_b').init_called_b, True)
+        self.assertEqual(core.get_by_name('module_c').init_called_c, True)
+        self.assertEqual(g_idx, 3)
 
 
 class TestCall(unittest.TestCase):
     @unittest.mock.patch("importlib.import_module")
     def test_default_interface(self, import_module):
-        class TestModuleB(object):
+        class TestInterfaceB(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
+        class TestInterfaceC(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ["test_interface"]
-
-                @classmethod
-                def get_deps(cls):
-                    return []
-
+            class Plugin(openpaperwork_core.PluginBase, TestInterfaceB):
                 def __init__(self, core):
                     super().__init__(core)
                     self.init_called_b = True
@@ -155,22 +148,18 @@ class TestCall(unittest.TestCase):
                 def test_method(self):
                     self.test_method_called_b = True
 
-        class TestModuleC(object):
+        class TestModuleC:
             __name__ = "module_c"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterfaceC):
                 @classmethod
                 def get_deps(cls):
                     return [
                         {
-                            'interface': 'test_interface',
+                            'interface': TestInterfaceB,
                             'defaults': ['module_a', 'module_b']
                         },
                     ]
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
 
                 def __init__(self, core):
                     super().__init__(core)
@@ -198,25 +187,23 @@ class TestCall(unittest.TestCase):
         self.assertTrue(core.get_by_name('module_b').init_called_b)
         self.assertTrue(core.get_by_name('module_c').init_called_c)
 
-        core.call_all('test_method')
+        core.call_all(TestInterfaceB.test_method)
+        core.call_all(TestInterfaceC.test_method)
         self.assertTrue(core.get_by_name('module_b').test_method_called_b)
         self.assertTrue(core.get_by_name('module_c').test_method_called_c)
 
     @unittest.mock.patch("importlib.import_module")
     def test_call_success_priority(self, import_module):
-        class TestModuleB(object):
+        class TestInterface(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 PRIORITY = 33
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
 
                 def __init__(self, core):
                     super().__init__(core)
@@ -226,19 +213,11 @@ class TestCall(unittest.TestCase):
                     self.test_method_called_b = True
                     return None
 
-        class TestModuleC(object):
+        class TestModuleC:
             __name__ = "module_c"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 PRIORITY = 22
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
 
                 def __init__(self, core):
                     super().__init__(core)
@@ -251,16 +230,8 @@ class TestCall(unittest.TestCase):
         class TestModuleD(object):
             __name__ = "module_d"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 PRIORITY = 11
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
 
                 def __init__(self, core):
                     super().__init__(core)
@@ -290,7 +261,7 @@ class TestCall(unittest.TestCase):
         # interface already satisfied --> won't load 'module_a'
         core.init()
 
-        r = core.call_success('test_method')
+        r = core.call_success(TestInterface.test_method)
         self.assertEqual(r, "value")
         self.assertTrue(core.get_by_name('module_b').test_method_called_b)
         self.assertTrue(core.get_by_name('module_c').test_method_called_c)
@@ -298,36 +269,25 @@ class TestCall(unittest.TestCase):
 
     @unittest.mock.patch("importlib.import_module")
     def test_priority(self, import_module):
-        class TestModuleA(object):
+        class TestInterface(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
+        class TestModuleA:
             __name__ = "module_a"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 PRIORITY = 22
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
 
                 def test_method(self):
                     return "A"
 
-        class TestModuleB(object):
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(openpaperwork_core.PluginBase, TestInterface):
                 PRIORITY = 33
-
-                @classmethod
-                def get_interfaces(cls):
-                    return []
-
-                @classmethod
-                def get_deps(cls):
-                    return []
 
                 def test_method(self):
                     return "B"
@@ -346,28 +306,25 @@ class TestCall(unittest.TestCase):
         import_module.reset_mock()
         core.init()
 
-        r = core.call_success('test_method')
+        r = core.call_success(TestInterface.test_method)
         self.assertEqual(r, "B")
 
 
 class TestDependencies(unittest.TestCase):
     @unittest.mock.patch("importlib.import_module")
     def test_default_interface(self, import_module):
-        class TestModuleA(object):
+        class TestInterface(abc.ABC):
+            @abc.abstractmethod
+            def test_method(self):
+                ...
+
+        class SomeInterface(abc.ABC):
+            pass
+
+        class TestModuleA:
             __name__ = "module_a"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return [
-                        "test_interface",
-                        "some_interface",
-                    ]
-
-                @classmethod
-                def get_deps(cls):
-                    return []
-
+            class Plugin(openpaperwork_core.PluginBase, TestInterface, SomeInterface):
                 def __init__(self, core):
                     super().__init__(core)
                     self.test_method_called = False
@@ -376,26 +333,22 @@ class TestDependencies(unittest.TestCase):
                 def test_method(self):
                     self.test_method_called = True
 
-        class TestModuleB(object):
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['some_interface']
+            class Plugin(openpaperwork_core.PluginBase, SomeInterface):
+                def __init__(self, core):
+                    super().__init__(core)
+                    self.init_called = True
 
                 @classmethod
                 def get_deps(cls):
                     return [
                         {
-                            'interface': 'test_interface',
+                            'interface': TestInterface,
                             'defaults': ['module_a'],
-                        }
+                        },
                     ]
-
-                def __init__(self, core):
-                    super().__init__(core)
-                    self.init_called = True
 
         core = openpaperwork_core.Core(auto_load_dependencies=True)
 
@@ -410,45 +363,36 @@ class TestDependencies(unittest.TestCase):
         self.assertTrue(core.get_by_name('module_a').init_called)
         self.assertTrue(core.get_by_name('module_b').init_called)
 
-        core.call_all('test_method')
+        core.call_all(TestInterface.test_method)
         self.assertTrue(core.get_by_name('module_a').test_method_called)
 
     @unittest.mock.patch("importlib.import_module")
-    def test_no_init_if_dropped(self, import_module):
+    def test_dependency_error(self, import_module):
         self.init_called = False
 
-        class TestModuleA(object):
+        class TestInterface(abc.ABC):
+            pass
+
+        class SomeInterface(abc.ABC):
+            pass
+
+        class TestModuleA:
             __name__ = "module_a"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_deps(cls):
-                    return []
-
-                @classmethod
-                def get_interfaces(c):
-                    return [
-                        "test_interface",
-                        "some_interface",
-                    ]
-
+            class Plugin(openpaperwork_core.PluginBase, TestInterface, SomeInterface):
                 def __init__(s, core):
                     super().__init__(core)
                     self.init_called = True
 
-        class TestModuleB(object):
+        class TestModuleB:
             __name__ = "module_b"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                @classmethod
-                def get_interfaces(cls):
-                    return ['some_interface']
-
+            class Plugin(openpaperwork_core.PluginBase, SomeInterface):
                 @classmethod
                 def get_deps(cls):
                     return [
                         {
-                            'interface': 'test_interface',
+                            'interface': TestInterface,
                             'defaults': ['module_a'],
                         }
                     ]
@@ -465,7 +409,4 @@ class TestDependencies(unittest.TestCase):
 
         import_module.reset_mock()
         import_module.return_value = TestModuleA()
-        core.init()  # will NOT load 'module_a' and will drop 'module_b'
-        self.assertFalse(self.init_called)
-        self.assertRaises(KeyError, core.get_by_name, 'module_a')
-        self.assertRaises(KeyError, core.get_by_name, 'module_b')
+        self.assertRaises(openpaperwork_core.DependencyException, core.init)

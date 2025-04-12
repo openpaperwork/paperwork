@@ -2,20 +2,14 @@ import ifaddr
 import ipaddress
 import socket
 
+from openpaperwork_core.interfaces.networking import Networking
 import openpaperwork_core
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "networking",
-        ]
-
-    @classmethod
-    def get_deps(cls):
-        return []
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Networking
+):
     def networking_get_host_names(self):
         return [
             socket.gethostname(),

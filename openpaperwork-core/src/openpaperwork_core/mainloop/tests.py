@@ -1,6 +1,8 @@
 import unittest
 
-from .. import (Core, promise)
+from openpaperwork_core.interfaces.mainloop import Mainloop
+import openpaperwork_core
+import openpaperwork_core.promise
 
 
 class AbstractTestCallback(unittest.TestCase):
@@ -11,7 +13,7 @@ class AbstractTestCallback(unittest.TestCase):
         assert False
 
     def setUp(self):
-        self.core = Core(auto_load_dependencies=True)
+        self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load(self.get_plugin_name())
         self.core.init()
 
@@ -22,10 +24,10 @@ class AbstractTestCallback(unittest.TestCase):
             self.val = value
 
         # queue some calls
-        self.core.call_all("mainloop_schedule", set_val, 22)
-        self.core.call_all("mainloop_quit_graceful")
+        self.core.call_all(Mainloop.mainloop_schedule, set_val, 22)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
 
-        self.core.call_one('mainloop')
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.val, 22)
 
@@ -38,7 +40,7 @@ class AbstractTestPromise(unittest.TestCase):
         assert False
 
     def setUp(self):
-        self.core = Core(auto_load_dependencies=True)
+        self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load(self.get_plugin_name())
         self.core.init()
 
@@ -54,11 +56,10 @@ class AbstractTestPromise(unittest.TestCase):
         def stop():
             self.stop_called = True
 
-        p = promise.Promise(self.core, stop)
+        p = openpaperwork_core.promise.Promise(self.core, stop)
         p.schedule()
-        self.core.call_all("mainloop_quit_graceful")
-
-        self.core.call_one("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         self.assertTrue(self.stop_called)
 
     def test_chain(self):
@@ -81,13 +82,12 @@ class AbstractTestPromise(unittest.TestCase):
             self.stop_called = self.idx
             self.idx += 1
 
-        p = promise.Promise(self.core, alpha)
+        p = openpaperwork_core.promise.Promise(self.core, alpha)
         p = p.then(beta)
         p = p.then(stop)
         p.schedule()
-        self.core.call_all("mainloop_quit_graceful")
-
-        self.core.call_one("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         self.assertEqual(self.alpha_called, 0)
         self.assertEqual(self.beta_called, 1)
         self.assertEqual(self.stop_called, 2)
@@ -111,15 +111,14 @@ class AbstractTestPromise(unittest.TestCase):
         def on_exc(exc):
             self.exc_raised = True
 
-        p = promise.Promise(self.core, alpha)
+        p = openpaperwork_core.promise.Promise(self.core, alpha)
         p = p.then(beta)
         p = p.then(stop)
         p = p.catch(on_exc)
         p.hide_caught_exceptions = True
         p.schedule()
-        self.core.call_all("mainloop_quit_graceful")
-
-        self.core.call_one("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         self.assertTrue(self.alpha_called)
         self.assertTrue(self.beta_called)
         self.assertFalse(self.stop_called)

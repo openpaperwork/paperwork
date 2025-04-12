@@ -1,5 +1,6 @@
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 
 
@@ -11,28 +12,28 @@ class TestSafe(unittest.TestCase):
 
     def test_write_read_bytes(self):
         with self.core.call_success(
-                    "fs_open", "memory://test_file", mode="wb"
+                    Fs.fs_open, "memory://test_file", mode="wb"
                 ) as file_desc:
             file_desc.write(b"abcdef")
             file_desc.write(b"ghijf")
 
         with self.core.call_success(
-                    "fs_open", "memory://test_file", mode="rb"
+                    Fs.fs_open, "memory://test_file", mode="rb"
                 ) as file_desc:
             r = file_desc.read()
             self.assertEqual(r, b'abcdefghijf')
 
-        self.core.call_success("fs_unlink", "memory://test_file", trash=False)
+        self.core.call_success(Fs.fs_unlink, "memory://test_file", trash=False)
 
     def test_write_read_string(self):
         with self.core.call_success(
-                    "fs_open", "memory://test_file", mode="w"
+                    Fs.fs_open, "memory://test_file", mode="w"
                 ) as file_desc:
             file_desc.write("abcdef\n")
             file_desc.write("ghijf\n")
 
         with self.core.call_success(
-                    "fs_open", "memory://test_file", mode="r"
+                    Fs.fs_open, "memory://test_file", mode="r"
                 ) as file_desc:
             r = file_desc.readlines()
             self.assertEqual(r, [
@@ -40,22 +41,22 @@ class TestSafe(unittest.TestCase):
                 'ghijf\n'
             ])
 
-        self.core.call_success("fs_unlink", "memory://test_file", trash=False)
+        self.core.call_success(Fs.fs_unlink, "memory://test_file", trash=False)
 
     def test_write_read_tempfile(self):
         (name, file_desc) = self.core.call_success(
-            "fs_mktemp", "camion", "tulipe", mode="w"
+            Fs.fs_mktemp, "camion", "tulipe", mode="w"
         )
         with file_desc:
             self.assertTrue(name.startswith("memory://"))
             file_desc.write("abcdef\n")
             file_desc.write("ghijf\n")
 
-        with self.core.call_success("fs_open", name, mode="r") as file_desc:
+        with self.core.call_success(Fs.fs_open, name, mode="r") as file_desc:
             r = file_desc.readlines()
             self.assertEqual(r, [
                 'abcdef\n',
                 'ghijf\n'
             ])
 
-        self.core.call_success("fs_unlink", name, trash=False)
+        self.core.call_success(Fs.fs_unlink, name, trash=False)

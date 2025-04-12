@@ -9,15 +9,15 @@ try:
 except (ImportError, ValueError):
     assert os.name == "nt"
 
+from openpaperwork_core.interfaces.stats import Stats
 import openpaperwork_core
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Stats,
+):
     PRIORITY = 1000
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['stats']
 
     def stats_get(self, out: dict):
         if os.name == 'nt':

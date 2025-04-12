@@ -8,7 +8,8 @@ import os
 import pathlib
 import sys
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.resources import Resources
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,21 +26,15 @@ class FakePathCtxManager:
         pass
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Resources,
+):
     PRIORITY = 100
 
     @classmethod
-    def get_interfaces(cls):
-        return ['resources']
-
-    @classmethod
     def get_deps(cls):
-        return [
-            {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_core.fs.python'],
-            },
-        ]
+        return []
 
     def resources_get_file(self, pkg, filename):
         if not getattr(sys, 'frozen', False):

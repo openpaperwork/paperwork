@@ -2,13 +2,13 @@ from openpaperwork_core import (
     _,
     PluginBase
 )
+from openpaperwork_core.interfaces.shell import Shell
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    PluginBase,
+    Shell,
+):
     def cmd_complete_argparse(self, parser):
         parser.add_parser(
             "ping",

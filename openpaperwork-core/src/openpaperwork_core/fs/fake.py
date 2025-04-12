@@ -7,8 +7,10 @@ import io
 import logging
 import os
 
-from . import CommonFsPluginBase
-from . import memory
+import openpaperwork_core
+from openpaperwork_core.fs import CommonFsPluginBase
+from openpaperwork_core.fs import memory
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -73,6 +75,7 @@ class FakeFileAdapter(io.RawIOBase):
     def tell(self):
         return self.pos
 
+    @openpaperwork_core.noop
     def flush(self):
         pass
 
@@ -244,9 +247,11 @@ class Plugin(CommonFsPluginBase):
     def fs_recurse(self, parent_uri, dir_included=False):
         raise NotImplementedError()
 
+    @openpaperwork_core.noop
     def fs_hide(self, uri):
         pass
 
+    @openpaperwork_core.noop
     def fs_get_mime(self, uri):
         pass
 
@@ -256,3 +261,6 @@ class Plugin(CommonFsPluginBase):
     def fs_mktemp(self, prefix=None, suffix=None, mode='w+b', **kwargs):
         name = "file://tmp/temporary_file" + suffix
         return (name, memory.MemoryFileAdapter(self, name, mode))
+
+    def fs_resolve(self, uri):
+        return uri

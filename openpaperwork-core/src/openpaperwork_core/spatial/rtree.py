@@ -5,6 +5,8 @@ way the nodes are split because I'm a lazy bastard and it's good enough.
 import math
 import logging
 
+from openpaperwork_core.interfaces.spatial_index import AbstractSpatialIndexer
+from openpaperwork_core.interfaces.spatial_index import SpatialIndex
 import openpaperwork_core
 
 
@@ -20,7 +22,7 @@ def compute_area(box):
     return abs((box[1][0] - box[0][0]) * (box[1][1] - box[0][1]))
 
 
-class Node(object):
+class Node:
     def __init__(self, box=None):
         self.leaf = True
         self.children = []
@@ -162,7 +164,7 @@ class Node(object):
         return False
 
 
-class RTreeSpatialIndexer(object):
+class RTreeSpatialIndexer(AbstractSpatialIndexer):
     def __init__(self, boxes):
         self.root = Node()
 
@@ -258,12 +260,9 @@ class RTreeSpatialIndexer(object):
         # LOGGER.debug("Examined nodes: %d", examined)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'spatial_index',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    SpatialIndex,
+):
     def spatial_indexer_get(self, boxes):
         return RTreeSpatialIndexer(boxes)

@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,11 @@
 import datetime
 import logging
 
-from .. import (_, PluginBase)
+from openpaperwork_core import _
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.display import Display
+from openpaperwork_core.interfaces.shell import Shell
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,17 +48,21 @@ TO_JSON = {
 }
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
+            },
+            {
+                "interface": Display,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -104,39 +112,39 @@ class Plugin(PluginBase):
             return None
 
     def _cmd_get(self, opt_name):
-        v = self.core.call_success("config_get", opt_name)
+        v = self.core.call_success(Config.config_get, opt_name)
         if v is None:
             LOGGER.warning("No such option '%s'", opt_name)
             return None
-        self.core.call_all("print", f"{opt_name} = {v}")
-        self.core.call_success("print_flush")
+        self.core.call_all(Display.print, f"{opt_name} = {v}")
+        self.core.call_success(Display.print_flush)
         return {opt_name: v}
 
     def _cmd_put(self, opt_name, vtype, value):
         value = CMD_VALUE_TYPES[vtype](value)
-        self.core.call_success("print", f"{opt_name} = {value}")
-        self.core.call_success("print_flush")
-        self.core.call_all("config_put", opt_name, value)
-        self.core.call_all("config_save")
+        self.core.call_success(Display.print, f"{opt_name} = {value}")
+        self.core.call_success(Display.print_flush)
+        self.core.call_all(Config.config_put, opt_name, value)
+        self.core.call_all(Config.config_save)
         return {opt_name: value}
 
     def _cmd_show(self):
-        opts = self.core.call_success("config_list_options")
+        opts = self.core.call_success(Config.config_list_options)
         out = {}
         opts.sort()
         for opt in opts:
-            v = self.core.call_success("config_get", opt)
+            v = self.core.call_success(Config.config_get, opt)
             if type(v) in TO_JSON:
                 v = TO_JSON[type(v)](v)
             out[opt] = v
             self.core.call_success(
-                "print", f"{opt} = {out[opt]} ({type(v).__name__})"
+                Display.print, f"{opt} = {out[opt]} ({type(v).__name__})"
             )
-        self.core.call_success("print_flush")
+        self.core.call_success(Display.print_flush)
         return out
 
     def _cmd_list_types(self):
         r = list(CMD_VALUE_TYPES.keys())
-        self.core.call_success("print", str(r))
-        self.core.call_success("print_flush")
+        self.core.call_success(Display.print, str(r))
+        self.core.call_success(Display.print_flush)
         return r

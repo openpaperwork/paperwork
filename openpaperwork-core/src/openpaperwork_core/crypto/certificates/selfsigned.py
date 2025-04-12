@@ -16,28 +16,28 @@ import cryptography.hazmat.primitives.hashes  # noqa E402
 import cryptography.hazmat.primitives.serialization  # noqa E402
 import cryptography.x509.oid  # noqa E402
 
+from openpaperwork_core.interfaces.app import App  # noqa E402
+from openpaperwork_core.interfaces.crypto_certificates import CryptoCertificates  # noqa E402
+from openpaperwork_core.interfaces.networking import Networking  # noqa E402
 import openpaperwork_core  # noqa E402
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "crypto_certificates",
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    CryptoCertificates,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "app",
+                "interface": App,
                 "defaults": [],
             },
             {
-                "interface": "networking",
+                "interface": Networking,
                 "defaults": ["openpaperwork_core.networking"],
             },
         ]
@@ -62,9 +62,9 @@ class Plugin(openpaperwork_core.PluginBase):
             )
 
         if hostnames is None or len(hostnames) <= 0:
-            host_names = self.core.call_success("networking_get_host_names")
+            host_names = self.core.call_success(Networking.networking_get_host_names)
         if ip_addresses is None:
-            ip_addresses = self.core.call_success("networking_get_local_ips")
+            ip_addresses = self.core.call_success(Networking.networking_get_local_ips)
 
         LOGGER.info("Generating RSA key ...")
         key = cryptography.hazmat.primitives.asymmetric.rsa.generate_private_key(
@@ -77,7 +77,7 @@ class Plugin(openpaperwork_core.PluginBase):
         name = cryptography.x509.Name([
             cryptography.x509.NameAttribute(
                 cryptography.x509.oid.NameOID.COMMON_NAME,
-                self.core.call_success("app_get_name"),
+                self.core.call_success(App.app_get_name),
             )
         ])
 

@@ -6,19 +6,14 @@ Plugin Example
 
     import openpaperwork_core
 
-    class Plugin(openpaperwork_core.PluginBase):
+    class Plugin(
+        openpaperwork_core.PluginBase,
+        InterfaceToto,
+        InterfaceTutu,
+    ):
         # callbacks will always be run before those of priority <= 21
         # but after those of priority >= 23
         PRIORITY = 22
-
-        @classmethod
-        def get_interfaces(cls):
-           # indicates which interfaces this plugin satisfies.
-           # note that this is only used for controlling that dependencies are
-           # satisfied (see get_deps()). There are no checks at all to ensure
-           # that the methods corresponding to each interface are actually
-           # implemented.
-           return ['interface_name_toto', 'interface_name_tutu']
 
         @classmethod
         def get_deps(cls):
@@ -33,14 +28,14 @@ Plugin Example
             # calling the method `init()` of this plugin.
             return [
                 {
-                    'interface': 'interface_name_a',
+                    'interface': InterfaceA,
                     'defaults': [
                         'suggested_default_plugin_a',
                         'suggested_default_plugin_b',
                     ],
                 },
                 {
-                   'interface': 'inteface_name_b',
+                   'interface': InterfaceB,
                     'defaults': [
                         'suggested_default_plugin_d',
                         'suggested_default_plugin_e',
@@ -55,4 +50,4 @@ Plugin Example
 
         def some_method_a(self, arg_a):
             # do something
-            self.core.call_all("some_method_of_other_plugins", "arg_a", 22)
+            self.core.call_all(InterfaceA.some_method_of_other_plugins, "arg_a", 22)

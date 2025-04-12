@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,28 +16,30 @@
 import importlib
 import logging
 
-from .. import (_, PluginBase)
+from openpaperwork_core import _
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.shell import Shell
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
         ]
 
     def cmd_complete_argparse(self, parser):
-        application = self.core.call_success("config_get_plugin_list_name")
+        application = self.core.call_success(Config.config_get_plugin_list_name)
 
         config_parser = parser.add_parser(
             'plugins', help=(_("Manage %s plugins") % application)
@@ -154,9 +156,9 @@ class Plugin(PluginBase):
                     if not r:
                         return r
 
-        self.core.call_all("config_add_plugin", plugin_name)
+        self.core.call_all(Config.config_add_plugin, plugin_name)
         if save:
-            self.core.call_all("config_save")
+            self.core.call_all(Config.config_save)
         console.print(_("Plugin {} added").format(plugin_name))
         return True
 
@@ -191,22 +193,22 @@ class Plugin(PluginBase):
                         )
                         break
 
-        self.core.call_all("config_remove_plugin", plugin_name)
+        self.core.call_all(Config.config_remove_plugin, plugin_name)
         if save:
-            self.core.call_all("config_save")
+            self.core.call_all(Config.config_save)
         console.print(_("Plugin {} removed").format(plugin_name))
         return True
 
     def _cmd_list_plugins(self, console):
-        plugins = self.core.call_success("config_list_plugins")
+        plugins = self.core.call_success(Config.config_list_plugins)
         console.print("  " + _("Active plugins:"))
         for plugin in plugins:
             console.print(plugin)
         return list(plugins)
 
     def _cmd_reset_plugins(self, console):
-        self.core.call_success("config_reset_plugins")
-        self.core.call_all("config_save")
+        self.core.call_success(Config.config_reset_plugins)
+        self.core.call_all(Config.config_save)
         console.print("Plugin list reseted")
         return True
 

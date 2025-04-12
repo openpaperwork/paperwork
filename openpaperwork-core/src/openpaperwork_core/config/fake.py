@@ -1,12 +1,8 @@
-import logging
-
-from .. import PluginBase
-
-
-LOGGER = logging.getLogger(__name__)
+import openpaperwork_core
+from openpaperwork_core.interfaces.config import Config
 
 
-class Setting(object):
+class Setting(openpaperwork_core.interfaces.config.AbstractSetting):
     def __init__(self, value, default_func):
         self.value = value
         self.default_value_func = default_func
@@ -29,22 +25,24 @@ class Setting(object):
         self.observers.remove(obs)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Config,
+):
     """
     Translate values from the configuration into more usable ones.
     Provides default values (except for plugins).
     """
     @classmethod
-    def get_interfaces(cls):
-        return ['config']
-
-    @classmethod
     def get_deps(cls):
         return []
 
-    def __init__(self, core):
+    def __init__(self, core, settings=None):
         super().__init__(core)
-        self._settings = {}
+        if settings is None:
+            self.settings = {}
+        else:
+            self.settings = settings
 
     def __get_settings(self):
         return {k: v.get() for (k, v) in self._settings.items()}
@@ -57,17 +55,20 @@ class Plugin(PluginBase):
 
     settings = property(__get_settings, __set_settings)
 
+    @openpaperwork_core.noop
     def config_load(self):
         pass
 
+    @openpaperwork_core.noop
     def config_load_plugins(self, plugin_list_name, default_plugins=[]):
         pass
 
+    @openpaperwork_core.noop
     def config_save(self):
         pass
 
-    def config_build_simple(self, section, token, default):
-        return Setting(None, default)
+    def config_build_simple(self, section, token, default_value_func):
+        return Setting(None, default_value_func)
 
     def config_register(self, key, setting):
         if key not in self._settings:  # don't smash test settings
@@ -85,6 +86,9 @@ class Plugin(PluginBase):
     def config_put(self, key, value):
         self._settings[key].put(value)
 
+    def config_list_options(self):
+        raise NotImplementedError()
+
     def config_add_plugin(self, plugin):
         raise NotImplementedError()
 
@@ -92,6 +96,12 @@ class Plugin(PluginBase):
         raise NotImplementedError()
 
     def config_list_plugins(self):
+        raise NotImplementedError()
+
+    def config_get_plugin_list_name(self):
+        raise NotImplementedError()
+
+    def config_reset_plugins(self, plugin_list_name=None):
         raise NotImplementedError()
 
     def config_add_observer(self, key: str, callback):

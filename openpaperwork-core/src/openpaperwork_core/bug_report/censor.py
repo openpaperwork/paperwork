@@ -1,33 +1,48 @@
 import logging
 
-from .. import PluginBase
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentFileUrl
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentUpdate
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentSelectionListener
+from openpaperwork_core.interfaces.censor import Censor
+from openpaperwork_core.interfaces.fs import Fs
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    BugReportAttachmentUpdate,
+    BugReportAttachmentSelectionListener,
+):
     """
     Censor bug report attachments
     """
     PRIORITY = -10000
 
     @classmethod
-    def get_interfaces(cls):
-        return ['bug_report_attachments']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'censor',
+                "interface": BugReportAttachmentFileUrl,
+                "defaults": ["openpaperwork_gtk.bug_report"],
+                "optional": True,
+            },
+            {
+                'interface': Censor,
                 'defaults': ['openpaperwork_core.censor'],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_core.fs.python"],
             },
         ]
 
     def _censor_attachment(self, attachment_id, args):
         url = self.core.call_success(
-            "bug_report_get_attachment_file_url", attachment_id, *args
+            BugReportAttachmentFileUrl.bug_report_get_attachment_file_url,
+            attachment_id, *args
         )
         if url is None:
             LOGGER.info(
@@ -42,7 +57,7 @@ class Plugin(PluginBase):
             )
             return
 
-        basename = self.core.call_success("fs_basename", url)
+        basename = self.core.call_success(Fs.fs_basename, url)
         if basename.startswith("censored_"):
             LOGGER.info("Attachmnent %s appears to be already censored", url)
             return
@@ -50,10 +65,10 @@ class Plugin(PluginBase):
         LOGGER.info("Censoring %s:%s", attachment_id, url)
 
         censored = self.core.call_success(
-            "censor_txt_file", url, tmp_on_disk=True
+            Censor.censor_txt_file, url, tmp_on_disk=True
         )
         self.core.call_all(
-            "bug_report_update_attachment", attachment_id, {
+            BugReportAttachmentUpdate.bug_report_update_attachment, attachment_id, {
                 "censored": True,
                 "file_url": censored,
             }, *args
@@ -61,6 +76,10 @@ class Plugin(PluginBase):
 
     def on_bug_report_attachment_selected(self, attachment_id, *args):
         self._censor_attachment(attachment_id, args)
+
+    @openpaperwork_core.noop
+    def on_bug_report_attachment_unselected(self, attachment_id, *args):
+        pass
 
     def bug_report_update_attachment(self, attachment_id, infos: dict, *args):
         if 'censored' in infos:

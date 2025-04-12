@@ -1,11 +1,8 @@
-from . import PluginBase
+from openpaperwork_core.interfaces.urls import Urls
+import openpaperwork_core
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['urls']
-
+class Plugin(openpaperwork_core.PluginBase, Urls):
     def url_args_join(self, *args, **kwargs):
         out = "".join(args)
         if len(kwargs) <= 0:

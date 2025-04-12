@@ -4,22 +4,23 @@ import os
 import socket
 import urllib.parse
 
-from . import PluginBase
+from openpaperwork_core.interfaces.censor import Censor
+from openpaperwork_core.interfaces.fs import Fs
+import openpaperwork_core
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['censor']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Censor,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
         ]
@@ -62,16 +63,16 @@ class Plugin(PluginBase):
           censored file URL
         """
         if output_url is not None:
-            fd_out = self.core.call_success("fs_open", output_url, 'w')
+            fd_out = self.core.call_success(Fs.fs_open, output_url, 'w')
         else:
-            basename = self.core.call_success("fs_basename", input_url)
+            basename = self.core.call_success(Fs.fs_basename, input_url)
             (output_url, fd_out) = self.core.call_success(
-                "fs_mktemp", prefix="censored_", suffix="_" + basename,
+                Fs.fs_mktemp, prefix="censored_", suffix="_" + basename,
                 mode="w", on_disk=tmp_on_disk
             )
 
         with fd_out:
-            with self.core.call_success("fs_open", input_url, 'r') as fd_in:
+            with self.core.call_success(Fs.fs_open, input_url, 'r') as fd_in:
                 while True:
                     line = fd_in.readline()
                     if line == '':

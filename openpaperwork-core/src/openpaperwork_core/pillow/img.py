@@ -3,16 +3,23 @@ import logging
 import PIL
 import PIL.Image
 
-from .. import (
-    PluginBase,
-    promise
-)
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.pillow import PillowUtil
+import openpaperwork_core
+import openpaperwork_core.promise
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Pillow,
+):
     FILE_EXTENSIONS = [
         "bmp",
         "gif",
@@ -24,30 +31,29 @@ class Plugin(PluginBase):
     ]
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'page_img_size',
-            'pillow',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python']
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                'interface': 'pillow_util',
-                'defaults': ['openpaperwork_core.pillow.util'],
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': PillowUtil,
+                'defaults': ['openpaperwork_core.pillow.util'],
             },
         ]
 
@@ -60,25 +66,25 @@ class Plugin(PluginBase):
 
         task = "url_to_img_size({})".format(file_url)
         size = (0, 0)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
         try:
-            with self.core.call_success("fs_open", file_url, mode='rb') as fd:
+            with self.core.call_success(Fs.fs_open, file_url, mode='rb') as fd:
                 img = PIL.Image.open(fd)
                 size = img.size
             return size
         except PIL.Image.DecompressionBombError as exc:
             LOGGER.warning("Image %s is too big", file_url, exc_info=exc)
             return self.core.call_success(
-                "pillow_get_error", "too_big"
+                PillowUtil.pillow_get_error, "too_big"
             ).size
         finally:
-            self.core.call_all("on_perfcheck_stop", task, size=size)
+            self.core.call_all(Perfcheck.on_perfcheck_stop, task, size=size)
 
     def url_to_img_size_promise(self, file_url):
         if not self._check_is_img(file_url):
             return None
 
-        return promise.ThreadedPromise(
+        return openpaperwork_core.promise.ThreadedPromise(
             self.core, self.url_to_img_size, args=(file_url,)
         )
 
@@ -88,29 +94,29 @@ class Plugin(PluginBase):
 
         task = "url_to_pillow({})".format(file_url)
         size = (0, 0)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
         try:
-            with self.core.call_success("fs_open", file_url, mode='rb') as fd:
+            with self.core.call_success(Fs.fs_open, file_url, mode='rb') as fd:
                 img = PIL.Image.open(fd)
                 img.load()
-                self.core.call_all("on_objref_track", img)
+                self.core.call_all(MemleakDetector.on_objref_track, img)
                 size = img.size
             return img
         except PIL.Image.DecompressionBombError as exc:
             LOGGER.warning("Image %s is too big", file_url, exc_info=exc)
             return self.core.call_success(
-                "pillow_get_error", "too_big"
+                PillowUtil.pillow_get_error, "too_big"
             )
         except Exception as exc:
             LOGGER.warning("Image %s corrupted", file_url, exc_info=exc)
             return self.core.call_success(
-                "pillow_get_error", "invalid"
+                PillowUtil.pillow_get_error, "invalid"
             )
         finally:
-            self.core.call_all("on_perfcheck_stop", task, size=size)
+            self.core.call_all(Perfcheck.on_perfcheck_stop, task, size=size)
 
     def url_to_pillow_promise(self, file_url):
-        return promise.ThreadedPromise(
+        return openpaperwork_core.promise.ThreadedPromise(
             self.core, self.url_to_pillow, args=(file_url,)
         )
 
@@ -130,7 +136,7 @@ class Plugin(PluginBase):
         if format != 'PNG':
             # drop the alpha channel if there is one
             img = img.convert("RGB")
-        with self.core.call_success("fs_open", file_url, mode='wb') as fd:
+        with self.core.call_success(Fs.fs_open, file_url, mode='wb') as fd:
             return img.save(
                 fd, format=format, optimize=True, quality=int(quality * 100)
             )

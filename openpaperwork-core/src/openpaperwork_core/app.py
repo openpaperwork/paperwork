@@ -1,14 +1,15 @@
-from . import PluginBase
+from openpaperwork_core.interfaces.app import App
+import openpaperwork_core
 
 
-class Plugin(PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    App
+):
     """
     Plugin implementing the interface 'app' just provide some very basic
     information regarding the application we are building.
     """
-    @classmethod
-    def get_interfaces(cls):
-        return ['app']
 
     def app_get_name(self):
         return "OpenPaperwork Core"

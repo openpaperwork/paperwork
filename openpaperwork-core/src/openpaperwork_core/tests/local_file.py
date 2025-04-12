@@ -4,6 +4,8 @@ import tempfile
 import time
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core
 
 
@@ -21,27 +23,27 @@ class AbstractTestSafe(unittest.TestCase):
 
     def test_relative(self):
         # make sure it's turned into an absolute path
-        v = self.core.call_one('fs_safe', 'jerome')
+        v = self.core.call_one(Fs.fs_safe, 'jerome')
         self.assertTrue(v.startswith("file:///"))
 
     def test_relative_path(self):
-        v = self.core.call_one('fs_safe', pathlib.Path('jerome'))
+        v = self.core.call_one(Fs.fs_safe, pathlib.Path('jerome'))
         self.assertTrue(v.startswith("file:///"))
 
     @unittest.skipUnless(os.name == 'posix', reason="Linux only")
     def test_linux(self):
-        v = self.core.call_one('fs_safe', '/home/flesch jerome')
+        v = self.core.call_one(Fs.fs_safe, '/home/flesch jerome')
         self.assertEqual(v, "file:///home/flesch%20jerome")
 
-        v = self.core.call_one('fs_safe', 'file:///home/flesch%20jerome')
+        v = self.core.call_one(Fs.fs_safe, 'file:///home/flesch%20jerome')
         self.assertEqual(v, "file:///home/flesch%20jerome")
 
     @unittest.skipUnless(os.name == 'nt', reason="Windows only")
     def test_windows(self):
-        v = self.core.call_one('fs_safe', 'c:\\Users\\flesch jerome')
+        v = self.core.call_one(Fs.fs_safe, 'c:\\Users\\flesch jerome')
         self.assertEqual(v, "file:///c:/Users/flesch%20jerome")
 
-        v = self.core.call_one('fs_safe', '\\\\someserver\\someshare')
+        v = self.core.call_one(Fs.fs_safe, '\\\\someserver\\someshare')
         self.assertEqual(v, "\\\\someserver\\someshare")
 
 
@@ -59,23 +61,23 @@ class AbstractTestUnsafe(unittest.TestCase):
 
     @unittest.skipUnless(os.name == 'posix', reason="Linux only")
     def test_linux(self):
-        v = self.core.call_one('fs_unsafe', 'file:///home/flesch%20jerome')
+        v = self.core.call_one(Fs.fs_unsafe, 'file:///home/flesch%20jerome')
         self.assertEqual(v, "/home/flesch jerome")
 
-        v = self.core.call_one('fs_unsafe', 'file:///home/flesch jerome')
+        v = self.core.call_one(Fs.fs_unsafe, 'file:///home/flesch jerome')
         self.assertEqual(v, "/home/flesch jerome")
 
-        v = self.core.call_one('fs_unsafe', '/home/flesch jerome')
+        v = self.core.call_one(Fs.fs_unsafe, '/home/flesch jerome')
         self.assertEqual(v, "/home/flesch jerome")
 
     @unittest.skipUnless(os.name == 'nt', reason="Windows only")
     def test_windows(self):
         v = self.core.call_success(
-            'fs_unsafe', 'file://c:\\Users\\flesch%20jerome'
+            Fs.fs_unsafe, 'file://c:\\Users\\flesch%20jerome'
         )
         self.assertEqual(v, "c:\\Users\\flesch jerome")
 
-        v = self.core.call_one('fs_safe', '\\\\someserver\\someshare')
+        v = self.core.call_one(Fs.fs_safe, '\\\\someserver\\someshare')
         self.assertEqual(v, "\\\\someserver\\someshare")
 
 
@@ -97,9 +99,9 @@ class AbstractTestOpen(unittest.TestCase):
             file_name = fd.name
             fd.write(b"content")
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
             with self.core.call_one(
-                        'fs_open', safe_file_name, mode='rb'
+                        Fs.fs_open, safe_file_name, mode='rb'
                     ) as fd:
                 content = fd.read()
                 self.assertEqual(content, b"content")
@@ -111,9 +113,9 @@ class AbstractTestOpen(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode='wb', delete=False) as fd:
             file_name = fd.name
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
             with self.core.call_one(
-                        'fs_open', safe_file_name, mode='wb'
+                        Fs.fs_open, safe_file_name, mode='wb'
                     ) as fd:
                 fd.write(b"content\n")
             with open(file_name, 'rb') as fd:
@@ -128,8 +130,8 @@ class AbstractTestOpen(unittest.TestCase):
             file_name = fd.name
             fd.write("content")
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
-            with self.core.call_one('fs_open', safe_file_name, mode='r') as fd:
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
+            with self.core.call_one(Fs.fs_open, safe_file_name, mode='r') as fd:
                 content = fd.read()
                 self.assertEqual(content, "content")
         finally:
@@ -140,8 +142,8 @@ class AbstractTestOpen(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode='w', delete=False) as fd:
             file_name = fd.name
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
-            with self.core.call_one('fs_open', safe_file_name, mode='w') as fd:
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
+            with self.core.call_one(Fs.fs_open, safe_file_name, mode='w') as fd:
                 fd.write("content\n")
             with open(file_name, 'r') as fd:
                 content = fd.read()
@@ -163,7 +165,7 @@ class AbstractTestExists(unittest.TestCase):
         self.core.init()
 
     def test_not_exist(self):
-        self.assertEqual(self.core.call_one('fs_exists', "/whatever"), None)
+        self.assertEqual(self.core.call_one(Fs.fs_exists, "/whatever"), None)
 
     def test_exists(self):
         file_name = None
@@ -171,8 +173,8 @@ class AbstractTestExists(unittest.TestCase):
             file_name = fd.name
             fd.write("content")
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
-            self.assertTrue(self.core.call_one('fs_exists', safe_file_name))
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
+            self.assertTrue(self.core.call_one(Fs.fs_exists, safe_file_name))
         finally:
             os.unlink(file_name)
 
@@ -190,7 +192,7 @@ class AbstractTestListDir(unittest.TestCase):
         self.core.init()
 
         self.dirname = tempfile.mkdtemp()
-        self.uri_dirname = self.core.call_one('fs_safe', self.dirname)
+        self.uri_dirname = self.core.call_one(Fs.fs_safe, self.dirname)
         with open(os.path.join(self.dirname, 'test1.txt'), 'w') as fd:
             fd.write('test1')
         with open(os.path.join(self.dirname, 'test2.txt'), 'w') as fd:
@@ -201,11 +203,11 @@ class AbstractTestListDir(unittest.TestCase):
 
     def tearDown(self):
         # check fs_rm_rf at the same time
-        self.core.call_one("fs_rm_rf", self.uri_dirname, trash=False)
+        self.core.call_one(Fs.fs_rm_rf, self.uri_dirname, trash=False)
         self.assertFalse(os.path.exists(self.dirname))
 
     def test_listdir(self):
-        files = list(self.core.call_one('fs_listdir', self.uri_dirname))
+        files = list(self.core.call_one(Fs.fs_listdir, self.uri_dirname))
         files.sort()
 
         self.assertEqual(files, [
@@ -215,7 +217,7 @@ class AbstractTestListDir(unittest.TestCase):
         ])
 
     def test_recurse(self):
-        files = list(self.core.call_one('fs_recurse', self.uri_dirname))
+        files = list(self.core.call_one(Fs.fs_recurse, self.uri_dirname))
         files.sort()
 
         self.assertEqual(files, [
@@ -249,13 +251,13 @@ class AbstractTestRename(unittest.TestCase):
         os.unlink(dst_file_name)
 
         try:
-            safe_src_file_name = self.core.call_one('fs_safe', src_file_name)
-            safe_dst_file_name = self.core.call_one('fs_safe', dst_file_name)
+            safe_src_file_name = self.core.call_one(Fs.fs_safe, src_file_name)
+            safe_dst_file_name = self.core.call_one(Fs.fs_safe, dst_file_name)
             self.assertTrue(os.path.exists(src_file_name))
             self.assertFalse(os.path.exists(dst_file_name))
 
             self.core.call_one(
-                'fs_rename', safe_src_file_name, safe_dst_file_name
+                Fs.fs_rename, safe_src_file_name, safe_dst_file_name
             )
             self.assertFalse(os.path.exists(src_file_name))
             self.assertTrue(os.path.exists(dst_file_name))
@@ -285,10 +287,10 @@ class AbstractTestUnlink(unittest.TestCase):
             fd.write("content")
 
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
             self.assertTrue(os.path.exists(file_name))
 
-            self.core.call_one('fs_unlink', safe_file_name, trash=False)
+            self.core.call_one(Fs.fs_unlink, safe_file_name, trash=False)
             self.assertFalse(os.path.exists(file_name))
         finally:
             if os.path.exists(file_name):
@@ -316,8 +318,8 @@ class AbstractTestGetMtime(unittest.TestCase):
             fd.write("content")
 
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
-            mtime = self.core.call_one('fs_get_mtime', safe_file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
+            mtime = self.core.call_one(Fs.fs_get_mtime, safe_file_name)
             self.assertTrue(int(now) <= mtime)
             self.assertTrue(mtime <= now + 2)
 
@@ -325,7 +327,7 @@ class AbstractTestGetMtime(unittest.TestCase):
 
             with open(file_name, 'a') as fd:
                 fd.write("content")
-            new_mtime = self.core.call_one('fs_get_mtime', safe_file_name)
+            new_mtime = self.core.call_one(Fs.fs_get_mtime, safe_file_name)
             self.assertTrue(int(now) <= new_mtime)
             self.assertTrue(mtime < new_mtime)
         finally:
@@ -351,9 +353,9 @@ class AbstractTestGetsize(unittest.TestCase):
             fd.write("content")  # 7 bytes
 
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
 
-            s = self.core.call_one('fs_getsize', safe_file_name)
+            s = self.core.call_one(Fs.fs_getsize, safe_file_name)
             self.assertEqual(s, 7)
         finally:
             os.unlink(file_name)
@@ -373,13 +375,13 @@ class AbstractTestIsdir(unittest.TestCase):
 
     def test_isdir_true(self):
         dirname = tempfile.mkdtemp()
-        uri_dirname = self.core.call_one('fs_safe', dirname)
+        uri_dirname = self.core.call_one(Fs.fs_safe, dirname)
 
         try:
-            self.assertTrue(self.core.call_one("fs_isdir", uri_dirname))
+            self.assertTrue(self.core.call_one(Fs.fs_isdir, uri_dirname))
         finally:
             # check fs_rm_rf at the same time
-            self.core.call_one("fs_rm_rf", uri_dirname, trash=False)
+            self.core.call_one(Fs.fs_rm_rf, uri_dirname, trash=False)
             self.assertFalse(os.path.exists(dirname))
 
     def test_isdir_false(self):
@@ -389,9 +391,9 @@ class AbstractTestIsdir(unittest.TestCase):
             fd.write("content")
 
         try:
-            safe_file_name = self.core.call_one('fs_safe', file_name)
+            safe_file_name = self.core.call_one(Fs.fs_safe, file_name)
 
-            self.assertFalse(self.core.call_one('fs_isdir', safe_file_name))
+            self.assertFalse(self.core.call_one(Fs.fs_isdir, safe_file_name))
         finally:
             os.unlink(file_name)
 
@@ -420,13 +422,13 @@ class AbstractTestCopy(unittest.TestCase):
         os.unlink(dst_file_name)
 
         try:
-            safe_src_file_name = self.core.call_one('fs_safe', src_file_name)
-            safe_dst_file_name = self.core.call_one('fs_safe', dst_file_name)
+            safe_src_file_name = self.core.call_one(Fs.fs_safe, src_file_name)
+            safe_dst_file_name = self.core.call_one(Fs.fs_safe, dst_file_name)
             self.assertTrue(os.path.exists(src_file_name))
             self.assertFalse(os.path.exists(dst_file_name))
 
             self.core.call_one(
-                'fs_copy', safe_src_file_name, safe_dst_file_name
+                Fs.fs_copy, safe_src_file_name, safe_dst_file_name
             )
             self.assertTrue(os.path.exists(src_file_name))
             self.assertTrue(os.path.exists(dst_file_name))
@@ -451,9 +453,9 @@ class AbstractTestCopy(unittest.TestCase):
                 fd.write("CONTENT2\n")
 
             self.core.call_success(
-                "fs_copytree",
-                self.core.call_success("fs_safe", (root / "src")),
-                self.core.call_success("fs_safe", (root / "dst")),
+                Fs.fs_copytree,
+                self.core.call_success(Fs.fs_safe, (root / "src")),
+                self.core.call_success(Fs.fs_safe, (root / "dst")),
             )
 
             with (root / "dst" / "test.txt").open() as fd:
@@ -476,16 +478,16 @@ class AbstractTestMkdirP(unittest.TestCase):
 
     def test_mkdir_p(self):
         dirname = tempfile.mkdtemp()
-        uri_dirname = self.core.call_one('fs_safe', dirname)
+        uri_dirname = self.core.call_one(Fs.fs_safe, dirname)
         try:
             new_dirs = uri_dirname + "/testA/testB/testC"
-            self.core.call_one("fs_mkdir_p", new_dirs)
+            self.core.call_one(Fs.fs_mkdir_p, new_dirs)
             self.assertTrue(os.path.exists(os.path.join(
                 dirname, "testA", "testB", "testC"
             )))
         finally:
             # check fs_rm_rf at the same time
-            self.core.call_one("fs_rm_rf", uri_dirname, trash=False)
+            self.core.call_one(Fs.fs_rm_rf, uri_dirname, trash=False)
             self.assertFalse(os.path.exists(dirname))
 
 
@@ -502,11 +504,11 @@ class AbstractTestBasename(unittest.TestCase):
         self.core.init()
 
     def test_basename(self):
-        out = self.core.call_success("fs_basename", "file:///a/b/c.txt")
+        out = self.core.call_success(Fs.fs_basename, "file:///a/b/c.txt")
         self.assertEqual(out, "c.txt")
-        out = self.core.call_success("fs_basename", "file:///c.txt")
+        out = self.core.call_success(Fs.fs_basename, "file:///c.txt")
         self.assertEqual(out, "c.txt")
-        out = self.core.call_success("fs_basename", "memory://camion.txt")
+        out = self.core.call_success(Fs.fs_basename, "memory://camion.txt")
         self.assertEqual(out, "camion.txt")
 
 
@@ -524,19 +526,19 @@ class AbstractTestTemp(unittest.TestCase):
 
     def test_mktemp(self):
         (tmp_url, tmp_fd) = self.core.call_success(
-            "fs_mktemp", prefix="test", suffix=".txt", mode="w"
+            Fs.fs_mktemp, prefix="test", suffix=".txt", mode="w"
         )
         with tmp_fd:
             tmp_fd.write("TEST\n")
 
         self.assertNotEqual(
-            self.core.call_success("fs_exists", tmp_url), None
+            self.core.call_success(Fs.fs_exists, tmp_url), None
         )
 
-        self.core.call_all("on_quit")
+        self.core.call_all(QuitListener.on_quit)
 
         self.assertEqual(
-            self.core.call_success("fs_exists", tmp_url), None
+            self.core.call_success(Fs.fs_exists, tmp_url), None
         )
 
 
@@ -553,5 +555,5 @@ class AbstractTestResolve(unittest.TestCase):
         self.core.init()
 
     def test_resolve(self):
-        uri = self.core.call_success("fs_resolve", "file:///var/www/../../etc/passwd")
+        uri = self.core.call_success(Fs.fs_resolve, "file:///var/www/../../etc/passwd")
         self.assertEqual(uri, "file:///etc/passwd")

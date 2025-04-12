@@ -9,7 +9,11 @@ Useful for:
 
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gesture import AutoscrollingGesture
 import openpaperwork_gtk.deps
 
 
@@ -34,7 +38,7 @@ if GI_AVAILABLE:
 LOGGER = logging.getLogger(__name__)
 
 
-class AutoScrollingHandler(object):
+class AutoScrollingHandler:
     def __init__(self, core, scrollview):
         self.core = core
         self.refcount = 0
@@ -94,7 +98,7 @@ class AutoScrollingHandler(object):
         vval = min(vval, vadj.get_upper())
         vadj.set_value(vval)
 
-        self.core.call_one("mainloop_schedule", self._on_tick, delay_s=0.1)
+        self.core.call_one(Mainloop.mainloop_schedule, self._on_tick, delay_s=0.1)
 
     def _on_button_press(self, scrollview, event):
         if event.button != 2:
@@ -103,7 +107,7 @@ class AutoScrollingHandler(object):
         self.mouse_start_position = (event.x_root, event.y_root)
         self.mouse_position = (event.x_root, event.y_root)
         if self.refcount <= 0:
-            self.core.call_one("mainloop_schedule", self._on_tick, delay_s=0.1)
+            self.core.call_one(Mainloop.mainloop_schedule, self._on_tick, delay_s=0.1)
         self.refcount += 1
         self.scrollview.get_window().set_cursor(self.cursors['active'])
 
@@ -120,17 +124,19 @@ class AutoScrollingHandler(object):
         self.mouse_position = (event.x_root, event.y_root)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_gesture_autoscrolling',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AutoscrollingGesture,
+    Chkdeps,
+):
     @classmethod
     def get_deps(cls):
-        return []
+        return [
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+        ]
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:

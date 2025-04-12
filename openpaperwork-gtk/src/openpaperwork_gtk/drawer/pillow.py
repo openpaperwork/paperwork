@@ -6,17 +6,20 @@ import logging
 
 import openpaperwork_core
 
+from openpaperwork_gtk.interfaces.pillow import Pillow2Cairo
+from openpaperwork_gtk.interfaces.pillow import PillowDrawer
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Drawer(object):
+class Drawer:
     BACKGROUND = (0.75, 0.75, 0.75)
 
     def __init__(self, core, drawing_area, pil_img):
         self.core = core
         self.drawing_area = drawing_area  # expected: Gtk.DrawingArea
-        self.img = core.call_success("pillow_to_surface", pil_img)
+        self.img = core.call_success(Pillow2Cairo.pillow_to_surface, pil_img)
         self.draw_connect_id = drawing_area.connect("draw", self.on_draw)
 
     def stop(self):
@@ -59,18 +62,15 @@ class Drawer(object):
             cairo_ctx.restore()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_drawer_pillow',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PillowDrawer,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'pillow_to_surface',
+                'interface': Pillow2Cairo,
                 'defaults': ['paperwork_backend.cairo.pillow'],
             },
         ]
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     core.load("openpaperwork_core.work_queue.default")
     core.load("paperwork_backend.cairo.pillow")
     core.load("openpaperwork_core.pillow.img")
-    core._load_module("test", sys.modules[__name__])
+    core.load("test", sys.modules[__name__])
     core.init()
 
     window = Gtk.Window()
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     drawing_area = Gtk.DrawingArea()
     window.add(drawing_area)
 
-    core.call_success("draw_pillow_start", drawing_area, img)
+    core.call_success(PillowDrawer.draw_pillow_start, drawing_area, img)
 
     window.show_all()
 

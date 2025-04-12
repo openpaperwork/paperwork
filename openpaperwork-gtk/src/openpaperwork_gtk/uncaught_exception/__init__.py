@@ -8,38 +8,35 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 import openpaperwork_core
 
-
-from .. import deps
+from openpaperwork_gtk import deps
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_uncaught_exception',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkWindowListener,
+    UncaughtExceptionListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_bug_report_dialog',
+                'interface': GtkBugReportDisplay,
                 'defaults': ['openpaperwork_gtk.bug_report'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': 'uncaught_exception',
-                'defaults': ['openpaperwork_core.uncaught_exception'],
             },
         ]
 
@@ -81,7 +78,7 @@ class Plugin(openpaperwork_core.PluginBase):
         content = repr(exc_info[1])
 
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "openpaperwork_gtk.uncaught_exception",
+            GtkResources.gtk_load_widget_tree, "openpaperwork_gtk.uncaught_exception",
             "uncaught_exception.glade"
         )
         if widget_tree is None:
@@ -107,4 +104,4 @@ class Plugin(openpaperwork_core.PluginBase):
         if response_id != Gtk.ResponseType.ACCEPT:
             return
 
-        self.core.call_all("open_bug_report")
+        self.core.call_all(GtkBugReportDisplay.open_bug_report)

@@ -3,8 +3,14 @@ import math
 import threading
 import time
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.widgets import GtkProgressWidget
 
 try:
     import gi
@@ -25,7 +31,7 @@ TIME_BETWEEN_UPDATES = 0.3
 STAY_ALIVES = int(2.0 / TIME_BETWEEN_UPDATES)
 
 
-class ProgressWidget(object):
+class ProgressWidget:
     def __init__(self, core):
         self.core = core
         self.widget = None
@@ -44,7 +50,7 @@ class ProgressWidget(object):
         self.stay_alives = STAY_ALIVES
 
         self.button_widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.widgets.progress",
             "progress_button.glade"
         )
@@ -53,7 +59,7 @@ class ProgressWidget(object):
             LOGGER.error("Failed to load widget tree")
             return
         self.details_widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.widgets.progress",
             "progress_popover.glade"
         )
@@ -77,7 +83,7 @@ class ProgressWidget(object):
         button = self.button_widget_tree.get_object("progress_button")
         button.get_style_context().add_class("progress_button_needs_attention")
         self.core.call_success(
-            "mainloop_schedule",
+            Mainloop.mainloop_schedule,
             button.get_style_context().remove_class,
             "progress_button_needs_attention",
             delay_s=NEEDS_ATTENTION_TIMEOUT
@@ -88,7 +94,7 @@ class ProgressWidget(object):
         while self.thread is not None:
             time.sleep(TIME_BETWEEN_UPDATES)
             self.core.call_one(
-                "mainloop_execute", self._upd_progress_widgets
+                Mainloop.mainloop_execute, self._upd_progress_widgets
             )
 
     def _upd_progress_widgets(self):
@@ -144,7 +150,7 @@ class ProgressWidget(object):
                 upd_type, len(self.progress_widget_trees)
             )
             widget_tree = self.core.call_success(
-                "gtk_load_widget_tree",
+                GtkResources.gtk_load_widget_tree,
                 "openpaperwork_gtk.widgets.progress",
                 "progress_details.glade"
             )
@@ -216,24 +222,21 @@ class ProgressWidget(object):
         cairo_ctx.fill()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_progress_widget',
-            'progress_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkProgressWidget,
+    ProgressListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
         ]
@@ -242,7 +245,7 @@ class Plugin(openpaperwork_core.PluginBase):
         super().__init__(core)
         self.widgets = []
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "openpaperwork_gtk.widgets.progress", "progress.css"
         )
 
@@ -250,7 +253,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GDK_AVAILABLE:
             out['gdk'].update(openpaperwork_core.deps.GDK)
 
-    def gtk_progress_make_widget(self):
+    def make_widget(self):
         widget = ProgressWidget(self.core)
         if widget.widget is not None:
             # gtk may not be available

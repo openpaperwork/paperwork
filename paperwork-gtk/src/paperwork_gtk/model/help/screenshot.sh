@@ -37,7 +37,7 @@ paperwork-cli config put workdir str "file://${WORKDIR}"
 paperwork-cli sync
 
 echo "Making screenshots ..."
-paperwork-gtk plugins add openpaperwork_core.interactive
+paperwork-gtk plugins add openpaperwork_gtk.interactive
 
 paperwork-gtk << EOF
 wait()

@@ -1,31 +1,32 @@
 import datetime
 
+from openpaperwork_core.interfaces.i18n import I18n
 import openpaperwork_core
 
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.widgets import GtkCalendarWidget
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_calendar_popover',
-        ]
 
+class Plugin(
+    openpaperwork_core.PluginBase,
+    GtkCalendarWidget,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
         ]
 
-    def gtk_calendar_add_popover(self, gtk_entry):
+    def add_popover(self, gtk_entry):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.widgets.calendar", "calendar.glade"
         )
         widget_tree.get_object("calendar_popover").set_relative_to(
@@ -42,7 +43,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def _open_calendar(
             self, gtk_entry, icon_pos, event, widget_tree):
         date = self.core.call_success(
-            "i18n_parse_date_short", gtk_entry.get_text()
+            I18n.i18n_parse_date_short, gtk_entry.get_text()
         )
         if date is None:
             return
@@ -57,6 +58,6 @@ class Plugin(openpaperwork_core.PluginBase):
     def _update_date(self, gtk_calendar, gtk_entry, widget_tree):
         date = widget_tree.get_object("calendar_calendar").get_date()
         date = datetime.datetime(year=date[0], month=date[1] + 1, day=date[2])
-        date = self.core.call_success("i18n_date_short", date)
+        date = self.core.call_success(I18n.i18n_date_short, date)
         gtk_entry.set_text(date)
         widget_tree.get_object("calendar_popover").set_visible(False)

@@ -8,15 +8,25 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.dialogs import GtkYesNoDialog
+from openpaperwork_gtk.interfaces.dialogs import GtkYesNoDialogListener
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk.deps
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkWindowListener,
+    GtkYesNoDialog,
+):
     """
     Provides a simple way to show a Yes/No question popup (usually something
     along the line of "are you really really really sure you want to do
@@ -24,11 +34,13 @@ class Plugin(openpaperwork_core.PluginBase):
     """
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_dialog_yes_no',
-            'gtk_window_listener',
+    def get_deps(cls):
+        return openpaperwork_core.promise.get_deps() + [
+            {
+                "interface": GtkYesNoDialogListener,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def __init__(self, core):
@@ -66,10 +78,10 @@ class Plugin(openpaperwork_core.PluginBase):
             LOGGER.info("User cancelled")
             dialog.destroy()
             self.core.call_all(
-                "on_dialog_yes_no_reply", origin, False, *args, **kwargs
+                GtkYesNoDialogListener.on_dialog_yes_no_reply, origin, False, *args, **kwargs
             )
             return
         dialog.destroy()
         self.core.call_all(
-            "on_dialog_yes_no_reply", origin, True, *args, **kwargs
+            GtkYesNoDialogListener.on_dialog_yes_no_reply, origin, True, *args, **kwargs
         )

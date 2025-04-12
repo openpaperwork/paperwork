@@ -15,6 +15,8 @@ from openpaperwork_core.interfaces.progress import ProgressListener
 from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core
 
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+
 
 class HistoryConsole(code.InteractiveConsole):
     def __init__(
@@ -59,9 +61,12 @@ class ProxyCore:
 
 class Plugin(
     openpaperwork_core.PluginBase,
+    GtkWindowListener,
     ProgressListener,
     QuitListener,
 ):
+    UNRESTRICTED = True
+
     @classmethod
     def get_deps(cls):
         return [
@@ -114,6 +119,25 @@ class Plugin(
             "wait": self._wait,
         }, histfile=self.core.call_success(Fs.fs_unsafe, histfile))
         threading.Thread(target=self._interact, args=(console,)).start()
+
+    def on_gtk_window_opened(self, window):
+        with self.progress_condition:
+            if window.get_window() is not None:
+                return
+
+            self.nb_windows_to_realize += 1
+            realize_handler_id = None
+
+            def on_realize():
+                self.nb_windows_to_realize -= 1
+                window.disconnect(realize_handler_id)
+                self.progress_condition.notify_all()
+
+            realize_handler_id = window.connect("realize", on_realize)
+
+    @openpaperwork_core.noop
+    def on_gtk_window_closed(self, window):
+        pass
 
     def _interact(self, console):
         console.interact()

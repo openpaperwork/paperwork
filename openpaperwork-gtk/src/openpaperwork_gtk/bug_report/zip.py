@@ -10,33 +10,40 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 
-from .. import (_, deps)
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportBuilder
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk import (_, deps)
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkBugReportBuilder,
+):
     PRIORITY = -100
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'bug_report_method',
-            'chkdeps',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": GtkBugReportDisplay,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
@@ -51,10 +58,10 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GTK_AVAILABLE:
             out['gtk'].update(deps.GTK)
 
-    def bug_report_complete(self, *args):
+    def build_gtk_bug_report(self, *args):
         url = "https://gitlab.gnome.org/World/OpenPaperwork/paperwork/issues"
         self.core.call_all(
-            "bug_report_add_method",
+            GtkBugReportDisplay.bug_report_add_method,
             _("ZIP file"),
             re.sub(
                 '[ \t]+', ' ',
@@ -73,7 +80,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _enable_zip(self, bug_report_widget_tree):
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.bug_report", "bug_report_zip.glade"
         )
 
@@ -114,12 +121,12 @@ class Plugin(openpaperwork_core.PluginBase):
             out_file_url += ".zip"
         LOGGER.info("Adding attachments to %s", out_file_url)
 
-        out_file_path = self.core.call_success("fs_unsafe", out_file_url)
+        out_file_path = self.core.call_success(Fs.fs_unsafe, out_file_url)
         with zipfile.ZipFile(out_file_path, 'w') as out_zip:
             for in_file_url in in_file_urls:
-                file_name = self.core.call_success("fs_basename", in_file_url)
+                file_name = self.core.call_success(Fs.fs_basename, in_file_url)
                 with self.core.call_success(
-                        "fs_open", in_file_url, "rb") as in_fd:
+                        Fs.fs_open, in_file_url, "rb") as in_fd:
                     with out_zip.open(file_name, 'w') as out_fd:
                         out_fd.write(in_fd.read())
 

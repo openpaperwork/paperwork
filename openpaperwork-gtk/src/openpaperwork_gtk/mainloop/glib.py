@@ -9,7 +9,10 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
-
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.mainloop import MainloopListener
+from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.util
@@ -18,9 +21,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    Mainloop,
+    metaclass=openpaperwork_core.util.Singleton
+):
     """
     A main loop based on GLib's mainloop.
     See `openpaperwork_core.mainloop.asyncio` for doc.
@@ -29,10 +34,18 @@ class Plugin(
     PRIORITY = 1000
 
     @classmethod
-    def get_interfaces(cls):
+    def get_deps(cls):
         return [
-            "chkdeps",
-            "mainloop",
+            {
+                "interface": MainloopListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": UncaughtExceptionListener,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def __init__(self, core):
@@ -63,7 +76,7 @@ class Plugin(
 
         self.loop_ident = threading.current_thread().ident
 
-        self.mainloop_schedule(self.core.call_all, "on_mainloop_start")
+        self.mainloop_schedule(self.core.call_all, MainloopListener.on_mainloop_start)
 
         try:
             self.loop.run()
@@ -73,7 +86,7 @@ class Plugin(
         finally:
             self.loop_ident = None
 
-        self.core.call_all("on_mainloop_quit")
+        self.core.call_all(MainloopListener.on_mainloop_quit)
 
         if self.halt_cause is not None:
             halt_cause = self.halt_cause
@@ -88,6 +101,7 @@ class Plugin(
         return self.loop_ident
 
     def mainloop_quit_graceful(self):
+        self.core.call_all(MainloopListener.on_mainloop_quit_graceful_request)
         self.mainloop_schedule(self._mainloop_quit_graceful)
         return True
 
@@ -163,8 +177,10 @@ class Plugin(
                         func, exc_info=exc
                     )
                 self.core.call_all(
-                    "mainloop_schedule",
-                    self.core.call_all, "on_uncaught_exception", exc_info
+                    Mainloop.mainloop_schedule,
+                    self.core.call_all,
+                    UncaughtExceptionListener.on_uncaught_exception,
+                    exc_info
                 )
             finally:
                 with self.lock:

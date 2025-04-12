@@ -1,31 +1,50 @@
 import datetime
 import logging
 
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachment
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentFileUrl
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentSelectionListener
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentUpdate
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.i18n import I18n
 import openpaperwork_core
-import openpaperwork_core.deps
 
-from .. import _
+from openpaperwork_gtk import _
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportBuilder
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    BugReportAttachmentUpdate,
+    BugReportAttachmentFileUrl,
+    GtkBugReportDisplay,
+    GtkWindowListener,
+    ScreenshotProvider,
+):
     PRIORITY = -100
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_bug_report_dialog',
-            'gtk_window_listener',
-            'screenshot_provider',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'external_apps',
+                "interface": BugReportAttachment,
+                "defaults": [],
+            },
+            {
+                "interface": BugReportAttachmentSelectionListener,
+                "defaults": [],
+            },
+            {
+                'interface': ExternalApps,
                 'defaults': [
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
@@ -33,19 +52,28 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'fs',
+                "interface": GtkWindowListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": GtkBugReportBuilder,
+                "defaults": [],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -67,11 +95,11 @@ class Plugin(openpaperwork_core.PluginBase):
     def _shorten_url(self, url):
         if "://" not in url:
             return url
-        dir_path = self.core.call_success("fs_dirname", url)
-        dir_name = self.core.call_success("fs_basename", dir_path)
+        dir_path = self.core.call_success(Fs.fs_dirname, url)
+        dir_name = self.core.call_success(Fs.fs_basename, dir_path)
         if dir_name is None or dir_name == "":
             return url
-        file_name = self.core.call_success("fs_basename", url)
+        file_name = self.core.call_success(Fs.fs_basename, url)
         return dir_name + "/" + file_name
 
     def _format_date(self, date):
@@ -102,19 +130,19 @@ class Plugin(openpaperwork_core.PluginBase):
     def _i18n_file_size(self, file_size):
         if isinstance(file_size, str) or file_size <= 0:
             return ""
-        return self.core.call_success("i18n_file_size", file_size)
+        return self.core.call_success(I18n.i18n_file_size, file_size)
 
     def open_bug_report(self):
         self.method_radio = None
         self.url_selected = None
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.bug_report", "bug_report.glade"
         )
         dialog = self.widget_tree.get_object("bug_report_dialog")
 
-        self.core.call_all("bug_report_complete", self.widget_tree)
+        self.core.call_all(GtkBugReportBuilder.build_gtk_bug_report, self.widget_tree)
 
         self.widget_tree.get_object("bug_report_toggle_renderer").connect(
             "toggled", self._on_attachment_toggle, self.widget_tree
@@ -130,7 +158,7 @@ class Plugin(openpaperwork_core.PluginBase):
         model.clear()
 
         inputs = {}
-        self.core.call_all("bug_report_get_attachments", inputs)
+        self.core.call_all(BugReportAttachment.bug_report_get_attachments, inputs)
         now = datetime.datetime.now()
         for (k, v) in inputs.items():
             v['id'] = k
@@ -162,7 +190,8 @@ class Plugin(openpaperwork_core.PluginBase):
             if not i['include_by_default']:
                 continue
             self.core.call_all(
-                "on_bug_report_attachment_selected", i['id'], self.widget_tree
+                BugReportAttachmentSelectionListener.on_bug_report_attachment_selected,
+                i['id'], self.widget_tree
             )
 
         if len(self.windows) > 0:
@@ -172,7 +201,7 @@ class Plugin(openpaperwork_core.PluginBase):
         dialog.connect("prepare", self._on_prepare, self.widget_tree)
 
         dialog.set_visible(True)
-        self.core.call_all("on_gtk_window_opened", dialog)
+        self.core.call_all(GtkWindowListener.on_gtk_window_opened, dialog)
         self._refresh_attachment_page_complete(self.widget_tree)
 
     def close_bug_report(self):
@@ -185,12 +214,12 @@ class Plugin(openpaperwork_core.PluginBase):
         model[row_path][0] = val
         if val:
             self.core.call_all(
-                "on_bug_report_attachment_selected",
+                BugReportAttachmentSelectionListener.on_bug_report_attachment_selected,
                 model[row_path][-1], widget_tree
             )
         else:
             self.core.call_all(
-                "on_bug_report_attachment_unselected",
+                BugReportAttachmentSelectionListener.on_bug_report_attachment_unselected,
                 model[row_path][-1], widget_tree
             )
 
@@ -213,7 +242,7 @@ class Plugin(openpaperwork_core.PluginBase):
         button.set_sensitive("://" in self.url_selected)
 
     def _open_selected(self, button):
-        self.core.call_success("external_app_open_file", self.url_selected)
+        self.core.call_success(ExternalApps.external_app_open_file, self.url_selected)
 
     def bug_report_update_attachment(
             self, attachment_id, infos: dict, widget_tree):
@@ -248,14 +277,14 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _on_close(self, dialog):
         dialog.set_visible(False)
-        self.core.call_all("on_gtk_window_closed", dialog)
+        self.core.call_all(GtkWindowListener.on_gtk_window_closed, dialog)
 
     def bug_report_add_method(
             self, title, description,
             enable_callback, disable_callback,
             widget_tree):
         widget_tree_method = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.bug_report", "bug_report_method.glade"
         )
         widget_tree_method.get_object("bug_report_method_title").set_text(
@@ -295,13 +324,13 @@ class Plugin(openpaperwork_core.PluginBase):
     def _set_file_urls(self, widget_tree):
         model = widget_tree.get_object("bug_report_model")
         file_urls = [row[4] for row in model if row[0]]
-        self.core.call_all("bug_report_set_file_urls_to_send", file_urls)
+        self.core.call_all(GtkBugReportBuilder.bug_report_set_file_urls_to_send, file_urls)
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
         if self.widget_tree is None:
             return
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("bug_report_dialog"),
-            self.core.call_success("fs_join", out_dir, "bug_report.png")
+            self.core.call_success(Fs.fs_join, out_dir, "bug_report.png")
         )

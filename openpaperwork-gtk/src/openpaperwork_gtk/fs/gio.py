@@ -11,6 +11,8 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core.deps
 import openpaperwork_core.fs
 
@@ -117,6 +119,7 @@ class _GioFileAdapter(io.RawIOBase):
     def tell(self):
         return self.gin.tell()
 
+    @openpaperwork_core.noop
     def flush(self):
         pass
 
@@ -254,12 +257,12 @@ class _GioUTF8FileAdapter(io.RawIOBase):
         self.close()
 
 
-class Plugin(openpaperwork_core.fs.CommonFsPluginBase):
+class Plugin(
+    openpaperwork_core.fs.CommonFsPluginBase,
+    Chkdeps,
+    QuitListener,
+):
     PRIORITY = 50
-
-    @classmethod
-    def get_interfaces(cls):
-        return super().get_interfaces() + ['chkdeps']
 
     def __init__(self, core):
         super().__init__(core)

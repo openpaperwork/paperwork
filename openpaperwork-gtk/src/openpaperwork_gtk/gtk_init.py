@@ -22,30 +22,53 @@ if GI_AVAILABLE:
         pass
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps  # noqa: E402
+from openpaperwork_core.interfaces.config import Config  # noqa: E402
+from openpaperwork_core.interfaces.gui import GuiListener  # noqa: E402
+from openpaperwork_core.interfaces.mainloop import Mainloop  # noqa: E402
+from openpaperwork_core.interfaces.quit import QuitListener  # noqa: E402
 import openpaperwork_core  # noqa: E402
 import openpaperwork_core.deps  # noqa: E402
 import openpaperwork_core.util  # noqa: E402
 
-from . import deps  # noqa: E402
+from openpaperwork_gtk import deps  # noqa: E402
+from openpaperwork_gtk.interfaces.gtk import GtkApp  # noqa: E402
+from openpaperwork_gtk.interfaces.gtk import GtkInit  # noqa: E402
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_init',
-        ]
-
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkApp,
+    GtkInit,
+    QuitListener,
+    metaclass=openpaperwork_core.util.Singleton,
+):
     @classmethod
     def get_deps(cls):
-        return []
+        return [
+            {
+                "interface": Config,
+                "defaults": ["openpaperwork_core.config"],
+            },
+            {
+                "interface": GuiListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                "interface": QuitListener,
+                "defaults": [],
+                "optional": True,
+            },
+        ]
 
     def __init__(self, core):
         super().__init__(core)
@@ -88,16 +111,16 @@ class Plugin(
     def _on_activate(self, _app):
         if not self.activated:
             self.activated = True
-            self.core.call_all("on_gtk_initialized")
+            self.core.call_all(GuiListener.on_gui_initialized)
 
             LOGGER.info("Ready")
-            self.core.call_one("mainloop", halt_on_uncaught_exception=False)
+            self.core.call_one(Mainloop.mainloop, halt_on_uncaught_exception=False)
             LOGGER.info("Quitting")
-            self.core.call_all("config_save")
-            self.core.call_all("on_quit")
+            self.core.call_all(Config.config_save)
+            self.core.call_all(QuitListener.on_quit)
         else:
             # a second instance was activated, we are the main one
-            self.core.call_all("mainwindow_present")
+            self.core.call_all(GuiListener.new_mainwindow)
 
     # called when paperwork is launched with files to import as argument.
     # when a second instance of paperwork is run, this is called in the main

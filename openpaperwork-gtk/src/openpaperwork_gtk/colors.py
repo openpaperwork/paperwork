@@ -6,19 +6,18 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 
-from . import deps
+from openpaperwork_gtk import deps
+from openpaperwork_gtk.interfaces.colors import GtkColors
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_colors',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkColors,
+):
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
             out['gtk'].update(deps.GTK)

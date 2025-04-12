@@ -4,8 +4,12 @@ import math
 import random
 import statistics
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.widgets import GtkChartLines
 import openpaperwork_gtk.deps
 
 from openpaperwork_gtk import _
@@ -46,7 +50,7 @@ LOGGER = logging.getLogger(__name__)
 SUM_COLOR = (0, 0, 0)
 
 
-class Schema(object):
+class Schema:
     def __init__(
             self,
             column_value_id_idx,
@@ -65,7 +69,7 @@ class Schema(object):
         self.highlight_x_range = highlight_x_range
 
 
-class ColorGenerator(object):
+class ColorGenerator:
     def __init__(self):
         self.colors = []
         self.color_idx = -1
@@ -84,7 +88,7 @@ class ColorGenerator(object):
         return self.colors[self.color_idx]
 
 
-class DrawContext(object):
+class DrawContext:
     """
     Custom drawing context around cairo context, so we can change
     the scale without changing the line width.
@@ -224,7 +228,7 @@ class DrawContextScaled(DrawContext):
         self.ctx.rectangle(x * self.x, y * self.y, w * self.x, h * self.y)
 
 
-class Point(object):
+class Point:
     RADIUS = 2
     LABEL_LINE_HEIGHT = 14
 
@@ -371,7 +375,7 @@ class Point(object):
         return draw_ctx.distance(self.x, widget_size[1] - self.y, x, y)
 
 
-class Line(object):
+class Line:
     LEGEND_CIRCLE_RADIUS = 8
     LEGEND_LINE_HEIGHT = 16
     LEGEND_SPACING = 8
@@ -487,7 +491,7 @@ class Line(object):
         ), default=None)
 
 
-class Lines(object):
+class Lines:
     HIGHLIGHT_COLOR = (0.5, 0.5, 0.5, 0.5)
 
     def __init__(self, schema, liststore, color_generator):
@@ -615,7 +619,7 @@ class Lines(object):
         ), default=None)
 
 
-class ChartDrawer(object):
+class ChartDrawer:
     MARGIN = 5
 
     def __init__(self, core, schema, liststore, color_generator):
@@ -718,13 +722,14 @@ class ChartDrawer(object):
             widget.set_size_request(-1, y + self.MARGIN)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkChartLines,
+):
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_charts_lines',
-        ]
+    def get_deps(cls):
+        return openpaperwork_core.promise.get_deps()
 
     def __init__(self, core):
         super().__init__(core)
@@ -797,7 +802,7 @@ if __name__ == "__main__":
     core.init()
 
     chart_lines = core.call_success(
-        "gtk_charts_lines_get", model,
+        GtkChartLines.gtk_charts_lines_get, model,
         column_value_id_idx=0,
         column_line_id_idx=1,
         column_axis_x_values_idx=2,

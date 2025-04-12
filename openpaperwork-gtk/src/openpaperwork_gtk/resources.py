@@ -47,32 +47,38 @@ if GI_AVAILABLE:
         LOGGER.error("Failed to load Handy", exc_info=exc)
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps  # noqa: E402
+from openpaperwork_core.interfaces.fs import Fs  # noqa: E402
+from openpaperwork_core.interfaces.l10n import L10nInit  # noqa: E402
+from openpaperwork_core.interfaces.resources import Resources  # noqa: E402
 import openpaperwork_core  # noqa: E402
 import openpaperwork_core.deps  # noqa: E402
 
-from . import deps  # noqa: E402
+from openpaperwork_gtk import deps  # noqa: E402
+from openpaperwork_gtk.interfaces.gtk import GtkResources  # noqa: E402
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_resources'
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkResources,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'l10n_init',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': L10nInit,
                 'defaults': [
                     'openpaperwork_core.l10n.python',
                     'openpaperwork_gtk.l10n',
                 ],
             },
             {
-                'interface': 'resources',
+                'interface': Resources,
                 'defaults': ['openpaperwork_core.resources.setuptools'],
             },
         ]
@@ -165,11 +171,11 @@ class Plugin(openpaperwork_core.PluginBase):
         if k not in self.cache:
             try:
                 file_path_ctx = self.core.call_success(
-                    "resources_get_file", pkg, filename
+                    Resources.resources_get_file, pkg, filename
                 )
                 with file_path_ctx as file_path:
-                    file_url = self.core.call_success("fs_safe", file_path)
-                    with self.core.call_success("fs_open", file_url, 'r') as fd:
+                    file_url = self.core.call_success(Fs.fs_safe, file_path)
+                    with self.core.call_success(Fs.fs_open, file_url, 'r') as fd:
                         xml = fd.read()
                 if os.name == "nt":
                     # WORKAROUND(Jflesch):
@@ -214,11 +220,11 @@ class Plugin(openpaperwork_core.PluginBase):
         if k not in self.cache:
             try:
                 file_path_ctx = self.core.call_success(
-                    "resources_get_file", pkg, filename
+                    Resources.resources_get_file, pkg, filename
                 )
                 with file_path_ctx as file_path:
-                    file_url = self.core.call_success("fs_safe", file_path)
-                    with self.core.call_success("fs_open", file_url, 'rb') as fd:
+                    file_url = self.core.call_success(Fs.fs_safe, file_path)
+                    with self.core.call_success(Fs.fs_open, file_url, 'rb') as fd:
                         self.cache[k] = fd.read()
             except Exception:
                 LOGGER.error("Failed to load CSS file %s:%s", pkg, filename)
@@ -249,7 +255,7 @@ class Plugin(openpaperwork_core.PluginBase):
         return True
 
     def gtk_load_pixbuf(self, pkg, filename):
-        file_path_ctx = self.core.call_success("resources_get_file", pkg, filename)
+        file_path_ctx = self.core.call_success(Resources.resources_get_file, pkg, filename)
         if file_path_ctx is None:
             return None
         with file_path_ctx as file_path:

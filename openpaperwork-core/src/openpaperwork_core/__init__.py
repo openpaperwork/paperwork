@@ -113,9 +113,9 @@ class PluginBase:
     # Plugins with higher priorities will have their callbacks called first.
     PRIORITY = 0
 
-    # Convenience for the applications: Indicates if users should be able
-    # to enable/disable this plugin in the UI.
-    USER_VISIBLE = False
+    # If set to True, plugin can call any methods of any interfaces.
+    # Should always be set to False.
+    UNRESTRICTED = False
 
     def __init__(self, core: Core):
         """
@@ -472,8 +472,12 @@ class _PluginRepository:
 
         LOGGER.info("Initializing '%s' ...", module)
 
-        core_proxy = _CoreProxy(self.core, module)
-        self.core_proxies.append(core_proxy)
+        if module.module.Plugin.UNRESTRICTED:
+            LOGGER.warning("Plugin '%s' is unrestricted.", module)
+            core_proxy = self.core
+        else:
+            core_proxy = _CoreProxy(self.core, module)
+            self.core_proxies.append(core_proxy)
 
         plugin = module.module.Plugin(core_proxy, **module.plugin_kwargs)
         self.module_to_plugin[module] = plugin

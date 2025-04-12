@@ -6,6 +6,8 @@ try:
 except ImportError:
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.external_apps import ExternalApps
 import openpaperwork_core
 import openpaperwork_core.deps
 
@@ -13,15 +15,12 @@ import openpaperwork_core.deps
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    ExternalApps,
+):
     PRIORITY = 75
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'external_apps',
-        ]
 
     @classmethod
     def get_deps(cls):
@@ -40,3 +39,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def external_app_open_folder(self, folder_url):
         return self.external_app_open_file(folder_url)
+
+    @openpaperwork_core.noop
+    def external_app_can_send_as_attachment(self) -> None:
+        pass
+
+    @openpaperwork_core.noop
+    def external_app_send_as_attachment(self, uri) -> None:
+        pass

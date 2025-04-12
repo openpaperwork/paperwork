@@ -3,9 +3,15 @@ import sys
 import threading
 import time
 
+from openpaperwork_core.interfaces.gui import GuiListener
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.mainloop import MainloopListener
+from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.util
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
 
 
 # TODO(Jflesch): refactor with openpaperwork_gtk.widgets.progress
@@ -31,7 +37,7 @@ class ProgressDialog:
         self.progress_widget_trees = {}
 
         self.dialog_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.wait_for_background_tasks",
             "wait_for_background_tasks.glade"
         )
@@ -56,7 +62,7 @@ class ProgressDialog:
         while self.thread is not None:
             time.sleep(TIME_BETWEEN_UPDATES)
             self.core.call_one(
-                "mainloop_execute", self._upd_progress_widgets
+                Mainloop.mainloop_execute, self._upd_progress_widgets
             )
 
     def _upd_progress_widgets(self):
@@ -107,7 +113,7 @@ class ProgressDialog:
             # reuse the progress widgets from
             # openpaperwork_gtk.widgets.progress
             widget_tree = self.core.call_success(
-                "gtk_load_widget_tree",
+                GtkResources.gtk_load_widget_tree,
                 "openpaperwork_gtk.widgets.progress",
                 "progress_details.glade"
             )
@@ -130,24 +136,21 @@ class ProgressDialog:
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'progress_listener',
-        ]
-
+    openpaperwork_core.PluginBase,
+    GuiListener,
+    MainloopListener,
+    ProgressListener,
+    metaclass=openpaperwork_core.util.Singleton
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
         ]
@@ -159,16 +162,28 @@ class Plugin(
         self.lock = threading.Lock()
         self.nb_main_windows = 0
 
-    def on_gtk_initialized(self):
+    def on_gui_initialized(self):
         self.nb_main_windows += 1
+
+    @openpaperwork_core.noop
+    def new_mainwindow(self):
+        pass
 
     def _mainloop_quit_graceful(self):
         self.dialog = ProgressDialog(self)
 
-    def mainloop_quit_graceful(self):
+    @openpaperwork_core.noop
+    def on_mainloop_start(self):
+        pass
+
+    def on_mainloop_quit_graceful_request(self):
         self.nb_main_windows -= 1
         if self.nb_main_windows <= 0:
-            self.core.call_one("mainloop_execute", self._mainloop_quit_graceful)
+            self.core.call_one(Mainloop.mainloop_execute, self._mainloop_quit_graceful)
+
+    @openpaperwork_core.noop
+    def on_mainloop_quit(self):
+        pass
 
     def on_progress(self, upd_type, progress, description=None):
         with self.lock:

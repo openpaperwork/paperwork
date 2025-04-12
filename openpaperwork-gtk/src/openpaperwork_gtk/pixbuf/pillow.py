@@ -19,31 +19,29 @@ except (ValueError, ImportError):
     GDK_PIXBUF_AVAILABLE = False
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
 
-from .. import deps
+from openpaperwork_gtk import deps
+from openpaperwork_gtk.interfaces.pixbuf import PixbufPillow
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'pixbuf_pillow',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    PixbufPillow,
+):
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
             out['glib'].update(openpaperwork_core.deps.GLIB)
         if not GDK_PIXBUF_AVAILABLE:
             out['gdk_pixbuf'].update(deps.GDK_PIXBUF)
 
-    @staticmethod
-    def pixbuf_to_pillow(pixbuf):
+    def pixbuf_to_pillow(self, pixbuf):
         (width, height) = (pixbuf.get_width(), pixbuf.get_height())
         pixels = pixbuf.get_pixels()
         colors = "RGB"

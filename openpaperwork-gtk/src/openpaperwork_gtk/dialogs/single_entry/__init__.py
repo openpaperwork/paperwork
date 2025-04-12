@@ -8,27 +8,30 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_gtk.deps
+
+from openpaperwork_gtk.interfaces.dialogs import GtkSingleEntryDialog
+from openpaperwork_gtk.interfaces.dialogs import GtkSingleEntryDialogListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_dialog_single_entry',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkSingleEntryDialog,
+    GtkWindowListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
@@ -50,7 +53,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def gtk_show_dialog_single_entry(
             self, origin, title, original_value, *args, **kwargs):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.dialogs.single_entry", "single_entry.glade"
         )
         widget_tree.get_object("entry").set_text(original_value)
@@ -80,7 +83,7 @@ class Plugin(openpaperwork_core.PluginBase):
         else:
             r = True
         self.core.call_all(
-            "on_dialog_single_entry_reply",
+            GtkSingleEntryDialogListener.on_dialog_single_entry_reply,
             origin, r, new_value,
             *args, **kwargs
         )

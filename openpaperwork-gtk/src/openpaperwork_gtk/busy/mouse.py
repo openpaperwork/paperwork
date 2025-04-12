@@ -1,11 +1,9 @@
 import logging
 
-import openpaperwork_core
-import openpaperwork_core.deps
-
 
 GI_AVAILABLE = False
 GDK_AVAILABLE = False
+
 
 try:
     import gi
@@ -22,27 +20,25 @@ if GI_AVAILABLE:
         pass
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps  # noqa E402
+import openpaperwork_core  # noqa E402
+import openpaperwork_core.deps  # noqa E402
+
+from openpaperwork_gtk.interfaces.activity import ActivityListener  # noqa E402
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener  # noqa E402
+from openpaperwork_gtk.interfaces.widgets import WidgetActivity  # noqa E402
+
+
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'busy',
-            'chkdeps',
-            'gtk_window_listener',
-        ]
-
-    @classmethod
-    def get_deps(cls):
-        return [
-            {
-                'interface': 'gtk_mainwindow',
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ActivityListener,
+    Chkdeps,
+    GtkWindowListener,
+    WidgetActivity,
+):
     def __init__(self, core):
         super().__init__(core)
         self.refcount = 0

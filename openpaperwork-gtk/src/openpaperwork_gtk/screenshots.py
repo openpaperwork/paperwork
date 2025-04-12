@@ -7,10 +7,21 @@ try:
 except (ImportError, ValueError):
     CAIRO_AVAILABLE = False
 
+from openpaperwork_core.interfaces.archives import FileArchives
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachment
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentSelectionListener
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.uncaught_exception_listener import UncaughtExceptionListener
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.promise
 
-from . import _
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotListener
+from openpaperwork_gtk import _
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,34 +30,37 @@ MAX_DAYS = 31
 MAX_UNCAUGHT_EXCEPTION_SCREENSHOTS = 5
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'bug_report_attachments',
-            'chkdeps',
-            'gtk_window_listener',
-            'uncaught_exception_listener',
-            'screenshot',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    BugReportAttachment,
+    BugReportAttachmentSelectionListener,
+    Chkdeps,
+    GtkWindowListener,
+    Screenshot,
+    UncaughtExceptionListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'file_archives',
+                'interface': FileArchives,
                 'defaults': ['openpaperwork_core.archives'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': [
                     'openpaperwork_core.fs.memory',
                     'openpaperwork_core.fs.python',
                 ],
             },
             {
-                'interface': 'uncaught_exception',
-                'defaults': ['openpaperwork_core.uncaught_exception'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                "interface": ScreenshotListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -55,7 +69,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.windows = []
         self.nb_uncaught = 0
         self.archiver = self.core.call_success(
-            "file_archive_get", storage_name="screenshots",
+            FileArchives.file_archive_get, storage_name="screenshots",
             file_extension="png"
         )
 
@@ -102,26 +116,26 @@ class Plugin(openpaperwork_core.PluginBase):
     def screenshot_snap_all_promise(self, temporary=True, name="screenshots"):
         if temporary:
             (file_url, fd) = self.core.call_success(
-                "fs_mktemp", prefix="{}_".format(name), suffix=".png",
+                Fs.fs_mktemp, prefix="{}_".format(name), suffix=".png",
                 mode="wb", on_disk=True
             )
         else:
             file_url = self.archiver.get_new(name=name)
-            fd = self.core.call_success("fs_open", file_url, mode='wb')
+            fd = self.core.call_success(Fs.fs_open, file_url, mode='wb')
 
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_screenshot_before",)
+            self.core, self.core.call_all, args=(ScreenshotListener.on_screenshot_before,)
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_one, "mainloop_execute",
+            self.core.call_one, Mainloop.mainloop_execute,
             self._snap_screenshot, fd
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.catch(lambda *args, **kwargs: fd.close())
         promise = promise.then(fd.close)
         promise = promise.then(lambda *args, **kwargs: None)
-        promise = promise.then(self.core.call_all, "on_screenshot_after")
+        promise = promise.then(self.core.call_all, ScreenshotListener.on_screenshot_after)
         promise = promise.then(lambda *args, **kwargs: None)
 
         return (file_url, promise)
@@ -232,7 +246,7 @@ class Plugin(openpaperwork_core.PluginBase):
         cairo_ctx.set_source_surface(win_surface)
         cairo_ctx.paint()
 
-        with self.core.call_success("fs_open", out_file_url, "wb") as fd:
+        with self.core.call_success(Fs.fs_open, out_file_url, "wb") as fd:
             surface.write_to_png(fd)
         return True
 
@@ -255,7 +269,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 'include_by_default': False,
                 'file_type': _("App. screenshots"),
                 'file_url': file_url,
-                'file_size': self.core.call_success("fs_getsize", file_url),
+                'file_size': self.core.call_success(Fs.fs_getsize, file_url),
             }
 
         out['screenshot_now'] = {
@@ -270,7 +284,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.core.call_all(
             "bug_report_update_attachment", "screenshot_now", {
                 "file_url": file_url,
-                "file_size": self.core.call_success("fs_getsize", file_url),
+                "file_size": self.core.call_success(Fs.fs_getsize, file_url),
             }, *args
         )
 
@@ -280,3 +294,7 @@ class Plugin(openpaperwork_core.PluginBase):
         (file_url, promise) = self.screenshot_snap_all_promise(temporary=True)
         promise = promise.then(self._update_attachment, file_url, *args)
         promise.schedule()
+
+    @openpaperwork_core.noop
+    def on_bug_report_attachment_unselected(self, attachment_id, *args):
+        pass

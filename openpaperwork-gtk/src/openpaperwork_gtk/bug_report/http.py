@@ -8,10 +8,19 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.http_json import HttpJson
+from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from .. import (_, deps)
+from openpaperwork_gtk.interfaces.activity import ActivityListener
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportBuilder
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk import (_, deps)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +29,7 @@ PATH_MAKE_BUG_REPORT = "/beacon/bug_report/create"
 PATH_ADD_ATTACHMENT = "/beacon/bug_report/add_attachment"
 
 
-class Sender(object):
+class Sender:
     def __init__(self, core, http, progress, description, file_urls):
         self.core = core
         self.http = http
@@ -41,7 +50,7 @@ class Sender(object):
         else:
             txt = _("Sending bug report attachment ...")
         self.core.call_all(
-            "on_progress", "bug_report_http",
+            ProgressListener.on_progress, "bug_report_http",
             self.current_step / self.nb_steps, txt
         )
         self.progress.set_fraction(self.current_step / self.nb_steps)
@@ -60,9 +69,9 @@ class Sender(object):
         return data
 
     def _file_to_http(self, file_url):
-        with self.core.call_success("fs_open", file_url, "rb") as fd:
+        with self.core.call_success(Fs.fs_open, file_url, "rb") as fd:
             data = {
-                "file_name": self.core.call_success("fs_basename", file_url),
+                "file_name": self.core.call_success(Fs.fs_basename, file_url),
                 "binary": fd.read()
             }
         data.update(self.infos)
@@ -76,8 +85,8 @@ class Sender(object):
         )
 
         promise = promise.then(lambda *args, **kwargs: {
-            "app_name": self.core.call_success("app_get_name"),
-            "app_version": self.core.call_success("app_get_version"),
+            "app_name": self.core.call_success(App.app_get_name),
+            "app_version": self.core.call_success(App.app_get_version),
         })
         promise = promise.then(self.http.get_request_promise(
             PATH_MAKE_BUG_REPORT
@@ -106,34 +115,46 @@ class Sender(object):
         return self.infos['url']
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkBugReportBuilder,
+):
     PRIORITY = 100
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'bug_report_method',
-            'chkdeps',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'app',
+                "interface": ActivityListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': App,
                 'defaults': [],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                "interface": GtkBugReportDisplay,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'http_json',
+                'interface': HttpJson,
                 'defaults': ['openpaperwork_core.http.client'],
             },
             {
-                'interface': 'mainloop',
-                'defaults': ['openpaperwork_core.mainloop.asyncio'],
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -146,16 +167,16 @@ class Plugin(openpaperwork_core.PluginBase):
         self.prepare_handler_id = None
         self.description = None
         self.http = self.core.call_success(
-            "http_json_get_client", "bug_report"
+            HttpJson.http_json_get_client, "bug_report"
         )
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
             out['gtk'].update(deps.GTK)
 
-    def bug_report_complete(self, *args):
+    def build_gtk_bug_report(self, *args):
         self.core.call_all(
-            "bug_report_add_method",
+            GtkBugReportDisplay.bug_report_add_method,
             _("Send automatically"),
             _("Send the bug report automatically to OpenPaper.work"),
             self._enable_http, self._disable_http,
@@ -164,7 +185,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _enable_http(self, bug_report_widget_tree):
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "openpaperwork_gtk.bug_report", "bug_report_http.glade"
         )
 
@@ -234,7 +255,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _send(self):
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         sender = Sender(
             self.core, self.http, self.progress,
@@ -246,7 +267,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise.schedule()
 
     def _show_result(self, sender):
-        self.core.call_all("on_idle")
+        self.core.call_all(ActivityListener.on_idle)
 
         if self.widget_tree is None:
             return
@@ -265,7 +286,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
     def _on_error(self, exc):
-        self.core.call_all("on_idle")
+        self.core.call_all(ActivityListener.on_idle)
 
         if self.widget_tree is None:
             return
@@ -280,4 +301,4 @@ class Plugin(openpaperwork_core.PluginBase):
 
         self.progress.set_fraction(1.0)
         self.progress.set_text(_("FAILED"))
-        self.core.call_all("on_progress", "bug_report_http", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "bug_report_http", 1.0)

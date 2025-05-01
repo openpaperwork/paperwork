@@ -2,13 +2,14 @@ import logging
 
 import openpaperwork_core
 
-from . import BaseDocViewController
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Scroller(object):
+class Scroller:
     def __init__(self, controller, widget):
         self.controller = controller
         self.widget = widget
@@ -34,8 +35,8 @@ class Scroller(object):
 
 
 class ScrollPageLockedController(BaseDocViewController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.last_upper = -1
         self.last_value = -1
 
@@ -84,12 +85,12 @@ class ScrollPageLockedController(BaseDocViewController):
         if adj.get_value() == self.last_value:
             return
         self.last_value = adj.get_value()
-        self.plugin.docview_switch_controller('scroll', ScrollFreeController)
+        self.plugin.docview_switch_controller(self.core, 'scroll', ScrollFreeController)
 
 
 class ScrollFreeController(BaseDocViewController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.scroll_proportion = None
 
     def _upd_proportion(self):
@@ -101,7 +102,7 @@ class ScrollFreeController(BaseDocViewController):
 
     def doc_goto_page(self, page_idx):
         self.plugin.docview_switch_controller(
-            'scroll', ScrollPageLockedController
+            self.core, 'scroll', ScrollPageLockedController
         )
 
     def _on_vscroll(self, adj):
@@ -126,19 +127,9 @@ class ScrollFreeController(BaseDocViewController):
         self._on_vscroll(adj)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_docview_controller']
-
-    @classmethod
-    def get_deps(cls):
-        return [
-            {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+):
     def gtk_docview_get_controllers(self, out: dict, docview):
-        out['scroll'] = ScrollPageLockedController(docview)
+        out['scroll'] = ScrollPageLockedController(self.core, docview)

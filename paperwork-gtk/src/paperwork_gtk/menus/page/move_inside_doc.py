@@ -6,37 +6,31 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
 
-from ... import _
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_viewer import PageMenu
+from paperwork_gtk.interfaces.doc_viewer import PageMenuListener
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "page_move_inside_doc"
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    PageMenuListener,
+):
     PRIORITY = 910
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'menu',
-            'menu_page',
-            'menu_page_move_inside_text',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'action_page_move_inside_doc',
-                'defaults': ['paperwork_gtk.actions.page.move_inside_doc'],
-            },
-            {
-                'interface': 'page_actions',
+                'interface': PageMenu,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageinfo.actions'
                 ],
@@ -52,5 +46,5 @@ class Plugin(openpaperwork_core.PluginBase):
             _("Another position"), "win." + ACTION_NAME
         )
         self.core.call_all(
-            "page_menu_append_item", item, submenu_name=_("Move page to")
+            PageMenu.page_menu_append_item, item, submenu_name=_("Move page to")
         )

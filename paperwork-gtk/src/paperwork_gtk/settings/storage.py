@@ -8,48 +8,70 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.work_queue import WorkQueue
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 import openpaperwork_core.deps
-import openpaperwork_gtk.deps
 
-from .. import _
+import openpaperwork_gtk.deps
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.settings_dialog import SettingsDialog
+from paperwork_gtk.interfaces.settings_dialog import SettingsDialogComponent
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkWindowListener,
+    SettingsDialogComponent,
+):
     PRIORITY = 10000000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_settings',
-            'gtk_window_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
-                'defaults': ['openpaperwork_core.config'],
+                "interface": Config,
+                "defaults": ["openpaperwork_core.config"],
             },
             {
-                'interface': 'document_storage',
+                "interface": DocOpener,
+                "defaults": [],
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'fs',
+                "interface": DocTransactionManager,
+                "defaults": [],
+            },
+            {
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'work_queue',
+                "interface": SettingsDialog,
+                "defaults": ["paperwork_gtk.settings"],
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -57,7 +79,8 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         self.windows = []
-        self.workdir = self.core.call_success("config_get", "workdir")
+        self.workdir = self.core.call_success(Config.config_get, "workdir")
+        self.core.call_all(Config.config_add_observer, "workdir", self._on_workdir_changed)
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
@@ -71,7 +94,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _show_workdir_info(self, *args, **kwargs):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.settings", "storage.glade"
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings", "storage.glade"
         )
         dialog = widget_tree.get_object("workdir_info_dialog")
         dialog.set_transient_for(self.windows[-1])
@@ -85,11 +108,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def complete_settings(self, global_widget_tree):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.settings", "storage.glade"
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings", "storage.glade"
         )
 
         workdir_button = widget_tree.get_object("work_dir_chooser_button")
-        basename = self.core.call_success("fs_basename", self.workdir)
+        basename = self.core.call_success(Fs.fs_basename, self.workdir)
         workdir_button.set_label(basename)
         workdir_button.connect("clicked", self._on_button_clicked, widget_tree)
 
@@ -97,7 +120,7 @@ class Plugin(openpaperwork_core.PluginBase):
         workdir_info_button.connect("clicked", self._show_workdir_info)
 
         self.core.call_success(
-            "add_setting_to_dialog", global_widget_tree, _("Storage"),
+            SettingsDialog.add_setting_to_dialog, global_widget_tree, _("Storage"),
             [widget_tree.get_object("workdir")],
             extra_widget=workdir_info_button,
         )
@@ -114,8 +137,8 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         dialog.set_modal(True)
         dialog.set_local_only(False)
-        workdir = self.core.call_success("config_get", "workdir")
-        if self.core.call_success("fs_exists", workdir):
+        workdir = self.core.call_success(Config.config_get, "workdir")
+        if self.core.call_success(Fs.fs_exists, workdir):
             dialog.set_uri(workdir)
         dialog.connect("response", self._on_file_dialog_response, widget_tree)
         dialog.show_all()
@@ -133,22 +156,22 @@ class Plugin(openpaperwork_core.PluginBase):
         dialog.set_visible(False)
 
         LOGGER.info("Setting work directory to %s", workdir)
-        self.core.call_all("config_put", "workdir", workdir)
+        self.core.call_all(Config.config_put, "workdir", workdir)
 
         # Bug report 170: Make sure the current document (in the old work
         # directory) is closed so the user cannot use it by accident anymore
-        self.core.call_all("doc_close")
+        self.core.call_all(DocOpener.doc_close)
 
-        basename = self.core.call_success("fs_basename", workdir)
+        basename = self.core.call_success(Fs.fs_basename, workdir)
         widget_tree.get_object("work_dir_chooser_button").set_label(basename)
 
         # Basic check of work directory content to avoid common mistake.
         # We do not prevent the user from selecting the folder. We just
         # warn them.
-        workdir_content = self.core.call_success("fs_listdir", workdir)
+        workdir_content = self.core.call_success(Fs.fs_listdir, workdir)
         show_info_dialog = False
         for file_url in workdir_content:
-            file_name = self.core.call_success("fs_basename", file_url)
+            file_name = self.core.call_success(Fs.fs_basename, file_url)
             if file_name[0] == ".":
                 continue
             if "." in file_name:
@@ -163,11 +186,15 @@ class Plugin(openpaperwork_core.PluginBase):
         if show_info_dialog:
             self._show_workdir_info()
 
-    def config_save(self):
-        workdir = self.core.call_success("config_get", "workdir")
+    def _on_workdir_changed(self):
+        workdir = self.core.call_success(Config.config_get, "workdir")
 
         if workdir != self.workdir:
             LOGGER.info("Work directory has been changed --> Synchronizing")
-            self.core.call_all("transaction_sync_all")
+            self.core.call_all(DocTransactionManager.transaction_sync_all)
 
         self.workdir = workdir
+
+    @openpaperwork_core.noop
+    def on_settings_closed(self, settings_dialog_widget_tree):
+        pass

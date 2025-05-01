@@ -1,40 +1,36 @@
 import logging
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from ... import _
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.scan import Scan
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerSetting
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(openpaperwork_core.PluginBase, GtkSettingsScannerSetting):
     RECOMMENDED = 300
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_scanner_setting',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_settings_scanner',
-                'defaults': ['paperwork_gtk.settings.scanner.settings'],
-            },
-            {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
@@ -43,7 +39,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self, global_widget_tree, parent_widget_tree,
             list_scanner_promise):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.settings.scanner",
             "popover.glade"
         )
@@ -54,14 +50,14 @@ class Plugin(openpaperwork_core.PluginBase):
         # GtkMenuButton --> we have to play with set_popover()
 
         def reset_popover():
-            dev_id = self.core.call_success("config_get", "scanner_dev_id")
+            dev_id = self.core.call_success(Config.config_get, "scanner_dev_id")
             parent_widget_tree.get_object("scanner_resolution").set_popover(
                 selector if dev_id is not None and dev_id != "" else None
             )
 
         reset_popover()
         self.core.call_all(
-            "config_add_observer", "scanner_dev_id", reset_popover
+            Config.config_add_observer, "scanner_dev_id", reset_popover
         )
 
         selector.connect("show", self._on_show, widget_tree)
@@ -77,18 +73,18 @@ class Plugin(openpaperwork_core.PluginBase):
         for child in box.get_children():
             box.remove(child)
 
-        dev_id = self.core.call_success("config_get", "scanner_dev_id")
+        dev_id = self.core.call_success(Config.config_get, "scanner_dev_id")
         if dev_id is None:
             # TODO(Jflesch): better display
             self._display_resolutions([], widget_tree)
             return
-        promise = self.core.call_success("scan_get_scanner_promise", dev_id)
+        promise = self.core.call_success(Scan.scan_get_scanner_promise, dev_id)
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, self._collect_resolutions
         ))
         promise = promise.then(self._display_resolutions, widget_tree)
         promise = promise.catch(self._on_error, widget_tree)
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
 
     def _collect_resolutions(self, dev):
         resolutions = set()
@@ -117,7 +113,7 @@ class Plugin(openpaperwork_core.PluginBase):
         radios = []
         for resolution in resolutions:
             radio = self.core.call_success(
-                "gtk_load_widget_tree", "paperwork_gtk.settings.scanner",
+                GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings.scanner",
                 "popover_box.glade"
             )
             radio = radio.get_object("radio")
@@ -131,7 +127,7 @@ class Plugin(openpaperwork_core.PluginBase):
         for (resolution, radio) in radios[1:]:
             radio.join_group(radios[0][1])
 
-        active = self.core.call_success("config_get", "scanner_resolution")
+        active = self.core.call_success(Config.config_get, "scanner_resolution")
         for (resolution, radio) in radios:
             if active == resolution:
                 radio.set_active(True)
@@ -144,7 +140,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def _on_toggle(self, checkbox, widget_tree, resolution):
         LOGGER.info("Selected resolution: %d", resolution)
         widget_tree.get_object("selector").popdown()
-        self.core.call_success("config_put", "scanner_resolution", resolution)
+        self.core.call_success(Config.config_put, "scanner_resolution", resolution)
 
     def _on_error(self, exc, widget_tree):
         LOGGER.error("Fail to get scanner resolutions", exc_info=exc)

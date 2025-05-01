@@ -9,40 +9,66 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.activity import ActivityListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk.deps
 
+from paperwork_backend.interfaces.cairo import Url2Cairo
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.export import ExportPipes
 import paperwork_backend.docexport
 
-from ... import _
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_viewer import PageViewerListener
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.notifications import Notifications
+from paperwork_gtk.interfaces.zoom import Zoom
+
+from paperwork_gtk.interfaces.exporter import GtkExporter
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_open',
-            'gtk_exporter',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    PageViewerListener,
+    GtkExporter,
+    GtkWindowListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'cairo_url',
+                "interface": ActivityListener,
+                "defaults": [],
+            },
+            {
+                "interface": Config,
+                "defaults": ["openpaperwork_core.config"],
+            },
+            {
+                'interface': Url2Cairo,
                 'defaults': [
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
             },
             {
-                'interface': 'export_pipes',
+                'interface': ExportPipes,
                 'defaults': [
                     'paperwork_backend.docexport.img',
                     'paperwork_backend.docexport.pdf',
@@ -50,38 +76,42 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'gtk_mainwindow',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                'interface': MainWindow,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_zoomable',
+                'interface': Zoom,
                 'defaults': ['paperwork_gtk.gesture.zoom'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'notifications',
+                'interface': Notifications,
                 'defaults': [
                     'paperwork_gtk.notifications.dialog',
                     'paperwork_gtk.notifications.notify',
                 ],
             },
             {
-                'interface': 'work_queue',
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
             {
-                'interface': 'external_apps',
+                'interface': ExternalApps,
                 'defaults': [
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
@@ -125,13 +155,13 @@ class Plugin(openpaperwork_core.PluginBase):
         self.tmp_file_url = None
 
         opt = self.core.call_success(
-            "config_build_simple", "GUI", "last_export_uri",
+            Config.config_build_simple, "GUI", "last_export_uri",
             lambda: None
         )
-        self.core.call_all("config_register", "last_export_uri", opt)
+        self.core.call_all(Config.config_register, "last_export_uri", opt)
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.exporter", "exporter.glade"
         )
         if self.widget_tree is None:
@@ -153,7 +183,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "clicked", self._on_send_email
         )
         can_send_as_attachment = core.call_success(
-            "external_app_can_send_as_attachment"
+            ExternalApps.external_app_can_send_as_attachment
         )
         if not can_send_as_attachment:
             self.button_send_email.set_visible(False)
@@ -170,18 +200,18 @@ class Plugin(openpaperwork_core.PluginBase):
         self.preview.connect("draw", self._on_draw)
 
         self.core.call_all(
-            "on_zoomable_widget_new",
+            Zoom.on_zoomable_widget_new,
             self.widget_tree.get_object("exporter_scroll"),
             self.zoom
         )
 
         self.core.call_all(
-            "mainwindow_add", "right", "exporter", prio=0,
+            MainWindow.mainwindow_add, "right", "exporter", prio=0,
             header=self.widget_tree.get_object("exporter_header"),
             body=self.widget_tree.get_object("exporter_body")
         )
 
-        self.core.call_success("work_queue_create", "exporter")
+        self.core.call_success(WorkQueue.work_queue_create, "exporter")
 
         self.combobox_page_format = self.widget_tree.get_object(
             "exporter_page_format"
@@ -231,11 +261,11 @@ class Plugin(openpaperwork_core.PluginBase):
         pipes = []
         if input_type == paperwork_backend.docexport.ExportDataType.DOCUMENT:
             self.core.call_all(
-                "export_get_pipes_by_doc_urls",
+                ExportPipes.export_get_pipes_by_doc_urls,
                 pipes, self.export_input_doc_urls
             )
         else:
-            self.core.call_all("export_get_pipes_by_input", pipes, input_type)
+            self.core.call_all(ExportPipes.export_get_pipes_by_input, pipes, input_type)
         pipeline = {p.name for p in self.pipeline}
         if active_pipe in pipeline:
             pipeline.remove(active_pipe)
@@ -280,7 +310,7 @@ class Plugin(openpaperwork_core.PluginBase):
         possible_alternative_pipes.sort(key=lambda p: str(p))
 
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.exporter", "pipe.glade"
         )
         combobox = widget_tree.get_object("exporter_pipe")
@@ -341,7 +371,7 @@ class Plugin(openpaperwork_core.PluginBase):
             pipe = combobox.get_model()[pipe][1]
             if pipe == "":
                 return
-            pipe = self.core.call_success("export_get_pipe_by_name", pipe)
+            pipe = self.core.call_success(ExportPipes.export_get_pipe_by_name, pipe)
             if len(self.pipeline) > 0:
                 if self.pipeline[-1].output_type != pipe.input_type:
                     LOGGER.warning(
@@ -355,7 +385,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _hide_preview(self):
         if self.tmp_file_url is not None:
-            self.core.call_success("fs_unlink", self.tmp_file_url, trash=False)
+            self.core.call_success(Fs.fs_unlink, self.tmp_file_url, trash=False)
             self.tmp_file_url = None
         if self.renderer is not None:
             self.renderer.close()
@@ -393,7 +423,7 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Preview: %s", tmp_file_url)
         self.tmp_file_url = tmp_file_url
         self.renderer = self.core.call_success(
-            "cairo_renderer_by_url", "exporter", tmp_file_url
+            Url2Cairo.cairo_renderer_by_url, "exporter", tmp_file_url
         )
         self.renderer.zoom = self.zoom.get_value()
         self.renderer.connect("size_obtained", self._on_size_obtained)
@@ -403,7 +433,7 @@ class Plugin(openpaperwork_core.PluginBase):
         return tmp_file_url
 
     def _show_estimated_size(self, tmp_file_url):
-        preview_size = self.core.call_success("fs_getsize", tmp_file_url)
+        preview_size = self.core.call_success(Fs.fs_getsize, tmp_file_url)
         factors = (
             p.get_estimated_size_factor(self.export_input)
             for p in self.pipeline
@@ -415,7 +445,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "Preview size: %d ; Estimated final size: %d",
             preview_size, final_size
         )
-        final_size = self.core.call_success("i18n_file_size", final_size)
+        final_size = self.core.call_success(I18n.i18n_file_size, final_size)
         label_txt = _("Estimated file size: %s") % (final_size)
         label = self.widget_tree.get_object("exporter_estimated_size")
         label.set_text(label_txt)
@@ -425,7 +455,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def _get_pipe_plug(self):
         if self.pipeline[-1].output_type == 'pages':
             return self.core.call_success(
-                "export_get_pipe_by_name", "png"
+                ExportPipes.export_get_pipe_by_name, "png"
             )
         return None
 
@@ -465,7 +495,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
     def _reload_preview(self):
-        self.core.call_all("work_queue_cancel_all", "exporter")
+        self.core.call_all(WorkQueue.work_queue_cancel_all, "exporter")
 
         promise = openpaperwork_core.promise.Promise(
             self.core, self._hide_preview
@@ -473,7 +503,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         if len(self.pipeline) <= 0:
             self.core.call_success(
-                "work_queue_add_promise", "exporter", promise
+                WorkQueue.work_queue_add_promise, "exporter", promise
             )
             return
 
@@ -520,11 +550,11 @@ class Plugin(openpaperwork_core.PluginBase):
                 pipeline[-1].output_type
             )
             self.core.call_success(
-                "work_queue_add_promise", "exporter", promise
+                WorkQueue.work_queue_add_promise, "exporter", promise
             )
             return
 
-        promise = promise.then(self.core.call_all, "on_busy")
+        promise = promise.then(self.core.call_all, ActivityListener.on_busy)
         promise = promise.then(lambda *args, **kwargs: ref_input)
         for pipe in pipeline:
             promise = promise.then(pipe.get_promise(result='preview'))
@@ -534,8 +564,8 @@ class Plugin(openpaperwork_core.PluginBase):
         if pipe_plug is None:
             promise = promise.then(self._show_estimated_size)
         promise = promise.then(lambda *args, **kwargs: None)
-        promise = promise.then(self.core.call_all, "on_idle")
-        self.core.call_success("work_queue_add_promise", "exporter", promise)
+        promise = promise.then(self.core.call_all, ActivityListener.on_idle)
+        self.core.call_success(WorkQueue.work_queue_add_promise, "exporter", promise)
 
     def _gtk_open_exporter(self):
         self.pipeline = []
@@ -546,7 +576,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self._set_quality()
         self._set_page_format()
         self._reload_preview()
-        self.core.call_all("mainwindow_show", "right", "exporter")
+        self.core.call_all(MainWindow.mainwindow_show, "right", "exporter")
 
     def gtk_open_exporter(self, doc_id, doc_url, page_idx=None):
         ref_page_idx = 0
@@ -579,8 +609,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.export_input_doc_urls = [doc_url]
         self._gtk_open_exporter()
 
-    def gtk_open_exporter_multiple_docs(
-            self, docs, ref_doc_id, ref_doc_url, ref_page_idx):
+    def gtk_open_exporter_multiple_docs(self, docs, ref_doc_id, ref_doc_url, ref_page_idx):
         self.ref_input_page = (
             paperwork_backend.docexport.ExportData.build_page(
                 ref_doc_id, ref_doc_url, ref_page_idx
@@ -626,14 +655,14 @@ class Plugin(openpaperwork_core.PluginBase):
         self._expand_pipeline()
         # WORKAROUND(JFlesch): call this method using mainloop_schedule.
         # Otherwise, in Flatpak, with Gnome 40, it crashes.
-        self.core.call_one("mainloop_schedule", self._refresh_pipeline_ui)
+        self.core.call_one(Mainloop.mainloop_schedule, self._refresh_pipeline_ui)
         self._set_quality()
         self._set_page_format()
         self._reload_preview()
 
     def _on_cancel(self, button):
         LOGGER.info("Export canceled")
-        self.core.call_all("mainwindow_back", side="right")
+        self.core.call_all(MainWindow.mainwindow_back, side="right")
 
     def _on_apply(self, button):
         LOGGER.info("Export settings defined. Opening file chooser dialog")
@@ -660,7 +689,7 @@ class Plugin(openpaperwork_core.PluginBase):
         dialog.set_filter(file_filter)
 
         last_export_uri = self.core.call_success(
-            "config_get", "last_export_uri"
+            Config.config_get, "last_export_uri"
         )
         if last_export_uri is not None:
             # this filename does not exist, but the parent directory
@@ -681,7 +710,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         selected = dialog.get_uris()[0]
-        self.core.call_all("mainwindow_back", side="right")
+        self.core.call_all(MainWindow.mainwindow_back, side="right")
 
         # make sure the file extension is set
         (mime, file_extensions) = self.pipeline[-1].get_output_mime()
@@ -691,7 +720,7 @@ class Plugin(openpaperwork_core.PluginBase):
         else:
             selected += "." + file_extensions[0]
 
-        self.core.call_all("config_put", "last_export_uri", selected)
+        self.core.call_all(Config.config_put, "last_export_uri", selected)
 
         promise = openpaperwork_core.promise.Promise(
             self.core, lambda: self.export_input
@@ -711,10 +740,10 @@ class Plugin(openpaperwork_core.PluginBase):
     def _on_send_email(self, button):
         (_, file_extensions) = self.pipeline[-1].get_output_mime()
         (target_file_url, fd) = self.core.call_success(
-            "fs_mktemp", suffix="." + file_extensions[0], on_disk=True
+            Fs.fs_mktemp, suffix="." + file_extensions[0], on_disk=True
         )
         fd.close()  # we only need the name
-        self.core.call_all("mainwindow_back", side="right")
+        self.core.call_all(MainWindow.mainwindow_back, side="right")
 
         promise = openpaperwork_core.promise.Promise(
             self.core, lambda: self.export_input
@@ -724,7 +753,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 result='final', target_file_url=target_file_url
             ))
         promise = promise.then(lambda *args, **kwargs: self.core.call_success(
-            "external_app_send_as_attachment", target_file_url
+            ExternalApps.external_app_send_as_attachment, target_file_url
         ))
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.catch(self._on_error)
@@ -735,9 +764,21 @@ class Plugin(openpaperwork_core.PluginBase):
     def _on_error(self, exc):
         LOGGER.error("Export failed", exc_info=exc)
         notif = self.core.call_success(
-            "get_notification_builder",
+            Notifications.get_notification_builder,
             _("Export has failed"),
         )
         notif.set_message(f"Export has failed: {type(exc)} {exc}")
         notif.set_icon("dialog-error")
         notif.show()
+
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_page_size_obtained(self, page):
+        pass

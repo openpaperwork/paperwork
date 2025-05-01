@@ -2,31 +2,24 @@ import random
 
 import openpaperwork_core
 
-from . import _
+from paperwork_backend.interfaces.update_detection import UpdateDetectionListener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.icon import Icon
+from paperwork_gtk.interfaces.notifications import Notifications
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'update_listener',
-        ]
-
+class Plugin(openpaperwork_core.PluginBase, UpdateDetectionListener):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'icon',
+                'interface': Icon,
                 'defaults': ['paperwork_gtk.icon'],
             },
             {
-                'interface': 'notifications',
+                'interface': Notifications,
                 'defaults': ['paperwork_gtk.notifications.notify'],
-            },
-            {
-                'interface': 'update_detection',
-                'defaults': ['paperwork_backend.beacon.update'],
             },
         ]
 
@@ -43,14 +36,14 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
 
         notification = self.core.call_success(
-            "get_notification_builder",
+            Notifications.get_notification_builder,
             _("A new version of Paperwork is available: {new_version}").format(
                 new_version=".".join([str(x) for x in remote_version])
             )
         )
         if notification is None:
             return
-        icon = self.core.call_success("icon_get_pixbuf", "paperwork", 32)
+        icon = self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 32)
         notification.set_message(
             random.choice(random_dumbnesses)
         ).set_image_from_pixbuf(

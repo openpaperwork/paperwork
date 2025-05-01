@@ -1,6 +1,28 @@
 import gettext
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+
+from openpaperwork_gtk.interfaces.dialogs import (
+    GtkSingleEntryDialog,
+    GtkSingleEntryDialogListener
+)
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import (
+    DocOpener,
+    DocType,
+    Docs
+)
+
+from paperwork_gtk.interfaces.notifications import Notifications
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+
 try:
     import gi
     gi.require_version('Gtk', '3.0')
@@ -14,47 +36,70 @@ import openpaperwork_gtk.deps
 
 import paperwork_backend.docimport
 
-from . import _
+from paperwork_gtk.interfaces.doc_import import DocImport
+from paperwork_gtk import _
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_open',
-            'gtk_doc_import',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DocImport,
+    GtkSingleEntryDialogListener,
+    GtkWindowListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'document_storage',
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_dialog_single_entry',
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                "interface": DocType,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.hocr",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': GtkSingleEntryDialog,
                 'defaults': ['openpaperwork_gtk.dialogs.single_entry'],
             },
             {
-                'interface': 'import',
+                'interface': ImporterFactory,
                 'defaults': [
                     'paperwork_backend.docimport.img',
                     'paperwork_backend.docimport.pdf',
                 ],
             },
             {
-                'interface': 'notifications',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                'interface': Notifications,
                 'defaults': ['paperwork_gtk.notifications.dialog'],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                "interface": DocViewer,
+                "defaults": [],
             },
         ]
 
@@ -74,12 +119,16 @@ class Plugin(openpaperwork_core.PluginBase):
         self.windows.remove(window)
 
     def doc_open(self, doc_id, doc_url):
-        if self.core.call_success("is_doc", doc_url) is None:
+        if self.core.call_success(DocType.is_doc, doc_url) is None:
             # New document --> no need to track this doc id.
             # Importer will create a new document in time
             self.active_doc_id = None
             return
         self.active_doc_id = doc_id
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.active_doc_id = None
@@ -104,7 +153,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _request_password(self, importer, file_import):
         self.core.call_success(
-            "gtk_show_dialog_single_entry", self,
+            GtkSingleEntryDialog.gtk_show_dialog_single_entry, self,
             _("PDF password"), "",
             importer=importer, file_import=file_import
         )
@@ -141,13 +190,13 @@ class Plugin(openpaperwork_core.PluginBase):
         dialog.show_all()
 
     def _show_result_doc(self, doc_id):
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
         assert doc_url is not None
 
         if self.active_doc_id != doc_id:
-            self.core.call_all("doc_open", doc_id, doc_url)
+            self.core.call_all(DocOpener.doc_open, doc_id, doc_url)
 
-        nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        nb_pages = self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
         if nb_pages is None:
             # may happen with freshly-import .doc/.xsl/.docx/etc files
             nb_pages = 0
@@ -156,17 +205,17 @@ class Plugin(openpaperwork_core.PluginBase):
             LOGGER.warning("Document import %s, but no page in it yet ?!", doc_id)
             return
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "doc_goto_page", nb_pages - 1
+            Mainloop.mainloop_schedule, self.core.call_all,
+            DocViewer.doc_goto_page, nb_pages - 1
         )
 
     def _delete_files(self, file_uris):
         LOGGER.info("Moving imported file(s) to trash ...")
         for file_uri in file_uris:
             LOGGER.info("Moving %s to trash ...", file_uri)
-            self.core.call_success("fs_unlink", file_uri)
+            self.core.call_success(Fs.fs_unlink, file_uri)
         notification = self.core.call_success(
-            "get_notification_builder",
+            Notifications.get_notification_builder,
             gettext.npgettext(
                 "import dialog",
                 "Imported file deleted",
@@ -185,7 +234,7 @@ class Plugin(openpaperwork_core.PluginBase):
         msg = msg.strip()
 
         notification = self.core.call_success(
-            "get_notification_builder", _("Import successful"),
+            Notifications.get_notification_builder, _("Import successful"),
             need_actions=True
         )
         if notification is not None:
@@ -212,16 +261,16 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _reload_docs(self, file_import):
         for doc_id in file_import.upd_doc_ids:
-            doc_url = self.core.call_success("doc_id_to_url", doc_id)
-            self.core.call_all("doc_reload", doc_id, doc_url)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
+            self.core.call_all(DocOpener.doc_reload, doc_id, doc_url)
 
     def _add_to_recent(self, file_uris):
         for file_uri in file_uris:
-            if self.core.call_success("fs_isdir", file_uri) is None:
+            if self.core.call_success(Fs.fs_isdir, file_uri) is None:
                 # If the user imported a file, assume they won't import it
                 # twice but they may import again other files from the same
                 # directory
-                file_uri = self.core.call_success("fs_dirname", file_uri)
+                file_uri = self.core.call_success(Fs.fs_dirname, file_uri)
             LOGGER.info("Adding %s to recently used files", file_uri)
             Gtk.RecentManager().add_item(file_uri)
 
@@ -240,7 +289,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = promise.then(self._log_result, file_import)
         promise = promise.then(self._show_result, file_import)
         promise = promise.then(self._reload_docs, file_import)
-        self.core.call_success("transaction_schedule", promise)
+        self.core.call_success(DocTransactionManager.transaction_schedule, promise)
 
     def gtk_doc_import(self, file_urls):
         LOGGER.info("Importing: %s", file_urls)
@@ -250,7 +299,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         if len(importers) <= 0:
             self._show_no_importer(file_urls)
             return

@@ -9,10 +9,29 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.resources import Resources
 import openpaperwork_core
+import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.activity import ActivityListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.pillow import Pillow2Cairo
 import openpaperwork_gtk.deps
 
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.page_edit import PageEditorFactory
+from paperwork_backend.interfaces.pages import PageImg
 import paperwork_backend.pageedit
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+from paperwork_gtk.interfaces.drawers import FrameDrawerFactory
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.page_editor import PageEditor
+from paperwork_gtk.interfaces.zoom import Zoom
 
 
 LOGGER = logging.getLogger(__name__)
@@ -75,7 +94,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
                 "modifier.glade"
             )
             modifier_widget_tree = self.core.call_success(
-                "gtk_load_widget_tree",
+                GtkResources.gtk_load_widget_tree,
                 "paperwork_gtk.mainwindow.pageeditor", glade
             )
 
@@ -91,7 +110,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
             img = modifier_widget_tree.get_object("pageeditor_modifier_img")
             icon = MODIFIER_ICONS[modifier['id']]
             if isinstance(icon, tuple):
-                icon = self.core.call_success("gtk_load_pixbuf", *icon)
+                icon = self.core.call_success(GtkResources.gtk_load_pixbuf, *icon)
                 img.set_from_pixbuf(icon)
             else:
                 img.set_from_icon_name(icon, Gtk.IconSize.LARGE_TOOLBAR)
@@ -114,12 +133,12 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
     def _on_modifier_changed(self, button):
         modifier = self.buttons_to_modifiers[button]
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.editor.on_modifier_selected(modifier))
         promise.then(self.refresh)
-        promise.then(self.core.call_all, "on_idle")
+        promise.then(self.core.call_all, ActivityListener.on_idle)
         promise.schedule()
 
     def _on_size_allocate(self, *args, **kwargs):
@@ -160,7 +179,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
 
         # WORKAROUND(JFlesch): I shouldn't have to use 'mainloop_schedule'
         # here. But somehow, I do have to use it :/
-        self.core.call_all("mainloop_schedule", img.queue_resize)
+        self.core.call_all(Mainloop.mainloop_schedule, img.queue_resize)
 
     def _on_zoom_changed(self, adj=None):
         self.refresh()
@@ -175,7 +194,7 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
 
         self.pil_img = img
         self.surface_img = self.core.call_success(
-            "pillow_to_surface", self.pil_img
+            Pillow2Cairo.pillow_to_surface, self.pil_img
         )
 
         if need_rezoom:
@@ -189,22 +208,22 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
         if self.pil_img is None:
             return
         img = self.plugin.widget_tree.get_object("pageeditor_img")
-        self.core.call_all("draw_frame_stop", img)
+        self.core.call_all(FrameDrawerFactory.draw_frame_stop, img)
 
         LOGGER.info(
             "show_frame_selector() (img size: %s ; frame: %s)",
-            self.pil_img.size, self.editor.frame.get()
+            self.pil_img.size, self.editor.get_frame().get()
         )
         self.core.call_all(
-            "draw_frame_start", img, self.pil_img.size,
-            self.editor.frame.get, self.editor.frame.set
+            FrameDrawerFactory.draw_frame_start, img, self.pil_img.size,
+            self.editor.get_frame().get, self.editor.get_frame().set
         )
 
     def hide_frame_selector(self):
         super().hide_frame_selector()
         LOGGER.info("hide_frame_selector()")
         img = self.plugin.widget_tree.get_object("pageeditor_img")
-        self.core.call_all("draw_frame_stop", img)
+        self.core.call_all(FrameDrawerFactory.draw_frame_stop, img)
 
     def on_edit_end(self, doc_url, page_idx):
         super().on_edit_end(doc_url, page_idx)
@@ -225,20 +244,20 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
         self._disconnect_draw()
 
     def save(self):
-        self.core.call_all("on_busy")
+        self.core.call_all(ActivityListener.on_busy)
         self.plugin.widget_tree.get_object("pageeditor_back").set_sensitive(
             False
         )
         promise = openpaperwork_core.promise.Promise(self.core)
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.editor.on_save())
-        promise = promise.then(self.core.call_all, "on_idle")
+        promise = promise.then(self.core.call_all, ActivityListener.on_idle)
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.core.call_success(
-            "transaction_simple_promise",
+            DocTransactionManager.transaction_simple_promise,
             [("upd", self.plugin.active_doc[0])]
         ))
-        self.core.call_success("transaction_schedule", promise)
+        self.core.call_success(DocTransactionManager.transaction_schedule, promise)
 
     def draw(self, widget, cairo_ctx):
         if self.surface_img is None:
@@ -253,48 +272,67 @@ class GtkPageEditorUI(paperwork_backend.pageedit.AbstractPageEditorUI):
             cairo_ctx.restore()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_page_editor',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    PageEditor,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'gtk_drawer_frame',
+                "interface": DocOpener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                "interface": DocViewer,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': FrameDrawerFactory,
                 'defaults': ['paperwork_gtk.drawer.frame'],
             },
             {
-                'interface': 'gtk_mainwindow',
-                'defaults': ['paperwork_gtk.mainwindow.window'],
-            },
-            {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_zoomable',
-                'defaults': ['paperwork_gtk.gesture.zoom'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
             {
-                'interface': 'page_editor',
+                'interface': MainWindow,
+                'defaults': ['paperwork_gtk.mainwindow.window'],
+            },
+            {
+                "interface": PageImg,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                'interface': PageEditorFactory,
                 'defaults': ['paperwork_backend.pageedit.pageeditor'],
             },
             {
-                'interface': 'pillow_to_surface',
+                'interface': Pillow2Cairo,
                 'defaults': ['paperwork_backend.cairo.pillow'],
             },
             {
-                'interface': 'resources',
+                'interface': Resources,
                 'defaults': ['openpaperwork_core.resources.setuptools'],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                'interface': Zoom,
+                'defaults': ['paperwork_gtk.gesture.zoom'],
             },
         ]
 
@@ -304,7 +342,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.active_doc = None
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.pageeditor", "pageeditor.glade"
         )
         if self.widget_tree is None:
@@ -320,13 +358,13 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         self.core.call_all(
-            "on_zoomable_widget_new",
+            Zoom.on_zoomable_widget_new,
             self.widget_tree.get_object("pageeditor_scroll"),
             self.widget_tree.get_object("pageeditor_zoom_adjustment"),
         )
 
         self.core.call_all(
-            "mainwindow_add", "right", "pageeditor", prio=0,
+            MainWindow.mainwindow_add, "right", "pageeditor", prio=0,
             header=self.widget_tree.get_object("pageeditor_header"),
             body=self.widget_tree.get_object("pageeditor_body")
         )
@@ -339,12 +377,20 @@ class Plugin(openpaperwork_core.PluginBase):
         self._on_cancel(None)
         self.active_doc = (doc_id, doc_url)
 
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
+
     def gtk_open_page_editor(self, doc_id, doc_url, page_idx):
         LOGGER.info("Opening page editor on %s %d", doc_id, page_idx)
         self.active_doc = (doc_id, doc_url)
 
         page_url = self.core.call_success(
-            "page_get_img_url", doc_url, page_idx
+            PageImg.page_get_img_url, doc_url, page_idx
         )
         if page_url is None:
             LOGGER.error(
@@ -357,18 +403,18 @@ class Plugin(openpaperwork_core.PluginBase):
         self.widget_tree.get_object("pageeditor_back").set_sensitive(True)
 
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_success, "page_editor_get", doc_url, page_idx,
+            self.core.call_success, PageEditorFactory.page_editor_session_get, doc_url, page_idx,
             self.ui
         )
         promise = promise.then(
             self._show_page_editor, self.ui, doc_id, doc_url, page_idx
         )
         promise = promise.then(lambda *args, **kwargs: None)
-        promise = promise.then(self.core.call_all, "on_idle")
+        promise = promise.then(self.core.call_all, ActivityListener.on_idle)
         promise.schedule()
 
     def _on_cancel(self, button):
@@ -384,15 +430,15 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _on_edit_end(self, doc_url, page_idx):
         self.core.call_success(
-            "mainwindow_show", side="right", name="docview"
+            MainWindow.mainwindow_show, side="right", name="docview"
         )
-        self.core.call_all("doc_reload", *self.active_doc)
+        self.core.call_all(DocOpener.doc_reload, *self.active_doc)
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "doc_goto_page", page_idx
+            Mainloop.mainloop_schedule, self.core.call_all, DocViewer.doc_goto_page, page_idx
         )
         self.ui = None
 
     def _show_page_editor(self, page_editor, ui, doc_id, doc_url, page_idx):
         self.ui.editor = page_editor
         self.ui.add_modifier_toggles()
-        self.core.call_all("mainwindow_show", "right", "pageeditor")
+        self.core.call_all(MainWindow.mainwindow_show, "right", "pageeditor")

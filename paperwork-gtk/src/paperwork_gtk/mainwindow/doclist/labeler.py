@@ -8,14 +8,26 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
+import openpaperwork_core.promise
+
 import openpaperwork_gtk.deps
+
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+
+from paperwork_gtk.interfaces.doc_list import DocList, DocListListener
+from paperwork_gtk.interfaces.widgets import LabelFactory
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class LabelingTask(object):
+class LabelingTask:
     def __init__(self, plugin, doc_id, doc_url, flowlayout):
         self.plugin = plugin
         self.core = plugin.core
@@ -31,7 +43,7 @@ class LabelingTask(object):
 
         labels = [
             (
-                self.core.call_success("i18n_strip_accents", label[0].lower()),
+                self.core.call_success(I18n.i18n_strip_accents, label[0].lower()),
                 label[0],
                 label[1]
             ) for label in labels
@@ -40,7 +52,7 @@ class LabelingTask(object):
 
         for label in labels:
             try:
-                color = self.core.call_success("label_color_to_rgb", label[2])
+                color = self.core.call_success(DocLabelColors.label_color_to_rgb, label[2])
             except Exception as exc:
                 LOGGER.warning(
                     "Invalid label %s on document %s", label, self.doc_id,
@@ -48,7 +60,7 @@ class LabelingTask(object):
                 )
                 continue
             widget = self.core.call_success(
-                "gtk_widget_label_new", label[1], color
+                LabelFactory.gtk_widget_label_new, label[1], color
             )
             widget.set_visible(True)
             self.flowlayout.add_child(widget, Gtk.Align.END)
@@ -62,7 +74,7 @@ class LabelingTask(object):
 
         promises = []
         self.core.call_all(
-            "doc_get_labels_by_url_promise",
+            DocLabels.doc_get_labels_by_url_promise,
             promises, self.doc_url
         )
         for p in promises:
@@ -71,40 +83,36 @@ class LabelingTask(object):
         return promise.then(self.show_labels)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocLabels,
+    DocList,
+    DocListListener,
+):
     PRIORITY = 100
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_doclist_listener',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'doc_labels',
+                'interface': DocLabelColors,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_doclist',
-                'defaults': ['paperwork_gtk.maindow.doclist'],
-            },
-            {
-                'interface': 'gtk_widget_label',
+                'interface': LabelFactory,
                 'defaults': ['paperwork_gtk.widget.label'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'work_queue',
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -116,14 +124,14 @@ class Plugin(openpaperwork_core.PluginBase):
         self.tasks = {}
         self.processing_docs = set()
         self.processed_docs = set()
-        self.core.call_all("work_queue_create", "labeler", stop_on_quit=True)
+        self.core.call_all(WorkQueue.work_queue_create, "labeler", stop_on_quit=True)
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
     def doclist_show(self, docs):
-        self.core.call_all("work_queue_cancel_all", "labeler")
+        self.core.call_all(WorkQueue.work_queue_cancel_all, "labeler")
         self.task = {}
 
     def on_doc_list_clear(self):
@@ -131,7 +139,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.on_doc_list_visibility_changed()
 
     def on_doc_list_visibility_changed(self):
-        self.core.call_all("work_queue_cancel_all", "labeler")
+        self.core.call_all(WorkQueue.work_queue_cancel_all, "labeler")
         self.processing_docs = set()
         self.nb_to_load = 0
 
@@ -143,7 +151,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         self.processing_docs.add(doc_id)
 
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
         if doc_url is None:
             return
 
@@ -158,7 +166,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = task.get_promise()
         promise = promise.then(_when_loaded)
 
-        self.core.call_success("work_queue_add_promise", "labeler", promise)
+        self.core.call_success(WorkQueue.work_queue_add_promise, "labeler", promise)
 
     def _refresh_doc(self, doc_url):
         if doc_url not in self.tasks:
@@ -169,7 +177,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         LOGGER.info("Reloading labels of '%s'", doc_url)
         self.core.call_success(
-            "work_queue_add_promise", "labeler",
+            WorkQueue.work_queue_add_promise, "labeler",
             self.tasks[doc_url].get_promise()
         )
 
@@ -178,3 +186,59 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_remove_label_by_url(self, doc_url, label):
         self._refresh_doc(doc_url)
+
+    @openpaperwork_core.noop
+    def on_doclist_initialized(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_doc_box_creation(self, doc_id, row, flowlayout):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_has_labels_by_url(self, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_get_labels_by_url(self, out: set, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_get_labels_by_url_promise(self, out: list, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def labels_get_all(self, out: set):
+        pass
+
+    @openpaperwork_core.noop
+    def label_load_all(self, promises: list):
+        pass
+
+    @openpaperwork_core.noop
+    def doclist_add(self, widget, vposition):
+        pass
+
+    @openpaperwork_core.noop
+    def doclist_clear(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doclist_extend(self, nb_docs):
+        pass
+
+    @openpaperwork_core.noop
+    def doclist_menu_append_item(self, item):
+        pass
+
+    @openpaperwork_core.noop
+    def doclist_menu_append_submenu(self, label, menu):
+        pass
+
+    @openpaperwork_core.noop
+    def open_next_doc(self, offset: int):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_menu_open(self):
+        pass

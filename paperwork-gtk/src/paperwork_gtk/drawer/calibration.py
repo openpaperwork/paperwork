@@ -5,13 +5,22 @@ Ensure calibration is displayed when a scan is running.
 import logging
 
 import openpaperwork_core
-import openpaperwork_core.deps
+
+from openpaperwork_core.interfaces.config import Config
+
+from paperwork_backend.interfaces.cropping import PredefinedCropping
+from paperwork_backend.interfaces.scan import Scan
+from paperwork_backend.interfaces.scan import ScanListener
+
+from paperwork_gtk.interfaces.drawers import CalibrationDrawerFactory
+from paperwork_gtk.interfaces.drawers import FrameDrawerFactory
+from paperwork_gtk.interfaces.drawers import ScanDrawerFactory
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Drawer(object):
+class Drawer:
     def __init__(self, core, drawing_area, read_only=False):
         self.core = core
         self.drawing_area = drawing_area
@@ -22,10 +31,10 @@ class Drawer(object):
         self.read_only = read_only
 
     def _get_frame(self):
-        return self.core.call_success("config_get", "scanner_calibration")
+        return self.core.call_success(Config.config_get, "scanner_calibration")
 
     def _set_frame(self, frame):
-        self.core.call_all("config_put", "scanner_calibration", frame)
+        self.core.call_all(Config.config_put, "scanner_calibration", frame)
 
     def set_content_full_size(self, size):
         self.content_full_size = size
@@ -35,11 +44,11 @@ class Drawer(object):
             self.stop()
 
         self.core.call_all(
-            "config_add_observer", "scanner_calibration",
+            Config.config_add_observer, "scanner_calibration",
             self.request_redraw
         )
         self.drawer = self.core.call_success(
-            "draw_frame_start", self.drawing_area, self.content_full_size,
+            FrameDrawerFactory.draw_frame_start, self.drawing_area, self.content_full_size,
             self._get_frame,
             self._set_frame if not self.read_only else None
         )
@@ -53,39 +62,37 @@ class Drawer(object):
     def stop(self):
         if not self.active:
             return
-        self.core.call_all("draw_frame_stop", self.drawing_area)
+        self.core.call_all(FrameDrawerFactory.draw_frame_stop, self.drawing_area)
         self.core.call_all(
-            "config_remove_observer", "scanner_calibration",
+            Config.config_remove_observer, "scanner_calibration",
             self.request_redraw
         )
         self.active = False
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_drawer_calibration',
-            'gtk_drawer_scan',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    CalibrationDrawerFactory,
+    ScanDrawerFactory,
+    ScanListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_drawer_frame',
+                'interface': FrameDrawerFactory,
                 'defaults': ['paperwork_gtk.drawer.frame'],
             },
             {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
             {
-                'interface': 'scanner_calibration',
+                'interface': PredefinedCropping,
                 'defaults': [
                     'paperwork_backend.guesswork.cropping.calibration'
                 ]
@@ -97,8 +104,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.drawers = {}  # drawing_area --> drawer
         self.scan_id_to_drawers = {}  # int --> drawer
 
-    def draw_calibration_start(
-            self, drawing_area, content_full_size, read_only=False):
+    def draw_calibration_start(self, drawing_area, content_full_size, read_only=False):
         drawer = Drawer(self.core, drawing_area, read_only)
         drawer.set_content_full_size(content_full_size)
         drawer.start()
@@ -125,6 +131,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self.scan_id_to_drawers[scan_id] = drawer
         self.drawers[drawing_area] = drawer
 
+    @openpaperwork_core.noop
+    def draw_scan_get_scan_size(self, scan_id):
+        pass
+
     def draw_scan_stop(self, drawing_area):
         if drawing_area in self.drawers:
             self.drawers.pop(drawing_area).stop()
@@ -136,3 +146,23 @@ class Plugin(openpaperwork_core.PluginBase):
                     (scan_params.get_width(), scan_params.get_height())
                 )
                 drawer.start()
+
+    @openpaperwork_core.noop
+    def on_scan_started(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_feed_start(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_chunk(self, scan_id, scan_params, img_chunk):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_end(self, scan_id, page_nb, img):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_feed_end(self, scan_id):
+        pass

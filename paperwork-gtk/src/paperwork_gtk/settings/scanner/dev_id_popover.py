@@ -1,38 +1,28 @@
 import logging
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
 
-from ... import _
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerSetting
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_scanner_setting',
-        ]
-
+class Plugin(openpaperwork_core.PluginBase, GtkSettingsScannerSetting):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': 'gtk_settings_scanner',
-                'defaults': ['paperwork_gtk.settings.scanner.settings'],
-            },
-            {
-                'interface': 'scan',
-                'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
 
@@ -40,7 +30,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self, global_widget_tree, parent_widget_tree,
             list_scanner_promise):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.settings.scanner",
             "popover.glade"
         )
@@ -68,7 +58,7 @@ class Plugin(openpaperwork_core.PluginBase):
         # one choice --> add "no scanner"
         for dev in ([(None, _("No scanner"))] + devs):
             radio = self.core.call_success(
-                "gtk_load_widget_tree", "paperwork_gtk.settings.scanner",
+                GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings.scanner",
                 "popover_box.glade"
             )
             radio = radio.get_object("radio")
@@ -79,7 +69,7 @@ class Plugin(openpaperwork_core.PluginBase):
         for (dev_id, radio) in radios[1:]:
             radio.join_group(radios[0][1])
 
-        active = self.core.call_success("config_get", "scanner_dev_id")
+        active = self.core.call_success(Config.config_get, "scanner_dev_id")
 
         for (dev_id, radio) in radios:
             if active == dev_id:
@@ -96,4 +86,4 @@ class Plugin(openpaperwork_core.PluginBase):
             self, checkbox, widget_tree, dev_id, dev_name):
         LOGGER.info("Selected scanner: %s - %s", dev_id, dev_name)
         widget_tree.get_object("selector").popdown()
-        self.core.call_success("config_put", "scanner_dev_id", dev_id)
+        self.core.call_success(Config.config_put, "scanner_dev_id", dev_id)

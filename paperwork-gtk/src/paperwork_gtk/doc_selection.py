@@ -2,17 +2,18 @@ import logging
 
 import openpaperwork_core
 
+from paperwork_gtk.interfaces.doc_selection import DocSelection
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocSelection,
+):
     # so we can report an accurate document count
     PRIORITY = 1000
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['doc_selection']
 
     def __init__(self, core):
         super().__init__(core)

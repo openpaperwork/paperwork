@@ -11,12 +11,16 @@ except (ImportError, ValueError) as exc:
     LOGGER.error("Failed to import Notify", exc_info=exc)
     NOTIFY_AVAILABLE = False
 
+import openpaperwork_core  # noqa: E402
+from openpaperwork_core.interfaces.chkdeps import Chkdeps  # noqa: E402
 
-import openpaperwork_core  # noqa E402
-import openpaperwork_gtk.deps  # noqa E402
+from paperwork_gtk.interfaces.notifications import AbstractNotificationBuilder  # noqa: E402
+from paperwork_gtk.interfaces.notifications import Notifications  # noqa: E402
+
+import openpaperwork_gtk.deps  # noqa: E402
 
 
-class NotifyBuilder(object):
+class NotifyBuilder(AbstractNotificationBuilder):
     def __init__(self, title):
         self.title = title
         self.msg = None
@@ -60,19 +64,12 @@ class NotifyBuilder(object):
         self.notification.show()
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    Notifications,
+):
     PRIORITY = 1000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'notifications',
-        ]
-
-    @classmethod
-    def get_deps(cls):
-        return []
 
     def __init__(self, core):
         super().__init__(core)

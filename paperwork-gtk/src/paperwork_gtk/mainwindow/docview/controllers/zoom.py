@@ -2,15 +2,18 @@ import logging
 
 import openpaperwork_core
 
-from . import BaseDocViewController
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.interfaces.doc_viewer import DocViewerListener
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class ZoomLayoutController(BaseDocViewController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.last_zoom = -1
 
     def _recompute_zoom(self):
@@ -31,7 +34,7 @@ class ZoomLayoutController(BaseDocViewController):
             return
         self.last_zoom = zoom
 
-        self.plugin.core.call_all("docview_set_zoom", zoom)
+        self.core.call_all(DocViewer.docview_set_zoom, zoom)
         for page in self.plugin.pages:
             page.set_zoom(zoom)
 
@@ -39,7 +42,7 @@ class ZoomLayoutController(BaseDocViewController):
             layout = 'grid'
         else:
             layout = 'paged'
-        self.plugin.core.call_all("on_layout_change", layout)
+        self.core.call_all(DocViewerListener.on_layout_change, layout)
 
     def enter(self):
         super().enter()
@@ -49,7 +52,7 @@ class ZoomLayoutController(BaseDocViewController):
         super().docview_set_zoom(zoom)
         if zoom == self.last_zoom:
             return
-        self.plugin.docview_switch_controller('zoom', ZoomCustomController)
+        self.plugin.docview_switch_controller(self.core, 'zoom', ZoomCustomController)
 
     def docview_set_layout(self, name):
         super().docview_set_layout(name)
@@ -82,22 +85,25 @@ class ZoomCustomController(BaseDocViewController):
 
     def docview_set_layout(self, name):
         super().docview_set_layout(name)
-        self.plugin.docview_switch_controller('zoom', ZoomLayoutController)
+        self.plugin.docview_switch_controller(self.core, 'zoom', ZoomLayoutController)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_docview_controller']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_docview',
+                'interface': DocViewer,
                 'defaults': ['paperwork_gtk.mainwindow.docview'],
+            },
+            {
+                "interface": DocViewerListener,
+                "defaults": [],
             },
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):
-        out['zoom'] = ZoomLayoutController(docview)
+        out['zoom'] = ZoomLayoutController(self.core, docview)

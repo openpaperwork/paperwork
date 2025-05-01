@@ -5,8 +5,6 @@ on top of the pageview when another plugin is working on the page.
 
 import logging
 
-import openpaperwork_core
-
 try:
     from gi.repository import GObject
     GLIB_AVAILABLE = True
@@ -22,6 +20,17 @@ except (ImportError, ValueError):
 
         class GObject(object):
             pass
+
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+import openpaperwork_core
+import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.page_modification import PageModificationListener
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewerComponentFactory
 
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +54,7 @@ class PageWrapper(GObject.GObject):
         self.busy = False
 
         self.widget_tree = self.plugin.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.pageprocessing",
             "pageprocessing.glade",
         )
@@ -122,21 +131,20 @@ if GLIB_AVAILABLE:
     GObject.type_register(PageWrapper)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DocViewerComponentFactory,
+    PageModificationListener,
+):
     PRIORITY = -1000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
@@ -150,6 +158,14 @@ class Plugin(openpaperwork_core.PluginBase):
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
             out['glib'].update(openpaperwork_core.deps.GLIB)
+
+    @openpaperwork_core.noop
+    def doc_open(self, doc_id, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.wrappers = []

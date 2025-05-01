@@ -5,9 +5,13 @@ When drag'n'dropping, enables the dropping-in-a-document part.
 import logging
 
 import openpaperwork_core
-import openpaperwork_core.promise
 
-from . import BaseDocViewController
+from paperwork_gtk.interfaces.doc_viewer import (
+    DocViewerControllerFactory,
+    DocViewerListener
+)
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDrop
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,8 +23,7 @@ class DropController(BaseDocViewController):
     LINE_COLOR = (0.0, 0.8, 1.0, 1.0)
 
     def __init__(self, core, plugin):
-        super().__init__(plugin)
-        self.core = core
+        super().__init__(core, plugin)
         self.closest = None
         self.beforeafter = -1  # 0 for before the widget, 1 for after
 
@@ -129,33 +132,34 @@ class DropController(BaseDocViewController):
         return (*self.plugin.active_doc, dst_page_idx)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_docview_controller',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+    DocViewerListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'document_storage',
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-            {
-                'interface': 'gtk_drag_and_drop',
+                'interface': DragAndDrop,
                 'defaults': ['paperwork_gtk.gesture.drag_and_drop'],
             },
         ]
 
     def on_gtk_docview_init(self, docview):
-        self.core.call_all("drag_and_drop_page_enable", docview.page_layout)
+        self.core.call_all(DragAndDrop.drag_and_drop_page_enable, docview.page_layout)
+
+    @openpaperwork_core.noop
+    def on_layout_change(self, layout):
+        pass
 
     def gtk_docview_get_controllers(self, out: dict, docview):
         out['drop'] = DropController(self.core, docview)
+
+    @openpaperwork_core.noop
+    def on_docview_closed_page(self, page):
+        pass
+
+    @openpaperwork_core.noop
+    def on_docview_zoom_updated(self, zoom):
+        pass

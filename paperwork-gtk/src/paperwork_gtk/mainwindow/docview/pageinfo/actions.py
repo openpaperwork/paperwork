@@ -1,5 +1,26 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.external_apps import ExternalApps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.screenshot import (
+    Screenshot,
+    ScreenshotProvider
+)
+
+from paperwork_backend.interfaces.doc_converted import DocConverted
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk.interfaces.doc_viewer import (
+    PageInfo,
+    PageMenu,
+    PageMenuListener,
+    PageViewerListener
+)
+from paperwork_gtk.interfaces.page_editor import PageEditor
+
 try:
     from gi.repository import Gio
     GIO_AVAILABLE = True
@@ -13,40 +34,52 @@ import openpaperwork_core.deps
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_open',
-            'page_actions',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    PageViewerListener,
+    PageMenu,
+    ScreenshotProvider,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'doc_converted',
+                'interface': DocConverted,
                 'defaults': [],
             },
             {
-                'interface': 'external_apps',
+                'interface': ExternalApps,
                 'defaults': ['openpaperwork_core.external_apps.xdg'],
             },
             {
-                'interface': 'gtk_docview_pageinfo',
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageinfo'],
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"]
             },
             {
-                'interface': 'gtk_page_editor',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                'interface': PageEditor,
                 'defaults': ['paperwork_gtk.mainwindow.pageeditor'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': PageInfo,
+                'defaults': ['paperwork_gtk.mainwindow.docview.pageinfo'],
+            },
+            {
+                "interface": PageMenuListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -58,7 +91,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.button_edit = None
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.pageinfo",
             "actions.glade"
         )
@@ -76,12 +109,12 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         self.core.call_success(
-            "page_info_add_right", self.widget_tree.get_object("page_actions")
+            PageInfo.page_info_add_right, self.widget_tree.get_object("page_actions")
         )
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "on_page_menu_ready"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            PageMenuListener.on_page_menu_ready
         )
 
     def chkdeps(self, out: dict):
@@ -91,18 +124,26 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
 
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
+
     def on_page_shown(self, page_idx):
         self.active_page = page_idx
 
     def _on_edit(self, button):
         doc_url = self.active_doc[1]
-        converted_info = self.core.call_success("doc_is_converted", doc_url)
+        converted_info = self.core.call_success(DocConverted.doc_is_converted, doc_url)
         if converted_info is not None:
             original_doc_url = converted_info[0]
-            self.core.call_success("external_app_open_file", original_doc_url)
+            self.core.call_success(ExternalApps.external_app_open_file, original_doc_url)
         else:
             self.core.call_all(
-                "gtk_open_page_editor", *self.active_doc, self.active_page
+                PageEditor.gtk_open_page_editor, *self.active_doc, self.active_page
             )
 
     def page_menu_open(self):
@@ -120,16 +161,20 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("page_actions"),
-            self.core.call_success("fs_join", out_dir, "page_actions.png"),
+            self.core.call_success(Fs.fs_join, out_dir, "page_actions.png"),
             margins=(50, 50, 50, 50)
         )
 
     def screenshot_snap_page_action_menu(self, out_file):
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("page_actions"),
             out_file,
             margins=(50, 200, 50, 50)
         )
+
+    @openpaperwork_core.noop
+    def on_page_size_obtained(self, page):
+        pass

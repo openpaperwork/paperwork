@@ -8,14 +8,21 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
+
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewerListener
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxes
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesListener
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class PageHoverHandler(object):
+class PageHoverHandler:
     def __init__(self, core, page):
         self.core = core
         self.page = page
@@ -83,32 +90,27 @@ class PageHoverHandler(object):
     def draw(self, cairo_ctx):
         for box in self.actives:
             self.core.call_all(
-                "page_draw_box",
+                PageViewBoxes.page_draw_box,
                 cairo_ctx, self.page,
                 box.position, (0.0, 0.0, 1.0),
                 border_width=2, box_content=box.content
             )
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocViewerListener,
+    PageDrawer,
+    PageViewBoxesListener,
+):
     PRIORITY = 10
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview_boxes_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_pageview',
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageview'],
-            },
-            {
-                'interface': 'gtk_pageview_boxes',
+                'interface': PageViewBoxes,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageview.boxes'
                 ],
@@ -149,3 +151,19 @@ class Plugin(openpaperwork_core.PluginBase):
         if page.widget not in self.handlers:
             return
         self.handlers[page.widget].draw(cairo_ctx)
+
+    @openpaperwork_core.noop
+    def pageview_refresh_all(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_gtk_docview_init(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_layout_change(self, layout):
+        pass
+
+    @openpaperwork_core.noop
+    def on_docview_zoom_updated(self, zoom):
+        pass

@@ -10,18 +10,28 @@ try:
 except (ImportError, ValueError):
     PANGO_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.spatial_index import SpatialIndex
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.promise
 
-from ..... import _
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.pages import PageText
+
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxes
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesListener
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
+from paperwork_gtk import _
 
 
 LOGGER = logging.getLogger(__name__)
 DELAY = 0.1
 
 
-class NBox(object):
+class NBox:
     """
     Chained boxes. Useful for some plugins like boxes.selection.
     """
@@ -36,7 +46,14 @@ class NBox(object):
         return (self.box.position < other.box.position)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    PageDrawer,
+    PageViewBoxes,
+    PageViewBoxesListener,
+):
     """
     Load the boxes on the pages and notify them to other plugins.
     Do nothing else. See other plugins in
@@ -45,25 +62,24 @@ class Plugin(openpaperwork_core.PluginBase):
     """
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview_boxes',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                "interface": "gtk_pageview",
-                "defaults": ["paperwork_gtk.mainwindow.docview.pageview"],
+                "interface": PageText,
+                "defaults": [],
+                "optional": True,
             },
             {
-                'interface': 'spatial_index',
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': SpatialIndex,
                 'defaults': ['openpaperwork_core.spatial.rtree'],
             },
             {
-                'interface': 'work_queue',
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -81,12 +97,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _upd_progress(self):
         if self.nb_to_load <= self.nb_loaded or self.nb_to_load == 0:
-            self.core.call_all("on_progress", "boxes", 1.0)
+            self.core.call_all(ProgressListener.on_progress, "boxes", 1.0)
             self.nb_to_load = 0
             self.nb_loaded = 0
             return
         self.core.call_all(
-            "on_progress", "boxes",
+            ProgressListener.on_progress, "boxes",
             self.nb_loaded / self.nb_to_load, _("Loading text ...")
         )
 
@@ -98,6 +114,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_open(self, *args, **kwargs):
         self.doc_close()
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def _index_boxes(self, boxes):
         # Tesseract seems (seemed ?) to have a bug: boxes taking the whole
@@ -132,7 +152,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # and then index them
         spatial_index = self.core.call_success(
-            "spatial_indexer_get", [
+            SpatialIndex.spatial_indexer_get, [
                 (b.box.position, b)
                 for b in chained_boxes
             ]
@@ -152,18 +172,12 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         return self.cache[ref][0]
 
-    def pageview_get_indexed_boxes_by_id(self, doc_id, page_idx):
-        ref = (doc_id, page_idx)
-        if ref not in self.cache:
-            return None
-        return self.cache[ref][1]
-
     def on_page_visibility_changed(self, page, visible):
         ref = (page.doc_id, page.page_idx)
         if not visible:
             promise = self.running_promises.pop(ref, None)
             if promise is not None:
-                self.core.call_all("work_queue_cancel", "page_loader", promise)
+                self.core.call_all(WorkQueue.work_queue_cancel, "page_loader", promise)
                 self.nb_to_load -= 1
                 self._upd_progress()
             if ref in self.cache:
@@ -189,7 +203,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, self.core.call_success,
-            args=("page_get_boxes_by_url", page.doc_url, page.page_idx,)
+            args=(PageText.page_get_boxes_by_url, page.doc_url, page.page_idx,)
         ))
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, lambda boxes=[]: self._index_boxes(boxes)
@@ -197,7 +211,7 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = promise.then(lambda boxes: self._set_boxes(boxes, page))
         promise = promise.then(lambda boxes: self.core.call_all(
             # boxes => (boxes, spatial_index)
-            "on_page_boxes_loaded", page, boxes[0], boxes[1]
+            PageViewBoxesListener.on_page_boxes_loaded, page, boxes[0], boxes[1]
         ))
 
         def stop_promise_tracking(*args, **kwargs):
@@ -214,7 +228,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # piggy back page loader work queue, but with a low priority
         self.core.call_success(
-            "work_queue_add_promise", "page_loader", promise, priority=-10
+            WorkQueue.work_queue_add_promise, "page_loader", promise, priority=-10
         )
 
     def on_page_boxes_loaded(self, page, boxes, spatial_index):
@@ -293,3 +307,11 @@ class Plugin(openpaperwork_core.PluginBase):
             self._page_draw_box(*args, **kwargs)
         except Exception as exc:
             LOGGER.error("page_draw_box() failed", exc_info=exc)
+
+    @openpaperwork_core.noop
+    def pageview_refresh_all(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_page_draw(self, cairo_ctx, page):
+        pass

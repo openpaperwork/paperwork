@@ -1,5 +1,7 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+
 try:
     import gi
     gi.require_version('Gdk', '3.0')
@@ -14,28 +16,57 @@ import openpaperwork_core
 import openpaperwork_core.promise
 import openpaperwork_gtk.deps
 
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.pages import PageManagement
+
+from paperwork_gtk.interfaces.doc_import import DocImport
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDrop
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDropDestination
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'doc_open',
-            'gtk_drag_and_drop'
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DragAndDrop,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'document_storage',
+                "interface": DocImport,
+                "defaults": ["paperwork_gtk.docimport"],
+            },
+            {
+                "interface": DocOpener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                "interface": DragAndDropDestination,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": PageManagement,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.hocr",
+                    "paperwork_backend.model.pdf",
+                ],
             },
         ]
 
@@ -62,16 +93,11 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
 
-    def drag_and_drop_page_enable(self, widget):
-        """
-        Arguments:
-            widget - GTK widget on which page drag'n'drop must be enabled.
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
-        When a drop is received, it will call the method
-        'drag_and_drop_get_destination(widget, x, y)'.
-        The plugin to whom the widget belongs should reply with
-        (doc_id, page_idx).
-        """
+    def drag_and_drop_page_enable(self, widget):
         widget.drag_dest_set(Gtk.DestDefaults.ALL, [], Gdk.DragAction.MOVE)
         targets = Gtk.TargetList.new([])
         targets.add_uri_targets(0)
@@ -87,7 +113,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         dst = self.core.call_success(
-            "drag_and_drop_get_destination", widget, x, y
+            DragAndDropDestination.drag_and_drop_get_destination, widget, x, y
         )
         if dst is None:
             LOGGER.error("Nobody accepted a drop on %s (%d, %d)", widget, x, y)
@@ -99,27 +125,26 @@ class Plugin(openpaperwork_core.PluginBase):
             LOGGER.info("Drop: URI: %s", uri)
 
             self.core.call_all(
-                "drag_and_drop_page_add",
+                DragAndDrop.drag_and_drop_page_add,
                 uri, dst_doc_id, dst_doc_url, dst_page_idx
             )
 
-        self.core.call_all("drag_and_drop_apply")
+        self.core.call_all(DragAndDrop.drag_and_drop_apply)
 
-    def drag_and_drop_page_add(
-            self, src_uri, dst_doc_id, dst_doc_url, dst_page_idx):
+    def drag_and_drop_page_add(self, src_uri, dst_doc_id, dst_doc_url, dst_page_idx):
         LOGGER.info("Drop: %s --> %s p%d", src_uri, dst_doc_id, dst_page_idx)
 
         if "doc_id=" not in src_uri or "page=" not in src_uri:
             LOGGER.info("Drop: Import of %s", src_uri)
             # TODO(Jflesch): Should import to the target document (drop)
             # instead of the currently-opened document
-            self.core.call_all("gtk_doc_import", [src_uri])
+            self.core.call_all(DocImport.gtk_doc_import, [src_uri])
             return
         else:
             # moving page inside the current document
             (src_doc_id, src_page_idx) = self._parse_paperwork_uri(src_uri)
 
-        src_doc_url = self.core.call_success("doc_id_to_url", src_doc_id)
+        src_doc_url = self.core.call_success(DocStorage.doc_id_to_url, src_doc_id)
         assert src_doc_url is not None
 
         if src_doc_id == dst_doc_id and src_page_idx < dst_page_idx:
@@ -136,7 +161,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         self.promise = self.promise.then(
-            self.core.call_all, "page_move_by_url",
+            self.core.call_all, PageManagement.page_move_by_url,
             src_doc_url, src_page_idx,
             dst_doc_url, dst_page_idx
         )
@@ -144,7 +169,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         for doc in ((src_doc_id, src_doc_url), (dst_doc_id, dst_doc_url)):
             self.promise = self.promise.then(
-                self.core.call_all, "doc_reload", *doc
+                self.core.call_all, DocOpener.doc_reload, *doc
             )
             self.promise = self.promise.then(lambda *args, **kwargs: None)
 
@@ -156,10 +181,10 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         self.promise = self.promise.then(self.core.call_success(
-            "transaction_simple_promise",
+            DocTransactionManager.transaction_simple_promise,
             [('upd', doc_id) for doc_id in self.updated]
         ))
-        self.core.call_success("transaction_schedule", self.promise)
+        self.core.call_success(DocTransactionManager.transaction_schedule, self.promise)
 
         self.updated = set()
         self.promise = openpaperwork_core.promise.Promise(self.core)

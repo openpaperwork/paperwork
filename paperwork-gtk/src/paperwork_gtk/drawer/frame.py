@@ -15,14 +15,18 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
+
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.drawers import FrameDrawerFactory
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Drawer(object):
+class Drawer:
     HANDLE_RADIUS = 10
     HANDLE_DEFAULT_COLOR = (0.0, 0.25, 1.0, 0.5)
     HANDLE_HOVER_COLOR = (0.1, 0.75, 0.1, 1.0)
@@ -252,14 +256,11 @@ class Drawer(object):
             cairo_ctx.restore()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_drawer_frame',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    FrameDrawerFactory,
+):
     def __init__(self, core):
         super().__init__(core)
         # drawing area --> Drawer
@@ -294,7 +295,7 @@ if __name__ == "__main__":
     from gi.repository import Gtk
 
     core = openpaperwork_core.Core()
-    core._load_module("test", sys.modules[__name__])
+    core.load("test", sys.modules[__name__])
     core.init()
 
     window = Gtk.Window()

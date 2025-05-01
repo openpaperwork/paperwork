@@ -2,49 +2,81 @@ import logging
 
 import pillowfight
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 import openpaperwork_core.promise
 
+from openpaperwork_gtk.interfaces.activity import ActivityListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.pillow import PillowDrawer
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
+
+from paperwork_backend.interfaces.i18n_scanner import I18nScanner
+from paperwork_backend.interfaces.scan import (
+    Scan,
+    ScanListener
+)
 import paperwork_backend.cairo.pillow
 
-
-from ... import _
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.drawers import CalibrationDrawerFactory
+from paperwork_gtk.interfaces.drawers import ScanDrawerFactory
+from paperwork_gtk.interfaces.settings import (
+    GtkSettingsScanCalibration,
+    GtkSettingsScannerSetting
+)
+from paperwork_gtk.interfaces.settings_dialog import (
+    SettingsDialog,
+    SettingsDialogComponent
+)
+from paperwork_gtk.interfaces.zoom import Zoom
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ScanListener,
+    ScreenshotProvider,
+    SettingsDialogComponent,
+    GtkSettingsScanCalibration,
+    GtkSettingsScannerSetting,
+):
     PRIORITY = 10000
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_calibration',
-            'screenshot_provider',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                "interface": ActivityListener,
+                "defaults": [],
+            },
+            {
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_drawer_calibration',
+                'interface': CalibrationDrawerFactory,
                 'defaults': ['paperwork_gtk.drawer.calibration'],
             },
             {
-                'interface': 'gtk_drawer_pillow',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                "interface": I18nScanner,
+                "defaults": ["paperwork_backend.i18n.scanner"],
+            },
+            {
+                'interface': PillowDrawer,
                 'defaults': ['openpaperwork_gtk.drawer.pillow'],
             },
             {
-                'interface': 'gtk_drawer_scan',
-                'defaults': [
-                    'openpaperwork_gtk.drawer.scan',
-                    'paperwork_gtk.drawer.calibration',
-                ],
+                'interface': ScanDrawerFactory,
+                'defaults': ['paperwork_gtk.drawer.calibration'],
             },
             # Optional:
             # {
@@ -55,24 +87,24 @@ class Plugin(openpaperwork_core.PluginBase):
             #     ],
             # },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_settings_dialog',
+                'interface': SettingsDialog,
                 'defaults': ['paperwork_gtk.settings'],
             },
             {
-                'interface': 'gtk_settings_scanner',
-                'defaults': ['paperwork_gtk.settings.scanner.settings'],
-            },
-            {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
+            },
+            {
+                "interface": Zoom,
+                "defaults": [],
             },
         ]
 
@@ -88,7 +120,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def complete_settings(self, settings_widget_tree):
         self.settings_widget_tree = settings_widget_tree
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.settings.scanner", "calibration.glade"
         )
 
@@ -117,10 +149,10 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         drawing_area = self.widget_tree.get_object("calibration_area")
-        self.core.call_all("draw_scan_start", drawing_area)
+        self.core.call_all(ScanDrawerFactory.draw_scan_start, drawing_area)
 
         self.core.call_all(
-            "add_setting_screen",
+            SettingsDialog.add_setting_screen,
             settings_widget_tree,
             "calibration",
             self.widget_tree.get_object("calibration_header"),
@@ -133,14 +165,14 @@ class Plugin(openpaperwork_core.PluginBase):
         assert self.widget_tree is not None
 
         def set_sensitive():
-            dev_id = self.core.call_success("config_get", "scanner_dev_id")
+            dev_id = self.core.call_success(Config.config_get, "scanner_dev_id")
             parent_widget_tree.get_object("scanner_calibration").set_sensitive(
                 True if dev_id is not None and dev_id != "" else False
             )
 
         set_sensitive()
         self.core.call_all(
-            "config_add_observer", "scanner_dev_id", set_sensitive
+            Config.config_add_observer, "scanner_dev_id", set_sensitive
         )
 
         parent_widget_tree.get_object("scanner_calibration").connect(
@@ -149,7 +181,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def on_settings_closed(self, settings_widget_tree):
         drawing_area = self.widget_tree.get_object("calibration_area")
-        self.core.call_all("draw_scan_stop", drawing_area)
+        self.core.call_all(ScanDrawerFactory.draw_scan_stop, drawing_area)
         if self.value_changed_connect_id is not None:
             drawing_area.disconnect(self.value_changed_connect_id)
             self.value_changed_connect_id = None
@@ -162,7 +194,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def display_calibration_screen(self, *args, **kwargs):
         LOGGER.info("Switching to calibration screen")
         self.core.call_all(
-            "show_setting_screen", self.settings_widget_tree, "calibration"
+            SettingsDialog.show_setting_screen, self.settings_widget_tree, "calibration"
         )
 
         sources = self.widget_tree.get_object("calibration_sources")
@@ -182,26 +214,26 @@ class Plugin(openpaperwork_core.PluginBase):
             self.widget_tree.get_object(button).set_sensitive(False)
 
         self.core.call_all(
-            "on_zoomable_widget_new",
+            Zoom.on_zoomable_widget_new,
             self.widget_tree.get_object("calibration_scroll"),
             self.widget_tree.get_object("calibration_scale_adjustment")
         )
 
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         promise = promise.then(
             # drop the return value of call_all()
             lambda *args, **kwargs: None
         )
         promise = promise.then(self.core.call_success(
-            "scan_get_scanner_promise"
+            Scan.scan_get_scanner_promise
         ))
         promise = promise.then(self._show_sources)
         promise = promise.then(openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_idle",)
+            self.core, self.core.call_all, args=(ActivityListener.on_idle,)
         ))
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
 
     def _show_sources(self, dev=None):
         sources = []
@@ -210,7 +242,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 (
                     source.get_name(),
                     self.core.call_success(
-                        "i18n_scanner_source", source.get_name()
+                        I18nScanner.i18n_scanner_source, source.get_name()
                     ),
                 )
                 for source in dev.dev.get_children()
@@ -232,10 +264,10 @@ class Plugin(openpaperwork_core.PluginBase):
     def hide_calibration_screen(self, *args, **kwargs):
         LOGGER.info("Switching back to settings")
         self.core.call_all(
-            "show_setting_screen", self.settings_widget_tree, "main"
+            SettingsDialog.show_setting_screen, self.settings_widget_tree, "main"
         )
         self.core.call_all(
-            "on_zoomable_widget_destroy",
+            Zoom.on_zoomable_widget_destroy,
             self.widget_tree.get_object("calibration_area"),
             self.widget_tree.get_object("calibration_scale_adjustment")
         )
@@ -249,7 +281,7 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Starting calibration scan on %s ...", source)
 
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         promise = promise.then(
             # drop the return value of call_all()
@@ -258,7 +290,7 @@ class Plugin(openpaperwork_core.PluginBase):
         # calibration is always done at 75 DPI
         promise = promise.then(
             self.core.call_success(
-                "scan_promise", source_id=source, resolution=75
+                Scan.scan_promise, source_id=source, resolution=75
             )[1]
         )
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
@@ -266,9 +298,9 @@ class Plugin(openpaperwork_core.PluginBase):
         ))
         promise = promise.then(self._on_scan_end)
         promise = promise.then(openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_idle",)
+            self.core, self.core.call_all, args=(ActivityListener.on_idle,)
         ))
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
         self.widget_tree.get_object("calibration_scan").set_sensitive(False)
 
     def _scan(self, args):
@@ -357,7 +389,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 self.widget_tree.get_object(button).set_sensitive(True)
 
             drawing_area = self.widget_tree.get_object("calibration_area")
-            self.core.call_all("draw_scan_stop", drawing_area)
+            self.core.call_all(ScanDrawerFactory.draw_scan_stop, drawing_area)
 
         if scan_img is None:
             LOGGER.info("No page scanned. Can't do calibration")
@@ -370,7 +402,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         LOGGER.info("Calibration scan ready")
 
-        if self.core.call_success("config_get", "scanner_calibration") is None:
+        if self.core.call_success(Config.config_get, "scanner_calibration") is None:
             # Put the frame a little bit inside the image to make the
             # corner handles more visible
             calibration = [
@@ -381,12 +413,12 @@ class Plugin(openpaperwork_core.PluginBase):
             ]
             LOGGER.info("Setting default calibration area: %s", calibration)
             self.core.call_all(
-                "config_put", "scanner_calibration", calibration
+                Config.config_put, "scanner_calibration", calibration
             )
 
-        self.core.call_all("draw_pillow_start", drawing_area, scan_img)
+        self.core.call_all(PillowDrawer.draw_pillow_start, drawing_area, scan_img)
         self.core.call_all(
-            "draw_calibration_start", drawing_area,
+            CalibrationDrawerFactory.draw_calibration_start, drawing_area,
             (self.scan_width, self.scan_height)
         )
 
@@ -394,7 +426,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.scan_height <= 0 or self.scan_width <= 0:
             return
         self.core.call_all(
-            "config_put", "scanner_calibration",
+            Config.config_put, "scanner_calibration",
             [0, 0, self.scan_width, self.scan_height]
         )
 
@@ -409,7 +441,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return frame
 
         promise = openpaperwork_core.promise.Promise(
-            self.core, self.core.call_all, args=("on_busy",)
+            self.core, self.core.call_all, args=(ActivityListener.on_busy,)
         )
         promise = promise.then(lambda *args, **kwargs: self.scan_img)
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
@@ -417,11 +449,11 @@ class Plugin(openpaperwork_core.PluginBase):
         ))
         promise = promise.then(
             lambda frame: self.core.call_all(
-                "config_put", "scanner_calibration", list(frame)
+                Config.config_put, "scanner_calibration", list(frame)
             )
         )
         promise = promise.then(lambda *args, **kwargs: None)
-        promise = promise.then(self.core.call_all, "on_idle")
+        promise = promise.then(self.core.call_all, ActivityListener.on_idle)
         promise.schedule()
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
@@ -434,9 +466,29 @@ class Plugin(openpaperwork_core.PluginBase):
         if body is None:
             return
         self.core.call_success(
-            "screenshot_snap_widget", body,
+            Screenshot.screenshot_snap_widget, body,
             self.core.call_success(
-                "fs_join", out_dir, "settings_calibration_dialog.png"
+                Fs.fs_join, out_dir, "settings_calibration_dialog.png"
             ),
             margins=(100, 100, 100, 100)
         )
+
+    @openpaperwork_core.noop
+    def on_scan_feed_start(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_started(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_chunk(self, scan_id, scan_params, img_chunk):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_end(self, scan_id, page_nb, img):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_feed_end(self, scan_id):
+        pass

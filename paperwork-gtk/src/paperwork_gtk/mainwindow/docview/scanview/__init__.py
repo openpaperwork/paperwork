@@ -1,7 +1,20 @@
 import logging
 
 import openpaperwork_core
-import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.scan import ScanListener
+from paperwork_backend.interfaces.scan2doc import Scan2Doc
+from paperwork_backend.interfaces.scan2doc import Scan2DocListener
+
+from paperwork_gtk.interfaces.doc_viewer import (
+    DocViewer,
+    PageViewerListener
+)
+from paperwork_gtk.interfaces.doc_viewer import DocViewerComponentFactory
+from paperwork_gtk.interfaces.drawers import ScanDrawerFactory
 
 try:
     from gi.repository import GObject
@@ -10,13 +23,13 @@ except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
     # workaround so chkdeps can still be called
-    class GObject(object):  # type: ignore[no-redef]
+    class GObject:  # type: ignore[no-redef]
         TYPE_BOOLEAN = 0
 
-        class SignalFlags(object):
+        class SignalFlags:
             RUN_LAST = 0
 
-        class GObject(object):
+        class GObject:
             pass
 
 
@@ -57,7 +70,7 @@ class Scan(GObject.GObject):
         self.scan_id = scan_id
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.scanview", "scanview.glade"
         )
         self.widget = self.widget_tree.get_object("scanview_area")
@@ -77,12 +90,12 @@ class Scan(GObject.GObject):
         size = self.get_size()
         self.widget.set_size_request(size[0], size[1])
         self.widget.queue_resize()
-        self.core.call_all("draw_scan_start", self.widget, self.scan_id)
+        self.core.call_all(ScanDrawerFactory.draw_scan_start, self.widget, self.scan_id)
         self.widget.set_visible(True)
 
     def stop(self):
         LOGGER.info("Scan renderer: stop")
-        self.core.call_all("draw_scan_stop", self.widget)
+        self.core.call_all(ScanDrawerFactory.draw_scan_stop, self.widget)
         self.widget.set_visible(False)
 
     def get_visible(self):
@@ -94,7 +107,7 @@ class Scan(GObject.GObject):
         # It remains in state 'loading' as long as not all the pages have
         # reported having be loaded --> we report immediately ourselves
         # as loaded
-        self.core.call_all("on_page_size_obtained", self)
+        self.core.call_all(PageViewerListener.on_page_size_obtained, self)
         self.emit("size_obtained")
 
     def close(self):
@@ -110,7 +123,7 @@ class Scan(GObject.GObject):
     def get_full_size(self):
         if self.scan_id is None:
             return (0, 0)
-        size = self.core.call_success("draw_scan_get_scan_size", self.scan_id)
+        size = self.core.call_success(ScanDrawerFactory.draw_scan_get_scan_size, self.scan_id)
         if size is None:
             LOGGER.warning("Unknown scan_id: %s !?", self.scan_id)
             return (0, 0)
@@ -129,7 +142,7 @@ class Scan(GObject.GObject):
             return
         size = self.get_size()
         self.widget.set_size_request(size[0], size[1])
-        self.core.call_all("on_page_size_obtained", self)
+        self.core.call_all(PageViewerListener.on_page_size_obtained, self)
         self.emit("size_obtained")
         self.widget.queue_resize()
 
@@ -147,27 +160,43 @@ if GLIB_AVAILABLE:
     GObject.type_register(Scan)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerComponentFactory,
+    Scan2DocListener,
+    ScanListener,
+):
     PRIORITY = -10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_pageview',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+            },
+            {
+                "interface": DocViewer,
+                "defaults": ["paperwork_gtk.mainwindow.docview"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_drawer_scan',
+                "interface": PageViewerListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": Scan2Doc,
+                "defaults": ["paperwork_backend.docscan.scan2doc"],
+            },
+            {
+                'interface': ScanDrawerFactory,
                 'defaults': [
-                    'openpaperwork_gtk.drawer.scan',
                     'paperwork_gtk.drawer.calibration',
+                    'paperwork_gtk.drawer.scan',
                 ],
             },
         ]
@@ -182,10 +211,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self.doc_id = doc_id
         self.doc_url = doc_url
 
-        nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        nb_pages = self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
         if nb_pages is None:
             nb_pages = 0
-        scan_id = self.core.call_success("scan2doc_doc_id_to_scan_id", doc_id)
+        scan_id = self.core.call_success(Scan2Doc.scan2doc_doc_id_to_scan_id, doc_id)
         self.scan = Scan(self.core, self, doc_id, nb_pages, scan_id)
         if scan_id is None:
             out.append((False, self.scan))  # invisible
@@ -206,7 +235,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if scan_id != self.scan.scan_id:
             return
         self.scan.start()
-        self.core.call_all("docview_show_page_viewer", self.scan)
+        self.core.call_all(DocViewer.docview_show_page_viewer, self.scan)
 
     def on_scan_page_start(self, scan_id, page_nb, scan_params):
         if self.scan is None:
@@ -217,7 +246,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.scan.resize()
 
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", self.doc_url
+            Docs.doc_get_nb_pages_by_url, self.doc_url
         )
         if nb_pages is None:
             nb_pages = 0
@@ -226,10 +255,14 @@ class Plugin(openpaperwork_core.PluginBase):
 
         def goto_page(*args, **kwargs):
             self.scan.widget.disconnect(handle_id)
-            self.core.call_all("doc_goto_page", nb_pages)
+            self.core.call_all(DocViewer.doc_goto_page, nb_pages)
 
-        self.core.call_all("doc_goto_page", nb_pages)
+        self.core.call_all(DocViewer.doc_goto_page, nb_pages)
         handle_id = self.scan.widget.connect("size-allocate", goto_page)
+
+    @openpaperwork_core.noop
+    def on_scan_started(self, scan_id):
+        pass
 
     def on_scan_chunk(self, scan_id, *args, **kwargs):
         self.scan.resize()
@@ -241,19 +274,23 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", self.doc_url
+            Docs.doc_get_nb_pages_by_url, self.doc_url
         )
         assert nb_pages is not None
 
         LOGGER.info("Displaying new page %d", nb_pages - 1)
-        self.core.call_all("doc_goto_page", nb_pages - 1)
+        self.core.call_all(DocViewer.doc_goto_page, nb_pages - 1)
+
+    @openpaperwork_core.noop
+    def on_scan_page_end(self, scan_id, page_nb, img):
+        pass
 
     def on_scan_feed_end(self, scan_id):
         if self.scan is None:
             return
         if scan_id != self.scan.scan_id:
             return
-        self.core.call_all("docview_hide_page_viewer", self.scan)
+        self.core.call_all(DocViewer.docview_hide_page_viewer, self.scan)
         self.scan.stop()
 
     def on_scan2doc_end(self, scan_id, doc_id, doc_url):

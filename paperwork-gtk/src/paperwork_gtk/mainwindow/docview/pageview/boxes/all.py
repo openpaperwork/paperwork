@@ -1,30 +1,30 @@
 import logging
 
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxes
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesAll
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesListener
+
 import openpaperwork_core
+
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PageDrawer,
+    PageViewBoxesAll,
+    PageViewBoxesListener,
+):
     PRIORITY = 1000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_pageview_boxes_all',
-            'gtk_pageview_boxes_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_pageview',
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageview'],
-            },
-            {
-                'interface': 'gtk_pageview_boxes',
+                'interface': PageViewBoxes,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageview.boxes'
                 ],
@@ -37,7 +37,6 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def set_all_boxes_visible(self, visible):
         self.visible = visible
-        self.core.call_all("pageview_refresh_all")
 
     def on_page_boxes_loaded(self, page, boxes, spatial_index):
         page.refresh()
@@ -47,7 +46,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         boxes = self.core.call_success(
-            "pageview_get_boxes_by_id", page.doc_id, page.page_idx
+            PageViewBoxes.pageview_get_boxes_by_id, page.doc_id, page.page_idx
         )
         if boxes is None:
             return
@@ -55,7 +54,15 @@ class Plugin(openpaperwork_core.PluginBase):
         for line_box in boxes:
             for word_box in line_box.word_boxes:
                 self.core.call_all(
-                    "page_draw_box",
+                    PageViewBoxes.page_draw_box,
                     cairo_ctx, page, word_box.position,
                     (0.0, 0.0, 1.0), border_width=1
                 )
+
+    @openpaperwork_core.noop
+    def pageview_refresh_all(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_page_visibility_changed(self, page, visible):
+        pass

@@ -1,7 +1,21 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.doc_layout import DocLayout
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+from paperwork_gtk.interfaces.doc_viewer import DocViewerListener
+from paperwork_gtk.interfaces.doc_viewer import PageInfo
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesAll
+from paperwork_gtk.interfaces.zoom import Zoom
 
 
 try:
@@ -16,7 +30,13 @@ except (ImportError, ValueError):
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocLayout,
+    DocViewerListener,
+    ScreenshotProvider,
+):
     LAYOUTS = {
         'paged': {
             'icon': 'view-paged-symbolic',
@@ -27,31 +47,39 @@ class Plugin(openpaperwork_core.PluginBase):
     }
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_layout_settings',
-            'screenshot_provider',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
+                "interface": DocViewer,
+                "defaults": ["paperwork_gtk.mainwindow.docview"],
             },
             {
-                'interface': 'gtk_docview_pageinfo',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': PageDrawer,
+                'defaults': ['paperwork_gtk.mainwindow.docview.pageview'],
+            },
+            {
+                'interface': PageInfo,
                 'defaults': ['paperwork_gtk.mainwindow.docview.pageinfo'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'screenshot',
+                "interface": PageViewBoxesAll,
+                "defaults": [],
+            },
+            {
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
+            },
+            {
+                "interface": Zoom,
+                "defaults": ["paperwork_gtk.gesture.zoom"],
             },
         ]
 
@@ -64,12 +92,12 @@ class Plugin(openpaperwork_core.PluginBase):
         self.notify = True
 
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "paperwork_gtk.mainwindow.docview.pageinfo", "layout_settings.css"
         )
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.pageinfo",
             "layout_settings.glade"
         )
@@ -103,10 +131,10 @@ class Plugin(openpaperwork_core.PluginBase):
                 "clicked", self._on_layout_change
             )
 
-        self.core.call_success("page_info_add_left", self.layout_button)
+        self.core.call_success(PageInfo.page_info_add_left, self.layout_button)
 
-        scroll = self.core.call_success("docview_get_scrollwindow")
-        self.core.call_all("on_zoomable_widget_new", scroll, self.zoom)
+        scroll = self.core.call_success(DocViewer.docview_get_scrollwindow)
+        self.core.call_all(Zoom.on_zoomable_widget_new, scroll, self.zoom)
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
@@ -123,7 +151,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def _on_layout_change(self, widget):
         assert widget in self.layout_buttons
         layout = self.layout_buttons[widget]['layout']
-        self.core.call_all("docview_set_layout", layout)
+        self.core.call_all(DocViewer.docview_set_layout, layout)
 
     def gtk_open_layout_settings(self, *args, **kwargs):
         menu = self.widget_tree.get_object("layout_settings")
@@ -137,13 +165,14 @@ class Plugin(openpaperwork_core.PluginBase):
     def _on_zoom_changed(self, _=None):
         new_value = self.zoom.get_value()
         if self.notify:
-            self.core.call_all("docview_set_zoom", new_value)
+            self.core.call_all(DocViewer.docview_set_zoom, new_value)
 
     def _notify_all_boxes(self, *args, **kwargs):
         active = self.all_boxes.get_active()
-        self.core.call_all("set_all_boxes_visible", active)
+        self.core.call_all(PageViewBoxesAll.set_all_boxes_visible, active)
+        self.core.call_all(PageDrawer.pageview_refresh_all)
 
-    def docview_set_zoom(self, zoom):
+    def on_docview_zoom_updated(self, zoom):
         current = self.zoom.get_value()
         if current != zoom:
             self.notify = False
@@ -157,39 +186,47 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("layout_settings"),
-            self.core.call_success("fs_join", out_dir, "docview_layout.png"),
+            self.core.call_success(Fs.fs_join, out_dir, "docview_layout.png"),
         )
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("layout_paged"),
             self.core.call_success(
-                "fs_join", out_dir, "docview_layout_paged.png"
+                Fs.fs_join, out_dir, "docview_layout_paged.png"
             ),
             margins=(50, 50, 50, 50)
         )
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("layout_grid"),
             self.core.call_success(
-                "fs_join", out_dir, "docview_layout_grid.png"
+                Fs.fs_join, out_dir, "docview_layout_grid.png"
             ),
             margins=(50, 50, 50, 50)
         )
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("scale_zoom"),
             self.core.call_success(
-                "fs_join", out_dir, "docview_layout_scale.png"
+                Fs.fs_join, out_dir, "docview_layout_scale.png"
             ),
             margins=(50, 50, 50, 50)
         )
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("show_all_boxes"),
             self.core.call_success(
-                "fs_join", out_dir, "docview_layout_show_all_boxes.png"
+                Fs.fs_join, out_dir, "docview_layout_show_all_boxes.png"
             ),
             margins=(275, 50, 50, 50)
         )
+
+    @openpaperwork_core.noop
+    def on_docview_closed_page(self, page):
+        pass
+
+    @openpaperwork_core.noop
+    def on_gtk_docview_init(self):
+        pass

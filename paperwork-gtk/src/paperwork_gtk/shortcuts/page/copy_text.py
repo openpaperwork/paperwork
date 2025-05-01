@@ -1,36 +1,36 @@
 import gettext
 
 import openpaperwork_core
+from openpaperwork_core.interfaces.gui import GuiListener
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.shortcuts import AppShortcutCollector
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'shortcuts',
-            'shortcuts_page',
-            'shortcuts_page_copy_text',
-        ]
-
+class Plugin(openpaperwork_core.PluginBase, GuiListener):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'action_page_copy_text',
+                'interface': AppAction,
                 'defaults': ['paperwork_gtk.actions.page.copy_text'],
             },
             {
-                'interface': 'app_shortcuts',
+                'interface': AppShortcutCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
         ]
 
-    def on_gtk_initialized(self):
+    def on_gui_initialized(self):
         self.core.call_all(
-            "app_shortcut_add",
+            AppShortcutCollector.app_shortcut_add,
             gettext.pgettext("keyboard shortcut categories", "Page"),
             gettext.pgettext(
                 "keyboard shortcut names", "Copy selected text to clipboard"
             ),
             "<Control>c", "win.page_copy_text"
         )
+
+    @openpaperwork_core.noop
+    def new_mainwindow(self):
+        pass

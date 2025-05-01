@@ -2,23 +2,26 @@ import logging
 
 import openpaperwork_core
 
-from . import BaseDocViewController
+from openpaperwork_gtk.interfaces.gesture import AutoscrollingGesture
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class AutoScrollingController(BaseDocViewController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.handler = None
         self.enter()
 
     def enter(self):
         if self.handler is not None:
             return
-        self.handler = self.plugin.core.call_success(
-            "gesture_enable_autoscrolling", self.plugin.scroll
+        self.handler = self.core.call_success(
+            AutoscrollingGesture.gesture_enable_autoscrolling, self.plugin.scroll
         )
 
     def exit(self):
@@ -31,23 +34,18 @@ class AutoScrollingController(BaseDocViewController):
         self.exit()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_docview_controller']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-            {
-                'interface': 'gtk_gesture_autoscrolling',
-                'defaults': ['openpaperwork_gtk.gesturee.autoscrolling'],
+                'interface': AutoscrollingGesture,
+                'defaults': ['openpaperwork_gtk.gesture.autoscrolling'],
             },
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):
-        out['autoscrolling'] = AutoScrollingController(docview)
+        out['autoscrolling'] = AutoScrollingController(self.core, docview)

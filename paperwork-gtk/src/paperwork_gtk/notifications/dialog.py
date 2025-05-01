@@ -8,18 +8,25 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.notifications import AbstractNotificationBuilder
+from paperwork_gtk.interfaces.notifications import Notifications
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class DialogBuilder(object):
+class DialogBuilder(AbstractNotificationBuilder):
     def __init__(self, plugin, title):
         self.plugin = plugin
         self.widget_tree = self.plugin.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.notifications",
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.notifications",
             "dialog.glade"
         )
         dialog = self.widget_tree.get_object("dialog")
@@ -66,20 +73,17 @@ class DialogBuilder(object):
         dialog.set_visible(True)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_window_listener',
-            'notifications',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    GtkWindowListener,
+    Notifications,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]

@@ -1,11 +1,14 @@
 import logging
 
+from paperwork_gtk.interfaces.doc_viewer import AbstractDocViewerController
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BaseDocViewController(object):
-    def __init__(self, plugin):
+class BaseDocViewController(AbstractDocViewerController):
+    def __init__(self, core, plugin):
+        self.core = core
         self.plugin = plugin
 
     def __str__(self):

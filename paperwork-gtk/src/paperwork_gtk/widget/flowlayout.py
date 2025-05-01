@@ -26,15 +26,20 @@ except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
 import openpaperwork_core
 import openpaperwork_core.deps
+
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.widgets import FlowLayoutFactory
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class WidgetInfo(object):
+class WidgetInfo:
     def __init__(self, widget, alignment, size=None):
         self.widget = widget
         self.alignment = alignment
@@ -87,7 +92,7 @@ def recompute_height_for_width(widgets, width, spacing=(0, 0)):
 
 
 def recompute_box_positions(core, widgets, width, spacing=(0, 0)):
-    core.call_all("on_perfcheck_start", "recompute_box_positions")
+    core.call_all(Perfcheck.on_perfcheck_start, "recompute_box_positions")
 
     # build lines
     lines = []
@@ -166,7 +171,7 @@ def recompute_box_positions(core, widgets, width, spacing=(0, 0)):
         height += spacing[1]
 
     core.call_all(
-        "on_perfcheck_stop", "recompute_box_positions",
+        Perfcheck.on_perfcheck_stop, "recompute_box_positions",
         nb_boxes=len(widgets)
     )
     return (widgets, max_line_width, height)
@@ -279,12 +284,19 @@ if GTK_AVAILABLE:
     GObject.type_register(CustomFlowLayout)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    FlowLayoutFactory,
+):
     @classmethod
-    def get_interfaces(cls):
+    def get_deps(cls):
         return [
-            'chkdeps',
-            'gtk_widget_flowlayout',
+            {
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def chkdeps(self, out: dict):

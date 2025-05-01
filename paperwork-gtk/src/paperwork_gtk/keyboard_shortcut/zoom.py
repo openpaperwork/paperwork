@@ -1,5 +1,10 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+
+from paperwork_gtk.interfaces.zoom import Zoom
+
 try:
     import gi
     gi.require_version('Gdk', '3.0')
@@ -15,7 +20,7 @@ import openpaperwork_gtk.deps
 LOGGER = logging.getLogger(__name__)
 
 
-class Zoomer(object):
+class Zoomer:
     ZOOM_INCREMENT = 0.02
 
     def __init__(self, zoomable, adjustment):
@@ -49,12 +54,19 @@ class Zoomer(object):
         return False
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    Zoom,
+):
     @classmethod
-    def get_interfaces(cls):
+    def get_deps(cls):
         return [
-            'chkdeps',
-            'gtk_zoomable',
+            {
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def __init__(self, core):
@@ -76,7 +88,7 @@ class Plugin(openpaperwork_core.PluginBase):
         applied on a GtkAdjustment.
         """
         zoomer = Zoomer(zoomable, adjustment)
-        self.core.call_all("on_objref_track", zoomer)
+        self.core.call_all(MemleakDetector.on_objref_track, zoomer)
         self.refs[zoomable] = zoomer
 
     def on_zoomable_widget_destroy(self, zoomable, adjustment):

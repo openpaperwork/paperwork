@@ -6,36 +6,36 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
-import openpaperwork_core.promise
 import openpaperwork_core.deps
+
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_properties import DocProperties
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "doc_properties"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_doc',
-            'action_doc_properties',
-            'chkdeps',
-            'doc_open',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'gtk_doc_properties',
+                'interface': DocProperties,
                 'defaults': ['paperwork_gtk.mainwindow.docproperties'],
             },
         ]
@@ -47,7 +47,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._open_properties)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -55,6 +55,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.active_doc = None
@@ -64,4 +68,4 @@ class Plugin(openpaperwork_core.PluginBase):
         active = self.active_doc
 
         LOGGER.info("Opening properties of document %s", active[0])
-        self.core.call_all("open_doc_properties", *active)
+        self.core.call_all(DocProperties.open_doc_properties, *active)

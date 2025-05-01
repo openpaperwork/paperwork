@@ -8,50 +8,68 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
 
-from ... import _
+from openpaperwork_gtk.interfaces.dialogs import (
+    GtkYesNoDialog,
+    GtkYesNoDialogListener
+)
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_selection import DocSelection
+from paperwork_gtk.interfaces.search_field import Search
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "doc_delete_many"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_docs',
-            'action_docs_delete',
-            'chkdeps',
-            'doc_action',
-            'doc_open',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    GtkYesNoDialogListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'doc_selection',
+                "interface": DocOpener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocSelection,
                 'defaults': ['paperwork_gtk.doc_selection'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_dialog_yes_no',
+                'interface': GtkYesNoDialog,
                 'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                "interface": Search,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -61,7 +79,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._delete)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -69,7 +87,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _delete(self, action, parameter):
         docs = set()
-        self.core.call_all("doc_selection_get", docs)
+        self.core.call_all(DocSelection.doc_selection_get, docs)
         LOGGER.info("Asking confirmation before deleting %d doc", len(docs))
         msg = _('Are you sure you want to delete %d documents ?') % len(docs)
 
@@ -77,11 +95,11 @@ class Plugin(openpaperwork_core.PluginBase):
             # On Windows, we have to be absolutely sure the PDF is actually
             # closed when we try to delete it because Windows s*cks pony d*cks
             # in h*ll.
-            self.core.call_all("doc_close")
+            self.core.call_all(DocOpener.doc_close)
             # there is no "close()" method in Poppler
             gc.collect()
 
-        self.core.call_all("gtk_show_dialog_yes_no", self, msg, docs)
+        self.core.call_all(GtkYesNoDialog.gtk_show_dialog_yes_no, self, msg, docs)
 
     def on_dialog_yes_no_reply(self, parent, reply, *args, **kwargs):
         if parent is not self:
@@ -90,16 +108,16 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         (docs,) = args
 
-        self.core.call_all("doc_close")
+        self.core.call_all(DocOpener.doc_close)
 
         for (doc_id, doc_url) in docs:
             LOGGER.info("Deleting document %s", doc_id)
-            self.core.call_all("storage_delete_doc_id", doc_id)
+            self.core.call_all(DocStorage.storage_delete_doc_id, doc_id)
 
-        self.core.call_all("search_update_document_list")
+        self.core.call_all(Search.search_update_document_list)
 
         self.core.call_success(
-            "transaction_simple", [
+            DocTransactionManager.transaction_simple, [
                 ('del', doc_id) for (doc_id, doc_url) in docs
             ]
         )

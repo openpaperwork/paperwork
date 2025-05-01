@@ -6,50 +6,76 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import (
+    DocOpener,
+    Docs
+)
+from paperwork_backend.interfaces.pages import (
+    PageImg,
+    PageManagement
+)
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_list import DocList
+from paperwork_gtk.interfaces.doc_viewer import PageViewerListener
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.search_field import SearchField
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "page_move_to_doc"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_page',
-            'action_page_move_to_doc',
-            'chkdeps',
-            'doc_open',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+    PageViewerListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'gtk_doclist',
+                'interface': DocList,
                 'defaults': ['paperwork_gtk.mainwindow.doclist'],
             },
             {
-                'interface': 'gtk_mainwindow',
-                'defaults': ['paperwork_gtk.mainwindow.window'],
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_search_field',
-                'defaults': ['paperwork_gtk.mainwindow.search.field'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
             {
-                'interface': 'pages',
+                'interface': MainWindow,
+                'defaults': ['paperwork_gtk.mainwindow.window'],
+            },
+            {
+                'interface': PageImg,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.img_overlay',
@@ -58,8 +84,8 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                'interface': SearchField,
+                'defaults': ['paperwork_gtk.mainwindow.search.field'],
             },
         ]
 
@@ -74,7 +100,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.actions.page.move_to_doc", "move_to_doc.glade"
         )
         if widget_tree is None:
@@ -85,7 +111,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "clicked", self._cancel_move_to_doc
         )
         self.core.call_all(
-            "mainwindow_add",
+            MainWindow.mainwindow_add,
             "right", "move_to_doc",
             -9999999999,
             widget_tree.get_object("move_to_doc_header"),
@@ -94,7 +120,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._start_move_to_doc)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -107,6 +133,10 @@ class Plugin(openpaperwork_core.PluginBase):
             self._move_to_doc(new_active_doc)
         self.active_doc = new_active_doc
 
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
     def doc_close(self):
         self.active_doc = None
 
@@ -118,19 +148,19 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.active_page_idx < 0:
             return
         LOGGER.info("Starting 'move to doc' process")
-        self.core.call_all("mainwindow_show", "right", "move_to_doc")
-        self.core.call_all("mainwindow_show", "left", "doclist")
+        self.core.call_all(MainWindow.mainwindow_show, "right", "move_to_doc")
+        self.core.call_all(MainWindow.mainwindow_show, "left", "doclist")
         self.waiting_for_target_doc = True
 
     def _run_transaction(self, original_doc, target_doc):
         nb_remaining_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", original_doc[1]
+            Docs.doc_get_nb_pages_by_url, original_doc[1]
         )
         if nb_remaining_pages is None:
             nb_remaining_pages = 0
 
         self.core.call_success(
-            "transaction_simple_promise",
+            DocTransactionManager.transaction_simple_promise,
             [
                 ('upd', target_doc[0]),
                 (
@@ -144,21 +174,21 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = openpaperwork_core.promise.Promise(self.core)
         promise = promise.then(
             self.core.call_all,
-            "page_move_by_url",
+            PageManagement.page_move_by_url,
             self.active_doc[1], self.active_page_idx,
             target_doc[1], 0
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
             self.core.call_one,
-            "mainloop_schedule", self.core.call_all,
-            "doc_reload", *self.active_doc
+            Mainloop.mainloop_schedule, self.core.call_all,
+            DocOpener.doc_reload, *self.active_doc
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
             self.core.call_one,
-            "mainloop_schedule", self.core.call_all,
-            "doc_reload", *target_doc
+            Mainloop.mainloop_schedule, self.core.call_all,
+            DocOpener.doc_reload, *target_doc
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
@@ -170,9 +200,13 @@ class Plugin(openpaperwork_core.PluginBase):
             self._run_transaction, self.active_doc, target_doc
         )
 
-        self.core.call_success("transaction_schedule", promise)
+        self.core.call_success(DocTransactionManager.transaction_schedule, promise)
 
     def _cancel_move_to_doc(self, *args, **kwargs):
         LOGGER.info("Canceling 'move to doc' process")
-        self.core.call_all("mainwindow_back", "right")
+        self.core.call_all(MainWindow.mainwindow_back, "right")
         self.waiting_for_target_doc = False
+
+    @openpaperwork_core.noop
+    def on_page_size_obtained(self, page):
+        pass

@@ -1,4 +1,10 @@
+from openpaperwork_core.interfaces.flatpak import Flatpak
 import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerExtra
 
 
 INSTRUCTIONS = {
@@ -28,28 +34,17 @@ INSTRUCTIONS = {
 }
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_scanner_flatpak',
-            'gtk_window_listener',
-        ]
-
+class Plugin(openpaperwork_core.PluginBase, GtkWindowListener, GtkSettingsScannerExtra):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'flatpak',
+                'interface': Flatpak,
                 'defaults': ['openpaperwork_core.flatpak'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
-            },
-            {
-                'interface': 'gtk_settings_scanner',
-                'defaults': ['paperwork_gtk.settings.scanner.settings'],
             },
         ]
 
@@ -58,11 +53,11 @@ class Plugin(openpaperwork_core.PluginBase):
         self.windows = []
 
     def settings_scanner_get_extra_widget(self):
-        if not self.core.call_success("is_in_flatpak"):
+        if not self.core.call_success(Flatpak.is_in_flatpak):
             return None
 
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.settings.scanner",
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings.scanner",
             "flatpak.glade"
         )
         if widget_tree is None:
@@ -79,7 +74,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _on_clicked(self, button):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.settings.scanner",
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings.scanner",
             "flatpak.glade"
         )
         if widget_tree is None:

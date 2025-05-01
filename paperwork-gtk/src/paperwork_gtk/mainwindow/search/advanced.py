@@ -2,6 +2,23 @@ import datetime
 import logging
 import re
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
+import openpaperwork_gtk.deps
+
+from paperwork_backend.interfaces.doc_labels import DocLabelListener, DocLabels
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.advanced_search import AdvancedSearchDialog
+from paperwork_gtk.interfaces.search_field import SearchField
+
 try:
     from gi.repository import GLib
     from gi.repository import GObject
@@ -17,11 +34,6 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
-import openpaperwork_core
-import openpaperwork_gtk.deps
-
-from ... import _
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,7 +46,7 @@ def strip_quotes(txt):
     return txt
 
 
-class SearchElement(object):
+class SearchElement:
     def __init__(self, dialog, widget):
         self.dialog = dialog
         self.widget = widget
@@ -92,9 +104,9 @@ class SearchElementLabel(SearchElement):
 
     def on_model_updated(self):
         labels = set()
-        self.dialog.core.call_all("labels_get_all", labels)
+        self.dialog.core.call_all(DocLabels.labels_get_all, labels)
         labels = [label[0] for label in labels]
-        labels = self.dialog.core.call_success("i18n_sort", labels)
+        labels = self.dialog.core.call_success(I18n.i18n_sort, labels)
 
         store = Gtk.ListStore.new([GObject.TYPE_STRING])
         if len(labels) <= 0:
@@ -361,7 +373,7 @@ class SearchLine(object):
         self.remove_button.connect(
             "clicked",
             lambda x: GLib.idle_add(
-                self.dialog.remove_element,
+                self.dialog._remove_element,
                 self
             )
         )
@@ -408,7 +420,7 @@ class SearchLine(object):
             self.element = None
         self.line.insert(3, element.get_widget())
         self.element = element
-        self.dialog.rebuild()
+        self.dialog._rebuild()
 
     def get_widgets(self):
         return self.line
@@ -462,34 +474,40 @@ class SearchLine(object):
             self.element.on_model_updated()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_advanced_search_dialog',
-            'gtk_window_listener',
-            'screenshot_provider',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AdvancedSearchDialog,
+    Chkdeps,
+    DocLabelListener,
+    GtkWindowListener,
+    ScreenshotProvider,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'doc_labels',
+                'interface': DocLabels,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": Fs,
+                "defaults": ["openpaperwork.fs.gio"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
+            },
+            {
+                "interface": SearchField,
+                "defaults": ["paperwork_gtk.mainwindow.search.field"],
             },
         ]
 
@@ -519,7 +537,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.search", "advanced.glade"
         )
         if self.widget_tree is None:
@@ -530,7 +548,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.dialog = self.widget_tree.get_object("search_dialog")
         self.dialog.set_transient_for(self.windows[-1])
 
-        keywords = self.core.call_success("search_get")
+        keywords = self.core.call_success(SearchField.search_get)
         keywords = keywords.strip()
         keywords = re.findall(
             r'(?:\[.*\]|(?:[^\s"]|"(?:\\.|[^"])*"))+', keywords
@@ -543,12 +561,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
         add_button = self.widget_tree.get_object("button_add")
         add_button.connect(
-            "clicked", lambda w: GLib.idle_add(self.add_element)
+            "clicked", lambda w: GLib.idle_add(self._add_element)
         )
 
         if keywords == []:
             LOGGER.info("Starting from an empty search")
-            self.add_element()
+            self._add_element()
         else:
             LOGGER.info("Current search: %s", keywords)
 
@@ -569,7 +587,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 sl = SearchLine.get_from_search(
                     self, next_operator, not_value, keyword
                 )
-                self.add_element(sl)
+                self._add_element(sl)
 
                 next_operator = u"AND"
                 not_value = u""
@@ -583,7 +601,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 response_id == Gtk.ResponseType.YES or
                 response_id == Gtk.ResponseType.APPLY):
             search = self._get_search_string()
-            self.core.call_all("search_set", search)
+            self.core.call_all(SearchField.search_set, search)
         self.gtk_close_advanced_search_dialog()
 
     def gtk_close_advanced_search_dialog(self):
@@ -591,7 +609,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.widget_tree = None
         self.dialog = None
 
-    def add_element(self, sl=None):
+    def _add_element(self, sl=None):
         if sl is None:
             sl = SearchLine(
                 self,
@@ -600,9 +618,9 @@ class Plugin(openpaperwork_core.PluginBase):
             )
             sl.connect_signals()
         self.search_elements.append(sl)
-        self.rebuild()
+        self._rebuild()
 
-    def rebuild(self):
+    def _rebuild(self):
         # purge
         for child in self.search_element_box.get_children():
             self.search_element_box.remove(child)
@@ -617,9 +635,9 @@ class Plugin(openpaperwork_core.PluginBase):
                 )
         self.search_element_box.show_all()
 
-    def remove_element(self, sl):
+    def _remove_element(self, sl):
         self.search_elements.remove(sl)
-        self.rebuild()
+        self._rebuild()
 
     def _get_search_string(self):
         """concat all our search terms into a single string"""
@@ -640,12 +658,16 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.dialog is None:
             return
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.dialog,
             self.core.call_success(
-                "fs_join", out_dir, "advanced_search.png"
+                Fs.fs_join, out_dir, "advanced_search.png"
             ),
         )
+
+    @openpaperwork_core.noop
+    def on_label_loading_start(self):
+        pass
 
     def on_label_loading_end(self):
         for element in self.search_elements:

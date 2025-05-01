@@ -1,16 +1,19 @@
 import openpaperwork_core
 
+from openpaperwork_gtk.interfaces.gtk import GtkResources
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['icon']
+from paperwork_gtk.interfaces.icon import Icon
 
+
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Icon,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
@@ -18,5 +21,5 @@ class Plugin(openpaperwork_core.PluginBase):
     def icon_get_pixbuf(self, icon_name, size_px):
         file_name = "{}_{}.png".format(icon_name, size_px)
         return self.core.call_success(
-            "gtk_load_pixbuf", "paperwork_gtk.icon.out", file_name
+            GtkResources.gtk_load_pixbuf, "paperwork_gtk.icon.out", file_name
         )

@@ -1,9 +1,26 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.deps
-import openpaperwork_core.promise
 
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotListener
+
+from paperwork_backend.interfaces.cairo import CairoRendererFactory
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import Pages
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewer, PageViewerListener
+from paperwork_gtk.interfaces.doc_viewer import DocViewerComponentFactory
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
 
 try:
     from gi.repository import GObject
@@ -21,7 +38,7 @@ except (ImportError, ValueError):
         class GObject(object):
             pass
 
-from .... import _
+from paperwork_gtk import _
 
 
 LOGGER = logging.getLogger(__name__)
@@ -59,7 +76,7 @@ class Page(GObject.GObject):
 
     def _load_renderer(self):
         page_img_url = self.core.call_success(
-            "page_get_img_url", self.doc_url, self.page_idx
+            PageImg.page_get_img_url, self.doc_url, self.page_idx
         )
         LOGGER.info(
             "URL for %s p%d: %s", self.doc_url, self.page_idx, page_img_url
@@ -67,7 +84,7 @@ class Page(GObject.GObject):
         assert page_img_url is not None
 
         self.renderer = self.core.call_success(
-            "cairo_renderer_by_url", "page_loader", page_img_url
+            CairoRendererFactory.cairo_renderer_by_url, "page_loader", page_img_url
         )
         self.renderer.connect("getting_size", self._on_renderer_getting_size)
         self.renderer.connect("size_obtained", self._on_renderer_size)
@@ -75,7 +92,7 @@ class Page(GObject.GObject):
 
     def rebuild_widget(self):
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.pageview", "pageview.glade"
         )
         self.widget = self.widget_tree.get_object("pageview_area")
@@ -88,7 +105,7 @@ class Page(GObject.GObject):
 
     def _on_renderer_getting_size(self, renderer):
         self.core.call_all(
-            "on_progress", "loading_page_sizes",
+            ProgressListener.on_progress, "loading_page_sizes",
             self.page_idx / self.nb_pages,
             _("Loading page {}/{} ...").format(self.page_idx, self.nb_pages)
         )
@@ -101,13 +118,12 @@ class Page(GObject.GObject):
         )
         self.widget.set_visible(True)
         self.resize()
-        self.core.call_all("on_page_size_obtained", self)
+        self.core.call_all(PageViewerListener.on_page_size_obtained, self)
         self.emit('size_obtained')
 
     def _on_renderer_img(self, renderer):
         assert self.visible
         self.refresh()
-        self.core.call_all("on_page_img_obtained", self)
         self.emit('img_obtained')
 
     def load(self):
@@ -115,7 +131,7 @@ class Page(GObject.GObject):
             # renderer has already loaded the page --> reemit the page size
             if self.renderer.size[0] != 0:
                 self.core.call_success(
-                    "mainloop_schedule", self._on_renderer_size, self.renderer
+                    Mainloop.mainloop_schedule, self._on_renderer_size, self.renderer
                 )
 
     def close(self):
@@ -148,7 +164,7 @@ class Page(GObject.GObject):
         if reload:
             # only if the mtime has changed. Otherwise there is no point.
             mtime = self.core.call_success(
-                "page_get_mtime_by_url", self.doc_url, self.page_idx
+                Pages.page_get_mtime_by_url, self.doc_url, self.page_idx
             )
             if self.mtime == mtime:
                 reload = False
@@ -168,13 +184,13 @@ class Page(GObject.GObject):
     def hide(self):
         self.visible = False
         self.renderer.hide()
-        self.core.call_all("on_page_visibility_changed", self, False)
+        self.core.call_all(PageDrawer.on_page_visibility_changed, self, False)
         self.emit('visibility_changed', False)
 
     def show(self):
         self.visible = True
         self.renderer.render()
-        self.core.call_all("on_page_visibility_changed", self, True)
+        self.core.call_all(PageDrawer.on_page_visibility_changed, self, True)
         self.emit('visibility_changed', True)
 
     def set_visible(self, visible):
@@ -191,7 +207,7 @@ class Page(GObject.GObject):
 
     def _on_draw(self, widget, cairo_ctx):
         self.renderer.draw(cairo_ctx)
-        self.core.call_all("on_page_draw", cairo_ctx, self)
+        self.core.call_all(PageDrawer.on_page_draw, cairo_ctx, self)
 
     def blur(self):
         self.renderer.blur()
@@ -212,39 +228,78 @@ if GLIB_AVAILABLE:
     GObject.type_register(Page)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DocViewerComponentFactory,
+    PageDrawer,
+    ScreenshotListener,
+):
     PRIORITY = 10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'cairo_url',
+                'interface': CairoRendererFactory,
                 'defaults': [
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": Docs,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": DocViewer,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'page_img',
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': PageImg,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
             },
             {
-                'interface': 'work_queue',
+                'interface': Pages,
+                'defaults': [
+                    'paperwork_backend.model.img',
+                    'paperwork_backend.model.pdf',
+                ],
+            },
+            {
+                "interface": PageViewerListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -255,15 +310,23 @@ class Plugin(openpaperwork_core.PluginBase):
         self.nb_to_load = 0
         self.active_doc = (None, None)
         self.core.call_all(
-            "work_queue_create", "page_loader", stop_on_quit=True
+            WorkQueue.work_queue_create, "page_loader", stop_on_quit=True
         )
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
             out['glib'].update(openpaperwork_core.deps.GLIB)
 
+    @openpaperwork_core.noop
+    def doc_open(self, doc_id, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
     def doc_close(self):
-        self.core.call_success("work_queue_cancel_all", "page_loader")
+        self.core.call_success(WorkQueue.work_queue_cancel_all, "page_loader")
         for page in self.pages:
             page.close()
         self.pages = []
@@ -274,16 +337,16 @@ class Plugin(openpaperwork_core.PluginBase):
             self.doc_close()
             self.active_doc = active_doc
 
-        nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        nb_pages = self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
         LOGGER.info("Number of pages displayed: %s", nb_pages)
         if nb_pages is None:
             LOGGER.warning("Failed to get the number of pages in %s", doc_id)
             nb_pages = 0
 
-        self.core.call_all("on_objref_graph")
+        self.core.call_all(MemleakDetector.on_objref_graph)
 
         self.core.call_all(
-            "on_perfcheck_start",
+            Perfcheck.on_perfcheck_start,
             "pageview->doc_open_components({})".format(doc_id)
         )
 
@@ -313,7 +376,7 @@ class Plugin(openpaperwork_core.PluginBase):
             out.append((True, page))
 
         self.core.call_all(
-            "on_perfcheck_stop",
+            Perfcheck.on_perfcheck_stop,
             "pageview->doc_open_components({})".format(doc_id),
             nb_pages=nb_pages
         )
@@ -323,11 +386,19 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.nb_to_load > 0:
             return
         self.nb_to_load = 0
-        self.core.call_all("on_progress", "loading_page_sizes", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "loading_page_sizes", 1.0)
 
     def pageview_refresh_all(self):
         for page in self.pages:
             page.refresh()
+
+    @openpaperwork_core.noop
+    def on_page_draw(self, cairo_ctx, page):
+        pass
+
+    @openpaperwork_core.noop
+    def on_page_visibility_changed(self, page, visible):
+        pass
 
     def on_screenshot_before(self):
         LOGGER.info("Blurring pages")

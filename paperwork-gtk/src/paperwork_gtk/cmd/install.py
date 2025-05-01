@@ -10,9 +10,10 @@ import xdg.BaseDirectory
 import xdg.DesktopEntry
 import xdg.IconTheme
 
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
-from .. import _
+from paperwork_gtk import _
 
 
 ICON_SIZES = [
@@ -21,15 +22,10 @@ ICON_SIZES = [
 ]
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
-    @classmethod
-    def get_deps(cls):
-        return []
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     def cmd_complete_argparse(self, parser):
         p = parser.add_parser('install', help=_(
             "Install Paperwork icons and shortcuts"

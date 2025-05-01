@@ -2,7 +2,14 @@ import argparse
 import logging
 import sys
 
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.logs import LogManager
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core  # noqa: E402
+
+from openpaperwork_gtk.interfaces.gtk import GtkApp
+from openpaperwork_gtk.interfaces.gtk import GtkInit
 import openpaperwork_gtk  # noqa: E402
 
 import paperwork_backend  # noqa: E402
@@ -28,7 +35,6 @@ DEFAULT_GUI_PLUGINS = (
         'openpaperwork_core.logs.print',
         'openpaperwork_core.spatial.rtree',
         'openpaperwork_gtk.drawer.pillow',
-        'openpaperwork_gtk.drawer.scan',
         'openpaperwork_gtk.gesture.autoscrolling',
         'openpaperwork_gtk.gtk_init',
         'paperwork_backend.docscan.autoselect_scanner',
@@ -71,6 +77,7 @@ DEFAULT_GUI_PLUGINS = (
         'paperwork_gtk.docimport',
         'paperwork_gtk.drawer.calibration',
         'paperwork_gtk.drawer.frame',
+        'paperwork_gtk.drawer.scan',
         'paperwork_gtk.flatpak',
         'paperwork_gtk.gesture.drag_and_drop',
         'paperwork_gtk.gesture.zoom',
@@ -189,7 +196,7 @@ class DefaultConsole:
 
 
 def gtk_main(app, options, core):
-    app = core.call_success("gtk_get_app")
+    app = core.call_success(GtkApp.gtk_get_app)
     if app.get_is_remote():
         LOGGER.info("passing control to main paperwork instance")
     # if paperwork is already running, focus it, otherwise remain in this
@@ -211,19 +218,19 @@ def main_main(in_args):
         core.load(module_name)
     core.init()
     core.call_all(
-        "init_logs", "paperwork-gtk",
+        LogManager.init_logs, "paperwork-gtk",
         "info" if len(in_args) <= 0 else "warning"
     )
 
-    core.call_all("config_load")
-    core.call_all("config_load_plugins", "paperwork-gtk", DEFAULT_GUI_PLUGINS)
+    core.call_all(Config.config_load)
+    core.call_all(Config.config_load_plugins, "paperwork-gtk", DEFAULT_GUI_PLUGINS)
 
-    app = core.call_success("app_get_name")
-    version = core.call_success("app_get_version")
+    app = core.call_success(App.app_get_name)
+    version = core.call_success(App.app_get_version)
     LOGGER.info("App: %s, version: %s", app, version)
 
     if len(in_args) <= 0:
-        core.call_all("gtk_init", gtk_main, core)
+        core.call_all(GtkInit.gtk_init, gtk_main, core)
     else:
         # we remain in this process and call the plugin requested by the
         # command line
@@ -231,11 +238,11 @@ def main_main(in_args):
         cmd_parser = parser.add_subparsers(
             help=_('command'), dest='command', required=True
         )
-        core.call_all("cmd_complete_argparse", cmd_parser)
+        core.call_all(Shell.cmd_complete_argparse, cmd_parser)
         args = parser.parse_args(in_args)
         console = DefaultConsole()
-        core.call_all("cmd_set_console", console)
-        core.call_all("cmd_run", console, args)
+        core.call_all(Shell.cmd_set_console, console)
+        core.call_all(Shell.cmd_run, console, args)
 
     return 0
 

@@ -1,57 +1,57 @@
 import logging
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
+
 import openpaperwork_core.deps
+from openpaperwork_gtk.interfaces.gtk import GtkResources  # noqa: E402
+from paperwork_backend.interfaces.i18n_lang import I18nLang
+from paperwork_backend.interfaces.ocr import OcrSettings
+from paperwork_gtk.interfaces.settings import GtkSettingsOcr
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(openpaperwork_core.PluginBase, GtkSettingsOcr):
     PRIORITY = -500
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_ocr_langs',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'i18n_lang',
+                'interface': I18nLang,
                 'defaults': ['paperwork_backend.i18n.pycountry'],
             },
             {
-                'interface': 'ocr_settings',
+                'interface': OcrSettings,
                 'defaults': ['paperwork_backend.pyocr'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
         ]
 
     def complete_ocr_settings(self, parent_widget_tree):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.settings.ocr", "selector_popover.glade"
         )
 
-        active_langs = set(self.core.call_success("ocr_get_active_langs"))
+        active_langs = set(self.core.call_success(OcrSettings.ocr_get_active_langs))
         LOGGER.info("Looking for available OCR languages ...")
-        all_langs = self.core.call_success("ocr_get_available_langs")
+        all_langs = self.core.call_success(OcrSettings.ocr_get_available_langs)
         LOGGER.info("Found %d languages. Translating ...", len(all_langs))
         all_langs = [
             (
                 lang,
                 self.core.call_success(
-                    "i18n_lang_iso639_3_to_full", lang
+                    I18nLang.i18n_lang_iso639_3_to_full, lang
                 )
             )
             for lang in all_langs
@@ -67,7 +67,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         for lang in all_langs:
             w_tree = self.core.call_success(
-                "gtk_load_widget_tree",
+                GtkResources.gtk_load_widget_tree,
                 "paperwork_gtk.settings.ocr", "selector_popover_box.glade"
             )
             check = w_tree.get_object("ocr_selector_box")
@@ -81,7 +81,7 @@ class Plugin(openpaperwork_core.PluginBase):
         parent_widget_tree.get_object("ocr_langs").set_popover(popover)
 
     def _on_toggle(self, checkbox, lang):
-        active_langs = self.core.call_success("ocr_get_active_langs")
+        active_langs = self.core.call_success(OcrSettings.ocr_get_active_langs)
         lang_enabled = lang in active_langs
         LOGGER.info("Language toggled: {} ({} -> {})".format(
             lang, lang_enabled, not lang_enabled
@@ -90,4 +90,4 @@ class Plugin(openpaperwork_core.PluginBase):
             active_langs.remove(lang)
         else:
             active_langs.append(lang)
-        self.core.call_all("ocr_set_active_langs", active_langs)
+        self.core.call_all(OcrSettings.ocr_set_active_langs, active_langs)

@@ -27,9 +27,15 @@ except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
+
 import openpaperwork_gtk.deps
+
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+
+from paperwork_gtk.interfaces.widgets import LabelFactory
 
 
 class LabelWidget(Gtk.DrawingArea):
@@ -116,7 +122,7 @@ class LabelWidget(Gtk.DrawingArea):
         cairo_ctx.fill()
 
         # foreground text
-        fg = self.core.call_success("label_get_foreground_color", self.color)
+        fg = self.core.call_success(DocLabelColors.label_get_foreground_color, self.color)
         cairo_ctx.set_source_rgb(fg[0], fg[1], fg[2])
         cairo_ctx.move_to(
             self.LABEL_CORNER_RADIUS,
@@ -130,12 +136,18 @@ if GTK_AVAILABLE:
     GObject.type_register(LabelWidget)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    LabelFactory,
+):
     @classmethod
-    def get_interfaces(cls):
+    def get_deps(cls):
         return [
-            'chkdeps',
-            'gtk_widget_label',
+            {
+                "interface": DocLabelColors,
+                "defaults": ["paperwork_backend.model.labels"],
+            }
         ]
 
     def chkdeps(self, out: dict):

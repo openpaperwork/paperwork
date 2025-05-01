@@ -9,14 +9,31 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 import openpaperwork_gtk.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
+
+from paperwork_gtk.interfaces.keyboard_shortcut import KeyboardShortcutCollector
+from paperwork_gtk.interfaces.shortcuts import AppShortcutHelp
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppShortcutHelp,
+    Chkdeps,
+    GtkWindowListener,
+    KeyboardShortcutCollector,
+    ScreenshotProvider,
+):
     def __init__(self, core):
         super().__init__(core)
         self.windows = []
@@ -24,24 +41,18 @@ class Plugin(openpaperwork_core.PluginBase):
         self.widget_tree = None
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'app_shortcuts',
-            'chkdeps',
-            'gtk_shortcut_help',
-            'gtk_window_listener',
-            'screenshot_provider',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -76,7 +87,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def gtk_show_shortcuts(self):
         LOGGER.info("Showing shortcuts")
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.shortcutswin", "shortcutswin.glade"
         )
         section = self.widget_tree.get_object("shortcuts_mainwindow")
@@ -113,6 +124,6 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.widget_tree is None:
             return
         self.core.call_success(
-            "screenshot_snap_widget", self.widget_tree.get_object("shortcuts"),
-            self.core.call_success("fs_join", out_dir, "shortcuts.png"),
+            Screenshot.screenshot_snap_widget, self.widget_tree.get_object("shortcuts"),
+            self.core.call_success(Fs.fs_join, out_dir, "shortcuts.png"),
         )

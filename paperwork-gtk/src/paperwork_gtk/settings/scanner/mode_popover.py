@@ -1,13 +1,19 @@
 import logging
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
-import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.scan import Scan
+
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerSetting
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(openpaperwork_core.PluginBase, GtkSettingsScannerSetting):
     RECOMMENDED = 300
     MODES = [
         ('radioColor', 'Color'),
@@ -16,28 +22,18 @@ class Plugin(openpaperwork_core.PluginBase):
     ]
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_scanner_setting',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_settings_scanner',
-                'defaults': ['paperwork_gtk.settings.scanner.settings'],
-            },
-            {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
@@ -46,12 +42,12 @@ class Plugin(openpaperwork_core.PluginBase):
             self, global_widget_tree, parent_widget_tree,
             list_scanner_promise):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.settings.scanner",
             "popover_mode.glade"
         )
 
-        active = self.core.call_success("config_get", "scanner_mode")
+        active = self.core.call_success(Config.config_get, "scanner_mode")
         for (widget, mode) in self.MODES:
             if mode == active:
                 widget_tree.get_object(widget).set_active(True)
@@ -68,17 +64,17 @@ class Plugin(openpaperwork_core.PluginBase):
         # GtkMenuButton --> we have to play with set_popover()
 
         def reset_popover():
-            dev_id = self.core.call_success("config_get", "scanner_dev_id")
+            dev_id = self.core.call_success(Config.config_get, "scanner_dev_id")
             parent_widget_tree.get_object("scanner_mode").set_popover(
                 selector if dev_id is not None and dev_id != "" else None
             )
 
         reset_popover()
         self.core.call_all(
-            "config_add_observer", "scanner_dev_id", reset_popover
+            Config.config_add_observer, "scanner_dev_id", reset_popover
         )
 
     def _on_toggle(self, checkbox, widget_tree, mode):
         LOGGER.info("Selected mode: %s", mode)
         widget_tree.get_object("selector").popdown()
-        self.core.call_success("config_put", "scanner_mode", mode)
+        self.core.call_success(Config.config_put, "scanner_mode", mode)

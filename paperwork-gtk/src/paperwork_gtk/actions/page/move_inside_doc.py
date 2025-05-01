@@ -11,39 +11,54 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.dialogs import GtkSingleEntryDialog
+from openpaperwork_gtk.interfaces.dialogs import GtkSingleEntryDialogListener
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk
 import openpaperwork_gtk.deps
 
-from ... import _
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageManagement
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_viewer import PageViewerListener
+from paperwork_gtk import _
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "page_move_inside_doc"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_page',
-            'action_page_move_inside_doc',
-            'chkdeps',
-            'doc_open',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+    PageViewerListener,
+    GtkSingleEntryDialogListener,
+    GtkWindowListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'pages',
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                'interface': PageManagement,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.img_overlay',
@@ -52,12 +67,8 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'gtk_dialog_single_entry',
+                'interface': GtkSingleEntryDialog,
                 'defaults': ['openpaperwork_gtk.dialogs.single_entry'],
-            },
-            {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
             },
         ]
 
@@ -73,7 +84,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._start_move_inside_doc)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -83,6 +94,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.active_doc = None
@@ -118,7 +133,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self.active_page_idx + 1
         )
         self.core.call_success(
-            "gtk_show_dialog_single_entry",
+            GtkSingleEntryDialog.gtk_show_dialog_single_entry,
             self, msg, str(self.active_page_idx + 1),
             active_doc=self.active_doc,
             active_page_idx=self.active_page_idx
@@ -140,7 +155,7 @@ class Plugin(openpaperwork_core.PluginBase):
         active_page_idx = kwargs['active_page_idx']
 
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", active_doc[1]
+            Docs.doc_get_nb_pages_by_url, active_doc[1]
         )
         if new_position >= nb_pages or new_position < 0:
             self._show_error(
@@ -160,17 +175,21 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = openpaperwork_core.promise.Promise(self.core)
         promise = promise.then(
             self.core.call_all,
-            "page_move_by_url",
+            PageManagement.page_move_by_url,
             active_doc[1], active_page_idx,
             active_doc[1], new_position
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, "doc_reload", *active_doc
+            self.core.call_all, DocOpener.doc_reload, *active_doc
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self.core.call_success(
-            "transaction_simple_promise",
+            DocTransactionManager.transaction_simple_promise,
             [('upd', active_doc[0])]
         ))
-        self.core.call_success("transaction_schedule", promise)
+        self.core.call_success(DocTransactionManager.transaction_schedule, promise)
+
+    @openpaperwork_core.noop
+    def on_page_size_obtained(self, page):
+        pass

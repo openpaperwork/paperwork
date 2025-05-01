@@ -21,54 +21,93 @@ import PIL
 import PIL.Image
 import PIL.ImageDraw
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.gui import GuiListener
+from openpaperwork_core.interfaces.l10n import L10nInit
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkApp
+from openpaperwork_gtk.interfaces.gtk import GtkInit
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.shortcuts import AppShortcutCollector
+from paperwork_gtk.interfaces.icon import Icon
+from paperwork_gtk.interfaces.keyboard_shortcut import KeyboardShortcutCollector
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.main_window import MainWindowListener
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'app_actions',
-            'app_shortcuts',
-            'chkdeps',
-            'gtk_mainwindow',
-            'screenshot_provider',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppActionCollector,
+    AppShortcutCollector,
+    Chkdeps,
+    GuiListener,
+    KeyboardShortcutCollector,
+    MainWindow,
+    QuitListener,
+    ScreenshotProvider,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio']
             },
             {
-                'interface': 'gtk_resources',
+                "interface": GtkApp,
+                "defaults": ["openpaperwork_gtk.gtk_init"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_init',
+                'interface': GtkInit,
                 'defaults': ['openpaperwork_gtk.gtk_init'],
             },
             {
-                'interface': 'icon',
+                "interface": GtkWindowListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Icon,
                 'defaults': ['paperwork_gtk.icon'],
             },
             {
-                'interface': 'l10n_init',
+                'interface': L10nInit,
                 'defaults': ['paperwork_gtk.l10n'],
             },
             {
-                'interface': 'screenshot',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                "interface": MainWindowListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -90,17 +129,17 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
 
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "paperwork_gtk.mainwindow", "global.css"
         )
 
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "paperwork_gtk.mainwindow.window", "mainwindow.css"
         )
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.window", "mainwindow.glade"
         )
         if self.widget_tree is None:
@@ -109,12 +148,12 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         opt = self.core.call_success(
-            "config_build_simple", "GUI", "main_window_size",
+            Config.config_build_simple, "GUI", "main_window_size",
             lambda: (1024, 600)
         )
-        self.core.call_all("config_register", "main_window_size", opt)
+        self.core.call_all(Config.config_register, "main_window_size", opt)
         main_win_size = self.core.call_success(
-            "config_get", "main_window_size"
+            Config.config_get, "main_window_size"
         )
 
         self.mainwindow = self.widget_tree.get_object("mainwindow")
@@ -126,11 +165,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
         try:
             self.mainwindow.set_icon_list([
-                self.core.call_success("icon_get_pixbuf", "paperwork", 16),
-                self.core.call_success("icon_get_pixbuf", "paperwork", 32),
-                self.core.call_success("icon_get_pixbuf", "paperwork", 48),
-                self.core.call_success("icon_get_pixbuf", "paperwork", 64),
-                self.core.call_success("icon_get_pixbuf", "paperwork", 128),
+                self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 16),
+                self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 32),
+                self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 48),
+                self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 64),
+                self.core.call_success(Icon.icon_get_pixbuf, "paperwork", 128),
             ])
         except KeyError as exc:
             # Will fail when generating data for the first time.
@@ -166,8 +205,8 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GTK_AVAILABLE:
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
-    def on_gtk_initialized(self):
-        app = self.core.call_success("gtk_get_app")
+    def on_gui_initialized(self):
+        app = self.core.call_success(GtkApp.gtk_get_app)
         # when remote, this segfaults...
         if not app.get_is_remote():
             self.mainwindow.set_application(app)
@@ -176,18 +215,18 @@ class Plugin(openpaperwork_core.PluginBase):
             self.mainwindow_show_default(side)
 
         self.mainwindow.set_visible(True)
-        self.core.call_all("on_gtk_window_opened", self.mainwindow)
+        self.core.call_all(GtkWindowListener.on_gtk_window_opened, self.mainwindow)
 
     def on_quit(self):
         # needed to save window size
         # TODO(JFlesch): not really config --> should not be stored in config ?
         if self.mainwindow is not None:
-            self.core.call_all("config_save")
+            self.core.call_all(Config.config_save)
             self.mainwindow.set_visible(False)
 
     def _on_titlebar_fold_change(self, *args, **kwargs):
         LOGGER.info("Main window fold has changed")
-        self.core.call_all("on_mainwindow_fold_change")
+        self.core.call_all(MainWindowListener.on_mainwindow_fold_change)
 
     def mainwindow_get_folded(self):
         return self.widget_tree.get_object(
@@ -196,18 +235,15 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _on_mainwindow_destroy(self, main_window):
         LOGGER.info("Main window destroy. Quitting")
-        self.core.call_all("on_gtk_window_closed", self.mainwindow)
-        self.core.call_all("mainloop_quit_graceful")
+        self.core.call_all(GtkWindowListener.on_gtk_window_closed, self.mainwindow)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
 
     def _on_mainwindow_size_allocate(self, main_win, rectangle):
         (w, h) = main_win.get_size()
         if self._mainwindow_size == (w, h):
             return
         self._mainwindow_size = (w, h)
-        self.core.call_all("config_put", "main_window_size", (w, h))
-
-    def mainwindow_get_main_container(self):
-        return self.widget_tree.get_object("main_box")
+        self.core.call_all(Config.config_put, "main_window_size", (w, h))
 
     def mainwindow_add(self, side: str, name: str, prio: int, header, body):
         self.components[side][name] = {
@@ -285,7 +321,7 @@ class Plugin(openpaperwork_core.PluginBase):
         first = self.navigation_stacks[side].pop(0)
         self.navigation_stacks[side].reverse()
 
-        self.core.call_all("mainwindow_show", side, first)
+        self.core.call_all(MainWindow.mainwindow_show, side, first)
 
     def mainwindow_back(self, side: str):
         navigation_stack = self.navigation_stacks[side][:-1]
@@ -299,7 +335,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def mainwindow_focus(self):
         self.mainwindow.grab_focus()
 
-    def mainwindow_present(self):
+    def new_mainwindow(self):
         if self.mainwindow is not None:
             self.mainwindow.present()
         else:
@@ -312,9 +348,9 @@ class Plugin(openpaperwork_core.PluginBase):
         return PIL.Image.alpha_composite(img, overlay)
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
-        out = self.core.call_success("fs_join", out_dir, "main_window.png")
+        out = self.core.call_success(Fs.fs_join, out_dir, "main_window.png")
         self.core.call_success(
-            "screenshot_snap_widget", self.mainwindow, out
+            Screenshot.screenshot_snap_widget, self.mainwindow, out
         )
 
         left = self.stacks['left']['body']
@@ -323,7 +359,7 @@ class Plugin(openpaperwork_core.PluginBase):
         (left_x, left_y) = left.translate_coordinates(self.mainwindow, 0, 0)
         left = left_x + left_width
 
-        with self.core.call_success("fs_open", out, 'rb') as fd:
+        with self.core.call_success(Fs.fs_open, out, 'rb') as fd:
             img = PIL.Image.open(fd)
             img.load()
             img = img.convert("RGBA")
@@ -344,9 +380,9 @@ class Plugin(openpaperwork_core.PluginBase):
         img = img.crop((0, 0, img.size[0], min(300, img.size[1])))
 
         out = self.core.call_success(
-            "fs_join", out_dir, "main_window_split.png"
+            Fs.fs_join, out_dir, "main_window_split.png"
         )
-        with self.core.call_success("fs_open", out, 'wb') as fd:
+        with self.core.call_success(Fs.fs_open, out, 'wb') as fd:
             img.save(fd, format="PNG")
 
     def app_shortcut_add(

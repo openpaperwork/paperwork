@@ -1,38 +1,57 @@
 import logging
 
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
-import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
+from openpaperwork_gtk.interfaces.widgets import WidgetActivity
+
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.scan import ScanListener
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+from paperwork_gtk.interfaces.new_doc import NewDoc
+from paperwork_gtk.interfaces.page_add import PageAddButtons
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'doc_open',
-            'gtk_scan_buttons',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocOpener,
+    PageAddButtons,
+    ScanListener,
+    ScreenshotProvider,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_docview',
+                'interface': DocViewer,
                 'defaults': ['paperwork_gtk.mainwindow.docview'],
             },
             {
-                'interface': 'new_doc',
+                'interface': Fs,
+                'defaults': ['openpaperwork_gtk.fs.gio'],
+            },
+            {
+                'interface': NewDoc,
                 'defaults': ['paperwork_gtk.new_doc'],
             },
             {
-                'interface': 'screenshot',
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
+            },
+            {
+                "interface": WidgetActivity,
+                "defaults": ["openpaperwork_gtk.busy.mouse"],
             },
         ]
 
@@ -45,7 +64,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.busy = 0
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview.pageadd", "buttons.glade"
         )
         if self.widget_tree is None:
@@ -57,7 +76,7 @@ class Plugin(openpaperwork_core.PluginBase):
             "clicked", self._on_clicked
         )
 
-        headerbar = self.core.call_success("docview_get_headerbar")
+        headerbar = self.core.call_success(DocViewer.docview_get_headerbar)
         headerbar.pack_start(self.widget_tree.get_object("pageadd_buttons"))
 
     def pageadd_buttons_set_source_popover(self, selector):
@@ -69,7 +88,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         button = self.widget_tree.get_object("pageadd_button")
         button.set_sensitive(sensitive)
-        self.core.call_all("on_widget_busyness_changed", button, sensitive)
+        self.core.call_all(WidgetActivity.on_widget_busyness_changed, button, sensitive)
 
     def pageadd_set_default_action(self, txt, callback, *args):
         self.default_action = callback
@@ -109,7 +128,27 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("pageadd_buttons"),
-            self.core.call_success("fs_join", out_dir, "page_add.png")
+            self.core.call_success(Fs.fs_join, out_dir, "page_add.png")
         )
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_start(self, scan_id, page_nb, scan_params):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_started(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_chunk(self, scan_id, scan_params, img_chunk):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_end(self, scan_id, page_nb, img):
+        pass

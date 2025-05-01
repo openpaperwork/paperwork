@@ -6,43 +6,49 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.dialogs import GtkYesNoDialog
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_list import DocSearch
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "doc_copy"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_doc',
-            'action_doc_copy',
-            'chkdeps',
-            'doc_open',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_dialog_yes_no',
-                'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                'interface': GtkYesNoDialog,
+                'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
             },
         ]
 
@@ -53,7 +59,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._copy)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -61,6 +67,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.active_doc = (None, None)
@@ -70,10 +80,10 @@ class Plugin(openpaperwork_core.PluginBase):
         (src_doc_id, src_doc_url) = self.active_doc
 
         LOGGER.info("Will copy doc %s", src_doc_id)
-        dst_doc_url = self.core.call_success("doc_copy_by_url", src_doc_url)
-        dst_doc_id = self.core.call_success("doc_url_to_id", dst_doc_url)
+        dst_doc_url = self.core.call_success(DocStorage.doc_copy_by_url, src_doc_url)
+        dst_doc_id = self.core.call_success(DocStorage.doc_url_to_id, dst_doc_url)
         LOGGER.info("New document: %s (copied from %s)", dst_doc_id, src_doc_id)
 
-        self.core.call_all("doc_open", dst_doc_id, dst_doc_url)
-        self.core.call_all("search_update_document_list")
-        self.core.call_success("transaction_simple", [('add', dst_doc_id),])
+        self.core.call_all(DocOpener.doc_open, dst_doc_id, dst_doc_url)
+        self.core.call_all(DocSearch.search_refresh)
+        self.core.call_success(DocTransactionManager.transaction_simple, [('add', dst_doc_id),])

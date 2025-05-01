@@ -8,18 +8,31 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk_window import GtkWindowListener
 import openpaperwork_gtk.deps
 
-from . import _
+from paperwork_backend.interfaces.cairo import Url2Cairo
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageImg
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_print import DocPrint
+from paperwork_gtk.interfaces.doc_viewer import PageViewerListener
 
 
 DELAY = 0.1
 LOGGER = logging.getLogger(__name__)
 
 
-class SurfacePreloader(object):
+class SurfacePreloader:
     def __init__(self, core, doc_id, doc_url, page_indexes):
         self.core = core
         self.doc_id = doc_id
@@ -31,13 +44,13 @@ class SurfacePreloader(object):
         LOGGER.info("Will load %d pages", len(self.page_indexes))
         for (page_nb, page_idx) in enumerate(self.page_indexes):
             page_url = self.core.call_success(
-                "page_get_img_url", self.doc_url, page_idx
+                PageImg.page_get_img_url, self.doc_url, page_idx
             )
 
             promise = openpaperwork_core.promise.Promise(
                 self.core, self.core.call_all,
                 args=(
-                    "on_progress", "print_load",
+                    ProgressListener.on_progress, "print_load",
                     page_nb / len(self.page_indexes),
                     _("Loading {doc_id} p{page_idx} for printing").format(
                         doc_id=self.doc_id, page_idx=(page_idx + 1)
@@ -49,17 +62,17 @@ class SurfacePreloader(object):
                 self.core, DELAY
             ))
             promise = promise.then(self.core.call_success(
-                "url_to_cairo_surface_promise", page_url
+                Url2Cairo.url_to_cairo_surface_promise, page_url
             ))
             promise = promise.then(self._add_surface)
-            self.core.call_success("work_queue_add_promise", "print", promise)
+            self.core.call_success(WorkQueue.work_queue_add_promise, "print", promise)
 
         promise = openpaperwork_core.promise.Promise(
             self.core, self.core.call_all, args=(
-                "on_progress", "print_load", 1.0
+                ProgressListener.on_progress, "print_load", 1.0
             )
         )
-        self.core.call_success("work_queue_add_promise", "print", promise)
+        self.core.call_success(WorkQueue.work_queue_add_promise, "print", promise)
 
     def _add_surface(self, surface):
         LOGGER.info(
@@ -81,11 +94,11 @@ class SurfacePreloader(object):
         return self.page_surfaces[page_nb]
 
     def cancel(self):
-        self.core.call_all("work_queue_cancel_all", "print")
+        self.core.call_all(WorkQueue.work_queue_cancel_all, "print")
         self.page_surfaces = []
 
 
-class PrintJob(object):
+class PrintJob:
     def __init__(
             self, core, preloader, window, doc_id, nb_pages, active_page_nb,
             job_name, default_filename):
@@ -141,7 +154,7 @@ class PrintJob(object):
     def _begin(self, print_op, print_context):
         LOGGER.info("Printing has begun")
         self.core.call_all(
-            "on_progress", "print", 0.0, _("Printing %s") % self.doc_id
+            ProgressListener.on_progress, "print", 0.0, _("Printing %s") % self.doc_id
         )
 
     def _request_page_setup(
@@ -175,7 +188,7 @@ class PrintJob(object):
             print_context.get_dpi_y()
         )
         self.core.call_all(
-            "on_progress", "print", page_nb / self.nb_pages,
+            ProgressListener.on_progress, "print", page_nb / self.nb_pages,
             _("Printing {doc_id} ({page_idx}/{nb_pages})").format(
                 doc_id=self.doc_id, page_idx=page_nb, nb_pages=self.nb_pages
             )
@@ -198,7 +211,7 @@ class PrintJob(object):
     def _end(self, print_op, print_context):
         self.refs = []
         LOGGER.info("Printing has ended")
-        self.core.call_all("on_progress", "print", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "print", 1.0)
 
     def _done(self, print_op, print_op_result):
         LOGGER.info("Printing done")
@@ -208,28 +221,37 @@ class PrintJob(object):
         self.print_op.run(Gtk.PrintOperationAction.PRINT_DIALOG, self.window)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_open',
-            'doc_print',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DocPrint,
+    GtkWindowListener,
+    PageViewerListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'cairo_url',
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+            },
+            {
+                "interface": PageImg,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                'interface': Url2Cairo,
                 'defaults': [
                     'paperwork_backend.cairo.pillow',
                     'paperwork_backend.cairo.poppler',
                 ],
             },
             {
-                'interface': 'work_queue',
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -248,7 +270,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GTK_AVAILABLE:
             return
 
-        self.core.call_success("work_queue_create", "print")
+        self.core.call_success(WorkQueue.work_queue_create, "print")
 
     def chkdeps(self, out: dict):
         if not GTK_AVAILABLE:
@@ -263,6 +285,14 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
 
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
     def on_page_shown(self, page_idx):
         self.active_page_idx = page_idx
 
@@ -274,7 +304,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         if page_indexes is None:
             nb_pages = self.core.call_success(
-                "doc_get_nb_pages_by_url", doc_url
+                Docs.doc_get_nb_pages_by_url, doc_url
             )
             if nb_pages is None:
                 raise Exception("No page in the document, Nothing to print")
@@ -309,3 +339,7 @@ class Plugin(openpaperwork_core.PluginBase):
         print_job.run()
 
         self._ref = print_job
+
+    @openpaperwork_core.noop
+    def on_page_size_obtained(self, page):
+        pass

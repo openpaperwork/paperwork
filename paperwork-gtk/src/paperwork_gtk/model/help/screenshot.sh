@@ -40,82 +40,98 @@ echo "Making screenshots ..."
 paperwork-gtk plugins add openpaperwork_gtk.interactive
 
 paperwork-gtk << EOF
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_gtk.interfaces.advanced_search import AdvancedSearchDialog
+from paperwork_gtk.interfaces.app_menu import AppMenu
+from paperwork_gtk.interfaces.doc_layout import DocLayout
+from paperwork_gtk.interfaces.doc_list import DocList
+from paperwork_gtk.interfaces.doc_properties import DocProperties
+from paperwork_gtk.interfaces.doc_viewer import PageMenu
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.screenshots import AppMenuScreenshoter
+from paperwork_gtk.interfaces.search_field import SearchField
+from paperwork_gtk.interfaces.settings import GtkSettingsScanCalibration
+from paperwork_gtk.interfaces.settings_dialog import SettingsDialog
+from paperwork_gtk.interfaces.shortcuts import AppShortcutHelp
+
 wait()
-core.call_all("doc_open", "20990307_0000_00", "file://${WORKDIR}/20990307_0000_00")
-core.call_all("search_set", "label:contrat conditions generales")
+core.call_all(DocOpener.doc_open, "20990307_0000_00", "file://${WORKDIR}/20990307_0000_00")
+core.call_all(SearchField.search_set, "label:contrat conditions generales")
 wait()
 
-core.call_all("open_bug_report")
+core.call_all(GtkBugReportDisplay.open_bug_report)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("close_bug_report")
-core.call_all("mainwindow_focus")
+core.call_all(GtkBugReportDisplay.close_bug_report)
+core.call_all(MainWindow.mainwindow_focus)
 
-core.call_all("gtk_show_shortcuts")
+core.call_all(AppShortcutHelp.gtk_show_shortcuts)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("gtk_hide_shortcuts")
-core.call_all("mainwindow_focus")
+core.call_all(AppShortcutHelp.gtk_hide_shortcuts)
+core.call_all(MainWindow.mainwindow_focus)
 
-core.call_all("gtk_open_layout_settings")
+core.call_all(DocLayout.gtk_open_layout_settings)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("gtk_close_layout_settings")
-core.call_all("mainwindow_focus")
+core.call_all(DocLayout.gtk_close_layout_settings)
+core.call_all(MainWindow.mainwindow_focus)
 
-core.call_all("gtk_open_advanced_search_dialog")
+core.call_all(AdvancedSearchDialog.gtk_open_advanced_search_dialog)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("gtk_close_advanced_search_dialog")
-core.call_all("mainwindow_focus")
+core.call_all(AdvancedSearchDialog.gtk_close_advanced_search_dialog)
+core.call_all(MainWindow.mainwindow_focus)
 
-core.call_all("gtk_open_settings")
+core.call_all(SettingsDialog.gtk_open_settings)
 wait()
-core.call_all("settings_scroll_to_bottom")
+core.call_all(SettingsDialog.settings_scroll_to_bottom)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("settings_scroll_to_top")
+core.call_all(SettingsDialog.settings_scroll_to_top)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("display_calibration_screen")
+core.call_all(GtkSettingsScanCalibration.display_calibration_screen)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("hide_calibration_screen")
+core.call_all(GtkSettingsScanCalibration.hide_calibration_screen)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("close_settings")
-core.call_all("mainwindow_focus")
-core.call_all("open_doc_properties", "20990307_0000_00", "file://${WORKDIR}/20990307_0000_00")
+core.call_all(SettingsDialog.gtk_close_settings)
+core.call_all(MainWindow.mainwindow_focus)
+core.call_all(DocProperties.open_doc_properties, "20990307_0000_00", "file://${WORKDIR}/20990307_0000_00")
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("docproperties_scroll_to_last")
+core.call_all(DocProperties.docproperties_scroll_to_last)
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("mainwindow_show_default", side="left")
+core.call_all(MainWindow.mainwindow_show_default, side="left")
 wait()
-core.call_all("screenshot_snap_all_doc_widgets", "file://${OUT_DIR}")
+core.call_all(ScreenshotProvider.screenshot_snap_all_doc_widgets, "file://${OUT_DIR}")
 
-core.call_all("gtk_open_app_menu")
+core.call_all(AppMenuScreenshoter.gtk_open_app_menu)
 wait()
-core.call_all("screenshot_snap_app_menu", "file://${OUT_DIR}/app_menu_opened.png")
+core.call_all(AppMenuScreenshoter.screenshot_snap_app_menu, "file://${OUT_DIR}/app_menu_opened.png")
 
-core.call_all("page_menu_open")
+core.call_all(PageMenu.page_menu_open)
 wait()
-core.call_all("screenshot_snap_page_action_menu", "file://${OUT_DIR}/page_menu_opened.png")
+core.call_all(PageMenu.screenshot_snap_page_action_menu, "file://${OUT_DIR}/page_menu_opened.png")
 
-core.call_all("doc_menu_open")
+core.call_all(DocList.doc_menu_open)
 wait()
-core.call_all("screenshot_snap_doc_action_menu", "file://${OUT_DIR}/doc_menu_opened.png")
+core.call_all(AppMenu.screenshot_snap_doc_action_menu, "file://${OUT_DIR}/doc_menu_opened.png")
 EOF
 
 set +e

@@ -9,16 +9,46 @@ except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
 try:
-    from . import doc_box
+    from paperwork_gtk.mainwindow.doclist import doc_box
     GTK_AVAILABLE = True
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.gui import GuiListener
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.screenshot import Screenshot
+from openpaperwork_gtk.interfaces.screenshot import ScreenshotProvider
 import openpaperwork_gtk.deps
 
-from ... import _
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.docs import NewDocOpener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.app_menu import AppMenu
+from paperwork_gtk.interfaces.doc_actions import DocActions
+from paperwork_gtk.interfaces.doc_list import DocList
+from paperwork_gtk.interfaces.doc_list import DocListListener
+from paperwork_gtk.interfaces.doc_selection import (
+    DocSelecter,
+    DocSelection
+)
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDrop
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDropDestination
+from paperwork_gtk.interfaces.main_window import MainWindow, MainWindowListener
+from paperwork_gtk.interfaces.new_doc import NewDoc
+from paperwork_gtk.interfaces.screenshots import AppMenuScreenshoter
+from paperwork_gtk.interfaces.search_field import SearchResultsListener
+from paperwork_gtk.interfaces.widgets import FlowLayoutFactory
 
 
 LOGGER = logging.getLogger(__name__)
@@ -29,57 +59,78 @@ LOGGER = logging.getLogger(__name__)
 NB_DOCS_PER_PAGE = 50
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppMenu,
+    AppMenuScreenshoter,
+    Chkdeps,
+    DocActions,
+    DocList,
+    DocOpener,
+    DocSelecter,
+    DocSelection,
+    DragAndDropDestination,
+    GuiListener,
+    MainWindowListener,
+    NewDocOpener,
+    ScreenshotProvider,
+    SearchResultsListener,
+):
     PRIORITY = -100
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_actions',
-            'doc_open',
-            'doc_selection',
-            'docs_actions',
-            'drag_and_drop_destination',
-            'gtk_app_menu',
-            'gtk_doclist',
-            'screenshot_provider',
-            'search_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'document_storage',
+                "interface": DocListListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_drag_and_drop',
+                "interface": DocType,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                'interface': DragAndDrop,
                 'defaults': ['paperwork_gtk.gesture.drag_and_drop'],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_mainwindow',
+                'interface': MainWindow,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'gtk_widget_flowlayout',
+                'interface': FlowLayoutFactory,
                 'defaults': ['paprwork_gtk.widget.flowlayout'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'screenshot',
+                "interface": NewDoc,
+                "defaults": ["paperwork_gtk.new_doc"],
+            },
+            {
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -116,12 +167,12 @@ class Plugin(openpaperwork_core.PluginBase):
         self._toggling = False
 
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "paperwork_gtk.mainwindow.doclist", "doclist.css"
         )
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.doclist", "doclist.glade"
         )
         if self.widget_tree is None:
@@ -133,12 +184,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
         self.doclist = self.widget_tree.get_object("doclist_listbox")
         self.core.call_all(
-            "mainwindow_add", side="left", name="doclist", prio=10000,
+            MainWindow.mainwindow_add, side="left", name="doclist", prio=10000,
             header=self.widget_tree.get_object("doclist_header"),
             body=self.widget_tree.get_object("doclist_body"),
         )
         self.core.call_all(
-            "mainwindow_add", side="left", name="doclist_selection_multiple",
+            MainWindow.mainwindow_add, side="left", name="doclist_selection_multiple",
             prio=-100000,
             header=self.widget_tree.get_object(
                 "doclist_header_selection_multiple"
@@ -163,7 +214,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.widget_tree.get_object(
             "doclist_back_to_selection_single"
         ).connect("clicked", lambda button: self.core.call_all(
-            "gtk_switch_to_doc_selection_single"
+            DocSelecter.doc_selection_single
         ))
 
         self.menu_model = self.widget_tree.get_object("doclist_menu_model")
@@ -171,10 +222,10 @@ class Plugin(openpaperwork_core.PluginBase):
             "doclist_selection_multiple_menu_model"
         )
 
-        self.core.call_all("drag_and_drop_page_enable", self.doclist)
+        self.core.call_all(DragAndDrop.drag_and_drop_page_enable, self.doclist)
 
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all, "on_doclist_initialized"
+            Mainloop.mainloop_schedule, self.core.call_all, DocListListener.on_doclist_initialized
         )
 
         self.on_mainwindow_fold_change()
@@ -185,10 +236,14 @@ class Plugin(openpaperwork_core.PluginBase):
         if not GTK_AVAILABLE:
             out['gtk'].update(openpaperwork_gtk.deps.GTK)
 
-    def on_gtk_initialized(self):
+    def on_gui_initialized(self):
         self.core.call_all(
-            "mainwindow_show", side="left", name="doclist"
+            MainWindow.mainwindow_show, side="left", name="doclist"
         )
+
+    @openpaperwork_core.noop
+    def new_mainwindow(self):
+        pass
 
     def doclist_add(self, widget, vposition):
         body = self.widget_tree.get_object("doclist_body")
@@ -199,13 +254,13 @@ class Plugin(openpaperwork_core.PluginBase):
         self.doc_open_new()
 
     def doc_open_new(self):
-        new_doc = self.core.call_success("get_new_doc")
-        self.core.call_all("doc_open", *new_doc)
+        new_doc = self.core.call_success(NewDoc.get_new_doc)
+        self.core.call_all(DocOpener.doc_open, *new_doc)
         self.doclist_show(self.docs, show_new=True)
 
     def doclist_clear(self):
         self.min_doc_box_height = 1
-        self.core.call_all("on_doc_list_clear")
+        self.core.call_all(DocListListener.on_doc_list_clear)
 
         start = time.time()
         for child in self.doclist.get_children():
@@ -225,7 +280,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _add_date_box(self, name, txt):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.doclist", name
         )
         widget_tree.get_object("date_label").set_text(txt)
@@ -234,21 +289,21 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _toggle_doc(self, button, doc_id, doc_url):
         if button.get_active():
-            self.core.call_all("doc_selection_add", doc_id, doc_url)
+            self.core.call_all(DocSelection.doc_selection_add, doc_id, doc_url)
         else:
-            self.core.call_all("doc_selection_remove", doc_id, doc_url)
+            self.core.call_all(DocSelection.doc_selection_remove, doc_id, doc_url)
 
     def _add_doc_box(self, doc_id, doc_url, box="doc_box.glade", new=False):
         row = doc_box.DocBox()
 
         flowlayout = self.core.call_success(
-            "gtk_widget_flowlayout_new", spacing=(3, 3)
+            FlowLayoutFactory.gtk_widget_flowlayout_new, spacing=(3, 3)
         )
         flowlayout.set_visible(True)
         row.layout_bin.add(flowlayout)
 
         self.core.call_all(
-            "on_doc_box_creation", doc_id, row, flowlayout
+            DocListListener.on_doc_box_creation, doc_id, row, flowlayout
         )
 
         doc_actions = row.main_actions
@@ -269,7 +324,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self.selection_multiple
         )
         row.selector.set_active(
-            self.core.call_success("doc_selection_in", doc_id, doc_url)
+            self.core.call_success(DocSelection.doc_selection_in, doc_id, doc_url)
             is not None
         )
         row.selector.connect(
@@ -296,13 +351,13 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
         for (doc_id, doc_url) in docs:
-            doc_date = self.core.call_success("doc_get_date_by_id", doc_id)
+            doc_date = self.core.call_success(DocStorage.doc_get_date_by_id, doc_id)
 
             if doc_date is not None:
                 if not show_month:
                     if doc_date.year != self.last_date.year:
                         doc_year = self.core.call_success(
-                            "i18n_date_long_year", doc_date
+                            I18n.i18n_date_long_year, doc_date
                         )
                         self._add_date_box("year_box.glade", doc_year)
 
@@ -310,9 +365,9 @@ class Plugin(openpaperwork_core.PluginBase):
                     if (doc_date.year != self.last_date.year or
                             doc_date.month != self.last_date.month):
                         doc_year = self.core.call_success(
-                            "i18n_date_long_year", doc_date
+                            I18n.i18n_date_long_year, doc_date
                         ) + " / " + self.core.call_success(
-                            "i18n_date_long_month", doc_date
+                            I18n.i18n_date_long_month, doc_date
                         )
                         self._add_date_box("year_box.glade", doc_year)
 
@@ -338,7 +393,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.docs = docs
 
         if show_new:
-            new_doc = self.core.call_success("get_new_doc")
+            new_doc = self.core.call_success(NewDoc.get_new_doc)
             self._add_doc_box(*new_doc, new=True)
 
         self.doclist_extend(NB_DOCS_PER_PAGE)
@@ -384,7 +439,7 @@ class Plugin(openpaperwork_core.PluginBase):
             row.main_actions.set_visible(False)
 
         if ((not self.selection_multiple) and
-                self.core.call_success("is_doc", doc_url) is not None and
+                self.core.call_success(DocType.is_doc, doc_url) is not None and
                 doc_id in self.docid_to_row):
             row = self.docid_to_row[doc_id]
             row.main_actions.set_visible(True)
@@ -435,14 +490,14 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         self.row_visibles = row_visibles
 
-        self.core.call_all("on_doc_list_visibility_changed")
+        self.core.call_all(DocListListener.on_doc_list_visibility_changed)
         for row in row_visibles:
             doc = self.row_to_doc.get(row)
             if doc is None:
                 continue
             (doc_id, doc_url) = doc
             layout = row.layout_bin.get_child()
-            self.core.call_all("on_doc_box_visible", doc_id, row, layout)
+            self.core.call_all(DocListListener.on_doc_box_visible, doc_id, row, layout)
 
     def _on_scrollbar_value_changed(self, vadj):
         lower = vadj.get_lower()
@@ -471,7 +526,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if self.active_doc[0] == doc_id:
             return
         LOGGER.info("Opening document %s (%s)", doc_id, doc_url)
-        self.core.call_all("doc_open", doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_open, doc_id, doc_url)
 
     def _on_row_activated(self, list_box, row):
         (doc_id, doc_url) = self.row_to_doc[row]
@@ -524,7 +579,7 @@ class Plugin(openpaperwork_core.PluginBase):
             LOGGER.warning("No row at %d. Can't get drop destination", y)
             return None
         (doc_id, doc_url) = self.row_to_doc[row]
-        nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        nb_pages = self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
         if nb_pages is None:
             nb_pages = 0
         return (doc_id, doc_url, nb_pages)
@@ -541,30 +596,30 @@ class Plugin(openpaperwork_core.PluginBase):
                 widget = popover
 
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             widget, out_file,
             margins=(50, 30, 50, 30)
         )
 
     def screenshot_snap_all_doc_widgets(self, out_dir):
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             self.widget_tree.get_object("doclist_new_doc"),
-            self.core.call_success("fs_join", out_dir, "doc_new_button.png"),
+            self.core.call_success(Fs.fs_join, out_dir, "doc_new_button.png"),
             margins=(30, 30, 30, 30)
         )
 
         self.screenshot_snap_app_menu(
-            self.core.call_success("fs_join", out_dir, "app_menu.png")
+            self.core.call_success(Fs.fs_join, out_dir, "app_menu.png")
         )
 
         if self.active_doc[0] is None:
             return
         row = self.docid_to_row[self.active_doc[0]]
         self.core.call_success(
-            "screenshot_snap_widget", row.main_actions,
+            Screenshot.screenshot_snap_widget, row.main_actions,
             self.core.call_success(
-                "fs_join", out_dir, "doc_properties_button.png"
+                Fs.fs_join, out_dir, "doc_properties_button.png"
             ),
             margins=(50, 50, 50, 50)
         )
@@ -574,20 +629,20 @@ class Plugin(openpaperwork_core.PluginBase):
             checkbox = row.selector
             checkbox.set_visible(visible)
 
-    def gtk_switch_to_doc_selection_single(self):
+    def doc_selection_single(self):
         self.core.call_all(
-            "mainwindow_show", side="left", name="doclist"
+            MainWindow.mainwindow_show, side="left", name="doclist"
         )
         self._set_all_selector_visibility(False)
         self.selection_multiple = False
         self._reselect_current_doc(scroll=False)
 
-    def gtk_switch_to_doc_selection_multiple(self):
+    def doc_selection_multiple(self):
         self.core.call_all(
-            "mainwindow_show", side="left", name="doclist_selection_multiple"
+            MainWindow.mainwindow_show, side="left", name="doclist_selection_multiple"
         )
         if not self.selection_multiple:
-            self.core.call_all("doc_selection_reset")
+            self.core.call_all(DocSelection.doc_selection_reset)
         self.selection_multiple = True
         self._set_all_selector_visibility(True)
         self._reselect_current_doc(scroll=False)
@@ -636,7 +691,7 @@ class Plugin(openpaperwork_core.PluginBase):
             self._toggling = False
 
     def _update_count(self):
-        count = self.core.call_success("doc_selection_len")
+        count = self.core.call_success(DocSelection.doc_selection_len)
         if count is None:
             count = 0
         self.widget_tree.get_object(
@@ -654,7 +709,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if idx >= len(self.docs):  # may happen with an empty doc list
             return
         (doc_id, doc_url) = self.docs[idx]
-        self.core.call_all("doc_open", doc_id, doc_url)
+        self.core.call_all(DocOpener.doc_open, doc_id, doc_url)
         self._reselect_current_doc(scroll=True)
 
     def doc_menu_open(self):
@@ -673,14 +728,34 @@ class Plugin(openpaperwork_core.PluginBase):
         button = row.main_actions
 
         self.core.call_success(
-            "screenshot_snap_widget",
+            Screenshot.screenshot_snap_widget,
             button,
             out_file,
             margins=(100, 50, 100, 200)
         )
 
     def on_mainwindow_fold_change(self):
-        folded = self.core.call_success("mainwindow_get_folded")
+        folded = self.core.call_success(MainWindow.mainwindow_get_folded)
         self.widget_tree.get_object("doclist_header").set_show_close_button(
             folded
         )
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_search_start(self, query):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_selection_get(self, out):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_selection_len(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_selection_in(self, doc_id, doc_url):
+        pass

@@ -1,7 +1,13 @@
 import logging
 import re
 
+from openpaperwork_core.interfaces.i18n import I18n
 import openpaperwork_core
+
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxes
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
+
+from paperwork_gtk.interfaces.search_field import SearchResultsListener
 
 
 LOGGER = logging.getLogger(__name__)
@@ -10,7 +16,11 @@ MIN_WORD_LENGTH = 3
 SPLIT = r"\W+"
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PageDrawer,
+    SearchResultsListener,
+):
     PRIORITY = 100
 
     # those are keywords used in python-whoosh query syntax. There is no
@@ -18,27 +28,16 @@ class Plugin(openpaperwork_core.PluginBase):
     IGNORE_LIST = {"and", "or"}
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_pageview_boxes_listener',
-            'search_listener',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_pageview',
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageview'],
-            },
-            {
-                'interface': 'gtk_pageview_boxes',
+                'interface': PageViewBoxes,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageview.boxes'
                 ],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
         ]
@@ -50,14 +49,15 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def on_search_start(self, query):
         query = self.re_split.split(
-            self.core.call_success("i18n_strip_accents", query)
+            self.core.call_success(I18n.i18n_strip_accents, query)
         )
         self.keywords = {
             keyword.lower() for keyword in query
             if len(keyword) >= MIN_WORD_LENGTH
         }
-        self.core.call_all("pageview_refresh_all")
+        self.core.call_all(PageDrawer.pageview_refresh_all)
 
+    @openpaperwork_core.noop
     def on_search_results(self, query, docs):
         pass
 
@@ -66,7 +66,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         boxes = self.core.call_success(
-            "pageview_get_boxes_by_id", page.doc_id, page.page_idx
+            PageViewBoxes.pageview_get_boxes_by_id, page.doc_id, page.page_idx
         )
         if boxes is None:
             return
@@ -74,7 +74,7 @@ class Plugin(openpaperwork_core.PluginBase):
         for line_box in boxes:
             for word_box in line_box.word_boxes:
                 word = self.core.call_success(
-                    "i18n_strip_accents", word_box.content
+                    I18n.i18n_strip_accents, word_box.content
                 )
                 word = word.strip()
                 if word.lower() in self.IGNORE_LIST:
@@ -84,7 +84,15 @@ class Plugin(openpaperwork_core.PluginBase):
                     if w not in self.keywords:
                         continue
                     self.core.call_all(
-                        "page_draw_box",
+                        PageViewBoxes.page_draw_box,
                         cairo_ctx, page, word_box.position,
                         (0.0, 1.0, 0.0), border_width=2
                     )
+
+    @openpaperwork_core.noop
+    def pageview_refresh_all(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_page_visibility_changed(self, page, visible):
+        pass

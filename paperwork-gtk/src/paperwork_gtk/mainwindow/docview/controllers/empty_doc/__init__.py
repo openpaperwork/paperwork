@@ -1,5 +1,7 @@
 import logging
 
+from paperwork_backend.interfaces.docs import Docs
+
 try:
     import cairo
     CAIRO_AVAILABLE = True
@@ -24,42 +26,49 @@ try:
 except (ImportError, ValueError):
     PANGO_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.resources import Resources
 import openpaperwork_core
 import openpaperwork_core.deps
+
 import openpaperwork_gtk.deps
 
-from .. import BaseDocViewController
-from ..... import _
+from paperwork_backend.interfaces.scan2doc import Scan2DocListener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class BaseDisplayNewDocController(BaseDocViewController):
-    def __init__(self, docview, empty_doc_plugin):
-        super().__init__(docview)
+    def __init__(self, core, docview, empty_doc_plugin):
+        super().__init__(core, docview)
         self.empty_doc_plugin = empty_doc_plugin
-        self.core = empty_doc_plugin.core
 
     def _switch_controller(self):
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", self.plugin.active_doc[1]
+            Docs.doc_get_nb_pages_by_url, self.plugin.active_doc[1]
         )
         if nb_pages is None:
             nb_pages = 0
 
         if nb_pages > 0 or self.empty_doc_plugin.scanning:
             self.plugin.docview_switch_controller(
+                self.core,
                 "new_doc",
-                lambda docview: NoDisplayController(
-                    docview, self.empty_doc_plugin
+                lambda core, docview: NoDisplayController(
+                    core, docview, self.empty_doc_plugin
                 )
             )
         else:
             self.plugin.docview_switch_controller(
+                self.core,
                 "new_doc",
-                lambda docview: DisplayNewDocController(
-                    docview, self.empty_doc_plugin
+                lambda core, docview: DisplayNewDocController(
+                    core, docview, self.empty_doc_plugin
                 )
             )
 
@@ -68,10 +77,6 @@ class BaseDisplayNewDocController(BaseDocViewController):
 
 
 class DisplayNewDocController(BaseDisplayNewDocController):
-    def __init__(self, docview, plugin):
-        super().__init__(docview, plugin)
-        self.core = docview.core
-
     def enter(self):
         self.plugin.overlay.set_visible(True)
 
@@ -126,27 +131,21 @@ class NoDisplayController(BaseDisplayNewDocController):
         self.plugin.overlay.set_visible(False)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_docview_controller',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocViewerControllerFactory,
+    Scan2DocListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_gtk.fs.gio'],
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
             },
             {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
-            },
-            {
-                'interface': 'resources',
+                'interface': Resources,
                 'defaults': ['openpaperwork_core.resources.setuptools'],
             },
         ]
@@ -160,7 +159,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         file_path_ctx = self.core.call_success(
-            "resources_get_file",
+            Resources.resources_get_file,
             "paperwork_gtk.mainwindow.docview.controllers.empty_doc",
             "empty_doc.png"
         )
@@ -178,18 +177,22 @@ class Plugin(openpaperwork_core.PluginBase):
     def on_scan2doc_start(self, *args, **kwargs):
         self.scanning = True
 
+    @openpaperwork_core.noop
+    def on_scan2doc_page_scanned(self, scan_id, doc_id, doc_url, nb_pages):
+        pass
+
     def on_scan2doc_end(self, *args, **kwargs):
         self.scanning = False
 
     def gtk_docview_get_controllers(self, out: dict, docview):
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", docview.active_doc[1]
+            Docs.doc_get_nb_pages_by_url, docview.active_doc[1]
         )
         if nb_pages is None:
             nb_pages = 0
 
         out['new_doc'] = (
-            DisplayNewDocController(docview, self)
+            DisplayNewDocController(self.core, docview, self)
             if nb_pages <= 0 else
-            NoDisplayController(docview, self)
+            NoDisplayController(self.core, docview, self)
         )

@@ -7,29 +7,30 @@ except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
 import openpaperwork_core
-import openpaperwork_core.deps
+
+from openpaperwork_gtk.interfaces.bug_report import GtkBugReportDisplay
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_app',
-            'action_app_open_bug_report',
-            'chkdeps',
-            'gtk_window_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
+            },
+            {
+                "interface": GtkBugReportDisplay,
+                "defaultS": ["openpaperwork_gtk.bug_report"],
             },
         ]
 
@@ -43,7 +44,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         action = Gio.SimpleAction.new('open_bug_report', None)
         action.connect("activate", self._open_bug_report)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def _open_bug_report(self, *args, **kwargs):
-        self.core.call_all("open_bug_report")
+        self.core.call_all(GtkBugReportDisplay.open_bug_report)

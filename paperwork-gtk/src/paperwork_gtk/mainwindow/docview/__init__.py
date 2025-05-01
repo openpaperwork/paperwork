@@ -1,3 +1,4 @@
+from typing import Set
 import logging
 
 try:
@@ -8,14 +9,40 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
 import openpaperwork_gtk.deps
+
+from paperwork_backend.interfaces.docs import DocOpener, Docs
+
+from paperwork_gtk.interfaces.doc_viewer import (
+    AbstractDocViewerController,
+    DocViewer,
+    DocViewerControllerFactory,
+    DocViewerListener,
+    PageViewerListener
+)
+from paperwork_gtk.interfaces.drag_n_drop import DragAndDropDestination
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.main_window import MainWindowListener
+from paperwork_gtk.interfaces.zoom import Zoom
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocOpener,
+    DocViewer,
+    PageViewerListener,
+    DragAndDropDestination,
+    MainWindowListener,
+):
     LAYOUTS = {
         # name: pages per line (columns)
         'paged': 1,
@@ -24,35 +51,40 @@ class Plugin(openpaperwork_core.PluginBase):
     MAX_PAGES = max(LAYOUTS.values())
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'doc_open',
-            'drag_and_drop_destination',
-            'gtk_docview',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_mainwindow',
-                'defaults': ['paperwork_gtk.mainwindow.window'],
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": DocViewerControllerFactory,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": DocViewerListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_zoomable',
+                'interface': Mainloop,
+                'defaults': ['openpaperwork_gtk.mainloop.glib'],
+            },
+            {
+                'interface': MainWindow,
+                'defaults': ['paperwork_gtk.mainwindow.window'],
+            },
+            {
+                'interface': Zoom,
                 'defaults': [
                     'paperwork_gtk.gesture.zoom',
                     'paperwork_gtk.keyboard_shortcut.zoom',
                 ],
-            },
-            {
-                'interface': 'mainloop',
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
         ]
 
@@ -77,12 +109,12 @@ class Plugin(openpaperwork_core.PluginBase):
         self.active_doc_mtime = None
 
         self.core.call_success(
-            "gtk_load_css",
+            GtkResources.gtk_load_css,
             "paperwork_gtk.mainwindow.docview", "docview.css"
         )
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docview", "docview.glade"
         )
         if self.widget_tree is None:
@@ -112,7 +144,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.page_layout.connect("draw", self._on_draw)
 
         self.core.call_all(
-            "gtk_fix_headerbar_buttons",
+            GtkResources.gtk_fix_headerbar_buttons,
             self.widget_tree.get_object("docview_header")
         )
 
@@ -121,19 +153,19 @@ class Plugin(openpaperwork_core.PluginBase):
         self.widget_tree.get_object("docview_back").connect(
             "clicked",
             lambda *args, **kwargs: (
-                self.core.call_all("mainwindow_show", "left")
+                self.core.call_all(MainWindow.mainwindow_show, "left")
             )
         )
 
         self.core.call_all(
-            "mainwindow_add", side="right", name="docview", prio=10000,
+            MainWindow.mainwindow_add, side="right", name="docview", prio=10000,
             header=self.widget_tree.get_object("docview_header"),
             body=self.widget_tree.get_object("docview_body"),
         )
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "on_gtk_docview_init", self
+            Mainloop.mainloop_schedule, self.core.call_all,
+            DocViewerListener.on_gtk_docview_init, self
         )
 
     def chkdeps(self, out: dict):
@@ -159,9 +191,9 @@ class Plugin(openpaperwork_core.PluginBase):
     def docview_get_scrollwindow(self):
         return self.widget_tree.get_object("docview_scroll")
 
-    def docview_switch_controller(self, name, new_controller_ctor):
+    def docview_switch_controller(self, core, name, new_controller_ctor):
         self.controllers[name].exit()
-        new_controller = new_controller_ctor(self)
+        new_controller = new_controller_ctor(core, self)
         LOGGER.info(
             "%s: %s --> %s",
             name, str(self.controllers[name]), str(new_controller)
@@ -224,14 +256,14 @@ class Plugin(openpaperwork_core.PluginBase):
         self.doc_close()
 
         self.core.call_success(
-            "mainwindow_show", side="right", name="docview"
+            MainWindow.mainwindow_show, side="right", name="docview"
         )
 
         self.zoom = 0.0
         self.layout_name = 'grid'
         self.active_doc = (doc_id, doc_url)
         self.active_doc_mtime = self.core.call_success(
-            "doc_get_mtime_by_url", doc_url
+            Docs.doc_get_mtime_by_url, doc_url
         )
         self.active_page_idx = 0
 
@@ -240,9 +272,9 @@ class Plugin(openpaperwork_core.PluginBase):
         self.page_to_widget = {}
         self.nb_visible_pages = 0
 
-        self.controllers = {}
+        self.controllers: Set[AbstractDocViewerController] = {}
         self.core.call_all(
-            "gtk_docview_get_controllers", self.controllers, self
+            DocViewerControllerFactory.gtk_docview_get_controllers, self.controllers, self
         )
         for controller in self.controllers.values():
             controller.enter()
@@ -254,7 +286,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 (doc_id, doc_url), self.active_doc
             )
             return
-        mtime = self.core.call_success("doc_get_mtime_by_url", doc_url)
+        mtime = self.core.call_success(Docs.doc_get_mtime_by_url, doc_url)
         if mtime == self.active_doc_mtime:
             LOGGER.info(
                 "Reload for document %s requested, but mtime hasn't changed"
@@ -297,7 +329,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.requested_page_idx = page_idx
         for controller in self.controllers.values():
             controller.doc_goto_page(page_idx)
-        self.core.call_all("on_page_shown", page_idx)
+        self.core.call_all(PageViewerListener.on_page_shown, page_idx)
 
     def docview_set_layout(self, name):
         self.layout_name = name
@@ -308,6 +340,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.zoom = zoom
         for controller in self.controllers.values():
             controller.docview_set_zoom(zoom)
+        self.core.call_all(DocViewerListener.on_docview_zoom_updated, zoom)
 
     def docview_add_page_viewer(self, page, visible=True):
         widget = self._build_flow_box_child(page.widget)
@@ -332,7 +365,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.nb_visible_pages += 1
 
     def on_mainwindow_fold_change(self):
-        folded = self.core.call_success("mainwindow_get_folded")
+        folded = self.core.call_success(MainWindow.mainwindow_get_folded)
         self.widget_tree.get_object("docview_header").set_show_close_button(
             not folded
         )

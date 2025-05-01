@@ -1,43 +1,53 @@
 import logging
 
 import openpaperwork_core
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.suggestions import SuggestionProvider
+
+from paperwork_gtk.interfaces.search_field import Search
+from paperwork_gtk.interfaces.search_field import SearchField
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocOpener,
+    Search,
+):
     PRIORITY = -2000000
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'doc_open',
-            'gtk_search_field_completion',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_search_field',
+                'interface': SearchField,
                 'defaults': ['paperwork_gtk.mainwindow.search.field'],
             },
             {
-                'interface': 'suggestions',
+                'interface': SuggestionProvider,
                 'defaults': ['paperwork_backend.index.whoosh'],
+            },
+            {
+                "interface": WorkQueue,
+                "defaults": ["openpaperwork_core.work_queue.default"],
             },
         ]
 
     def __init__(self, core):
         super().__init__(core)
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.search", "suggestions.glade"
         )
         if self.widget_tree is None:
@@ -48,7 +58,7 @@ class Plugin(openpaperwork_core.PluginBase):
         suggestion_revealer = self.widget_tree.get_object(
             "suggestions_revealer"
         )
-        self.core.call_all("search_field_add", suggestion_revealer)
+        self.core.call_all(SearchField.search_field_add, suggestion_revealer)
 
         self.widget_tree.get_object("button_close").connect(
             "clicked", self._close
@@ -59,13 +69,13 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _get_suggestions(self, query):
         out = set()
-        self.core.call_all("suggestion_get", out, query)
+        self.core.call_all(SuggestionProvider.suggestion_get, out, query)
         out = list(out)
         out.sort()
         return out
 
     def _show_suggestions(self, suggestions, query):
-        if query != self.core.call_success("search_get"):
+        if query != self.core.call_success(SearchField.search_get):
             # Text has changed while we were looking for suggestions
             # No point in displaying them now.
             return
@@ -93,7 +103,7 @@ class Plugin(openpaperwork_core.PluginBase):
         )
         promise = promise.then(self._show_suggestions, query)
         self.core.call_success(
-            "work_queue_add_promise", "doc_search", promise
+            WorkQueue.work_queue_add_promise, "doc_search", promise
         )
 
     def _close(self, *args, **kwargs):
@@ -104,7 +114,23 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_open(self, *args, **kwargs):
         self._close()
 
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
+
     def _on_row_activated(self, treeview, path, column):
         model = treeview.get_model()
         suggestion = model[path][0]
-        self.core.call_all("search_set", suggestion)
+        self.core.call_all(SearchField.search_set, suggestion)
+
+    @openpaperwork_core.noop
+    def search_update_document_list(self, _=None):
+        pass
+
+    @openpaperwork_core.noop
+    def search_stop(self):
+        pass

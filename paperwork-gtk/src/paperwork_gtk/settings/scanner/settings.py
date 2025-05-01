@@ -1,15 +1,28 @@
 import logging
 
 import openpaperwork_core
-import openpaperwork_core.deps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.l10n import L10nInit
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+from openpaperwork_gtk.interfaces.screenshot import Screenshot, ScreenshotProvider
+from paperwork_backend.interfaces.scan import Scan
 
-from ... import _
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerExtra
+from paperwork_gtk.interfaces.settings import GtkSettingsScannerSetting
+from paperwork_gtk.interfaces.settings_dialog import SettingsDialog
+from paperwork_gtk.interfaces.settings_dialog import SettingsDialogComponent
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    SettingsDialogComponent,
+    ScreenshotProvider
+):
     PRIORITY = -400
     MODES = {
         'Color': _("Color"),
@@ -18,33 +31,44 @@ class Plugin(openpaperwork_core.PluginBase):
     }
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'gtk_settings_scanner',
-            'screenshot_provider',
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'l10n_init',
+                'interface': Fs,
+                'defaults': ['openpaperwork_gtk.fs.gio'],
+            },
+            {
+                'interface': GtkSettingsScannerExtra,
+                'defaults': [],
+                "optional": True,
+            },
+            {
+                "interface": GtkSettingsScannerSetting,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': L10nInit,
                 'defaults': ['paperwork_gtk.l10n'],
             },
             {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
             {
-                'interface': 'gtk_resources',
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'screenshot',
+                'interface': SettingsDialog,
+                'defaults': [],
+            },
+            {
+                'interface': Screenshot,
                 'defaults': ['openpaperwork_gtk.screenshots'],
             },
         ]
@@ -70,44 +94,44 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
 
         opt = self.core.call_success(
-            "config_build_simple", "settings_scanner", "name",
-            lambda: self.core.call_success("config_get", "scanner_dev_id")
+            Config.config_build_simple, "settings_scanner", "name",
+            lambda: self.core.call_success(Config.config_get, "scanner_dev_id")
         )
-        self.core.call_all("config_register", "settings_scanner_name", opt)
+        self.core.call_all(Config.config_register, "settings_scanner_name", opt)
         self.core.call_all(
-            "config_add_observer", "scanner_dev_id", self._update_scanner_name
+            Config.config_add_observer, "scanner_dev_id", self._update_scanner_name
         )
 
     def _update_scanner_name(self):
         def set_scanner_name(devs):
-            active = self.core.call_success("config_get", "scanner_dev_id")
+            active = self.core.call_success(Config.config_get, "scanner_dev_id")
             for dev in devs:
                 dev_id = dev[0]
                 dev_name = dev[1]
                 if dev_id == active:
                     self.core.call_success(
-                        "config_put", "settings_scanner_name", dev_name
+                        Config.config_put, "settings_scanner_name", dev_name
                     )
                     break
             return devs
 
-        promise = self.core.call_success("scan_list_scanners_promise")
+        promise = self.core.call_success(Scan.scan_list_scanners_promise)
         promise = promise.then(set_scanner_name)
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
 
     def complete_settings(self, global_widget_tree):
         widget_tree = self.core.call_success(
-            "gtk_load_widget_tree", "paperwork_gtk.settings.scanner",
+            GtkResources.gtk_load_widget_tree, "paperwork_gtk.settings.scanner",
             "settings.glade"
         )
         self.widget_tree = widget_tree
 
         extra_widget = self.core.call_success(
-            "settings_scanner_get_extra_widget"
+            GtkSettingsScannerExtra.settings_scanner_get_extra_widget
         )
 
         self.core.call_success(
-            "add_setting_to_dialog", global_widget_tree,
+            SettingsDialog.add_setting_to_dialog, global_widget_tree,
             _("Scanner"),
             [
                 widget_tree.get_object("scanner_device"),
@@ -123,10 +147,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
         def disable_refresh(*args, **kwargs):
             for c in self.config:
-                self.core.call_all("config_remove_observer", c[0], refresh)
+                self.core.call_all(Config.config_remove_observer, c[0], refresh)
 
         for c in self.config:
-            self.core.call_all("config_add_observer", c[0], refresh)
+            self.core.call_all(Config.config_add_observer, c[0], refresh)
 
         global_widget_tree.get_object("settings_window").connect(
             "destroy", disable_refresh
@@ -135,14 +159,14 @@ class Plugin(openpaperwork_core.PluginBase):
         self._refresh_settings(widget_tree)
 
         list_scanners_promise = self.core.call_success(
-            "scan_list_scanners_promise"
+            Scan.scan_list_scanners_promise
         )
         self.core.call_all(
-            "complete_scanner_settings",
+            GtkSettingsScannerSetting.complete_scanner_settings,
             global_widget_tree, widget_tree,
             list_scanners_promise
         )
-        self.core.call_success("scan_schedule", list_scanners_promise)
+        self.core.call_success(Scan.scan_schedule, list_scanners_promise)
 
     def _translate_mode(self, mode):
         if mode in self.MODES:
@@ -151,14 +175,14 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _refresh_settings(self, widget_tree):
         for (config_key, widget_name, default_value, fmt) in self.config:
-            value = self.core.call_success("config_get", config_key)
+            value = self.core.call_success(Config.config_get, config_key)
             if value is not None:
                 value = fmt(value)
             else:
                 value = default_value
             widget_tree.get_object(widget_name).set_text(value)
 
-        active = self.core.call_success("config_get", "scanner_dev_id")
+        active = self.core.call_success(Config.config_get, "scanner_dev_id")
         active = active is not None and active != ""
         buttons = [
             'scanner_resolution',
@@ -183,9 +207,13 @@ class Plugin(openpaperwork_core.PluginBase):
         for button_name in buttons:
             button = self.widget_tree.get_object(button_name)
             self.core.call_success(
-                "screenshot_snap_widget", button,
+                Screenshot.screenshot_snap_widget, button,
                 self.core.call_success(
-                    "fs_join", out_dir, "settings_{}.png".format(button_name)
+                    Fs.fs_join, out_dir, "settings_{}.png".format(button_name)
                 ),
                 margins=(100, 100, 100, 100)
             )
+
+    @openpaperwork_core.noop
+    def on_settings_closed(self, settings_dialog_widget_tree):
+        pass

@@ -8,16 +8,25 @@ try:
     GTK_AVAILABLE = True
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
+    Gtk = None  # to make static analysis happy
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
+
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.box_selection import BoxSelectionListener
+from paperwork_gtk.interfaces.doc_viewer import DocViewerListener
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxes
+from paperwork_gtk.interfaces.page_boxes import PageViewBoxesListener
+from paperwork_gtk.interfaces.page_drawer import PageDrawer
 
 
 LOGGER = logging.getLogger(__name__)
 IDX_GENERATOR = itertools.count()
 
 
-class PageSelectionHandler(object):
+class PageSelectionHandler:
     def __init__(self, core, plugin, page):
         self.core = core
         self.plugin = plugin
@@ -132,7 +141,7 @@ class PageSelectionHandler(object):
 
         self.on_drag_update(gesture, x, y)
         self.core.call_all(
-            "on_page_boxes_selected",
+            BoxSelectionListener.on_page_boxes_selected,
             self.page.doc_id, self.page.doc_url, self.page.page_idx,
             list(self._get_selected())
         )
@@ -143,32 +152,32 @@ class PageSelectionHandler(object):
 
         for box in self._get_selected():
             self.core.call_all(
-                "page_draw_box",
+                PageViewBoxes.page_draw_box,
                 cairo_ctx, self.page,
                 box.position, (0.0, 1.0, 0.0),
                 border_width=2
             )
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocViewerListener,
+    PageDrawer,
+    PageViewBoxesListener,
+):
     PRIORITY = 10
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview_boxes_listener',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_pageview',
-                'defaults': ['paperwork_gtk.mainwindow.docview.pageview'],
+                "interface": BoxSelectionListener,
+                "defaults": [],
+                "optional": True,
             },
             {
-                'interface': 'gtk_pageview_boxes',
+                'interface': PageViewBoxes,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageview.boxes'
                 ],
@@ -197,6 +206,10 @@ class Plugin(openpaperwork_core.PluginBase):
         if page.get_visible():
             h.connect()
 
+    @openpaperwork_core.noop
+    def pageview_refresh_all(self):
+        pass
+
     def on_page_visibility_changed(self, page, visible):
         if page.widget not in self.handlers:
             return
@@ -213,3 +226,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def on_layout_change(self, layout_name):
         self.enabled = (layout_name == 'paged')
+
+    @openpaperwork_core.noop
+    def on_gtk_docview_init(self):
+        pass
+
+    @openpaperwork_core.noop
+    def on_docview_zoom_updated(self, zoom):
+        pass

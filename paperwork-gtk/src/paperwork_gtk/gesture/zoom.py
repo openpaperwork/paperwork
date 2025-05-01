@@ -8,14 +8,19 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
 import openpaperwork_core
+
 import openpaperwork_gtk.deps
+
+from paperwork_gtk.interfaces.zoom import Zoom
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Zoomer(object):
+class Zoomer:
     def __init__(self, zoomable, adjustment):
         self.adjustment = adjustment
         self.gesture = Gtk.GestureZoom.new(zoomable)
@@ -40,12 +45,19 @@ class Zoomer(object):
         LOGGER.debug("Ref: %f, %f", self.ref_adj_value, self.ref_gesture_value)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    Zoom,
+):
     @classmethod
-    def get_interfaces(cls):
+    def get_deps(cls):
         return [
-            'chkdeps',
-            'gtk_zoomable',
+            {
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def __init__(self, core):
@@ -67,7 +79,7 @@ class Plugin(openpaperwork_core.PluginBase):
         applied on a GtkAdjustment.
         """
         zoomer = Zoomer(zoomable, adjustment)
-        self.core.call_all("on_objref_track", zoomer)
+        self.core.call_all(MemleakDetector.on_objref_track, zoomer)
         self.refs[zoomable] = zoomer
 
     def on_zoomable_widget_destroy(self, zoomable, adjustment):

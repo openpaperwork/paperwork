@@ -8,45 +8,62 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.deps
 
-from ... import _
+from openpaperwork_gtk.interfaces.dialogs import GtkYesNoDialog
+from openpaperwork_gtk.interfaces.dialogs import GtkYesNoDialogListener
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
+from paperwork_gtk.interfaces.doc_list import DocSearch
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "doc_delete"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_doc',
-            'action_doc_delete',
-            'chkdeps',
-            'doc_open',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+    GtkYesNoDialogListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'document_storage',
+                "interface": DocSearch,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'gtk_dialog_yes_no',
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                'interface': GtkYesNoDialog,
                 'defaults': ['openpaperwork_gtk.dialogs.yes_no'],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
         ]
 
@@ -57,7 +74,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._delete)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -65,6 +82,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_open(self, doc_id, doc_url):
         self.active_doc = (doc_id, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
 
     def doc_close(self):
         self.active_doc = (None, None)
@@ -82,12 +103,12 @@ class Plugin(openpaperwork_core.PluginBase):
             # On Windows, we have to be absolutely sure the PDF is actually
             # closed when we try to delete it because Windows s*cks pony d*cks
             # in h*ll.
-            self.core.call_all("doc_close")
+            self.core.call_all(DocOpener.doc_close)
             # there is no "close()" method in Poppler
             gc.collect()
 
         self.core.call_all(
-            "gtk_show_dialog_yes_no", self, msg, active_doc
+            GtkYesNoDialog.gtk_show_dialog_yes_no, self, msg, active_doc
         )
 
     def on_dialog_yes_no_reply(self, parent, reply, *args, **kwargs):
@@ -101,17 +122,17 @@ class Plugin(openpaperwork_core.PluginBase):
 
         LOGGER.info("Will delete doc %s", doc_id)
 
-        self.core.call_all("doc_close")
+        self.core.call_all(DocOpener.doc_close)
         if os.name == "nt":
             # there is no "close()" method in Poppler
             gc.collect()
 
         self.core.call_success(
-            "mainloop_schedule", self._really_delete, doc_id
+            Mainloop.mainloop_schedule, self._really_delete, doc_id
         )
 
     def _really_delete(self, doc_id):
-        self.core.call_all("storage_delete_doc_id", doc_id)
-        self.core.call_all("search_update_document_list")
+        self.core.call_all(DocStorage.storage_delete_doc_id, doc_id)
+        self.core.call_all(DocSearch.search_refresh)
 
-        self.core.call_success("transaction_simple", [('del', doc_id),])
+        self.core.call_success(DocTransactionManager.transaction_simple, [('del', doc_id),])

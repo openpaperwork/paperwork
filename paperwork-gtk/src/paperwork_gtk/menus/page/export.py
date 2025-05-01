@@ -6,37 +6,31 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
 
-from ... import _
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_viewer import PageMenu
+from paperwork_gtk.interfaces.doc_viewer import PageMenuListener
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "page_export"
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    PageMenuListener,
+):
     PRIORITY = 0
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'menu',
-            'menu_page',
-            'menu_page_export',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'action_page_export',
-                'defaults': ['paperwork_gtk.actions.page.export'],
-            },
-            {
-                'interface': 'page_actions',
+                'interface': PageMenu,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageinfo.actions'
                 ],
@@ -49,4 +43,4 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def on_page_menu_ready(self):
         item = Gio.MenuItem.new(_("Export page"), "win." + ACTION_NAME)
-        self.core.call_all("page_menu_append_item", item)
+        self.core.call_all(PageMenu.page_menu_append_item, item)

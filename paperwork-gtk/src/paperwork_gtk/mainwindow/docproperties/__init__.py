@@ -1,22 +1,27 @@
 import logging
 
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.gtk import GtkResources
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk.interfaces.doc_properties import DocProperties
+from paperwork_gtk.interfaces.doc_properties import DocPropertiesComponent
+from paperwork_gtk.interfaces.doc_properties import DocPropertiesUpdate
+from paperwork_gtk.interfaces.main_window import MainWindow
+from paperwork_gtk.interfaces.search_field import SearchField
+
 
 LOGGER = logging.getLogger(__name__)
 
 
-class DocPropertiesUpdate(object):
-    def __init__(self, doc_id, multiple_docs=False):
-        self.doc_id = doc_id
-        self.multiple_docs = multiple_docs
-
-        self.new_docs = set()
-        self.upd_docs = set()
-        self.del_docs = set()
-
-
-class DocPropertiesEditor(object):
+class DocPropertiesEditor:
     def __init__(self, name, plugin, multiple_docs=False):
         self.name = name
         self.core = plugin.core
@@ -26,7 +31,7 @@ class DocPropertiesEditor(object):
         self.active_docs = set()
 
         self.widget_tree = self.core.call_success(
-            "gtk_load_widget_tree",
+            GtkResources.gtk_load_widget_tree,
             "paperwork_gtk.mainwindow.docproperties", "docproperties.glade"
         )
         if self.widget_tree is None:
@@ -42,29 +47,29 @@ class DocPropertiesEditor(object):
         )
 
         self.core.call_all(
-            "mainwindow_add", side="left", name="docproperties_" + self.name,
+            MainWindow.mainwindow_add, side="left", name="docproperties_" + self.name,
             prio=0,
             header=self.widget_tree.get_object("docproperties_header"),
             body=self.widget_tree.get_object("docproperties_body"),
         )
 
         self.core.call_one(
-            "mainloop_schedule", self._build_doc_properties,
+            Mainloop.mainloop_schedule, self._build_doc_properties,
             multiple_docs
         )
 
     def show(self):
         self.core.call_all(
-            "mainwindow_show", side="left", name="docproperties_" + self.name
+            MainWindow.mainwindow_show, side="left", name="docproperties_" + self.name
         )
 
     def hide(self):
-        self.core.call_all("mainwindow_back", side="left")
+        self.core.call_all(MainWindow.mainwindow_back, side="left")
 
     def _build_doc_properties(self, multiple_docs):
         components = []
         self.core.call_all(
-            "doc_properties_components_get", components,
+            DocPropertiesComponent.doc_properties_components_get, components,
             multiple_docs=multiple_docs
         )
         for component in components:
@@ -75,22 +80,22 @@ class DocPropertiesEditor(object):
     def doc_open(self, doc_id, doc_url):
         self.active_docs = {(doc_id, doc_url)}
         self.core.call_all(
-            "doc_properties_components_set_active_doc", doc_id, doc_url
+            DocPropertiesComponent.doc_properties_components_set_active_doc, doc_id, doc_url
         )
 
     def docs_open(self, docs):
         self.active_docs = docs
         self.core.call_all(
-            "doc_properties_components_set_active_docs", docs
+            DocPropertiesComponent.doc_properties_components_set_active_docs, docs
         )
 
     def _open_doc(self, upd):
         active_docs = {doc[0] for doc in self.active_docs}
         if upd.doc_id is not None and upd.doc_id not in active_docs:
-            doc_url = self.core.call_success("doc_id_to_url", upd.doc_id)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, upd.doc_id)
             if doc_url is None:
                 return
-            self.core.call_all("doc_open", upd.doc_id, doc_url)
+            self.core.call_all(DocOpener.doc_open, upd.doc_id, doc_url)
 
     def _apply(self, *args, **kwargs):
         LOGGER.info(
@@ -103,25 +108,25 @@ class DocPropertiesEditor(object):
 
         promise = openpaperwork_core.promise.ThreadedPromise(
             self.core, self.core.call_all,
-            args=("doc_properties_components_apply_changes", upd)
+            args=(DocPropertiesComponent.doc_properties_components_apply_changes, upd)
         )
         # drop call_all return value
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self._open_doc, upd)
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, "search_update_document_list"
+            self.core.call_all, SearchField.search_update_document_list,
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(self._upd_index, upd)
         promise.schedule()
 
-        self.core.call_all("close_doc_properties")
+        self.core.call_all(DocProperties.close_doc_properties)
 
     def _cancel(self, *args, **kwargs):
         LOGGER.info("Changes cancelled by the user")
-        self.core.call_all("doc_properties_components_cancel_changes")
-        self.core.call_all("close_doc_properties")
+        self.core.call_all(DocPropertiesComponent.doc_properties_components_cancel_changes)
+        self.core.call_all(DocProperties.close_doc_properties)
 
     def _upd_index(self, upd):
         total = len(upd.new_docs) + len(upd.upd_docs) + len(upd.del_docs)
@@ -141,7 +146,7 @@ class DocPropertiesEditor(object):
             changes.append(('upd', doc_id))
         for doc_id in upd.del_docs:
             changes.append(('del', doc_id))
-        self.core.call_success("transaction_simple", changes)
+        self.core.call_success(DocTransactionManager.transaction_simple, changes)
 
     def docproperties_scroll_to_last(self):
         scroll = self.widget_tree.get_object("docproperties_body")
@@ -149,32 +154,46 @@ class DocPropertiesEditor(object):
         vadj.set_value(vadj.get_upper())
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_doc_properties']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocOpener,
+    DocProperties,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'gtk_resources',
+                "interface": DocOpener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": DocPropertiesComponent,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": DocStorage,
+                "defaults": ["paperwork_backend.model.workdir"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_mainwindow',
+                'interface': MainWindow,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'i18n',
+                'interface': I18n,
                 'defaults': ['openpaperwork_core.i18n.python'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -197,6 +216,14 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         e = self.active_editor
         e.doc_open(doc_id, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_close(self):
+        pass
 
     def open_doc_properties(self, doc_id, doc_url):
         assert self.active_editor is None

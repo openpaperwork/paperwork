@@ -2,7 +2,9 @@ import logging
 
 import openpaperwork_core
 
-from . import BaseDocViewController
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.interfaces.doc_viewer import PageViewerListener
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ class PageNumberController(BaseDocViewController):
         if widget is None:
             return
         page = self.plugin.widget_to_page[widget]
-        self.plugin.core.call_all("on_page_shown", page.page_idx)
+        self.core.call_all(PageViewerListener.on_page_shown, page.page_idx)
 
     def on_layout_size_allocate(self, layout):
         super().on_layout_size_allocate(layout)
@@ -73,19 +75,18 @@ class PageNumberController(BaseDocViewController):
         self._update_current_page()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_docview_controller']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
+                "interface": PageViewerListener,
+                "defaults": [],
             },
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):
-        out['page_number'] = PageNumberController(docview)
+        out['page_number'] = PageNumberController(self.core, docview)

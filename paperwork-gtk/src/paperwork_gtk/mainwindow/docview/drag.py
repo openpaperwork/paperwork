@@ -14,8 +14,15 @@ try:
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
+
 import openpaperwork_gtk.deps
+
+from paperwork_backend.interfaces.pages import PageImg
+
+from paperwork_gtk.interfaces.doc_viewer import DocViewerComponentFactory
+from paperwork_gtk.interfaces.doc_viewer import DocViewerListener
 
 
 LOGGER = logging.getLogger(__name__)
@@ -23,21 +30,19 @@ LOGGER = logging.getLogger(__name__)
 TARGET_ENTRY_URI = 0
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocViewerComponentFactory,
+    DocViewerListener,
+):
     PRIORITY = -10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_pageview',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'page_img',
+                'interface': PageImg,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
@@ -85,7 +90,7 @@ class Plugin(openpaperwork_core.PluginBase):
             # --> we cheat and use the URI target for the extra info we may
             # need in Paperwork
             img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx
+                PageImg.page_get_img_url, doc_url, page_idx
             )
             if img_url is None:
                 return
@@ -107,6 +112,10 @@ class Plugin(openpaperwork_core.PluginBase):
                         page.widget, doc_id, doc_url, page.page_idx
                     )
 
+    @openpaperwork_core.noop
+    def on_gtk_docview_init(self):
+        pass
+
     def on_layout_change(self, layout_name):
         enabled = (layout_name == 'grid')
         if enabled == self.enabled:
@@ -120,3 +129,11 @@ class Plugin(openpaperwork_core.PluginBase):
             for page in self.pages:
                 self._disable_drag(page.widget)
         self.enabled = enabled
+
+    @openpaperwork_core.noop
+    def on_docview_closed_page(self, page):
+        pass
+
+    @openpaperwork_core.noop
+    def on_docview_zoom_updated(self, zoom):
+        pass

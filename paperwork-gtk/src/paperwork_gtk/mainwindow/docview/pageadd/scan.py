@@ -7,53 +7,86 @@ try:
     GTK_AVAILABLE = True
 except (ImportError, ValueError):
     GTK_AVAILABLE = False
+    Gtk = None  # make static analysis happy
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.activity import ActivityListener
+from openpaperwork_gtk.interfaces.gtk import GtkResources
 import openpaperwork_gtk.deps
 
-from .... import _
+from paperwork_backend.interfaces.docs import DocOpener
+from paperwork_backend.interfaces.i18n_scanner import I18nScanner
+from paperwork_backend.interfaces.scan import Scan, ScanListener
+from paperwork_backend.interfaces.scan2doc import Scan2Doc, Scan2DocListener
+
+from paperwork_gtk import _
+from paperwork_gtk.interfaces.doc_viewer import DocViewer
+from paperwork_gtk.interfaces.new_doc import NewDoc
+from paperwork_gtk.interfaces.page_add import PageAddButtons
+from paperwork_gtk.interfaces.page_add import PageAddButtonsSources
+from paperwork_gtk.interfaces.page_add import PageAddButtonsSourcesPopover
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'gtk_scan_buttons_popover_sources',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    PageAddButtonsSources,
+    ScanListener,
+    Scan2DocListener,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                "interface": ActivityListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'gtk_resources',
+                "interface": DocViewer,
+                "defaults": ["paperwork_gtk.mainwindow.docview"],
+            },
+            {
+                'interface': GtkResources,
                 'defaults': ['openpaperwork_gtk.resources'],
             },
             {
-                'interface': 'gtk_scan_buttons_popover',
+                "interface": PageAddButtons,
+                "defaults": ["paperwork_gtk.mainwindow.docview.pageadd.buttons"],
+            },
+            {
+                'interface': PageAddButtonsSourcesPopover,
                 'defaults': [
                     'paperwork_gtk.mainwindow.docview.pageadd.source_popover'
                 ],
             },
             {
-                'interface': 'i18n_scanner',
+                'interface': I18nScanner,
                 'defaults': ['paperwork_backend.i18n.scanner'],
             },
             {
-                'interface': 'scan',
-                'defaults': ['paperwork_backend.docscan.libinsane'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
             {
-                'interface': 'scan2doc',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.scan2doc'],
+            },
+            {
+                'interface': Scan2Doc,
+                'defaults': ['paperwork_backend.docscan.libinsane'],
             },
         ]
 
@@ -62,17 +95,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
         self.busy = False
         opt = self.core.call_success(
-            "config_build_simple", "pageadd", "scanner_sources", lambda: []
+            Config.config_build_simple, "pageadd", "scanner_sources", lambda: []
         )
-        self.core.call_all("config_register", "pageadd_sources", opt)
+        self.core.call_all(Config.config_register, "pageadd_sources", opt)
 
         self.core.call_all(
-            "config_add_observer", "scanner_dev_id", self._update_sources
-        )
-
-        self.core.call_all(
-            "mainloop_schedule", self.core.call_all,
-            "pageadd_sources_refresh"
+            Config.config_add_observer, "scanner_dev_id", self._update_sources
         )
 
     def chkdeps(self, out: dict):
@@ -93,25 +121,27 @@ class Plugin(openpaperwork_core.PluginBase):
             return source_names
 
         def store_sources(sources):
-            self.core.call_all("config_put", "pageadd_sources", list(sources))
+            self.core.call_all(Config.config_put, "pageadd_sources", list(sources))
 
-        promise = self.core.call_success("scan_get_scanner_promise")
+        promise = self.core.call_success(Scan.scan_get_scanner_promise)
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, get_sources
         ))
         promise = promise.then(store_sources)
-        promise = promise.then(self.core.call_all, "pageadd_sources_refresh")
-        self.core.call_success("scan_schedule", promise)
+        promise = promise.then(
+            self.core.call_all, PageAddButtonsSourcesPopover.pageadd_sources_refresh
+        )
+        self.core.call_success(Scan.scan_schedule, promise)
 
     def pageadd_get_sources(self, out: list):
-        sources = self.core.call_success("config_get", "pageadd_sources")
+        sources = self.core.call_success(Config.config_get, "pageadd_sources")
         for source in list(sources):
             widget_tree = self.core.call_success(
-                "gtk_load_widget_tree",
+                GtkResources.gtk_load_widget_tree,
                 "paperwork_gtk.mainwindow.docview.pageadd", "source_box.glade"
             )
             source_txt = self.core.call_success(
-                "i18n_scanner_source", source
+                I18nScanner.i18n_scanner_source, source
             )
             source_txt = _("Scan from %s") % source_txt
 
@@ -135,31 +165,59 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Scanning from %s", source_id)
 
         if doc_id is None or doc_url is None:
-            (doc_id, doc_url) = self.core.call_success("get_new_doc")
-            self.core.call_all("doc_open", doc_id, doc_url)
+            (doc_id, doc_url) = self.core.call_success(NewDoc.get_new_doc)
+            self.core.call_all(DocOpener.doc_open, doc_id, doc_url)
 
-        self.core.call_all("on_busy")
-        self.core.call_all("pageadd_busy_add")
+        self.core.call_all(ActivityListener.on_busy)
+        self.core.call_all(PageAddButtons.pageadd_busy_add)
         self.busy = True
 
         promise = self.core.call_success(
-            "scan2doc_promise", doc_id=doc_id, doc_url=doc_url,
+            Scan2Doc.scan2doc_promise, doc_id=doc_id, doc_url=doc_url,
             source_id=source_id
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, "pageadd_busy_remove"
+            self.core.call_all, PageAddButtons.pageadd_busy_remove,
         )
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
+
+    @openpaperwork_core.noop
+    def on_scan2doc_start(self, scan_id, doc_id, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan2doc_end(self, scan_id, doc_id, doc_url):
+        pass
 
     def on_scan2doc_page_scanned(self, scan_id, doc_id, doc_url, nb_pages):
         LOGGER.info(
             "Page scanned: %s p%d (scan id = %d)", doc_id, nb_pages, scan_id
         )
-        self.core.call_all("doc_reload", doc_id, doc_url)
+        self.core.call_all(DocViewer.doc_reload, doc_id, doc_url)
 
     def on_scan_started(self, scan_id):
         if not self.busy:
             return
-        self.core.call_all("on_idle")
+        self.core.call_all(ActivityListener.on_idle)
         self.busy = False
+
+    @openpaperwork_core.noop
+    def on_scan_feed_start(self, scan_id):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_start(self, scan_id, page_nb, scan_params):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_chunk(self, scan_id, scan_params, img_chunk):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_page_end(self, scan_id, page_nb, img):
+        pass
+
+    @openpaperwork_core.noop
+    def on_scan_feed_end(self, scan_id):
+        pass

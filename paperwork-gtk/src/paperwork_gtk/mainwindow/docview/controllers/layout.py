@@ -1,19 +1,21 @@
 import logging
 
 import openpaperwork_core
+from paperwork_backend.interfaces.docs import Docs
 
-from . import BaseDocViewController
+from paperwork_gtk.interfaces.doc_viewer import DocViewerComponentFactory
+from paperwork_gtk.interfaces.doc_viewer import DocViewerControllerFactory
+from paperwork_gtk.mainwindow.docview.controllers import BaseDocViewController
 
 
 LOGGER = logging.getLogger(__name__)
 
 
 class BaseLayoutController(BaseDocViewController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
-        self.core = plugin.core
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.real_nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", self.plugin.active_doc[1]
+            Docs.doc_get_nb_pages_by_url, self.plugin.active_doc[1]
         )
         if self.real_nb_pages is None:
             self.real_nb_pages = 0
@@ -63,7 +65,7 @@ class BaseLayoutController(BaseDocViewController):
     def _add_pages(self):
         pages = []
         self.core.call_all(
-            "doc_open_components", pages, *self.plugin.active_doc
+            DocViewerComponentFactory.doc_open_components, pages, *self.plugin.active_doc
         )
         for (visible, page) in pages:
             self.plugin.docview_add_page_viewer(page, visible)
@@ -78,8 +80,8 @@ class BaseLayoutController(BaseDocViewController):
 
 
 class LayoutControllerLoading(BaseLayoutController):
-    def __init__(self, plugin):
-        super().__init__(plugin)
+    def __init__(self, core, plugin):
+        super().__init__(core, plugin)
         self.nb_loaded = 0
 
         # page instantiation must be done before the calls to enter()
@@ -91,7 +93,7 @@ class LayoutControllerLoading(BaseLayoutController):
         super().enter()
         if len(self.plugin.pages) <= 0:
             self.plugin.docview_switch_controller(
-                'layout', LayoutControllerLoaded
+                self.core, 'layout', LayoutControllerLoaded
             )
             return
         self.nb_loaded = 0
@@ -103,7 +105,7 @@ class LayoutControllerLoading(BaseLayoutController):
         self.nb_loaded += 1
         if self.nb_loaded >= len(self.plugin.pages):
             self.plugin.docview_switch_controller(
-                'layout', LayoutControllerLoaded
+                self.core, 'layout', LayoutControllerLoaded
             )
 
     def exit(self):
@@ -118,19 +120,23 @@ class LayoutControllerLoaded(BaseLayoutController):
         self._update_visibility()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['gtk_docview_controller']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocViewerControllerFactory,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'gtk_docview',
-                'defaults': ['paperwork_gtk.mainwindow.docview'],
+                'interface': Docs,
+                'defaults': ['paperwork_backend.model'],
+            },
+            {
+                "interface": DocViewerComponentFactory,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
     def gtk_docview_get_controllers(self, out: dict, docview):
-        out['layout'] = LayoutControllerLoading(docview)
+        out['layout'] = LayoutControllerLoading(self.core, docview)

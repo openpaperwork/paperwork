@@ -6,34 +6,36 @@ try:
 except (ImportError, ValueError):
     GLIB_AVAILABLE = False
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.external_apps import ExternalApps
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from paperwork_backend.interfaces.docs import DocOpener
+
+from paperwork_gtk.interfaces.app_actions import AppAction
+from paperwork_gtk.interfaces.app_actions import AppActionCollector
 
 
 LOGGER = logging.getLogger(__name__)
 ACTION_NAME = "doc_open_external"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'action',
-            'action_doc',
-            'action_doc_open_external',
-            'chkdeps',
-            'doc_open',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    AppAction,
+    Chkdeps,
+    DocOpener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app_actions',
+                'interface': AppActionCollector,
                 'defaults': ['paperwork_gtk.mainwindow.window'],
             },
             {
-                'interface': 'external_apps',
+                'interface': ExternalApps,
                 'defaults': [
                     'openpaperwork_core.external_apps.dbus',
                     'openpaperwork_core.external_apps.windows',
@@ -50,7 +52,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         action = Gio.SimpleAction.new(ACTION_NAME, None)
         action.connect("activate", self._open_external)
-        self.core.call_all("app_actions_add", action)
+        self.core.call_all(AppActionCollector.app_actions_add, action)
 
     def chkdeps(self, out: dict):
         if not GLIB_AVAILABLE:
@@ -65,4 +67,8 @@ class Plugin(openpaperwork_core.PluginBase):
     def _open_external(self, action, parameter):
         assert self.active_doc is not None
         (doc_id, doc_url) = self.active_doc
-        self.core.call_success("external_app_open_folder", doc_url)
+        self.core.call_success(ExternalApps.external_app_open_folder, doc_url)
+
+    @openpaperwork_core.noop
+    def doc_reload(self):
+        pass

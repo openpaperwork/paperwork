@@ -5,6 +5,8 @@ import PIL.Image
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.img_editor import ImgEditorFactory
+
 
 class TestImgEdit(unittest.TestCase):
     def setUp(self):
@@ -23,14 +25,14 @@ class TestImgEdit(unittest.TestCase):
 
     def test_get_names(self):
         out = []
-        self.core.call_success("img_editor_get_names", out)
+        self.core.call_success(ImgEditorFactory.img_editor_get_names, out)
         out.sort()
         self.assertEqual(out, ['color_equalization', 'cropping', 'rotation'])
 
     def test_all(self):
         editors = [
-            self.core.call_success("img_editor_get", "rotation", angle=90),
-            self.core.call_success("img_editor_get", "color_equalization"),
+            self.core.call_success(ImgEditorFactory.img_editor_get, "rotation", angle=90),
+            self.core.call_success(ImgEditorFactory.img_editor_get, "color_equalization"),
         ]
 
         # the input image is 200x100
@@ -38,7 +40,7 @@ class TestImgEdit(unittest.TestCase):
         for e in editors:
             frame = e.transform_frame(self.test_img.size, frame)
         editors.append(
-            self.core.call_success("img_editor_get", "cropping", frame=frame)
+            self.core.call_success(ImgEditorFactory.img_editor_get, "cropping", frame=frame)
         )
 
         img = self.test_img

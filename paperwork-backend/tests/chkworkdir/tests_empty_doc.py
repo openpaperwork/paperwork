@@ -1,6 +1,12 @@
+import logging
 import unittest
 
 import openpaperwork_core
+
+from paperwork_backend.interfaces.chkworkdir import Chkworkdir
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TestChkWorkDirEmptyDirectory(unittest.TestCase):
@@ -32,7 +38,7 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         }
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 0)
 
     def test_check_fix(self):
@@ -51,10 +57,10 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         }
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 1)
 
-        self.core.call_all("fix_work_dir", problems)
+        self.core.call_all(Chkworkdir.fix_work_dir, problems)
         self.assertEqual(
             self.fs.fs,
             {

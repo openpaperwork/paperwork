@@ -3,11 +3,11 @@ import logging
 import pillowfight
 
 
-from . import (
+from paperwork_backend import _
+from paperwork_backend.docexport import (
     AbstractExportPipePlugin,
     AbstractSimpleTransformExportPipe
 )
-from .. import _
 
 
 LOGGER = logging.getLogger(__name__)
@@ -53,19 +53,6 @@ class SwtExportPipe(AbstractSimpleTransformExportPipe):
 
 
 class Plugin(AbstractExportPipePlugin):
-    @classmethod
-    def get_interfaces(cls):
-        return []
-
-    @classmethod
-    def get_deps(cls):
-        return [
-            {
-                'interface': 'mainloop',
-                'defaults': 'openpaperwork_gtk.mainloop.glib',
-            },
-        ]
-
     def __init__(self, core):
         super().__init__(core)
         self.pipes = [

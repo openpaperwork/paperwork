@@ -2,6 +2,8 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.i18n_scanner import I18nScanner
+
 
 class TestScannerI18n(unittest.TestCase):
     def setUp(self):
@@ -19,30 +21,30 @@ class TestScannerI18n(unittest.TestCase):
 
     def test_i18n_source(self):
         self.assertEqual(
-            self.core.call_success("i18n_scanner_source", "flatbed"), "FLATBED"
+            self.core.call_success(I18nScanner.i18n_scanner_source, "flatbed"), "FLATBED"
         )
         self.assertEqual(
-            self.core.call_success("i18n_scanner_source", "fEEder"), "FEEDER"
+            self.core.call_success(I18nScanner.i18n_scanner_source, "fEEder"), "FEEDER"
         )
         self.assertEqual(
-            self.core.call_success("i18n_scanner_source", "feeder toto"),
+            self.core.call_success(I18nScanner.i18n_scanner_source, "feeder toto"),
             "FEEDER toto"
         )
         self.assertEqual(
-            self.core.call_success("i18n_scanner_source", "toto feeder"),
+            self.core.call_success(I18nScanner.i18n_scanner_source, "toto feeder"),
             "toto FEEDER"
         )
         self.assertEqual(
             self.core.call_success(
                 # Brother MFC-7360N + Linux (Sane)
-                "i18n_scanner_source", "feeder(centrally aligned)"
+                I18nScanner.i18n_scanner_source, "feeder(centrally aligned)"
             ),
             "FEEDER(CENTRALLY aligned)"
         )
         self.assertEqual(
             self.core.call_success(
                 # Brother MFC-7360N + Linux (Sane)
-                "i18n_scanner_source", "feeder(left aligned)"
+                I18nScanner.i18n_scanner_source, "feeder(left aligned)"
             ),
             "FEEDER(LEFT ALIGNED)"
         )

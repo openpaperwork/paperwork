@@ -4,9 +4,12 @@ import unittest
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 
-from paperwork_backend.pageedit import AbstractPageEditorUI
+from paperwork_backend.interfaces.page_edit import AbstractPageEditorUI
+from paperwork_backend.interfaces.page_edit import PageEditorFactory
 
 
 class FakeUI(AbstractPageEditorUI):
@@ -14,6 +17,9 @@ class FakeUI(AbstractPageEditorUI):
 
     def __init__(self, tests):
         self.tests = tests
+
+    def set_modifier_state(self, modifier_id, enabled):
+        pass
 
     def show_preview(self, img):
         self.tests.ui_calls.append(('show_preview', img))
@@ -23,6 +29,9 @@ class FakeUI(AbstractPageEditorUI):
 
     def hide_frame_selector(self):
         self.tests.ui_calls.append(('hide_frame_selector',))
+
+    def on_edit_end(self, doc_url, page_idx):
+        pass
 
 
 class TestPageEdit(unittest.TestCase):
@@ -46,14 +55,29 @@ class TestPageEdit(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                Pillow,
+            ):
                 PRIORITY = 999999999999999999
 
                 def pillow_to_url(s, img, dst_uri):
                     self.pillowed.append(dst_uri)
                     return dst_uri
 
-        self.core._load_module("fake_module", FakeModule())
+                def url_to_img_size(self, file_url):
+                    pass
+
+                def url_to_img_size_promise(self, file_url):
+                    pass
+
+                def url_to_pillow(self, file_url):
+                    pass
+
+                def url_to_pillow_promise(self, file_url):
+                    pass
+
+        self.core.load("fake_module", FakeModule())
         self.core.init()
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
@@ -77,7 +101,7 @@ class TestPageEdit(unittest.TestCase):
         fake_ui = FakeUI(self)
 
         page_editor = self.core.call_success(
-            "page_editor_get",
+            PageEditorFactory.page_editor_session_get,
             "file:///some_work_dir/some_doc_id", 1, fake_ui
         )
 
@@ -101,8 +125,8 @@ class TestPageEdit(unittest.TestCase):
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_modifier_selected("rotate_clockwise").schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(len(self.ui_calls), 2)
         self.assertEqual(self.ui_calls[0][0], 'show_preview')
         self.assertEqual(self.ui_calls[0][1].size, (100, 200))
@@ -116,8 +140,8 @@ class TestPageEdit(unittest.TestCase):
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_modifier_selected("color_equalization").schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(self.pillowed, [])
         self.assertEqual(len(self.ui_calls), 2)
         self.assertEqual(self.ui_calls[0][0], 'show_preview')
@@ -132,46 +156,46 @@ class TestPageEdit(unittest.TestCase):
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_modifier_selected("crop").schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(self.pillowed, [])
         self.assertEqual(len(self.ui_calls), 2)
         self.assertEqual(self.ui_calls[0][0], 'show_preview')
         self.assertEqual(self.ui_calls[0][1].size, (100, 200))
         self.assertEqual(self.ui_calls[1][0], 'show_frame_selector')
 
-        page_editor.frame.set((0, 190, 10, 200))
-        self.assertEqual(page_editor.frame.get(), (0, 190, 10, 200))
+        page_editor.get_frame().set((0, 190, 10, 200))
+        self.assertEqual(page_editor.get_frame().get(), (0, 190, 10, 200))
 
         # rotation again (180°)
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_modifier_selected("rotate_clockwise").schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(len(self.ui_calls), 2)
         self.assertEqual(self.ui_calls[0][0], 'show_preview')
         self.assertEqual(self.ui_calls[0][1].size, (200, 100))
         self.assertEqual(self.ui_calls[1][0], 'show_frame_selector')
-        self.assertEqual(page_editor.frame.get(), (190, 90, 200, 100))
+        self.assertEqual(page_editor.get_frame().get(), (190, 90, 200, 100))
 
         # .. and again (270°)
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_modifier_selected("rotate_clockwise").schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(len(self.ui_calls), 2)
         self.assertEqual(self.ui_calls[0][0], 'show_preview')
         self.assertEqual(self.ui_calls[0][1].size, (100, 200))
         self.assertEqual(self.ui_calls[1][0], 'show_frame_selector')
-        self.assertEqual(page_editor.frame.get(), (90, 0, 100, 10))
+        self.assertEqual(page_editor.get_frame().get(), (90, 0, 100, 10))
 
         # and save !
         self.pillowed = []
         self.ui_calls = []
         page_editor.on_save().schedule()
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
         self.assertEqual(len(self.ui_calls), 0)
         self.assertEqual(self.pillowed, ["file:///paper.1.jpeg"])

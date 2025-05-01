@@ -1,20 +1,27 @@
 import logging
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from . import (
+from paperwork_backend import _
+from paperwork_backend.docimport import (
+    BaseFileImporter,
     DirectFileImporter,
     FileImport,
     RecursiveFileImporter
 )
-from .. import _
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_converted import DocConverted
+from paperwork_backend.interfaces.doc_converter import DocConverter
+from paperwork_backend.interfaces.index import Index
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SingleDocImporter(object):
+class SingleDocImporter:
     def __init__(self, plugin, file_import, src_file_uri):
         self.plugin = plugin
         self.core = plugin.core
@@ -24,9 +31,9 @@ class SingleDocImporter(object):
         self.doc_url = None
 
     def _basic_import(self, file_url):
-        file_hash = self.core.call_success("fs_hash", file_url)
+        file_hash = self.core.call_success(Fs.fs_hash, file_url)
         other_doc_id = self.core.call_success(
-            "index_get_doc_id_by_hash", file_hash
+            Index.index_get_doc_id_by_hash, file_hash
         )
         if other_doc_id is not None:
             LOGGER.info("%s has already been imported", file_url)
@@ -35,12 +42,12 @@ class SingleDocImporter(object):
 
         LOGGER.info("Importing %s", file_url)
         (self.doc_id, self.doc_url) = self.core.call_success(
-            "doc_convert_and_import", file_url
+            DocConverted.doc_convert_and_import, file_url
         )
         self.file_import.new_doc_ids.add(self.doc_id)
         self.file_import.stats[_("Documents")] += 1
 
-        mime = self.core.call_success("fs_get_mime", file_url)
+        mime = self.core.call_success(Fs.fs_get_mime, file_url)
         if mime is not None:
             self.file_import.stats[self.plugin.file_types_by_mime[mime]] += 1
         elif "." in file_url:
@@ -57,7 +64,7 @@ class SingleDocImporter(object):
         )
 
 
-class SingleDocImporterFactory(object):
+class SingleDocImporterFactory:
     def __init__(self, plugin):
         self.plugin = plugin
         self.core = plugin.core
@@ -71,7 +78,7 @@ class SingleDocImporterFactory(object):
         return _("Import office documents recursively")
 
     def is_importable(self, core, file_url):
-        mime = core.call_success("fs_get_mime", file_url)
+        mime = core.call_success(Fs.fs_get_mime, file_url)
         if mime is not None:
             return mime in self.plugin.file_types_by_mime
         if "." not in file_url:
@@ -86,33 +93,32 @@ class SingleDocImporterFactory(object):
         return SingleDocImporter(self.plugin, file_import, file_uri)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["import"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ImporterFactory,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return BaseFileImporter.get_deps() + openpaperwork_core.promise.get_deps() + [
             {
-                "interface": "doc_converted",
+                "interface": DocConverted,
                 "defaults": ["paperwork_backend.model.converted"],
             },
             {
-                "interface": "doc_converter",
+                "interface": DocConverter,
                 "defaults": ["paperwork_backend.converter.libreoffice"],
             },
             {
-                "interface": "fs",
+                "interface": Fs,
                 "defaults": ["openpaperwork_gtk.fs.gio"],
             },
             {
-                "interface": "mainloop",
-                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+                "interface": Index,
+                "defaults": ["paperwork_backend.index.whoosh"],
             },
             {
-                "interface": "thread",
-                "defaults": ["openpaperwork_core.thread.simple"],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
         ]
 
@@ -123,7 +129,7 @@ class Plugin(openpaperwork_core.PluginBase):
         self.file_types_by_mime = {}
         file_types = []
 
-        self.core.call_all("converter_get_file_types", file_types)
+        self.core.call_all(DocConverter.converter_get_file_types, file_types)
 
         self.file_types_by_ext = {}
         for (mime, ext, human_name) in file_types:  # order matters !

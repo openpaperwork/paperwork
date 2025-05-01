@@ -8,10 +8,26 @@ import whoosh.qparser
 import whoosh.query
 import whoosh.sorting
 
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.i18n import I18n
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.util
 
 from paperwork_backend import _
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.data_dir_handler import DataDirListener
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.docs import DocHash
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.index import Index
+from paperwork_backend.interfaces.index import IndexListener
+from paperwork_backend.interfaces.suggestions import SuggestionProvider
+from paperwork_backend.interfaces.sync import SyncListener, Syncable
 import paperwork_backend.sync
 import paperwork_backend.sync.doctracker
 
@@ -70,14 +86,14 @@ class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
         """
         Collect infos on the document and add/update a document in the index
         """
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
-        doc_mtime = self.core.call_success("doc_get_mtime_by_url", doc_url)
+        doc_mtime = self.core.call_success(Docs.doc_get_mtime_by_url, doc_url)
         if doc_mtime is None:
             doc_mtime = 0
         doc_mtime = datetime.datetime.fromtimestamp(doc_mtime)
 
-        doc_hash = self.core.call_success("doc_get_hash_by_url", doc_url)
+        doc_hash = self.core.call_success(DocHash.doc_get_hash_by_url, doc_url)
         if doc_hash is None:
             # we get a hash only for PDF documents, not image documents.
             doc_hash = "undefined"
@@ -85,16 +101,16 @@ class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
             doc_hash = ("%X" % doc_hash)
 
         doc_text = []
-        self.core.call_all("doc_get_text_by_url", doc_text, doc_url)
+        self.core.call_all(DocText.doc_get_text_by_url, doc_text, doc_url)
         doc_text = "\n\n".join(doc_text)
-        doc_text = self.core.call_success("i18n_strip_accents", doc_text)
+        doc_text = self.core.call_success(I18n.i18n_strip_accents, doc_text)
 
         doc_labels = set()
-        self.core.call_all("doc_get_labels_by_url", doc_labels, doc_url)
+        self.core.call_all(DocLabels.doc_get_labels_by_url, doc_labels, doc_url)
         doc_labels = ",".join([label[0] for label in doc_labels])
-        doc_labels = self.core.call_success("i18n_strip_accents", doc_labels)
+        doc_labels = self.core.call_success(I18n.i18n_strip_accents, doc_labels)
 
-        doc_date = self.core.call_success("doc_get_date_by_id", doc_id)
+        doc_date = self.core.call_success(DocStorage.doc_get_date_by_id, doc_id)
         if doc_date is None:
             doc_date = datetime.datetime(year=1970, month=1, day=1)
 
@@ -149,15 +165,15 @@ class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
             return
 
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            'on_index_cancel'
+            Mainloop.mainloop_schedule, self.core.call_all,
+            IndexListener.on_index_cancel,
         )
         LOGGER.info("Canceling transaction")
         self.writer.cancel()
         self.writer = None
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_index_updated"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            IndexListener.on_index_updated,
         )
         self.notify_done(ID)
 
@@ -166,8 +182,8 @@ class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
             ID, _("Committing changes in the index ...")
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            'on_index_commit_start'
+            Mainloop.mainloop_schedule, self.core.call_all,
+            IndexListener.on_index_commit_start,
         )
         if self.modified <= 0:
             LOGGER.info(
@@ -184,71 +200,81 @@ class WhooshTransaction(paperwork_backend.sync.BaseTransaction):
             self.writer = None
         self.notify_done(ID)
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            'on_index_commit_end'
+            Mainloop.mainloop_schedule, self.core.call_all,
+            IndexListener.on_index_commit_end,
         )
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "index",
-            "suggestions",
-            "syncable",
-        ]
-
+    openpaperwork_core.PluginBase,
+    DataDirListener,
+    DocTransactionFactory,
+    Index,
+    Syncable,
+    SuggestionProvider,
+    metaclass=openpaperwork_core.util.Singleton
+):
     @classmethod
     def get_deps(cls):
-        return [
-            {
-                'interface': 'data_versioning',
-                'defaults': ['openpaperwork_core.data_versioning'],
-            },
-            {
-                'interface': 'document_storage',
-                'defaults': ['paperwork_backend.model.workdir'],
-            },
-            {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                'interface': 'i18n',
-                'defaults': ['openpaperwork_core.i18n.python'],
-            },
-            {
-                'interface': 'mainloop',
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': 'data_dir_handler',
-                'defaults': ['paperwork_backend.datadirhandler'],
-            },
-            {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
-            },
-            # Optional dependencies:
-            # {
-            #     'interface': 'page_boxes',
-            #     'defaults': [
-            #         'paperwork_backend.model.hocr',
-            #         'paperwork_backend.model.pdf',
-            #     ],
-            # },
-            # {
-            #     'interface': 'doc_hash',
-            #     'defaults': ['paperwork_backend.model.pdf'],
-            # },
-            # {
-            #     'interface': 'doc_labels',
-            #     'defaults': ['paperwork_backend.model.labels'],
-            # },
-        ]
+        return (
+            openpaperwork_core.promise.get_deps()
+            + paperwork_backend.sync.BaseTransaction.get_deps()
+            + [
+                {
+                    "interface": DataDirHandler,
+                    "defaults": ["paperwork_backend.datadirhandler"],
+                },
+                {
+                    'interface': DataVersioning,
+                    'defaults': ['openpaperwork_core.data_versioning'],
+                },
+                {
+                    'interface': DocStorage,
+                    'defaults': ['paperwork_backend.model.workdir'],
+                },
+                {
+                    "interface": DocLabels,
+                    "defaults": ["paperwork_backend.model.labels"],
+                },
+                {
+                    "interface": DocHash,
+                    "defaults": ["paperwork_backend.model.pdf"],
+                },
+                {
+                    "interface": Docs,
+                    "defaults": ["paperwork_backend.model"],
+                },
+                {
+                    "interface": DocText,
+                    "defaults": [
+                        "paperwork_backend.model.hocr",
+                        "paperwork_backend.model.pdf",
+                    ],
+                },
+                {
+                    'interface': Fs,
+                    'defaults': ['openpaperwork_gtk.fs.gio'],
+                },
+                {
+                    'interface': I18n,
+                    'defaults': ['openpaperwork_core.i18n.python'],
+                },
+                {
+                    "interface": IndexListener,
+                    "defaults": [],
+                    "optional": True,
+                },
+                {
+                    'interface': Mainloop,
+                    'defaults': ['openpaperwork_gtk.mainloop.glib'],
+                },
+                {
+                    "interface": SyncListener,
+                    "defaults": [],
+                    "optional": True,
+                },
+            ]
+        )
 
     def __init__(self, core):
         super().__init__(core)
@@ -265,10 +291,10 @@ class Plugin(
 
     def _init(self):
         data_dir = self.core.call_success(
-            "data_dir_handler_get_individual_data_dir"
+            DataDirHandler.data_dir_handler_get_individual_data_dir,
         )
         self.index_dir = self.core.call_success(
-            "fs_join", data_dir, "index"
+            Fs.fs_join, data_dir, "index"
         )
 
         need_index_rewrite = True
@@ -278,7 +304,7 @@ class Plugin(
                     "Opening Whoosh index '%s' ...", self.index_dir
                 )
                 self.index = whoosh.index.open_dir(
-                    self.core.call_success("fs_unsafe", self.index_dir)
+                    self.core.call_success(Fs.fs_unsafe, self.index_dir)
                 )
                 # check that the schema is up-to-date
                 # We use the string representation of the schemas, because
@@ -298,10 +324,10 @@ class Plugin(
 
                 LOGGER.info("Creating a new index")
 
-                self.core.call_success("fs_mkdir_p", self.index_dir)
+                self.core.call_success(Fs.fs_mkdir_p, self.index_dir)
 
                 new_index = whoosh.index.create_in(
-                    self.core.call_success("fs_unsafe", self.index_dir),
+                    self.core.call_success(Fs.fs_unsafe, self.index_dir),
                     WHOOSH_SCHEMA
                 )
                 new_index.close()
@@ -338,9 +364,9 @@ class Plugin(
 
     def _destroy(self):
         self._close()
-        if self.core.call_success("fs_exists", self.index_dir) is not None:
+        if self.core.call_success(Fs.fs_exists, self.index_dir) is not None:
             LOGGER.warning("Destroying the index ...")
-            self.core.call_success("fs_rm_rf", self.index_dir)
+            self.core.call_success(Fs.fs_rm_rf, self.index_dir)
             LOGGER.warning("Index destroyed")
 
     def doc_transaction_start(self, out: list, total_expected=-1):
@@ -352,7 +378,7 @@ class Plugin(
         out_set = set()
 
         query = query.strip()
-        query = self.core.call_success("i18n_strip_accents", query)
+        query = self.core.call_success(I18n.i18n_strip_accents, query)
         if query == "":
             queries = [whoosh.query.Every()]
         else:
@@ -368,7 +394,7 @@ class Plugin(
                 for result in results:
                     has_results = True
                     doc_id = result['docid']
-                    doc_url = self.core.call_success("doc_id_to_url", doc_id)
+                    doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
                     if doc_url is None:
                         continue
                     out_set.add((doc_id, doc_url))
@@ -420,7 +446,7 @@ class Plugin(
 
         promise = openpaperwork_core.promise.ThreadedPromise(
             self.core, self.core.call_all,
-            args=("storage_get_all_docs", storage_all_docs,)
+            args=(DocStorage.storage_get_all_docs, storage_all_docs,)
         )
         promise = promise.then(lambda *args, **kwargs: None)
 

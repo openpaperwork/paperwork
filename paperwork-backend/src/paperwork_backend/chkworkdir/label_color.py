@@ -2,13 +2,22 @@ import logging
 
 import openpaperwork_core
 
-from .. import _
+from openpaperwork_core.interfaces.progress import ProgressListener
+
+from paperwork_backend import _
+from paperwork_backend.interfaces.chkworkdir import Chkworkdir
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkworkdir
+):
     """
     Label files in each document contains both the label names and their color.
     If the user changes a label color, label files are updated one-by-one.
@@ -16,19 +25,24 @@ class Plugin(openpaperwork_core.PluginBase):
     label.
     """
     @classmethod
-    def get_interfaces(cls):
-        return ['chkworkdir']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'doc_labels',
+                'interface': DocLabelColors,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocLabels,
+                'defaults': ['paperwork_backend.model.labels'],
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -40,7 +54,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def check_work_dir(self, out_problems: list):
         all_docs = []
-        self.core.call_all("storage_get_all_docs", all_docs, only_valid=False)
+        self.core.call_all(DocStorage.storage_get_all_docs, all_docs, only_valid=False)
         all_docs.sort()
 
         total = len(all_docs)
@@ -53,15 +67,15 @@ class Plugin(openpaperwork_core.PluginBase):
 
         for (idx, (doc_id, doc_url)) in enumerate(all_docs):
             self.core.call_all(
-                "on_progress", "chkworkdir_label_color",
+                ProgressListener.on_progress, "chkworkdir_label_color",
                 idx / total, _("Checking doc %s") % (doc_id,)
             )
 
             doc_labels = set()
-            self.core.call_all("doc_get_labels_by_url", doc_labels, doc_url)
+            self.core.call_all(DocLabels.doc_get_labels_by_url, doc_labels, doc_url)
             for (doc_label_txt, doc_label_color_orig) in doc_labels:
                 doc_label_color = self.core.call_success(
-                    "label_color_to_rgb", doc_label_color_orig
+                    DocLabelColors.label_color_to_rgb, doc_label_color_orig
                 )
 
                 first_color = first_seen_labels.get(doc_label_txt, None)
@@ -92,13 +106,13 @@ class Plugin(openpaperwork_core.PluginBase):
                             ) % (
                                 doc_id, doc_label_txt,
                                 self.core.call_success(
-                                    "label_color_rgb_to_text",
+                                    DocLabelColors.label_color_rgb_to_text,
                                     doc_label_color
                                 ),
                                 first_docid,
                                 doc_label_txt,
                                 self.core.call_success(
-                                    "label_color_rgb_to_text",
+                                    DocLabelColors.label_color_rgb_to_text,
                                     first_color
                                 )
                             )
@@ -110,7 +124,7 @@ class Plugin(openpaperwork_core.PluginBase):
                             )
                             % (
                                 self.core.call_success(
-                                    "label_color_rgb_to_text",
+                                    DocLabelColors.label_color_rgb_to_text,
                                     first_color
                                 ),
                                 doc_label_txt, doc_id
@@ -119,7 +133,7 @@ class Plugin(openpaperwork_core.PluginBase):
                     }
                 })
 
-        self.core.call_all("on_progress", "chkworkdir_label_color", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "chkworkdir_label_color", 1.0)
 
     def fix_work_dir(self, problems):
         total = len(problems)
@@ -128,15 +142,15 @@ class Plugin(openpaperwork_core.PluginBase):
                 continue
             LOGGER.info("Fixing document %s", problem['doc_url'])
             self.core.call_all(
-                "on_progress", "fixworkdir_label_color",
+                ProgressListener.on_progress, "fixworkdir_label_color",
                 idx / total, _("Fixing label on doc %s") % (problem['doc_id'],)
             )
             self.core.call_success(
-                "doc_remove_label_by_url", problem['doc_url'],
+                DocLabels.doc_remove_label_by_url, problem['doc_url'],
                 problem['current_label'][0]
             )
             self.core.call_success(
-                "doc_add_label_by_url", problem['doc_url'],
+                DocLabels.doc_add_label_by_url, problem['doc_url'],
                 problem['fixed_label'][0], problem['fixed_label'][1]
             )
-        self.core.call_all("on_progress", "fixworkdir_label_color", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "fixworkdir_label_color", 1.0)

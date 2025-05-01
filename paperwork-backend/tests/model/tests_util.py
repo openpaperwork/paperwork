@@ -2,6 +2,7 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.docs import Docs
 import paperwork_backend.model.util
 
 
@@ -9,17 +10,22 @@ class TestUtil(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.fs.fake")
-        self.core.init()
 
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                Docs,
+            ):
                 def doc_get_nb_pages_by_url(s, doc_url):
                     doc_url = doc_url[len("file:///"):]
                     return len(self.fs.fs[doc_url])
 
-        self.core._load_module("fake_module", FakeModule())
+                def doc_get_mtime_by_url(self, doc_url):
+                    pass
+
+        self.core.load("fake_module", FakeModule())
         self.core.init()
 
         self.fs = self.core.get_by_name("openpaperwork_core.fs.fake")

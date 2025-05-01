@@ -4,8 +4,18 @@ import logging
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.pillow import PillowUtil
+from openpaperwork_core.interfaces.urls import Urls
 import openpaperwork_core
 import openpaperwork_core.deps
+import openpaperwork_core.promise
+
+from paperwork_backend.interfaces.cairo import Cairo2Pillow
+from paperwork_backend.interfaces.cairo import Pdf2Cairo
 
 
 LOGGER = logging.getLogger(__name__)
@@ -30,7 +40,7 @@ def surface2image(core, surface):
     # background.paste(img, mask=img.split()[3])  # 3 is the alpha channel
     # return background
 
-    core.call_all("on_perfcheck_start", "surface2image")
+    core.call_all(Perfcheck.on_perfcheck_start, "surface2image")
 
     img_io = io.BytesIO()
     surface.surface.write_to_png(img_io)
@@ -39,56 +49,63 @@ def surface2image(core, surface):
         img = PIL.Image.open(img_io)
     except PIL.Image.DecompressionBombError as exc:
         LOGGER.warning("Cairo surface is too big", exc_info=exc)
-        return core.call_success("pillow_get_error", "too_big")
-    core.call_all("on_objref_track", img)
+        return core.call_success(PillowUtil.pillow_get_error, "too_big")
+    core.call_all(MemleakDetector.on_objref_track, img)
     img.load()
 
     if "A" not in img.getbands():
-        core.call_all("on_perfcheck_stop", "surface2image", size=img.size)
+        core.call_all(Perfcheck.on_perfcheck_stop, "surface2image", size=img.size)
         return img
 
     img_no_alpha = PIL.Image.new("RGB", img.size, (255, 255, 255))
-    core.call_all("on_objref_track", img_no_alpha)
+    core.call_all(MemleakDetector.on_objref_track, img_no_alpha)
     img_no_alpha.paste(img, mask=img.split()[3])  # 3 is the alpha channel
     core.call_all(
-        "on_perfcheck_stop", "surface2image", size=img_no_alpha.size
+        Perfcheck.on_perfcheck_stop, "surface2image", size=img_no_alpha.size
     )
     return img_no_alpha
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Cairo2Pillow,
+    Pillow,
+):
     FILE_EXTENSION = ".pdf"
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'page_img_size',
-            'pillow',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'pdf_cairo_url',
+                'interface': Pdf2Cairo,
                 'defaults': ['paperwork_backend.cairo.poppler'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'pillow_util',
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': PillowUtil,
                 'defaults': ['openpaperwork_core.pillow.util'],
             },
             {
-                'interface': 'urls',
+                'interface': Urls,
                 'defaults': ['openpaperwork_core.urls'],
             },
         ]
 
     def _check_is_pdf(self, file_url):
-        (url, args) = self.core.call_success("url_args_split", file_url)
+        (url, args) = self.core.call_success(Urls.url_args_split, file_url)
         if not url.lower().endswith(self.FILE_EXTENSION):
             return (None, None, None)
 
@@ -105,7 +122,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
 
         pillow = self.core.call_one(  # Poppler is not really thread safe
-            "mainloop_execute", self._url_to_pillow,
+            Mainloop.mainloop_execute, self._url_to_pillow,
             file_url, page_idx, password
         )
         return pillow
@@ -115,7 +132,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _url_to_pillow(self, file_url, page_idx, password):
         surface = self.core.call_success(
-            "pdf_page_to_cairo_surface", file_url, page_idx, password
+            Pdf2Cairo.pdf_page_to_cairo_surface, file_url, page_idx, password
         )
         # WORKAROUND(Jflesch): may occur with corrupted PDFs
         if surface is None:
@@ -138,4 +155,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def pillow_to_url(self, *args, **kwargs):
         # It could be implemented, but there are no known use-cases.
+        return None
+
+    def url_to_img_size(self, file_url):
+        return None
+
+    def url_to_img_size_promise(self, file_url):
         return None

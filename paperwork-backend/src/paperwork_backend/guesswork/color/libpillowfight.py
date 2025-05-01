@@ -4,11 +4,20 @@ May or may not work.
 """
 import logging
 
+from openpaperwork_core.interfaces.progress import ProgressListener
 import pillowfight
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 
-from ... import (_, sync)
+from paperwork_backend import (_, sync)
+from paperwork_backend.interfaces.color_adjustment import ColorAdjustment
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.page_modification import PageModificationListener
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.sync import DocTracker
+from paperwork_backend.interfaces.sync import PageTracker
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,7 +36,7 @@ class PillowfightTransaction(sync.BaseTransaction):
 
         # for each document, we need to track on which pages we have already
         # adjusted the color and on which page we didn't yet.
-        self.page_tracker = self.core.call_success("page_tracker_get", ID)
+        self.page_tracker = self.core.call_success(PageTracker.page_tracker_get, ID)
 
     def __enter__(self):
         pass
@@ -38,7 +47,7 @@ class PillowfightTransaction(sync.BaseTransaction):
     def _adjust_page_colors(
             self, doc_id, doc_url, page_idx, page_nb, total_pages):
         paper_size = self.core.call_success(
-            "page_get_paper_size_by_url", doc_url, page_idx
+            PageImg.page_get_paper_size_by_url, doc_url, page_idx
         )
         if paper_size is not None:
             # probably a PDF --> no need to adjust colors
@@ -69,7 +78,7 @@ class PillowfightTransaction(sync.BaseTransaction):
         self.plugin.adjust_page_colors_by_url(doc_url, page_idx)
 
     def _adjust_new_pages_colors(self, doc_id):
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
         need_end_notification = False
         modified_pages = list(self.page_tracker.find_changes(doc_id, doc_url))
@@ -110,29 +119,50 @@ class PillowfightTransaction(sync.BaseTransaction):
         self.notify_done(ID)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ColorAdjustment,
+):
     PRIORITY = 3000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "color",
-            "syncable",  # actually satisfied by the plugin 'doctracker'
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'doc_tracking',
+                "interface": DocStorage,
+                "defaults": ["paperwork_backend.index.whoosh"],
+            },
+            {
+                'interface': DocTracker,
                 'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
-                'interface': 'page_tracking',
+                'interface': Mainloop,
+                'defaults': ['openpaperwork_gtk.mainloop.glib'],
+            },
+            {
+                "interface": PageImg,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": PageModificationListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': PageTracker,
                 'defaults': ['paperwork_backend.sync.pagetracker'],
             },
             {
-                'interface': 'pillow',
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
@@ -143,7 +173,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         self.core.call_all(
-            "doc_tracker_register", ID,
+            DocTracker.doc_tracker_register, ID,
             lambda sync, total_expected=-1: PillowfightTransaction(
                 self, sync, total_expected
             )
@@ -151,31 +181,31 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def adjust_page_colors_by_url(self, doc_url, page_idx):
         LOGGER.info("Adjusting colors of page %d of %s", page_idx, doc_url)
-        doc_id = self.core.call_success("doc_url_to_id", doc_url)
+        doc_id = self.core.call_success(DocStorage.doc_url_to_id, doc_url)
 
         if doc_id is not None:
             self.core.call_one(
-                "mainloop_schedule", self.core.call_all,
-                "on_page_modification_start", doc_id, page_idx
+                Mainloop.mainloop_schedule, self.core.call_all,
+                PageModificationListener.on_page_modification_start, doc_id, page_idx
             )
         try:
             page_img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx
+                PageImg.page_get_img_url, doc_url, page_idx
             )
 
-            img = self.core.call_success("url_to_pillow", page_img_url)
+            img = self.core.call_success(Pillow.url_to_pillow, page_img_url)
 
             img = pillowfight.ace(img, samples=200)
 
             page_img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx, write=True
+                PageImg.page_get_img_url, doc_url, page_idx, write=True
             )
-            self.core.call_success("pillow_to_url", img, page_img_url)
+            self.core.call_success(Pillow.pillow_to_url, img, page_img_url)
         finally:
             if doc_id is not None:
                 self.core.call_one(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_page_modification_end", doc_id, page_idx
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    PageModificationListener.on_page_modification_end, doc_id, page_idx
                 )
 
         return img

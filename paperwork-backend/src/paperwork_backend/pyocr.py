@@ -7,9 +7,15 @@ import pycountry
 import pyocr
 import pyocr.builders
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.paths import Paths
 import openpaperwork_core
 
-from . import util
+from paperwork_backend import util
+from paperwork_backend.interfaces.ocr import OcrSettings
 
 
 LOGGER = logging.getLogger(__name__)
@@ -26,12 +32,15 @@ def init_flatpak(core):
     if len(tessdata_files) <= 0:
         return
 
-    paperwork_dir = core.call_success("paths_get_data_dir")
-    tessdatadir = core.call_success("fs_join", paperwork_dir, "tessdata")
-    tessdatadir = core.call_success("fs_unsafe", tessdatadir)
+    paperwork_dir = core.call_success(Paths.paths_get_data_dir)
+    tessdatadir = core.call_success(Fs.fs_join, paperwork_dir, "tessdata")
+    tessdatadir = core.call_success(Fs.fs_unsafe, tessdatadir)
 
-    LOGGER.info("Assuming we are running in Flatpak."
-                " Building tessdata directory %s ...", tessdatadir)
+    LOGGER.info(
+        "Assuming we are running in Flatpak."
+        " Building tessdata directory %s ...",
+        tessdatadir
+    )
     util.rm_rf(tessdatadir)
     os.makedirs(tessdatadir, exist_ok=True)
 
@@ -136,27 +145,28 @@ def get_default_ocr_langs(allow_none=False):
     return None if allow_none else [DEFAULT_OCR_LANG]
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "chkdeps",
-            "ocr_settings",
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    OcrSettings,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'paths',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.glib"],
+            },
+            {
+                'interface': Paths,
                 'defaults': ['openpaperwork_core.paths.xdg'],
             },
             {
-                'interface': 'data_versioning',
+                'interface': DataVersioning,
                 'defaults': ['openpaperwork_core.data_versioning'],
             },
         ]
@@ -166,10 +176,10 @@ class Plugin(openpaperwork_core.PluginBase):
         init_flatpak(self.core)
 
         ocr_langs = self.core.call_success(
-            "config_build_simple",
+            Config.config_build_simple,
             "OCR", "Lang", get_default_ocr_langs
         )
-        self.core.call_all("config_register", "ocr_langs", ocr_langs)
+        self.core.call_all(Config.config_register, "ocr_langs", ocr_langs)
 
     def chkdeps(self, out: dict):
         ocr_tools = pyocr.get_available_tools()
@@ -197,10 +207,10 @@ class Plugin(openpaperwork_core.PluginBase):
             out[name]['ubuntu'] = 'tesseract-ocr-{}'.format(ocr_lang)
 
     def ocr_get_active_langs(self):
-        return self.core.call_success("config_get", "ocr_langs")
+        return self.core.call_success(Config.config_get, "ocr_langs")
 
     def ocr_set_active_langs(self, langs):
-        return self.core.call_success("config_put", "ocr_langs", langs)
+        return self.core.call_success(Config.config_put, "ocr_langs", langs)
 
     def ocr_is_enabled(self):
         if len(self.ocr_get_active_langs()) > 0:
@@ -208,7 +218,7 @@ class Plugin(openpaperwork_core.PluginBase):
         return None
 
     def ocr_add_observer_on_enabled(self, callback):
-        self.core.call_all("config_add_observer", "ocr_langs", callback)
+        self.core.call_all(Config.config_add_observer, "ocr_langs", callback)
 
     def ocr_get_available_langs(self):
         ocr_tools = pyocr.get_available_tools()

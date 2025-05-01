@@ -1,27 +1,31 @@
-import collections
-
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core.promise
 
-
-class FileImport(object):
-    """
-    Used as both input and output for importer objects.
-    Users may import many files at once and files may not be imported at all
-    (for example if they were already imported) --> FileImport objects indicate
-    what must still be done, what has been done, and what has not been done at
-    all.
-    """
-    def __init__(self, file_uris_to_import, active_doc_id=None, data=None):
-        self.active_doc_id = active_doc_id
-        # those attributes will be updated by importers
-        self.ignored_files = list(file_uris_to_import)
-        self.imported_files = set()
-        self.new_doc_ids = set()
-        self.upd_doc_ids = set()
-        self.stats = collections.defaultdict(lambda: 0)
+from paperwork_backend.interfaces.doc_import import AbstractFileImporter
+from paperwork_backend.interfaces.doc_import import FileImport
+from paperwork_backend.interfaces.doc_import import ImportListener
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
 
 
-class BaseFileImporter(object):
+class BaseFileImporter(AbstractFileImporter):
+    @classmethod
+    def get_deps(cls):
+        return openpaperwork_core.promise.get_deps() + [
+            {
+                "interface": DocTransactionFactory,
+                "defaults": [
+                    "paperwork_backend.index.whoosh",
+                    "paperwork_backend.doctracker",
+                ],
+                "optional": True,
+            },
+            {
+                "interface": ImportListener,
+                "defaults": [],
+                "optional": True,
+            },
+        ]
+
     def __init__(self, core, file_import, single_file_importer_factory):
         self.core = core
         self.file_import = file_import
@@ -54,7 +58,7 @@ class BaseFileImporter(object):
         return out
 
     @staticmethod
-    def _upd_file_import(imported, file_import, orig_uri, file_uri):
+    def _upd_file_import(imported, file_import: FileImport, orig_uri, file_uri):
         try:
             file_import.ignored_files.remove(orig_uri)
         except ValueError:
@@ -67,7 +71,7 @@ class BaseFileImporter(object):
     def _make_transactions(self, file_import):
         transactions = []
         self.core.call_all(
-            "doc_transaction_start", transactions,
+            DocTransactionFactory.doc_transaction_start, transactions,
             len(file_import.new_doc_ids) + len(file_import.upd_doc_ids)
         )
         transactions.sort(key=lambda transaction: -transaction.priority)
@@ -117,7 +121,7 @@ class BaseFileImporter(object):
         )
 
         return promise.then(
-            self.core.call_all, "on_import_done", self.file_import
+            self.core.call_all, ImportListener.on_import_done, self.file_import
         )
 
 
@@ -140,9 +144,9 @@ class RecursiveFileImporter(BaseFileImporter):
     def _get_importables(self):
         factory = self.single_file_importer_factory
         for dir_uri in self.file_import.ignored_files:
-            if not self.core.call_success("fs_isdir", dir_uri):
+            if not self.core.call_success(Fs.fs_isdir, dir_uri):
                 continue
-            for file_uri in self.core.call_success("fs_recurse", dir_uri):
+            for file_uri in self.core.call_success(Fs.fs_recurse, dir_uri):
                 if factory.is_importable(self.core, file_uri):
                     yield (dir_uri, file_uri)
 

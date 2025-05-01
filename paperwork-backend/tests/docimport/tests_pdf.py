@@ -2,8 +2,16 @@ import os
 import unittest
 import unittest.mock
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.fs
+
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_import import ImportListener
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.index import Index
+from paperwork_backend.interfaces.poppler import Poppler
 import paperwork_backend.docimport
 
 
@@ -38,7 +46,14 @@ class TestPdfImport(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DocTransactionFactory,
+                Fs,
+                ImportListener,
+                Index,
+                Poppler,
+            ):
                 PRIORITY = 999999999999999999
 
                 def fs_isdir(s, dir_uri):
@@ -56,27 +71,91 @@ class TestPdfImport(unittest.TestCase):
                     self.copies.append((src_uri, dst_uri))
                     return dst_uri
 
-                def on_import_done(s, file_import):
-                    self.core.call_all("mainloop_quit_graceful")
-
-                def doc_transaction_start(s, transactions, expected=-1):
-                    transactions.append(FakeTransaction())
-
                 def fs_hash(s, file_url):
                     if file_url == self.test_doc_url:
                         return "DEADBEEF"
                     return "ABCDEF"
+
+                def fs_safe(s, uri):
+                    pass
+
+                def fs_unsafe(s, uri):
+                    pass
+
+                def fs_join(s, base, url):
+                    pass
+
+                def fs_basename(s, url):
+                    pass
+
+                def fs_dirname(s, url):
+                    pass
+
+                def fs_open(s, uri, mode='r', **kwargs):
+                    pass
+
+                def fs_exists(s, uri):
+                    pass
+
+                def fs_listdir(s, uri):
+                    pass
+
+                def fs_rename(s, old_uri, new_uri):
+                    pass
+
+                def fs_unlink(s, uri, **kwargs):
+                    pass
+
+                def fs_rm_rf(s, uri, **kwargs):
+                    pass
+
+                def fs_get_mtime(s, uri):
+                    pass
+
+                def fs_getsize(s, uri):
+                    pass
+
+                def fs_copytree(s, old_uri, new_uri):
+                    pass
+
+                def fs_recurse(s, parent_uri, dir_included=False):
+                    pass
+
+                def fs_hide(s, uri):
+                    pass
+
+                def fs_iswritable(s, uri):
+                    pass
+
+                def fs_resolve(s, uri):
+                    pass
+
+                def fs_mktemp(
+                    s, prefix=None, suffix=None, mode='w+b', on_disk=False,
+                    **kwargs
+                ):
+                    pass
+
+                def on_import_done(s, file_import):
+                    self.core.call_all(Mainloop.mainloop_quit_graceful)
+
+                def doc_transaction_start(s, transactions, expected=-1):
+                    transactions.append(FakeTransaction())
 
                 def index_get_doc_id_by_hash(s, h):
                     if h in self.hash_to_docid:
                         return self.hash_to_docid[h]
                     return None
 
+                def index_search(self, *args, **kwargs):
+                    pass
+
                 def poppler_open(s, file_url, password=None):
                     self.assertIsNone(password)
                     return "something"
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
+        self.core.load("openpaperwork_core.fs.python")
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
         self.core.init()
@@ -109,7 +188,7 @@ class TestPdfImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         self.assertEqual(len(importers[0].get_required_data()), 0)
@@ -117,7 +196,7 @@ class TestPdfImport(unittest.TestCase):
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         # see fake storage behaviour
         self.assertEqual(self.copies, [
@@ -157,13 +236,13 @@ class TestPdfImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         self.assertEqual(self.copies, [])
         self.assertEqual(self.add_docs, [])
@@ -214,7 +293,14 @@ class TestRecursivePdfImport(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DocTransactionFactory,
+                Fs,
+                ImportListener,
+                Index,
+                Poppler,
+            ):
                 PRIORITY = 999999999999999999
 
                 def fs_isdir(s, dir_uri):
@@ -225,34 +311,98 @@ class TestRecursivePdfImport(unittest.TestCase):
                         return "inode/directory"
                     return "application/pdf"
 
-                def fs_mkdir_p(self, dir_uri):
+                def fs_mkdir_p(s, dir_uri):
                     return True
 
                 def fs_copy(s, src_uri, dst_uri):
                     self.copies.append((src_uri, dst_uri))
                     return dst_uri
 
-                def on_import_done(s, file_import):
-                    self.core.call_all("mainloop_quit_graceful")
-
-                def doc_transaction_start(s, transactions, expected=-1):
-                    transactions.append(FakeTransaction())
-
                 def fs_hash(s, file_url):
                     if file_url == self.test_doc_url:
                         return "DEADBEEF"
                     return "ABCDEF"
+
+                def fs_safe(s, uri):
+                    pass
+
+                def fs_unsafe(s, uri):
+                    pass
+
+                def fs_join(s, base, url):
+                    pass
+
+                def fs_basename(s, url):
+                    pass
+
+                def fs_dirname(s, url):
+                    pass
+
+                def fs_open(s, uri, mode='r', **kwargs):
+                    pass
+
+                def fs_exists(s, uri):
+                    pass
+
+                def fs_listdir(s, uri):
+                    pass
+
+                def fs_rename(s, old_uri, new_uri):
+                    pass
+
+                def fs_unlink(s, uri, **kwargs):
+                    pass
+
+                def fs_rm_rf(s, uri, **kwargs):
+                    pass
+
+                def fs_get_mtime(s, uri):
+                    pass
+
+                def fs_getsize(s, uri):
+                    pass
+
+                def fs_copytree(s, old_uri, new_uri):
+                    pass
+
+                def fs_recurse(s, parent_uri, dir_included=False):
+                    pass
+
+                def fs_hide(s, uri):
+                    pass
+
+                def fs_iswritable(s, uri):
+                    pass
+
+                def fs_resolve(s, uri):
+                    pass
+
+                def fs_mktemp(
+                    s, prefix=None, suffix=None, mode='w+b', on_disk=False,
+                    **kwargs
+                ):
+                    pass
+
+                def on_import_done(s, file_import):
+                    self.core.call_all(Mainloop.mainloop_quit_graceful)
+
+                def doc_transaction_start(s, transactions, expected=-1):
+                    transactions.append(FakeTransaction())
 
                 def index_get_doc_id_by_hash(s, h):
                     if h in self.hash_to_docid:
                         return self.hash_to_docid[h]
                     return None
 
+                def index_search(self, *args, **kwargs):
+                    pass
+
                 def poppler_open(s, file_url, password=None):
                     self.assertIsNone(password)
                     return "something"
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
+        self.core.load("openpaperwork_core.fs.python")
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
         self.core.init()
@@ -285,13 +435,13 @@ class TestRecursivePdfImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         # see fake storage behaviour
         self.assertEqual(self.copies, [
@@ -331,13 +481,13 @@ class TestRecursivePdfImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         self.assertEqual(self.copies, [])
         self.assertEqual(self.add_docs, [])
@@ -381,7 +531,14 @@ class TestPasswordPdfImport(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DocTransactionFactory,
+                Fs,
+                ImportListener,
+                Index,
+                Poppler,
+            ):
                 PRIORITY = 999999999999999999
 
                 def fs_isdir(s, dir_uri):
@@ -399,25 +556,10 @@ class TestPasswordPdfImport(unittest.TestCase):
                     self.copies.append((src_uri, dst_uri))
                     return dst_uri
 
-                def on_import_done(s, file_import):
-                    self.core.call_all("mainloop_quit_graceful")
-
-                def doc_transaction_start(s, transactions, expected=-1):
-                    transactions.append(FakeTransaction())
-
                 def fs_hash(s, file_url):
                     if file_url == self.test_doc_url:
                         return "DEADBEEF"
                     return "ABCDEF"
-
-                def index_get_doc_id_by_hash(s, h):
-                    if h in self.hash_to_docid:
-                        return self.hash_to_docid[h]
-                    return None
-
-                def poppler_open(s, file_url, password=None):
-                    self.assertIsNotNone(password)
-                    return "something"
 
                 def fs_open(s, file_url, mode):
                     class FsMock(object):
@@ -432,7 +574,83 @@ class TestPasswordPdfImport(unittest.TestCase):
 
                     return FsMock()
 
-        self.core._load_module("fake_module", FakeModule())
+                def fs_safe(s, uri):
+                    pass
+
+                def fs_unsafe(s, uri):
+                    pass
+
+                def fs_join(s, base, url):
+                    pass
+
+                def fs_basename(s, url):
+                    pass
+
+                def fs_dirname(s, url):
+                    pass
+
+                def fs_exists(s, uri):
+                    pass
+
+                def fs_listdir(s, uri):
+                    pass
+
+                def fs_rename(s, old_uri, new_uri):
+                    pass
+
+                def fs_unlink(s, uri, **kwargs):
+                    pass
+
+                def fs_rm_rf(s, uri, **kwargs):
+                    pass
+
+                def fs_get_mtime(s, uri):
+                    pass
+
+                def fs_getsize(s, uri):
+                    pass
+
+                def fs_copytree(s, old_uri, new_uri):
+                    pass
+
+                def fs_recurse(s, parent_uri, dir_included=False):
+                    pass
+
+                def fs_hide(s, uri):
+                    pass
+
+                def fs_iswritable(s, uri):
+                    pass
+
+                def fs_resolve(s, uri):
+                    pass
+
+                def fs_mktemp(
+                    s, prefix=None, suffix=None, mode='w+b', on_disk=False,
+                    **kwargs
+                ):
+                    pass
+
+                def on_import_done(s, file_import):
+                    self.core.call_all(Mainloop.mainloop_quit_graceful)
+
+                def doc_transaction_start(s, transactions, expected=-1):
+                    transactions.append(FakeTransaction())
+
+                def index_get_doc_id_by_hash(s, h):
+                    if h in self.hash_to_docid:
+                        return self.hash_to_docid[h]
+                    return None
+
+                def index_search(self, *args, **kwargs):
+                    pass
+
+                def poppler_open(s, file_url, password=None):
+                    self.assertIsNotNone(password)
+                    return "something"
+
+        self.core.load("fake_module", FakeModule())
+        self.core.load("openpaperwork_core.fs.python")
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.pdf")
         self.core.init()
@@ -465,7 +683,7 @@ class TestPasswordPdfImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
         self.assertEqual(importers[0].get_required_data(), {
             self.test_doc_url: {"password"}
@@ -476,7 +694,7 @@ class TestPasswordPdfImport(unittest.TestCase):
         })
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         # see fake storage behaviour
         self.assertEqual(self.copies, [

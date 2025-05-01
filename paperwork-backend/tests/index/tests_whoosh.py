@@ -2,8 +2,15 @@ import shutil
 import tempfile
 import unittest
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.util
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.index import Index
+from paperwork_backend.interfaces.index import IndexListener
+from paperwork_backend.interfaces.suggestions import SuggestionProvider
+from paperwork_backend.interfaces.sync import Syncable
 
 
 class TestIndex(unittest.TestCase):
@@ -30,7 +37,7 @@ class TestIndex(unittest.TestCase):
 
     def test_transaction(self):
         results = []
-        self.core.call_all("index_search", results, "flesch")
+        self.core.call_all(Index.index_search, results, "flesch")
         self.assertEqual(results, [])
 
         self.fake_storage.docs = [
@@ -44,7 +51,7 @@ class TestIndex(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all('doc_transaction_start', transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         transactions.sort(key=lambda transaction: -transaction.priority)
         for transaction in transactions:
             transaction.add_doc('test_doc')
@@ -52,7 +59,7 @@ class TestIndex(unittest.TestCase):
             transaction.commit()
 
         results = []
-        self.core.call_all("index_search", results, "flesch")
+        self.core.call_all(Index.index_search, results, "flesch")
         self.assertEqual(
             results, [
                 ('test_doc', 'file:///somewhere/test_doc')
@@ -61,7 +68,7 @@ class TestIndex(unittest.TestCase):
 
     def test_sync(self):
         results = []
-        self.core.call_all("index_search", results, "flesch")
+        self.core.call_all(Index.index_search, results, "flesch")
         self.assertEqual(results, [])
 
         self.fake_storage.docs = [
@@ -76,29 +83,41 @@ class TestIndex(unittest.TestCase):
 
         core = self.core
 
-        class FakeModuleToStopMainLoop(object):
+        class FakeModuleToStopMainLoop:
             __name__ = "mainloop_stopper"
 
-            class Plugin(openpaperwork_core.PluginBase):
-                def on_index_commit_end(self):
-                    core.call_all("mainloop_quit_graceful")
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                IndexListener
+            ):
+                def on_index_cancel(s):
+                    pass
 
-        self.core._load_module(
+                def on_index_updated(s):
+                    pass
+
+                def on_index_commit_start(s):
+                    pass
+
+                def on_index_commit_end(s):
+                    core.call_all(Mainloop.mainloop_quit_graceful)
+
+        self.core.load(
             "mainloop_stopper", FakeModuleToStopMainLoop()
         )
         self.core.init()
 
         promises = []
-        self.core.call_all('sync', promises)
+        self.core.call_all(Syncable.sync, promises)
         promise = promises[0]
         for p in promises[1:]:
             promise = promise.then(p)
         promise.schedule()
 
-        self.core.call_one('mainloop')
+        self.core.call_one(Mainloop.mainloop)
 
         results = []
-        self.core.call_all("index_search", results, "flesch")
+        self.core.call_all(Index.index_search, results, "flesch")
         self.assertEqual(
             results, [
                 ('test_doc', 'file:///somewhere/test_doc')
@@ -107,7 +126,7 @@ class TestIndex(unittest.TestCase):
 
     def test_suggestion(self):
         results = []
-        self.core.call_all("suggestion_get", results, "flesch")
+        self.core.call_all(SuggestionProvider.suggestion_get, results, "flesch")
         self.assertEqual(results, [])
 
         self.fake_storage.docs = [
@@ -121,7 +140,7 @@ class TestIndex(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all('doc_transaction_start', transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         transactions.sort(key=lambda transaction: -transaction.priority)
         for transaction in transactions:
             transaction.add_doc('test_doc')
@@ -129,7 +148,7 @@ class TestIndex(unittest.TestCase):
             transaction.commit()
 
         results = set()
-        self.core.call_all("suggestion_get", results, "Whoosh flech best")
+        self.core.call_all(SuggestionProvider.suggestion_get, results, "Whoosh flech best")
         results = list(results)
         results.sort()
         self.assertEqual(

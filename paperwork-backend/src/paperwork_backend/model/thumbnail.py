@@ -5,10 +5,17 @@ import time
 
 import PIL.Image
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.pillow import PillowUtil
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from . import util
+from paperwork_backend.interfaces.doc_thumbnail import DocThumbnail
+from paperwork_backend.interfaces.doc_thumbnail import DocThumbnailer
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.model import util
 
 
 THUMBNAIL_WIDTH = 64
@@ -19,41 +26,32 @@ PAGE_THUMBNAIL_FILENAME = 'paper.{}.thumb.jpg'
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocThumbnail,
+    DocThumbnailer,
+    PageImg,
+    PageManagement,
+):
     PRIORITY = 5000  # see page_get_img_url()
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'pages',
-            'thumbnail',  # thumbnail_get_path()
-            'thumbnailer',  # thumbnail_from_img()
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + util.get_deps() + [
             {
-                'interface': 'page_img',
-                'defaults': [
-                    'paperwork_backend.model.img',
-                    'paperwork_backend.model.pdf',
-                ],
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
             },
             {
-                'interface': 'pillow_util',
+                'interface': PillowUtil,
                 'defaults': ['openpaperwork_core.pillow.util'],
-            },
-            {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
             },
         ]
 
@@ -82,10 +80,10 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def thumbnail_get_page(self, doc_url, page_idx):
         thumbnail_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_THUMBNAIL_FILENAME.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_THUMBNAIL_FILENAME.format(page_idx + 1)
         )
         page_url = self.core.call_success(
-            "page_get_img_url", doc_url, page_idx
+            PageImg.page_get_img_url, doc_url, page_idx
         )
         if page_url is None:
             LOGGER.warning(
@@ -94,26 +92,26 @@ class Plugin(openpaperwork_core.PluginBase):
             )
             return None
 
-        if self.core.call_success("fs_exists", thumbnail_url) is not None:
+        if self.core.call_success(Fs.fs_exists, thumbnail_url) is not None:
             thumbnail_mtime = self.core.call_success(
-                "fs_get_mtime", thumbnail_url
+                Fs.fs_get_mtime, thumbnail_url
             )
-            if self.core.call_success("fs_iswritable", thumbnail_url) is not None:
+            if self.core.call_success(Fs.fs_iswritable, thumbnail_url) is not None:
                 base_page_url = page_url
                 if "#" in page_url:
                     (base_page_url, page_url) = page_url.split("#", 1)
-                page_mtime = self.core.call_success("fs_get_mtime", base_page_url)
+                page_mtime = self.core.call_success(Fs.fs_get_mtime, base_page_url)
                 if thumbnail_mtime < page_mtime:
                     LOGGER.info(
                         "Thumbnail %s is obsolete. Regenerating", thumbnail_url
                     )
-                    self.core.call_success("fs_unlink", thumbnail_url, trash=False)
+                    self.core.call_success(Fs.fs_unlink, thumbnail_url, trash=False)
 
-        if self.core.call_success("fs_exists", thumbnail_url):
+        if self.core.call_success(Fs.fs_exists, thumbnail_url):
             LOGGER.debug("Loading thumbnail for %s page %d", doc_url, page_idx)
             try:
                 thumbnail = self.core.call_success(
-                    "url_to_pillow", thumbnail_url
+                    Pillow.url_to_pillow, thumbnail_url
                 )
                 size = thumbnail.size
                 if size[0] == THUMBNAIL_WIDTH or size[1] == THUMBNAIL_HEIGHT:
@@ -133,10 +131,10 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Generating thumbnail for %s page %d", doc_url, page_idx)
         start = time.time()
         try:
-            page = self.core.call_success("url_to_pillow", page_url)
+            page = self.core.call_success(Pillow.url_to_pillow, page_url)
         except Exception as exc:
             LOGGER.error("Failed to load page %s", page_url, exc_info=exc)
-            page = self.core.call_success("pillow_get_error", "invalid")
+            page = self.core.call_success(PillowUtil.pillow_get_error, "invalid")
 
         if page is None:
             # WORKAROUND(Jflesch): unclear what causes this problem. There are
@@ -147,7 +145,7 @@ class Plugin(openpaperwork_core.PluginBase):
         thumbnail = self.thumbnail_from_img(page)
 
         self.core.call_success(
-            "pillow_to_url", thumbnail, thumbnail_url,
+            Pillow.pillow_to_url, thumbnail, thumbnail_url,
             format='JPEG', quality=0.85
         )
 
@@ -192,3 +190,7 @@ class Plugin(openpaperwork_core.PluginBase):
         # thumbnail
         self.page_delete_by_url(doc_url, page_idx)
         return None
+
+    @openpaperwork_core.noop
+    def page_get_paper_size_by_url(self, doc_url, page_idx):
+        pass

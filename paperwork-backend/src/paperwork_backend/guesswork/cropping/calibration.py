@@ -6,8 +6,21 @@ import logging
 
 import openpaperwork_core
 
-from ... import (_, sync)
-from . import ID
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.progress import ProgressListener
+
+from paperwork_backend import (_, sync)
+from paperwork_backend.guesswork.cropping import ID
+from paperwork_backend.interfaces.cropping import Cropping
+from paperwork_backend.interfaces.cropping import PredefinedCropping
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.page_modification import PageModificationListener
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.interfaces.sync import DocTracker
+from paperwork_backend.interfaces.sync import PageTracker
 
 
 LOGGER = logging.getLogger(__name__)
@@ -26,7 +39,7 @@ class CalibrationTransaction(sync.BaseTransaction):
         # guessed the page borders and on which page we didn't yet.
         # We use the same ID for all the cropping plugins so we never crop
         # twice the same page.
-        self.page_tracker = self.core.call_success("page_tracker_get", ID)
+        self.page_tracker = self.core.call_success(PageTracker.page_tracker_get, ID)
 
     def __enter__(self):
         pass
@@ -36,7 +49,7 @@ class CalibrationTransaction(sync.BaseTransaction):
 
     def _crop_page(self, doc_id, doc_url, page_idx, page_nb, total_pages):
         paper_size = self.core.call_success(
-            "page_get_paper_size_by_url", doc_url, page_idx
+            PageImg.page_get_paper_size_by_url, doc_url, page_idx
         )
         if paper_size is not None:
             # We only want to crop scanned pages.
@@ -49,9 +62,7 @@ class CalibrationTransaction(sync.BaseTransaction):
             )
             return
 
-        if self.core.call_success(
-                    "page_has_text_by_url", doc_url, page_idx
-                ):
+        if self.core.call_success(PageText.page_has_text_by_url, doc_url, page_idx):
             self.notify_progress(
                 ID,
                 _(
@@ -73,7 +84,7 @@ class CalibrationTransaction(sync.BaseTransaction):
         self.plugin.crop_page_borders_by_url(doc_url, page_idx)
 
     def _crop_new_pages(self, doc_id):
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
         modified_pages = list(self.page_tracker.find_changes(doc_id, doc_url))
 
@@ -108,52 +119,80 @@ class CalibrationTransaction(sync.BaseTransaction):
         self.notify_done(ID)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Cropping,
+    PredefinedCropping,
+):
     PRIORITY = 4000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "cropping",
-            "scanner_calibration",
-            "syncable",  # actually satisfied by the plugin 'doctracker'
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'doc_tracking',
+                "interface": DocStorage,
+                "defaults": ["paperwork_backend.model.workdir"],
+            },
+            {
+                'interface': DocTracker,
                 'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
-                'interface': 'page_tracking',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                "interface": PageImg,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": PageModificationListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": PageText,
+                "defaults": [
+                    "paperwork_backend.model.hocr",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                'interface': PageTracker,
                 'defaults': ['paperwork_backend.sync.pagetracker'],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ]
-            }
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
         ]
 
     def __init__(self, core):
         super().__init__(core)
         self.core.call_all(
-            "config_register", "scanner_calibration",
+            Config.config_register, "scanner_calibration",
             self.core.call_success(
-                "config_build_simple", "scanner", "calibration",
+                Config.config_build_simple, "scanner", "calibration",
                 lambda: None
             )
         )
         self.core.call_all(
-            "doc_tracker_register", ID,
+            DocTracker.doc_tracker_register, ID,
             lambda sync, total_expected=-1: CalibrationTransaction(
                 self, sync, total_expected
             )
@@ -161,7 +200,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def crop_page_borders_by_url(self, doc_url, page_idx):
         frame = self.core.call_success(
-            "config_get", "scanner_calibration"
+            Config.config_get, "scanner_calibration"
         )
         if frame is None:
             LOGGER.warning(
@@ -175,19 +214,19 @@ class Plugin(openpaperwork_core.PluginBase):
             page_idx, doc_url, frame
         )
 
-        doc_id = self.core.call_success("doc_url_to_id", doc_url)
+        doc_id = self.core.call_success(DocStorage.doc_url_to_id, doc_url)
 
         if doc_id is not None:
             self.core.call_one(
-                "mainloop_schedule", self.core.call_all,
-                "on_page_modification_start", doc_id, page_idx
+                Mainloop.mainloop_schedule, self.core.call_all,
+                PageModificationListener.on_page_modification_start, doc_id, page_idx
             )
         try:
             page_img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx
+                PageImg.page_get_img_url, doc_url, page_idx
             )
 
-            img = self.core.call_success("url_to_pillow", page_img_url)
+            img = self.core.call_success(Pillow.url_to_pillow, page_img_url)
 
             LOGGER.info(
                 "Cropping page %d of %s at %s", page_idx, doc_url, frame
@@ -202,13 +241,13 @@ class Plugin(openpaperwork_core.PluginBase):
             img = img.crop(frame)
 
             page_img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx, write=True
+                PageImg.page_get_img_url, doc_url, page_idx, write=True
             )
-            self.core.call_success("pillow_to_url", img, page_img_url)
+            self.core.call_success(Pillow.pillow_to_url, img, page_img_url)
         finally:
             if doc_id is not None:
                 self.core.call_one(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_page_modification_end", doc_id, page_idx
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    PageModificationListener.on_page_modification_end, doc_id, page_idx
                 )
         return frame

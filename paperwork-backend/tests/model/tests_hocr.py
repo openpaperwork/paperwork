@@ -3,6 +3,9 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.pages import PageText
+
+
 TEST_XML = """
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
@@ -40,12 +43,12 @@ class TestHocr(unittest.TestCase):
         }
 
         lines = self.core.call_success(
-            "page_get_boxes_by_url", "file:///some_doc", 1
+            PageText.page_get_boxes_by_url, "file:///some_doc", 1
         )
         self.assertIsNone(lines)
         lines = list(
             self.core.call_success(
-                "page_get_boxes_by_url", "file:///some_doc", 3
+                PageText.page_get_boxes_by_url, "file:///some_doc", 3
             )
         )
         self.assertEqual(len(lines), 1)
@@ -64,11 +67,11 @@ class TestHocr(unittest.TestCase):
         }
 
         lines = self.core.call_success(
-            "page_get_text_by_url", "file:///some_doc", 1
+            PageText.page_get_text_by_url, "file:///some_doc", 1
         )
         self.assertIsNone(lines)
         txt = self.core.call_success(
-            "page_get_text_by_url", "file:///some_doc", 3
+            PageText.page_get_text_by_url, "file:///some_doc", 3
         ).replace("\n", " ")
         txt = re.sub(" +", " ", txt)
         txt = txt.strip()
@@ -82,12 +85,14 @@ class TestHocr(unittest.TestCase):
         }
 
         self.assertIsNone(self.core.call_success(
-            "page_has_text_by_url", "file:///some_doc", 1
+            PageText.page_has_text_by_url, "file:///some_doc", 1
         ))
         self.assertTrue(self.core.call_success(
-            "page_get_text_by_url", "file:///some_doc", 3
+            PageText.page_get_text_by_url, "file:///some_doc", 3
         ))
-        self.core.call_all("page_set_boxes_by_url", "file:///some_doc", 3, [])
+        self.core.call_all(
+            PageText.page_set_boxes_by_url, "file:///some_doc", 3, []
+        )
         self.assertFalse(self.core.call_success(
-            "page_has_text_by_url", "file:///some_doc", 3
+            PageText.page_has_text_by_url, "file:///some_doc", 3
         ))

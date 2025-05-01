@@ -1,6 +1,13 @@
 import unittest
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabelListener
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.sync import Syncable
 
 
 class TestLabels(unittest.TestCase):
@@ -21,7 +28,7 @@ class TestLabels(unittest.TestCase):
     def test_label_color_from_rgb(self):
         self.assertEqual(
             self.core.call_success(
-                "label_color_from_rgb",
+                DocLabelColors.label_color_from_rgb,
                 (0.9607843137254902, 0.4745098039215686, 0.0)
             ),
             "#f50079000000"
@@ -37,7 +44,7 @@ class TestLabels(unittest.TestCase):
 
         self.assertTrue(
             self.core.call_success(
-                "doc_has_labels_by_url", "file:///some_work_dir/some_doc"
+                DocLabels.doc_has_labels_by_url, "file:///some_work_dir/some_doc"
             ) is None
         )
 
@@ -54,7 +61,7 @@ class TestLabels(unittest.TestCase):
 
         self.assertTrue(
             self.core.call_success(
-                "doc_has_labels_by_url", "file:///some_work_dir/some_doc"
+                DocLabels.doc_has_labels_by_url, "file:///some_work_dir/some_doc"
             ) is not None
         )
 
@@ -72,7 +79,7 @@ class TestLabels(unittest.TestCase):
 
         labels = set()
         self.core.call_success(
-            "doc_get_labels_by_url", labels, "file:///some_work_dir/some_doc"
+            DocLabels.doc_get_labels_by_url, labels, "file:///some_work_dir/some_doc"
         )
         labels = list(labels)
         labels.sort()
@@ -108,27 +115,40 @@ class TestLabels(unittest.TestCase):
         class FakeModule(object):
             __name__ = "mainloop_stopper"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DocLabelListener,
+                DocType,
+            ):
                 def is_doc(self, doc_url):
                     return True
 
-                def on_label_loading_end(self):
-                    core.call_all("mainloop_quit_graceful")
+                def doc_internal_get_mtime_by_url(self, out: list, doc_url):
+                    pass
 
-        self.core._load_module("mainloop_stopper", FakeModule())
+                def doc_internal_get_nb_pages_by_url(self, out: list, doc_url):
+                    pass
+
+                def on_label_loading_start(self):
+                    pass
+
+                def on_label_loading_end(self):
+                    core.call_all(Mainloop.mainloop_quit_graceful)
+
+        self.core.load("mainloop_stopper", FakeModule())
         self.core.init()
 
         promises = []
-        self.core.call_all('sync', promises)
+        self.core.call_all(Syncable.sync, promises)
         promise = promises[0]
         for p in promises[1:]:
             promise = promise.then(p)
         promise.schedule()
 
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         labels = set()
-        self.core.call_all("labels_get_all", labels)
+        self.core.call_all(DocLabels.labels_get_all, labels)
         labels = list(labels)
         labels.sort()
 
@@ -154,13 +174,13 @@ class TestLabels(unittest.TestCase):
         }
 
         self.core.call_success(
-            "doc_add_label_by_url", "file:///some_work_dir/some_doc",
+            DocLabels.doc_add_label_by_url, "file:///some_work_dir/some_doc",
             label="label C", color="#123412341234"
         )
 
         labels = set()
         self.core.call_success(
-            "doc_get_labels_by_url", labels, "file:///some_work_dir/some_doc"
+            DocLabels.doc_get_labels_by_url, labels, "file:///some_work_dir/some_doc"
         )
         labels = list(labels)
         labels.sort()
@@ -187,13 +207,13 @@ class TestLabels(unittest.TestCase):
         }
 
         self.core.call_success(
-            "doc_remove_label_by_url", "file:///some_work_dir/some_doc",
+            DocLabels.doc_remove_label_by_url, "file:///some_work_dir/some_doc",
             label="label A"
         )
 
         labels = set()
         self.core.call_success(
-            "doc_get_labels_by_url", labels, "file:///some_work_dir/some_doc"
+            DocLabels.doc_get_labels_by_url, labels, "file:///some_work_dir/some_doc"
         )
         labels = list(labels)
         labels.sort()

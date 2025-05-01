@@ -6,7 +6,8 @@ import pillowfight
 
 import openpaperwork_core
 
-from . import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import ImgEditorFactory
 
 
 LOGGER = logging.getLogger(__name__)
@@ -48,13 +49,18 @@ class CropImgEditor(AbstractImgEditor):
         img = img.crop(self.frame)
         return img
 
+    def transform_frame(self, img_size, frame):
+        return frame
 
-class Plugin(openpaperwork_core.PluginBase):
+    def untransform_frame(self, img_size, frame):
+        return frame
+
+
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ImgEditorFactory,
+):
     NAME = 'cropping'
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['img_editor']
 
     def img_editor_get_names(self, out: list):
         out.append(self.NAME)

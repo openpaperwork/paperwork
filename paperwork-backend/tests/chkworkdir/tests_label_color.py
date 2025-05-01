@@ -2,6 +2,8 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.chkworkdir import Chkworkdir
+
 
 class TestChkWorkDirEmptyDirectory(unittest.TestCase):
     def setUp(self):
@@ -41,7 +43,7 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         }
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 0)
 
     def test_check_fix(self):
@@ -75,10 +77,10 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         }
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 1)
 
-        self.core.call_all("fix_work_dir", problems)
+        self.core.call_all(Chkworkdir.fix_work_dir, problems)
 
         fs = self.fs.fs
         self.assertEqual(
@@ -122,7 +124,7 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         )
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 0)
 
     def test_check_rgb(self):
@@ -156,10 +158,10 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         }
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 1)
 
-        self.core.call_all("fix_work_dir", problems)
+        self.core.call_all(Chkworkdir.fix_work_dir, problems)
 
         fs = self.fs.fs
         self.assertEqual(
@@ -203,5 +205,5 @@ class TestChkWorkDirEmptyDirectory(unittest.TestCase):
         )
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
         self.assertEqual(len(problems), 0)

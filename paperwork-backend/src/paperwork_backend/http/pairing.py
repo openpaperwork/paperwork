@@ -11,12 +11,21 @@ import secrets
 import struct
 import time
 
-import openpaperwork_core
-
 import PIL
 import qrcode
 import qrcode.image.pil
 
+from openpaperwork_core.interfaces.certificate_store import CertificateStore
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.networking import Networking
+import openpaperwork_core
+
+from paperwork_backend.interfaces.http import HttpBackendExtension
+from paperwork_backend.interfaces.http import HttpsBackend
+from paperwork_backend.interfaces.http import HttpsBackendSsl
+from paperwork_backend.interfaces.http import Pairing
+from paperwork_backend.interfaces.http import PairingQrCode
 import paperwork_backend.http
 
 
@@ -28,7 +37,13 @@ PNG_SUBPAYLOAD_SIZES = 256
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    HttpBackendExtension,
+    HttpsBackendSsl,
+    Pairing,
+    PairingQrCode,
+):
     PRIORITY = -100
 
     QRCODE_VERSIONS = [
@@ -41,25 +56,26 @@ class Plugin(openpaperwork_core.PluginBase):
     ]
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "http_backend_extension",
-            "pairing_qrcode",
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "certificate_store",
+                "interface": Config,
+                "defaults": ["openpaperwork_core.config"],
+            },
+            {
+                "interface": CertificateStore,
                 "defaults": ["openpaperwork_core.crypto.certificates.store"],
             },
             {
-                "interface": "https_backend",
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                "interface": HttpsBackend,
                 "defaults": ["paperwork_backend.http"],
             },
             {
-                "interface": "networking",
+                "interface": Networking,
                 "defaults": ["openpaperwork_core.networking"],
             },
         ]
@@ -71,13 +87,13 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _get_qrcodes_payload(self) -> bytes:
         cert_fingerprint = self.core.call_success(
-            "https_backend_get_server_certificate_fingerprint"
+            HttpsBackend.https_backend_get_server_certificate_fingerprint
         )
         if self.secret is None:
             self.secret = secrets.token_bytes(nbytes=16)
-        port = self.core.call_success("config_get", "https_port")
-        addresses = self.core.call_success("networking_get_host_names")
-        addresses += self.core.call_success("networking_get_local_ips")
+        port = self.core.call_success(Config.config_get, "https_port")
+        addresses = self.core.call_success(Networking.networking_get_host_names)
+        addresses += self.core.call_success(Networking.networking_get_local_ips)
         addresses = [str(addr).encode("utf-8") for addr in addresses]
         addresses = b"\0".join(addresses)
 
@@ -220,13 +236,13 @@ class Plugin(openpaperwork_core.PluginBase):
             LOGGER.warning("Authorization doesn't match secret")
             return paperwork_backend.http.BackendReply(http_code=401)
 
-        (cert, key) = self.core.call_success("https_backend_get_server_certificate")
-        with self.core.call_success("fs_open", cert, "r") as fd:
+        (cert, key) = self.core.call_success(HttpsBackend.https_backend_get_server_certificate)
+        with self.core.call_success(Fs.fs_open, cert, "r") as fd:
             server_cert = fd.read()
-        (cert, key) = self.core.call_success("https_backend_get_client_certificate")
-        with self.core.call_success("fs_open", cert, "r") as fd:
+        (cert, key) = self.core.call_success(HttpsBackend.https_backend_get_client_certificate)
+        with self.core.call_success(Fs.fs_open, cert, "r") as fd:
             client_cert = fd.read()
-        with self.core.call_success("fs_open", key, "r") as fd:
+        with self.core.call_success(Fs.fs_open, key, "r") as fd:
             client_key = fd.read()
         content = {
             "server": {

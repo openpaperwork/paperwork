@@ -3,8 +3,25 @@ import itertools
 import logging
 import math
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.urls import Urls
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from paperwork_backend.interfaces.doc_pdf import DocPdf
+from paperwork_backend.interfaces.docs import DocHash
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_storage import DocStorageCache
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.interfaces.pages import PageType
+from paperwork_backend.interfaces.poppler import Poppler
 
 
 LOGGER = logging.getLogger(__name__)
@@ -35,7 +52,7 @@ def minmax_rects(rects):
     return rect
 
 
-class PdfWordBox(object):
+class PdfWordBox:
     def __init__(self, content, position):
         self.content = content
         self.position = minmax_rects(position)
@@ -52,7 +69,7 @@ class PdfWordBox(object):
         return str(self)
 
 
-class PdfLineBox(object):
+class PdfLineBox:
     def __init__(self, word_boxes, position):
         self.word_boxes = word_boxes
         self.position = minmax_rects(position)
@@ -71,7 +88,7 @@ class PdfLineBox(object):
     content = property(_get_content)
 
 
-class PdfPageMapping(object):
+class PdfPageMapping:
     SEPARATOR = ","
 
     def __init__(self, plugin, doc_url):
@@ -80,7 +97,7 @@ class PdfPageMapping(object):
         self.doc_url = doc_url
 
         self.map_url = self.core.call_success(
-            "fs_join", self.doc_url, MAPPING_FILE
+            Fs.fs_join, self.doc_url, MAPPING_FILE
         )
 
         self.mapping = None
@@ -142,11 +159,11 @@ class PdfPageMapping(object):
             self.reverse_mapping = {p: p for p in range(0, self.real_nb_pages)}
             now = datetime.datetime.now().timestamp()
             self.page_mtimes = {p: now for p in range(0, self.real_nb_pages)}
-            if self.core.call_success("fs_exists", self.map_url) is None:
+            if self.core.call_success(Fs.fs_exists, self.map_url) is None:
                 self.update_nb_pages()
                 return
 
-            with self.core.call_success("fs_open", self.map_url, "r") as fd:
+            with self.core.call_success(Fs.fs_open, self.map_url, "r") as fd:
                 # drop the first line
                 lines = fd.readlines()[1:]
                 lines = [line.split(",", 1) for line in lines]
@@ -176,10 +193,10 @@ class PdfPageMapping(object):
         self.mapping = None
         self.reverse_mapping = {}
 
-        if self.core.call_success("fs_exists", self.map_url) is None:
+        if self.core.call_success(Fs.fs_exists, self.map_url) is None:
             return
 
-        with self.core.call_success("fs_open", self.map_url, "r") as fd:
+        with self.core.call_success(Fs.fs_open, self.map_url, "r") as fd:
             # drop the first line
             lines = fd.readlines()[1:]
             for line in lines:
@@ -191,7 +208,7 @@ class PdfPageMapping(object):
                 self.reverse_mapping[target_page_idx] = orig_page_idx
 
     def save(self):
-        if self.core.call_success("fs_isdir", self.doc_url) is None:
+        if self.core.call_success(Fs.fs_isdir, self.doc_url) is None:
             return
 
         nb_maps = 0
@@ -201,11 +218,11 @@ class PdfPageMapping(object):
             nb_maps += 1
 
         if nb_maps <= 0:
-            if self.core.call_success("fs_exists", self.map_url) is not None:
-                self.core.call_success("fs_unlink", self.map_url)
+            if self.core.call_success(Fs.fs_exists, self.map_url) is not None:
+                self.core.call_success(Fs.fs_unlink, self.map_url)
             return
 
-        with self.core.call_success("fs_open", self.map_url, "w") as fd:
+        with self.core.call_success(Fs.fs_open, self.map_url, "w") as fd:
             fd.write("original_page_index,target_page_index\n")
             mapping = list(self.mapping.items())
             mapping.sort()
@@ -318,65 +335,63 @@ class PdfPageMapping(object):
         print("=======================")
 
     def get_map_hash(self):
-        if self.core.call_success("fs_exists", self.map_url) is None:
+        if self.core.call_success(Fs.fs_exists, self.map_url) is None:
             return None
-        return self.core.call_success("fs_hash", self.map_url)
+        return self.core.call_success(Fs.fs_hash, self.map_url)
 
     def get_map_mtime(self):
-        if self.core.call_success("fs_exists", self.map_url) is None:
+        if self.core.call_success(Fs.fs_exists, self.map_url) is None:
             return None
-        return self.core.call_success("fs_get_mtime", self.map_url)
+        return self.core.call_success(Fs.fs_get_mtime, self.map_url)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocHash,
+    DocPdf,
+    DocStorageCache,
+    DocText,
+    DocType,
+    PageImg,
+    PageManagement,
+    PageText,
+    PageType,
+):
     PRIORITY = 20
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "doc_hash",
-            "doc_pdf",
-            "doc_pdf_import",
-            "doc_pdf_url",
-            "doc_text",
-            "doc_title",
-            "doc_type",
-            "page_boxes",
-            "page_img",
-            "page_paper",
-            'pages',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                # to provide doc_get_nb_pages_by_url()
-                'interface': 'nb_pages',
-                'defaults': ['paperwork_backend.model'],
+                'interface': DocStorage,
+                'defaults': ['paperwork_backend.model.workdir'],
             },
-            # for page_move_by_url():
             {
-                'interface': 'pillow',
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
             },
             {
-                'interface': 'poppler',
+                'interface': Poppler,
                 'defaults': ['paperwork_backend.poppler.memory'],
             },
             {
-                'interface': 'urls',
+                'interface': Urls,
                 'defaults': ['openpaperwork_core.urls'],
             },
         ]
@@ -395,8 +410,8 @@ class Plugin(openpaperwork_core.PluginBase):
     def _get_pdf_url(self, doc_url):
         if doc_url.endswith(".pdf"):
             return doc_url
-        pdf_url = self.core.call_success("fs_join", doc_url, PDF_FILENAME)
-        if self.core.call_success("fs_exists", pdf_url) is None:
+        pdf_url = self.core.call_success(Fs.fs_join, doc_url, PDF_FILENAME)
+        if self.core.call_success(Fs.fs_exists, pdf_url) is None:
             return None
         return pdf_url
 
@@ -406,10 +421,10 @@ class Plugin(openpaperwork_core.PluginBase):
             return password
 
         passwd_url = self.core.call_success(
-            "fs_join", doc_url, PASSWD_FILENAME
+            Fs.fs_join, doc_url, PASSWD_FILENAME
         )
-        if self.core.call_success("fs_exists", passwd_url):
-            with self.core.call_success("fs_open", passwd_url, "r") as fd:
+        if self.core.call_success(Fs.fs_exists, passwd_url):
+            with self.core.call_success(Fs.fs_open, passwd_url, "r") as fd:
                 password = fd.read().strip()
         self.cache_passwords[doc_url] = password
         return password
@@ -429,7 +444,7 @@ class Plugin(openpaperwork_core.PluginBase):
         password = self._get_pdf_password(doc_url)
         LOGGER.info("Opening %s (password=%s)", pdf_url, bool(password))
         doc = self.core.call_success(
-            "poppler_open", pdf_url, password=password
+            Poppler.poppler_open, pdf_url, password=password
         )
         return (pdf_url, doc)
 
@@ -441,12 +456,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_get_pdf_url_by_url(self, doc_url, write=False, allow_mapped=False):
         if write:
-            return self.core.call_success("fs_join", doc_url, PDF_FILENAME)
+            return self.core.call_success(Fs.fs_join, doc_url, PDF_FILENAME)
         if not allow_mapped:
             mapping_url = self.core.call_success(
-                "fs_join", doc_url, MAPPING_FILE
+                Fs.fs_join, doc_url, MAPPING_FILE
             )
-            if self.core.call_success("fs_exists", mapping_url):
+            if self.core.call_success(Fs.fs_exists, mapping_url):
                 return None
         return self._get_pdf_url(doc_url)
 
@@ -463,7 +478,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # cache the hash of doc.pdf to speed up imports
         if doc_url not in self.cache_hash:
-            h = self.core.call_success("fs_hash", pdf_url)
+            h = self.core.call_success(Fs.fs_hash, pdf_url)
             self.cache_hash[doc_url] = h
         return self.cache_hash[doc_url]
 
@@ -480,7 +495,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # cache the hash of doc.pdf to speed up imports
         if doc_url not in self.cache_hash:
-            h = self.core.call_success("fs_hash", pdf_url)
+            h = self.core.call_success(Fs.fs_hash, pdf_url)
             self.cache_hash[doc_url] = h
         out.append(self.cache_hash[doc_url])
 
@@ -493,7 +508,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if mtime is not None:
             out.append(mtime)
 
-        mtime = self.core.call_success("fs_get_mtime", pdf_url)
+        mtime = self.core.call_success(Fs.fs_get_mtime, pdf_url)
         if mtime is None:
             return None
         out.append(mtime)
@@ -508,7 +523,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if mtime is not None:
             out.append(mtime)
 
-        mtime = self.core.call_success("fs_get_mtime", pdf_url)
+        mtime = self.core.call_success(Fs.fs_get_mtime, pdf_url)
         if mtime is not None:
             out.append(mtime)
         return
@@ -523,7 +538,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_pdf_get_real_nb_pages_by_url(self, doc_url):
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute", self._doc_get_real_nb_pages_by_url, doc_url
+            Mainloop.mainloop_execute, self._doc_get_real_nb_pages_by_url, doc_url
         )
 
     def _doc_internal_get_nb_pages_by_url(
@@ -580,7 +595,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # same URL used in browsers
         url = self.core.call_success(
-            "url_args_join", pdf_url,
+            Urls.url_args_join, pdf_url,
             page=str(original_page_idx + 1),
             password=password
         )
@@ -615,11 +630,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _doc_get_text_by_url(self, out: list, doc_url):
         task = "pdf_get_text_by_url({})".format(doc_url)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
 
         (pdf_url, pdf) = self._open_pdf(doc_url)
         if pdf is None:
-            self.core.call_all("on_perfcheck_stop", task)
+            self.core.call_all(Perfcheck.on_perfcheck_stop, task)
             return
         mapping = self._get_page_mapping(doc_url)
 
@@ -643,14 +658,14 @@ class Plugin(openpaperwork_core.PluginBase):
                 continue
             out.append(txt)
         self.core.call_all(
-            "on_perfcheck_stop", task, nb_pages=pdf.get_n_pages()
+            Perfcheck.on_perfcheck_stop, task, nb_pages=pdf.get_n_pages()
         )
         return True
 
     def doc_get_text_by_url(self, out: list, doc_url):
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute",
+            Mainloop.mainloop_execute,
             self._doc_get_text_by_url, out, doc_url
         )
 
@@ -663,7 +678,7 @@ class Plugin(openpaperwork_core.PluginBase):
     def doc_get_title_by_url(self, doc_url):
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute",
+            Mainloop.mainloop_execute,
             self._doc_get_title_by_url, doc_url
         )
 
@@ -699,7 +714,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute", self._page_has_text_by_url, doc_url, page_idx
+            Mainloop.mainloop_execute, self._page_has_text_by_url, doc_url, page_idx
         )
 
     def _page_get_text_by_url(self, doc_url, page_idx):
@@ -734,7 +749,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute", self._page_get_text_by_url, doc_url, page_idx
+            Mainloop.mainloop_execute, self._page_get_text_by_url, doc_url, page_idx
         )
 
     def _page_get_boxes_by_url(self, doc_url, page_idx):
@@ -789,7 +804,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute", self._page_get_boxes_by_url, doc_url, page_idx
+            Mainloop.mainloop_execute, self._page_get_boxes_by_url, doc_url, page_idx
         )
 
     def doc_pdf_import(self, src_file_uri, password=None, target_doc_id=None):
@@ -799,35 +814,35 @@ class Plugin(openpaperwork_core.PluginBase):
         if target_doc_id is not None:
             doc_id = target_doc_id
             doc_url = self.core.call_success(
-                "doc_id_to_url", doc_id, existing=False
+                DocStorage.doc_id_to_url, doc_id, existing=False
             )
             if doc_url is None:
                 doc_id = None
-            elif self.core.call_success("fs_exists", doc_url):
+            elif self.core.call_success(Fs.fs_exists, doc_url):
                 doc_id = None
 
         if doc_id is None:
-            (doc_id, doc_url) = self.core.call_success("storage_get_new_doc")
+            (doc_id, doc_url) = self.core.call_success(DocStorage.storage_get_new_doc)
 
         # just to be safe
         self.cache_mappings.pop(doc_url, None)
 
-        pdf_url = self.core.call_success("fs_join", doc_url, PDF_FILENAME)
+        pdf_url = self.core.call_success(Fs.fs_join, doc_url, PDF_FILENAME)
 
-        self.core.call_success("fs_mkdir_p", doc_url)
-        self.core.call_success("fs_copy", src_file_uri, pdf_url)
+        self.core.call_success(Fs.fs_mkdir_p, doc_url)
+        self.core.call_success(Fs.fs_copy, src_file_uri, pdf_url)
 
         if password is not None:
             passwd_url = self.core.call_success(
-                "fs_join", doc_url, PASSWD_FILENAME
+                Fs.fs_join, doc_url, PASSWD_FILENAME
             )
-            with self.core.call_success("fs_open", passwd_url, "w") as fd:
+            with self.core.call_success(Fs.fs_open, passwd_url, "w") as fd:
                 fd.write(password)
 
         try:
             # check the PDF is readable
             doc = self.core.call_success(
-                "poppler_open", pdf_url, password=password
+                Poppler.poppler_open, pdf_url, password=password
             )
             exc_info = None
         except Exception as exc:
@@ -839,7 +854,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 LOGGER.error("Failed to read %s", pdf_url)
             else:
                 LOGGER.error("Failed to read %s", pdf_url, exc_info=exc_info)
-            self.core.call_success("fs_rm_rf", doc_url, trash=False)
+            self.core.call_success(Fs.fs_rm_rf, doc_url, trash=False)
             return (None, None)
 
         return (doc_id, doc_url)
@@ -884,7 +899,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
         # Poppler is not thread-safe
         return self.core.call_one(
-            "mainloop_execute",
+            Mainloop.mainloop_execute,
             self._page_get_paper_size_by_url, doc_url, page_idx
         )
 
@@ -966,20 +981,28 @@ class Plugin(openpaperwork_core.PluginBase):
                 )
                 LOGGER.info("Generating image from %s", source_img)
                 source_img = self.core.call_success(
-                    "url_to_pillow", source_img
+                    Pillow.url_to_pillow, source_img
                 )
 
                 # since PDF are not writable by themselves, we can call
                 # page_get_img_url(write=True). We are sure that our
                 # implementation of this method won't reply
                 dest_img = self.core.call_success(
-                    "page_get_img_url", dest_doc_url, target_dest_page_idx,
+                    PageImg.page_get_img_url, dest_doc_url, target_dest_page_idx,
                     write=True, original=True
                 )
                 LOGGER.info("Writting page image back as %s", dest_img)
-                self.core.call_success("pillow_to_url", source_img, dest_img)
+                self.core.call_success(Pillow.pillow_to_url, source_img, dest_img)
 
         if source_is_pdf:
             source_mapping.save()
         if dest_is_pdf:
             dest_mapping.save()
+
+    @openpaperwork_core.noop
+    def page_reset_by_url(self, doc_url, page_idx):
+        pass
+
+    @openpaperwork_core.noop
+    def page_set_boxes_by_url(self, doc_url, page_idx, boxes):
+        pass

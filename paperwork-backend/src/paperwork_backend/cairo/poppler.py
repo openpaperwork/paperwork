@@ -3,10 +3,21 @@ from typing import Dict
 from typing import Tuple
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.urls import Urls
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.promise
 
+from paperwork_backend.interfaces.cairo import AbstractCairoRenderer
+from paperwork_backend.interfaces.cairo import CairoRendererFactory
+from paperwork_backend.interfaces.cairo import Pdf2Cairo
+from paperwork_backend.interfaces.cairo import Url2Cairo
+from paperwork_backend.interfaces.poppler import Poppler
 # TODO(Jflesch): bad
 import paperwork_backend.model.pdf
 
@@ -38,13 +49,13 @@ DELAY = 0.01
 POPPLER_DOCS: Dict[str, Tuple[Any, int]] = {}
 
 
-class ImgSurface(object):
+class ImgSurface:
     # wrapper so it can be weakref
     def __init__(self, surface):
         self.surface = surface
 
 
-class CairoRenderer(GObject.GObject):
+class CairoRenderer(GObject.GObject, AbstractCairoRenderer):
     __gsignals__ = {
         'getting_size': (GObject.SignalFlags.RUN_LAST, None, ()),
         'size_obtained': (GObject.SignalFlags.RUN_LAST, None, ()),
@@ -70,7 +81,7 @@ class CairoRenderer(GObject.GObject):
         else:
             LOGGER.info("Opening PDF file {}".format(file_url))
             doc = self.core.call_success(
-                "poppler_open", file_url, password=password
+                Poppler.poppler_open, file_url, password=password
             )
             refcount = 0
         POPPLER_DOCS[file_url] = (doc, refcount + 1)
@@ -113,7 +124,7 @@ class CairoRenderer(GObject.GObject):
 
     def start(self):
         self.core.call_success(
-            "work_queue_add_promise",
+            WorkQueue.work_queue_add_promise,
             self.work_queue_name, self.get_size_promise
         )
 
@@ -185,9 +196,9 @@ class CairoRenderer(GObject.GObject):
         task = "pdf_to_cairo_draw({}, p{})".format(
             self.file_url, self.page_idx
         )
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
         self._draw(cairo_ctx, self.zoom)
-        self.core.call_all("on_perfcheck_stop", task, size=self.size)
+        self.core.call_all(Perfcheck.on_perfcheck_stop, task, size=self.size)
 
     def blur(self):
         pass
@@ -200,29 +211,41 @@ if GLIB_AVAILABLE:
     GObject.type_register(CairoRenderer)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    CairoRendererFactory,
+    Chkdeps,
+    Pdf2Cairo,
+    Pillow,
+    Url2Cairo,
+):
     PRIORITY = 1000
     FILE_EXTENSION = ".pdf"
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'cairo_url',
-            'chkdeps',
-            'page_img_size',
-            'pdf_cairo_url',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'poppler',
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Poppler,
                 'defaults': ['paperwork_backend.poppler.memory'],
             },
             {
-                'interface': 'urls',
+                'interface': Urls,
                 'defaults': ['openpaperwork_core.urls'],
+            },
+            {
+                "interface": WorkQueue,
+                "defaults": ["openpaperwork_core.work_queue.default"],
             },
         ]
 
@@ -233,7 +256,7 @@ class Plugin(openpaperwork_core.PluginBase):
             out['glib'].update(openpaperwork_core.deps.GLIB)
 
     def _check_is_pdf(self, file_url):
-        (url, args) = self.core.call_success("url_args_split", file_url)
+        (url, args) = self.core.call_success(Urls.url_args_split, file_url)
         if not url.lower().endswith(self.FILE_EXTENSION):
             return (None, None, None)
 
@@ -249,9 +272,9 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
 
         task = "url_to_img_size({})".format(file_url)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
         doc = self.core.call_success(
-            "poppler_open", file_url, password=password
+            Poppler.poppler_open, file_url, password=password
         )
         page = doc.get_page(page_idx)
 
@@ -261,7 +284,7 @@ class Plugin(openpaperwork_core.PluginBase):
             int(base_size[1]) * paperwork_backend.model.pdf.PDF_RENDER_FACTOR,
         )
 
-        self.core.call_all("on_perfcheck_stop", task, size=size)
+        self.core.call_all(Perfcheck.on_perfcheck_stop, task, size=size)
         return size
 
     def url_to_img_size_promise(self, file_url):
@@ -276,10 +299,10 @@ class Plugin(openpaperwork_core.PluginBase):
     def pdf_page_to_cairo_surface(self, file_url, page_idx, password=None):
         task = "pdf_page_to_cairo_surface({} p{})".format(file_url, page_idx)
 
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
 
         doc = self.core.call_success(
-            "poppler_open", file_url, password=password
+            Poppler.poppler_open, file_url, password=password
         )
         page = doc.get_page(page_idx)
 
@@ -304,7 +327,7 @@ class Plugin(openpaperwork_core.PluginBase):
         surface = ImgSurface(cairo.ImageSurface(
             cairo.FORMAT_ARGB32, width, height
         ))
-        self.core.call_all("on_objref_track", surface)
+        self.core.call_all(MemleakDetector.on_objref_track, surface)
 
         try:
             ctx = cairo.Context(surface.surface)
@@ -324,7 +347,7 @@ class Plugin(openpaperwork_core.PluginBase):
             # WORKAROUND(Jflesch): with some malformed PDF file, we get an
             # exception on ctx.restore(), but the drawing was actually done.
 
-        self.core.call_all("on_perfcheck_stop", task, size=(width, height))
+        self.core.call_all(Perfcheck.on_perfcheck_stop, task, size=(width, height))
         return surface
 
     def url_to_cairo_surface(self, file_url):
@@ -349,3 +372,12 @@ class Plugin(openpaperwork_core.PluginBase):
         return CairoRenderer(
             self.core, work_queue_name, file_url, page_idx, password
         )
+
+    def url_to_pillow(self, file_url):
+        return None
+
+    def url_to_pillow_promise(self, file_url):
+        return None
+
+    def pillow_to_url(self, img, file_url, format=None, quality=0.75):
+        return None

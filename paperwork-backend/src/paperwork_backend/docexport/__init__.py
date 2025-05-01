@@ -34,8 +34,15 @@ There are pipes dedicated to expanding unexpanded data (see docexport.generic).
 """
 import abc
 import enum
+import logging
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
+
+from paperwork_backend.interfaces.export import ExportPipes
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ExportDataType(enum.Enum):
@@ -268,21 +275,16 @@ class AbstractSimpleTransformExportPipe(AbstractExportPipe):
         return input_data
 
 
-class AbstractExportPipePlugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['export_pipes']
-
+class AbstractExportPipePlugin(
+    openpaperwork_core.PluginBase,
+    ExportPipes,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
-            },
-            {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
             },
         ]
 

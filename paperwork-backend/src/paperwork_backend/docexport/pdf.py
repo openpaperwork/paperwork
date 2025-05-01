@@ -3,16 +3,21 @@ import logging
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.deps
-import openpaperwork_core.promise
 
-from . import (
+from openpaperwork_gtk.interfaces.pillow import Pillow2Cairo
+
+from paperwork_backend import _
+from paperwork_backend.docexport import (
     AbstractExportPipe,
     AbstractExportPipePlugin,
     ExportDataType
 )
-from .. import _
+from paperwork_backend.interfaces.doc_pdf import DocPdf
 
 
 CAIRO_AVAILABLE = False
@@ -59,13 +64,13 @@ class PdfDocUrlToPdfUrlExportPipe(AbstractExportPipe):
         self.core = core
 
     def can_export_doc(self, doc_url):
-        pdf_url = self.core.call_success("doc_get_pdf_url_by_url", doc_url)
+        pdf_url = self.core.call_success(DocPdf.doc_get_pdf_url_by_url, doc_url)
         return pdf_url is not None
 
     def export(self, input_data, result='final', target_file_url=None):
         if target_file_url is None:
             (target_file_url, file_desc) = self.core.call_success(
-                "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
+                Fs.fs_mktemp, prefix="paperwork-export-", suffix=".pdf",
                 mode="wb", on_disk=True
             )
             file_desc.close()
@@ -80,10 +85,10 @@ class PdfDocUrlToPdfUrlExportPipe(AbstractExportPipe):
 
             assert not doc.expanded
             pdf_url = self.core.call_success(
-                "doc_get_pdf_url_by_url", doc.data[1]
+                DocPdf.doc_get_pdf_url_by_url, doc.data[1]
             )
             assert pdf_url is not None
-            self.core.call_success("fs_copy", pdf_url, out)
+            self.core.call_success(Fs.fs_copy, pdf_url, out)
             out_files.append(out)
         return out_files
 
@@ -101,7 +106,7 @@ class PdfCreator(object):
         self.quality = quality
 
         self.file_descriptor = core.call_success(
-            "fs_open", target_file_url, 'wb'
+            Fs.fs_open, target_file_url, 'wb'
         )
 
         self.pdf_surface = cairo.PDFSurface(
@@ -180,7 +185,7 @@ class PdfCreator(object):
         scale_factor = min(scale_factor_x, scale_factor_y)
 
         img_surface = self.core.call_success(
-            "pillow_to_surface", img,
+            Pillow2Cairo.pillow_to_surface, img,
             intermediate="jpeg", quality=int(self.quality * 100)
         )
         # WORKAROUND(Jflesch):
@@ -230,7 +235,7 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
     def export(self, input_data, result='final', target_file_url=None):
         if target_file_url is None:
             (target_file_url, file_desc) = self.core.call_success(
-                "fs_mktemp", prefix="paperwork-export-", suffix=".pdf",
+                Fs.fs_mktemp, prefix="paperwork-export-", suffix=".pdf",
                 mode="w", on_disk=True
             )
             # we need the file name, not the file descriptor
@@ -242,7 +247,7 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
         list_img_boxes = input_data.iter(ExportDataType.IMG_BOXES)
 
         creator = self.core.call_one(
-            "mainloop_execute", PdfCreator,
+            Mainloop.mainloop_execute, PdfCreator,
             self.core, target_file_url, self.page_format, self.quality
         )
 
@@ -252,23 +257,23 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
 
             if doc.data[1] != last_doc and last_doc is not None:
                 # another doc, another output file, another PDFCreator
-                self.core.call_one("mainloop_execute", creator.finish)
+                self.core.call_one(Mainloop.mainloop_execute, creator.finish)
                 out_files.append(out)
                 doc_idx += 1
                 out = target_file_url.rsplit(".", 1)
                 out = "{}_{}.{}".format(out[0], doc_idx, out[1])
                 creator = self.core.call_one(
-                    "mainloop_execute", PdfCreator,
+                    Mainloop.mainloop_execute, PdfCreator,
                     self.core, out, self.page_format, self.quality
                 )
             last_doc = doc.data[1]
 
             (img, boxes) = img_boxes.data
             self.core.call_one(
-                "mainloop_execute", creator.set_page_size, img.size
+                Mainloop.mainloop_execute, creator.set_page_size, img.size
             )
             self.core.call_one(
-                "mainloop_execute", creator.paint_txt, boxes,
+                Mainloop.mainloop_execute, creator.paint_txt, boxes,
                 img.size
             )
             img_size = img.size
@@ -280,10 +285,10 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
                 img_size,
                 getattr(PIL.Image, 'Resampling', PIL.Image).LANCZOS
             )
-            self.core.call_one("mainloop_execute", creator.paint_img, img)
-            self.core.call_one("mainloop_execute", creator.next_page)
+            self.core.call_one(Mainloop.mainloop_execute, creator.paint_img, img)
+            self.core.call_one(Mainloop.mainloop_execute, creator.next_page)
 
-        self.core.call_one("mainloop_execute", creator.finish)
+        self.core.call_one(Mainloop.mainloop_execute, creator.finish)
         out_files.append(out)
         return out_files
 
@@ -294,19 +299,23 @@ class PagesToPdfUrlExportPipe(AbstractExportPipe):
         return _("Generated PDF(s)")
 
 
-class Plugin(AbstractExportPipePlugin):
-    @classmethod
-    def get_interfaces(cls):
-        return super().get_interfaces() + [
-            "chkdeps",
-            "export_pipes_pdf",
-        ]
-
+class Plugin(
+    AbstractExportPipePlugin,
+    Chkdeps,
+):
     @classmethod
     def get_deps(cls):
         return super().get_deps() + [
             {
-                'interface': 'pillow_to_surface',
+                "interface": DocPdf,
+                "defaults": ["paperwork_backend.model.pdf"],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': Pillow2Cairo,
                 'defaults': ['paperwork_backend.cairo.pillow'],
             },
         ]

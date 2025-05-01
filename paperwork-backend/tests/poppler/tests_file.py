@@ -4,7 +4,10 @@ import os
 import psutil
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
+
+from paperwork_backend.interfaces.poppler import Poppler
 
 
 class TestFileDescriptorLeak(unittest.TestCase):
@@ -16,7 +19,7 @@ class TestFileDescriptorLeak(unittest.TestCase):
         self.core.init()
 
         self.simple_doc_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "test_doc.pdf"
@@ -28,7 +31,7 @@ class TestFileDescriptorLeak(unittest.TestCase):
 
         current_fds = list(psutil.Process().open_files())
 
-        doc = self.core.call_success("poppler_open", self.simple_doc_url)
+        doc = self.core.call_success(Poppler.poppler_open, self.simple_doc_url)
         self.assertIsNotNone(doc)
 
         new_fds = list(psutil.Process().open_files())
@@ -49,7 +52,7 @@ class TestFileDescriptorLeak(unittest.TestCase):
         self.core.init()
 
         self.simple_doc_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "test_doc.pdf"
@@ -61,7 +64,7 @@ class TestFileDescriptorLeak(unittest.TestCase):
 
         current_fds = list(psutil.Process().open_files())
 
-        doc = self.core.call_success("poppler_open", self.simple_doc_url)
+        doc = self.core.call_success(Poppler.poppler_open, self.simple_doc_url)
         self.assertIsNotNone(doc)
         page = doc.get_page(0)
 

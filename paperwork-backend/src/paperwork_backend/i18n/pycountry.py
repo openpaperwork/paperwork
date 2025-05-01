@@ -2,7 +2,8 @@ import pycountry
 
 import openpaperwork_core
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.i18n_lang import I18nLang
 
 
 LANGUAGES = {
@@ -12,11 +13,10 @@ LANGUAGES = {
 }
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['i18n_lang']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    I18nLang,
+):
     def i18n_lang_iso639_3_to_full(self, iso):
         attrs = [
             'iso639_3_code',

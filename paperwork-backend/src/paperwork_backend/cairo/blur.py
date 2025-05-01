@@ -1,8 +1,11 @@
 import logging
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
 import openpaperwork_core
 import openpaperwork_core.deps
-import openpaperwork_core.promise
+
+from paperwork_backend.interfaces.cairo import CairoRendererFactory
+
 
 CAIRO_AVAILABLE = False
 GLIB_AVAILABLE = False
@@ -129,23 +132,16 @@ if GLIB_AVAILABLE:
     GObject.type_register(BlurRenderer)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+):
     PRIORITY = 2000
 
     @classmethod
     def get_interfaces(cls):
         return [
-            'cairo_url',
-            'chkdeps',
-        ]
-
-    @classmethod
-    def get_deps(cls):
-        return [
-            {
-                'interface': 'urls',
-                'defaults': ['openpaperwork_core.urls'],
-            },
+            Chkdeps,
+            CairoRendererFactory,
         ]
 
     def chkdeps(self, out: dict):
@@ -161,7 +157,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
 
         wrapped_renderer = self.core.call_success(
-            "cairo_renderer_by_url",
+            CairoRendererFactory.cairo_renderer_by_url,
             work_queue_name, file_url, blur=False, **kwargs
         )
         if wrapped_renderer is None:

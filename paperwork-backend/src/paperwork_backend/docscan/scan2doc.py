@@ -1,46 +1,60 @@
 import logging
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.scan import Scan
+from paperwork_backend.interfaces.scan2doc import Scan2Doc
+from paperwork_backend.interfaces.scan2doc import Scan2DocListener
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['scan2doc']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Scan2Doc
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'document_storage',
+                'interface': Docs,
+                'defaults': ['paperwork_backend.model'],
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                'interface': 'page_img',
+                'interface': PageImg,
                 'defaults': ['paperwork_backend.model.img'],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': ['openpaperwork_core.pillow.img'],
             },
             {
-                'interface': 'scan',
+                'interface': Scan,
                 'defaults': ['paperwork_backend.docscan.libinsane'],
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": Scan2DocListener,
+                "defaults": [],
+                "optional": True,
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -70,18 +84,18 @@ class Plugin(openpaperwork_core.PluginBase):
         """
         if doc_id is not None and doc_url is not None:
             nb_pages = self.core.call_success(
-                "doc_get_nb_pages_by_url", doc_url
+                Docs.doc_get_nb_pages_by_url, doc_url
             )
             new = (nb_pages <= 0) if nb_pages is not None else True
         else:
-            (doc_id, doc_url) = self.core.call_success("storage_get_new_doc")
+            (doc_id, doc_url) = self.core.call_success(DocStorage.storage_get_new_doc)
             new = True
 
-        (scan_id, p) = self.core.call_success("scan_promise", *args, **kwargs)
+        (scan_id, p) = self.core.call_success(Scan.scan_promise, *args, **kwargs)
 
         promise = openpaperwork_core.promise.Promise(
             self.core, self.core.call_all,
-            args=("on_scan2doc_start", scan_id, doc_id, doc_url)
+            args=(Scan2DocListener.on_scan2doc_start, scan_id, doc_id, doc_url)
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(p)
@@ -95,17 +109,17 @@ class Plugin(openpaperwork_core.PluginBase):
             for img in imgs:
                 nb += 1
                 nb_pages = self.core.call_success(
-                    "doc_get_nb_pages_by_url", doc_url
+                    Docs.doc_get_nb_pages_by_url, doc_url
                 )
                 if nb_pages is None:
                     nb_pages = 0
                 page_url = self.core.call_success(
-                    "page_get_img_url", doc_url, nb_pages, write=True
+                    PageImg.page_get_img_url, doc_url, nb_pages, write=True
                 )
-                self.core.call_success("pillow_to_url", img, page_url)
+                self.core.call_success(Pillow.pillow_to_url, img, page_url)
                 self.core.call_all(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_scan2doc_page_scanned",
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    Scan2DocListener.on_scan2doc_page_scanned,
                     scan_id, doc_id, doc_url, nb_pages
                 )
             return nb
@@ -115,13 +129,13 @@ class Plugin(openpaperwork_core.PluginBase):
             self.doc_id_to_scan_id.pop(doc_id, None)
 
         def notify_end(scan_id, doc_id):
-            self.core.call_all("on_scan2doc_end", scan_id, doc_id, doc_url)
+            self.core.call_all(Scan2DocListener.on_scan2doc_end, scan_id, doc_id, doc_url)
             return (doc_id, doc_url)
 
         def cancel(exc, scan_id, doc_id):
             drop_scan_id(scan_id, doc_id)
             if new:
-                self.core.call_all("storage_delete_doc_id", doc_id)
+                self.core.call_all(DocStorage.storage_delete_doc_id, doc_id)
             raise exc
 
         def run_transactions(nb_imgs, scan_id, doc_id):
@@ -131,12 +145,12 @@ class Plugin(openpaperwork_core.PluginBase):
                 self.core, drop_scan_id, args=(scan_id, doc_id)
             )
             promise = promise.then(self.core.call_success(
-                "transaction_simple_promise",
+                DocTransactionManager.transaction_simple_promise,
                 [("add" if new else "upd", doc_id),]
             ))
             promise = promise.then(notify_end, scan_id, doc_id)
             promise = promise.catch(cancel, scan_id, doc_id)
-            self.core.call_success("transaction_schedule", promise)
+            self.core.call_success(DocTransactionManager.transaction_schedule, promise)
             return (doc_id, doc_url)
 
         promise = promise.then(

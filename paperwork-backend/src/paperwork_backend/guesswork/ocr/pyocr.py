@@ -3,9 +3,19 @@ import logging
 import pyocr
 import pyocr.builders
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 
-from ... import (_, sync)
+from paperwork_backend import (_, sync)
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.ocr import Ocr
+from paperwork_backend.interfaces.ocr import OcrSettings
+from paperwork_backend.interfaces.page_modification import PageModificationListener
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.interfaces.sync import DocTracker
+from paperwork_backend.interfaces.sync import PageTracker
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +35,7 @@ class OcrTransaction(sync.BaseTransaction):
         # for each document, we need to track which pages have already been
         # OCR-ed, which have been modified (cropping, rotation, ...)
         # and must be re-OCRed, and which have not been changed.
-        self.page_tracker = self.core.call_success("page_tracker_get", ID)
+        self.page_tracker = self.core.call_success(PageTracker.page_tracker_get, ID)
 
     def __enter__(self):
         pass
@@ -38,7 +48,7 @@ class OcrTransaction(sync.BaseTransaction):
             wordless_only=False):
         if wordless_only:
             has_text = self.core.call_success(
-                "page_has_text_by_url", doc_url, page_idx
+                PageText.page_has_text_by_url, doc_url, page_idx
             )
             if has_text:
                 # there is already some text on this page
@@ -62,7 +72,7 @@ class OcrTransaction(sync.BaseTransaction):
         self.plugin.ocr_page_by_url(doc_url, page_idx)
 
     def _run_ocr_on_modified_pages(self, doc_id, wordless_only=False):
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
         need_end_notification = False
         modified_pages = list(self.page_tracker.find_changes(doc_id, doc_url))
@@ -105,44 +115,55 @@ class OcrTransaction(sync.BaseTransaction):
         self.notify_done(ID)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Ocr,
+):
     PRIORITY = 1000
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "ocr",
-            "syncable",  # actually satisfied by the plugin 'doctracker'
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return sync.BaseTransaction.get_deps() + [
             {
-                'interface': 'doc_tracking',
+                'interface': DocTracker,
                 'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'ocr_settings',
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                'interface': OcrSettings,
                 'defaults': ['paperwork_backend.pyocr'],
             },
             {
-                'interface': 'page_boxes',
+                "interface": PageModificationListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': PageText,
                 'defaults': [
                     'paperwork_backend.model.hocr',
+                ],
+            },
+            {
+                "interface": PageImg,
+                "defaults": [
+                    'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
             },
             {
-                'interface': 'page_tracking',
+                'interface': PageTracker,
                 'defaults': ['paperwork_backend.sync.pagetracker'],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
@@ -153,28 +174,28 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         self.core.call_all(
-            "doc_tracker_register", ID,
+            DocTracker.doc_tracker_register, ID,
             lambda sync, total_expected=-1: OcrTransaction(
                 self, sync, total_expected
             )
         )
 
     def ocr_page_by_url(self, doc_url, page_idx):
-        if self.core.call_success("ocr_is_enabled") is None:
+        if self.core.call_success(OcrSettings.ocr_is_enabled) is None:
             LOGGER.info("OCR is disabled")
             return
 
         LOGGER.info("Running OCR on page %d of %s", page_idx, doc_url)
 
-        doc_id = self.core.call_success("doc_url_to_id", doc_url)
+        doc_id = self.core.call_success(DocStorage.doc_url_to_id, doc_url)
         if doc_id is not None:
             self.core.call_one(
-                "mainloop_schedule", self.core.call_all,
-                "on_page_modification_start", doc_id, page_idx
+                Mainloop.mainloop_schedule, self.core.call_all,
+                PageModificationListener.on_page_modification_start, doc_id, page_idx
             )
         try:
             page_img_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx
+                PageImg.page_get_img_url, doc_url, page_idx
             )
             ocr_tool = pyocr.get_available_tools()[0]
             LOGGER.info(
@@ -182,24 +203,24 @@ class Plugin(openpaperwork_core.PluginBase):
                 ocr_tool.get_name(), doc_url, page_idx, page_img_url
             )
 
-            ocr_langs = self.core.call_success("ocr_get_active_langs")
+            ocr_langs = self.core.call_success(OcrSettings.ocr_get_active_langs)
 
-            img = self.core.call_success("url_to_pillow", page_img_url)
+            img = self.core.call_success(Pillow.url_to_pillow, page_img_url)
 
             boxes = ocr_tool.image_to_string(
                 img, lang="+".join(ocr_langs),
                 builder=pyocr.builders.LineBoxBuilder()
             )
             self.core.call_success(
-                "page_set_boxes_by_url", doc_url, page_idx, boxes
+                PageText.page_set_boxes_by_url, doc_url, page_idx, boxes
             )
         except Exception as exc:
             LOGGER.error("OCR FAILED", exc_info=exc)
         finally:
             if doc_id is not None:
                 self.core.call_one(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_page_modification_end", doc_id, page_idx
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    PageModificationListener.on_page_modification_end, doc_id, page_idx
                 )
 
         return True

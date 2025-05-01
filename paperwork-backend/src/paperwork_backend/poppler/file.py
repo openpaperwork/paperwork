@@ -1,8 +1,13 @@
 import logging
 import os
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
 import openpaperwork_core
 import openpaperwork_core.deps
+
+from paperwork_backend.interfaces.poppler import Poppler as PopplerInterface
 
 
 LOGGER = logging.getLogger(__name__)
@@ -32,20 +37,22 @@ if GI_AVAILABLE:
         LOGGER.warning("Failed to import Poppler", exc_info=exc)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'poppler',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    PopplerInterface,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
+            },
+            {
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -68,8 +75,8 @@ class Plugin(openpaperwork_core.PluginBase):
 
         gio_file = Gio.File.new_for_uri(url)
         doc = self.core.call_one(
-            "mainloop_execute", Poppler.Document.new_from_gfile,
+            Mainloop.mainloop_execute, Poppler.Document.new_from_gfile,
             gio_file, password=password
         )
-        self.core.call_all("on_objref_track", doc)
+        self.core.call_all(MemleakDetector.on_objref_track, doc)
         return doc

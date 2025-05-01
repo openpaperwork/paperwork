@@ -4,6 +4,9 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.sync import PageTracker
+
 
 class TestPageTracker(unittest.TestCase):
     def setUp(self):
@@ -13,10 +16,13 @@ class TestPageTracker(unittest.TestCase):
 
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
 
-        class FakeModule(object):
+        class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DataDirHandler,
+            ):
                 PRIORITY = 999999999999999999999
 
                 def data_dir_handler_get_individual_data_dir(s):
@@ -24,7 +30,7 @@ class TestPageTracker(unittest.TestCase):
                         self.tmp_paperwork_dir
                     )
 
-        self.core._load_module("fake_module", FakeModule)
+        self.core.load("fake_module", FakeModule)
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.sync.pagetracker")
 
@@ -58,7 +64,7 @@ class TestPageTracker(unittest.TestCase):
             },
         ]
 
-        tracker = self.core.call_success("page_tracker_get", 'test_tracking')
+        tracker = self.core.call_success(PageTracker.page_tracker_get, 'test_tracking')
         out = tracker.find_changes('test_doc', 'file:///somewhere/test_doc')
         self.assertEqual(out, [('new', 0), ('new', 1)])
         tracker.ack_page('test_doc', 'file:///somewhere/test_doc', 0)
@@ -84,7 +90,7 @@ class TestPageTracker(unittest.TestCase):
             },
         ]
 
-        tracker = self.core.call_success("page_tracker_get", 'test_tracking')
+        tracker = self.core.call_success(PageTracker.page_tracker_get, 'test_tracking')
         out = tracker.find_changes('test_doc', 'file:///somewhere/test_doc')
         self.assertEqual(out, [('upd', 0), ('new', 2)])
         tracker.ack_page('test_doc', 'file:///somewhere/test_doc', 0)

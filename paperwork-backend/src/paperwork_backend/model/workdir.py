@@ -2,7 +2,16 @@ import datetime
 import logging
 import os
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.stats import Stats
 import openpaperwork_core
+
+from paperwork_backend.interfaces.doc_pdf import DocPdf
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.doc_storage import DocStorage
 
 
 LOGGER = logging.getLogger(__name__)
@@ -10,25 +19,36 @@ LOGGER = logging.getLogger(__name__)
 DOCNAME_FORMAT = "%Y%m%d_%H%M_%S"
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocStorage,
+    PageManagement,
+    Stats,
+):
     PRIORITY = -1000  # see page_delete_by_url() / page_move_by_url()
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "document_storage",
-            "stats"
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'fs',
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+                "optional": True,
+            },
+            {
+                "interface": DocType,
+                "defaults": [
+                    "paperwork_backend.model.pdf",
+                    "paperwork_backend.model.img",
+                ],
+                "optional": True,  # debatable, but required to break dependency cycle
+            },
+            {
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
         ]
@@ -36,19 +56,18 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         setting = self.core.call_success(
-            "config_build_simple", "Global", "WorkDirectory",
+            Config.config_build_simple, "Global", "WorkDirectory",
             lambda: self.core.call_success(
-                "fs_safe", os.path.expanduser("~/papers")
+                Fs.fs_safe, os.path.expanduser("~/papers")
             )
         )
-        self.core.call_all("config_register", "workdir", setting)
+        self.core.call_all(Config.config_register, "workdir", setting)
         self.core.call_all(
-            "config_add_observer", "workdir", self._on_work_dir_changed
+            Config.config_add_observer, "workdir", self._on_work_dir_changed
         )
 
     def _on_work_dir_changed(self):
         LOGGER.info("Work directory has changed")
-        self.core.call_all("on_storage_changed")
 
     def storage_get_id(self):
         """
@@ -59,30 +78,30 @@ class Plugin(openpaperwork_core.PluginBase):
         could be replaced by a MariaDB database someday, and so the string
         would identify the database instead of a directory.
         """
-        return self.core.call_success('config_get', 'workdir')
+        return self.core.call_success(Config.config_get, 'workdir')
 
     def storage_get_all_docs(self, out: list, only_valid=True):
         """
         Returns all document IDs and URLs in the work directory
         """
-        workdir = self.core.call_success('config_get', 'workdir')
-        if self.core.call_success('fs_exists', workdir) is None:
+        workdir = self.core.call_success(Config.config_get, 'workdir')
+        if self.core.call_success(Fs.fs_exists, workdir) is None:
             # we are not the plugin handling this storage (?)
             return
         LOGGER.info("Loading document list from %s", workdir)
         nb = 0
-        for doc_url in self.core.call_success('fs_listdir', workdir):
-            doc_id = self.core.call_success("fs_basename", doc_url)
+        for doc_url in self.core.call_success(Fs.fs_listdir, workdir):
+            doc_id = self.core.call_success(Fs.fs_basename, doc_url)
             if doc_id.startswith("."):
                 continue
-            if only_valid and not self.core.call_success("fs_isdir", doc_url):
+            if only_valid and not self.core.call_success(Fs.fs_isdir, doc_url):
                 LOGGER.warning(
                     "Ignoring document '%s': not a directory", doc_url
                 )
                 continue
             if (
                     only_valid and
-                    self.core.call_success("is_doc", doc_url) is None):
+                    self.core.call_success(DocType.is_doc, doc_url) is None):
                 LOGGER.warning(
                     "Ignoring document '%s': not recognized document type",
                     doc_url
@@ -94,17 +113,17 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_id_to_url(self, doc_id, existing=True):
         assert doc_id is not None
-        workdir = self.core.call_success('config_get', 'workdir')
-        url = self.core.call_success("fs_join", workdir, doc_id)
-        if existing and self.core.call_success("fs_isdir", url) is None:
+        workdir = self.core.call_success(Config.config_get, 'workdir')
+        url = self.core.call_success(Fs.fs_join, workdir, doc_id)
+        if existing and self.core.call_success(Fs.fs_isdir, url) is None:
             return None
         return url
 
     def doc_url_to_id(self, doc_url):
-        workdir = self.core.call_success('config_get', 'workdir')
+        workdir = self.core.call_success(Config.config_get, 'workdir')
         if not doc_url.startswith(workdir):
             return None
-        return self.core.call_success("fs_basename", doc_url)
+        return self.core.call_success(Fs.fs_basename, doc_url)
 
     def doc_get_date_by_id(self, doc_id):
         # Doc id is expected to have this format:
@@ -122,16 +141,16 @@ class Plugin(openpaperwork_core.PluginBase):
     # datetime.datetime.now cannot be mocked with unittest.mock.patch
     # (datetime is built-in) --> allow dependency injection here
     def storage_get_new_doc(self, now_func=datetime.datetime.now):
-        workdir = self.core.call_success('config_get', 'workdir')
+        workdir = self.core.call_success(Config.config_get, 'workdir')
 
         base_doc_id = now_func().strftime(DOCNAME_FORMAT)
-        base_doc_url = self.core.call_success("fs_join", workdir, base_doc_id)
+        base_doc_url = self.core.call_success(Fs.fs_join, workdir, base_doc_id)
 
         doc_id = base_doc_id
         doc_url = base_doc_url
         doc_idx = 0
 
-        while self.core.call_success("fs_exists", doc_url) is not None:
+        while self.core.call_success(Fs.fs_exists, doc_url) is not None:
             doc_idx += 1
             doc_id = "{}_{}".format(base_doc_id, doc_idx)
             doc_url = "{}_{}".format(base_doc_url, doc_idx)
@@ -142,7 +161,7 @@ class Plugin(openpaperwork_core.PluginBase):
         doc_url = self.doc_id_to_url(doc_id)
         if doc_url is None:
             return
-        self.core.call_success("fs_rm_rf", doc_url, trash=trash)
+        self.core.call_success(Fs.fs_rm_rf, doc_url, trash=trash)
 
     def stats_get(self, stats):
         LOGGER.info("Counting documents for statistics...")
@@ -151,32 +170,32 @@ class Plugin(openpaperwork_core.PluginBase):
         stats['nb_documents'] += len(all_docs)
 
     def page_delete_by_url(self, doc_url, page_idx):
-        workdir = self.core.call_success('config_get', 'workdir')
+        workdir = self.core.call_success(Config.config_get, 'workdir')
         if not doc_url.startswith(workdir):
             return None
-        nb_pages = self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+        nb_pages = self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
         if nb_pages is not None and nb_pages > 0:
             return
         LOGGER.warning(
             "All pages of document %s have been removed. Removing document",
             doc_url
         )
-        self.core.call_success("fs_rm_rf", doc_url)
+        self.core.call_success(Fs.fs_rm_rf, doc_url)
 
     def page_move_by_url(
                 self,
                 source_doc_url, source_page_idx,
                 dest_doc_url, dest_page_idx
             ):
-        workdir = self.core.call_success('config_get', 'workdir')
+        workdir = self.core.call_success(Config.config_get, 'workdir')
         if not source_doc_url.startswith(workdir):
             return None
-        workdir = self.core.call_success('config_get', 'workdir')
+        workdir = self.core.call_success(Config.config_get, 'workdir')
         if not dest_doc_url.startswith(workdir):
             return None
 
         nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", source_doc_url
+            Docs.doc_get_nb_pages_by_url, source_doc_url
         )
         if nb_pages is not None and nb_pages > 0:
             return
@@ -184,38 +203,42 @@ class Plugin(openpaperwork_core.PluginBase):
             "All pages of document %s have been removed. Removing document",
             source_doc_url
         )
-        self.core.call_success("fs_rm_rf", source_doc_url)
+        self.core.call_success(Fs.fs_rm_rf, source_doc_url)
 
     def doc_rename_by_url(self, src_doc_url, dst_doc_url):
-        if not self.core.call_success("fs_isdir", src_doc_url):
+        if not self.core.call_success(Fs.fs_isdir, src_doc_url):
             # May happen on integrated documentation PDF files
             LOGGER.warning("Cannot rename non-directory documents")
             return
         idx = 0
         dst_url = dst_doc_url
-        while self.core.call_success("fs_exists", dst_url) is not None:
+        while self.core.call_success(Fs.fs_exists, dst_url) is not None:
             idx += 1
             dst_url = "{}_{}".format(dst_doc_url, idx)
-        self.core.call_success("fs_rename", src_doc_url, dst_url)
+        self.core.call_success(Fs.fs_rename, src_doc_url, dst_url)
         return dst_url
 
     def doc_copy_by_url(self, src_doc_url):
-        if not self.core.call_success("fs_isdir", src_doc_url):
+        if not self.core.call_success(Fs.fs_isdir, src_doc_url):
             # likely one of the integrated documentation PDF
             (dst_doc_id, dst_doc_url) = self.core.call_success(
-                "doc_pdf_import", src_doc_url
+                DocPdf.doc_pdf_import, src_doc_url
             )
         else:
             (dst_doc_id, dst_doc_url) = self.storage_get_new_doc()
             LOGGER.info("Copying %s --> %s", src_doc_url, dst_doc_url)
-            self.core.call_success("fs_copytree", src_doc_url, dst_doc_url)
+            self.core.call_success(Fs.fs_copytree, src_doc_url, dst_doc_url)
 
         return dst_doc_url
 
     def doc_get_size_by_url(self, doc_url):
         size = 0
-        for child in self.core.call_success("fs_recurse", doc_url):
-            if self.core.call_success("fs_isdir", child):
+        for child in self.core.call_success(Fs.fs_recurse, doc_url):
+            if self.core.call_success(Fs.fs_isdir, child):
                 continue
-            size += self.core.call_success("fs_getsize", child)
+            size += self.core.call_success(Fs.fs_getsize, child)
         return size
+
+    @openpaperwork_core.noop
+    def page_reset_by_url(self, doc_url, page_idx):
+        pass

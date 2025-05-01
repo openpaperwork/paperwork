@@ -1,12 +1,13 @@
 import logging
 
-from . import (
+from paperwork_backend import _
+from paperwork_backend.docexport import (
     AbstractExportPipe,
     AbstractExportPipePlugin,
     ExportData,
     ExportDataType
 )
-from .. import _
+from paperwork_backend.interfaces.docs import Docs
 
 
 LOGGER = logging.getLogger(__name__)
@@ -63,7 +64,7 @@ class DocToPage(AbstractExportPipe):
         for (doc_set, doc) in docs:
             assert not doc.expanded
             nb_pages = self.core.call_success(
-                "doc_get_nb_pages_by_url", doc.data[1]
+                Docs.doc_get_nb_pages_by_url, doc.data[1]
             )
             pages = [
                 ExportData(ExportDataType.PAGE, page_idx)
@@ -80,7 +81,7 @@ class DocToPage(AbstractExportPipe):
         nb_docs = len(input_data.data)
         for (doc_id, doc_url) in input_data.data:
             nb_pages += self.core.call_success(
-                "doc_get_nb_pages_by_url", doc_url
+                Docs.doc_get_nb_pages_by_url, doc_url
             )
         return nb_pages / nb_docs
 
@@ -91,20 +92,13 @@ class DocToPage(AbstractExportPipe):
 class Plugin(AbstractExportPipePlugin):
     @classmethod
     def get_deps(cls):
-        return [
+        return super().get_deps() + [
             {
-                'interface': 'pages',
+                'interface': Docs,
                 'defaults': [
-                    'paperwork_backend.model.img',
-                    'paperwork_backend.model.pdf',
+                    'paperwork_backend.model',
                 ],
             },
-        ]
-
-    @classmethod
-    def get_interfaces(cls):
-        return super().get_interfaces() + [
-            "export_pipes_generic",
         ]
 
     def __init__(self, core):

@@ -1,13 +1,37 @@
 import logging
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import AbstractDocTransaction
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.sync import Syncable
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BaseTransaction:
+class BaseTransaction(AbstractDocTransaction):
+    @classmethod
+    def get_deps(cls):
+        return [
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_core.mainloop.asyncio"],
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+        ]
+
     def __init__(self, core, total_expected):
         self.core = core
         self.processed = 0
@@ -29,14 +53,14 @@ class BaseTransaction:
             progression += (page_nb / total_pages / self.total)
 
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_progress", upd_type, progression, description
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ProgressListener.on_progress, upd_type, progression, description
         )
 
     def notify_done(self, upd_type):
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_progress", upd_type, 1.0
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ProgressListener.on_progress, upd_type, 1.0
         )
 
     def add_doc(self, doc_id):
@@ -65,25 +89,49 @@ class BaseTransaction:
         self._current_doc = None
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocTransactionManager,
+):
     PRIORITY = 20000
 
     @classmethod
-    def get_interfaces(cls):
-        return ['transaction_manager']
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'work_queue',
+                "interface": DocStorage,
+                "defaults": ["paperwork_backend.model.workdir"],
+            },
+            {
+                "interface": DocTransactionFactory,
+                "defaults": ["paperwork_backend.sync.doctracker"],
+                "optional": True,
+            },
+            {
+                "interface": DocType,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
+            },
+            {
+                "interface": Syncable,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
     def __init__(self, core):
         super().__init__(core)
-        self.core.call_all("work_queue_create", "transactions")
+        self.core.call_all(WorkQueue.work_queue_create, "transactions")
 
     def transaction_schedule(self, promise):
         """
@@ -92,7 +140,7 @@ class Plugin(openpaperwork_core.PluginBase):
         --> we use a work queue to ensure they are run one after the other.
         """
         return self.core.call_success(
-            "work_queue_add_promise", "transactions", promise
+            WorkQueue.work_queue_add_promise, "transactions", promise
         )
 
     def _transaction_simple(self, changes):
@@ -101,15 +149,15 @@ class Plugin(openpaperwork_core.PluginBase):
             return
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions, len(changes))
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions, len(changes))
         transactions.sort(key=lambda transaction: -transaction.priority)
 
         try:
             for (change, doc_id) in changes:
-                doc_url = self.core.call_success("doc_id_to_url", doc_id)
+                doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
                 if doc_url is None:
                     change = 'del'
-                elif self.core.call_success("is_doc", doc_url) is None:
+                elif self.core.call_success(DocType.is_doc, doc_url) is None:
                     change = 'del'
                 for transaction in transactions:
                     if change == 'add':
@@ -152,7 +200,7 @@ class Plugin(openpaperwork_core.PluginBase):
         ]
         """
         return self.transaction_schedule(
-            self.core.call_success("transaction_simple_promise", changes)
+            self.transaction_simple_promise(changes)
         )
 
     def transaction_sync_all(self):
@@ -161,7 +209,7 @@ class Plugin(openpaperwork_core.PluginBase):
         directory.
         """
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
         promise = promises[0]
         for p in promises[1:]:
             promise = promise.then(p)

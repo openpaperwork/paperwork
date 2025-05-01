@@ -5,9 +5,17 @@ import xml.etree.cElementTree as etree
 import pyocr
 import pyocr.builders
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.perfcheck import Perfcheck
 import openpaperwork_core
 
-from . import util
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.interfaces.pages import PageType
+from paperwork_backend.model import util
 
 
 LOGGER = logging.getLogger(__name__)
@@ -16,23 +24,32 @@ PAGE_FILENAME_FMT = "paper.{}.words"
 PAGE_FILENAME_REGEX = re.compile(r"paper\.(\d+)\.words")
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocText,
+    DocType,
+    PageManagement,
+    PageType,
+    PageText,
+):
     PRIORITY = 100
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "doc_text",
-            "page_boxes",
-            'pages',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return util.get_deps() + [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
+            },
+            {
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+                "optional": True,
+            },
+            {
+                "interface": Perfcheck,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -58,7 +75,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def doc_get_text_by_url(self, out: list, doc_url):
         doc_nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", doc_url
+            Docs.doc_get_nb_pages_by_url, doc_url
         )
         if doc_nb_pages is None:
             return
@@ -69,19 +86,23 @@ class Plugin(openpaperwork_core.PluginBase):
                 continue
             out.append(text)
 
+    @openpaperwork_core.noop
+    def doc_get_title_by_url(self, doc_url):
+        pass
+
     def page_reset_by_url(self, doc_url, page_idx):
         page_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
         )
-        if self.core.call_success("fs_exists", page_url) is None:
+        if self.core.call_success(Fs.fs_exists, page_url) is None:
             return None
-        self.core.call_all("fs_unlink", page_url, trash=False)
+        self.core.call_all(Fs.fs_unlink, page_url, trash=False)
 
     def page_has_text_by_url(self, doc_url, page_idx):
         page_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
         )
-        if self.core.call_success("fs_exists", page_url) is None:
+        if self.core.call_success(Fs.fs_exists, page_url) is None:
             return None
         text = self.page_get_text_by_url(doc_url, page_idx)
         if text is None:
@@ -93,15 +114,15 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def page_get_text_by_url(self, doc_url, page_idx):
         task = "hocr_load_page_text({} p{})".format(doc_url, page_idx)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
 
         page_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
         )
 
-        file_desc = self.core.call_success("fs_open", page_url)
+        file_desc = self.core.call_success(Fs.fs_open, page_url)
         if file_desc is None:
-            self.core.call_all("on_perfcheck_stop", task)
+            self.core.call_all(Perfcheck.on_perfcheck_stop, task)
             return None
 
         with file_desc:
@@ -141,25 +162,25 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def page_get_boxes_by_url(self, doc_url, page_idx):
         task = "hocr_load_page_boxes({} p{})".format(doc_url, page_idx)
-        self.core.call_all("on_perfcheck_start", task)
+        self.core.call_all(Perfcheck.on_perfcheck_start, task)
 
         page_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
         )
 
-        file_desc = self.core.call_success("fs_open", page_url)
+        file_desc = self.core.call_success(Fs.fs_open, page_url)
         if file_desc is None:
-            self.core.call_all("on_perfcheck_stop", task)
+            self.core.call_all(Perfcheck.on_perfcheck_stop, task)
             return None
 
         with file_desc:
             box_builder = pyocr.builders.LineBoxBuilder()
             boxes = box_builder.read_file(file_desc)
             if len(boxes) > 0:
-                self.core.call_all("on_perfcheck_stop", task)
+                self.core.call_all(Perfcheck.on_perfcheck_stop, task)
                 return boxes
 
-        with self.core.call_success("fs_open", page_url) as file_desc:
+        with self.core.call_success(Fs.fs_open, page_url) as file_desc:
             # fallback: old format: word boxes
             # shouldn't be used anymore ...
             box_builder = pyocr.builders.WordBoxBuilder()
@@ -169,16 +190,16 @@ class Plugin(openpaperwork_core.PluginBase):
                     "Doc %s (page %d) uses old box format",
                     doc_url, page_idx
                 )
-                self.core.call_all("on_perfcheck_stop", task)
+                self.core.call_all(Perfcheck.on_perfcheck_stop, task)
                 return boxes
 
-        self.core.call_all("on_perfcheck_stop", task)
+        self.core.call_all(Perfcheck.on_perfcheck_stop, task)
 
     def page_set_boxes_by_url(self, doc_url, page_idx, boxes):
         page_url = self.core.call_success(
-            "fs_join", doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
+            Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(page_idx + 1)
         )
-        with self.core.call_success("fs_open", page_url, 'w') as file_desc:
+        with self.core.call_success(Fs.fs_open, page_url, 'w') as file_desc:
             pyocr.builders.LineBoxBuilder().write_file(file_desc, boxes)
         return True
 
@@ -197,3 +218,11 @@ class Plugin(openpaperwork_core.PluginBase):
             source_doc_url, source_page_idx,
             dest_doc_url, dest_page_idx
         )
+
+    @openpaperwork_core.noop
+    def is_doc(self, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_internal_get_nb_pages_by_url(self, out: list, doc_url):
+        pass

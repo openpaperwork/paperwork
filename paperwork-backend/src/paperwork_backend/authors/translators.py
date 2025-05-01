@@ -3,18 +3,17 @@ import logging
 
 import openpaperwork_core
 
-
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.authors import Authors
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['authors']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Authors,
+):
     def authors_get(self, out: dict):
         try:
             translators = json.loads(

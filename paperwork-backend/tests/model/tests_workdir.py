@@ -3,6 +3,8 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.doc_storage import DocStorage
+
 
 class TestWorkdir(unittest.TestCase):
     def setUp(self):
@@ -34,7 +36,7 @@ class TestWorkdir(unittest.TestCase):
         }
 
         all_docs = []
-        self.core.call_success("storage_get_all_docs", all_docs)
+        self.core.call_success(DocStorage.storage_get_all_docs, all_docs)
         all_docs.sort()
         self.assertEqual(
             all_docs,
@@ -63,7 +65,7 @@ class TestWorkdir(unittest.TestCase):
         }
 
         (doc_id, doc_url) = self.core.call_success(
-            "storage_get_new_doc", now_func=now
+            DocStorage.storage_get_new_doc, now_func=now
         )
         self.assertEqual(doc_id, "20190904_1327_10")
         self.assertEqual(doc_url, "file:///some_work_dir/20190904_1327_10")
@@ -87,7 +89,7 @@ class TestWorkdir(unittest.TestCase):
         }
 
         (doc_id, doc_url) = self.core.call_success(
-            "storage_get_new_doc", now_func=now
+            DocStorage.storage_get_new_doc, now_func=now
         )
         self.assertEqual(doc_id, "20190904_1327_10_2")
         self.assertEqual(doc_url, "file:///some_work_dir/20190904_1327_10_2")
@@ -106,7 +108,7 @@ class TestWorkdir(unittest.TestCase):
         }
 
         self.core.call_all(
-            "doc_rename_by_url",
+            DocStorage.doc_rename_by_url,
             "file:///some_work_dir/20190910_1328_10_1",
             "file:///some_work_dir/20200508_2002_25"
         )
@@ -143,7 +145,7 @@ class TestWorkdir(unittest.TestCase):
         }
 
         self.core.call_all(
-            "doc_rename_by_url",
+            DocStorage.doc_rename_by_url,
             "file:///some_work_dir/20190910_1328_10_1",
             "file:///some_work_dir/20190904_1327_10"
         )

@@ -12,9 +12,24 @@ import logging
 import sqlite3
 import threading
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.sqlite import Sqlite
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.promise
 import openpaperwork_core.util
+
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.data_dir_handler import DataDirListener
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.sync import DocTracker
 
 
 LOGGER = logging.getLogger(__name__)
@@ -75,77 +90,81 @@ class PluginConfig(object):
 
             def register(s):
                 setting = self.core.call_success(
-                    "config_build_simple", "label_guessing",
+                    Config.config_build_simple, "label_guessing",
                     s.setting, lambda: s.default_val
                 )
                 self.core.call_all(
-                    "config_register", "label_guessing_" + s.setting, setting
+                    Config.config_register, "label_guessing_" + s.setting, setting
                 )
 
         for (setting, default_val) in self.SETTINGS.items():
             Setting(setting, default_val).register()
 
     def get(self, key):
-        return self.core.call_success("config_get", "label_guessing_" + key)
+        return self.core.call_success(Config.config_get, "label_guessing_" + key)
 
 
 class Plugin(
-            openpaperwork_core.PluginBase,
-            metaclass=openpaperwork_core.util.Singleton
-        ):
+    openpaperwork_core.PluginBase,
+    DataDirListener,
+    QuitListener,
+    metaclass=openpaperwork_core.util.Singleton,
+):
     PRIORITY = 100
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            'sync',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'data_dir_handler',
+                'interface': DataDirHandler,
                 'defaults': ['paperwork_backend.datadirhandler'],
             },
             {
-                'interface': 'data_versioning',
+                'interface': DataVersioning,
                 'defaults': ['openpaperwork_core.data_versioning'],
             },
             {
-                'interface': 'doc_labels',
+                'interface': DocLabels,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                'interface': 'doc_tracking',
-                'defaults': ['paperwork_backend.sync.doctracker'],
-            },
-            {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_gtk.fs.gio'],
+                "interface": DocText,
+                "defaults": [
+                    "paperwork_backend.model.hocr",
+                    "paperwork_backend.model.pdf",
+                ],
             },
             {
-                'interface': 'mainloop',
-                'defaults': ['openpaperwork_gtk.mainloop.glib'],
+                'interface': DocTracker,
+                'defaults': ['paperwork_backend.sync.doctracker'],
             },
             {
-                'interface': 'sqlite',
-                'defaults': ['openpaperwork_core.sqlite'],
-            },
-            {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
             {
-                'interface': 'work_queue',
+                'interface': Fs,
+                'defaults': ['openpaperwork_gtk.fs.gio'],
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': Sqlite,
+                'defaults': ['openpaperwork_core.sqlite'],
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -180,7 +199,7 @@ class Plugin(
         self.sql_url = None
         # We pickle the trained model. But pickle and Gio don't work well
         # together --> therefore we work directly with a path here instead of
-        # an URL and with `os` instead `self.core.call_xxx("fs_xxx")`
+        # an URL and with `os` instead `self.core.call_xxx(Fs.fs_xxx)`
         self.model_path = None
 
         self._init = False
@@ -192,11 +211,11 @@ class Plugin(
         self.config.register()
 
         self.core.call_all(
-            "work_queue_create", "label_sklearn", stop_on_quit=True
+            WorkQueue.work_queue_create, "label_sklearn", stop_on_quit=True
         )
 
         self.core.call_all(
-            "doc_tracker_register",
+            DocTracker.doc_tracker_register,
             "label_guesser",
             self._build_transaction
         )
@@ -212,34 +231,34 @@ class Plugin(
             self._util.SqliteNumpyArrayHandler.register()
 
         data_dir = self.core.call_success(
-            "data_dir_handler_get_individual_data_dir"
+            DataDirHandler.data_dir_handler_get_individual_data_dir,
         )
 
         if self.bayes_dir is None:  # may be set by tests
             self.bayes_dir = self.core.call_success(
-                "fs_join", data_dir, "bayes"
+                Fs.fs_join, data_dir, "bayes"
             )
 
-        self.core.call_success("fs_mkdir_p", self.bayes_dir)
+        self.core.call_success(Fs.fs_mkdir_p, self.bayes_dir)
 
         self.sql_url = self.core.call_success(
-            "fs_join", self.bayes_dir, 'label_guesser.db'
+            Fs.fs_join, self.bayes_dir, 'label_guesser.db'
         )
         self.model_path = self.core.call_success(
-            "fs_unsafe", self.core.call_success(
-                "fs_join", self.bayes_dir, "model.pickle"
+            Fs.fs_unsafe, self.core.call_success(
+                Fs.fs_join, self.bayes_dir, "model.pickle"
             )
         )
         LOGGER.info("Initializing guesswork.label.sklearn database %s", self.sql_url)
         sql = self.core.call_success(
-            "sqlite_open",
+            Sqlite.sqlite_open,
             self.sql_url,
             detect_types=sqlite3.PARSE_DECLTYPES,
             timeout=60
         )
         for query in CREATE_TABLES:
             sql.execute(query)
-        self.core.call_success("sqlite_close", sql)
+        self.core.call_success(Sqlite.sqlite_close, sql)
 
         self._init = True
 
@@ -256,7 +275,7 @@ class Plugin(
     def on_quit(self):
         self._init = False
 
-    def reload_label_guessers(self):
+    def _reload_label_guessers(self):
         self._lazy_init()
         assert self._util is not None
 
@@ -265,10 +284,7 @@ class Plugin(
         promise = openpaperwork_core.promise.ThreadedPromise(
             self.core, self._util._reload_label_guessers, kwargs={"plugin": self},
         )
-        self.core.call_all("work_queue_cancel_all", "label_sklearn")
+        self.core.call_all(WorkQueue.work_queue_cancel_all, "label_sklearn")
         self.core.call_success(
-            "work_queue_add_promise", "label_sklearn", promise
+            WorkQueue.work_queue_add_promise, "label_sklearn", promise
         )
-
-    def tests_cleanup(self):
-        self._init = False

@@ -1,7 +1,11 @@
 import logging
 import subprocess
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
+
+from paperwork_backend.interfaces.shell_hooks import ShellHooks
+from paperwork_backend.interfaces.sync import DocTracker
 import paperwork_backend.sync
 
 
@@ -40,23 +44,19 @@ class DocTransactionHooks(paperwork_backend.sync.BaseTransaction):
         super().cancel()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "shell_hooks",
-            "syncable",
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ShellHooks,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'doc_tracking',
+                'interface': DocTracker,
                 'defaults': ['paperwork_backend.doctracker'],
             },
         ]
@@ -71,20 +71,20 @@ class Plugin(openpaperwork_core.PluginBase):
         self._register_config("on_sync_failed")
 
         self.core.call_all(
-            "doc_tracker_register",
+            DocTracker.doc_tracker_register,
             "shell_hooks",
             lambda sync, total_expected: DocTransactionHooks(self, total_expected),
         )
 
     def _register_config(self, hook_name):
         opt = self.core.call_success(
-            "config_build_simple",
+            Config.config_build_simple,
             "shell_hooks", hook_name, lambda: ""
         )
-        self.core.call_all("config_register", f"shell_hook_{hook_name}", opt)
+        self.core.call_all(Config.config_register, f"shell_hook_{hook_name}", opt)
 
     def _run_hook(self, hook_name, *args):
-        cmd = self.core.call_success("config_get", f"shell_hook_{hook_name}")
+        cmd = self.core.call_success(Config.config_get, f"shell_hook_{hook_name}")
         if cmd is None:
             return
         cmd = cmd.strip()

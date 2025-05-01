@@ -6,8 +6,15 @@ import unittest
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core
 import openpaperwork_core.fs
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.sync import Syncable
 
 
 class TestCropping(unittest.TestCase):
@@ -46,26 +53,41 @@ class TestCropping(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                Pillow,
+            ):
                 PRIORITY = 10000000000
+
+                def url_to_img_size(self, file_url):
+                    pass
+
+                def url_to_img_size_promise(self, file_url):
+                    pass
+
+                def url_to_pillow(self, file_url):
+                    pass
+
+                def url_to_pillow_promise(self, file_url):
+                    pass
 
                 def pillow_to_url(s, img, url):
                     self.pillowed.append((url, img.size))
                     return url
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
 
         self.core.init()
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
+        self.core.call_all(QuitListener.on_quit)
         shutil.rmtree(self.tmp_paperwork_dir)
 
     def test_transaction(self):
         self.core.call_all(
-            "config_put", "scanner_calibration",
+            Config.config_put, "scanner_calibration",
             [10, 10, 20, 25]
         )
         self.model.docs = [
@@ -90,15 +112,16 @@ class TestCropping(unittest.TestCase):
         ]
 
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
 
         for promise in promises:
             promise.schedule()
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            Mainloop.mainloop_quit_graceful,
         )
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.pillowed, [])
 
@@ -126,7 +149,7 @@ class TestCropping(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         transactions.sort(key=lambda transaction: -transaction.priority)
         self.assertNotEqual(transactions, [])
         for t in transactions:
@@ -140,7 +163,7 @@ class TestCropping(unittest.TestCase):
 
     def test_transaction_with_paper_sizes(self):
         self.core.call_all(
-            "config_put", "scanner_calibration",
+            Config.config_put, "scanner_calibration",
             [10, 10, 20, 25]
         )
         self.model.docs = [
@@ -169,15 +192,16 @@ class TestCropping(unittest.TestCase):
         ]
 
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
 
         for promise in promises:
             promise.schedule()
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            Mainloop.mainloop_quit_graceful,
         )
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.pillowed, [])
 
@@ -212,7 +236,7 @@ class TestCropping(unittest.TestCase):
         self.assertEqual(self.pillowed, [])
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         self.assertNotEqual(transactions, [])
         for t in transactions:
             t.upd_doc('some_doc_with_text')
@@ -225,7 +249,7 @@ class TestCropping(unittest.TestCase):
 
     def test_transaction_with_paper_sizes_2(self):
         self.core.call_all(
-            "config_put", "scanner_calibration",
+            Config.config_put, "scanner_calibration",
             None
         )
         self.model.docs = [
@@ -250,15 +274,16 @@ class TestCropping(unittest.TestCase):
         ]
 
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
 
         for promise in promises:
             promise.schedule()
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            Mainloop.mainloop_quit_graceful
         )
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.pillowed, [])
 
@@ -288,7 +313,7 @@ class TestCropping(unittest.TestCase):
         self.assertEqual(self.pillowed, [])
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         self.assertNotEqual(transactions, [])
         for t in transactions:
             t.upd_doc('some_doc_with_text')

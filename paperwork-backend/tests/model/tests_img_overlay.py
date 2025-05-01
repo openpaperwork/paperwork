@@ -1,6 +1,10 @@
 import unittest
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
+
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
 
 
 class TestImg(unittest.TestCase):
@@ -24,22 +28,22 @@ class TestImg(unittest.TestCase):
         }
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=False
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.png")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=True
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.png")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 3, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 3, write=False
         )
         self.assertEqual(img_url, None)
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 3, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 3, write=True
         )
         self.assertEqual(img_url, "file:///some_doc/paper.4.png")
 
@@ -54,12 +58,12 @@ class TestImg(unittest.TestCase):
         }
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=False
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.png")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=True
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.png")
 
@@ -75,7 +79,7 @@ class TestImg(unittest.TestCase):
         }
 
         self.core.call_all(
-            "page_reset_by_url", "file:///some_doc", 1
+            PageManagement.page_reset_by_url, "file:///some_doc", 1
         )
 
         self.assertEqual(self.fs.fs, {
@@ -88,7 +92,7 @@ class TestImg(unittest.TestCase):
         })
 
         self.core.call_all(
-            "page_reset_by_url", "file:///some_doc", 1
+            PageManagement.page_reset_by_url, "file:///some_doc", 1
         )
 
         self.assertEqual(self.fs.fs, {
@@ -101,7 +105,7 @@ class TestImg(unittest.TestCase):
         })
 
     def test_get_jpg_img_urls(self):
-        self.core.call_all("config_put", "model_img_overlay_format", "JPEG")
+        self.core.call_all(Config.config_put, "model_img_overlay_format", "JPEG")
 
         self.fs.fs = {
             "some_doc": {
@@ -112,28 +116,28 @@ class TestImg(unittest.TestCase):
         }
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=False
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.jpg")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=True
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.jpg")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 3, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 3, write=False
         )
         self.assertEqual(img_url, None)
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 3, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 3, write=True
         )
         # paperwork_backend.model.img remains configured to use PNG
         self.assertEqual(img_url, "file:///some_doc/paper.4.png")
 
     def test_get_jpg_edited_img_urls(self):
-        self.core.call_all("config_put", "model_img_overlay_format", "JPEG")
+        self.core.call_all(Config.config_put, "model_img_overlay_format", "JPEG")
 
         self.fs.fs = {
             "some_doc": {
@@ -145,17 +149,17 @@ class TestImg(unittest.TestCase):
         }
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=False
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=False
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.jpg")
 
         img_url = self.core.call_success(
-            "page_get_img_url", "file:///some_doc", 1, write=True
+            PageImg.page_get_img_url, "file:///some_doc", 1, write=True
         )
         self.assertEqual(img_url, "file:///some_doc/paper.2.edited.jpg")
 
     def test_jpg_reset_img(self):
-        self.core.call_all("config_put", "model_img_overlay_format", "JPEG")
+        self.core.call_all(Config.config_put, "model_img_overlay_format", "JPEG")
 
         self.fs.fs = {
             "some_doc": {
@@ -168,7 +172,7 @@ class TestImg(unittest.TestCase):
         }
 
         self.core.call_all(
-            "page_reset_by_url", "file:///some_doc", 1
+            PageManagement.page_reset_by_url, "file:///some_doc", 1
         )
 
         self.assertEqual(self.fs.fs, {
@@ -181,7 +185,7 @@ class TestImg(unittest.TestCase):
         })
 
         self.core.call_all(
-            "page_reset_by_url", "file:///some_doc", 1
+            PageManagement.page_reset_by_url, "file:///some_doc", 1
         )
 
         self.assertEqual(self.fs.fs, {

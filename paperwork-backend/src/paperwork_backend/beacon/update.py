@@ -7,7 +7,12 @@ import openpaperwork_core
 import openpaperwork_core.beacon
 import openpaperwork_core.promise
 
-from .. import _version
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.http_json import HttpJson
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from paperwork_backend.interfaces.update_detection import UpdateDetection
+from paperwork_backend.interfaces.update_detection import UpdateDetectionListener
+import paperwork_backend._version
 
 
 LOGGER = logging.getLogger(__name__)
@@ -16,29 +21,29 @@ UPDATE_CHECK_INTERVAL = datetime.timedelta(days=7)
 UPDATE_PATH = "/beacon/latest"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["update_detection"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    UpdateDetection,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'http_json',
+                'interface': HttpJson,
                 'defaults': ['openpaperwork_core.http.client'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": UpdateDetectionListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -50,27 +55,27 @@ class Plugin(openpaperwork_core.PluginBase):
             self.update_check,
             self.update_compare
         )
-        self.http = self.core.call_success("http_json_get_client", "update")
+        self.http = self.core.call_success(HttpJson.http_json_get_client, "update")
         self._register_config(core)
         self.periodic.register_config(core)
 
-        if self.core.call_success("config_get", "check_for_update"):
-            self.core.call_all("mainloop_schedule", self.periodic.do, core)
+        if self.core.call_success(Config.config_get, "check_for_update"):
+            self.core.call_all(Mainloop.mainloop_schedule, self.periodic.do, core)
 
     def _register_config(self, core):
         setting = self.core.call_success(
-            "config_build_simple", "update",
+            Config.config_build_simple, "update",
             "enabled", lambda: False
         )
         self.core.call_all(
-            "config_register", "check_for_update", setting
+            Config.config_register, "check_for_update", setting
         )
         setting = self.core.call_success(
-            "config_build_simple", "update",
-            "last_update_found", lambda: _version.version
+            Config.config_build_simple, "update",
+            "last_update_found", lambda: paperwork_backend._version.version
         )
         self.core.call_all(
-            "config_register", "last_update_found", setting
+            Config.config_register, "last_update_found", setting
         )
 
     def _parse_version(self, version):
@@ -89,9 +94,9 @@ class Plugin(openpaperwork_core.PluginBase):
             latest_version = update_data['paperwork'][os.name]
             LOGGER.info("Version advertised: %s", latest_version)
             self.core.call_all(
-                "config_put", "last_update_found", latest_version
+                Config.config_put, "last_update_found", latest_version
             )
-            self.core.call_all("config_save")
+            self.core.call_all(Config.config_save)
             self.update_compare()
 
         promise = openpaperwork_core.promise.Promise(self.core, lambda: "")
@@ -105,13 +110,13 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def update_compare(self):
         remote_version = self.core.call_success(
-            "config_get", "last_update_found"
+            Config.config_get, "last_update_found"
         )
         remote_version = self._parse_version(remote_version)
         LOGGER.info("Remote version: %s", remote_version)
-        local_version = self._parse_version(_version.version)
+        local_version = self._parse_version(paperwork_backend._version.version)
         LOGGER.info("Current version: %s", local_version)
         if remote_version > local_version:
             self.core.call_all(
-                "on_update_detected", local_version, remote_version
+                UpdateDetectionListener.on_update_detected, local_version, remote_version
             )

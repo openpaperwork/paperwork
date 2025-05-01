@@ -1,10 +1,20 @@
 import logging
 import random
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabelListener
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.sync import Syncable
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +41,7 @@ COLOR_NAMES = [
 ]
 
 
-class LabelLoader(object):
+class LabelLoader:
     """
     Go through all the documents to figure out what labels exist.
     """
@@ -43,11 +53,11 @@ class LabelLoader(object):
     def get_promise(self):
         promise = openpaperwork_core.promise.ThreadedPromise(
             self.core, self.core.call_all,
-            args=("storage_get_all_docs", self.all_docs)
+            args=(DocStorage.storage_get_all_docs, self.all_docs)
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, "on_label_loading_start",
+            self.core.call_all, DocLabelListener.on_label_loading_start,
         )
         promise = promise.then(
             openpaperwork_core.promise.ThreadedPromise(
@@ -56,7 +66,7 @@ class LabelLoader(object):
         )
         promise = promise.then(lambda *args, **kwargs: None)
         promise = promise.then(
-            self.core.call_all, "on_label_loading_end"
+            self.core.call_all, DocLabelListener.on_label_loading_end,
         )
 
         return promise
@@ -67,7 +77,7 @@ class LabelLoader(object):
         LOGGER.info("Loading labels from %d documents", nb_docs)
         for (doc_idx, (doc_id, doc_url)) in enumerate(self.all_docs):
             self.core.call_all(
-                "on_progress", "label_loading",
+                ProgressListener.on_progress, "label_loading",
                 doc_idx / nb_docs,
                 _("Loading labels of document {}").format(doc_id)
             )
@@ -75,41 +85,46 @@ class LabelLoader(object):
             self.plugin.doc_get_labels_by_url(labels, doc_url)
             for label in labels:
                 self.plugin.all_labels[label[0]] = label[1]
-        self.core.call_all("on_progress", "label_loading", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "label_loading", 1.0)
         LOGGER.info(
             "%d labels loaded from %d documents",
             len(self.plugin.all_labels), nb_docs
         )
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocLabelColors,
+    DocLabels,
+    DocType,
+    Syncable,
+):
     PRIORITY = 20000
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "doc_labels",
-            "syncable",
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'document_storage',
+                "interface": DocLabelListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -118,27 +133,35 @@ class Plugin(openpaperwork_core.PluginBase):
         # {label_name: color, label_name: color, ...}
         self.all_labels = {}
 
+    @openpaperwork_core.noop
+    def is_doc(self, doc_url):
+        pass
+
     def doc_internal_get_mtime_by_url(self, out: list, doc_url):
         labels_url = self.core.call_success(
-            "fs_join", doc_url, LABELS_FILENAME
+            Fs.fs_join, doc_url, LABELS_FILENAME
         )
-        if self.core.call_success("fs_exists", labels_url) is None:
+        if self.core.call_success(Fs.fs_exists, labels_url) is None:
             return
-        out.append(self.core.call_success("fs_get_mtime", labels_url))
+        out.append(self.core.call_success(Fs.fs_get_mtime, labels_url))
+
+    @openpaperwork_core.noop
+    def doc_internal_get_nb_pages_by_url(self, out: list, doc_url):
+        pass
 
     def doc_has_labels_by_url(self, doc_url):
         labels_url = self.core.call_success(
-            "fs_join", doc_url, LABELS_FILENAME
+            Fs.fs_join, doc_url, LABELS_FILENAME
         )
-        return self.core.call_success("fs_exists", labels_url)
+        return self.core.call_success(Fs.fs_exists, labels_url)
 
     def doc_get_labels_by_url(self, out: set, doc_url):
         labels_url = self.core.call_success(
-            "fs_join", doc_url, LABELS_FILENAME
+            Fs.fs_join, doc_url, LABELS_FILENAME
         )
-        if self.core.call_success("fs_exists", labels_url) is None:
+        if self.core.call_success(Fs.fs_exists, labels_url) is None:
             return
-        with self.core.call_success("fs_open", labels_url, 'r') as file_desc:
+        with self.core.call_success(Fs.fs_open, labels_url, 'r') as file_desc:
             for line in file_desc.readlines():
                 line = line.strip()
                 if line == "":
@@ -198,9 +221,9 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Adding label '%s' on document '%s'", label, doc_url)
 
         labels_url = self.core.call_success(
-            "fs_join", doc_url, LABELS_FILENAME
+            Fs.fs_join, doc_url, LABELS_FILENAME
         )
-        with self.core.call_success("fs_open", labels_url, 'a') as file_desc:
+        with self.core.call_success(Fs.fs_open, labels_url, 'a') as file_desc:
             file_desc.write("{},{}\n".format(label, color))
 
         if label not in self.all_labels:
@@ -212,12 +235,12 @@ class Plugin(openpaperwork_core.PluginBase):
         LOGGER.info("Removing label '%s' from document '%s'", label, doc_url)
 
         labels_url = self.core.call_success(
-            "fs_join", doc_url, LABELS_FILENAME
+            Fs.fs_join, doc_url, LABELS_FILENAME
         )
-        if self.core.call_success("fs_exists", labels_url) is None:
+        if self.core.call_success(Fs.fs_exists, labels_url) is None:
             return
 
-        with self.core.call_success("fs_open", labels_url, 'r') as file_desc:
+        with self.core.call_success(Fs.fs_open, labels_url, 'r') as file_desc:
             labels = file_desc.readlines()
 
         labels = [lab.strip() for lab in labels]
@@ -234,7 +257,7 @@ class Plugin(openpaperwork_core.PluginBase):
         labels = [(label, color) for (label, color) in labels.items()]
         labels.sort()
 
-        with self.core.call_success("fs_open", labels_url, "w") as file_desc:
+        with self.core.call_success(Fs.fs_open, labels_url, "w") as file_desc:
             for (label, color) in labels:
                 file_desc.write("{},{}\n".format(label, color))
         return True
@@ -300,12 +323,12 @@ class Plugin(openpaperwork_core.PluginBase):
             name
         )
 
-    def label_load_all(self, promises: list):
+    def label_load_all(self, out_promises: list):
         self.all_labels = {}
         promise = LabelLoader(self).get_promise()
         # drop the return value of 'call_all'
         promise = promise.then(lambda *args, **kwargs: None)
-        promises.append(promise)
+        out_promises.append(promise)
 
     def sync(self, promises: list):
         self.label_load_all(promises)

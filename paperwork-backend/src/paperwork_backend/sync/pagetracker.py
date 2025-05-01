@@ -8,7 +8,18 @@ OCR-ed and which haven't.
 """
 import logging
 
+from openpaperwork_core.interfaces.data_versioning import DataVersioning
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.sqlite import Sqlite
 import openpaperwork_core
+
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import Pages
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.interfaces.sync import AbstractPageTracker
+from paperwork_backend.interfaces.sync import PageTracker as PageTrackerInterface
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,27 +36,27 @@ CREATE_TABLES = [
 ]
 
 
-class PageTracker(object):
+class PageTracker(AbstractPageTracker):
     def __init__(self, core, sql_url):
         self.core = core
         self.sql = self.core.call_one(
-            "sqlite_execute",
+            Sqlite.sqlite_execute,
             self.core.call_success,
-            "sqlite_open", sql_url
+            Sqlite.sqlite_open, sql_url
         )
         for query in CREATE_TABLES:
-            self.core.call_one("sqlite_execute", self.sql.execute, query)
+            self.core.call_one(Sqlite.sqlite_execute, self.sql.execute, query)
 
         self.core.call_one(
-            "sqlite_execute", self.sql.execute, "BEGIN TRANSACTION"
+            Sqlite.sqlite_execute, self.sql.execute, "BEGIN TRANSACTION"
         )
 
     def _close(self):
         LOGGER.info("Closing page tracker db ...")
         self.core.call_one(
-            "sqlite_execute",
+            Sqlite.sqlite_execute,
             self.core.call_success,
-            "sqlite_close", self.sql
+            Sqlite.sqlite_close, self.sql
         )
         self.sql = None
 
@@ -53,14 +64,14 @@ class PageTracker(object):
         if self.sql is None:
             return
         self.core.call_one(
-            "sqlite_execute", self.sql.execute, "ROLLBACK"
+            Sqlite.sqlite_execute, self.sql.execute, "ROLLBACK"
         )
         self._close()
 
     def commit(self):
         if self.sql is None:
             return
-        self.core.call_one("sqlite_execute", self.sql.execute, "COMMIT")
+        self.core.call_one(Sqlite.sqlite_execute, self.sql.execute, "COMMIT")
         self._close()
 
     def find_changes(self, doc_id, doc_url):
@@ -73,24 +84,24 @@ class PageTracker(object):
         out = []
 
         db_pages = self.core.call_one(
-            "sqlite_execute", self.sql.execute,
+            Sqlite.sqlite_execute, self.sql.execute,
             "SELECT page, hash FROM pages"
             " WHERE doc_id = ?",
             (doc_id,)
         )
         db_pages = self.core.call_one(
-            "sqlite_execute",
+            Sqlite.sqlite_execute,
             lambda pages: {r[0]: int(r[1], 16) for r in pages}, db_pages
         )
         db_hashes = set(db_pages.values())
 
         fs_nb_pages = self.core.call_success(
-            "doc_get_nb_pages_by_url", doc_url
+            Docs.doc_get_nb_pages_by_url, doc_url
         ) or 0
         fs_pages = {}
         for page_idx in range(0, fs_nb_pages):
             fs_pages[page_idx] = self.core.call_success(
-                "page_get_hash_by_url", doc_url, page_idx
+                Pages.page_get_hash_by_url, doc_url, page_idx
             )
 
         for (page_idx, fs_page_hash) in fs_pages.items():
@@ -107,7 +118,7 @@ class PageTracker(object):
 
         for (db_page_idx, h) in db_pages.items():
             self.core.call_one(
-                "sqlite_execute", self.sql.execute,
+                Sqlite.sqlite_execute, self.sql.execute,
                 "DELETE FROM pages"
                 " WHERE doc_id = ? AND page = ?",
                 (doc_id, db_page_idx)
@@ -116,14 +127,11 @@ class PageTracker(object):
         return out
 
     def ack_page(self, doc_id, doc_url, page_idx):
-        """
-        Mark the page update has handled.
-        """
         page_hash = self.core.call_success(
-            "page_get_hash_by_url", doc_url, page_idx
+            Pages.page_get_hash_by_url, doc_url, page_idx
         )
         self.core.call_one(
-            "sqlite_execute", self.sql.execute,
+            Sqlite.sqlite_execute, self.sql.execute,
             "INSERT OR REPLACE"
             " INTO pages (doc_id, page, hash)"
             " VALUES (?, ?, ?)",
@@ -132,55 +140,62 @@ class PageTracker(object):
 
     def delete_doc(self, doc_id):
         self.core.call_one(
-            "sqlite_execute", self.sql.execute,
+            Sqlite.sqlite_execute, self.sql.execute,
             "DELETE FROM pages WHERE doc_id = ?",
             (doc_id,)
         )
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['page_tracking']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PageTrackerInterface,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'data_dir_handler',
+                'interface': DataDirHandler,
                 'defaults': ['paperwork_backend.datadirhandler'],
             },
             {
-                'interface': 'data_versioning',
+                'interface': DataVersioning,
                 'defaults': ['openpaperwork_core.data_versioning'],
             },
             {
-                'interface': 'fs',
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+            },
+            {
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio']
             },
             {
-                'interface': 'page_boxes',
+                'interface': Pages,
+                'defaults': ['paperwork_backend.model'],
+            },
+            {
+                'interface': PageText,
                 'defaults': ['paperwork_backend.model.hocr'],
             },
             {
-                'interface': 'page_img',
+                'interface': PageImg,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
             },
             {
-                'interface': 'sqlite',
+                'interface': Sqlite,
                 'defaults': ['openpaperwork_core.sqlite'],
             },
         ]
 
-    def page_tracker_get(self, tracking_id):
+    def page_tracker_get(self, tracking_id) -> AbstractPageTracker:
         paperwork_dir = self.core.call_success(
-            "data_dir_handler_get_individual_data_dir"
+            DataDirHandler.data_dir_handler_get_individual_data_dir
         )
         sql_file = self.core.call_success(
-            "fs_join", paperwork_dir,
+            Fs.fs_join, paperwork_dir,
             'page_tracking_{}.db'.format(tracking_id)
         )
         return PageTracker(self.core, sql_file)

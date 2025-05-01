@@ -2,6 +2,9 @@ import unittest
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.docs import DocExtraText
+from paperwork_backend.interfaces.docs import DocText
+
 
 class TestExtraText(unittest.TestCase):
     def setUp(self):
@@ -18,12 +21,12 @@ class TestExtraText(unittest.TestCase):
         }
 
         self.core.call_all(
-            "doc_set_extra_text_by_url",
+            DocExtraText.doc_set_extra_text_by_url,
             "file:///some_doc", "some\ntext"
         )
 
         text = []
         self.core.call_all(
-            "doc_get_text_by_url", text, "file:///some_doc"
+            DocText.doc_get_text_by_url, text, "file:///some_doc"
         )
         self.assertEqual(text, ['some\ntext'])

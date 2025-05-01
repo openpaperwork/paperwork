@@ -1,9 +1,16 @@
 import logging
 import re
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 
-from . import util
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.doc_storage import DocStorageCache
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.pages import PageType
+import paperwork_backend.model.util
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,62 +26,60 @@ PAGE_FILENAME_REGEX = re.compile(
 )
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocType,
+    DocStorageCache,
+    PageImg,
+    PageManagement,
+    PageType,
+):
     PRIORITY = 100
 
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "doc_type",
-            "page_img",
-            'pages',
-        ]
+    @openpaperwork_core.noop
+    def flush_doc_cache(self, doc_url):
+        pass
 
     @classmethod
     def get_deps(cls):
-        return [
+        return paperwork_backend.model.util.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
-            },
-            {
-                # to provide doc_get_nb_pages_by_url()
-                'interface': 'nb_pages',
-                'defaults': ['paperwork_backend.model'],
             },
         ]
 
     def __init__(self, core):
         super().__init__(core)
         setting = self.core.call_success(
-            "config_build_simple", "model",
+            Config.config_build_simple, "model",
             "img_format", lambda: "PNG"
         )
         self.core.call_all(
-            "config_register", "model_img_format", setting
+            Config.config_register, "model_img_format", setting
         )
 
     def is_doc(self, doc_url):
         for filename_fmt in PAGE_FILENAME_FMTS:
             page_url = self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(1)
+                Fs.fs_join, doc_url, filename_fmt.format(1)
             )
-            if self.core.call_success("fs_exists", page_url) is not None:
+            if self.core.call_success(Fs.fs_exists, page_url) is not None:
                 return True
         return None
 
     def doc_internal_get_mtime_by_url(self, out: list, doc_url):
-        mtime = util.get_doc_mtime(self.core, doc_url, PAGE_FILENAME_REGEX)
+        mtime = paperwork_backend.model.util.get_doc_mtime(self.core, doc_url, PAGE_FILENAME_REGEX)
         if mtime is not None:
             out.append(mtime)
 
     def page_internal_get_mtime_by_url(self, out: list, doc_url, page_idx):
         for filename_fmt in PAGE_FILENAME_FMTS:
-            mtime = util.get_page_mtime(
+            mtime = paperwork_backend.model.util.get_page_mtime(
                 self.core, doc_url, page_idx, filename_fmt
             )
             if mtime is not None:
@@ -83,41 +88,45 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def page_internal_get_hash_by_url(self, out: list, doc_url, page_idx):
         for filename_fmt in PAGE_FILENAME_FMTS:
-            h = util.get_page_hash(self.core, doc_url, page_idx, filename_fmt)
+            h = paperwork_backend.model.util.get_page_hash(
+                self.core, doc_url, page_idx, filename_fmt
+            )
             if h is not None:
                 out.append(h)
                 break
 
     def doc_internal_get_nb_pages_by_url(self, out: list, doc_url):
-        nb_pages = util.get_nb_pages(self.core, doc_url, PAGE_FILENAME_REGEX)
+        nb_pages = paperwork_backend.model.util.get_nb_pages(
+            self.core, doc_url, PAGE_FILENAME_REGEX
+        )
         if nb_pages is None:
             return
         out.append(nb_pages)
 
     def page_get_img_url(self, doc_url, page_idx, write=False, **kwargs):
         if write:
-            self.core.call_success("fs_mkdir_p", doc_url)
+            self.core.call_success(Fs.fs_mkdir_p, doc_url)
         for filename_fmt in PAGE_FILENAME_FMTS:
             page_url = self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(page_idx + 1)
+                Fs.fs_join, doc_url, filename_fmt.format(page_idx + 1)
             )
-            if self.core.call_success("fs_exists", page_url) is not None:
+            if self.core.call_success(Fs.fs_exists, page_url) is not None:
                 return page_url
         if write:
-            img_fmt = self.core.call_success("config_get", "model_img_format")
+            img_fmt = self.core.call_success(Config.config_get, "model_img_format")
             if img_fmt == "PNG":
                 filename_fmt = PAGE_FILENAME_PNG_FMT
             else:
                 filename_fmt = PAGE_FILENAME_JPG_FMT
             return self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(page_idx + 1)
+                Fs.fs_join, doc_url, filename_fmt.format(page_idx + 1)
             )
         return None
 
     def page_delete_by_url(self, doc_url, page_idx):
         r = None
         for filename_fmt in PAGE_FILENAME_FMTS:
-            r = util.delete_page_file(
+            r = paperwork_backend.model.util.delete_page_file(
                 self.core, filename_fmt, doc_url, page_idx
             ) or r
         return r
@@ -129,9 +138,17 @@ class Plugin(openpaperwork_core.PluginBase):
             ):
         r = None
         for filename_fmt in PAGE_FILENAME_FMTS:
-            r = util.move_page_file(
+            r = paperwork_backend.model.util.move_page_file(
                 self.core, filename_fmt,
                 source_doc_url, source_page_idx,
                 dest_doc_url, dest_page_idx
             ) or r
         return r
+
+    @openpaperwork_core.noop
+    def page_get_paper_size_by_url(self, doc_url, page_idx):
+        pass
+
+    @openpaperwork_core.noop
+    def page_reset_by_url(self, doc_url, page_idx):
+        pass

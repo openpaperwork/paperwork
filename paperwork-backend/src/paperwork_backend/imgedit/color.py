@@ -2,7 +2,8 @@ import pillowfight
 
 import openpaperwork_core
 
-from . import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import ImgEditorFactory
 
 
 class ColorImgEditor(AbstractImgEditor):
@@ -11,13 +12,18 @@ class ColorImgEditor(AbstractImgEditor):
             img, samples=50 if preview else 200
         )
 
+    def transform_frame(self, img_size, frame):
+        return frame
 
-class Plugin(openpaperwork_core.PluginBase):
+    def untransform_frame(self, img_size, frame):
+        return frame
+
+
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ImgEditorFactory,
+):
     NAME = 'color_equalization'
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['img_editor']
 
     def img_editor_get_names(self, out: list):
         out.append(self.NAME)

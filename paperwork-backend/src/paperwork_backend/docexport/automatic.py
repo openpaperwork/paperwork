@@ -5,6 +5,8 @@ from paperwork_backend.docexport import (
     ExportData,
     ExportDataType
 )
+from paperwork_backend.interfaces.doc_pdf import DocPdf
+from paperwork_backend.interfaces.export import ExportPipes
 
 
 class AutomaticPdfExportPipe(AbstractExportPipe):
@@ -24,21 +26,30 @@ class AutomaticPdfExportPipe(AbstractExportPipe):
         self.can_change_quality = True
         self.can_change_page_format = True
 
-        self.pipes_original_pdf = [
-            self.core.call_success("export_get_pipe_by_name", "unmodified_pdf")
-        ]
-        assert None not in self.pipes_original_pdf
-        self.pipes_generated_pdf = [
-            self.core.call_success("export_get_pipe_by_name", "doc_to_pages"),
-            self.core.call_success("export_get_pipe_by_name", "img_boxes"),
-            self.core.call_success("export_get_pipe_by_name", "generated_pdf"),
-        ]
-        assert None not in self.pipes_generated_pdf
+        self.pipes_original_pdf = None
+        self.pipes_generated_pdf = None
+
+    def _lazy_init(self):
+        if self.pipes_original_pdf is None:
+            self.pipes_original_pdf = [
+                self.core.call_success(ExportPipes.export_get_pipe_by_name, "unmodified_pdf")
+            ]
+            self.pipes_original_pdf = [x for x in self.pipes_original_pdf if x is not None]
+
+        if self.pipes_generated_pdf is None:
+            self.pipes_generated_pdf = [
+                self.core.call_success(ExportPipes.export_get_pipe_by_name, "doc_to_pages"),
+                self.core.call_success(ExportPipes.export_get_pipe_by_name, "img_boxes"),
+                self.core.call_success(ExportPipes.export_get_pipe_by_name, "generated_pdf"),
+            ]
+            self.pipes_generated_pdf = [x for x in self.pipes_generated_pdf if x is not None]
 
     def can_export_doc(self, doc_url):
-        return True
+        self._lazy_init()
+        return len(self.pipes_original_pdf) > 0 and len(self.pipes_generated_pdf) > 0
 
     def export(self, input_data, result="final", target_file_url=None):
+        self._lazy_init()
         assert input_data.dtype == ExportDataType.DOCUMENT_SET
         list_docs = input_data.iter(ExportDataType.DOCUMENT)
         out_files = []
@@ -56,12 +67,13 @@ class AutomaticPdfExportPipe(AbstractExportPipe):
                 out_url = f"{out_url[0]}_{doc_id}.{out_url[1]}"
 
             pdf_url = self.core.call_success(
-                "doc_get_pdf_url_by_url", doc_url, allow_mapped=False
+                DocPdf.doc_get_pdf_url_by_url, doc_url, allow_mapped=False
             )
             if pdf_url is not None:
                 pipes = self.pipes_original_pdf
             else:
                 pipes = self.pipes_generated_pdf
+            assert len(pipes) > 0
 
             r = doc_input
             for pipe in pipes:
@@ -86,16 +98,8 @@ class Plugin(AbstractExportPipePlugin):
     def get_deps(cls):
         return super().get_deps() + [
             {
-                "interface": "export_pipes_generic",
-                "defaults": ["paperwork_backend.docexport.generic"],
-            },
-            {
-                "interface": "export_pipes_img",
-                "defaults": ["paperwork_backend.docexport.img"],
-            },
-            {
-                "interface": "export_pipes_pdf",
-                "defaults": ["paperwork_backend.docexport.pdf"],
+                'interface': DocPdf,
+                'defaults': ['paperwork_backend.model.pdf'],
             },
         ]
 

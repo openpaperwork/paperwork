@@ -11,7 +11,14 @@ import base64
 import hashlib
 import os
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.paths import Paths
 import openpaperwork_core
+
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.data_dir_handler import DataDirListener
+from paperwork_backend.interfaces.doc_storage import DocStorage
 
 
 LOGGER = logging.getLogger(__name__)
@@ -19,38 +26,49 @@ LOGGER = logging.getLogger(__name__)
 WORK_DIR_NAME = "workdir_data"
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["data_dir_handler"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DataDirHandler,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
-                'defaults': ['openpaperwork_gtk.fs.gio'],
+                'interface': Config,
+                'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'paths',
-                'defaults': ['openpaperwork_core.paths.xdg'],
+                "interface": DataDirListener,
+                "defaults": [],
+                "optional": True,
             },
             {
 
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
+            },
+            {
+                'interface': Fs,
+                'defaults': ['openpaperwork_gtk.fs.gio'],
+            },
+            {
+                'interface': Paths,
+                'defaults': ['openpaperwork_core.paths.xdg'],
             },
         ]
 
     def __init__(self, core):
         super().__init__(core)
         self._delete_old_directories()
+        self.core.call_all(
+            Config.config_add_observer, "workdir", self._on_work_dir_changed
+        )
 
-    def on_storage_changed(self):
+    def _on_work_dir_changed(self):
         LOGGER.info(
             "Work directory has changed --> data directory has to change too"
         )
-        self.core.call_all("on_data_dir_changed")
+        self.core.call_all(DataDirListener.on_data_dir_changed)
 
     @staticmethod
     def _hash_dir(url):
@@ -61,23 +79,25 @@ class Plugin(openpaperwork_core.PluginBase):
     def _get_dir_mtime(self, dir_url):
         mtime = 0
         file_urls = self.core.call_success(
-            "fs_recurse", dir_url, dir_included=True
+            Fs.fs_recurse, dir_url, dir_included=True
         )
         for file_url in file_urls:
-            file_mtime = self.core.call_success("fs_get_mtime", file_url)
+            file_mtime = self.core.call_success(Fs.fs_get_mtime, file_url)
             if file_mtime > mtime:
                 mtime = file_mtime
         return mtime
 
     def _delete_old_directories(self, days_to_data_dir_deletion=31):
-        data_dir = self.core.call_success("paths_get_data_dir")
+        data_dir = self.core.call_success(Paths.paths_get_data_dir)
         work_data_dir = self.core.call_success(
-            "fs_join", data_dir, WORK_DIR_NAME)
+            Fs.fs_join, data_dir, WORK_DIR_NAME
+        )
         folder_content = self.core.call_success(
-            "fs_listdir", work_data_dir)
+            Fs.fs_listdir, work_data_dir
+        )
         now = datetime.datetime.now()
         for file in folder_content:
-            if self.core.call_success("fs_isdir", file):
+            if self.core.call_success(Fs.fs_isdir, file):
                 mtime = self._get_dir_mtime(file)
                 modified = datetime.datetime.fromtimestamp(mtime)
                 time_diff = now - modified
@@ -85,17 +105,18 @@ class Plugin(openpaperwork_core.PluginBase):
                     LOGGER.info(
                         "Removing directory %s as it is older than %i days."
                         % (file, days_to_data_dir_deletion))
-                    self.core.call_success("fs_rm_rf", file, trash=False)
+                    self.core.call_success(Fs.fs_rm_rf, file, trash=False)
 
     def data_dir_handler_get_individual_data_dir(self):
-        work_dir = self.core.call_success("storage_get_id")
-        data_dir = self.core.call_success("paths_get_data_dir")
+        work_dir = self.core.call_success(DocStorage.storage_get_id)
+        data_dir = self.core.call_success(Paths.paths_get_data_dir)
         encoded_hash = Plugin._hash_dir(work_dir)
         workdir_data_folder = self.core.call_success(
-            "fs_join", data_dir, WORK_DIR_NAME)
+            Fs.fs_join, data_dir, WORK_DIR_NAME
+        )
         individual_data_dir = self.core.call_success(
-            "fs_join", workdir_data_folder,
+            Fs.fs_join, workdir_data_folder,
             "%s_%s" % (os.path.basename(work_dir), encoded_hash)
         )
-        self.core.call_success("fs_mkdir_p", individual_data_dir)
+        self.core.call_success(Fs.fs_mkdir_p, individual_data_dir)
         return individual_data_dir

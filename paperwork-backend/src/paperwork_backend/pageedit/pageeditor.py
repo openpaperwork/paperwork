@@ -7,16 +7,24 @@ controller object.
 
 import logging
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.img_editor import ImgEditorFactory
+from paperwork_backend.interfaces.page_edit import AbstractPageEditorSession
+from paperwork_backend.interfaces.page_edit import AbstractPageEditorFrame
+from paperwork_backend.interfaces.page_edit import PageEditorFactory
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageText
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Frame(object):
+class Frame(AbstractPageEditorFrame):
     def __init__(self, editor, original):
         # convert the frame coordinates into a more convenient format
         self.editor = editor
@@ -25,8 +33,8 @@ class Frame(object):
     def get(self):
         frame = None
         for (e, img_size) in zip(
-                    self.editor.active_modifiers, self.editor.img_sizes
-                ):
+            self.editor.active_modifiers, self.editor.img_sizes
+        ):
             if hasattr(e, 'frame'):
                 frame = e.frame
             elif frame is not None:
@@ -35,16 +43,16 @@ class Frame(object):
 
     def set(self, frame):
         for (e, img_size) in zip(
-                    reversed(self.editor.active_modifiers),
-                    reversed(self.editor.img_sizes)
-                ):
+            reversed(self.editor.active_modifiers),
+            reversed(self.editor.img_sizes)
+        ):
             if hasattr(e, 'frame'):
                 e.frame = frame
             else:
                 frame = e.untransform_frame(img_size, frame)
 
 
-class PageEditor(object):
+class PageEditorSession(AbstractPageEditorSession):
     def __init__(self, core, doc_url, page_idx, page_editor_ui):
         self.core = core
         self.ui = page_editor_ui
@@ -53,10 +61,10 @@ class PageEditor(object):
 
         if doc_url is not None:
             page_url = self.core.call_success(
-                "page_get_img_url", doc_url, page_idx, write=False
+                PageImg.page_get_img_url, doc_url, page_idx, write=False
             )
             self.original_img = self.core.call_success(
-                "url_to_pillow", page_url
+                Pillow.url_to_pillow, page_url
             )
 
             # The frame coordinates we keep here are relative to the original
@@ -71,7 +79,7 @@ class PageEditor(object):
 
         self.frame = Frame(self, original_frame)
         modifiers = []
-        self.core.call_all("img_editor_get_names", modifiers)
+        self.core.call_all(ImgEditorFactory.img_editor_get_names, modifiers)
 
         self.modifier_descriptors = {}
         if 'color_equalization' in modifiers:
@@ -124,6 +132,9 @@ class PageEditor(object):
             self._refresh_preview()
             self._refresh_frame()
 
+    def get_frame(self):
+        return self.frame
+
     def get_modifiers(self):
         r = list(self.modifier_descriptors.values())
         r.sort(key=lambda m: -m['priority'])
@@ -150,29 +161,27 @@ class PageEditor(object):
         for e in self.active_modifiers:
             self.img_sizes.append(img.size)
             img = e.transform(img, preview=True)
-        self.core.call_one("mainloop_execute", self.ui.show_preview, img)
+        self.core.call_one(Mainloop.mainloop_execute, self.ui.show_preview, img)
 
     def _refresh_frame(self):
         if not self._needs_frame():
-            self.core.call_one("mainloop_execute", self.ui.hide_frame_selector)
+            self.core.call_one(Mainloop.mainloop_execute, self.ui.hide_frame_selector)
             return
-        self.core.call_one(
-            "mainloop_execute", self.ui.show_frame_selector
-        )
+        self.core.call_one(Mainloop.mainloop_execute, self.ui.show_frame_selector)
 
     def _on_modifier_selected(self, modifier_id):
         modifier_descriptor = self.modifier_descriptors[modifier_id]
 
         if modifier_descriptor['togglable'] and modifier_descriptor['enabled']:
             self.core.call_all(
-                "img_editor_unset",
+                ImgEditorFactory.img_editor_unset,
                 self.active_modifiers,
                 modifier_descriptor['modifier']
             )
             modifier_descriptor['enabled'] = False
         else:
             self.core.call_all(
-                "img_editor_set",
+                ImgEditorFactory.img_editor_set,
                 self.active_modifiers,
                 modifier_descriptor['modifier'],
                 **modifier_descriptor['default_kwargs']
@@ -193,15 +202,15 @@ class PageEditor(object):
         for e in self.active_modifiers:
             img = e.transform(img, preview=False)
         page_url = self.core.call_success(
-            "page_get_img_url", self.doc_url, self.page_idx, write=True
+            PageImg.page_get_img_url, self.doc_url, self.page_idx, write=True
         )
-        self.core.call_success("pillow_to_url", img, page_url)
+        self.core.call_success(Pillow.pillow_to_url, img, page_url)
         # Drop the text so the OCR will be run again
         self.core.call_success(
-            "page_set_boxes_by_url", self.doc_url, self.page_idx, []
+            PageText.page_set_boxes_by_url, self.doc_url, self.page_idx, []
         )
         self.core.call_success(
-            "mainloop_schedule", self.ui.on_edit_end,
+            Mainloop.mainloop_schedule, self.ui.on_edit_end,
             self.doc_url, self.page_idx
         )
 
@@ -215,16 +224,15 @@ class PageEditor(object):
         self.ui.on_edit_end(self.doc_url, self.page_idx)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['page_editor']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    PageEditorFactory,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                "interface": "img_editor",
+                "interface": ImgEditorFactory,
                 'defaults': [
                     'paperwork_backend.imgedit.color',
                     'paperwork_backend.imgedit.crop',
@@ -232,21 +240,31 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'pillow',
+                "interface": PageImg,
+                "defaults": [
+                    "paperwork_backend.model.img",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                "interface": PageText,
+                "defaults": [
+                    "paperwork_backend.model.hocr",
+                    "paperwork_backend.model.pdf",
+                ],
+            },
+            {
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ]
             },
-            {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
-            },
         ]
 
-    def page_editor_get(self, doc_url, page_idx, page_editor_ui):
-        return PageEditor(self.core, doc_url, page_idx, page_editor_ui)
+    def page_editor_session_get(self, doc_url, page_idx, page_editor_ui):
+        return PageEditorSession(self.core, doc_url, page_idx, page_editor_ui)

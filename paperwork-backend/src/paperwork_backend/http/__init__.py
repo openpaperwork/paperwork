@@ -2,17 +2,28 @@
 Run an HTTPS exposing the work directory and a document index (sqlite).
 Designed to be used with OpenPaperview
 """
-from typing import BinaryIO, Optional
-import dataclasses
+from typing import Optional
 import email.utils
 import logging
 import ssl
 
+from openpaperwork_core.interfaces.certificate_store import CertificateStore
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.gui import GuiListener
+from openpaperwork_core.interfaces.https_server import AbstractRequestHandler
+from openpaperwork_core.interfaces.https_server import HttpsServer
+from openpaperwork_core.interfaces.networking import NetworkingServiceAnnounce
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.quit import QuitListener
 import openpaperwork_core
 import openpaperwork_core.http.server
 import openpaperwork_core.util
 
 from paperwork_backend import _
+from paperwork_backend.interfaces.http import AbstractBackendReply
+from paperwork_backend.interfaces.http import HttpBackendExtension
+from paperwork_backend.interfaces.http import HttpsBackend
+from paperwork_backend.interfaces.http import HttpsBackendSsl
 
 
 SERVER_CERT_NAME = "backend_https_server"
@@ -22,8 +33,7 @@ CLIENT_CERT_NAME = "backend_https_client"
 LOGGER = logging.getLogger(__name__)
 
 
-@dataclasses.dataclass
-class BackendReply:
+class BackendReply(AbstractBackendReply):
     HTTP_TEXTS = {
         200: "OK",
         304: "Not Modified",
@@ -32,15 +42,6 @@ class BackendReply:
         404: "Not found",
     }
     BUFSIZE = 64 * 1024
-
-    http_code: int
-    content_type: Optional[str] = None
-    content_length: Optional[int] = None
-    last_modified: Optional[int] = None
-    etag: Optional[str] = None
-
-    content_fd: Optional[BinaryIO] = None
-    content_raw: Optional[bytes] = None
 
     def send(self, core, request):
         self._check_cache_time(core, request)
@@ -125,14 +126,14 @@ class BackendReply:
             sent = 0
             while buf := fd.read(self.BUFSIZE):
                 core.call_all(
-                    "on_progress", "http_upload",
+                    ProgressListener.on_progress, "http_upload",
                     0 if self.content_length is None else (sent / self.content_length),
                     _("HTTPS server: Uploading %s") % (request.path)
                 )
                 request.wfile.write(buf)
                 sent += len(buf)
         finally:
-            core.call_all("on_progress", "http_upload", 1.0)
+            core.call_all(ProgressListener.on_progress, "http_upload", 1.0)
 
     def _send_raw(self, core, request, raw):
         try:
@@ -140,15 +141,15 @@ class BackendReply:
                 start = chunk
                 end = chunk + self.BUFSIZE
                 core.call_all(
-                    "on_progress", "http_upload", chunk / len(raw),
+                    ProgressListener.on_progress, "http_upload", chunk / len(raw),
                     _("HTTPS server: Uploading %s") % (request.path)
                 )
                 request.wfile.write(raw[start:end])
         finally:
-            core.call_all("on_progress", "http_upload", 1.0)
+            core.call_all(ProgressListener.on_progress, "http_upload", 1.0)
 
 
-class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
+class BackendRequestHandler(AbstractRequestHandler):
     def __init__(self, core):
         self.core = core
 
@@ -156,10 +157,16 @@ class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
         headers = ", ".join([f"{k}={v}" for (k, v) in request.headers.items()])
         LOGGER.info("%s %s (%s)", verb.upper(), request.path, headers)
         assert self.core is not None
-        if not self.core.call_success("http_backend_ignore_ssl_client_cert", request):
+        if not self.core.call_success(HttpsBackendSsl.http_backend_ignore_ssl_client_cert, request):
             if not request.check_client_cert():
                 return
-        r = self.core.call_success(f"http_backend_{verb.lower()}", request)
+        r = None
+        if verb.lower() == "head":
+            r = self.core.call_success(HttpBackendExtension.http_backend_head, request)
+        elif verb.lower() == "get":
+            r = self.core.call_success(HttpBackendExtension.http_backend_get, request)
+        elif verb.lower() == "post":
+            r = self.core.call_success(HttpBackendExtension.http_backend_post, request)
         if r is None:
             LOGGER.error("%s %s: 404", verb.upper(), request.path)
             request.send_response(404, "Not found")
@@ -180,45 +187,69 @@ class BackendRequestHandler(openpaperwork_core.http.server.BaseRequestHandler):
 class BackendHttpsServer:
     def __init__(self, core):
         self.core = core
-        self.port = self.core.call_success("config_get", "https_port")
+        self.port = self.core.call_success(Config.config_get, "https_port")
         self.server = self.core.call_success(
-            "https_server_start",
+            HttpsServer.https_server_start,
             self.port,
             BackendRequestHandler(core),
             SERVER_CERT_NAME,
-            self.core.call_success("config_get", "https_openpaperview_compatible"),
+            self.core.call_success(Config.config_get, "https_openpaperview_compatible"),
         )
-        self.core.call_all("networking_announce_service", "paperwork", "https", self.port)
+        self.core.call_all(
+            NetworkingServiceAnnounce.networking_announce_service,
+            "paperwork", "https", self.port
+        )
 
     def stop(self):
-        self.core.call_all("networking_unannounce_service", "paperwork", "https", self.port)
+        self.core.call_all(
+            NetworkingServiceAnnounce.networking_unannounce_service,
+            "paperwork", "https", self.port
+        )
         self.server.stop()
 
 
 class Plugin(
-        openpaperwork_core.PluginBase,
-        metaclass=openpaperwork_core.util.Singleton):
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "https_backend",
-        ]
+    openpaperwork_core.PluginBase,
+    GuiListener,
+    HttpsBackend,
+    QuitListener,
+    metaclass=openpaperwork_core.util.Singleton,
+):
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "certificate_store",
+                "interface": CertificateStore,
                 "defaults": ["openpaperwork_core.crypto.certificates.store"],
             },
             {
-                "interface": "config",
+                "interface": Config,
                 "defaults": ["openpaperwork_core.config"],
             },
             {
-                "interface": "https_server",
+                "interface": HttpsServer,
                 "defaults": ["openpaperwork_core.http.server"],
+            },
+            {
+                "interface": HttpBackendExtension,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": HttpsBackendSsl,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": NetworkingServiceAnnounce,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
@@ -228,32 +259,36 @@ class Plugin(
         self.server: Optional[BackendHttpsServer] = None
 
         self.core.call_all(
-            "config_register", "https_server",
+            Config.config_register, "https_server",
             self.core.call_success(
-                "config_build_simple", "local_server", "https_server",
+                Config.config_build_simple, "local_server", "https_server",
                 lambda: False
             )
         )
         self.core.call_all(
-            "config_register", "https_port",
+            Config.config_register, "https_port",
             self.core.call_success(
-                "config_build_simple", "local_server", "https_port",
+                Config.config_build_simple, "local_server", "https_port",
                 lambda: 12346
             )
         )
         self.core.call_all(
-            "config_register", "https_openpaperview_compatible",
+            Config.config_register, "https_openpaperview_compatible",
             self.core.call_success(
-                "config_build_simple", "local_server", "openpaperview_compatible",
+                Config.config_build_simple, "local_server", "openpaperview_compatible",
                 lambda: True
             )
         )
         # We do not always start the HTTPS server now -> we don't
         # want to start it in CLI tools.
 
-    def gtk_init(self, *args, **kwargs):
-        self.core.call_all("config_add_observer", "https_server", self.https_backend_reload)
+    def on_gui_initialized(self):
+        self.core.call_all(Config.config_add_observer, "https_server", self.https_backend_reload)
         self.https_backend_reload()
+
+    @openpaperwork_core.noop
+    def new_mainwindow(self):
+        pass
 
     def on_quit(self, *args, **kwargs):
         if self.server is not None:
@@ -265,29 +300,39 @@ class Plugin(
             self.server.stop()
             self.server = None
 
-        active = self.core.call_success("config_get", "https_server")
+        active = self.core.call_success(Config.config_get, "https_server")
         LOGGER.info("HTTPS server enabled=%s", active)
         if active:
-            server_cert = self.core.call_success("store_certificate_get", SERVER_CERT_NAME)
-            client_cert = self.core.call_success("store_certificate_get", CLIENT_CERT_NAME)
+            server_cert = self.core.call_success(
+                CertificateStore.store_certificate_get, SERVER_CERT_NAME
+            )
+            client_cert = self.core.call_success(
+                CertificateStore.store_certificate_get, CLIENT_CERT_NAME
+            )
             if server_cert is None or client_cert is None:
                 self.https_backend_regenerate_certificates()
             self.server = BackendHttpsServer(self.core)
 
     def https_backend_regenerate_certificates(self):
         server_cert = self.core.call_success(
-            "store_certificate_generate", SERVER_CERT_NAME
+            CertificateStore.store_certificate_generate, SERVER_CERT_NAME
         )
         self.core.call_success(
-            "store_certificate_generate", CLIENT_CERT_NAME,
+            CertificateStore.store_certificate_generate, CLIENT_CERT_NAME,
             parent=server_cert, embed_key=True
         )
 
     def https_backend_get_server_certificate(self):
-        return self.core.call_success("store_certificate_get", SERVER_CERT_NAME)
+        return self.core.call_success(
+            CertificateStore.store_certificate_get, SERVER_CERT_NAME
+        )
 
     def https_backend_get_server_certificate_fingerprint(self):
-        return self.core.call_success("store_certificate_get_fingerprint", SERVER_CERT_NAME)
+        return self.core.call_success(
+            CertificateStore.store_certificate_get_fingerprint, SERVER_CERT_NAME
+        )
 
     def https_backend_get_client_certificate(self):
-        return self.core.call_success("store_certificate_get", CLIENT_CERT_NAME)
+        return self.core.call_success(
+            CertificateStore.store_certificate_get, CLIENT_CERT_NAME
+        )

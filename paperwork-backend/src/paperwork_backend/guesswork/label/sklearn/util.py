@@ -18,7 +18,13 @@ import scipy.sparse
 import sklearn.feature_extraction.text
 import sklearn.naive_bayes
 
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.sqlite import Sqlite
+
 from paperwork_backend import (_, sync)
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import DocText
 
 
 LOGGER = logging.getLogger(__name__)
@@ -162,10 +168,10 @@ class UpdatableVectorizer(object):
         msg = _(
             "Label guesser: Garbage-collecting unused document features ..."
         )
-        self.core.call_all("on_progress", "label_vector_gc", 0.0, msg)
+        self.core.call_all(ProgressListener.on_progress, "label_vector_gc", 0.0, msg)
         for (idx, doc_id) in enumerate(doc_ids):
             self.core.call_all(
-                "on_progress", "label_vector_gc", idx / len(doc_ids), msg
+                ProgressListener.on_progress, "label_vector_gc", idx / len(doc_ids), msg
             )
             doc_vector = self.db_cursor.execute(
                 "SELECT vector FROM features WHERE doc_id = ? LIMIT 1",
@@ -183,14 +189,14 @@ class UpdatableVectorizer(object):
                 "UPDATE features SET vector = ? WHERE doc_id = ?",
                 (doc_vector, doc_id)
             )
-        self.core.call_all("on_progress", "label_vector_gc", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "label_vector_gc", 1.0)
 
         # then we reduce the vocabulary accordingly
         msg = _("Label guesser: Garbage-collecting unused words ...")
-        self.core.call_all("on_progress", "label_vocabulary_gc", 0.0, msg)
+        self.core.call_all(ProgressListener.on_progress, "label_vocabulary_gc", 0.0, msg)
         for (idx, f) in enumerate(to_drop):
             self.core.call_all(
-                "on_progress", "label_vocabulary_gc", idx / len(to_drop), msg
+                ProgressListener.on_progress, "label_vocabulary_gc", idx / len(to_drop), msg
             )
             self.db_cursor.execute(
                 "DELETE FROM vocabulary WHERE feature = ?", (f,)
@@ -199,7 +205,7 @@ class UpdatableVectorizer(object):
                 "UPDATE vocabulary SET feature = feature - 1"
                 " WHERE feature >= ?", (f,)
             )
-        self.core.call_all("on_progress", "label_vocabulary_gc", 1.0, )
+        self.core.call_all(ProgressListener.on_progress, "label_vocabulary_gc", 1.0, )
 
     def copy(self):
         r = UpdatableVectorizer(self.core, self.db_cursor)
@@ -471,7 +477,7 @@ class LabelGuesserTransaction(sync.BaseTransaction):
         if not self.plugin.classifiers_loaded and self.guess_labels:
             # classifiers haven't been loaded at all yet. Now
             # looks like a good time for it (end of initial sync)
-            self.plugin.reload_label_guessers()
+            self.plugin._reload_label_guessers()
         if self.plugin.classifiers is None and self.guess_labels:
             # Before starting the transaction, we wait for the classifiers
             # to be loaded, because we may need them
@@ -479,7 +485,7 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             self.plugin.classifiers_cond.wait()
 
         self.cursor = self.plugin.core.call_success(
-            "sqlite_open",
+            Sqlite.sqlite_open,
             self.plugin.sql_url,
             detect_types=sqlite3.PARSE_DECLTYPES,
         )
@@ -491,10 +497,10 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             # we have a higher priority than index plugins, so it is a good
             # time to update the document labels
 
-            doc_url = self.core.call_success("doc_id_to_url", doc_id)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
             has_labels = self.core.call_success(
-                "doc_has_labels_by_url", doc_url
+                DocLabels.doc_has_labels_by_url, doc_url
             )
             if has_labels is not None:
                 LOGGER.info(
@@ -550,11 +556,11 @@ class LabelGuesserTransaction(sync.BaseTransaction):
     def _upd_doc(self, doc_id):
         self._del_doc(doc_id)
 
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
 
         doc_labels = set()
         if doc_url is not None:
-            self.core.call_all("doc_get_labels_by_url", doc_labels, doc_url)
+            self.core.call_all(DocLabels.doc_get_labels_by_url, doc_labels, doc_url)
         doc_labels = {label[0] for label in doc_labels}
         for doc_label in doc_labels:
             self.cursor.execute(
@@ -564,7 +570,7 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             )
 
         doc_txt = []
-        self.core.call_all("doc_get_text_by_url", doc_txt, doc_url)
+        self.core.call_all(DocText.doc_get_text_by_url, doc_txt, doc_url)
         doc_txt = "\n\n".join(doc_txt).strip()
 
         vector = self.vectorizer.partial_fit_transform([doc_txt])
@@ -580,14 +586,10 @@ class LabelGuesserTransaction(sync.BaseTransaction):
 
     def cancel(self):
         try:
-            self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_label_guesser_canceled"
-            )
             if self.cursor is not None:
                 self.cursor.execute("ROLLBACK")
                 self.core.call_success(
-                    "sqlite_close", self.cursor, optimize=False
+                    Sqlite.sqlite_close, self.cursor, optimize=False
                 )
                 self.cursor = None
             self.notify_done(ID)
@@ -595,7 +597,7 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             if not self.plugin.classifiers_loaded:
                 # classifiers haven't been loaded at all yet. Now
                 # looks like a good time for it (end of initial sync)
-                self.plugin.reload_label_guessers()
+                self.plugin._reload_label_guessers()
         finally:
             if self.lock_acquired:
                 self.plugin.classifiers_cond.release()
@@ -608,21 +610,13 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             if self.nb_changes > 0 and os.path.exists(self.plugin.model_path):
                 os.unlink(self.plugin.model_path)
 
-            self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_label_guesser_commit_start"
-            )
             if self.nb_changes <= 0:
                 assert self.cursor is None
-                self.core.call_success(
-                    "mainloop_schedule", self.core.call_all,
-                    'on_label_guesser_commit_end'
-                )
                 LOGGER.info("Nothing to do. Training left unchanged.")
                 if self.plugin.classifiers is None:
                     # classifiers haven't been loaded at all yet. Now
                     # looks like a good time for it (end of initial sync)
-                    self.plugin.reload_label_guessers()
+                    self.plugin._reload_label_guessers()
                 return
 
             if self.need_gc:
@@ -634,15 +628,11 @@ class LabelGuesserTransaction(sync.BaseTransaction):
             )
 
             self.cursor.execute("COMMIT")
-            self.core.call_success("sqlite_close", self.cursor)
+            self.core.call_success(Sqlite.sqlite_close, self.cursor)
 
-            self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                'on_label_guesser_commit_end'
-            )
             LOGGER.info("Label guessing updated")
 
-            self.plugin.reload_label_guessers()
+            self.plugin._reload_label_guessers()
         finally:
             self.notify_done(ID)
             if self.lock_acquired:
@@ -655,7 +645,7 @@ def _reload_label_guessers(plugin):
         try:
             LOGGER.info("Opening DB %s", plugin.sql_url)
             cursor = plugin.core.call_one(
-                "sqlite_open",
+                Sqlite.sqlite_open,
                 plugin.sql_url,
                 detect_types=sqlite3.PARSE_DECLTYPES,
             )
@@ -669,7 +659,7 @@ def _reload_label_guessers(plugin):
                 )
             finally:
                 cursor.execute("ROLLBACK")
-                plugin.core.call_one("sqlite_close", cursor, optimize=False)
+                plugin.core.call_one(Sqlite.sqlite_close, cursor, optimize=False)
         finally:
             plugin.classifiers_cond.notify_all()
 
@@ -700,7 +690,7 @@ def _load_classifiers(plugin, model_path, cursor, vectorizer):
     msg = _("Label guessing: Training ...")
 
     try:
-        plugin.core.call_all("on_progress", "label_classifiers", 0.0, msg)
+        plugin.core.call_all(ProgressListener.on_progress, "label_classifiers", 0.0, msg)
 
         corpus = Corpus.load(plugin.config, cursor)
 
@@ -752,7 +742,7 @@ def _load_classifiers(plugin, model_path, cursor, vectorizer):
 
                     (batch_corpus, batch_targets) = next(batch_iterator)
                     plugin.core.call_all(
-                        "on_progress", "label_classifiers", done / total,
+                        ProgressListener.on_progress, "label_classifiers", done / total,
                         _("Label guessing: Training ...")
                     )
                     classifiers[label].partial_fit(
@@ -785,13 +775,13 @@ def _load_classifiers(plugin, model_path, cursor, vectorizer):
             pickle.dump((reductor, classifiers), fd)
         return (reductor, classifiers)
     finally:
-        plugin.core.call_all("on_progress", "label_classifiers", 1.0, msg)
+        plugin.core.call_all(ProgressListener.on_progress, "label_classifiers", 1.0, msg)
 
 
 def _guess(plugin, vectorizer, reductor, classifiers, doc_url):
     LOGGER.info("Guessing labels on %s", doc_url)
     doc_txt = []
-    plugin.core.call_all("doc_get_text_by_url", doc_txt, doc_url)
+    plugin.core.call_all(DocText.doc_get_text_by_url, doc_txt, doc_url)
     doc_txt = "\n\n".join(doc_txt).strip()
     if doc_txt == u"":
         LOGGER.info("Can't guess. Text is empty")
@@ -838,4 +828,4 @@ def _set_guessed_labels(plugin, doc_url):
     )
     labels = list(labels)
     for label in labels:
-        plugin.core.call_success("doc_add_label_by_url", doc_url, label)
+        plugin.core.call_success(DocLabels.doc_add_label_by_url, doc_url, label)

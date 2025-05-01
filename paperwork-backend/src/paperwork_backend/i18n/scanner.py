@@ -1,29 +1,30 @@
 import logging
 import re
 
+from openpaperwork_core.interfaces.l10n import L10n
 import openpaperwork_core
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.i18n_scanner import I18nScanner
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    I18nScanner,
+):
     RE_SPLIT_SOURCE_NAME = [
         re.compile(r'([()])'),
         re.compile(r'(\W)'),
     ]
 
     @classmethod
-    def get_interfaces(cls):
-        return ['i18n_scanner']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'l10n',
+                'interface': L10n,
                 'defaults': ['openpaperwork_core.l10n.python'],
             },
         ]

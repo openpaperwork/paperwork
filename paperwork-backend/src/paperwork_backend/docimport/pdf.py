@@ -1,20 +1,26 @@
 import logging
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
 
-from . import (
+from paperwork_backend import _
+from paperwork_backend.docimport import (
     DirectFileImporter,
     FileImport,
     RecursiveFileImporter
 )
-from .. import _
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_pdf import DocPdf
+from paperwork_backend.interfaces.index import Index
+from paperwork_backend.interfaces.poppler import Poppler
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SinglePdfImporter(object):
+class SinglePdfImporter:
     def __init__(self, core, file_import, src_file_uri, data):
         self.core = core
         self.file_import = file_import
@@ -24,9 +30,9 @@ class SinglePdfImporter(object):
         self.doc_url = None
 
     def _basic_import(self, file_uri):
-        file_hash = self.core.call_success("fs_hash", file_uri)
+        file_hash = self.core.call_success(Fs.fs_hash, file_uri)
         other_doc_id = self.core.call_success(
-            "index_get_doc_id_by_hash", file_hash
+            Index.index_get_doc_id_by_hash, file_hash
         )
         if other_doc_id is not None:
             LOGGER.info("%s has already been imported", file_uri)
@@ -35,7 +41,7 @@ class SinglePdfImporter(object):
 
         LOGGER.info("Importing %s", file_uri)
         (self.doc_id, self.doc_url) = self.core.call_success(
-            "doc_pdf_import", file_uri,
+            DocPdf.doc_pdf_import, file_uri,
             password=self.data.get('password'),
             target_doc_id=self.file_import.active_doc_id
         )
@@ -52,7 +58,7 @@ class SinglePdfImporter(object):
         )
 
 
-class SinglePdfImporterFactory(object):
+class SinglePdfImporterFactory:
     def __init__(self, plugin):
         self.plugin = plugin
         self.core = plugin.core
@@ -66,7 +72,7 @@ class SinglePdfImporterFactory(object):
         return _("Import PDFs recursively")
 
     def is_importable(self, core, file_uri):
-        mime = core.call_success("fs_get_mime", file_uri)
+        mime = core.call_success(Fs.fs_get_mime, file_uri)
         if mime is not None:
             if mime == Plugin.MIME_TYPE:
                 return True
@@ -76,7 +82,7 @@ class SinglePdfImporterFactory(object):
 
     def get_required_data(self, file_uri):
         try:
-            self.core.call_success("poppler_open", file_uri, password=None)
+            self.core.call_success(Poppler.poppler_open, file_uri, password=None)
             LOGGER.info("%s: not password protected", file_uri)
             return set()
         except Exception:
@@ -88,34 +94,36 @@ class SinglePdfImporterFactory(object):
         return SinglePdfImporter(self.core, file_import, file_uri, data)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ImporterFactory,
+):
     FILE_EXTENSION = ".pdf"
     MIME_TYPE = "application/pdf"
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "import"
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return DirectFileImporter.get_deps() + openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'doc_pdf_import',
+                'interface': DocPdf,
                 'defaults': ['paperwork_backend.model.pdf'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
             {
-                'interface': 'mainloop',
+                "interface": Index,
+                "defaults": ["paperwork_backend.index.whoosh"],
+                "optional": True,
+            },
+            {
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": Poppler,
+                "defaults": ["paperwork_backend.poppler.file"],
             },
         ]
 

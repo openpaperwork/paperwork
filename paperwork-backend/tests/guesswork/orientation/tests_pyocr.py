@@ -6,8 +6,12 @@ import unittest
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 import openpaperwork_core.fs
+
+from paperwork_backend.interfaces.orientation_guesser import OrientationGuesser
 
 
 class TestPyocr(unittest.TestCase):
@@ -37,14 +41,29 @@ class TestPyocr(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                Pillow,
+            ):
                 PRIORITY = 10000000000
 
                 def pillow_to_url(s, img, url):
                     self.pillowed.append(url)
                     return url
 
-        self.core._load_module("fake_module", FakeModule())
+                def url_to_img_size(self, file_url):
+                    pass
+
+                def url_to_img_size_promise(self, file_url):
+                    pass
+
+                def url_to_pillow(self, file_url):
+                    pass
+
+                def url_to_pillow_promise(self, file_url):
+                    pass
+
+        self.core.load("fake_module", FakeModule())
 
         self.core.init()
 
@@ -63,10 +82,9 @@ class TestPyocr(unittest.TestCase):
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
 
-        self.core.call_all("config_put", "ocr_langs", ["eng"])
+        self.core.call_all(Config.config_put, "ocr_langs", ["eng"])
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
         shutil.rmtree(self.tmp_paperwork_dir)
 
     def test_guess_orientation(self):
@@ -84,7 +102,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         angle = self.core.call_success(
-            "guess_page_orientation_by_url",
+            OrientationGuesser.guess_page_orientation_by_url,
             'file:///some_work_dir/some_doc_id', 0
         )
 
@@ -106,7 +124,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         angle = self.core.call_success(
-            "guess_page_orientation_by_url",
+            OrientationGuesser.guess_page_orientation_by_url,
             'file:///some_work_dir/some_doc_id', 0
         )
 

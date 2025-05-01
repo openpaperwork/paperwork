@@ -2,14 +2,22 @@ import itertools
 
 import PIL.Image
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
+
+from paperwork_backend.interfaces.scan import (
+    AbstractScanner,
+    AbstractSource,
+    Scan,
+    ScanListener
+)
 
 
 SCAN_ID_GENERATOR = itertools.count()
 
 
-class Source(object):
+class Source(AbstractSource):
     def __init__(self, core, scanner, source_id):
         self.core = core
         self.scanner = scanner
@@ -37,44 +45,49 @@ class Source(object):
         test_page = PIL.Image.new("RGB", (200, 200), (171, 205, 239))
 
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_feed_start", scan_id
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_feed_start, scan_id
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_page_start",
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_page_start,
             scan_id, 0,
             None,  # TODO(Jflesch): scan params
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_chunk",
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_started,
+            scan_id,
+        )
+        self.core.call_one(
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_chunk,
             scan_id,
             None,  # TODO(Jflesch): scan_params
             test_chunk
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_chunk",
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_chunk,
             scan_id,
             None,  # TODO(Jflesch): scan_params
             test_chunk
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_chunk",
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_chunk,
             scan_id,
             None,  # TODO(Jflesch): scan_params
             test_chunk
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_page_end", scan_id, 0,
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_page_end, scan_id, 0,
             test_page
         )
         self.core.call_one(
-            "mainloop_schedule", self.core.call_all,
-            "on_scan_feed_end", scan_id
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ScanListener.on_scan_feed_end, scan_id
         )
         return (self, scan_id, [test_page])
 
@@ -90,7 +103,7 @@ class Source(object):
         pass
 
 
-class Scanner(object):
+class Scanner(AbstractScanner):
     def __init__(self, core, scanner_id):
         self.core = core
         self.dev_id = scanner_id
@@ -117,40 +130,42 @@ class Scanner(object):
         raise NotImplementedError()
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ["scan"]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Scan,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'thread',
-                'defaults': ['openpaperwork_core.thread.simple'],
+                "interface": ScanListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 
+    def scan_list_scanners(self):
+        return [
+            ("fake:scanner0", "Super scanner #0"),
+            ("fake:scanner1", "Super scanner #1"),
+        ]
+
     def scan_list_scanners_promise(self):
-        def list_scanners():
-            return [
-                ("fake:scanner0", "Super scanner #0"),
-                ("fake:scanner1", "Super scanner #1"),
-            ]
+        return openpaperwork_core.promise.Promise(self.core, self.scan_list_scanners)
 
-        return openpaperwork_core.promise.Promise(self.core, list_scanners)
+    def scan_get_scanner(self, scanner_dev_id):
+        if scanner_dev_id != "fake:scanner0" and scanner_dev_id != "fake:scanner1":
+            return None
+        return Scanner(self.core, scanner_dev_id)
 
-    def scan_get_scanner_promise(self, dev_id):
-        def get_scanner():
-            if dev_id != "fake:scanner0" and dev_id != "fake:scanner1":
-                return None
-            return Scanner(self.core, dev_id)
-
-        return openpaperwork_core.promise.Promise(self.core, get_scanner)
+    def scan_get_scanner_promise(self, scanner_dev_id):
+        return openpaperwork_core.promise.Promise(
+            self.core, self.scan_get_scanner, args=(scanner_dev_id,)
+        )
 
     def scan_promise(self, *args, **kwargs):
         scan_id = next(SCAN_ID_GENERATOR)
@@ -174,3 +189,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         promise = promise.then(close)
         return (scan_id, promise)
+
+    def scan_schedule(self, promise):
+        promise.schedule()
+        return True

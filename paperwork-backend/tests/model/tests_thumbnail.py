@@ -6,11 +6,14 @@ import PIL.Image
 
 import openpaperwork_core
 
+from paperwork_backend.interfaces.doc_thumbnail import DocThumbnail
+
 
 class TestImg(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
         self.core.load("openpaperwork_core.fs.fake")
+        self.core.load("paperwork_backend.model.img")
         self.core.load("paperwork_backend.model.thumbnail")
         self.core.init()
 
@@ -33,6 +36,6 @@ class TestImg(unittest.TestCase):
         }
 
         thumbnail = self.core.call_success(
-            "thumbnail_get_doc", "file:///some_doc"
+            DocThumbnail.thumbnail_get_doc, "file:///some_doc"
         )
         self.assertEqual(thumbnail.size, (64, 32))

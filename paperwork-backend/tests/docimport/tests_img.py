@@ -1,8 +1,16 @@
 import os
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 import openpaperwork_core.fs
+
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_import import ImportListener
+from paperwork_backend.interfaces.doc_transactions import AbstractDocTransaction
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
 import paperwork_backend.docimport
 
 
@@ -21,7 +29,7 @@ class TestImgImport(unittest.TestCase):
         self.upd_docs = []
         self.nb_commits = 0
 
-        class FakeTransaction(object):
+        class FakeTransaction(AbstractDocTransaction):
             priority = 0
 
             def add_doc(s, doc_id):
@@ -36,13 +44,22 @@ class TestImgImport(unittest.TestCase):
             def unchanged_doc(s, doc_id):
                 pass
 
+            def cancel(s):
+                pass
+
             def commit(s):
                 self.nb_commits += 1
 
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DocTransactionFactory,
+                Fs,
+                ImportListener,
+                Pillow,
+            ):
                 PRIORITY = 999999999999999999
 
                 def fs_isdir(s, dir_uri):
@@ -56,6 +73,72 @@ class TestImgImport(unittest.TestCase):
                 def fs_mkdir_p(s, dir_uri):
                     return True
 
+                def fs_safe(self, uri):
+                    pass
+
+                def fs_unsafe(self, uri):
+                    pass
+
+                def fs_join(self, base, url):
+                    pass
+
+                def fs_basename(self, url):
+                    pass
+
+                def fs_dirname(self, url):
+                    pass
+
+                def fs_hash(self, url):
+                    pass
+
+                def fs_open(self, uri, mode='r', **kwargs):
+                    pass
+
+                def fs_exists(self, uri):
+                    pass
+
+                def fs_listdir(self, uri):
+                    pass
+
+                def fs_rename(self, old_uri, new_uri):
+                    pass
+
+                def fs_unlink(self, uri, **kwargs):
+                    pass
+
+                def fs_rm_rf(self, uri, **kwargs):
+                    pass
+
+                def fs_get_mtime(self, uri):
+                    pass
+
+                def fs_getsize(self, uri):
+                    pass
+
+                def fs_copy(self, old_uri, new_uri):
+                    pass
+
+                def fs_copytree(self, old_uri, new_uri):
+                    pass
+
+                def fs_recurse(self, parent_uri, dir_included=False):
+                    pass
+
+                def fs_hide(self, uri):
+                    pass
+
+                def fs_iswritable(self, uri):
+                    pass
+
+                def fs_resolve(self, uri):
+                    pass
+
+                def fs_mktemp(
+                    self, prefix=None, suffix=None, mode='w+b', on_disk=False,
+                    **kwargs
+                ):
+                    pass
+
                 def url_to_pillow(s, file_uri):
                     return "non-null value"
 
@@ -63,13 +146,22 @@ class TestImgImport(unittest.TestCase):
                     self.pillowed.append(dst_uri)
                     return dst_uri
 
+                def url_to_img_size(self, file_url):
+                    pass
+
+                def url_to_img_size_promise(self, file_url):
+                    pass
+
+                def url_to_pillow_promise(self, file_url):
+                    pass
+
                 def on_import_done(s, file_import):
-                    self.core.call_all("mainloop_quit_graceful")
+                    self.core.call_all(Mainloop.mainloop_quit_graceful)
 
                 def doc_transaction_start(s, transactions, expected=-1):
                     transactions.append(FakeTransaction())
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.docimport.img")
         self.core.init()
@@ -102,13 +194,13 @@ class TestImgImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         # see fake storage behaviour
         self.assertEqual(self.pillowed, [
@@ -154,13 +246,13 @@ class TestImgImport(unittest.TestCase):
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         self.assertEqual(len(importers), 1)
 
         promise = importers[0].get_import_promise()
         promise.schedule()
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         # see fake storage behaviour
         self.assertEqual(self.pillowed, [

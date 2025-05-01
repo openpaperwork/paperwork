@@ -6,8 +6,13 @@ import unittest
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.config import Config
 import openpaperwork_core
 import openpaperwork_core.fs
+
+from paperwork_backend.interfaces.data_dir_handler import DataDirHandler
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.ocr import Ocr
 
 
 class TestPyocr(unittest.TestCase):
@@ -28,7 +33,10 @@ class TestPyocr(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                DataDirHandler,
+            ):
                 PRIORITY = 999999999999999999999
 
                 def data_dir_handler_get_individual_data_dir(s):
@@ -36,7 +44,7 @@ class TestPyocr(unittest.TestCase):
                         self.tmp_paperwork_dir
                     )
 
-        self.core._load_module("fake_module", FakeModule)
+        self.core.load("fake_module", FakeModule)
         self.core.load("openpaperwork_core.config.fake")
         self.core.load("paperwork_backend.model.fake")
         self.core.load("paperwork_backend.sync.doctracker")
@@ -46,10 +54,9 @@ class TestPyocr(unittest.TestCase):
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
 
-        self.core.call_all("config_put", "ocr_langs", ["eng"])
+        self.core.call_all(Config.config_put, "ocr_langs", ["eng"])
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
         shutil.rmtree(self.tmp_paperwork_dir)
 
     def test_ocr(self):
@@ -70,7 +77,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         self.core.call_all(
-            "ocr_page_by_url", "file:///some_work_dir/some_doc_id", page_idx=0
+            Ocr.ocr_page_by_url, "file:///some_work_dir/some_doc_id", page_idx=0
         )
 
         self.assertNotEqual(len(self.model.docs[0]['page_boxes']), 0)
@@ -118,7 +125,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         transactions.sort(key=lambda transaction: -transaction.priority)
         self.assertNotEqual(transactions, [])
 
@@ -168,7 +175,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         self.assertNotEqual(transactions, [])
         for t in transactions:
             t.add_doc('some_doc_with_text')
@@ -202,7 +209,7 @@ class TestPyocr(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         self.assertNotEqual(transactions, [])
         for t in transactions:
             t.upd_doc('some_doc_with_text')

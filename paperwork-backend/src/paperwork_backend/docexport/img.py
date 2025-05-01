@@ -1,13 +1,20 @@
 import logging
 
-from . import (
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.progress import ProgressListener
+
+from paperwork_backend import _
+from paperwork_backend.docexport import (
     AbstractExportPipe,
     AbstractExportPipePlugin,
     AbstractSimpleTransformExportPipe,
     ExportData,
     ExportDataType
 )
-from .. import _
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageText
 
 
 LOGGER = logging.getLogger(__name__)
@@ -32,31 +39,31 @@ class ExportDataPage(ExportData):
     def get_children(self):
         # ASSSUMPTION(Jflesch): pages are always requested sequentially
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "on_progress", "export", self.progress,
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ProgressListener.on_progress, "export", self.progress,
             _("Exporting {doc_id} p{page_idx} ...").format(
                 doc_id=self.doc_id, page_idx=(self.page_idx + 1)
             )
         )
 
         page_url = (self.core.call_success(
-            "page_get_img_url", self.doc_url, self.page_idx
+            PageImg.page_get_img_url, self.doc_url, self.page_idx
         ))
         assert page_url is not None
-        img = self.core.call_success("url_to_pillow", page_url)
+        img = self.core.call_success(Pillow.url_to_pillow, page_url)
         if img is None:
             # WORKAROUND(Jflesch): may happen with corrupted PDFs
             return
         boxes = self.core.call_success(
-            "page_get_boxes_by_url", self.doc_url, self.page_idx
+            PageText.page_get_boxes_by_url, self.doc_url, self.page_idx
         ) or []
 
         yield ExportData(ExportDataType.IMG_BOXES, (img, boxes))
 
         if self.final:
             self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_progress", "export", 1.0
+                Mainloop.mainloop_schedule, self.core.call_all,
+                ProgressListener.on_progress, "export", 1.0
             )
 
 
@@ -79,8 +86,8 @@ class DocToPillowBoxesExportPipe(AbstractExportPipe):
         docs = list(docs)
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "on_progress", "export", 0.0,
+            Mainloop.mainloop_schedule, self.core.call_all,
+            ProgressListener.on_progress, "export", 0.0,
             _("Exporting ...")
         )
 
@@ -130,7 +137,7 @@ class PageToImageExportPipe(AbstractExportPipe):
     def export(self, input_data, result='final', target_file_url=None):
         if target_file_url is None:
             (target_file_url, file_desc) = self.core.call_success(
-                "fs_mktemp", prefix="paperwork-export-",
+                Fs.fs_mktemp, prefix="paperwork-export-",
                 suffix="." + self.file_extensions[0], mode="w"
             )
             file_desc.close()
@@ -145,7 +152,7 @@ class PageToImageExportPipe(AbstractExportPipe):
                 out = "{}_{}.{}".format(out[0], len(out_files), out[1])
 
             self.core.call_success(
-                "pillow_to_url", img_boxes.data[0], out,
+                Pillow.pillow_to_url, img_boxes.data[0], out,
                 format=self.format, quality=self.quality
             )
             out_files.append(out)
@@ -184,44 +191,45 @@ class GrayscaleExportPipe(AbstractSimpleTransformExportPipe):
 
 class Plugin(AbstractExportPipePlugin):
     @classmethod
-    def get_interfaces(cls):
-        return super().get_interfaces() + [
-            "export_pipes_img",
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return super().get_deps() + [
             {
-                'interface': 'doc_text',
-                'defaults': [
-                    # load also model.img because model.pdf will
-                    # satisfy the interface 'page_img' anyway
-                    'paperwork_backend.model.img',
-                    'paperwork_backend.model.hocr',
-                    'paperwork_backend.model.pdf',
-                ],
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
             },
             {
-                'interface': 'page_img',
+                'interface': PageImg,
                 'defaults': [
                     # load also model.hocr because model.pdf will
                     # satisfy the interface 'doc_text' anyway
                     'paperwork_backend.model.img',
+                    'paperwork_backend.model.pdf',
+                ],
+            },
+            {
+                'interface': PageText,
+                'defaults': [
+                    # load also model.img because model.pdf will
+                    # satisfy the interface 'page_img' anyway
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.pdf',
                 ],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
+            },
+            {
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
             },
         ]
 

@@ -6,7 +6,13 @@ import unittest
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionFactory
+from paperwork_backend.interfaces.sync import Syncable
 
 
 class TestBorder(unittest.TestCase):
@@ -45,21 +51,36 @@ class TestBorder(unittest.TestCase):
         class FakeModule:
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                Pillow,
+            ):
                 PRIORITY = 10000000000
+
+                def url_to_img_size(self, file_url):
+                    pass
+
+                def url_to_img_size_promise(self, file_url):
+                    pass
+
+                def url_to_pillow(self, file_url):
+                    pass
+
+                def url_to_pillow_promise(self, file_url):
+                    pass
 
                 def pillow_to_url(s, img, url):
                     self.pillowed.append((url, img.size))
                     return url
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
 
         self.core.init()
 
         self.model = self.core.get_by_name("paperwork_backend.model.fake")
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
+        self.core.call_all(QuitListener.on_quit)
         shutil.rmtree(self.tmp_paperwork_dir)
 
     def test_transaction(self):
@@ -81,15 +102,16 @@ class TestBorder(unittest.TestCase):
         ]
 
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
 
         for promise in promises:
             promise.schedule()
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            Mainloop.mainloop_quit_graceful,
         )
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.pillowed, [])
 
@@ -113,7 +135,7 @@ class TestBorder(unittest.TestCase):
         ]
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         transactions.sort(key=lambda transaction: -transaction.priority)
         self.assertNotEqual(transactions, [])
         for t in transactions:
@@ -150,15 +172,16 @@ class TestBorder(unittest.TestCase):
         ]
 
         promises = []
-        self.core.call_all("sync", promises)
+        self.core.call_all(Syncable.sync, promises)
 
         for promise in promises:
             promise.schedule()
 
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all, "mainloop_quit_graceful"
+            Mainloop.mainloop_schedule, self.core.call_all,
+            Mainloop.mainloop_quit_graceful,
         )
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(self.pillowed, [])
 
@@ -189,7 +212,7 @@ class TestBorder(unittest.TestCase):
         self.assertEqual(self.pillowed, [])
 
         transactions = []
-        self.core.call_all("doc_transaction_start", transactions)
+        self.core.call_all(DocTransactionFactory.doc_transaction_start, transactions)
         self.assertNotEqual(transactions, [])
         for t in transactions:
             t.upd_doc('some_doc_with_text')

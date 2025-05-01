@@ -7,9 +7,15 @@ to the original only.
 import logging
 import re
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
 
-from . import util
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.pages import PageType
+from paperwork_backend.model import util
 
 
 LOGGER = logging.getLogger(__name__)
@@ -23,26 +29,24 @@ PAGE_FILENAME_FMTS = [
 PAGE_FILENAME_REGEX = re.compile(r"paper\.(\d+)\.edited.(jpg|png)")
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocType,
+    PageImg,
+    PageManagement,
+    PageType,
+):
     PRIORITY = 1000  # must have a higher priority than model.img / model.pdf
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "page_img",
-            "page_reset",
-            'pages',
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return util.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio'],
             },
         ]
@@ -50,17 +54,25 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         setting = self.core.call_success(
-            "config_build_simple", "model",
+            Config.config_build_simple, "model",
             "img_overlay_format", lambda: "PNG"
         )
         self.core.call_all(
-            "config_register", "model_img_overlay_format", setting
+            Config.config_register, "model_img_overlay_format", setting
         )
 
     def doc_internal_get_mtime_by_url(self, out: list, doc_url):
         mtime = util.get_doc_mtime(self.core, doc_url, PAGE_FILENAME_REGEX)
         if mtime is not None:
             out.append(mtime)
+
+    @openpaperwork_core.noop
+    def is_doc(self, doc_url):
+        pass
+
+    @openpaperwork_core.noop
+    def doc_internal_get_nb_pages_by_url(self, out, doc_url):
+        pass
 
     def page_internal_get_mtime_by_url(self, out: list, doc_url, page_idx):
         for filename_fmt in PAGE_FILENAME_FMTS:
@@ -89,9 +101,9 @@ class Plugin(openpaperwork_core.PluginBase):
 
         for filename_fmt in PAGE_FILENAME_FMTS:
             page_url = self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(page_idx + 1)
+                Fs.fs_join, doc_url, filename_fmt.format(page_idx + 1)
             )
-            if self.core.call_success("fs_exists", page_url) is not None:
+            if self.core.call_success(Fs.fs_exists, page_url) is not None:
                 return page_url
 
         if not write:
@@ -101,23 +113,27 @@ class Plugin(openpaperwork_core.PluginBase):
         # check if we already have an original image. If so, we return our
         # URL. Otherwise, we let the caller write the original image first.
         if self.core.call_success(
-                    "page_get_img_url", doc_url, page_idx, write=False
-                ) is not None:
+            PageImg.page_get_img_url, doc_url, page_idx, write=False
+        ) is not None:
             # has already an original page (or even an edited one)
             # --> return our URL
             img_fmt = self.core.call_success(
-                "config_get", "model_img_overlay_format"
+                Config.config_get, "model_img_overlay_format"
             )
             if img_fmt == "PNG":
                 filename_fmt = PAGE_FILENAME_PNG_FMT
             else:
                 filename_fmt = PAGE_FILENAME_JPG_FMT
             return self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(page_idx + 1)
+                Fs.fs_join, doc_url, filename_fmt.format(page_idx + 1)
             )
 
         # let the caller write an original page (see model.img)
         return None
+
+    @openpaperwork_core.noop
+    def page_get_paper_size_by_url(self, doc_url, page_idx):
+        pass
 
     def page_delete_by_url(self, doc_url, page_idx):
         r = None
@@ -149,7 +165,7 @@ class Plugin(openpaperwork_core.PluginBase):
         """
         for filename_fmt in PAGE_FILENAME_FMTS:
             page_url = self.core.call_success(
-                "fs_join", doc_url, filename_fmt.format(page_idx + 1)
+                Fs.fs_join, doc_url, filename_fmt.format(page_idx + 1)
             )
-            if self.core.call_success("fs_exists", page_url):
-                self.core.call_success("fs_unlink", page_url, trash=False)
+            if self.core.call_success(Fs.fs_exists, page_url):
+                self.core.call_success(Fs.fs_unlink, page_url, trash=False)

@@ -23,25 +23,41 @@ except (ImportError, ValueError):
     LIBINSANE_AVAILABLE = False
 
     # dummy so chkdeps can still be called
-    class Libinsane(object):
-        class LogLevel(object):
+    class Libinsane:
+        class LogLevel:
             DEBUG = 0
             INFO = 1
             WARNING = 2
             ERROR = 3
 
-        class Logger(object):
+        class Logger:
             pass
 
 
 import PIL
 import PIL.Image
 
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachment
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentSelectionListener
+from openpaperwork_core.interfaces.bug_report_attachment import BugReportAttachmentUpdate
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.stats import Stats
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.promise
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.scan import (
+    AbstractScanner,
+    AbstractSource,
+    Scan,
+    ScanListener
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -81,7 +97,7 @@ def raw_to_img(params, img_bytes):
     return PIL.Image.frombuffer(mode, (w, h), img_bytes, "raw", mode, 0, 1)
 
 
-class ImageAssembler(object):
+class ImageAssembler:
     MIN_CHUNK_SIZE = 64 * 1024
 
     def __init__(self, line_width):
@@ -125,7 +141,7 @@ class ImageAssembler(object):
         return b"".join(self.all_chunks) + b"".join(self.current_piece)
 
 
-class Source(object):
+class Source(AbstractSource):
     def __init__(self, core, scanner, source):
         self.core = core
         self.scanner = scanner
@@ -137,7 +153,7 @@ class Source(object):
 
     def set_as_default(self):
         self.core.call_all(
-            "config_put", "scanner_source_id", self.source_id
+            Config.config_put, "scanner_source_id", self.source_id
         )
 
     def _get_option(self, name):
@@ -172,7 +188,7 @@ class Source(object):
 
     def set_default_resolution(self, resolution):
         self.core.call_all(
-            "config_put", "scanner_resolution", int(resolution)
+            Config.config_put, "scanner_resolution", int(resolution)
         )
 
     def scan(
@@ -189,9 +205,9 @@ class Source(object):
             LOGGER.info("(id=%s) Setting scan options ...", scan_id)
             if resolution is None:
                 resolution = self.core.call_success(
-                    "config_get", "scanner_resolution"
+                    Config.config_get, "scanner_resolution"
                 )
-            mode = self.core.call_success("config_get", "scanner_mode")
+            mode = self.core.call_success(Config.config_get, "scanner_mode")
 
             options = self.source.get_options()
 
@@ -208,7 +224,7 @@ class Source(object):
                     # will try to scan anyway
 
             extrasettings = self.core.call_success(
-                "config_get", "scanner_extra_settings"
+                Config.config_get, "scanner_extra_settings"
             )
 
             for (setting, value) in extrasettings.items():
@@ -243,19 +259,19 @@ class Source(object):
             page_nb = 0
 
             self.core.call_one(
-                "mainloop_execute", self.core.call_all,
-                "on_scan_feed_start", scan_id
+                Mainloop.mainloop_execute, self.core.call_all,
+                ScanListener.on_scan_feed_start, scan_id
             )
             self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_progress", "scan", 0.0, _("Starting scan ...")
+                Mainloop.mainloop_schedule, self.core.call_all,
+                ProgressListener.on_progress, "scan", 0.0, _("Starting scan ...")
             )
             session = self.source.scan_start()
 
             while not session.end_of_feed() and page_nb < max_pages:
                 self.core.call_success(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_progress", "scan", 0.0,
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    ProgressListener.on_progress, "scan", 0.0,
                     _("Scanning page %d ...") % (page_nb + 1)
                 )
 
@@ -267,8 +283,8 @@ class Source(object):
                     scan_params.get_image_size()
                 )
                 self.core.call_success(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_scan_page_start", scan_id, page_nb, scan_params
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    ScanListener.on_scan_page_start, scan_id, page_nb, scan_params
                 )
 
                 assert (
@@ -290,8 +306,8 @@ class Source(object):
                         # read(). This is the only reliable time to be
                         # sure scanning is actually started.
                         self.core.call_success(
-                            "mainloop_schedule", self.core.call_all,
-                            "on_scan_started", scan_id
+                            Mainloop.mainloop_schedule, self.core.call_all,
+                            ScanListener.on_scan_started, scan_id
                         )
                         has_started = True
 
@@ -306,38 +322,38 @@ class Source(object):
                         if progress >= 1.0:
                             progress = 0.999
                         self.core.call_success(
-                            "mainloop_schedule", self.core.call_all,
-                            "on_progress", "scan", progress,
+                            Mainloop.mainloop_schedule, self.core.call_all,
+                            ProgressListener.on_progress, "scan", progress,
                             _("Scanning page %d ...") % (page_nb + 1)
                         )
                         self.core.call_success(
-                            "mainloop_schedule", self.core.call_all,
-                            "on_scan_chunk", scan_id, scan_params, pil
+                            Mainloop.mainloop_schedule, self.core.call_all,
+                            ScanListener.on_scan_chunk, scan_id, scan_params, pil
                         )
 
                 LOGGER.info("Page %d/%d scanned", page_nb, max_pages)
                 self.core.call_success(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_progress", "scan", 0.999,
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    ProgressListener.on_progress, "scan", 0.999,
                     _("Scanning page %d ...") % (page_nb + 1)
                 )
                 img = raw_to_img(scan_params, image.get_image())
                 yield img
                 self.core.call_success(
-                    "mainloop_schedule", self.core.call_all,
-                    "on_scan_page_end", scan_id, page_nb, img
+                    Mainloop.mainloop_schedule, self.core.call_all,
+                    ScanListener.on_scan_page_end, scan_id, page_nb, img
                 )
                 page_nb += 1
             LOGGER.info("End of feed")
 
             self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_scan_feed_end", scan_id
+                Mainloop.mainloop_schedule, self.core.call_all,
+                ScanListener.on_scan_feed_end, scan_id
             )
         finally:
             self.core.call_success(
-                "mainloop_schedule", self.core.call_all,
-                "on_progress", "scan", 1.0
+                Mainloop.mainloop_schedule, self.core.call_all,
+                ProgressListener.on_progress, "scan", 1.0
             )
             if session is not None:
                 session.cancel()
@@ -364,7 +380,7 @@ class Source(object):
             return (args, kwargs)
 
 
-class Scanner(object):
+class Scanner(AbstractScanner):
     def __init__(self, core, scanner):
         self.core = core
         self.dev_id = scanner.get_name()
@@ -421,11 +437,11 @@ class Scanner(object):
 
     def set_as_default(self):
         self.core.call_all(
-            "config_put", "scanner_dev_id", 'libinsane:' + self.dev_id
+            Config.config_put, "scanner_dev_id", 'libinsane:' + self.dev_id
         )
 
 
-class BugReportCollector(object):
+class BugReportCollector:
     def __init__(self, plugin, update_args):
         self.core = plugin.core
         self.plugin = plugin
@@ -433,8 +449,8 @@ class BugReportCollector(object):
 
     def _notify(self, msg):
         self.core.call_success(
-            "mainloop_schedule", self.core.call_all,
-            "bug_report_update_attachment", "scanner",
+            Mainloop.mainloop_schedule, self.core.call_all,
+            BugReportAttachmentUpdate.bug_report_update_attachment, "scanner",
             {"file_url": msg},
             *self.update_args
         )
@@ -496,7 +512,7 @@ class BugReportCollector(object):
             infos, indent=4, separators=(",", ": "), sort_keys=True
         )
         (file_url, fd) = self.core.call_success(
-            "fs_mktemp", prefix="scanner_", suffix=".json", mode="w",
+            Fs.fs_mktemp, prefix="scanner_", suffix=".json", mode="w",
             on_disk=True
         )
         with fd:
@@ -538,21 +554,21 @@ class BugReportCollector(object):
         )
         promise = promise.then(
             lambda file_url: self.core.call_all(
-                "bug_report_update_attachment", "scanner", {
+                BugReportAttachmentUpdate.bug_report_update_attachment, "scanner", {
                     'file_url': file_url,
                     'file_size': self.core.call_success(
-                        'fs_getsize', file_url
+                        Fs.fs_getsize, file_url
                     ),
                 }, *self.update_args
             )
         )
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
 
     def run(self):
         promise = openpaperwork_core.promise.Promise(
             self.core, self.core.call_all,
             args=(
-                "bug_report_update_attachment", "scanner",
+                BugReportAttachmentUpdate.bug_report_update_attachment, "scanner",
                 {"file_url": _("Getting scanner list ...")},
                 *self.update_args
             )
@@ -561,32 +577,44 @@ class BugReportCollector(object):
         promise = promise.then(openpaperwork_core.promise.ThreadedPromise(
             self.core, self._collect_all_info
         ))
-        self.core.call_success("scan_schedule", promise)
+        self.core.call_success(Scan.scan_schedule, promise)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            "bug_report_attachments",
-            "chkdeps",
-            "scan",
-            "stats",
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    BugReportAttachment,
+    BugReportAttachmentSelectionListener,
+    Chkdeps,
+    Scan,
+    Stats,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'config',
+                'interface': Config,
                 'defaults': ['openpaperwork_core.config'],
             },
             {
-                'interface': 'mainloop',
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_gtk.mainloop.glib'],
             },
             {
-                'interface': 'work_queue',
+                "interface": ProgressListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                "interface": ScanListener,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -609,34 +637,34 @@ class Plugin(openpaperwork_core.PluginBase):
 
         self._last_scanner = None
 
-        self.core.call_all("work_queue_create", "scanner")
+        self.core.call_all(WorkQueue.work_queue_create, "scanner")
 
         settings = {
             'scanner_dev_id': self.core.call_success(
-                "config_build_simple", "scanner",
+                Config.config_build_simple, "scanner",
                 "dev_id", lambda: None
             ),
             'scanner_source_id': self.core.call_success(
-                "config_build_simple", "scanner",
+                Config.config_build_simple, "scanner",
                 "source", lambda: None
             ),
             'scanner_resolution': self.core.call_success(
-                "config_build_simple", "scanner",
+                Config.config_build_simple, "scanner",
                 "resolution", lambda: 300
             ),
             'scanner_mode': self.core.call_success(
-                "config_build_simple", "scanner",
+                Config.config_build_simple, "scanner",
                 "mode", lambda: "Color"
             ),
             'scanner_extra_settings': self.core.call_success(
-                "config_build_simple", "scanner",
+                Config.config_build_simple, "scanner",
                 "extrasettings", lambda: {}
             ),
 
         }
         for (k, setting) in settings.items():
             self.core.call_all(
-                "config_register", k, setting
+                Config.config_register, k, setting
             )
 
     def chkdeps(self, out: dict):
@@ -658,7 +686,7 @@ class Plugin(openpaperwork_core.PluginBase):
         use scan_schedule() instead of mainloop_schedule()
         or promise.schedule().
         """
-        self.core.call_success("work_queue_add_promise", "scanner", promise)
+        self.core.call_success(WorkQueue.work_queue_add_promise, "scanner", promise)
         return True
 
     def scan_list_scanners(self, *args, **kwargs):
@@ -705,7 +733,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         if scanner_dev_id is None:
             scanner_dev_id = self.core.call_success(
-                "config_get", "scanner_dev_id"
+                Config.config_get, "scanner_dev_id"
             )
         if scanner_dev_id is None:
             return None
@@ -736,18 +764,18 @@ class Plugin(openpaperwork_core.PluginBase):
         Must be started with "scan_schedule()", not "promise.schedule()" !
         """
         scanner_dev_id = self.core.call_success(
-            "config_get", "scanner_dev_id"
+            Config.config_get, "scanner_dev_id"
         )
         if source_id is None:
             source_id = self.core.call_success(
-                "config_get", "scanner_source_id"
+                Config.config_get, "scanner_source_id"
             )
         if source_id is None:
             raise Exception("No source defined")
         scan_id = next(SCAN_ID_GENERATOR)
 
         promise = self.core.call_success(
-            "scan_get_scanner_promise", scanner_dev_id
+            Scan.scan_get_scanner_promise, scanner_dev_id
         )
         promise = promise.then(
             openpaperwork_core.promise.ThreadedPromise(
@@ -778,6 +806,10 @@ class Plugin(openpaperwork_core.PluginBase):
             return
         collector = BugReportCollector(self, args)
         collector.run()
+
+    @openpaperwork_core.noop
+    def on_bug_report_attachment_unselected(self, attachment_id, *args):
+        pass
 
     def stats_get(self, out: dict):
         if not LIBINSANE_AVAILABLE:

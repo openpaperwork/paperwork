@@ -2,9 +2,18 @@ import array
 import io
 import logging
 
+from openpaperwork_core.interfaces.pillow import Pillow
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.memleak_detector import MemleakDetector
+from openpaperwork_core.interfaces.work_queue import WorkQueue
 import openpaperwork_core
 import openpaperwork_core.deps
 import openpaperwork_core.promise
+
+from openpaperwork_gtk.interfaces.pillow import Pillow2Cairo
+
+from paperwork_backend.interfaces.cairo import Url2Cairo
+from paperwork_backend.interfaces.cairo import CairoRendererFactory
 
 
 CAIRO_AVAILABLE = False
@@ -99,7 +108,7 @@ def pillow_to_surface(core, img, intermediate="pixbuf", quality=90):
             )
         )
 
-    core.call_all("on_objref_track", img_surface)
+    core.call_all(MemleakDetector.on_objref_track, img_surface)
     return img_surface
 
 
@@ -127,7 +136,7 @@ class CairoRenderer(GObject.GObject):
             self.core, self.emit, args=("getting_size",)
         )
         promise = promise.then(
-            core.call_success("url_to_img_size_promise", file_url)
+            core.call_success(Pillow.url_to_img_size_promise, file_url)
         )
         promise = promise.then(self._set_img_size)
         # Gives back a bit of CPU time to GTK so the GUI remains
@@ -145,7 +154,7 @@ class CairoRenderer(GObject.GObject):
             core, DELAY_LONG
         )
         promise = promise.then(core.call_success(
-            "url_to_cairo_surface_promise", file_url
+            Url2Cairo.url_to_cairo_surface_promise, file_url
         ))
         promise = promise.then(self._set_cairo_surface)
         self.render_img_promise = promise
@@ -157,7 +166,7 @@ class CairoRenderer(GObject.GObject):
             # --> avoid calling twice work_queue_add_promise() to get the size
             return
         self.core.call_success(
-            "work_queue_add_promise",
+            WorkQueue.work_queue_add_promise,
             self.work_queue_name, self.get_size_promise
         )
         self.getting_size = True
@@ -168,12 +177,12 @@ class CairoRenderer(GObject.GObject):
         self.visible = True
         if self.size == (0, 0):
             self.core.call_all(
-                "work_queue_cancel", self.work_queue_name,
+                WorkQueue.work_queue_cancel, self.work_queue_name,
                 self.get_size_promise
             )
             # re add with a higher priority
             self.core.call_success(
-                "work_queue_add_promise",
+                WorkQueue.work_queue_add_promise,
                 self.work_queue_name, self.get_size_promise,
                 priority=200
             )
@@ -183,7 +192,7 @@ class CairoRenderer(GObject.GObject):
             return
         self.render_job_in_queue = True
         self.core.call_success(
-            "work_queue_add_promise",
+            WorkQueue.work_queue_add_promise,
             self.work_queue_name, self.render_img_promise, priority=100
         )
 
@@ -193,12 +202,12 @@ class CairoRenderer(GObject.GObject):
         self.visible = False
         if self.size == (0, 0):
             self.core.call_all(
-                "work_queue_cancel", self.work_queue_name,
+                WorkQueue.work_queue_cancel, self.work_queue_name,
                 self.get_size_promise
             )
             # re add with a lower priority
             self.core.call_success(
-                "work_queue_add_promise",
+                WorkQueue.work_queue_add_promise,
                 self.work_queue_name, self.get_size_promise
             )
             self.getting_size = True
@@ -207,13 +216,13 @@ class CairoRenderer(GObject.GObject):
             self.cairo_surface = None
         self.render_job_in_queue = False
         self.core.call_all(
-            "work_queue_cancel", self.work_queue_name, self.render_img_promise
+            WorkQueue.work_queue_cancel, self.work_queue_name, self.render_img_promise
         )
 
     def close(self):
         self.hide()
         self.core.call_all(
-            "work_queue_cancel", self.work_queue_name, self.get_size_promise
+            WorkQueue.work_queue_cancel, self.work_queue_name, self.get_size_promise
         )
         self.get_size_promise = None
         self.getting_size = False
@@ -281,24 +290,27 @@ if GLIB_AVAILABLE:
     GObject.type_register(CairoRenderer)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'chkdeps',
-            'cairo_url',
-            'pillow_to_surface',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    Url2Cairo,
+    CairoRendererFactory,
+    Pillow2Cairo,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': ['openpaperwork_core.pillow.img'],
             },
             {
-                'interface': 'work_queue',
+                "interface": MemleakDetector,
+                "defaults": [],
+                "optional": True,
+            },
+            {
+                'interface': WorkQueue,
                 'defaults': ['openpaperwork_core.work_queue.default'],
             },
         ]
@@ -313,12 +325,12 @@ class Plugin(openpaperwork_core.PluginBase):
         return pillow_to_surface(self.core, pillow, intermediate, quality)
 
     def url_to_cairo_surface_promise(self, file_url):
-        promise = self.core.call_success("url_to_pillow_promise", file_url)
+        promise = self.core.call_success(Pillow.url_to_pillow_promise, file_url)
         promise = promise.then(self.pillow_to_surface)
         return promise
 
     def url_to_cairo_surface(self, file_url):
-        pil_img = self.core.call_success("url_to_pillow", file_url)
+        pil_img = self.core.call_success(Pillow.url_to_pillow, file_url)
         return self.pillow_to_surface(pil_img)
 
     def cairo_renderer_by_url(self, work_queue_name, file_url, **kwargs):

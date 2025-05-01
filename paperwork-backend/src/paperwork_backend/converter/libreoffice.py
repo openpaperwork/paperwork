@@ -3,10 +3,13 @@ import os
 import subprocess
 import tempfile
 
+from openpaperwork_core.interfaces.chkdeps import Chkdeps
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
-import paperwork_backend.deps
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.doc_converter import DocConverter
+import paperwork_backend.deps
 
 
 LOGGER = logging.getLogger(__name__)
@@ -50,7 +53,11 @@ def which(program):
     return None
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkdeps,
+    DocConverter,
+):
     FILE_TYPES = [
         (
             "application/msword", "doc",
@@ -183,17 +190,10 @@ class Plugin(openpaperwork_core.PluginBase):
     ]
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "chkdeps",
-            "doc_converter",
-        ]
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_gtk.fs.gio']
             },
         ]
@@ -230,7 +230,7 @@ class Plugin(openpaperwork_core.PluginBase):
             doc_file_uri, mime_type, out_pdf_file_url
         )
 
-        file_name = self.core.call_success("fs_basename", doc_file_uri)
+        file_name = self.core.call_success(Fs.fs_basename, doc_file_uri)
         if "." not in file_name:
             LOGGER.error("No file extension ? %s", doc_file_uri)
             return None
@@ -243,11 +243,12 @@ class Plugin(openpaperwork_core.PluginBase):
 
             # Assume Libreoffice only supports local files
             self.core.call_success(
-                "fs_copy", doc_file_uri,
-                self.core.call_success("fs_safe", src_file)
+                Fs.fs_copy, doc_file_uri,
+                self.core.call_success(Fs.fs_safe, src_file)
             )
             if not self.core.call_success(
-                    "fs_exists", self.core.call_success("fs_safe", src_file)):
+                Fs.fs_exists, self.core.call_success(Fs.fs_safe, src_file)
+            ):
                 LOGGER.error("Failed to copy file %s", doc_file_uri)
                 return None
 
@@ -265,9 +266,9 @@ class Plugin(openpaperwork_core.PluginBase):
                 with popen:
                     (stdout, stderr) = popen.communicate()
 
-                dst_file_url = self.core.call_success("fs_safe", dst_file)
+                dst_file_url = self.core.call_success(Fs.fs_safe, dst_file)
 
-                if not self.core.call_success("fs_exists", dst_file_url):
+                if not self.core.call_success(Fs.fs_exists, dst_file_url):
                     LOGGER.error(
                         "Failed to convert %s (%s) to %s|%s (PDF)",
                         doc_file_uri, mime_type, dst_file_url, out_pdf_file_url
@@ -278,7 +279,7 @@ class Plugin(openpaperwork_core.PluginBase):
                     return False
 
                 self.core.call_success(
-                    "fs_copy",
+                    Fs.fs_copy,
                     dst_file_url,
                     out_pdf_file_url
                 )

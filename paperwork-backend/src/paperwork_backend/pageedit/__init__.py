@@ -1,4 +1,4 @@
-class AbstractPageEditorUI(object):
+class AbstractPageEditorUI:
     CAPABILITY_SHOW_FRAME = (1 << 0)
     CAPABILITIES = 0
 
@@ -28,8 +28,8 @@ class AbstractPageEditorUI(object):
 
         Called every time the image changes if we want the frame to be shown.
 
-        Frame can be obtained by calling PageEditor.frame.get() and
-        can be updated with PageEditor.frame.set().
+        Frame can be obtained by calling PageEditor.get_frame().get() and
+        can be updated with PageEditor.get_frame().set().
         """
         return
 

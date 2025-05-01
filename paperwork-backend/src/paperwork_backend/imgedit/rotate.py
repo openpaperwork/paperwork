@@ -4,7 +4,8 @@ import PIL
 import PIL.Image
 
 
-from . import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import AbstractImgEditor
+from paperwork_backend.interfaces.img_editor import ImgEditorFactory
 
 
 class RotationImgEditor(AbstractImgEditor):
@@ -66,12 +67,11 @@ class RotationImgEditor(AbstractImgEditor):
         return self._transform_pt(img_size, pt, angle)
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ImgEditorFactory,
+):
     NAME = 'rotation'
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['img_editor']
 
     def img_editor_get_names(self, out: list):
         out.append(self.NAME)

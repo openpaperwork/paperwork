@@ -6,8 +6,11 @@ import gi
 gi.require_version('Libinsane', '1.0')
 from gi.repository import Libinsane  # noqa: E402
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core  # noqa: E402
 
+from paperwork_backend.interfaces.scan import Scan
+from paperwork_backend.interfaces.scan import ScanListener
 import paperwork_backend.docscan.libinsane  # noqa: E402
 
 
@@ -71,12 +74,11 @@ class TestLibinsane(unittest.TestCase):
             # not much else we can test: depends on the system on which we are
             self.called = True
 
-        promise = self.core.call_success("scan_list_scanners_promise")
+        promise = self.core.call_success(Scan.scan_list_scanners_promise)
         promise = promise.then(get_devs)
         promise.schedule()
-        self.core.call_all("mainloop_quit_graceful")
-
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_all(Mainloop.mainloop)
 
         self.assertTrue(self.called)
 
@@ -98,7 +100,13 @@ class TestLibinsane(unittest.TestCase):
         class FakeModule(object):
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                ScanListener,
+            ):
+                def on_scan_started(s, scan_id):
+                    pass
+
                 def on_scan_feed_start(s, scan_id):
                     self.results.append("on_scan_feed_start")
 
@@ -114,7 +122,7 @@ class TestLibinsane(unittest.TestCase):
                 def on_scan_feed_end(s, scan_id):
                     self.results.append("on_scan_feed_end")
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
 
         self.core.init()
 
@@ -129,22 +137,22 @@ class TestLibinsane(unittest.TestCase):
                 lambda args: list(args[2])
             )
             promise = promise.then(source.close)
-            self.core.call_success("scan_schedule", promise)
+            self.core.call_success(Scan.scan_schedule, promise)
             self.called = True
 
         def get_sources_and_scan(scanner):
             promise = scanner.get_sources_promise()
             promise = promise.then(scan)
-            self.core.call_success("scan_schedule", promise)
+            self.core.call_success(Scan.scan_schedule, promise)
 
         promise = self.core.call_success(
-            "scan_get_scanner_promise", TEST_DEV_ID
+            Scan.scan_get_scanner_promise, TEST_DEV_ID
         )
         promise = promise.then(get_sources_and_scan)
         promise.schedule()
-        self.core.call_all("mainloop_quit_graceful")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         self.assertTrue(self.called)
         self.assertIn("on_scan_feed_start", self.results)
@@ -176,7 +184,13 @@ class TestLibinsane(unittest.TestCase):
         class FakeModule(object):
             __name__ = "fake_module"
 
-            class Plugin(openpaperwork_core.PluginBase):
+            class Plugin(
+                openpaperwork_core.PluginBase,
+                ScanListener,
+            ):
+                def on_scan_started(s, scan_id):
+                    pass
+
                 def on_scan_feed_start(s, scan_id):
                     self.results.append("on_scan_feed_start")
 
@@ -192,7 +206,7 @@ class TestLibinsane(unittest.TestCase):
                 def on_scan_feed_end(s, scan_id):
                     self.results.append("on_scan_feed_end")
 
-        self.core._load_module("fake_module", FakeModule())
+        self.core.load("fake_module", FakeModule())
 
         self.core.init()
 
@@ -201,15 +215,15 @@ class TestLibinsane(unittest.TestCase):
         plugin.libinsane_logger.min_level = Libinsane.LogLevel.ERROR
 
         (scan_id, promise) = self.core.call_success(
-            "scan_promise", source_id="flatbed"
+            Scan.scan_promise, source_id="flatbed"
         )
         promise = promise.then(  # roll out the image generator
             lambda args: list(args[2])
         )
-        self.core.call_success("scan_schedule", promise)
-        self.core.call_all("mainloop_quit_graceful")
+        self.core.call_success(Scan.scan_schedule, promise)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
 
-        self.core.call_all("mainloop")
+        self.core.call_all(Mainloop.mainloop)
 
         self.assertIn("on_scan_feed_start", self.results)
         self.assertIn("on_scan_page_start", self.results)

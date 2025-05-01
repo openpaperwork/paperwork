@@ -3,6 +3,7 @@ import unittest
 
 import PIL.Image
 
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 import openpaperwork_core.fs
 
@@ -25,6 +26,6 @@ class TestPillowPdf(unittest.TestCase):
         )
 
     def test_pdf_url_to_pillow(self):
-        pdf_as_img = self.core.call_success("url_to_pillow", self.pdf_url)
+        pdf_as_img = self.core.call_success(Pillow.url_to_pillow, self.pdf_url)
         ref_img = PIL.Image.open(self.img_path)
         self.assertEqual(ref_img.size, pdf_as_img.size)

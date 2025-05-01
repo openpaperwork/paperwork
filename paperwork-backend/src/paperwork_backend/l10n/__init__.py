@@ -1,16 +1,17 @@
+from openpaperwork_core.interfaces.l10n import L10n
+from openpaperwork_core.interfaces.l10n import L10nInit
 import openpaperwork_core
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['l10n_init']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    L10nInit,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'l10n',
+                'interface': L10n,
                 'defaults': ['openpaperwork_core.l10n.python'],
             },
         ]
@@ -18,5 +19,5 @@ class Plugin(openpaperwork_core.PluginBase):
     def __init__(self, core):
         super().__init__(core)
         self.core.call_all(
-            "l10n_load", "paperwork_backend.l10n", "paperwork_backend"
+            L10n.l10n_load, "paperwork_backend.l10n", "paperwork_backend"
         )

@@ -1,9 +1,12 @@
 import os
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
 import openpaperwork_core
 import openpaperwork_core.promise
 
+from paperwork_backend.interfaces.export import ExportPipes
 import paperwork_backend.docexport
 
 
@@ -13,16 +16,19 @@ class TestAutomaticDocExport(unittest.TestCase):
         self.core.load("openpaperwork_gtk.fs.gio")
         self.core.load("openpaperwork_core.fs.memory")
         self.core.load("paperwork_backend.docexport.automatic")
+        self.core.load("paperwork_backend.docexport.generic")
+        self.core.load("paperwork_backend.docexport.img")
+        self.core.load("paperwork_backend.docexport.pdf")
         self.core.init()
 
         self.test_doc_pdf_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             "{}/test_pdf_doc".format(os.path.dirname(os.path.abspath(__file__))),
         )
 
     def test_automatic_pdf_to_pdf(self):
         pipeline = [
-            self.core.call_success("export_get_pipe_by_name", "automatic_pdf"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "automatic_pdf"),
         ]
         result = None
 
@@ -39,16 +45,16 @@ class TestAutomaticDocExport(unittest.TestCase):
         for pipe in pipeline:
             promise = promise.then(pipe.get_promise(result='preview'))
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise = promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(len(result), 1)
         self.assertTrue(result[0].startswith("file://"))
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)
 
         (tmp_file, fd) = self.core.call_success(
-            "fs_mktemp", prefix="paperwork-test-", suffix=".pdf",
+            Fs.fs_mktemp, prefix="paperwork-test-", suffix=".pdf",
             on_disk=True,
         )
         fd.close()
@@ -59,14 +65,14 @@ class TestAutomaticDocExport(unittest.TestCase):
                 pipe.get_promise(result='final', target_file_url=tmp_file)
             )
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(len(result), 1)
         self.assertEqual(tmp_file, result[0])
-        self.assertTrue(self.core.call_success("fs_getsize", result[0]) > 0)
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.assertTrue(self.core.call_success(Fs.fs_getsize, result[0]) > 0)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)
 
 
 class TestPageExport(unittest.TestCase):
@@ -80,22 +86,22 @@ class TestPageExport(unittest.TestCase):
         self.core.init()
 
         self.test_doc_pdf_url = self.core.call_success(
-            "fs_safe", "{}/test_pdf_doc".format(
+            Fs.fs_safe, "{}/test_pdf_doc".format(
                 os.path.dirname(os.path.abspath(__file__))
             )
         )
         self.test_doc_img_url = self.core.call_success(
-            "fs_safe", "{}/test_img_doc".format(
+            Fs.fs_safe, "{}/test_img_doc".format(
                 os.path.dirname(os.path.abspath(__file__))
             )
         )
 
     def test_pdf_to_img(self):
         pipeline = [
-            self.core.call_success("export_get_pipe_by_name", "img_boxes"),
-            self.core.call_success("export_get_pipe_by_name", "unpaper"),
-            self.core.call_success("export_get_pipe_by_name", "swt_soft"),
-            self.core.call_success("export_get_pipe_by_name", "png"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "img_boxes"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "unpaper"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "swt_soft"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "png"),
         ]
         result = None
 
@@ -113,16 +119,16 @@ class TestPageExport(unittest.TestCase):
         for pipe in pipeline:
             promise = promise.then(pipe.get_promise(result='preview'))
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise = promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(len(result), 1)
         self.assertTrue(result[0].startswith("memory://"))
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)
 
         (tmp_file, fd) = self.core.call_success(
-            "fs_mktemp", prefix="paperwork-test-", suffix=".png",
+            Fs.fs_mktemp, prefix="paperwork-test-", suffix=".png",
             on_disk=True
         )
         fd.close()
@@ -133,23 +139,23 @@ class TestPageExport(unittest.TestCase):
                 pipe.get_promise(result='final', target_file_url=tmp_file)
             )
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(len(result), 1)
         self.assertEqual(tmp_file, result[0])
         self.assertTrue(
-            self.core.call_success("fs_getsize", result[0]) > 0
+            self.core.call_success(Fs.fs_getsize, result[0]) > 0
         )
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)
 
     def test_img_to_pdf(self):
         pipeline = [
-            self.core.call_success("export_get_pipe_by_name", "img_boxes"),
-            self.core.call_success("export_get_pipe_by_name", "unpaper"),
-            self.core.call_success("export_get_pipe_by_name", "swt_soft"),
-            self.core.call_success("export_get_pipe_by_name", "generated_pdf"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "img_boxes"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "unpaper"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "swt_soft"),
+            self.core.call_success(ExportPipes.export_get_pipe_by_name, "generated_pdf"),
         ]
         result = None
 
@@ -167,17 +173,17 @@ class TestPageExport(unittest.TestCase):
         for pipe in pipeline:
             promise = promise.then(pipe.get_promise(result='preview'))
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise = promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         # required by Poppler
         self.assertEqual(len(result), 1)
         self.assertTrue(result[0].startswith("file://"))
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)
 
         (tmp_file, fd) = self.core.call_success(
-            "fs_mktemp", prefix="paperwork-test-", suffix=".png",
+            Fs.fs_mktemp, prefix="paperwork-test-", suffix=".png",
             on_disk=True
         )
         fd.close()
@@ -188,11 +194,11 @@ class TestPageExport(unittest.TestCase):
                 pipe.get_promise(result='final', target_file_url=tmp_file)
             )
         promise = promise.then(set_result)
-        promise = promise.then(self.core.call_all, "mainloop_quit_graceful")
+        promise = promise.then(self.core.call_all, Mainloop.mainloop_quit_graceful)
         promise.schedule()
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop)
 
         self.assertEqual(len(result), 1)
         self.assertEqual(tmp_file, result[0])
-        self.assertTrue(self.core.call_success("fs_getsize", result[0]) > 0)
-        self.core.call_success("fs_unlink", result[0], trash=False)
+        self.assertTrue(self.core.call_success(Fs.fs_getsize, result[0]) > 0)
+        self.core.call_success(Fs.fs_unlink, result[0], trash=False)

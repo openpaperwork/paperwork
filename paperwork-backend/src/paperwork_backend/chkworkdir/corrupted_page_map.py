@@ -3,10 +3,17 @@ from typing import Tuple
 import logging
 import re
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
-import paperwork_backend.model.pdf
 
-from .. import _
+from paperwork_backend import _
+from paperwork_backend.interfaces.chkworkdir import Chkworkdir
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_pdf import DocPdf
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import Docs
+import paperwork_backend.model.pdf
 
 
 LOGGER = logging.getLogger(__name__)
@@ -15,7 +22,10 @@ PAGE_FILENAME_REGEX = re.compile(r"paper\.(\d+)\.(.*)")
 PAGE_FILENAME_FMT = "paper.{idx}.{file_ext}"
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Chkworkdir,
+):
     """
     Label files in each document contains both the label names and their color.
     If the user changes a label color, label files are updated one-by-one.
@@ -26,29 +36,33 @@ class Plugin(openpaperwork_core.PluginBase):
     PRIORITY = 10000
 
     @classmethod
-    def get_interfaces(cls):
-        return ['chkworkdir']
-
-    @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'doc_labels',
+                'interface': DocLabels,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                'interface': 'document_storage',
+                'interface': DocStorage,
                 'defaults': ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'doc_pdf_url',
+                'interface': DocPdf,
                 'defaults': ['paperwork_backend.model.pdf'],
+            },
+            {
+                "interface": Docs,
+                "defaults": ["paperwork_backend.model"],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
             },
         ]
 
     def check_work_dir(self, out_problems: list):
         all_docs: List[Tuple[str, str]] = []
-        self.core.call_all("storage_get_all_docs", all_docs, only_valid=False)
+        self.core.call_all(DocStorage.storage_get_all_docs, all_docs, only_valid=False)
         all_docs.sort()
 
         total = len(all_docs)
@@ -56,21 +70,21 @@ class Plugin(openpaperwork_core.PluginBase):
 
         for (idx, (doc_id, doc_url)) in enumerate(all_docs):
             self.core.call_all(
-                "on_progress", "chkworkdir_corrupted_page_map",
+                ProgressListener.on_progress, "chkworkdir_corrupted_page_map",
                 idx / total, _("Checking doc %s") % (doc_id,)
             )
 
             page_map_url = self.core.call_success(
-                "fs_join", doc_url,
+                Fs.fs_join, doc_url,
                 paperwork_backend.model.pdf.MAPPING_FILE
             )
-            if not self.core.call_success("fs_exists", page_map_url):
+            if not self.core.call_success(Fs.fs_exists, page_map_url):
                 continue
 
             # simplest way to see if the page map is readable is to
             # try to get the number of pages of the doc
             try:
-                self.core.call_success("doc_get_nb_pages_by_url", doc_url)
+                self.core.call_success(Docs.doc_get_nb_pages_by_url, doc_url)
                 continue
             except Exception:
                 out_problems.append({
@@ -93,7 +107,7 @@ class Plugin(openpaperwork_core.PluginBase):
                     }
                 })
 
-        self.core.call_all("on_progress", "chkworkdir_corrupted_page_map", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "chkworkdir_corrupted_page_map", 1.0)
 
     def fix_work_dir(self, problems):
         total = len(problems)
@@ -104,27 +118,27 @@ class Plugin(openpaperwork_core.PluginBase):
             doc_url = problem['doc_url']
             LOGGER.info("Fixing document %s", doc_url)
             self.core.call_all(
-                "on_progress", "fixworkdir_corrupted_page_map",
+                ProgressListener.on_progress, "fixworkdir_corrupted_page_map",
                 idx / total,
                 _("Fixing page mapping of doc %s") % (doc_id,)
             )
             page_map_url = self.core.call_success(
-                "fs_join", doc_url,
+                Fs.fs_join, doc_url,
                 paperwork_backend.model.pdf.PdfPageMapping.MAPPING_FILE
             )
-            if self.core.call_success("fs_exists", page_map_url):
-                self.core.call_success("fs_unlink", page_map_url)
+            if self.core.call_success(Fs.fs_exists, page_map_url):
+                self.core.call_success(Fs.fs_unlink, page_map_url)
 
             # Move all the scanned page files after the PDF pages
             doc_nb_pages = self.core.call_success(
-                "doc_pdf_get_real_nb_pages_by_url", doc_url
+                DocPdf.doc_pdf_get_real_nb_pages_by_url, doc_url
             )
             page_map = {}
-            files = self.core.call_success("fs_listdir", doc_url)
+            files = self.core.call_success(Fs.fs_listdir, doc_url)
             if files is None:
                 return None
             for file_url in files:
-                file_name = self.core.call_success("fs_basename", file_url)
+                file_name = self.core.call_success(Fs.fs_basename, file_url)
                 match = PAGE_FILENAME_REGEX.match(file_name)
                 if match is None:
                     continue
@@ -137,11 +151,11 @@ class Plugin(openpaperwork_core.PluginBase):
                     doc_nb_pages += 1
                     page_map[old_page_nb] = new_page_nb
                 new_page_url = self.core.call_success(
-                    "fs_join", doc_url, PAGE_FILENAME_FMT.format(
+                    Fs.fs_join, doc_url, PAGE_FILENAME_FMT.format(
                         idx=new_page_nb,
                         file_ext=file_ext
                     )
                 )
-                self.core.call_success("fs_rename", file_url, new_page_url)
+                self.core.call_success(Fs.fs_rename, file_url, new_page_url)
 
-        self.core.call_all("on_progress", "fixworkdir_corrupted_page_map", 1.0)
+        self.core.call_all(ProgressListener.on_progress, "fixworkdir_corrupted_page_map", 1.0)

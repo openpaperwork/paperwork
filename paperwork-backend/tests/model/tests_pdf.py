@@ -3,42 +3,52 @@ import shutil
 import tempfile
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
 import openpaperwork_core
+
+from paperwork_backend.interfaces.docs import DocHash
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import PageManagement
+from paperwork_backend.interfaces.pages import PageText
 
 
 class TestHocr(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
+        self.core.load("paperwork_backend.model")
         self.core.load("paperwork_backend.model.pdf")
         self.core.init()
 
         self.simple_doc_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "simple_doc.pdf"
             )
         )
         self.full_doc_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.dirname(os.path.abspath(__file__))
         )
 
         mapping = self.full_doc_url + "/page_map.csv"
-        if self.core.call_success("fs_exists", mapping):
-            self.core.call_success("fs_unlink", mapping, trash=False)
+        if self.core.call_success(Fs.fs_exists, mapping):
+            self.core.call_success(Fs.fs_unlink, mapping, trash=False)
 
     def tearDown(self):
         mapping = self.full_doc_url + "/page_map.csv"
-        if self.core.call_success("fs_exists", mapping):
-            self.core.call_success("fs_unlink", mapping, trash=False)
+        if self.core.call_success(Fs.fs_exists, mapping):
+            self.core.call_success(Fs.fs_unlink, mapping, trash=False)
 
     def test_is_doc(self):
-        self.assertTrue(self.core.call_success("is_doc", self.simple_doc_url))
-        self.assertTrue(self.core.call_success("is_doc", self.full_doc_url))
+        self.assertTrue(self.core.call_success(DocType.is_doc, self.simple_doc_url))
+        self.assertTrue(self.core.call_success(DocType.is_doc, self.full_doc_url))
 
     def test_hash(self):
-        h = self.core.call_success("doc_get_hash_by_url", self.simple_doc_url)
+        h = self.core.call_success(DocHash.doc_get_hash_by_url, self.simple_doc_url)
         expected = (
             0x7d2ffb0e8ddce8f7dfbb4a8dfc14d563b272bd47b1bafb9617fbfd228bf2eecd
         )
@@ -47,26 +57,26 @@ class TestHocr(unittest.TestCase):
     def test_get_nb_pages(self):
         self.assertEqual(
             self.core.call_success(
-                "doc_get_nb_pages_by_url", self.simple_doc_url
+                Docs.doc_get_nb_pages_by_url, self.simple_doc_url
             ), 1
         )
 
         self.assertEqual(
             self.core.call_success(
-                "doc_get_nb_pages_by_url", self.full_doc_url
+                Docs.doc_get_nb_pages_by_url, self.full_doc_url
             ), 4
         )
 
-        self.core.call_all("page_delete_by_url", self.full_doc_url, 2)
+        self.core.call_all(PageManagement.page_delete_by_url, self.full_doc_url, 2)
         self.assertEqual(
             self.core.call_success(
-                "doc_get_nb_pages_by_url", self.full_doc_url
+                Docs.doc_get_nb_pages_by_url, self.full_doc_url
             ), 3
         )
 
     def test_get_text(self):
         text = []
-        self.core.call_all("doc_get_text_by_url", text, self.simple_doc_url)
+        self.core.call_all(DocText.doc_get_text_by_url, text, self.simple_doc_url)
         self.assertEqual(text, [
             'This is a test PDF file.\n'
             'Written by Jflesch.'
@@ -74,7 +84,7 @@ class TestHocr(unittest.TestCase):
 
     def test_get_boxes(self):
         lines = list(self.core.call_success(
-            "page_get_boxes_by_url", self.simple_doc_url, 0
+            PageText.page_get_boxes_by_url, self.simple_doc_url, 0
         ))
 
         self.assertEqual(len(lines), 2)
@@ -127,11 +137,12 @@ class TestHocr(unittest.TestCase):
 class TestMapping(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
+        self.core.load("paperwork_backend.model")
         self.core.load("paperwork_backend.model.pdf")
         self.core.init()
 
         self.pdf = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "doc.pdf"
@@ -139,14 +150,14 @@ class TestMapping(unittest.TestCase):
         )
 
         self.work_dir = tempfile.mkdtemp(prefix="paperwork_tests_all_")
-        self.work_dir_url = self.core.call_success("fs_safe", self.work_dir)
+        self.work_dir_url = self.core.call_success(Fs.fs_safe, self.work_dir)
         self.doc_url = self.core.call_success(
-            "fs_join", self.work_dir_url, "20200525_1241_05"
+            Fs.fs_join, self.work_dir_url, "20200525_1241_05"
         )
-        self.core.call_success("fs_mkdir_p", self.doc_url)
+        self.core.call_success(Fs.fs_mkdir_p, self.doc_url)
         self.core.call_success(
-            "fs_copy", self.pdf,
-            self.core.call_success("fs_join", self.doc_url, "doc.pdf")
+            Fs.fs_copy, self.pdf,
+            self.core.call_success(Fs.fs_join, self.doc_url, "doc.pdf")
         )
         self.mapping = self.doc_url + "/page_map.csv"
 
@@ -154,7 +165,7 @@ class TestMapping(unittest.TestCase):
         shutil.rmtree(self.work_dir)
 
     def test_crappy_mapping(self):
-        with self.core.call_success("fs_open", self.mapping, "w") as fd:
+        with self.core.call_success(Fs.fs_open, self.mapping, "w") as fd:
             fd.write("original_page_index,target_page_index\n")
             fd.write("0,-1\n")
             fd.write("1,2\n")
@@ -162,31 +173,32 @@ class TestMapping(unittest.TestCase):
             fd.write("3,-1\n")
         self.assertEqual(
             self.core.call_success(
-                "doc_get_nb_pages_by_url", self.doc_url
+                Docs.doc_get_nb_pages_by_url, self.doc_url
             ), 3
         )
         self.assertIsNotNone(
-            self.core.call_success("page_get_img_url", self.doc_url, 0)
+            self.core.call_success(PageImg.page_get_img_url, self.doc_url, 0)
         )
         self.assertIsNotNone(
-            self.core.call_success("page_get_img_url", self.doc_url, 1)
+            self.core.call_success(PageImg.page_get_img_url, self.doc_url, 1)
         )
         self.assertIsNotNone(
-            self.core.call_success("page_get_img_url", self.doc_url, 2)
+            self.core.call_success(PageImg.page_get_img_url, self.doc_url, 2)
         )
         self.assertIsNone(
-            self.core.call_success("page_get_img_url", self.doc_url, 3)
+            self.core.call_success(PageImg.page_get_img_url, self.doc_url, 3)
         )
 
 
 class TestPassword(unittest.TestCase):
     def setUp(self):
         self.core = openpaperwork_core.Core(auto_load_dependencies=True)
+        self.core.load("paperwork_backend.model")
         self.core.load("paperwork_backend.model.pdf")
         self.core.init()
 
         password_doc_url = self.core.call_success(
-            "fs_safe",
+            Fs.fs_safe,
             os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "test_password.pdf"
@@ -199,14 +211,14 @@ class TestPassword(unittest.TestCase):
         )
 
         doc_pdf = self.core.call_success(
-            "fs_join", self.tmp_doc_url, "doc.pdf"
+            Fs.fs_join, self.tmp_doc_url, "doc.pdf"
         )
         passwd_txt = self.core.call_success(
-            "fs_join", self.tmp_doc_url, "passwd.txt"
+            Fs.fs_join, self.tmp_doc_url, "passwd.txt"
         )
 
-        self.core.call_all("fs_copy", password_doc_url, doc_pdf)
-        with self.core.call_success("fs_open", passwd_txt, "w") as fd:
+        self.core.call_all(Fs.fs_copy, password_doc_url, doc_pdf)
+        with self.core.call_success(Fs.fs_open, passwd_txt, "w") as fd:
             fd.write("test1234")
 
     def tearDown(self):
@@ -214,10 +226,10 @@ class TestPassword(unittest.TestCase):
 
     def test_open_page(self):
         boxes = self.core.call_success(
-            "page_get_boxes_by_url", self.tmp_doc_url, 0
+            PageText.page_get_boxes_by_url, self.tmp_doc_url, 0
         )
         self.assertNotEqual(len(boxes), 0)
         img_url = self.core.call_success(
-            "page_get_img_url", self.tmp_doc_url, 0
+            PageImg.page_get_img_url, self.tmp_doc_url, 0
         )
         self.assertIn("password=", img_url)

@@ -1,30 +1,45 @@
 import datetime
 import time
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 
-from . import workdir
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.docs import DocHash
+from paperwork_backend.interfaces.docs import Docs
+from paperwork_backend.interfaces.docs import DocText
+from paperwork_backend.interfaces.docs import DocType
+from paperwork_backend.interfaces.pages import PageImg
+from paperwork_backend.interfaces.pages import Pages
+from paperwork_backend.interfaces.pages import PageText
+from paperwork_backend.model import workdir
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocHash,
+    DocLabels,
+    Docs,
+    DocStorage,
+    DocText,
+    DocType,
+    PageImg,
+    Pages,
+    PageText,
+    Pillow,
+):
     PRIORITY = 10000
 
     @classmethod
-    def get_interfaces(cls):
-        return [
-            "doc_hash",
-            "doc_labels",
-            "doc_text",
-            "doc_type",
-            "document_storage",
-            "page_boxes",
-            "page_paper",
-            "pillow",
-        ]
-
-    @classmethod
     def get_deps(cls):
-        return []
+        return [
+            {
+                'interface': Config,
+                'defaults': ['openpaperwork_core.config'],
+            },
+        ]
 
     def __init__(self, core):
         super().__init__(core)
@@ -63,6 +78,11 @@ class Plugin(openpaperwork_core.PluginBase):
         # ]
         self.docs = []
         self.new_doc_idx = 0
+        setting = self.core.call_success(
+            Config.config_build_simple, "Global", "WorkDirectory",
+            lambda: self.storage_get_id()
+        )
+        self.core.call_all(Config.config_register, "workdir", setting)
 
     def storage_get_id(self):
         return "file:///home/jflesch/papers"
@@ -248,9 +268,6 @@ class Plugin(openpaperwork_core.PluginBase):
                 self.docs.pop(idx)
                 return True
 
-    def page_delete(self, doc_url, page_idx):
-        raise NotImplementedError()
-
     def page_get_mtime_by_url(self, doc_url, page_idx):
         for doc in self.docs:
             if doc['url'] != doc_url:
@@ -274,3 +291,49 @@ class Plugin(openpaperwork_core.PluginBase):
             if 'page_paper_sizes' not in doc:
                 continue
             return doc['page_paper_sizes'][page_idx][1]
+
+    @openpaperwork_core.noop
+    def label_load_all(self, promises: list):
+        pass
+
+    def doc_copy_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_get_id_by_date(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_get_labels_by_url_promise(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_get_size_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_get_title_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_internal_get_mtime_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_internal_get_nb_pages_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_remove_label_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def doc_rename_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def page_get_text_by_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def pillow_to_url(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def url_to_img_size(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def url_to_img_size_promise(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def url_to_pillow_promise(self, *args, **kwargs):
+        raise NotImplementedError()

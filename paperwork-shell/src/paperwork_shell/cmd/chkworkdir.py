@@ -1,25 +1,37 @@
 import rich.text
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.cmd.util
 
-from .. import _
+from paperwork_backend.interfaces.chkworkdir import Chkworkdir
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+
+from paperwork_shell import _
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'chkworkdir',
+                'interface': Chkworkdir,
                 'defaults': [
                     'paperwork_backend.chkworkdir.empty_doc',
                     'paperwork_backend.chkworkdir.label_color',
                 ],
+            },
+            {
+                "interface": DocTransactionManager,
+                "defaults": ["paperwork_backend.sync"],
+            },
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
         ]
 
@@ -48,7 +60,7 @@ class Plugin(openpaperwork_core.PluginBase):
         console.print(_("Checking work directory ..."))
 
         problems = []
-        self.core.call_all("check_work_dir", problems)
+        self.core.call_all(Chkworkdir.check_work_dir, problems)
 
         if len(problems) <= 0:
             console.print(_("No problem found"))
@@ -97,13 +109,13 @@ class Plugin(openpaperwork_core.PluginBase):
                 return problems
 
         console.print(_("Fixing ..."))
-        self.core.call_all("fix_work_dir", problems)
+        self.core.call_all(Chkworkdir.fix_work_dir, problems)
         console.print(_("All fixed !"))
         console.print(_("Synchronizing with work directory ..."))
 
-        self.core.call_all("transaction_sync_all")
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_all(DocTransactionManager.transaction_sync_all)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         console.print(_("All done !"))
 
         return problems

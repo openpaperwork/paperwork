@@ -6,6 +6,10 @@ import traceback
 import rich.console
 import rich.text
 
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.logs import LogManager
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.cmd
 
@@ -85,17 +89,17 @@ def main_main(in_args, application_name, default_plugins, interactive):
         core.load(module_name)
     core.init()
 
-    core.call_all("config_load")
-    core.call_all("config_load_plugins", application_name, default_plugins)
+    core.call_all(Config.config_load)
+    core.call_all(Config.config_load_plugins, application_name, default_plugins)
 
-    core.call_all("init_logs", application_name, "info")
+    core.call_all(LogManager.init_logs, application_name, "info")
 
     parser = argparse.ArgumentParser()
     cmd_parser = parser.add_subparsers(
         help=_('command'), dest='command', required=True
     )
 
-    core.call_all("cmd_complete_argparse", cmd_parser)
+    core.call_all(Shell.cmd_complete_argparse, cmd_parser)
     args = parser.parse_args(in_args)
 
     if interactive:
@@ -103,13 +107,13 @@ def main_main(in_args, application_name, default_plugins, interactive):
     else:
         console = openpaperwork_core.cmd.DummyConsole()
 
-    core.call_all("cmd_set_console", console)
+    core.call_all(Shell.cmd_set_console, console)
     if interactive:
-        r = core.call_all("cmd_run", console=console, args=args)
+        r = core.call_all(Shell.cmd_run, console=console, args=args)
     else:
-        r = core.call_success("cmd_run", console=console, args=args)
+        r = core.call_success(Shell.cmd_run, console=console, args=args)
 
-    core.call_all("on_quit")
+    core.call_all(QuitListener.on_quit)
     return r
 
 

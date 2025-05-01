@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,31 +15,36 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 
-import openpaperwork_core
 from openpaperwork_core.cmd.util import ask_confirmation
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
+import openpaperwork_core
 
-from .util import parse_page_list
-from .. import _
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.pages import PageManagement
+
+from paperwork_shell.cmd.util import parse_page_list
+from paperwork_shell import _
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "document_storage",
+                "interface": DocStorage,
                 "defaults": ['paperwork_backend.model.workdir'],
             },
             {
-                'interface': 'mainloop',
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                "interface": "pages",
+                "interface": PageManagement,
                 "defaults": [
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.img',
@@ -47,7 +52,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 ],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -110,25 +115,25 @@ class Plugin(openpaperwork_core.PluginBase):
 
             if pages is None:
                 console.print(del_doc_msg.format(doc_id=doc_id))
-                self.core.call_all("storage_delete_doc_id", doc_id)
+                self.core.call_all(DocStorage.storage_delete_doc_id, doc_id)
             else:
                 for page in pages:
                     doc_url = self.core.call_success(
-                        "doc_id_to_url", doc_id
+                        DocStorage.doc_id_to_url, doc_id
                     )
                     console.print(del_page_msg.format(
                         page_idx=(page + 1), doc_id=doc_id)
                     )
-                    self.core.call_all("page_delete_by_url", doc_url, page)
+                    self.core.call_all(PageManagement.page_delete_by_url, doc_url, page)
 
         self.core.call_success(
-            "transaction_simple", [
+            DocTransactionManager.transaction_simple, [
                 # transaction_simple() will automatically replace the change
                 # 'upd' by 'del' for the documents that don't exist anymore
                 ("upd", doc_id) for doc_id in doc_ids
             ]
         )
-        self.core.call_success("mainloop_quit_graceful")
-        self.core.call_success("mainloop")
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop)
 
         return True

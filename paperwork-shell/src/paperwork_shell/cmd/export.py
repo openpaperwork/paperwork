@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,43 +15,51 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.promise
 
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.export import ExportPipes
 import paperwork_backend.docexport
 
-from . import util
-from .. import _
+from paperwork_shell import _
+from paperwork_shell.cmd import util
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     def __init__(self, core):
         super().__init__(core)
         self.console = None
 
     @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
-    @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                "interface": "document_storage",
+                "interface": DocStorage,
                 "defaults": ["paperwork_backend.model.workdir"],
             },
             {
-                "interface": "fs",
+                "interface": Fs,
                 "defaults": ["openpaperwork_gtk.fs.gio"],
             },
             {
-                "interface": "export_pipes",
+                "interface": ExportPipes,
                 "defaults": [
                     'paperwork_backend.docexport.generic',
                     'paperwork_backend.docexport.img',
                     'paperwork_backend.docexport.pdf',
                     'paperwork_backend.docexport.pillowfight',
                 ],
+            },
+            {
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
         ]
 
@@ -119,11 +127,11 @@ class Plugin(openpaperwork_core.PluginBase):
         next_pipes = []
         if pages is not None and len(pages) > 0:
             self.core.call_all(
-                "export_get_pipes_by_page", next_pipes, doc_url, pages[0]
+                ExportPipes.export_get_pipes_by_page, next_pipes, doc_url, pages[0]
             )
         else:
             self.core.call_all(
-                "export_get_pipes_by_doc_url", next_pipes, doc_url
+                ExportPipes.export_get_pipes_by_doc_url, next_pipes, doc_url
             )
         if len(filters) <= 0:
             self.console.print(_("Need at least one filter."))
@@ -165,7 +173,7 @@ class Plugin(openpaperwork_core.PluginBase):
             )
             next_pipes = []
             self.core.call_all(
-                "export_get_pipes_by_input", next_pipes, output_type
+                ExportPipes.export_get_pipes_by_input, next_pipes, output_type
             )
             return self._print_possible_pipes(next_pipes)
         return None
@@ -177,7 +185,7 @@ class Plugin(openpaperwork_core.PluginBase):
         # argument parsing
 
         doc_id = args.doc_id
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
         if doc_url is None:
             sys.stderr.write(f"Document {doc_id} doesn't exist\n")
             return False
@@ -197,7 +205,7 @@ class Plugin(openpaperwork_core.PluginBase):
         filters_str = [f[0] for f in filters]
         filters = []
         for f in filters_str:
-            p = self.core.call_success('export_get_pipe_by_name', f)
+            p = self.core.call_success(ExportPipes.export_get_pipe_by_name, f)
             if p is None:
                 sys.stderr.write(
                     (_("Unknown filters: %s") % f) + "\n"
@@ -226,7 +234,7 @@ class Plugin(openpaperwork_core.PluginBase):
             return []
 
         # else try to export
-        out = self.core.call_success("fs_safe", out)
+        out = self.core.call_success(Fs.fs_safe, out)
 
         def get_input_value():
             return input_value
@@ -240,11 +248,11 @@ class Plugin(openpaperwork_core.PluginBase):
             )
 
         self.console.print(_("Exporting to %s ... ") % out)
-        self.core.call_one("mainloop_schedule", promise.schedule)
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop_schedule, promise.schedule)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         self.console.print(_("Done") + "\n")
-        r = (self.core.call_success("fs_exists", out) is not None)
+        r = (self.core.call_success(Fs.fs_exists, out) is not None)
         if not r:
             sys.stderr.write(_("Export failed !") + "\n")
         return r

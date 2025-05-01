@@ -2,37 +2,63 @@ import itertools
 import os
 import time
 
+from openpaperwork_core.interfaces.certificate_store import CertificateStore
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.networking import Networking
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
+
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.http import HttpsBackend
+from paperwork_backend.interfaces.http import Pairing
+from paperwork_backend.interfaces.http import PairingQrCode
 
 from paperwork_shell import _
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "certificate_store",
+                "interface": CertificateStore,
                 "defaults": ["openpaperwork_core.crypto.certificates.store"],
             },
             {
-                "interface": "config",
+                "interface": Config,
                 "defaults": ["openpaperwork_core.config"],
             },
             {
-                "interface": "https_backend",
+                "interface": DocTransactionManager,
+                "defaults": ["paperwork_backend.sync"],
+            },
+            {
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
+            },
+            {
+                "interface": HttpsBackend,
                 "defaults": ["paperwork_backend.http"],
             },
             {
-                "interface": "networking",
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
+            },
+            {
+                "interface": Networking,
                 "defaults": ["openpaperwork_core.networking"],
             },
             {
-                "interface": "pairing_qrcode",
+                "interface": Pairing,
+                "defaults": ["paperwork_backend.http.pairing"],
+            },
+            {
+                "interface": PairingQrCode,
                 "defaults": ["paperwork_backend.http.pairing"],
             },
         ]
@@ -71,17 +97,17 @@ class Plugin(openpaperwork_core.PluginBase):
         )
 
     def _dump(self, console, uri):
-        path = self.core.call_success("fs_unsafe", uri)
+        path = self.core.call_success(Fs.fs_unsafe, uri)
         console.print(f"File: {path}")
         console.print("")
-        with self.core.call_success("fs_open", uri, "r") as fd:
+        with self.core.call_success(Fs.fs_open, uri, "r") as fd:
             content = fd.readlines()
         for line in content:
             console.print(line.rstrip())
         return "".join(content)
 
     def _get_server_certificate(self, console):
-        c = self.core.call_success("https_backend_get_server_certificate")
+        c = self.core.call_success(HttpsBackend.https_backend_get_server_certificate)
         if c is None:
             console.print("No server certificate")
             return False
@@ -89,7 +115,7 @@ class Plugin(openpaperwork_core.PluginBase):
         return self._dump(console, cert)
 
     def _get_client_certificate(self, console):
-        c = self.core.call_success("https_backend_get_client_certificate")
+        c = self.core.call_success(HttpsBackend.https_backend_get_client_certificate)
         if c is None:
             console.print("No client certificate")
             return False
@@ -98,40 +124,40 @@ class Plugin(openpaperwork_core.PluginBase):
 
     def _generate_certificates(self, console, force=False):
         if not force:
-            c = self.core.call_success("https_backend_get_server_certificate")
+            c = self.core.call_success(HttpsBackend.https_backend_get_server_certificate)
             if c is not None:
                 console.print("Certificates and keys already generated")
                 return False
         console.print("Regenerating certificates and keys")
-        self.core.call_all("https_backend_regenerate_certificates")
+        self.core.call_all(HttpsBackend.https_backend_regenerate_certificates)
         console.print("Certificates and keys regenerated")
         return True
 
     def _start_serve(self, console):
-        self.core.call_all("config_put", "https_server", True)
+        self.core.call_all(Config.config_put, "https_server", True)
 
-        self.core.call_all("transaction_sync_all")
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_all(DocTransactionManager.transaction_sync_all)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
 
-        self.core.call_all("https_backend_reload")
+        self.core.call_all(HttpsBackend.https_backend_reload)
 
     def _serve(self, console):
         self._start_serve(console)
 
-        (cert, key) = self.core.call_success("https_backend_get_server_certificate")
-        cert = self.core.call_success("fs_unsafe", cert)
+        (cert, key) = self.core.call_success(HttpsBackend.https_backend_get_server_certificate)
+        cert = self.core.call_success(Fs.fs_unsafe, cert)
         console.print("Server public certificate:")
         console.print(f"  {cert}")
-        (cert, key) = self.core.call_success("https_backend_get_client_certificate")
-        cert = self.core.call_success("fs_unsafe", cert)
+        (cert, key) = self.core.call_success(HttpsBackend.https_backend_get_client_certificate)
+        cert = self.core.call_success(Fs.fs_unsafe, cert)
         console.print("Client public certificate + private key:")
         console.print(f"  {cert}")
         console.print("")
 
-        local_ips = self.core.call_success("networking_get_host_names")
-        local_ips += self.core.call_success("networking_get_local_ips")
-        port = self.core.call_success("config_get", "https_port")
+        local_ips = self.core.call_success(Networking.networking_get_host_names)
+        local_ips += self.core.call_success(Networking.networking_get_local_ips)
+        port = self.core.call_success(Config.config_get, "https_port")
         console.print("Serving on:")
         for local_ip in local_ips:
             console.print(f"    https://{local_ip}:{port}")
@@ -149,10 +175,10 @@ class Plugin(openpaperwork_core.PluginBase):
         self._start_serve(console)
         term_size = os.get_terminal_size()
         term_size = (term_size.columns, term_size.lines)
-        qrcodes = self.core.call_success("pairing_qrcode_get_ascii", term_size)
+        qrcodes = self.core.call_success(PairingQrCode.pairing_qrcode_get_ascii, term_size)
         try:
             for (qrcode_idx, qrcode) in itertools.cycle(enumerate(qrcodes)):
-                if self.core.call_success("is_pairing_done"):
+                if self.core.call_success(Pairing.is_pairing_done):
                     break
                 console.clear()
                 console.print(

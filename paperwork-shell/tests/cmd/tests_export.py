@@ -4,6 +4,8 @@ import shutil
 import tempfile
 import unittest
 
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.cmd
 import openpaperwork_core.fs
@@ -53,26 +55,26 @@ class TestSync(unittest.TestCase):
         shutil.copyfile(self.test_hocr, os.path.join(doc, "paper.1.words"))
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
+        self.core.call_all(QuitListener.on_quit)
         shutil.rmtree(self.tmp_local_dir)
         shutil.rmtree(self.tmp_work_dir)
         shutil.rmtree(self.tmp_out_dir)
 
     def test_export_doc(self):
         self.core.call_all(
-            "cmd_set_console", openpaperwork_core.cmd.DummyConsole()
+            Shell.cmd_set_console, openpaperwork_core.cmd.DummyConsole()
         )
 
         parser = argparse.ArgumentParser()
         cmd_parser = parser.add_subparsers(
             help='command', dest='command', required=True
         )
-        self.core.call_all("cmd_complete_argparse", cmd_parser)
+        self.core.call_all(Shell.cmd_complete_argparse, cmd_parser)
 
         args = parser.parse_args([
             'export', '20190830_1916_32'  # img doc
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'doc_to_pages',
         ])
@@ -80,7 +82,7 @@ class TestSync(unittest.TestCase):
         args = parser.parse_args([
             'export', '20190801_1733_23'  # pdf doc
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'doc_to_pages',
             'unmodified_pdf',
@@ -90,7 +92,7 @@ class TestSync(unittest.TestCase):
             'export', '20190830_1916_32',
             '-f', 'doc_to_pages',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'img_boxes',
         ])
@@ -100,7 +102,7 @@ class TestSync(unittest.TestCase):
             '-f', 'doc_to_pages',
             '-f', 'img_boxes',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'bmp',
             'bw',
@@ -121,7 +123,7 @@ class TestSync(unittest.TestCase):
             '-f', 'img_boxes',
             '-f', 'grayscale',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'bmp',
             'bw',
@@ -142,7 +144,7 @@ class TestSync(unittest.TestCase):
             '-f', 'grayscale',
             '-f', 'generated_pdf',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [])
 
         args = parser.parse_args([
@@ -153,7 +155,7 @@ class TestSync(unittest.TestCase):
             '-f', 'generated_pdf',
             '-o', os.path.join(self.tmp_out_dir, 'out.pdf')
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertTrue(r)
         self.assertTrue(
             os.path.exists(
@@ -165,20 +167,20 @@ class TestSync(unittest.TestCase):
 
     def test_export_page(self):
         self.core.call_all(
-            "cmd_set_console", openpaperwork_core.cmd.DummyConsole()
+            Shell.cmd_set_console, openpaperwork_core.cmd.DummyConsole()
         )
 
         parser = argparse.ArgumentParser()
         cmd_parser = parser.add_subparsers(
             help='command', dest='command', required=True
         )
-        self.core.call_all("cmd_complete_argparse", cmd_parser)
+        self.core.call_all(Shell.cmd_complete_argparse, cmd_parser)
 
         args = parser.parse_args([
             'export', '20190830_1916_32',  # img doc
             '-p', '1',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'img_boxes',
         ])
@@ -187,7 +189,7 @@ class TestSync(unittest.TestCase):
             'export', '20190801_1733_23',  # pdf doc
             '-p', '1',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'img_boxes',
         ])
@@ -197,7 +199,7 @@ class TestSync(unittest.TestCase):
             '-p', '1',
             '-f', 'doc_to_pages',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertFalse(r)
 
         args = parser.parse_args([
@@ -205,7 +207,7 @@ class TestSync(unittest.TestCase):
             '-p', '1',
             '-f', 'img_boxes',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'bmp',
             'bw',
@@ -226,7 +228,7 @@ class TestSync(unittest.TestCase):
             '-f', 'img_boxes',
             '-f', 'grayscale',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [
             'bmp',
             'bw',
@@ -247,7 +249,7 @@ class TestSync(unittest.TestCase):
             '-f', 'grayscale',
             '-f', 'generated_pdf',
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(sorted(r), [])
 
         args = parser.parse_args([
@@ -258,7 +260,7 @@ class TestSync(unittest.TestCase):
             '-f', 'generated_pdf',
             '-o', os.path.join(self.tmp_out_dir, 'out.pdf')
         ])
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertTrue(r)
         self.assertTrue(
             os.path.exists(
@@ -270,14 +272,14 @@ class TestSync(unittest.TestCase):
 
     def test_export_invalid_pipeline(self):
         self.core.call_all(
-            "cmd_set_console", openpaperwork_core.cmd.DummyConsole()
+            Shell.cmd_set_console, openpaperwork_core.cmd.DummyConsole()
         )
 
         parser = argparse.ArgumentParser()
         cmd_parser = parser.add_subparsers(
             help='command', dest='command', required=True
         )
-        self.core.call_all("cmd_complete_argparse", cmd_parser)
+        self.core.call_all(Shell.cmd_complete_argparse, cmd_parser)
 
         args = parser.parse_args([
             'export', '20190830_1916_32',
@@ -287,7 +289,7 @@ class TestSync(unittest.TestCase):
             '-o', os.path.join(self.tmp_out_dir, 'out.pdf')
         ])
         # must not crash
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertFalse(r)
         self.assertFalse(
             os.path.exists(
@@ -304,7 +306,7 @@ class TestSync(unittest.TestCase):
             '-o', os.path.join(self.tmp_out_dir, 'out.pdf')
         ])
         # must not crash
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertFalse(r)
         self.assertFalse(
             os.path.exists(

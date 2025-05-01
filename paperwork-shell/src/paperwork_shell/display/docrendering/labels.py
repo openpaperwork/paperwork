@@ -1,27 +1,34 @@
 import openpaperwork_core
 
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabels
+
+from paperwork_shell.interfaces.renderer import AbstractDocRenderer
+from paperwork_shell.interfaces.renderer import DocRendererFactory
+from paperwork_shell.interfaces.renderer import LabelRenderer
+
 import rich.style
 import rich.text
 
 
 def color_labels(core, labels):
     for label, color in labels:
-        bg_color = core.call_success("label_color_to_rgb", color)
-        fg_color = core.call_success("label_get_foreground_color", bg_color)
+        bg_color = core.call_success(DocLabelColors.label_color_to_rgb, color)
+        fg_color = core.call_success(DocLabelColors.label_get_foreground_color, bg_color)
         style = rich.style.Style(color='#%02x%02x%02x' % tuple(int(c * 0xFF) for c in fg_color),
                                  bgcolor='#%02x%02x%02x' % tuple(int(c * 0xFF) for c in bg_color))
         label = rich.text.Text(label, style=style)
         yield label
 
 
-class LabelsRenderer(object):
+class LabelsRenderer(AbstractDocRenderer):
     def __init__(self, core):
         self.core = core
         self.parent = None
 
     def _get_labels(self, doc_url):
         labels = set()
-        self.core.call_all("doc_get_labels_by_url", labels, doc_url)
+        self.core.call_all(DocLabels.doc_get_labels_by_url, labels, doc_url)
         return labels
 
     def _rearrange_labels(self, labels, terminal_width):
@@ -89,19 +96,23 @@ class LabelsRenderer(object):
         return {}
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocRendererFactory,
+    LabelRenderer,
+):
     PRIORITY = 10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['doc_renderer']
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'page_boxes',
-                'defaults': ['paperwork_backend.model.labels'],
+                "interface": DocLabels,
+                "defaults": ["paperwork_backend.model.labels"],
+            },
+            {
+                "interface": DocLabelColors,
+                "defaults": ["paperwork_backend.model.labels"],
             },
         ]
 

@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2022  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,43 +17,51 @@ import logging
 
 import rich.text
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
-import openpaperwork_core.promise
 
+from paperwork_backend.interfaces.doc_import import ImporterFactory
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
 import paperwork_backend.docimport
 
-from .. import _
+from paperwork_shell import _
 
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "fs",
-                "defaults": "openpaperwork_gtk.fs.gio",
+                "interface": Fs,
+                "defaults": ["openpaperwork_gtk.fs.gio"],
             },
             {
-                'interface': 'doc_labels',
+                'interface': DocLabels,
                 'defaults': ['paperwork_backend.model.labels'],
             },
             {
-                "interface": "import",
+                'interface': DocTransactionManager,
+                'defaults': ['paperwork_backend.sync'],
+            },
+            {
+                "interface": ImporterFactory,
                 "defaults": [
                     'paperwork_backend.docimport.img',
                     'paperwork_backend.docimport.pdf',
                 ],
             },
             {
-                'interface': 'transaction_manager',
-                'defaults': ['paperwork_backend.sync'],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
         ]
 
@@ -90,12 +98,12 @@ class Plugin(openpaperwork_core.PluginBase):
             return None
 
         file_import = paperwork_backend.docimport.FileImport(
-            [self.core.call_success("fs_safe", f) for f in args.files],
+            [self.core.call_success(Fs.fs_safe, f) for f in args.files],
             active_doc_id=args.doc_id
         )
 
         importers = []
-        self.core.call_all("get_importer", importers, file_import)
+        self.core.call_all(ImporterFactory.get_importer, importers, file_import)
         choice = 0
 
         if len(importers) <= 0:
@@ -131,13 +139,13 @@ class Plugin(openpaperwork_core.PluginBase):
         # way (maybe storing the labels in ~/.local/share/paperwork2 ?)
         console.print(_("Loading labels ..."))
         promises = []
-        self.core.call_all("label_load_all", promises)
+        self.core.call_all(DocLabels.label_load_all, promises)
         promise = promises[0]
         for p in promises[1:]:
             promise = promise.then(p)
         # use transaction_schedule to make sure that document imports
         # are not done before we have loaded the labels
-        self.core.call_one("transaction_schedule", promise)
+        self.core.call_one(DocTransactionManager.transaction_schedule, promise)
 
         data = {}
         if args.password is not None:
@@ -147,11 +155,11 @@ class Plugin(openpaperwork_core.PluginBase):
 
         console.print(_("Importing %s ...") % args.files)
         self.core.call_success(
-            "mainloop_schedule", self.core.call_success,
-            "transaction_schedule", promise
+            Mainloop.mainloop_schedule, self.core.call_success,
+            DocTransactionManager.transaction_schedule, promise
         )
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_success("mainloop")
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop)
         console.print(rich.text.Text(_("Done")))
         console.print(rich.text.Text(_("Import result:")))
         console.print(rich.text.Text(

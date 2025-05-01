@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,12 +15,17 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
+import rich.tree
+
+from openpaperwork_core.interfaces.config import Config
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.promise
 
-import rich.tree
+from paperwork_backend.interfaces.scan import Scan
 
-from .. import _
+from paperwork_shell import _
 
 
 LOGGER = logging.getLogger(__name__)
@@ -28,24 +33,23 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_RESOLUTION = 300
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
-        return [
+        return openpaperwork_core.promise.get_deps() + [
             {
-                "interface": "mainloop",
+                "interface": Mainloop,
                 "defaults": ["openpaperwork_gtk.mainloop.glib"],
             },
             {
-                "interface": "config",
+                "interface": Config,
                 "defaults": ['openpaperwork_core.config'],
             },
             {
-                "interface": "scan",
+                "interface": Scan,
                 "defaults": ['paperwork_backend.docscan.libinsane'],
             },
         ]
@@ -124,7 +128,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 self.core, hide_caught_exceptions=True
             )
             promise = promise.then(self.core.call_success(
-                "scan_get_scanner_promise", dev_id
+                Scan.scan_get_scanner_promise, dev_id
             ))
             promise.catch(self._on_get_scanner_error, dev_id)
             promise = promise.then(
@@ -132,16 +136,16 @@ class Plugin(openpaperwork_core.PluginBase):
             )
             promise = promise.then(lambda scanner: scanner.close())
             promise = promise.then(lambda *args, **kwargs: None)
-            self.core.call_success("scan_schedule", promise)
+            self.core.call_success(Scan.scan_schedule, promise)
 
     def _list_scanners(self, console):
         self.out = []
 
-        promise = self.core.call_success("scan_list_scanners_promise")
+        promise = self.core.call_success(Scan.scan_list_scanners_promise)
         promise = promise.then(self._get_scanners_info, console)
-        self.core.call_success("scan_schedule", promise)
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_success(Scan.scan_schedule, promise)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
 
     def _print_scanners(self, console):
         console.print("")
@@ -161,13 +165,13 @@ class Plugin(openpaperwork_core.PluginBase):
     def _get_scanner(self, console):
         out = {
             'id': self.core.call_success(
-                "config_get", "scanner_dev_id"
+                Config.config_get, "scanner_dev_id"
             ),
             'source': self.core.call_success(
-                "config_get", "scanner_source_id"
+                Config.config_get, "scanner_source_id"
             ),
             'resolution': self.core.call_success(
-                "config_get", "scanner_resolution"
+                Config.config_get, "scanner_resolution"
             ),
         }
         console.print(_("ID:") + " " + str(out['id']))
@@ -188,7 +192,7 @@ class Plugin(openpaperwork_core.PluginBase):
 
         # In any case, we want to make sure the settings provided are valid
         promise = self.core.call_success(
-            "scan_get_scanner_promise", args.device_id
+            Scan.scan_get_scanner_promise, args.device_id
         )
 
         def check_source(dev):
@@ -242,21 +246,21 @@ class Plugin(openpaperwork_core.PluginBase):
         promise = promise.then(check_resolution)
 
         promise = promise.then(lambda source: source.close())
-        self.core.call_success("scan_schedule", promise)
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_success(Scan.scan_schedule, promise)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
 
         self.core.call_all(
-            "config_put", "scanner_dev_id", dev_settings['id']
+            Config.config_put, "scanner_dev_id", dev_settings['id']
         )
         self.core.call_all(
-            "config_put", "scanner_source_id", dev_settings['source']
+            Config.config_put, "scanner_source_id", dev_settings['source']
         )
         self.core.call_all(
-            "config_put", "scanner_resolution",
+            Config.config_put, "scanner_resolution",
             dev_settings['resolution']
         )
-        self.core.call_all("config_save")
+        self.core.call_all(Config.config_save)
 
         return self._get_scanner(console)
 

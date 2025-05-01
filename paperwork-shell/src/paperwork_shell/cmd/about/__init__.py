@@ -4,9 +4,15 @@ import rich.style
 import rich.text
 import rich_pixels
 
+from openpaperwork_core.interfaces.app import App
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.resources import Resources
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
-from ... import _
+from paperwork_backend.interfaces.authors import Authors
+
+from paperwork_shell import _
 
 
 class PaperworkLogo:
@@ -15,7 +21,7 @@ class PaperworkLogo:
 
     def show(self, console):
         logo_ctx = self.core.call_success(
-            "resources_get_file",
+            Resources.resources_get_file,
             "paperwork_shell.cmd.about", "logo.png"
         )
         with logo_ctx as logo:
@@ -36,28 +42,27 @@ class PaperworkLogo:
             console.print(rich.text.Text(line, style=rich.style.Style(color='#abcdef')))
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'app',
+                'interface': App,
                 'defaults': ['paperwork_backend.app'],
             },
             {
-                'interface': 'authors',
+                'interface': Authors,
                 'defaults': ['paperwork_backend.authors'],
             },
             {
-                'interface': 'fs',
+                'interface': Fs,
                 'defaults': ['openpaperwork_core.fs.python'],
             },
             {
-                'interface': 'resources',
+                'interface': Resources,
                 'defaults': ['openpaperwork_core.resources.setuptools'],
             },
         ]
@@ -72,13 +77,13 @@ class Plugin(openpaperwork_core.PluginBase):
         logo = PaperworkLogo(self.core)
 
         markdown = f"""\
-# Paperwork {self.core.call_success("app_get_version")}
+# Paperwork {self.core.call_success(App.app_get_version)}
 
 > {_("Because sorting documents is a machine's job.")}
 """
 
         sections = {}
-        self.core.call_all("authors_get", sections)
+        self.core.call_all(Authors.authors_get, sections)
         for name, authors in sorted(sections.items(), key=lambda x: x[0].lower()):
             markdown += f"## {name}\n"
             for author in authors:

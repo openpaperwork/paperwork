@@ -2,19 +2,27 @@ import rich.layout
 import rich.padding
 import rich_pixels
 
+from openpaperwork_core.interfaces.pillow import Pillow
 import openpaperwork_core
 
+from paperwork_backend.interfaces.doc_thumbnail import DocThumbnail
+from paperwork_backend.interfaces.pages import PageImg
 
-class RichPixelsRenderer(object):
+from paperwork_shell.interfaces.renderer import AbstractDocRenderer
+from paperwork_shell.interfaces.renderer import DocRendererFactory
+from paperwork_shell.interfaces.renderer import ImgRenderer
+
+
+class RichPixelsRenderer(AbstractDocRenderer):
     def __init__(self, plugin):
         self.plugin = plugin
         self.core = plugin.core
         self.parent = None
 
     def get_preview_output(
-                self, doc_id, doc_url, terminal_size=(80, 25),
-                page_idx=0
-            ):
+        self, doc_id, doc_url, terminal_size=(80, 25),
+        page_idx=0
+    ):
         w_split = int(terminal_size[0] / 3)
 
         parent = []
@@ -26,7 +34,7 @@ class RichPixelsRenderer(object):
             )
 
         thumbnail = self.core.call_success(
-            "thumbnail_get_page", doc_url, page_idx
+            DocThumbnail.thumbnail_get_page, doc_url, page_idx
         )
         if thumbnail is not None:
             thumbnail = self.plugin.img_render(thumbnail, w_split)
@@ -58,8 +66,8 @@ class RichPixelsRenderer(object):
                 doc_id, doc_url, page_nb, terminal_size
             )
 
-        img_url = self.core.call_success("page_get_img_url", doc_url, page_nb)
-        img = self.core.call_success("url_to_pillow", img_url)
+        img_url = self.core.call_success(PageImg.page_get_img_url, doc_url, page_nb)
+        img = self.core.call_success(Pillow.url_to_pillow, img_url)
         img = self.plugin.img_render(img, terminal_width=(terminal_size[0] - 1))
         return [img_url, img, "", *parent_out]
 
@@ -74,40 +82,37 @@ class RichPixelsRenderer(object):
         if self.parent is not None:
             out = self.parent.get_page_infos(doc_id, doc_url, page_nb)
         out['image'] = self.core.call_success(
-            "page_get_img_url", doc_url, page_nb
+            PageImg.page_get_img_url, doc_url, page_nb
         )
         return out
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocRendererFactory,
+    ImgRenderer,
+):
     PRIORITY = 10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'doc_renderer',
-            'img_renderer',
-        ]
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'page_img',
+                'interface': PageImg,
                 'defaults': [
                     'paperwork_backend.model.img',
                     'paperwork_backend.model.pdf',
                 ],
             },
             {
-                'interface': 'pillow',
+                'interface': Pillow,
                 'defaults': [
                     'openpaperwork_core.pillow.img',
                     'paperwork_backend.pillow.pdf',
                 ],
             },
             {
-                'interface': 'thumbnail',
+                'interface': DocThumbnail,
                 'defaults': ['paperwork_backend.model.thumbnail'],
             },
         ]

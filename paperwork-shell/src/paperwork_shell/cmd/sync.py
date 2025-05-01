@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,30 +15,30 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import collections
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
-from .. import _
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.sync import SyncListener
+
+from paperwork_shell import _
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+    SyncListener,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "syncable",
-                "defaults": [
-                    "paperwork_backend.guesswork.label.sklearn",
-                    "paperwork_backend.guesswork.ocr.pyocr",
-                    "paperwork_backend.index.whoosh",
-                    "paperwork_backend.model.labels",
-                ],
+                "interface": Mainloop,
+                "defaults": ["openpaperwork_core.mainloop.asyncio"],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -69,9 +69,9 @@ class Plugin(openpaperwork_core.PluginBase):
             lambda: collections.defaultdict(list)
         )
 
-        self.core.call_all("transaction_sync_all")
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_all(DocTransactionManager.transaction_sync_all)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         console.print(_("All done !"))
 
         # ensure order of documents to make testing easier and ensure

@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
 import rich.progress
@@ -25,13 +28,12 @@ LOGGER = logging.getLogger(__name__)
 TIME_BETWEEN_PROGRESS = 0.3
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return [
-            'progress_listener',
-        ]
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ProgressListener,
+    QuitListener,
+    Shell,
+):
     def __init__(self, core):
         super().__init__(core)
         self.console = None
@@ -42,6 +44,14 @@ class Plugin(openpaperwork_core.PluginBase):
         if console is None:
             return
         self.console = console
+
+    @openpaperwork_core.noop
+    def cmd_complete_argparse(self, parser):
+        pass
+
+    @openpaperwork_core.noop
+    def cmd_run(self, console, args):
+        pass
 
     def on_progress(self, upd_type, progress, description=None):
         if self.progress is None:

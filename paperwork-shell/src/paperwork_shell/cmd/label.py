@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -15,35 +15,49 @@
 #    along with Paperwork.  If not, see <http://www.gnu.org/licenses/>.
 import sys
 
+from openpaperwork_core.cmd.util import ask_confirmation
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
-from openpaperwork_core.cmd.util import ask_confirmation
+from paperwork_backend.interfaces.doc_labels import DocLabelColors
+from paperwork_backend.interfaces.doc_labels import DocLabels
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
 
-from .. import _
+from paperwork_shell.interfaces.renderer import LabelRenderer
+from paperwork_shell import _
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
             {
-                "interface": "doc_labels",
+                "interface": DocLabelColors,
                 "defaults": ["paperwork_backend.model.labels"],
             },
             {
-                "interface": "document_storage",
+                "interface": DocLabels,
+                "defaults": ["paperwork_backend.model.labels"],
+            },
+            {
+                "interface": DocStorage,
                 "defaults": ["paperwork_backend.model.workdir"],
             },
             {
-                'interface': 'mainloop',
+                "interface": LabelRenderer,
+                "defaults": ["paperwork_shell.display.docrendering.labels"],
+            },
+            {
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
@@ -83,32 +97,32 @@ class Plugin(openpaperwork_core.PluginBase):
     def _load_all_labels(self, console):
         console.print(_("Loading all labels ... "))
         promises = []
-        self.core.call_all("label_load_all", promises)
+        self.core.call_all(DocLabels.label_load_all, promises)
         promise = promises[0]
         for p in promises[1:]:
             promise = promise.then(p)
-        self.core.call_one("mainloop_schedule", promise.schedule)
-        self.core.call_all("mainloop_quit_graceful")
-        self.core.call_one("mainloop")
+        self.core.call_one(Mainloop.mainloop_schedule, promise.schedule)
+        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_one(Mainloop.mainloop)
         console.print(_("Done"))
 
     def _upd_doc(self, console, doc_id):
-        self.core.call_success("transaction_simple", [("upd", doc_id),])
-        self.core.call_success("mainloop_quit_graceful")
-        self.core.call_success("mainloop")
+        self.core.call_success(DocTransactionManager.transaction_simple, [("upd", doc_id),])
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop)
 
     def _show(self, console, doc_ids):
         out = {}
         for doc_id in doc_ids:
-            doc_url = self.core.call_success("doc_id_to_url", doc_id)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
             labels = set()
-            self.core.call_all("doc_get_labels_by_url", labels, doc_url)
+            self.core.call_all(DocLabels.doc_get_labels_by_url, labels, doc_url)
             labels = list(labels)
             labels.sort()
             out[doc_id] = labels
 
             labels_str = self.core.call_success(
-                "format_labels", labels, separator=" "
+                LabelRenderer.format_labels, labels, separator=" "
             )
             console.print(f"{doc_id}: {labels_str}")
         return out
@@ -121,13 +135,13 @@ class Plugin(openpaperwork_core.PluginBase):
             self._load_all_labels(console)
 
             labels = set()
-            self.core.call_all("labels_get_all", labels)
+            self.core.call_all(DocLabels.labels_get_all, labels)
             labels = list(labels)
             labels.sort()
 
             console.print("")
             labels_str = self.core.call_success(
-                "format_labels", labels, separator=" "
+                LabelRenderer.format_labels, labels, separator=" "
             )
             console.print(labels_str)
             return labels
@@ -141,13 +155,13 @@ class Plugin(openpaperwork_core.PluginBase):
             color = args.color
             if color is not None:
                 # make sure the color is valid
-                color = self.core.call_success("label_color_to_rgb", color)
-                color = self.core.call_success("label_color_from_rgb", color)
+                color = self.core.call_success(DocLabelColors.label_color_to_rgb, color)
+                color = self.core.call_success(DocLabelColors.label_color_from_rgb, color)
 
             self._load_all_labels(console)
-            doc_url = self.core.call_success("doc_id_to_url", args.doc_id)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, args.doc_id)
             self.core.call_success(
-                "doc_add_label_by_url", doc_url, args.label_name, color
+                DocLabels.doc_add_label_by_url, doc_url, args.label_name, color
             )
 
             self._upd_doc(console, args.doc_id)
@@ -156,9 +170,9 @@ class Plugin(openpaperwork_core.PluginBase):
 
         elif args.sub_command == "remove":
 
-            doc_url = self.core.call_success("doc_id_to_url", args.doc_id)
+            doc_url = self.core.call_success(DocStorage.doc_id_to_url, args.doc_id)
             self.core.call_all(
-                "doc_remove_label_by_url", doc_url, args.label_name
+                DocLabels.doc_remove_label_by_url, doc_url, args.label_name
             )
             self._upd_doc(console, args.doc_id)
             return self._show(console, [args.doc_id])
@@ -180,13 +194,13 @@ class Plugin(openpaperwork_core.PluginBase):
                 sys.exit(1)
 
             all_docs = []
-            self.core.call_all("storage_get_all_docs", all_docs)
+            self.core.call_all(DocStorage.storage_get_all_docs, all_docs)
 
             updated_docs = []
 
             for (doc_id, doc_url) in all_docs:
                 labels = set()
-                self.core.call_all("doc_get_labels_by_url", labels, doc_url)
+                self.core.call_all(DocLabels.doc_get_labels_by_url, labels, doc_url)
                 labels = {l for (l, c) in labels}
                 if label not in labels:
                     continue
@@ -196,17 +210,17 @@ class Plugin(openpaperwork_core.PluginBase):
                         label, doc_id
                     ))
                 updated_docs.append(doc_id)
-                self.core.call_all("doc_remove_label_by_url", doc_url, label)
+                self.core.call_all(DocLabels.doc_remove_label_by_url, doc_url, label)
 
             if self.interactive:
                 sys.stdout.write("Committing changes in index ... ")
                 sys.stdout.flush()
 
-            self.core.call_success("transaction_simple", [
+            self.core.call_success(DocTransactionManager.transaction_simple, [
                 ("upd", doc_id) for doc_id in updated_docs
             ])
-            self.core.call_success("mainloop_quit_graceful")
-            self.core.call_success("mainloop")
+            self.core.call_success(Mainloop.mainloop_quit_graceful)
+            self.core.call_success(Mainloop.mainloop)
 
             if self.interactive:
                 sys.stdout.write("Done\n")

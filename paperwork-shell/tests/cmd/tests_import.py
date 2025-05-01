@@ -4,6 +4,9 @@ import shutil
 import tempfile
 import unittest
 
+from openpaperwork_core.interfaces.fs import Fs
+from openpaperwork_core.interfaces.quit import QuitListener
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 import openpaperwork_core.cmd
 import openpaperwork_core.fs
@@ -34,7 +37,7 @@ class TestSync(unittest.TestCase):
         }
 
     def tearDown(self):
-        self.core.call_all("tests_cleanup")
+        self.core.call_all(QuitListener.on_quit)
         shutil.rmtree(self.tmp_local_dir)
         shutil.rmtree(self.tmp_work_dir)
 
@@ -47,26 +50,26 @@ class TestSync(unittest.TestCase):
         cmd_parser = parser.add_subparsers(
             help='command', dest='command', required=True
         )
-        self.core.call_all("cmd_complete_argparse", cmd_parser)
+        self.core.call_all(Shell.cmd_complete_argparse, cmd_parser)
 
         args = parser.parse_args([
             'import', '--doc_id', '29991010_1212_33', self.test_pdf
         ])
         self.core.call_all(
-            "cmd_set_console", openpaperwork_core.cmd.DummyConsole()
+            Shell.cmd_set_console, openpaperwork_core.cmd.DummyConsole()
         )
-        r = self.core.call_success("cmd_run", self.console, args)
+        r = self.core.call_success(Shell.cmd_run, self.console, args)
         self.assertEqual(r['ignored'], [])
         self.assertEqual(r['imported'], [self.core.call_success(
-            "fs_safe", self.test_pdf
+            Fs.fs_safe, self.test_pdf
         )])
         self.assertEqual(r['new_docs'], ['29991010_1212_33'])
         self.assertEqual(r['upd_docs'], [])
 
         self.assertTrue(self.core.call_success(
-            "fs_exists", self.core.call_success(
-                "fs_join", self.core.call_success(
-                    "fs_join", self.work_dir_url, "29991010_1212_33"
+            Fs.fs_exists, self.core.call_success(
+                Fs.fs_join, self.core.call_success(
+                    Fs.fs_join, self.work_dir_url, "29991010_1212_33"
                 ), "doc.pdf"
             )
         ))

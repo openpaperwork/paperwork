@@ -1,10 +1,15 @@
 import openpaperwork_core
 
+from paperwork_backend.interfaces.pages import PageText
+
+from paperwork_shell.interfaces.renderer import AbstractDocRenderer
+from paperwork_shell.interfaces.renderer import DocRendererFactory
+
 
 PREVIEW_MAX_LINES = 25
 
 
-class TextRenderer(object):
+class TextRenderer(AbstractDocRenderer):
     def __init__(self, core):
         self.core = core
         self.parent = None
@@ -12,7 +17,7 @@ class TextRenderer(object):
     def _get_page_text(self, doc_url, page_nb):
         out = []
         line_boxes = self.core.call_success(
-            "page_get_boxes_by_url", doc_url, page_nb
+            PageText.page_get_boxes_by_url, doc_url, page_nb
         )
         if line_boxes is None:
             return out
@@ -90,18 +95,17 @@ class TextRenderer(object):
         return out
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocRendererFactory,
+):
     PRIORITY = 10000
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['doc_renderer']
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'page_boxes',
+                'interface': PageText,
                 'defaults': [
                     'paperwork_backend.model.hocr',
                     'paperwork_backend.model.pdf',

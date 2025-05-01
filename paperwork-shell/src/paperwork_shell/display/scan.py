@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025 Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,12 +19,20 @@ import PIL
 import PIL.Image
 import rich.text
 
+from openpaperwork_core.interfaces.progress import ProgressListener
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
 
-from .. import _
+from paperwork_backend.interfaces.pages import Pages
+from paperwork_backend.interfaces.scan import ScanListener
+from paperwork_backend.interfaces.scan2doc import Scan2DocListener
+
+from paperwork_shell import _
+from paperwork_shell.interfaces.renderer import DocRendererFactory
+from paperwork_shell.interfaces.renderer import ImgRenderer
 
 
-class AppendableImage(object):
+class AppendableImage:
     def __init__(self, width, expected_height):
         # When scanning, width is reliable.
         # However height is not reliable, and truncating an image is much
@@ -47,7 +55,13 @@ class AppendableImage(object):
         return self.img.crop((0, start_line, self.img.size[0], end_line))
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    ProgressListener,
+    ScanListener,
+    Scan2DocListener,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
         return [
@@ -56,16 +70,16 @@ class Plugin(openpaperwork_core.PluginBase):
             #
             # (see paperwork-json)
             # {
-            #     'interface': 'doc_renderer',
+            #     'interface': DocRenderer,
             #     'defaults': [],
             # },
             {
-                'interface': 'img_renderer',
+                'interface': ImgRenderer,
                 'defaults': ['paperwork_shell.display.docrendering.img'],
             },
             {
-                'interface': 'scan',
-                'defaults': ['paperwork_backend.docscan.libinsane'],
+                "interface": Pages,
+                "defaults": ["paperwork_backend.model"]
             },
         ]
 
@@ -84,6 +98,15 @@ class Plugin(openpaperwork_core.PluginBase):
     def cmd_set_console(self, console):
         self.console = console
 
+    @openpaperwork_core.noop
+    def cmd_complete_argparse(self, parser):
+        pass
+
+    @openpaperwork_core.noop
+    def cmd_run(self, console, args):
+        pass
+
+    @openpaperwork_core.noop
     def on_scan_feed_start(self, scan_id):
         pass
 
@@ -122,6 +145,9 @@ class Plugin(openpaperwork_core.PluginBase):
         # it assumes that each characters is 1 pixel wide and 2 pixels high.
         self.txt_line_height = int(2 * ratio) + 1
 
+    def on_scan_started(self, scan_id):
+        pass
+
     def on_scan_chunk(self, scan_id, scan_params, img_chunk):
         self.img.append(img_chunk)
         current_usable_line = (
@@ -132,7 +158,7 @@ class Plugin(openpaperwork_core.PluginBase):
                 self.last_line_displayed, current_usable_line
             )
             img = self.core.call_success(
-                "img_render", img, terminal_width=self.terminal_size[0]
+                ImgRenderer.img_render, img, terminal_width=self.terminal_size[0]
             )
             for line in img:
                 self.console.print(rich.text.Text.from_ansi(line))
@@ -154,13 +180,13 @@ class Plugin(openpaperwork_core.PluginBase):
         self.doc_id = doc_id
         self.doc_url = doc_url
         renderers = []
-        self.core.call_all("doc_renderer_get", renderers)
+        self.core.call_all(DocRendererFactory.doc_renderer_get, renderers)
         self.doc_renderer = renderers[-1]
         self.page_hashes = {}
 
     def _compute_page_hash(self, doc_url, page_idx):
         return self.core.call_success(
-            "page_get_hash_by_url", doc_url, page_idx
+            Pages.page_get_hash_by_url, doc_url, page_idx
         )
 
     def on_scan2doc_page_scanned(self, scan_id, doc_id, doc_url, page_idx):

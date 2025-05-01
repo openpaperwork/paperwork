@@ -1,5 +1,5 @@
 #    Paperwork - Using OCR to grep dead trees the easy way
-#    Copyright (C) 2012-2019  Jerome Flesch
+#    Copyright (C) 2012-2025  Jerome Flesch
 #
 #    Paperwork is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,12 +19,19 @@ import sys
 
 import rich.text
 
+from openpaperwork_core.interfaces.mainloop import Mainloop
+from openpaperwork_core.interfaces.shell import Shell
 import openpaperwork_core
+import openpaperwork_core.promise
 
+from paperwork_backend.interfaces.doc_storage import DocStorage
+from paperwork_backend.interfaces.doc_transactions import DocTransactionManager
+from paperwork_backend.interfaces.page_edit import PageEditorFactory
 import paperwork_backend.pageedit
 
-from . import util
-from .. import _
+from paperwork_shell import _
+from paperwork_shell.cmd import util
+from paperwork_shell.interfaces.renderer import ImgRenderer
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,7 +51,7 @@ class CliUI(paperwork_backend.pageedit.AbstractPageEditorUI):
     def show_preview(self, img):
         terminal_width = shutil.get_terminal_size()[0] - 1
         img = self.core.call_success(
-            "img_render", img, terminal_width=terminal_width
+            ImgRenderer.img_render, img, terminal_width=terminal_width
         )
         if img is None:
             return
@@ -53,36 +60,37 @@ class CliUI(paperwork_backend.pageedit.AbstractPageEditorUI):
         self.console.print("")
 
 
-class Plugin(openpaperwork_core.PluginBase):
-    @classmethod
-    def get_interfaces(cls):
-        return ['shell']
-
+class Plugin(
+    openpaperwork_core.PluginBase,
+    Shell,
+):
     @classmethod
     def get_deps(cls):
-        return [
-            # optional dependency
-            # {
-            #     "interface": "img_renderer",
-            #     "defaults": ["paperwork_shell.display.docrendering.img"],
-            # },
+        return openpaperwork_core.promise.get_deps() + [
             {
-                'interface': 'mainloop',
+                "interface": ImgRenderer,
+                "defaults": ["paperwork_shell.display.docrendering.img"],
+                "optional": True,
+            },
+            {
+                'interface': Mainloop,
                 'defaults': ['openpaperwork_core.mainloop.asyncio'],
             },
             {
-                "interface": "page_editor",
+                "interface": PageEditorFactory,
                 "defaults": ["paperwork_backend.pageedit.pageeditor"],
             },
             {
-                'interface': 'transaction_manager',
+                'interface': DocTransactionManager,
                 'defaults': ['paperwork_backend.sync'],
             },
         ]
 
     def cmd_complete_argparse(self, parser):
         # just so we can get the modifier list
-        editor = self.core.call_success("page_editor_get", None, 0, NullUI())
+        editor = self.core.call_success(
+            PageEditorFactory.page_editor_session_get, None, 0, NullUI()
+        )
         modifiers = editor.get_modifiers()
 
         modifiers = [
@@ -109,7 +117,7 @@ class Plugin(openpaperwork_core.PluginBase):
         if args.command != 'edit':
             return None
         doc_id = args.doc_id
-        doc_url = self.core.call_success("doc_id_to_url", doc_id)
+        doc_url = self.core.call_success(DocStorage.doc_id_to_url, doc_id)
         pages = util.parse_page_list(args)
         modifiers = args.modifiers.split(",")
         out = []
@@ -125,7 +133,7 @@ class Plugin(openpaperwork_core.PluginBase):
             ui = CliUI(self.core, console)
 
             page_editor = self.core.call_success(
-                "page_editor_get", doc_url, page_idx, ui
+                PageEditorFactory.page_editor_session_get, doc_url, page_idx, ui
             )
 
             promise = openpaperwork_core.promise.Promise(self.core)
@@ -159,14 +167,14 @@ class Plugin(openpaperwork_core.PluginBase):
 
                 promise.schedule()
 
-                self.core.call_all("mainloop_quit_graceful")
-                self.core.call_one("mainloop")
+                self.core.call_all(Mainloop.mainloop_quit_graceful)
+                self.core.call_one(Mainloop.mainloop)
 
         console.print(_("Committing ...") + " ")
 
-        self.core.call_success("transaction_simple", [("upd", doc_id),])
-        self.core.call_success("mainloop_quit_graceful")
-        self.core.call_success("mainloop")
+        self.core.call_success(DocTransactionManager.transaction_simple, [("upd", doc_id),])
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop)
 
         console.print(_("Done"))
         console.print(_("All done !"))

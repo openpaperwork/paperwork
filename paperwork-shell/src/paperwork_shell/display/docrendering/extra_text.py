@@ -1,9 +1,13 @@
 import openpaperwork_core
 
-from ... import _
+from paperwork_backend.interfaces.docs import DocExtraText
+
+from paperwork_shell.interfaces.renderer import AbstractDocRenderer
+from paperwork_shell.interfaces.renderer import DocRendererFactory
+from paperwork_shell import _
 
 
-class ExtraTextRenderer(object):
+class ExtraTextRenderer(AbstractDocRenderer):
     def __init__(self, core):
         self.core = core
         self.parent = None
@@ -25,7 +29,7 @@ class ExtraTextRenderer(object):
                 doc_id, doc_url, terminal_size
             )
         extra_text = []
-        self.core.call_all("doc_get_extra_text_by_url", extra_text, doc_url)
+        self.core.call_all(DocExtraText.doc_get_extra_text_by_url, extra_text, doc_url)
         extra_text = "\n".join(extra_text).strip().split("\n")
 
         if len(extra_text) > 0:
@@ -53,18 +57,17 @@ class ExtraTextRenderer(object):
         return {}
 
 
-class Plugin(openpaperwork_core.PluginBase):
+class Plugin(
+    openpaperwork_core.PluginBase,
+    DocRendererFactory,
+):
     PRIORITY = 11000
-
-    @classmethod
-    def get_interfaces(cls):
-        return ['doc_renderer']
 
     @classmethod
     def get_deps(cls):
         return [
             {
-                'interface': 'extra_text',
+                'interface': DocExtraText,
                 'defaults': ['paperwork_backend.model.extra_text'],
             },
         ]

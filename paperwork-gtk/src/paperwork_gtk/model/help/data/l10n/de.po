@@ -1840,12 +1840,12 @@ msgid ""
 "Beware that Encfs seems to have some security weaknesses. So, while it's "
 "probably enough to prevent a laptop thief from accessing your documents, "
 "it's likely to be not enough to prevent the NSA or the police from doing "
-"so ;-)."
+"so."
 msgstr ""
 "Beachten Sie, dass encfs einige Sicherheitslücken zu haben scheint. Während "
 "es also wahrscheinlich ausreicht, um eine Laptop-Diebin daran zu hindern, "
 "auf Ihre Dokumente zuzugreifen, wird es wahrscheinlich nicht ausreichen, um "
-"die NSA oder die Polizei zu stoppen ;-)."
+"die NSA oder die Polizei zu stoppen."
 
 #. type: verbatim
 #: data/usage.tex:812

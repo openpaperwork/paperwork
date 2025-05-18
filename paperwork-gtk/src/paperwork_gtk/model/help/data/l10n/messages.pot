@@ -1443,8 +1443,8 @@ msgstr ""
 msgid ""
 "Beware that Encfs seems to have some security weaknesses. So, while it's "
 "probably enough to prevent a laptop thief from accessing your documents, "
-"it's likely to be not enough to prevent the NSA or the police from doing so "
-";-)."
+"it's likely to be not enough to prevent the NSA or the police from doing "
+"so."
 msgstr ""
 
 #. type: verbatim

@@ -157,6 +157,8 @@ Here are the data we gather:
 
 We do not collect document content nor any other sensitive or personal information. Still we think it's fair to request your authorization.
 
+See the &lt;a href="https://gitlab.gnome.org/World/OpenPaperwork/paperwork/-/tree/master/openpaperwork-core/src/openpaperwork_core/beacon"&gt;source code&lt;/a&gt; to verify we tell the truth!
+
 Collected statistics are visible on &lt;a href="https://openpaper.work/paperwork/statistics"&gt;openpaper.work&lt;/a&gt;.
 &lt;/span&gt;</property>
         <property name="use_markup">True</property>

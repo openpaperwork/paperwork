@@ -7,6 +7,7 @@
     "command": "paperwork-gtk",
     "copy-icon": true,
     "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable",
         "org.freedesktop.Sdk.Extension.openjdk21"
     ],
     "finish-args": [
@@ -69,6 +70,7 @@
         "flatpak/shared-modules/scikit-learn.json",
         "flatpak/shared-modules/sane-backends.json",
         "flatpak/shared-modules/tesseract.json",
+        "flatpak/shared-modules/python3-cryptography.json",
         {
             "name": "python-distro",
             "buildsystem": "simple",

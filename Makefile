@@ -213,6 +213,10 @@ help:
 	echo "Compiling translated strings for $(@:%_l10n_compile=%)"
 	$(MAKE) -C $(@:%_l10n_compile=%) l10n_compile
 
+flatpak:
+	rm -rf flatpak/master.app
+	$(MAKE) -C flatpak/ master.app
+
 venv/bin/activate:
 	echo "Building virtual env"
 	make -C sub/libinsane build_c
@@ -223,4 +227,4 @@ venv: venv/bin/activate
 .PHONY: help build clean test check install install_py install_c uninstall \
 	uninstall_c uninstall_py release release_pypi libinsane_win64 \
 	pyocr_win64 libpillowfight_win64 doc upload_doc data upload_data \
-	download_data l10n_extract l10n_compile
+	download_data l10n_extract l10n_compile flatpak

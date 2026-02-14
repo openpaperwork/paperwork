@@ -9,7 +9,8 @@ MNTDIR=/flatpak/mnt
 LOCKDIR=/tmp/build.lock.d
 PIDFILE=${LOCKDIR}/pid
 
-REPO_SERVER=flatpak@flatpak-builder-internal.svc
+REPO_SERVER=flatpak@openpaperwork.dmz
+REPO_SERVER_PORT=2222
 REMOTE_PATH_GPG=/data/gnupg
 REMOTE_PATH_REPO=/data/repository
 SSH_KEY="${LOCKDIR}/ssh_key"
@@ -87,7 +88,7 @@ chmod 600 ${LOCKDIR}/ssh_key
 fusermount -u ${MNTDIR}/gpg
 
 mkdir -p ${MNTDIR}/gpg
-runx sshfs ${REPO_SERVER}:${REMOTE_PATH_GPG} ${MNTDIR}/gpg -o uid=$(id -u),gid=$(id -g),IdentityFile=${LOCKDIR}/ssh_key
+runx sshfs -p ${REPO_SERVER_PORT} ${REPO_SERVER}:${REMOTE_PATH_GPG} ${MNTDIR}/gpg -o uid=$(id -u),gid=$(id -g),IdentityFile=${LOCKDIR}/ssh_key
 rm -rf ~/.gnupg
 ln -sf ${MNTDIR}/gpg/gnupg ~/.gnupg
 
@@ -126,7 +127,7 @@ download "https://download.openpaper.work/data/paperwork/${branch}_latest/data.t
 export EXPORT_ARGS="--gpg-sign=3E315B83074F71DACF5F3D7D70AFDE9214A2DB56"
 
 msg copying existing repo
-runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found "${REPO_SERVER}:${REMOTE_PATH_REPO}/" "paperwork_repo"
+runx rsync -e "ssh -p ${REPO_SERVER_PORT} -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found "${REPO_SERVER}:${REMOTE_PATH_REPO}/" "paperwork_repo"
 
 for arch in x86_64 ; do
 	msg "=== Architecture: ${arch} ==="
@@ -140,6 +141,6 @@ for arch in x86_64 ; do
 done
 
 msg copying back repository
-runx rsync -e "ssh -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found paperwork_repo/ "${REPO_SERVER}:${REMOTE_PATH_REPO}"
+runx rsync -e "ssh -p ${REPO_SERVER_PORT} -i ${SSH_KEY}" -rta --delete-after --exclude=lost+found paperwork_repo/ "${REPO_SERVER}:${REMOTE_PATH_REPO}"
 
 cleanup

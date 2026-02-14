@@ -4,6 +4,9 @@
     "config-opts": [
         "--disable-saned"
     ],
+    "build-options": {
+        "cflags": "-std=gnu18"
+    },
     "sources": [
         {
             "type": "archive",

@@ -2,13 +2,12 @@
     "app-id": "work.openpaper.Paperwork",
     "branch": "master",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "47",
+    "runtime-version": "49",
     "sdk": "org.gnome.Sdk",
     "command": "paperwork-gtk",
     "copy-icon": true,
     "sdk-extensions": [
-        "org.freedesktop.Sdk.Extension.openjdk21",
-        "org.freedesktop.Sdk.Extension.rust-stable"
+        "org.freedesktop.Sdk.Extension.openjdk21"
     ],
     "finish-args": [
         "--share=ipc",
@@ -25,12 +24,6 @@
         "--env=JAVA_HOME=/app/jre",
         "--env=LIBO_FLATPAK=1"
     ],
-    "build-options": {
-        "append-path" : "/usr/lib/sdk/rust-stable/bin",
-        "env" : {
-            "CARGO_HOME" : "/run/build/rust-flatpak/cargo"
-        }
-    },
     "cleanup": [
         "/include",
         "/lib/cmake",
@@ -45,10 +38,37 @@
     ],
     "modules": [
         "flatpak/shared-modules/libreoffice.json",
+        "flatpak/generated/python3-meson-python.json",
+        "flatpak/generated/python3-numpy.json",
+        "flatpak/generated/python3-pythran.json",
+        "flatpak/generated/python3-pybind11.json",
+        {
+            "name": "openblas",
+            "no-autogen": true,
+            "build-options": {
+                "cflags": "-std=gnu18"
+            },
+            "make-args": [
+                "DYNAMIC_ARCH=1",
+                "FC=gfortran",
+                "NO_CBLAS=1",
+                "NO_LAPACKE=1",
+                "USE_OPENMP=0"
+            ],
+            "make-install-args": [
+                "PREFIX=/app"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://github.com/xianyi/OpenBLAS/archive/v0.3.24.tar.gz",
+                    "sha256": "ceadc5065da97bd92404cac7254da66cc6eb192679cf1002098688978d4d5132"
+                }
+            ]
+        },
         "flatpak/shared-modules/scikit-learn.json",
         "flatpak/shared-modules/sane-backends.json",
         "flatpak/shared-modules/tesseract.json",
-        "flatpak/shared-modules/python3-cryptography.json",
         {
             "name": "python-distro",
             "buildsystem": "simple",
@@ -78,8 +98,25 @@
             ]
         },
         {
+            "name": "python-fabulous",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"fabulous\""
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/ec/b3/38ce860b1abeb58b998db83a244239dd716308499e359fa077b0a4d0d244/fabulous-0.4.0.tar.gz",
+                    "sha256": "d9cee8a97e0d0eea835994394b6053f84fd6120a48779dbc533c5e6812352c84"
+                }
+            ]
+        },
+        {
             "name": "python-pillow",
             "buildsystem": "simple",
+            "build-options": {
+                "cflags": "-Wno-error=incompatible-pointer-types"
+            },
             "build-commands": [
                 "pip3 install --disable-pip-version-check --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} --no-build-isolation \"pillow\""
             ],
@@ -441,7 +478,7 @@
             "buildsystem": "simple",
             "build-commands": [
                 "make version",
-                "pip3 install --disable-pip-version-check --prefix=/app --no-deps ."
+                "pip3 install --disable-pip-version-check --prefix=/app --no-deps --no-build-isolation ."
             ],
             "sources": [
                 {

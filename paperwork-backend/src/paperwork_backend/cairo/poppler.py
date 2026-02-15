@@ -54,8 +54,6 @@ class CairoRenderer(GObject.GObject):
 
     def __init__(
             self, core, work_queue_name, file_url, page_idx, password=None):
-        global POPPLER_DOCS
-
         super().__init__()
         self.core = core
         self.work_queue_name = work_queue_name
@@ -131,7 +129,6 @@ class CairoRenderer(GObject.GObject):
         self.visible = False
 
     def close(self):
-        global POPPLER_DOCS
         self.hide()
         self.page = None
         self.size = (0, 0)

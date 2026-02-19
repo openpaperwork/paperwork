@@ -127,6 +127,8 @@ class _GioFileAdapter(io.RawIOBase):
 
     def fileno(self):
         if self.gout is not None and hasattr(self.gout, 'get_fd'):
+            # weird workaround for a weird bug
+            self.gout.get_fd.__help__
             return self.gout.get_fd()
         if self.gin is not None and hasattr(self.gin, 'get_fd'):
             return self.gin.get_fd()

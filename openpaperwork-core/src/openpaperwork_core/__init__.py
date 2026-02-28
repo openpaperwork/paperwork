@@ -1,12 +1,29 @@
 from __future__ import annotations
 
+from types import ModuleType
+from typing import Callable
+from typing import Generator
+from typing import Dict
+from typing import List
+from typing import Set
+from typing import Type
+from typing import Tuple
+
+import abc
 import collections
 import gettext
 import importlib
-import itertools
 import logging
 import os
-import time
+
+
+__all__ = [
+    "noop",
+    "PluginBase",
+    "Core",
+    "MINIMUM_CONFIG_PLUGINS",
+    "RECOMMENDED_PLUGINS",
+]
 
 
 LOGGER = logging.getLogger(__name__)
@@ -63,6 +80,21 @@ def _(s):
     return gettext.dgettext('openpaperwork_core', s)
 
 
+def _pretty_method_name(method):
+    name = (
+        method.name
+        if hasattr(method, "name")
+        else method.__qualname__
+    )
+    return f"{method.__module__}.{name}"
+
+
+def noop(func):
+    """Decorator to mark a method/callback as empty (for optimization)."""
+    func._is_empty = True
+    return func
+
+
 class DependencyException(Exception):
     """
     Failed to satisfy dependencies.
@@ -115,16 +147,421 @@ class PluginBase:
 
           [
             {
-              "interface": "some_interface_name",  # required
+              "interface": some_pure_abstract_class,  # required
               "defaults": ['plugin_a', 'plugin_b'],  # required
-              "expected_already_satisfied": False,  # optional, default: True
+              "optional": False,  # optional
             },
           ]
         """
         return []
 
 
-class Core(object):
+class _Module:
+    def __init__(self, module: ModuleType, plugins_kwargs: Dict):
+        self.module = module
+        self.plugin_kwargs = plugins_kwargs
+
+    def __eq__(self, o):
+        return self.module == o.module
+
+    def __hash__(self):
+        return hash(self.module.__name__)
+
+    def __str__(self):
+        return self.module.__name__
+
+    def __repr__(self):
+        return str(self)
+
+
+class _ModuleRepository:
+    def __init__(self):
+        self.modules: Dict[str, _Module] = {}
+        self.interface_to_modules: Dict[Type[abc.ABC], List[_Module]] = (
+            collections.defaultdict(list)
+        )
+
+    def add(self, module_name: str, module: ModuleType | None, plugin_kwargs):
+        if module is None:
+            LOGGER.info("Loading module '%s' ...", module_name)
+            module = importlib.import_module(module_name)
+        m = _Module(module, plugin_kwargs)
+        self.modules[module_name] = m
+        for interface in module.Plugin.get_interfaces():
+            assert not isinstance(interface, str), \
+                 f"Plugin '{module}' specify interface '{interface}' in" \
+                 " old-style (str instead of abstract-class)"
+            self.interface_to_modules[interface].append(m)
+        return m
+
+    def get_by_name(self, module_name: str) -> _Module:
+        return self.modules[module_name]
+
+    def get_by_interface(self, interface: Type[abc.ABC]) -> List[_Module]:
+        return self.interface_to_modules[interface]
+
+    def get_missing_dependencies(self):
+        LOGGER.info("Looking for missing dependencies ...")
+        modules = self.modules.values()
+        for module in modules:
+            for dep in module.module.Plugin.get_deps():
+                if dep.get("optional", False):
+                    continue
+                interface = dep["interface"]
+                if len(self.interface_to_modules[interface]) > 0:
+                    continue
+                yield (
+                    module,
+                    interface,
+                    dep["defaults"],
+                )
+
+
+class _DependencyTreeNode:
+    def __init__(self, module: _Module):
+        self.module = module
+        self.depends_on = set()
+        self.required_by = set()
+
+    def __hash__(self):
+        return hash(str(self.module))
+
+    def __eq__(self, o):
+        return self.module == o.module
+
+    def __str__(self):
+        return str(self.module)
+
+    def __repr__(self):
+        return str(self.module)
+
+    def load_deps(self, dep_tree: _DependencyTree):
+        for dep in self.module.module.Plugin.get_deps():
+            if dep.get("optional", False):
+                continue
+            interface = dep["interface"]
+            nodes = dep_tree.get_nodes_by_interface(interface)
+            for node in nodes:
+                self.depends_on.add(node)
+                node.required_by.add(self)
+
+    def log(self, depth):
+        if depth > 10:
+            return
+        LOGGER.info(("|   " * depth) + f"|-- {self.module}")
+        for node in self.depends_on:
+            node.log(depth + 1)
+
+    def find_dependency_loop(self, stack: List[_DependencyTreeNode]):
+        if self in stack:
+            LOGGER.critical(f"Dependency loop: {stack}")
+            return True
+        stack.append(self)
+        has_loop = False
+        for dep in self.depends_on:
+            has_loop = dep.find_dependency_loop(stack) or has_loop
+        stack.pop(-1)
+        return has_loop
+
+    def get_init_order(
+            self, already_yielded: Set[_Module]
+    ) -> Generator[_Module, None, None]:
+        for dep in self.depends_on:
+            for module in dep.get_init_order(already_yielded):
+                if module in already_yielded:
+                    continue
+                yield module
+        yield self.module
+
+
+class _DependencyTree:
+    def __init__(self, module_repository: _ModuleRepository):
+        self.module_repository = module_repository
+        self._interface_to_nodes: Dict[Type[abc.ABC], List[_DependencyTreeNode]] = (
+            collections.defaultdict(list)
+        )
+        self.nodes = [_DependencyTreeNode(module) for module in module_repository.modules.values()]
+        for node in self.nodes:
+            for interface in node.module.module.Plugin.get_interfaces():
+                self._interface_to_nodes[interface].append(node)
+        for node in self.nodes:
+            node.load_deps(self)
+        self.roots = [
+            node
+            for node in self.nodes
+            if len(node.required_by) <= 0
+        ]
+
+    def get_nodes_by_interface(self, interface: Type[abc.ABC]) -> List[_DependencyTreeNode]:
+        return self._interface_to_nodes[interface]
+
+    def log(self):
+        LOGGER.info("Plugin dependency tree (%d nodes)", len(self.nodes))
+        for root in self.roots:
+            root.log(depth=0)
+
+    def find_dependency_loop(self):
+        LOGGER.info("Looking for dependency loops")
+        has_loop = False
+        for root in self.nodes:
+            stack = []
+            has_loop = root.find_dependency_loop(stack) or has_loop
+        if has_loop:
+            raise DependencyException("Dependency loop detected")
+
+    def get_init_order(self) -> Generator[_Module, None, None]:
+        already_yielded = set()
+        for root in self.roots:
+            for module in root.get_init_order(already_yielded):
+                if module in already_yielded:
+                    continue
+                already_yielded.add(module)
+                yield module
+
+
+class _Stub:
+    def __init__(self, name):
+        self.name = name
+
+    @property
+    def __self__(self):
+        return self
+
+    @property
+    def __name__(self):
+        return self.name
+
+    def __call__(self, *args, **kwargs):
+        LOGGER.debug(
+            "%s(%s, %s) called, but no one is listening",
+            self.name, args, kwargs
+        )
+
+
+class _CoreProxy:
+    """
+    Allow a plugin to call methods only from the dependencies it has declared.
+    Plugins must not and cannot call methods of undeclared dependencies.
+    """
+    def __init__(self, core: Core, module: _Module):
+        self._core = core
+        self._module = module
+        self._callbacks: Dict[Callable, List[Callable]] = {}
+        self._reload(init=True)
+
+    def __str__(self) -> str:
+        return f"_CoreProxy('{self._module}')"
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def call_all(self, abstract_callback: Callable, *args, **kwargs):
+        """
+        See documentation of `Core.call_all()`
+        """
+        assert not isinstance(abstract_callback, str)  # old style calling
+        self._check_callback_available(abstract_callback)
+        callbacks = self._callbacks[abstract_callback]
+        for callable in callbacks:
+            callable(*args, **kwargs)
+        return len(callbacks)
+
+    def call_one(self, abstract_callback: Callable, *args, **kwargs):
+        """
+        See documentation of `Core.call_one()`
+        """
+        assert not isinstance(abstract_callback, str)  # old style calling
+        self._check_callback_available(abstract_callback)
+        return self._callbacks[abstract_callback][0](*args, **kwargs)
+
+    def call_success(self, abstract_callback: Callable, *args, **kwargs):
+        """
+        See documentation of `Core.call_success()`
+        """
+        assert not isinstance(abstract_callback, str)  # old style calling
+        self._check_callback_available(abstract_callback)
+        for callable in self._callbacks[abstract_callback]:
+            r = callable(*args, **kwargs)
+            if r is not None:
+                return r
+        return None
+
+    def load(self, *args, **kwargs):
+        """
+        See documentation of `Core.load()`
+        """
+        self._core.load(*args, **kwargs)
+
+    def init(self, *args, **kwargs):
+        """
+        See documentation of `Core.init()`
+        """
+        self._core.init(*args, **kwargs)
+
+    def get_by_name(self, module_name: str) -> PluginBase:
+        return self._core.get_by_name(module_name)
+
+    def get_by_interface(self, interface: Type[abc.ABC]) -> List[PluginBase]:
+        return self._core.get_by_interface(interface)
+
+    def __add_interface_callbacks(self, interface: Type[abc.ABC], optional=False):
+        for abstract_method_name in dir(interface):
+            if abstract_method_name.startswith("_"):
+                continue
+            if abstract_method_name in dir(PluginBase):
+                continue
+            abstract_method = getattr(interface, abstract_method_name)
+            if not hasattr(abstract_method, "__call__"):
+                continue
+            concrete_methods = self._core._plugin_repository.abstract_method_to_concrete.get(
+                abstract_method, []
+            )
+            if len(concrete_methods) > 0:
+                concrete_methods = [c[2] for c in concrete_methods]
+            else:
+                concrete_methods = [_Stub(f"{interface}.{abstract_method_name}")]
+            for concrete in concrete_methods:
+                LOGGER.debug(
+                    "%s -> %s.%s() -> %s",
+                    self._module,
+                    interface.__name__, abstract_method_name,
+                    _pretty_method_name(concrete),
+                )
+            self._callbacks[abstract_method] = concrete_methods
+
+    def _reload(self, init=False):
+        self._callbacks = {}
+        for dep in self._module.module.Plugin.get_deps():
+            self.__add_interface_callbacks(dep["interface"], optional=dep.get("optional", False))
+        if not init:  # the plugin has been initialized and can therefore self-reference
+            for interface in self._module.module.Plugin.get_interfaces():
+                self.__add_interface_callbacks(interface)
+
+    def _check_callback_available(self, abstract_callback: Callable):
+        if abstract_callback in self._callbacks:
+            return
+        LOGGER.error("-----")
+        LOGGER.error("Callback '%s' cannot be called from %s", abstract_callback, self._module)
+        LOGGER.error("%s has only declared dependencies for the following callbacks:", self._module)
+        for abstract_callback in self._callbacks.keys():
+            LOGGER.error("- %s", _pretty_method_name(abstract_callback))
+        LOGGER.error("-----")
+
+
+class _PluginRepository:
+    def __init__(self, core: Core):
+        self.core = core
+        self.module_to_plugin: Dict[_Module, PluginBase] = {}
+        self.interface_to_plugins: Dict[Type[abc.ABC], List[PluginBase]] = (
+            collections.defaultdict(list)
+        )
+        self.abstract_method_to_concrete: Dict[Callable, List[Tuple[int, str, Callable]]] = (
+            collections.defaultdict(list)
+        )
+        self.core_proxies = []
+
+    def add(self, module: _Module) -> PluginBase:
+        plugin = self.module_to_plugin.get(module, None)
+        if plugin is not None:
+            return plugin
+
+        LOGGER.info("Initializing '%s' ...", module)
+
+        core_proxy = _CoreProxy(self.core, module)
+        self.core_proxies.append(core_proxy)
+
+        plugin = module.module.Plugin(core_proxy, **module.plugin_kwargs)
+        self.module_to_plugin[module] = plugin
+        for interface in plugin.get_interfaces():
+            self.interface_to_plugins[interface].append(plugin)
+
+        methods_to_register = dir(plugin)
+        methods_to_register = {
+            m
+            for m in methods_to_register
+            if not m.startswith("_") and m not in dir(PluginBase)
+        }
+        methods_to_register = {
+            m
+            for m in methods_to_register
+            if hasattr(getattr(plugin, m), "__call__")
+        }
+        has_abstract_parent = False
+        abstract_classes = plugin.get_interfaces()
+        callback_defined = set()
+        for abstract_cls in abstract_classes:
+            has_abstract_parent = True
+            for func_name in dir(abstract_cls):
+                if func_name.startswith("_"):
+                    continue
+                if func_name in dir(PluginBase):
+                    continue
+                abstract_callback = getattr(abstract_cls, func_name)
+                if not hasattr(abstract_callback, "__call__"):
+                    continue
+                if abstract_callback in callback_defined:
+                    continue
+                LOGGER.debug(
+                    "%s.%s() <- %s.%s()",
+                    plugin.__module__, func_name, abstract_cls.__name__, func_name
+                )
+                callback_defined.add(abstract_callback)
+                plugin_callback = getattr(plugin, func_name)
+                if getattr(plugin_callback, '_is_empty', False):
+                    LOGGER.debug("Method '%s' is empty and has been ignored", plugin_callback)
+                else:
+                    self.abstract_method_to_concrete[abstract_callback].append((
+                        plugin.PRIORITY, str(type(plugin)), plugin_callback
+                    ))
+                try:
+                    methods_to_register.remove(func_name)
+                except KeyError:
+                    pass
+
+        for concretes in self.abstract_method_to_concrete.values():
+            concretes.sort(reverse=True)
+
+        assert \
+            has_abstract_parent, \
+            f"Plugin {plugin} doesn't implement any abstract class"
+        assert \
+            len(methods_to_register) <= 0, \
+            f"Plugin {plugin} provides method(s) {methods_to_register}, but" \
+            " no interface defines them"
+
+        return plugin
+
+    def get_by_module(self, module: _Module) -> PluginBase:
+        return self.module_to_plugin[module]
+
+    def get_by_interface(self, interface: Type[abc.ABC]) -> List[PluginBase]:
+        return self.interface_to_plugins[interface]
+
+    def reload_all_core_proxies(self):
+        for core_proxy in self.core_proxies:
+            core_proxy._reload(init=False)
+
+    def call_all(self, abstract_callback: Callable, *args, **kwargs):
+        assert not isinstance(abstract_callback, str)  # old style calling
+        callbacks = self.abstract_method_to_concrete[abstract_callback]
+        for (_, _, callable) in callbacks:
+            callable(*args, **kwargs)
+        return len(callbacks)
+
+    def call_one(self, abstract_callback: Callable, *args, **kwargs):
+        assert not isinstance(abstract_callback, str)  # old style calling
+        return self.abstract_method_to_concrete[abstract_callback][0][-1](*args, **kwargs)
+
+    def call_success(self, abstract_callback: Callable, *args, **kwargs):
+        assert not isinstance(abstract_callback, str)  # old style calling
+        for (_, _, callable) in self.abstract_method_to_concrete[abstract_callback]:
+            r = callable(*args, **kwargs)
+            if r is not None:
+                return r
+        return None
+
+
+class Core:
     """
     Manage plugins and their callbacks.
     """
@@ -134,20 +571,11 @@ class Core(object):
         loaded automatically based on the default plugin list provided by
         plugins. This should be only used for testing.
         """
-        self.modules = {}
-        self.plugins = {}
-        self._to_initialize = set()
-        self._initialized = set()
-        self.interfaces = collections.defaultdict(list)
-        self.callbacks = collections.defaultdict(list)
-        self.auto_load_dependencies = auto_load_dependencies
+        self._auto_load_dependencies = auto_load_dependencies
+        self._module_repository = _ModuleRepository()
+        self._plugin_repository = _PluginRepository(self)
 
-        self.log_all = bool(os.getenv("CORE_LOG_ALL", 0))
-        self.count_limit_per_second = int(os.getenv("CORE_CALL_LIMIT", 0))
-        self.counters_last_reset = 0
-        self.counters = collections.defaultdict(lambda: 0)
-
-    def load(self, module_name):
+    def load(self, module_name: str, module: ModuleType | None = None, **kwargs):
         """
         - Load the specified module
 
@@ -156,154 +584,57 @@ class Core(object):
         Arguments:
             - module_name: name of the Python module to load
         """
-        LOGGER.info("Loading plugin '%s' ...", module_name)
-        module = importlib.import_module(module_name)
-        return self._load_module(module_name, module)
-
-    def _load_module(self, module_name, module):
-        """
-        should be called from outside for testing only
-        """
-        current_module = self.modules.get(module_name, None)
-        if current_module is not None:
-            return current_module
-
-        self.modules[module_name] = module
-
-        for interface in module.Plugin.get_interfaces():
-            LOGGER.debug("- '%s' provides '%s'", str(module), interface)
-            self.interfaces[interface].append(module)
-
-        self._to_initialize.add(module)
-
-        LOGGER.info("Module '%s' loaded", module_name)
-        return module
-
-    def _check_deps(self):
-        to_examine = [
-            (module_name, module)
-            for (module_name, module) in self.modules.items()
-        ]
-
-        while len(to_examine) > 0:
-            (module_name, module) = to_examine[0]
-            to_examine = to_examine[1:]
-
-            LOGGER.info("Examining dependencies of '%s' ...", module_name)
-
-            deps = module.Plugin.get_deps()
-            for dep in deps:
-                interface = dep['interface']
-                if len(self.interfaces[interface]) > 0:
-                    LOGGER.debug(
-                        "- Interface '%s' already provided by %d plugins",
-                        interface, len(self.interfaces[interface])
-                    )
-                    continue
-
-                defaults = dep['defaults']
-                if len(defaults) <= 0:
-                    continue
-
-                if (not self.auto_load_dependencies
-                        and (
-                            'expected_already_satisfied' not in dep
-                            or dep['expected_already_satisfied']
-                        )):
-                    LOGGER.warning(
-                        "Plugin '{}' requires interface '{}' but no plugins"
-                        " provide this interface (suggested: {}). Plugin '{}'"
-                        " will not be initialized.".format(
-                            module_name, interface, defaults, module_name
-                        )
-                    )
-                    module = self.modules.pop(module_name)
-                    self._to_initialize.remove(module)
-                    # return False to indicate we actually dropped a plugin
-                    # and need to reevaluate all the dependencies again.
-                    return False
-                else:
-                    LOGGER.info(
-                        "Loading plugins %s to satisfy dependency."
-                        " Required by '%s' for interface '%s'",
-                        defaults, type(module), interface
-                    )
-                    for default in defaults:
-                        to_examine.append((default, self.load(default)))
-
-        return True
-
-    def _register_plugin(self, module_name: str, plugin: PluginBase):
-        self.plugins[module_name] = plugin
-        for attr_name in dir(plugin):
-            if attr_name[0] == "_":
-                continue
-            if attr_name in dir(PluginBase):  # ignore base methods of plugins
-                continue
-            callback = getattr(plugin, attr_name)
-            if not hasattr(callback, '__call__'):
-                continue
-            LOGGER.debug("- %s.%s()", str(type(plugin)), attr_name)
-            self.callbacks[attr_name].append((
-                plugin.PRIORITY, str(type(plugin)), callback
-            ))
-            self.callbacks[attr_name].sort(reverse=True)
-
-    def _init(self, module, stack=list()):
-        nb = 0
-        if module in self._initialized:
-            return nb
-
-        if module in stack:
-            LOGGER.error("Dependency loop:")
-            for p in itertools.chain(stack, [module]):
-                LOGGER.error(
-                    "- %s %s depends on %s",
-                    p, p.get_interfaces(),
-                    [d['interface'] for d in p.get_deps()]
-                )
-            raise DependencyException("Dependency loop: %s" % str(stack))
-
-        stack.append(module)
-
-        self.initialized = True
-
-        deps = module.Plugin.get_deps()
-        for dep in deps:
-            dep_modules = self.interfaces[dep['interface']]
-            for dep_module in dep_modules:
-                nb += self._init(dep_module, stack)
-
-        LOGGER.info("Initializing plugin '%s' ...", module)
-        stack.remove(module)
-        plugin = module.Plugin(self)
-        LOGGER.debug("Registering plugin '%s' ...", str(type(plugin)))
-
-        self._register_plugin(module.__name__, plugin)
-        nb += 1
-
-        self._initialized.add(module)
-        return nb
+        self._module_repository.add(module_name, module, kwargs)
 
     def init(self):
         """
-        - Instantiate the Plugin
+        - Instantiate all the Plugin
         - Make sure all the dependencies of all the plugins are satisfied.
         - Call the method init() of each plugin following the dependency
           order (those without dependencies are called first).
 
         BEWARE of dependency loops !
         """
-        LOGGER.info("Initializing all plugins")
-        while not self._check_deps():
-            pass
-        nb = 0
-        for module in self._to_initialize:
-            nb += self._init(module)
-        self._to_initialize = set()
-        LOGGER.info("%d plugins initialized", nb)
+        has_missing_dependencies = True
+        while has_missing_dependencies:
+            has_missing_dependencies = False
+            missing_dependencies = list(self._module_repository.get_missing_dependencies())
+            for (module, interface, defaults) in missing_dependencies:
+                has_missing_dependencies = True
+                if not self._auto_load_dependencies:
+                    raise DependencyException(
+                        f"{module} requires interfaces {str(interface)},"
+                        f" but no loaded plugin implement it. Suggested: {defaults}"
+                    )
+                if len(defaults) <= 0:
+                    raise DependencyException(
+                        f"{module} requires interfaces {str(interface)},"
+                        " but no default provided"
+                    )
+                for default in defaults:
+                    LOGGER.info(
+                        "Auto-loading '%s' because of '%s' requiring '%s'",
+                        default, module, interface
+                    )
+                    m = self._module_repository.add(default, None, {})
+                    if interface not in m.module.Plugin.get_interfaces():
+                        raise DependencyException(
+                            f"{default} was loaded to satisfy {module}"
+                            f" dependency on {str(interface)},"
+                            f" but {default} doesn't implement {str(interface)}"
+                        )
 
-    def get_by_name(self, module_name):
+        dep_tree = _DependencyTree(self._module_repository)
+        dep_tree.log()
+        dep_tree.find_dependency_loop()
+
+        for module in dep_tree.get_init_order():
+            self._plugin_repository.add(module)
+
+        # reload core proxies that were already existing before this init()
+        self._plugin_repository.reload_all_core_proxies()
+
+    def get_by_name(self, module_name: str) -> PluginBase:
         """
         Returns a Plugin instance based on the corresponding module name
         (assuming it has been loaded).
@@ -312,25 +643,12 @@ class Core(object):
         - unit tests
         - configuration (see cmd.plugins)
         """
-        return self.plugins[module_name]
+        module = self._module_repository.get_by_name(module_name)
+        plugin = self._plugin_repository.get_by_module(module)
+        return plugin
 
-    def get_by_interface(self, module_name):
-        return self.interfaces.get(module_name, [])
-
-    def _check_call_limit(self, callback_name):
-        if self.count_limit_per_second <= 0:
-            return
-        now = time.time()
-        if now - self.counters_last_reset >= 1.0:
-            self.counters = collections.defaultdict(lambda: 0)
-            self.counters_last_reset = now
-        self.counters[callback_name] += 1
-        if self.counters[callback_name] >= self.count_limit_per_second:
-            raise Exception(
-                "Too many calls to '{}' (>= {}) in one second".format(
-                    callback_name, self.count_limit_per_second
-                )
-            )
+    def get_by_interface(self, interface: Type[abc.ABC]) -> List[PluginBase]:
+        return self._plugin_repository.get_by_interface(interface)
 
     def call_all(self, callback_name, *args, **kwargs):
         """
@@ -358,42 +676,9 @@ class Core(object):
            Core <- "Plugin C": returns "something_c"
            Caller <- Core: returns 3
         """
-        if self.log_all:
-            print(
-                "[{}] call_all({}, args={}, kwargs={})".format(
-                    time.time(), callback_name, args, kwargs
-                )
-            )
+        return self._plugin_repository.call_all(abstract_callback, *args, **kwargs)
 
-        assert \
-            self.initialized, \
-            "A plugin has been loaded without being initialized." \
-            " Call core.init() first"
-
-        self._check_call_limit(callback_name)
-
-        callbacks = self.callbacks[callback_name]
-        if len(callbacks) <= 0:
-            if callback_name.startswith("on_"):
-                # those are 'observer' callback. If nobody is observing,
-                # it's usually fine.
-                log_method = LOGGER.debug
-            else:
-                log_method = LOGGER.warning
-            log_method("No method '%s' found", callback_name)
-            return 0
-        for (priority, plugin, callback) in callbacks:
-            if self.log_all:
-                print(
-                    "[{}] call_all({}, args={}, kwargs={}) -> {}:{}".format(
-                        time.time(), callback_name, args, kwargs,
-                        priority, callback
-                    )
-                )
-            callback(*args, **kwargs)
-        return len(callbacks)
-
-    def call_one(self, callback_name, *args, **kwargs):
+    def call_one(self, abstract_callback, *args, **kwargs):
         """
         Look for a plugin method called `callback_name` and calls it.
         Raises an error if no such method exists. If many exists,
@@ -414,33 +699,9 @@ class Core(object):
         when you're fairly sure there should be only one plugin with such
         callback (example: mainloop plugins).
         """
-        assert \
-            self.initialized, \
-            "A plugin has been loaded without being initialized." \
-            " Call core.init() first"
+        return self._plugin_repository.call_one(abstract_callback, *args, **kwargs)
 
-        self._check_call_limit(callback_name)
-        if self.log_all:
-            print(
-                "[{}] call_one({}, args={}, kwargs={})".format(
-                    time.time(), callback_name, args, kwargs
-                )
-            )
-        callbacks = self.callbacks[callback_name]
-        if len(callbacks) <= 0:
-            raise IndexError(
-                "No method '{}' found !".format(callback_name)
-            )
-        if self.log_all:
-            print(
-                "[{}] call_one({}, args={}, kwargs={}) -> {}:{}".format(
-                    time.time(), callback_name, args, kwargs,
-                    callbacks[0][0], callbacks[0][2]
-                )
-            )
-        return callbacks[0][2](*args, **kwargs)
-
-    def call_success(self, callback_name, *args, **kwargs):
+    def call_success(self, abstract_callback, *args, **kwargs):
         """
         Call methods of all the plugins that have `callback_name`
         as name until one of them return a value that is not None.
@@ -465,57 +726,7 @@ class Core(object):
            Core <- "Plugin C": returns "something"
            Caller <- Core: returns "something"
         """
-        assert \
-            self.initialized, \
-            "A plugin has been loaded without being initialized." \
-            " Call core.init() first"
+        return self._plugin_repository.call_success(abstract_callback, *args, **kwargs)
 
-        self._check_call_limit(callback_name)
-        if self.log_all:
-            print(
-                "[{}] call_one({}, args={}, kwargs={})".format(
-                    time.time(), callback_name, args, kwargs
-                )
-            )
-        callbacks = self.callbacks[callback_name]
-        if len(callbacks) <= 0:
-            LOGGER.warning("No method '%s' found", callback_name)
-        for (priority, plugin, callback) in callbacks:
-            if self.log_all:
-                msg = "[{}] call_success({}, args={}, kwargs={}) -> {}:{}"
-                print(msg.format(
-                    time.time(), callback_name, args, kwargs, priority,
-                    callback
-                ))
-            r = callback(*args, **kwargs)
-            if r is not None:
-                return r
-        return None
-
-    def get_deps(self, plugin_name):
-        plugin = self.plugins[plugin_name]
-        for dep in plugin.get_deps():
-            if 'interface' not in dep:
-                raise KeyError(
-                    "Missing interface in dependency list of plugin"
-                    " '{}'".format(plugin_name)
-                )
-            if 'defaults' not in dep:
-                raise KeyError(
-                    "Missing default plugins in dependency list of plugin"
-                    " '{}' (interface={})".format(
-                        plugin_name, dep['interface']
-                    )
-                )
-
-            yield {
-                'interface': dep['interface'],
-                'actives': {
-                    x.__module__
-                    for x in self.interfaces[dep['interface']]
-                },
-                'defaults': set(dep['defaults']),
-            }
-
-    def get_active_plugins(self):
-        return self.plugins.keys()
+    def get_active_plugins(self) -> List[str]:
+        return sorted(self._module_repository.modules.keys())

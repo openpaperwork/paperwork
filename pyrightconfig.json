@@ -1,0 +1,11 @@
+{
+    "reportOptionalMemberAccess": false,
+    "reportOptionalSubscript": false,
+    "reportOptionalCall": false,
+    "reportOptionalIterable": false,
+    "reportOptionalContextManager": false,
+    "reportOptionalOperands": false,
+    "reportOptionalIterable": false,
+    "venv": "venv",
+    "venvPath": "."
+}

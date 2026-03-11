@@ -3,12 +3,12 @@ import sys
 import threading
 import time
 
-from openpaperwork_core.interfaces.gui import GuiListener
-from openpaperwork_core.interfaces.mainloop import Mainloop
-from openpaperwork_core.interfaces.mainloop import MainloopListener
+from openpaperwork_core.interfaces.mainloop import (
+    Mainloop,
+    MainloopListener
+)
 from openpaperwork_core.interfaces.progress import ProgressListener
 import openpaperwork_core
-import openpaperwork_core.deps
 import openpaperwork_core.util
 
 from openpaperwork_gtk.interfaces.gtk import GtkResources
@@ -130,14 +130,13 @@ class ProgressDialog:
 
     def _suicide(self, *args, **kwargs):
         LOGGER.warning("User requested a forced quit")
-        # In theory, the following shouldn't hurt any more than a power outtage
+        # In theory, the following shouldn't hurt any more than a power outage
         # and is really reliable way to end Paperwork
         sys.exit(0)
 
 
 class Plugin(
     openpaperwork_core.PluginBase,
-    GuiListener,
     MainloopListener,
     ProgressListener,
     metaclass=openpaperwork_core.util.Singleton
@@ -160,26 +159,15 @@ class Plugin(
         self.dialog = None
         self.progresses = {}
         self.lock = threading.Lock()
-        self.nb_main_windows = 0
-
-    def on_gui_initialized(self):
-        self.nb_main_windows += 1
-
-    @openpaperwork_core.noop
-    def new_mainwindow(self):
-        pass
-
-    def _mainloop_quit_graceful(self):
-        self.dialog = ProgressDialog(self)
 
     @openpaperwork_core.noop
     def on_mainloop_start(self):
         pass
 
     def on_mainloop_quit_graceful_request(self):
-        self.nb_main_windows -= 1
-        if self.nb_main_windows <= 0:
-            self.core.call_one(Mainloop.mainloop_execute, self._mainloop_quit_graceful)
+        if self.dialog is not None:
+            raise AssertionError()
+        self.dialog = ProgressDialog(self)
 
     @openpaperwork_core.noop
     def on_mainloop_quit(self):

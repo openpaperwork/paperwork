@@ -82,7 +82,7 @@ class Plugin(
         )
         self.core.call_success(Scan.scan_schedule, promise)
 
-        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
         self.core.call_one(Mainloop.mainloop)
 
         return True

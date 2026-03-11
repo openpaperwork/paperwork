@@ -137,7 +137,7 @@ class Plugin(
         self.core.call_all(Config.config_put, "https_server", True)
 
         self.core.call_all(DocTransactionManager.transaction_sync_all)
-        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
         self.core.call_one(Mainloop.mainloop)
 
         self.core.call_all(HttpsBackend.https_backend_reload)

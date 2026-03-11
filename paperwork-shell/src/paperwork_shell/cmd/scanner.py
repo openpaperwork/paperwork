@@ -144,7 +144,7 @@ class Plugin(
         promise = self.core.call_success(Scan.scan_list_scanners_promise)
         promise = promise.then(self._get_scanners_info, console)
         self.core.call_success(Scan.scan_schedule, promise)
-        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
         self.core.call_one(Mainloop.mainloop)
 
     def _print_scanners(self, console):
@@ -247,7 +247,7 @@ class Plugin(
 
         promise = promise.then(lambda source: source.close())
         self.core.call_success(Scan.scan_schedule, promise)
-        self.core.call_all(Mainloop.mainloop_quit_graceful)
+        self.core.call_success(Mainloop.mainloop_quit_graceful)
         self.core.call_one(Mainloop.mainloop)
 
         self.core.call_all(

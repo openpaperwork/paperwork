@@ -22,6 +22,7 @@ GUI_PLUGINS = [
     'openpaperwork_gtk.dialogs.single_entry',
     'openpaperwork_gtk.dialogs.yes_no',
     'openpaperwork_gtk.pixbuf.pillow',
+    'openpaperwork_gtk.quit_when_all_windows_closed',
     'openpaperwork_gtk.resources',
     'openpaperwork_gtk.screenshots',
     'openpaperwork_gtk.uncaught_exception',

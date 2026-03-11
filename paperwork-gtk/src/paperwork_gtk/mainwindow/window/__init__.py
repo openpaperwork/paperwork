@@ -236,7 +236,6 @@ class Plugin(
     def _on_mainwindow_destroy(self, main_window):
         LOGGER.info("Main window destroy. Quitting")
         self.core.call_all(GtkWindowListener.on_gtk_window_closed, self.mainwindow)
-        self.core.call_all(Mainloop.mainloop_quit_graceful)
 
     def _on_mainwindow_size_allocate(self, main_win, rectangle):
         (w, h) = main_win.get_size()

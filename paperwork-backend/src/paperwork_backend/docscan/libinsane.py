@@ -89,7 +89,7 @@ def raw_to_img(params, img_bytes):
     assert fmt == Libinsane.ImgFormat.RAW_RGB_24
     w = params.get_width()
     h = int(len(img_bytes) / 3 / w)
-    LOGGER.info(
+    LOGGER.debug(
         "raw_to_img(): w=%s, h=%d, len(img_bytes)=%d",
         w, h, len(img_bytes)
     )

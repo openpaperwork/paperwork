@@ -131,7 +131,6 @@ class Scan(GObject.GObject):
 
     def get_size(self):
         size = self.get_full_size()
-        LOGGER.info("Scan size: %dx%d", size[0], size[1])
         return (
             int(size[0] * self.zoom),
             int(size[1] * self.zoom)
@@ -265,6 +264,8 @@ class Plugin(
         pass
 
     def on_scan_chunk(self, scan_id, *args, **kwargs):
+        if self.scan is None:
+            return
         self.scan.resize()
 
     def on_scan2doc_page_scanned(self, scan_id, doc_id, doc_url, page_idx):

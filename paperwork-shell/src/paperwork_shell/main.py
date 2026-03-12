@@ -92,7 +92,7 @@ def main_main(in_args, application_name, default_plugins, interactive):
     core.call_all(Config.config_load)
     core.call_all(Config.config_load_plugins, application_name, default_plugins)
 
-    core.call_all(LogManager.init_logs, application_name, "info")
+    core.call_all(LogManager.init_logs, application_name, "warning")
 
     parser = argparse.ArgumentParser()
     cmd_parser = parser.add_subparsers(
